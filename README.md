@@ -12,10 +12,10 @@ leaves your machine. Works on desktop, tablet and phone.
 
 | View | What it is for |
 | --- | --- |
-| **Map** | One brain map that expands and collapses in place. The goal sits in the centre; the twelve domains are always on the first ring; clicking a domain fans its topics out around it; clicking a topic fans out everything it connects to (related topics with a dashed line back to their home domain, design smells it diagnoses, tools) and opens the full topic in the reading drawer beside the map. Hover shows why an edge exists. Drag to pan, wheel to zoom, "fit" to reset. The camera keeps your zoom level when you click: it pans smoothly to the branch you opened (keeping the centre in view), zooms out only when a fan does not fit, and never zooms in on its own; "fit" and "collapse" animate. New nodes fade in. The open branch, selected node and zoom are saved, so `#/map` always returns to where you were, and every other view shows a **Back to map** dock (or press `M`) that lands on the exact spot. Routes: `#/map/d/<domain>`, `#/map/t/<topic>`, `#/map/s/<smell>`, `#/map/home`. |
-| **Explore** | A list view of the same 70 topics for people who prefer lists. Every link opens the topic on the map. Every topic has the same eight parts: What is it, Why it matters, How a human should think about it, How to actually do it, What AI should and should not do, How to prompt AI, How to verify AI output, What to playtest. Related concepts always say *why* they connect. |
-| **Diagnose** | Start from a symptom. 19 design smells (each with likely causes, an experiment per cause and a diagnostic prompt), the Fun Diagnostic (19 dimensions of fun), the Core Loop diagnostic (Action → Feedback → Decision → Consequence → New situation), the Unfairness diagnostic, the Depth-vs-Complexity rule audit, and the Content-or-Mechanic decision tree. |
-| **Build** | Ten working tools. **Reference Dissection** (is my idea actually good? Pick the games your player already plays from a library of fourteen dissected successes or add your own; each is taken apart with one template: want served, core verb, first 30 seconds, decision per minute, why it worked, what players complain about, what copies miss; then seven cross-reference questions produce a verdict: promising, derivative, unproven, undeliverable, or needs work, with the next test), **Idea Finder** (for people who do not yet know what to make: a specific player → what they love, complain about and wish for → kinds of fun → constraints → fantasy collisions to react to → core verb and loop → versus what; outputs a positioning sentence, a hypothesis, three "want tests" to run before building, and prompts for complaint mining, concept expansion and devil's advocate), Game Loop Builder, Core Experience Canvas, Behavior Ladder (feature → behavior → system → mechanic → feature), Should We Build This? (nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE), Playtest Hypothesis Builder, AI Delegation Planner, System Relationship Map, AI Prompt Generator. Each exports Markdown. |
+| **Map** | One brain map that expands and collapses in place. The goal sits in the centre; the thirteen domains (including In-game AI, for NPCs, navigation, perception, directors and fairness) are always on the first ring; clicking a domain fans its topics out around it; clicking a topic fans out everything it connects to (related topics with a dashed line back to their home domain, design smells it diagnoses, tools) and opens the full topic in the reading drawer beside the map. Hover shows why an edge exists. Drag to pan, wheel to zoom, "fit" to reset. The camera keeps your zoom level when you click: it pans smoothly to the branch you opened (keeping the centre in view), zooms out only when a fan does not fit, and never zooms in on its own; "fit" and "collapse" animate. New nodes fade in. The open branch, selected node and zoom are saved, so `#/map` always returns to where you were, and every other view shows a **Back to map** dock (or press `M`) that lands on the exact spot. Rings are adaptive: the first ring widens as domains are added, and a domain's topic fan grows its radius and uses the minimum angular spacing it needs, so a domain can hold far more topics (or the guide far more domains) without labels colliding. Routes: `#/map/d/<domain>`, `#/map/t/<topic>`, `#/map/s/<smell>`, `#/map/home`. |
+| **Explore** | A list view of the same 80 topics for people who prefer lists. Every link opens the topic on the map. Every topic has the same eight parts: What is it, Why it matters, How a human should think about it, How to actually do it, What AI should and should not do, How to prompt AI, How to verify AI output, What to playtest. Topics with a real implementation decision also carry a **Techniques to compare** section (how each technique works, when it fits, what it costs, what to watch out for). Related concepts always say *why* they connect. |
+| **Diagnose** | Start from a symptom. 24 design smells (each with likely causes, an experiment per cause and a diagnostic prompt), the Fun Diagnostic (19 dimensions of fun), the Core Loop diagnostic (Action → Feedback → Decision → Consequence → New situation), the Unfairness diagnostic, the Depth-vs-Complexity rule audit, and the Content-or-Mechanic decision tree. |
+| **Build** | Eleven working tools. **Reference Dissection** (is my idea actually good? Pick the games your player already plays from a library of fourteen dissected successes or add your own; each is taken apart with one template: want served, core verb, first 30 seconds, decision per minute, why it worked, what players complain about, what copies miss; then seven cross-reference questions produce a verdict: promising, derivative, unproven, undeliverable, or needs work, with the next test), **Idea Finder** (for people who do not yet know what to make: a specific player → what they love, complain about and wish for → kinds of fun → constraints → fantasy collisions to react to → core verb and loop → versus what; outputs a positioning sentence, a hypothesis, three "want tests" to run before building, and prompts for complaint mining, concept expansion and devil's advocate), Game Loop Builder, Core Experience Canvas, Behavior Ladder (feature → behavior → system → mechanic → feature), Should We Build This? (nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE), Playtest Hypothesis Builder, AI Delegation Planner, System Relationship Map, AI Prompt Generator, In-game AI Technique Chooser (decision shape + team + budget → primary technique, trade-offs, debug view). Each exports Markdown. |
 | **AI Workflow** | The 12-step AI-era development loop (mark where your project is), the bottleneck-shift philosophy, nine AI roles with use / do-not-use conditions and starter prompts, the Human-vs-AI responsibility matrix, the prompting formula, and the catalogue "When AI makes your game worse" (14 failure modes with symptom, cause, detector, correction). |
 | **Playtest** | The truth machine: say versus do versus context, the question bank, methods and what each is blind to, the session flow, and analysis prompts that keep AI out of the decision. |
 | **Prompts** | 17 reusable prompt templates with fill-in variables (brainstorming, critique, systems, economy, progression, level design, UX audit, narrative, playtest analysis, balancing, scope reduction, prototype brief, implementation, refactor, postmortem, verification). |
@@ -73,11 +73,13 @@ use it, host it, or share it. You can delete `src/` and keep the one file.
 `src/` exists only for maintenance. The guide is about 550 KB of content and code
 in one file, so the source is split into readable parts: one data file per group of
 domains, the map geometry, the app, and the map view. Editing a topic in a 60 KB
-data file is easier than in a 550 KB HTML file. `build.js` simply concatenates the
-parts in order and then runs `validate.js` (every cross-link resolves, every topic
-has all eight parts) and a syntax check, so a typo in a topic id fails loudly
-instead of producing a dead link. `check-layout.js` renders every map state and
-reports label overlaps. All three are plain Node scripts with no dependencies.
+data file is easier than in a 550 KB HTML file. `build.js` concatenates the parts in
+order (the file list lives in one place, `manifest.js`) and then runs `validate.js`
+(every cross-link resolves, every topic has all eight parts), `check-layout.js`
+(every map state is rendered and label overlaps are checked) and a syntax check, so
+a typo in a topic id or an overlap in the map fails the build loudly instead of
+producing a dead link or a collision. All scripts are plain Node with no
+dependencies.
 
 Two valid ways to edit:
 
@@ -99,13 +101,20 @@ src/                   optional: sources and maintenance scripts (see above)
   14-data-diagnostics.js      smells, fun dimensions, core-loop and unfairness diagnostics
   15-data-ai.js               roles, failure modes, matrix, loop steps, prompt templates, checklists, feature tree
   16-data-references.js reference library of dissected successful games + the "dissect games that succeeded" topic
-  89-graph.js          brain map geometry (one expandable radial map, radial labels)
+  17-data-topics-gameai.js  In-game AI domain: NPC/enemy behaviour, perception, navigation, fairness, directors, ML, budgets
+  18-data-tech.js      technique breakdowns for systems, content and core gameplay topics
+  19-data-tech.js      technique breakdowns for presentation, UX, narrative and production topics
+  20-data-tech.js      technique breakdowns for experience, level and remaining topics
+  21-data-tech.js      technique breakdowns for the AI Collaboration topics
+  89-graph.js          brain map geometry (adaptive radial rings, radial labels)
   90-app.js            router, views, tools, search
   91-map.js            map view: drawer, pan/zoom, persistence, return dock
   92-ideas.js          Reference Dissection tool
   99-tail.js           boot
-  build.js             concatenates sources, validates, syntax-checks
-  check-layout.js      renders every map state and reports label overlaps (oriented boxes)
+  manifest.js          ordered list of source files (single place to add/rename one)
+  build.js             concatenates sources, validates data, layout and syntax
+  layout-core.js       reusable map overlap checker (no dependencies)
+  check-layout.js      runs layout-core over every map state; fails on any overlap
   validate.js          node script: every cross-link resolves, every topic complete
   research-notes.md    verified sources behind the synthesis
   serve.js             optional local static server for previewing (not needed to use the guide)
@@ -121,7 +130,8 @@ node src/build.js
 
 Add a topic with `T('topic-id', {...})` in the data file for its domain. Required
 fields: `d, t, tag, what, why, think{q,trade,traps,good,bad}, how, ai{yes,no},
-prompts[{l,p}], verify, test, rel[[id,why]]`. Add a smell to `SMELLS` with
+prompts[{l,p}], verify, test, rel[[id,why]]`. Optional `tech[{n,how,fit,cost,alt}]`
+adds a "Techniques to compare" section. Add a smell to `SMELLS` with
 `causes[{c, top, exp}]` where `top` is a topic id. The validator fails on any
 unresolved link or missing section, so it is safe to refactor.
 

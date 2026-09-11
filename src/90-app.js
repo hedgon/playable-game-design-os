@@ -102,7 +102,7 @@ function renderExplore(domainId){
       <div class="grid c2">${d.links.map(([to, why]) => `<div class="card clickable" onclick="location.hash='#/explore/${to}'"><b style="color:${DOM[to].color}">${esc(d.t)} ↔ ${esc(DOM[to].t)}</b><p class="dim small" style="margin:4px 0 0">${esc(why)}</p></div>`).join('')}
       ${DOMAINS.filter(o => o.links.some(([to]) => to === d.id) && !d.links.some(([to]) => to === o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<div class="card clickable" onclick="location.hash='#/explore/${o.id}'"><b style="color:${o.color}">${esc(o.t)} ↔ ${esc(d.t)}</b><p class="dim small" style="margin:4px 0 0">${esc(why)}</p></div>`; }).join('')}</div>`;
   } else {
-    main = `${crumbs([['Map','#/map'],['Explore']])}<h1>Explore all domains</h1><p class="dim">Twelve domains, ${TOPIC_LIST.length} topics. Each topic has the same eight practical parts, so you always know where the prompt patterns, verification questions and playtest questions are.</p>
+    main = `${crumbs([['Map','#/map'],['Explore']])}<h1>Explore all domains</h1><p class="dim">${DOMAINS.length} domains, ${TOPIC_LIST.length} topics. Each topic has the same practical parts (some add a techniques breakdown to compare implementation approaches), so you always know where the prompt patterns, verification questions and playtest questions are.</p>
       <div class="grid auto">${DOMAINS.map(d => `<div class="card clickable tint" style="--dc:${d.color}" onclick="location.hash='#/explore/${d.id}'"><h3>${esc(d.t)}</h3><p class="dim small">${esc(d.short)}</p><div class="small muted">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</div></div>`).join('')}</div>`;
   }
   setView(`<div class="split">${sidebar(domainId)}<div>${main}</div></div>`);
@@ -118,6 +118,7 @@ function sectionBody(key, t){
       <div class="box trap"><h4>Common traps</h4>${list(t.think.traps)}</div>
       <div class="box good"><h4>Signals of good design</h4>${list(t.think.good)}<h4 style="margin-top:8px;color:var(--bad)">Signals of bad design</h4>${list(t.think.bad)}</div></div>`;
     case 'how': return `<ol class="numbered">${t.how.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`;
+    case 'tech': return `<p class="small dim">Techniques that solve this, compared on how they work, when they fit, and what they cost. Pick one to prototype, not all of them.</p><div class="think-grid">${(t.tech||[]).map(x => `<div class="box"><h4>${esc(x.n)}</h4><div class="small"><b>How it works.</b> ${esc(x.how)}</div><div class="small" style="margin-top:4px"><b>Fits when.</b> ${esc(x.fit)}</div><div class="small" style="margin-top:4px"><b>Cost / risk.</b> ${esc(x.cost)}</div><div class="small muted" style="margin-top:4px"><b>Watch out / instead.</b> ${esc(x.alt)}</div></div>`).join('')}</div>`;
     case 'ai': return `<div class="ai-split"><div class="box yes"><h4 style="color:var(--d-ai)">AI is good at</h4>${list(t.ai.yes)}</div><div class="box no"><h4 style="color:var(--d-player)">AI should not decide</h4>${list(t.ai.no)}</div></div>`;
     case 'prompts': return (t.prompts||[]).map(p => promptBox(p.l, p.p)).join('') + `<p class="small muted" style="margin-top:8px">Every prompt assumes you filled the brackets with your real player, fantasy, loop, constraints and evidence. Unfilled brackets produce genre averages. See ${topicLink('prompting-framework')} and the <a href="#/build/prompt">Prompt Generator</a>.</p>`;
     case 'verify': return list(t.verify) + `<details><summary>Universal verification questions (apply to every AI output)</summary><div class="body">${list(['What assumptions are you making? Mark each as given, inferred, or invented.','What evidence supports this?','What could make this fail?','What player behavior would prove this wrong?','Is this solving the actual problem or producing more content?','Is this complexity necessary?','What is the smallest prototype that tests this?','What alternatives did we reject?','What tradeoff are we making?'])}<a class="btn sm" href="#/checklists/ai-verify">Open the verification checklist</a></div></details>`;
@@ -135,12 +136,13 @@ function topicBody(id){
   const prev = idx > 0 ? d.topics[idx-1] : null, next = idx < d.topics.length-1 ? d.topics[idx+1] : null;
   const openSecs = new Set(store.get('openSecs', ['what','why','think']));
   const secs = SECTION_META.map(([key, letter, title]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header onclick="__toggleSec(this.parentElement)"><span class="letter">${letter}</span><h3>${esc(title)}</h3><span class="car">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join('');
+  const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header onclick="__toggleSec(this.parentElement)"><span class="letter">T</span><h3>Techniques to compare</h3><span class="car">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
   const rel = (t.rel||[]).map(([rid, why]) => { const rt = TOPICS[rid]; const v = VIEW_LINKS[rid]; const href = rt ? `#/topic/${rid}` : (v ? v[0] : '#/explore'); const label = rt ? rt.t : (v ? v[1] : rid); const dc = rt ? DOM[rt.d].color : 'var(--accent)'; return `<div class="rel" onclick="location.hash='${href}'" style="border-left:3px solid ${dc}"><b>${esc(label)}</b><div class="why">${esc(why)}</div></div>`; }).join('');
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
   const main = `${crumbs([['Map','#/map'],['Explore','#/explore'],[d.t,'#/explore/'+d.id],[t.t]])}
     <div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       <div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div></div>
-    ${secs}
+    ${secs}${techSec}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
     ${smells.length ? `<div class="section-head"><h2>Design smells this topic helps diagnose</h2></div><div class="chips">${smells.map(s => `<span class="chip" style="cursor:pointer;padding:6px 10px" onclick="location.hash='#/smell/${s.id}'">${esc(s.t)}</span>`).join('')}</div>` : ''}
@@ -284,12 +286,13 @@ const TOOLS = [
   ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…'],
   ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required'],
   ['sysmap','System Relationship Map','Nodes and typed edges; collision questions generated'],
-  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE']
+  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE'],
+  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view']
 ];
 function renderBuild(tool='idea'){
   const head = `${crumbs([['Map','#/map'],['Build']])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
     <div class="tool-nav">${TOOLS.map(([id, t, s]) => `<button class="${id===tool?'active':''}" onclick="location.hash='#/build/${id}'">${t}<small>${s}</small></button>`).join('')}</div>`;
-  const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt }[tool] || toolIdea;
+  const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt, gameai: toolGameAI }[tool] || toolIdea;
   setView(head + `<div class="tool" id="tool"></div>`);
   fn($('#tool'));
 }
@@ -419,6 +422,57 @@ function toolPrompt(el){
     const missing = parts.filter(p => !v(p[0])).map(p => p[1]);
     $('#pg_out').innerHTML = `<h4>Generated prompt</h4>${outputBox(txt)}${missing.length ? `<div class="callout warn"><b>Unfilled:</b> ${missing.join(', ')}. ${missing.includes('EVIDENCE') ? 'No evidence: consider making the task "design the test" instead of "design the feature".' : ''} ${missing.includes('INTENT') ? 'No intent: the AI will pick the decision for you.' : ''}</div>` : '<div class="callout ok">All eight terms filled. After the output, run the verification pass.</div>'}<div class="row"><a class="btn sm" href="#/prompts/verify">Verification pass prompt</a><a class="btn sm" href="#/ai/roles">Choose a role</a><a class="btn sm" href="#/prompts">Prompt library</a></div>`;
   });
+}
+
+/* ---------- In-game AI Technique Chooser ---------- */
+function toolGameAI(el){
+  const cfg = store.get('gameaiTool', { shape:'states', author:'designer', debug:'explain', agents:'medium', goal:'' });
+  const save = () => store.set('gameaiTool', cfg);
+  const OPTS = {
+    shape:[['states','One mode at a time (idle, patrol, chase, attack, flee)'],['tasks','Prioritised tasks and shared sub-behaviour'],['factors','Many factors trade off every moment (fight, cover, heal, reposition)'],['plan','A multi-step plan to reach a goal']],
+    author:[['designer','A designer retunes behaviour in data after launch'],['engineer','Only an engineer changes behaviour (it lives in code)']],
+    debug:[['explain','Every choice must be explainable on the spot'],['opaque','I accept hard-to-explain if it is tunable']],
+    agents:[['low','A few agents at once (under 10)'],['medium','A moderate crowd (10 to 40)'],['high','Many (40+) or an open world']]
+  };
+  const LABEL = { shape:'Decision shape', author:'Who retunes behaviour after launch', debug:'Explainability', agents:'Worst-case simultaneous agents' };
+  el.innerHTML = toolHead('In-game AI Technique Chooser','Describe the hardest decision the agent must make, then answer what shape it is and the constraints that actually decide architecture: who retunes it, how much you must explain, and how many agents run at once. The tool names a primary technique, its trade-offs, and the debug view and budget you will need. It is a heuristic, not a verdict.','gameaiTool') +
+    `<div class="grid c2"><div>
+      ${field('ga_goal','The hardest decision the agent must make','Plain language. Example: "choose between attacking, taking cover, healing an ally, or repositioning, many times a minute."', cfg.goal, 3)}
+      ${Object.keys(OPTS).map(k => `<div class="field"><label>${LABEL[k]}</label><select data-k="${k}">${OPTS[k].map(([v,l]) => `<option value="${v}" ${cfg[k]===v?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`).join('')}
+    </div><div id="ga_out"></div></div>`;
+  const recommend = () => {
+    const base = {
+      states:{ primary:'Finite state machine (FSM)', why:'Exclusive modes with explicit transitions are the easiest thing to reason about, hand-author and debug.', cost:'Transitions multiply combinatorially and it handles decisions that mix several factors badly.', fallback:'Move to a behaviour tree once shared sub-behaviour or the state count grows.', debug:'Current state, plus the condition that caused the last transition.' },
+      tasks:{ primary:'Behaviour tree', why:'Composable priorities and reusable subtrees that a designer can read and extend.', cost:'Priority mistakes cause never-fires branches; conditions must stay cheap.', fallback:'Add a utility selector when the "priorities" are really weighted trade-offs.', debug:'The active path from root, with the failed condition at each fall-through.' },
+      factors:{ primary:'Utility AI (decision layer) + a BT/FSM executor', why:'Scores many competing considerations smoothly and is tunable through weights and response curves.', cost:'Hard to explain a single decision; poor curves make behaviour feel mushy.', fallback:'A BT with explicit priorities if the factors reduce to a clear order.', debug:'The score of every candidate action and each consideration contribution.' },
+      plan:{ primary:'Goal-oriented planner (GOAP / HTN)', why:'Long-horizon, emergent, multi-step behaviour that uses the same world rules as the player.', cost:'Heavy action authoring, a search budget, valid-but-absurd plans, and the hardest debugging of the family.', fallback:'Keep a BT/utility system for the mass of agents and the planner for one showcase archetype.', debug:'The chosen plan, the actions considered, their costs and unmet preconditions.' }
+    }[cfg.shape];
+    const warn = [];
+    if(cfg.author === 'engineer') warn.push('Behaviour in code means designers wait on engineering for every balance pass. Budget a data/tooling layer or accept slow iteration.');
+    if(cfg.debug === 'explain' && (cfg.shape === 'factors' || cfg.shape === 'plan')) warn.push('This technique is the hardest of the family to explain; the debug view is not optional, and neither is a fallback for the cheap common case.');
+    if(cfg.agents === 'high') warn.push('At this agent count, stagger perception and decisions, time-slice pathfinding, and LOD distant agents. Most agents must run cheap behaviour; reserve the full system for the few on camera.');
+    if(cfg.agents === 'high' && cfg.shape === 'plan') warn.push('A planner for the whole crowd is usually a budget and debug trap. Keep it to a handful of agents.');
+    const budget = cfg.agents === 'low' ? 'Cap pathfinding frequency and cache routes; you still have headroom, but do not path every frame.'
+      : cfg.agents === 'medium' ? 'Set an explicit per-frame AI budget, stagger perception (~10 Hz) and decisions (~5 Hz), keep motion every frame.'
+      : 'Partition and LOD are mandatory: the many run cheap behaviour, the few get the full system. Test at the worst-case count on target hardware.';
+    return { ...base, warn, budget };
+  };
+  const out = () => {
+    const r = recommend();
+    const goal = (cfg.goal || '[THE HARDEST DECISION]').trim();
+    const md = `# In-game AI technique plan\n\n**Hardest decision:** ${goal}\n\n**Recommendation:** ${r.primary}\n\n- Why: ${r.why}\n- Cost / risk: ${r.cost}\n- If it fails: ${r.fallback}\n- Debug view: ${r.debug}\n- Budget: ${r.budget}\n\n## Prompt (paste to AI)\nAct as a gameplay AI engineer. Our agent must make this decision: ${goal}. Team constraints: ${cfg.author === 'designer' ? 'designers retune behaviour in data after launch' : 'behaviour changes require an engineer'}. Explainability need: ${cfg.debug === 'explain' ? 'every choice must be explainable on the spot' : 'opaque is acceptable if it is tunable'}. Worst-case simultaneous agents: ${cfg.agents}. We are leaning toward ${r.primary}. Attack this choice: name the specific failure that would make us regret it, describe the debug view we need, the worst-case test we must run, and the cheapest fallback if we are wrong. Do not write code.`;
+    $('#ga_out').innerHTML = `<h4>Recommendation</h4><div class="quotebig" style="font-size:1.05rem">${esc(r.primary)}</div>
+      <div class="small" style="margin:6px 0"><b>Why.</b> ${esc(r.why)}</div>
+      <div class="small"><b>Cost / risk.</b> ${esc(r.cost)}</div>
+      <div class="small"><b>If it fails.</b> ${esc(r.fallback)}</div>
+      <div class="small"><b>Debug view.</b> ${esc(r.debug)}</div>
+      <div class="small"><b>Budget.</b> ${esc(r.budget)}</div>
+      ${r.warn.length ? `<div class="callout warn" style="margin-top:8px">${r.warn.map(esc).join('<br>')}</div>` : '<div class="callout ok" style="margin-top:8px">No architectural red flags from these answers.</div>'}
+      ${outputBox(md)}<div class="row"><a class="btn sm" href="#/map/d/gameai">Read the In-game AI domain</a><a class="btn sm" href="#/map/t/choosing-ai-technique">Choosing a behaviour technique</a></div>`;
+  };
+  $$('select[data-k]', el).forEach(s => s.onchange = () => { cfg[s.dataset.k] = s.value; save(); out(); });
+  const g = $('#ga_goal'); g.addEventListener('input', () => { cfg.goal = g.value; save(); out(); });
+  out();
 }
 
 /* ---------- Idea Finder: from no idea to a concept people want ---------- */
@@ -666,7 +720,11 @@ const SOURCES = [
   ['Hypothesis-driven design','The “We believe X will Y because Z; we will know when W” template comes from Lean Startup (Eric Ries) and Lean UX (Gothelf and Seiden), not from a game-specific source; its game analogue is Ambinder’s and Lemarchand’s practice of testing with a written question.','Used in: Hypothesis Builder, the 12-step loop.','practice'],
   ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025; Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
   ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
-  ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments; later work (Nick Yee, Quantic Foundry) treats motivations as continuous scales. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested']
+  ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments; later work (Nick Yee, Quantic Foundry) treats motivations as continuous scales. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
+  ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
+  ['Utility AI and goal-oriented planners','Dave Mark’s GDC work on utility/infinite-axis utility, and Jeff Orkin’s F.E.A.R. talk (GDC 2006) on a goal-oriented action planner, are the standard practitioner references for scoring competing actions and for long-horizon, emergent plans. Both are heuristics tuned per game, not general algorithms.','Used in: Choosing a behaviour technique, Adaptive AI and directors.','practice'],
+  ['Game AI as experience, not optimality','A long-standing practitioner position (Mick West on Killer Instinct’s readable AI, Richard Evans on The Sims, the “AI is a lie” thread in Game AI Pro) holds that in-game AI is judged by the experience it creates, not by how smart it is; faked, scripted and telegraphed behaviour often reads better than simulation.','Used in: What in-game AI is for, Readable and fair AI, Scripted vs simulated.','practice'],
+  ['Learning-based game AI','Yannakakis and Togelius, Artificial Intelligence and Games (2018), plus headline results (DeepMind AlphaStar, OpenAI Five): learned policies reach superhuman play, but shipping constraints (determinism, debuggability, cost, unfair-but-strong play) keep most production wins in testing, balance, animation and control rather than shipped opponents.','Used in: Learning-based and ML-driven AI.','contested']
 ];
 function renderSources(){
   const tag = k => ({research:'<span class="chip ok">research-backed</span>', heuristic:'<span class="chip">practitioner heuristic</span>', contested:'<span class="chip warn">contested</span>', practice:'<span class="chip shared">practice</span>'})[k];
@@ -678,7 +736,9 @@ function renderSources(){
 /* =====================================================================
    SEARCH
    ===================================================================== */
-const INDEX = [];
+let _INDEX = null;
+function buildIndex(){
+  const INDEX = [];
 TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p)].join(' ').toLowerCase() }));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched', 'tutorial-too-long':'onboarding skip text explain', 'impressive-but-boring':'polish spectacle graphics demo', 'fun-but-no-return':'retention churn day two return', 'meaningless-progression':'grind number goes up unlock pointless', 'too-many-currencies':'economy wallet gems coins', 'floaty-combat':'weight impact hit feel juice', 'unfair':'cheap random punishing difficulty spike', 'no-experiment':'curiosity try things safe', 'same-way':'style variety identical', 'features-not-better':'feature creep scope bloat roadmap', 'ai-ideas-none-right':'generic brainstorm options proposals', 'quit-early':'drop off first session bounce', 'dont-understand-system':'mental model confusing rules', 'ignore-content':'skip side content rush optional', 'players-lose-agency':'choices do not matter cutscene control', 'dont-know-what-to-do':'lost aimless wander objective' };
@@ -696,9 +756,12 @@ INDEX.push({ type:'diagnostic', t:'Core loop diagnostic', snip:'Action, feedback
 INDEX.push({ type:'diagnostic', t:'Unfairness diagnostic', snip:'Why players say the game is unfair', href:'#/diagnose/unfair', text:'unfair cheap random punishment checkpoint telegraph difficulty diagnostic' });
 INDEX.push({ type:'diagnostic', t:'Depth vs complexity rule audit', snip:'Which rules earn their place', href:'#/diagnose/depth', text:'depth complexity elegance rule audit cut rules' });
 INDEX.push({ type:'diagnostic', t:'Content or mechanic?', snip:'Should we add another enemy, level, weapon, quest?', href:'#/diagnose/content', text:'content decision tree add enemy level weapon quest improve interaction' });
+  return INDEX;
+}
+function ensureIndex(){ return _INDEX || (_INDEX = buildIndex()); }
 
 let searchSel = 0, searchResults = [];
-function search(q){ q = q.trim().toLowerCase(); if(!q) return []; const words = q.split(/\s+/); return INDEX.map(it => { let score = 0; words.forEach(w => { if(it.t.toLowerCase().includes(w)) score += 10; if(it.snip.toLowerCase().includes(w)) score += 4; if(it.text.includes(w)) score += 1; }); if(it.t.toLowerCase().startsWith(q)) score += 8; return [score, it]; }).filter(x => x[0] > 0).sort((a,b) => b[0]-a[0]).slice(0, 30).map(x => x[1]); }
+function search(q){ q = q.trim().toLowerCase(); if(!q) return []; const words = q.split(/\s+/); return ensureIndex().map(it => { let score = 0; words.forEach(w => { if(it.t.toLowerCase().includes(w)) score += 10; if(it.snip.toLowerCase().includes(w)) score += 4; if(it.text.includes(w)) score += 1; }); if(it.t.toLowerCase().startsWith(q)) score += 8; return [score, it]; }).filter(x => x[0] > 0).sort((a,b) => b[0]-a[0]).slice(0, 30).map(x => x[1]); }
 function renderSearch(){ const q = $('#searchInput').value; searchResults = search(q); searchSel = Math.min(searchSel, Math.max(searchResults.length-1, 0));
   $('#searchResults').innerHTML = searchResults.length ? searchResults.map((r, i) => `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${r.type}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`).join('') : (q.trim() ? '<div class="empty">Nothing matches. Try a symptom ("repetitive"), a concept ("depth"), or a role ("critic").</div>' : `<div class="res" style="cursor:default"><span class="type">try</span><div class="snip">repetitive · one build · onboarding · depth · economy · critic · playtest analysis · should we build this · unfair</div></div>`);
   $('#searchCount').textContent = searchResults.length ? `${searchResults.length} results` : '';

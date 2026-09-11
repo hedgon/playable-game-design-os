@@ -182,7 +182,39 @@ const SMELLS = [
       {c:'Consequences invisible or delayed', top:'narrative-agency', exp:`Add a visible acknowledgment to the three most important choices. Ask players to recall consequences.`},
       {c:'Weak consequence link in the loop', top:'core-loop', exp:`Make the decision change the next situation visibly. Log whether players vary choices.`},
       {c:'Control removed at the moment of climax', top:'ludonarrative-alignment', exp:`Convert one climactic cutscene to an in-play beat. Compare reactions.`}],
-    prompt:`Players say their choices did not matter in [SECTION]. Here are the choices, consequences and timing: [DATA]. For each choice, when is the consequence perceived and how? Propose the cheapest visible acknowledgment for each and identify any moment where control is taken at a climax.` }
+    prompt:`Players say their choices did not matter in [SECTION]. Here are the choices, consequences and timing: [DATA]. For each choice, when is the consequence perceived and how? Propose the cheapest visible acknowledgment for each and identify any moment where control is taken at a climax.` },
+  { id:'ai-feels-dumb', t:'Enemies and allies feel stupid or lifeless', fun:true, dims:['flow','experimentation'], dom:['gameai','level','presentation'],
+    sym:`Agents walk into walls, stand still, clump into one body, or repeat the same attack; players say the AI is "dumb", "robotic" or "blind".`,
+    causes:[
+      {c:'Navigation fails on the real geometry (walls, doors, ledges)', top:'navigation-and-pathfinding', exp:`Send agents to every reachable player position in the densest level and count wall-hugs, loops, freezes and clumps. Re-bake the navmesh from the geometry players see.`},
+      {c:'No perception or memory: the agent forgets the instant line of sight breaks', top:'perception-and-awareness', exp:`Break line of sight and observe whether the agent searches (last-known position + decay) or instantly resets. Add a search behaviour using memory.`},
+      {c:'Behaviour is pure script with no reactive layer', top:'scripted-vs-simulated', exp:`Add the smallest reactive layer (a handful of states) for the common cases and keep scripts for the peaks. Compare in playtests.`},
+      {c:'No readable intent: the agent has no tells', top:'ingame-ai-purpose', exp:`Define a player-facing tell for every important state and check whether testers can state the agent's intent.`}],
+    prompt:`Players describe the AI in [SECTION] as dumb, robotic or blind. Observer notes: [NOTES]. Classify each complaint as navigation failure, perception/memory failure, unreadable intent, or missing reactivity. For each class, identify the cheapest change and the observable signal that would show it worked. Do not propose a general AI system.` },
+  { id:'ai-feels-unfair', t:'Players call the AI cheap, unfair or omniscient', fun:true, dims:['tension','choice'], dom:['gameai','core','systems'],
+    sym:`"It knew I was there", "it cheated", "that was cheap"; players stop trusting losses and blame the game instead of themselves.`,
+    causes:[
+      {c:'The agent knows more than it could plausibly perceive', top:'perception-and-awareness', exp:`Audit every way behaviour reads player state directly. Route knowledge through senses and memory; test hiding and breaking line of sight.`},
+      {c:'Attacks land with no telegraph or commitment window', top:'readable-and-fair-ai', exp:`Add wind-up, tell and a punishable commit window to the top three most-cited attacks; ask testers what they should have done.`},
+      {c:'A hidden difficulty adjustment is being noticed', top:'adaptive-and-director-ai', exp:`Make the adjustment indirect (frequency/composition/support) and bounded; test with experts, who notice first.`},
+      {c:'Difficulty raised by hidden power instead of a fairer challenge', top:'difficulty', exp:`Replace accuracy/speed/omniscience boosts with composition and readability changes; re-measure whether losses feel explainable.`}],
+    prompt:`Players in [SECTION] say the AI is cheap or omniscient. Here is what it senses, how it decides and any difficulty adjustment: [DETAIL]. List every way the agent could know or do more than the player can explain, rank by noticeability, and choose per case: remove, reveal, or compensate. Propose readability fixes before any number change.` },
+  { id:'ai-black-box', t:'The AI cannot be tuned, debugged or budgeted', dom:['gameai','production','systems'],
+    sym:`Designers cannot change behaviour without an engineer; bugs cannot be reproduced; frame time spikes in big fights; a learned model behaves in ways no one can explain or patch.`,
+    causes:[
+      {c:'Behaviour lives in code and constants instead of readable data', top:'ai-budgets-and-debugging', exp:`Move behaviour to data assets a designer can edit and build a debug overlay showing the current state, target and decision reason.`},
+      {c:'A technique was chosen for novelty rather than authorability', top:'choosing-ai-technique', exp:`Ask a designer to add one behaviour without engineering. If they cannot, the technique or its tooling is the problem.`},
+      {c:'An opaque or learned component has no observability or fallback', top:'learning-based-ai', exp:`Wrap the learned piece in logged inputs/outputs and an authored fallback; ship only if a failure can be reproduced from logs.`},
+      {c:'No budget or worst-case agent test', top:'ai-budgets-and-debugging', exp:`Set a per-frame AI budget, stagger and LOD the work, then measure frame time in the densest encounter at maximum agents.`}],
+    prompt:`Our AI is hard to tune, debug or keep on budget. Here is the current technique, tooling and worst-case agent count: [DETAIL]. Identify the cause: behaviour-in-code, wrong technique for the team, opaque/learned component, or missing budget. Propose the smallest tooling and process change, and the worst-case test we must run before shipping.` },
+  { id:'companion-chore', t:'Companions get stuck or play the game for you', dom:['gameai','narrative','core'],
+    sym:`Allies block doorways, fall behind, need babysitting, or clear the encounter while the player watches; players mute the companion or stop caring about them.`,
+    causes:[
+      {c:'Follow behaviour fails in tight or vertical space', top:'navigation-and-pathfinding', exp:`Escort test through the tightest corridors and doorways; add formation offsets, leash and last-resort recovery. Count blockages and backtracking.`},
+      {c:'The ally is too effective and takes the decisive moment', top:'allies-and-companions', exp:`Bias the ally toward setup and support (stagger, heal, revive) rather than the finishing blow. Re-test whether players describe the win as theirs.`},
+      {c:'The ally\'s intent is unreadable', top:'readable-and-fair-ai', exp:`Add clear state cues (markers, poses, barks) so the player can predict and direct the ally.`},
+      {c:'Barks repeat and grate', top:'allies-and-companions', exp:`Add cooldowns, priority and variety; keep a few rare high-impact lines. Ask testers whether they muted the ally.`}],
+    prompt:`Players find the companion [INEFFECTIVE / OVERPOWERED / STUCK / ANNOYING] in [SECTION]. Here is the ally's role, follow logic, contribution and barks: [DATA]. Diagnose which cause dominates, propose the smallest change that keeps the player central, and define the escort, contribution and bark playtests that would confirm it.` }
 ];
 
 const LOOP_PARTS = [

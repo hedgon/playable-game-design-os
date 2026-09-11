@@ -4,7 +4,8 @@ Inspected as a senior game designer would, against the brief's final quality tes
 
 ## What the guide covers
 
-Twelve domains, 68 topics, all with the same eight-part practical structure:
+Thirteen domains, 80 topics, all with the same eight-part practical structure
+(topics with a real implementation decision add a ninth, "Techniques to compare"):
 
 | Domain | Topics |
 | --- | --- |
@@ -20,11 +21,12 @@ Twelve domains, 68 topics, all with the same eight-part practical structure:
 | Product | audience and positioning, platform and session, business model, scope control |
 | Production | prototyping, hypothesis-driven design, playtesting, iteration on evidence, vertical slice and MVP, risk and dependencies, when to polish |
 | AI Collaboration | the bottleneck shift, AI roles, prompting framework, verifying AI output, AI failure modes, responsibility matrix, AI for prototyping and implementation, AI for playtest analysis, the 12-step loop |
+| In-game AI | what in-game AI is for (and when to fake or script it), choosing a behaviour technique (FSM, behaviour tree, utility AI, GOAP/HTN), perception and memory, navigation and pathfinding, readable and fair AI, adaptive AI and directors, allies and companions, learning-based/ML AI, budgets and debugging, scripted vs simulated |
 
-Plus: 19 design smells with 60+ cause → experiment pairs, 19 fun dimensions, a
+Plus: 24 design smells with 60+ cause → experiment pairs, 19 fun dimensions, a
 core-loop diagnostic, an unfairness diagnostic, a rule audit, a content-or-mechanic
 decision tree, 9 AI roles, 14 AI failure modes, a 20-row responsibility matrix,
-17 prompt templates, 6 checklists, 8 tools, and a sources page.
+17 prompt templates, 6 checklists, 11 tools, and a sources page.
 
 ## Mental models it uses
 
@@ -60,7 +62,7 @@ master") are presented with their original intent.
 ## How AI collaboration is integrated
 
 - It is a first-class domain with nine topics, not a footnote.
-- **Every one of the 68 topics** has an "AI is good at / AI should not decide"
+- **Every one of the 80 topics** has an "AI is good at / AI should not decide"
   split, at least one concrete prompt with real context slots (never "design a fun
   X"), topic-specific verification questions plus the nine universal ones, and
   playtest questions. So every topic answers "how do I work with AI on this" and
@@ -79,7 +81,7 @@ master") are presented with their original intent.
 
 ## Interactive tools and how they were verified
 
-All eight tools, the six diagnostics, the matrix filter, the role cards, the loop
+All eleven tools, the six diagnostics, the matrix filter, the role cards, the loop
 stepper, the checklists, the prompt-template variables, search (keyboard
 navigable) and the theme toggle were exercised programmatically in the browser:
 inputs dispatched, outputs asserted (for example, all-best answers → BUILD,
@@ -118,7 +120,7 @@ Three generations. The first was a static wheel linking to pages. The second had
 three separate zoom levels, which read as three different maps. The third, current
 one is a single brain map that expands and collapses in place:
 
-- The goal in the centre, the twelve domains always on ring one.
+- The goal in the centre, the thirteen domains always on ring one.
 - Click a domain: its topics fan out on ring two around that domain; other
   domains stay visible and faint cross-links show where those topics reach.
 - Click a topic: everything it connects to fans out on ring three (related topics
@@ -152,12 +154,18 @@ elements persist, only the seven newly opened topics carry the marker, and the m
 is gone 600 ms later.
 
 Label geometry: domain labels sit outside their nodes, wrapped to two lines and
-anchored by angle; topic and leaf labels run radially (sunburst style, flipped on the
-left half) so neighbours in a fan cannot collide. `src/check-layout.js` renders all
-83 map states (overview, each domain open, each topic selected) and tests every
+anchored by angle; topic and leaf labels run radially (sunburst style, flipped on
+the left half) so neighbours in a fan cannot collide. `src/check-layout.js` renders
+all 83 map states (overview, each domain open, each topic selected) and tests every
 label against every other label and node using oriented boxes and a separating-axis
-test. It reports zero overlaps. The earlier axis-aligned version of this check is what
-exposed the collisions the user saw.
+test. It reports zero overlaps and now runs inside `node src/build.js`, failing the
+build on any overlap, so added content cannot ship a collision. Geometry is
+adaptive rather than fixed: the domain ring widens as domains are added and a
+domain's topic fan grows its radius to hold the minimum gap, so the same map scales
+from the current 13 domains × 80 topics to far larger content without changing its
+look at the current size (verified on synthetic sets up to 720 topics, including
+720 in a single domain, and up to 48 domains: zero overlaps). The earlier
+axis-aligned version of this check is what exposed the collisions the user saw.
 
 ### A bug the synthetic tests missed
 
@@ -173,6 +181,17 @@ return dock lands on the saved node, a related-concept card travels to another
 branch, and a Reference Dissection library chip adds a comparable. Lesson recorded:
 synthetic events do not exercise hit-testing or pointer capture; verify interaction
 with real input at least once.
+
+The same blind spot hid a second fault for longer. The domain→topic spokes were
+built with `const [[x,y]] = [tPos[t]]`, destructuring the `[point, angle]` pair so
+that `x` became the whole `[x,y]` point and `y` became the angle. Every spoke path
+then contained `NaN` and a doubled coordinate, so the browser silently dropped it
+and a domain fanned out with no spokes. Neither `check-layout.js` (which reads
+label text, not path geometry) nor `validate.js` (which reads data, not SVG) could
+see a malformed `d` attribute; it surfaced only when the adaptive geometry was
+exercised in a real browser and the console reported the SVG error. Lesson: data
+and label checks do not cover a shape's rendered validity — load the page and read
+the console at least once.
 
 ## Is my idea actually good? Dissection of successful games
 

@@ -2,7 +2,7 @@
    ONE BRAIN MAP
    A single radial mind map that expands and collapses in place:
      centre  : the goal
-     ring 1  : 12 domains (always visible)
+     ring 1  : the domains (always visible)
      ring 2  : topics of the ONE expanded domain, fanned around it
      ring 3  : for the selected topic: related topics, smells it diagnoses,
                tools it points to — fanned around the topic. Related topics
@@ -13,7 +13,19 @@
 window.PlayableGraph = (function(){
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const pol = (r, a) => [r*Math.cos(a), r*Math.sin(a)];
-  const R1 = 230, R2 = 440, R3 = 720;
+  // Geometry is adaptive: ring radii grow with content so spacing never
+  // collapses. The base values keep the current look; a ring only expands when
+  // a fan would otherwise cram its nodes closer than the minimum gap.
+  const R1 = 230, R2 = 440, R3 = 720; // base radii (kept for external reference)
+  const DOMAIN_ARC = 120;   // px of ring-1 arc reserved per domain
+  const T_GAP = 48, T_MAXSPAN = 2.2, T_BASE = 440;  // topic ring
+  const L_GAP = 38, L_MAXSPAN = 2.2, L_BASE = 720;  // leaf ring
+  const ringR = (n, base, gap, maxSpan) => n < 2 ? base : Math.max(base, (n - 1) * gap / maxSpan);
+  const fanA = (center, n, r, gap, maxSpan, minStep) => {
+    if (n <= 1) return [center];
+    const span = Math.min(maxSpan, Math.max((n - 1) * minStep, (n - 1) * gap / r));
+    return Array.from({ length: n }, (_, i) => center + (i - (n - 1) / 2) * (span / (n - 1)));
+  };
 
   function lines(label, max=14){
     if(label.length <= max) return [label];
@@ -45,7 +57,6 @@ window.PlayableGraph = (function(){
     return { html:`<text class="${cls}" x="${lx}" y="${ly}" dy="0.35em" text-anchor="${anchor}" font-size="${size}" transform="rotate(${deg.toFixed(2)} ${lx.toFixed(1)} ${ly.toFixed(1)})" data-rad="${a.toFixed(4)}" data-w="${w.toFixed(1)}">${esc(t)}</text>`, ext:[lx + Math.cos(a)*w, ly + Math.sin(a)*w] };
   }
   const curve = (x1,y1,x2,y2,bend=.18) => { const mx=(x1+x2)/2*(1-bend), my=(y1+y2)/2*(1-bend); return `M${x1},${y1} Q${mx},${my} ${x2},${y2}`; };
-  const fan = (a, n, spread) => Array.from({length:n}, (_,i) => a + (i-(n-1)/2)*spread);
 
   /* state = { dom, topic, smell } ; seen = Set of read topic ids */
   function build(state, seen){
@@ -57,9 +68,10 @@ window.PlayableGraph = (function(){
     const fmark = (x,y,m=40) => { fpts.push([x-m,y-m],[x+m,y+m]); };
     fmark(0,0,95);
     const dAngle = {}; DOMAINS.forEach((d,i) => dAngle[d.id] = -Math.PI/2 + i*2*Math.PI/DOMAINS.length);
-    const dPos = {}; DOMAINS.forEach(d => dPos[d.id] = pol(R1, dAngle[d.id]));
+    const r1 = Math.max(R1, DOMAINS.length * DOMAIN_ARC / (2 * Math.PI));
+    const dPos = {}; DOMAINS.forEach(d => dPos[d.id] = pol(r1, dAngle[d.id]));
     // guides
-    guides += `<circle class="guide" data-key="g:ring1" cx="0" cy="0" r="${R1}"/>`;
+    guides += `<circle class="guide" data-key="g:ring1" cx="0" cy="0" r="${r1}"/>`;
     // domain-domain links (faint, highlight on hover)
     DOMAINS.forEach(d => d.links.forEach(([to, why]) => { const [x1,y1]=dPos[d.id], [x2,y2]=dPos[to]; edges += `<path class="edge dd" data-key="e:dd:${d.id}:${to}" data-a="d:${d.id}" data-b="d:${to}" d="${curve(x1,y1,x2,y2,.35)}"><title>${esc(why)}</title></path>`; }));
     // centre
@@ -68,12 +80,15 @@ window.PlayableGraph = (function(){
     // expanded domain
     const ex = state.dom && D[state.dom] ? D[state.dom] : null;
     const tPos = {};
+    let topicR = 0;
     if(ex){
-      const a = dAngle[ex.id]; const n = ex.topics.length; const spread = Math.min(0.2, 1.05/Math.max(n-1,1));
-      guides += `<path class="guide arc" data-key="g:arc:${ex.id}" d="${arcPath(R2, a - (n-1)/2*spread - .08, a + (n-1)/2*spread + .08)}"/>`;
-      fan(a, n, spread).forEach((ta, i) => { const t = ex.topics[i]; tPos[t] = [pol(R2, ta), ta]; });
+      const a = dAngle[ex.id]; const n = ex.topics.length;
+      const r2 = Math.max(T_BASE, r1 + 210, ringR(n, T_BASE, T_GAP, T_MAXSPAN)); topicR = r2;
+      const angles = fanA(a, n, r2, T_GAP, T_MAXSPAN, 0.18);
+      if(n > 1) guides += `<path class="guide arc" data-key="g:arc:${ex.id}" d="${arcPath(r2, angles[0] - .08, angles[n-1] + .08)}"/>`;
+      angles.forEach((ta, i) => { const t = ex.topics[i]; tPos[t] = [pol(r2, ta), ta]; });
       const [dx,dy] = dPos[ex.id];
-      ex.topics.forEach(t => { const [[x,y]] = [tPos[t]]; edges += `<path class="edge dt" data-key="e:dt:${t}" data-a="d:${ex.id}" data-b="t:${t}" d="${curve(dx,dy,x,y,.05)}"/>`; });
+      ex.topics.forEach(t => { const [[x,y]] = tPos[t]; edges += `<path class="edge dt" data-key="e:dt:${t}" data-a="d:${ex.id}" data-b="t:${t}" d="${curve(dx,dy,x,y,.05)}"/>`; });
       // cross links from topics to other domains (faint, shown on hover)
       ex.topics.forEach(t => (TOPICS[t].rel||[]).forEach(([rid, why]) => { const rt = TOPICS[rid]; if(!rt || rt.d === ex.id) return; const [x1,y1] = tPos[t][0], [x2,y2] = dPos[rt.d]; edges += `<path class="edge cross" data-key="e:x:${t}:${rid}" data-a="t:${t}" data-b="d:${rt.d}" d="${curve(x1,y1,x2,y2,.4)}"><title>${esc(rt.t)}: ${esc(why)}</title></path>`; }));
     }
@@ -84,8 +99,9 @@ window.PlayableGraph = (function(){
       const [[sx,sy], sa] = tPos[sel.id];
       (sel.rel||[]).forEach(([rid, why]) => { if(TOPICS[rid]) leaves.push({kind:'topic', id:rid, why, t:TOPICS[rid]}); else leaves.push({kind:'view', id:rid, why}); });
       SMELLS.filter(s => s.causes.some(c => c.top === sel.id)).slice(0,6).forEach(s => leaves.push({kind:'smell', id:s.id, why:s.sym, s}));
-      const k = leaves.length; const spread = Math.min(0.16, 1.2/Math.max(k-1,1));
-      fan(sa, k, spread).forEach((la, i) => { const [x,y] = pol(R3, la); leaves[i].x = x; leaves[i].y = y; leaves[i].a = la;
+      const k = leaves.length;
+      const r3 = Math.max(L_BASE, topicR + 240, ringR(k, L_BASE, L_GAP, L_MAXSPAN));
+      fanA(sa, k, r3, L_GAP, L_MAXSPAN, 0.14).forEach((la, i) => { const [x,y] = pol(r3, la); leaves[i].x = x; leaves[i].y = y; leaves[i].a = la;
         edges += `<path class="edge tl ${leaves[i].kind}" data-key="e:tl:${sel.id}:${leaves[i].id}" data-a="t:${sel.id}" data-b="l:${i}" d="${curve(sx,sy,x,y,.05)}"><title>${esc(leaves[i].why)}</title></path>`;
         if(leaves[i].kind==='topic'){ const [hx,hy] = dPos[leaves[i].t.d]; edges += `<path class="edge home" data-key="e:h:${sel.id}:${leaves[i].id}" data-a="l:${i}" data-b="d:${leaves[i].t.d}" d="${curve(x,y,hx,hy,.45)}"><title>${esc(leaves[i].t.t)} lives in ${esc(D[leaves[i].t.d].t)}</title></path>`; } });
     }
