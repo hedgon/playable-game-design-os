@@ -3537,11 +3537,14 @@ TECH('ethics-and-responsibility',[
    ===================================================================== */
 window.PlayableGraph = (function(){
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const SIZE = { root:{ w:280, h:74 }, domain:{ w:262, h:46 }, topic:{ w:300, h:34 }, leaf:{ w:236, h:30 } };
+  const SIZE = { root:{ w:330, h:74 }, domain:{ w:262, h:46 }, topic:{ w:300, h:34 }, leaf:{ w:236, h:30 } };
   const COL = 340, VGAP = 30, PAD = 40;
 
   const cut = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
-  const maxFor = kind => kind === 'center' ? 30 : kind === 'domain' ? 24 : kind === 'topic' ? 36 : 30;
+  // Longest label that fits the node's inner width. Derived from the same
+  // per-character estimate the layout checker uses, so the text is only
+  // shortened when it would actually not fit the card.
+  const maxFor = (w, fs) => Math.max(4, Math.floor((w - 26) / (fs * 0.56)));
   // Horizontal-tangent cubic between two points; dx is how far the control
   // points sit from each end (negative to bow left, as the cross links do).
   const link = (ax, ay, bx, by, dx) => `M${ax},${ay} C${ax + dx},${ay} ${bx + dx},${by} ${bx},${by}`;
@@ -3671,7 +3674,7 @@ window.PlayableGraph = (function(){
       let g = `<g class="node ${cls}" data-key="${keyOf(n)}" data-kind="${n.kind}" data-id="${n.id}"${why}${dc}>`;
       g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
       if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
-      g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.kind)))}</text>`;
+      g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.w, fs)))}</text>`;
       if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(n.sub)}</text>`;
       g += `</g>`;
       return g;
