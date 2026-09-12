@@ -37,7 +37,7 @@ players to feel something", "I like a game, but", "I have a constraint", "I do n
 know what to make". They feed a chain of small artifacts:
 
     Observe -> Signal -> Tension -> Opportunity -> Design question
-            -> Design space -> Mechanisms -> Converge -> Critique
+            -> Design space -> Mechanisms -> Critique -> Converge
             -> Experiment -> Decide -> Idea Card
 
 Two refinements to the flow this was built from matter. First, **Opportunity** is its
@@ -117,9 +117,13 @@ non-AI action.
 - The **tool UX pass is partial**: the Idea Lab, the Prompt Ladder and examples for
   the Loop and Canvas tools follow the new pattern; the other tools still use their
   older forms.
-- **Concept architecture** is still a tree of topics rendered per domain, not a
-  canonical concept model where one concept belongs to several contexts. The topic
-  data does carry related-concept links, which is the seed.
+- **Concept architecture** now ships in a bounded form: `#/concepts` lists all 90
+  concepts ranked by how many other concepts reference them, and every topic page has an
+  "Appears in" panel showing its home domain plus every concept that references it, the
+  smells it diagnoses and the loops it serves. The article is not duplicated. What is not
+  built is a data-level canonical model where a concept can be authored once and rendered
+  in several domain structures; the relationship layer is derived from the existing `rel`
+  links instead.
 - **Search** understands symptoms for smells via keyword lists, and topics via their
   text, but there is no dedicated symptom index across the whole guide.
 - **Reference art** covers eleven of fifteen games; four use typographic tiles.

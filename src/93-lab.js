@@ -5,7 +5,8 @@
    experiment. The Idea Shaper becomes the Idea Card the chain compresses
    into. Methodology works without AI.
    Chain: Observe -> Signal -> Tension -> Opportunity -> Design question
-          -> Design space -> Mechanisms -> Critique -> Experiment -> Idea Card
+          -> Design space -> Mechanisms -> Critique -> Converge -> Experiment
+          -> Decide -> Idea Card
    ===================================================================== */
 
 const LAB_MODES = [
@@ -100,7 +101,7 @@ function renderLab(){
   const convergeCard = () => `<div class="labstep">
     <div class="step-num">${esc(stepMeta('converge').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('converge').q)} Confidence, not a score, so you can see which claim is load-bearing.</p>
-    ${LAB_LENSES.map(l => `<div class="lablens"><span class="ll">${esc(l)}</span><select class="labconf" data-l="${esc(l)}">${['','high','medium','low','unknown'].map(c => `<option value="${c}" ${(((saved.lens[l]||{}).c)||'')===c?'selected':''}>${c||'—'}</option>`).join('')}</select><input class="labwhy" data-l="${esc(l)}" placeholder="why, one line" value="${esc((saved.lens[l]||{}).n||'')}"></div>`).join('')}
+    ${LAB_LENSES.map(l => `<div class="lablens"><span class="ll">${esc(l)}</span><select class="labconf" data-l="${esc(l)}">${['', ...LAB_CONF].map(c => `<option value="${c}" ${(((saved.lens[l]||{}).c)||'')===c?'selected':''}>${c||'-'}</option>`).join('')}</select><input class="labwhy" data-l="${esc(l)}" placeholder="why, one line" value="${esc((saved.lens[l]||{}).n||'')}"></div>`).join('')}
     <div class="row" style="margin-top:6px"><button class="btn sm ghost labpr" data-step="converge">copy AI prompt</button></div>
   </div>`;
   const decideCard = () => `<div class="labstep">
@@ -112,23 +113,16 @@ function renderLab(){
   </div>`;
   const cardField = (k,l,ph,rows) => `<div class="field"><label>${esc(l)}</label>${rows?`<textarea class="labcard" data-k="${k}" rows="${rows}" placeholder="${esc(ph)}">${esc(saved.card[k]||'')}</textarea>`:`<input class="labcard" data-k="${k}" placeholder="${esc(ph)}" value="${esc(saved.card[k]||'')}">`}</div>`;
 
+  const ready = (saved.step.signal||'').trim() && (saved.step.tension||'').trim() && (saved.step.question||'').trim();
   setView(`${crumbs([['Map','#/map'],['Idea Lab']])}<h1>Idea Lab</h1>
-    <p class="dim" style="max-width:900px">An idea is a chain of reasoning, not a filled-in form. Start with almost nothing and move down the chain: observe a signal, name the tension underneath it, turn that into a design question, map the design space, design mechanisms, attack them, then run the cheapest experiment. The <b>Idea Card</b> at the end is compression, not the beginning.</p>
-    <div class="labchain">${['Observe','Signal','Tension','Opportunity','Design question','Design space','Mechanisms','Critique','Experiment','Idea Card'].map((x,i,a)=>`${i?'<span class="arrow">→</span>':''}<span class="cn">${x}</span>`).join('')}</div>
+    <p class="dim" style="max-width:900px">An idea is a chain of reasoning, not a filled-in form. Start with almost nothing and move down the chain: observe a signal, name the tension underneath it, turn that into a design question, map the design space, design mechanisms, attack them, converge, then run the cheapest experiment and decide. The <b>Idea Card</b> at the end is compression, not the beginning.</p>
+    <div class="labchain">${['Observe','Signal','Tension','Opportunity','Design question','Design space','Mechanisms','Critique','Converge','Experiment','Decide','Idea Card'].map((x,i,a)=>`${i?'<span class="arrow">→</span>':''}<span class="cn">${x}</span>`).join('')}</div>
     <div class="labmodes">${modeBtns}</div>
     <div class="grid c2"><div>
       ${stepCard('signal')}${stepCard('tension')}${stepCard('opportunity')}${stepCard('question')}${spaceCard()}${mechCard()}${stepCard('critique')}${convergeCard()}${stepCard('experiment')}${decideCard()}
-    </div><div id="lab_out"></div></div>`);
-
-  const out = () => {
-    const v = id => (saved.step[id]||'').trim();
-    const chain = LAB_STEPS.map(s => { let txt = v(s.id);
-      if(s.id==='converge') txt = LAB_LENSES.filter(l => (saved.lens[l]||{}).c).map(l => l+': '+saved.lens[l].c).join(', ');
-      if(s.id==='decide') txt = saved.decision ? saved.decision.toUpperCase() + (v('decide') ? ' — ' + v('decide') : '') : v('decide');
-      return txt ? `<div class="labchainrow"><span class="k">${esc(stepMeta(s.id).t)}</span><span>${esc(txt)}</span></div>` : ''; }).join('');
-    const card = saved.card;
-    const ready = (v('signal') && v('tension') && v('question')) ? true : false;
-    $('#lab_out').innerHTML = `<div class="card"><h4>Your reasoning chain</h4>${chain || '<div class="empty">Start with a mode and one sentence. The chain builds as you go.</div>'}
+    </div><div id="lab_out"><div class="card">
+      <h4>Your reasoning chain</h4>
+      <div id="lab_chain"><div class="empty">Start with a mode and one sentence. The chain builds as you go.</div></div>
       <h4 style="margin-top:14px">Idea Card</h4>
       <p class="small dim">Compress the chain. This is the communication artifact, and it can be done before or after the experiment.</p>
       ${cardField('player','Player','A specific person, not gamers',0)}
@@ -138,21 +132,29 @@ function renderLab(){
       ${cardField('fantasy','Fantasy','In this game I get to be someone who...',2)}
       ${cardField('constraints','Constraints','Team, time, platform, skills',2)}
       <div class="row" style="margin-top:8px"><button class="btn primary sm" id="lab_tocard" ${ready?'':'disabled title="Fill signal, tension and design question first"'}>Open the Idea Card tool</button><button class="btn sm" id="lab_export">Copy chain as Markdown</button></div>
-      <p class="small muted" style="margin-top:8px">AI expands the design space. You choose the direction. Players provide the reality. Every claim above has an evidence level; keep them honest.</p>
-    </div>`;
-    $('#lab_tocard').onclick = () => {
-      const idea = store.get('ideaTool', {});
-      Object.assign(idea, { player: card.player||idea.player, wish: card.promise||idea.wish, mechanism: card.mechanism||idea.mechanism, verb: card.verb||idea.verb, fantasy: card.fantasy||idea.fantasy, constraints: card.constraints||idea.constraints, complaints: v('tension')||idea.complaints, market: v('signal')||idea.market });
-      store.set('ideaTool', idea); location.hash = '#/build/idea';
-    };
-    $('#lab_export').onclick = () => __copy(labMarkdown());
+      <p class="small muted" style="margin-top:8px">AI expands the design space. You choose the direction. Players provide the reality. Every claim above has an evidence level, so keep them honest.</p>
+    </div></div></div>`);
+
+  const out = () => {
+    const v = id => (saved.step[id]||'').trim();
+    const chain = LAB_STEPS.map(s => { let txt = v(s.id);
+      if(s.id==='converge') txt = LAB_LENSES.filter(l => (saved.lens[l]||{}).c).map(l => l+': '+saved.lens[l].c).join(', ');
+      if(s.id==='decide') txt = saved.decision ? saved.decision.toUpperCase() + (v('decide') ? ', ' + v('decide') : '') : v('decide');
+      return txt ? `<div class="labchainrow"><span class="k">${esc(stepMeta(s.id).t)}</span><span>${esc(txt)}</span></div>` : ''; }).join('');
+    const chainEl = $('#lab_chain'); if(chainEl) chainEl.innerHTML = chain || '<div class="empty">Start with a mode and one sentence. The chain builds as you go.</div>';
+    const btn = $('#lab_tocard'); if(btn) btn.disabled = !((saved.step.signal||'').trim() && (saved.step.tension||'').trim() && (saved.step.question||'').trim());
   };
+  const pushToCard = () => { const idea = store.get('ideaTool', {}); const card = saved.card; const v = id => (saved.step[id]||'').trim();
+    Object.assign(idea, { player: card.player||idea.player, wish: card.promise||idea.wish, mechanism: card.mechanism||idea.mechanism, verb: card.verb||idea.verb, fantasy: card.fantasy||idea.fantasy, constraints: card.constraints||idea.constraints, complaints: v('tension')||idea.complaints, market: v('signal')||idea.market });
+    store.set('ideaTool', idea); location.hash = '#/build/idea'; };
+  $('#lab_tocard').onclick = pushToCard;
+  $('#lab_export').onclick = () => __copy(labMarkdown());
 
   const labMarkdown = () => {
     const v = id => (saved.step[id]||'').trim() || '(blank)';
     const axes = [0,1,2].map(a => `- ${saved.spaceAxes[a]||'(axis)'}: ${(saved.spaceOpts[a]||[]).filter(Boolean).join(', ')}`).join('\n');
     const mech = saved.mech.map((m,i) => `### Mechanism ${i+1}\n- Rule: ${m.rule||'?'}\n- Decision: ${m.decision||'?'}\n- Emotion: ${m.emotion||'?'}\n- Failure: ${m.fail||'?'}`).join('\n');
-    return `# Idea Lab chain\n\n**Mode:** ${saved.mode||'none'}\n\n## Signal\n${v('signal')}${saved.ev.signal?`\n_evidence: ${saved.ev.signal}_`:''}\n\n## Tension\n${v('tension')}${saved.ev.tension?`\n_evidence: ${saved.ev.tension}_`:''}\n\n## Opportunity\n${v('opportunity')}${saved.ev.opportunity?`\n_evidence: ${saved.ev.opportunity}_`:''}\n\n## Design question\n${v('question')}\n\n## Design space\n${axes}\n\n## Mechanisms\n${mech}\n\n## Critique\n${v('critique')}\n\n## Converge\n${LAB_LENSES.map(l => '- '+l+': '+(((saved.lens[l]||{}).c)||'unknown')+(((saved.lens[l]||{}).n)?' ('+saved.lens[l].n+')':'')).join('\n')}\n\n## Experiment\n${v('experiment')}\n\n## Decide\n${(saved.decision||'undecided')}${v('decide')?' — '+v('decide'):''}\n\n## Idea Card\n- Player: ${saved.card.player||'?'}\n- Promise: ${saved.card.promise||'?'}\n- Mechanism: ${saved.card.mechanism||'?'}\n- Core verb: ${saved.card.verb||'?'}\n- Fantasy: ${saved.card.fantasy||'?'}\n- Constraints: ${saved.card.constraints||'?'}\n`;
+    return `# Idea Lab chain\n\n**Mode:** ${saved.mode||'none'}\n\n## Signal\n${v('signal')}${saved.ev.signal?`\n_evidence: ${saved.ev.signal}_`:''}\n\n## Tension\n${v('tension')}${saved.ev.tension?`\n_evidence: ${saved.ev.tension}_`:''}\n\n## Opportunity\n${v('opportunity')}${saved.ev.opportunity?`\n_evidence: ${saved.ev.opportunity}_`:''}\n\n## Design question\n${v('question')}\n\n## Design space\n${axes}\n\n## Mechanisms\n${mech}\n\n## Critique\n${v('critique')}\n\n## Converge\n${LAB_LENSES.map(l => '- '+l+': '+(((saved.lens[l]||{}).c)||'unknown')+(((saved.lens[l]||{}).n)?' ('+saved.lens[l].n+')':'')).join('\n')}\n\n## Experiment\n${v('experiment')}\n\n## Decide\n${(saved.decision||'undecided')}${v('decide')?', '+v('decide'):''}\n\n## Idea Card\n- Player: ${saved.card.player||'?'}\n- Promise: ${saved.card.promise||'?'}\n- Mechanism: ${saved.card.mechanism||'?'}\n- Core verb: ${saved.card.verb||'?'}\n- Fantasy: ${saved.card.fantasy||'?'}\n- Constraints: ${saved.card.constraints||'?'}\n`;
   };
 
   // wiring
@@ -167,7 +169,7 @@ function renderLab(){
   $$('.labconf').forEach(s => s.addEventListener('change', () => { const l = s.dataset.l; (saved.lens[l] = saved.lens[l] || {}).c = s.value; save(); out(); }));
   $$('.labwhy').forEach(i => i.addEventListener('input', () => { const l = i.dataset.l; (saved.lens[l] = saved.lens[l] || {}).n = i.value; save(); }));
   $$('.decidebtn').forEach(b => b.onclick = () => { saved.decision = saved.decision === b.dataset.d ? '' : b.dataset.d; save(); $$('.decidebtn').forEach(x => x.classList.toggle('on', x.dataset.d === saved.decision)); out(); });
-  $$('.labcard').forEach(i => i.addEventListener('input', () => { saved.card[i.dataset.k] = i.value; save(); out(); }));
+  $$('.labcard').forEach(i => i.addEventListener('input', () => { saved.card[i.dataset.k] = i.value; save(); }));
 
   const labPrompt = id => { const s = stepMeta(id); const v = k => (saved.step[k]||'[not filled]').trim(); return (s.p||'')
     .replace('[SIGNAL]', v('signal')).replace('[TENSION]', v('tension')).replace('[OPPORTUNITY]', v('opportunity')).replace('[QUESTION]', v('question'))

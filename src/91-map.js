@@ -30,9 +30,7 @@ function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPa
 
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
 function saveMap(){ store.set('mapState', mapState); }
-function mapHash(){ return mapState.smell ? `#/map/s/${mapState.smell}` : mapState.topic ? `#/map/t/${mapState.topic}` : mapState.dom ? `#/map/d/${mapState.dom}` : '#/map'; }
-function mapPathLabel(){ const parts = [mapState.dom && DOM[mapState.dom] && DOM[mapState.dom].t, mapState.topic && TOPICS[mapState.topic] && TOPICS[mapState.topic].t, mapState.smell && (SMELLS.find(s => s.id===mapState.smell)||{}).t].filter(Boolean); return parts.length ? parts.join(' › ') : 'overview'; }
-function updateDock(){ /* removed: the knowledge rail is always visible */ }
+
 
 function mapCrumbs(){
   const parts = [`<button onclick="location.hash='#/map/home'">All domains</button>`];
@@ -94,21 +92,6 @@ function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim =
 function mapPersistCamera(){ if(!MAP) return; mapState.vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h }; store.set('mapState', mapState); }
 
 // Patch one layer: keyed reconcile. Existing elements are updated in place (no
-// animation restarts), new ones are appended with data-new (they fade in), gone ones removed.
-function patchLayer(layer, fresh){
-  const have = new Map(); [...layer.children].forEach(el => have.set(el.dataset.key, el));
-  const keep = new Set();
-  [...fresh.children].forEach(nel => { const k = nel.dataset.key; keep.add(k); const old = have.get(k);
-    if(old){ [...nel.attributes].forEach(a => { if(a.name !== 'data-new' && old.getAttribute(a.name) !== a.value) old.setAttribute(a.name, a.value); }); [...old.attributes].forEach(a => { if(!nel.hasAttribute(a.name) && a.name !== 'data-new') old.removeAttribute(a.name); }); if(old.innerHTML !== nel.innerHTML) old.innerHTML = nel.innerHTML; }
-    else { nel.setAttribute('data-new', '1'); layer.appendChild(nel); } });
-  have.forEach((el, k) => { if(!keep.has(k)) el.remove(); });
-}
-function patchMapSVG(g){
-  const tpl = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); tpl.innerHTML = g.inner;
-  const layers = ['guides','edges','nodes'];
-  layers.forEach(name => { const cur = MAP.svg.querySelector(`.lay.${name}`), nu = tpl.querySelector(`.lay.${name}`); if(cur && nu) patchLayer(cur, nu); });
-  setTimeout(() => { if(MAP) $$('[data-new]', MAP.svg).forEach(el => el.removeAttribute('data-new')); }, 600);
-}
 function mapTipHTML(n){
   const kind = n.dataset.kind, id = n.dataset.id;
   if(kind==='domain'){ const d = DOM[id]; return `<b style="color:${d.color}">${esc(d.t)}</b><div>${esc(d.short)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':'click to expand'}</div>`; }
@@ -145,26 +128,36 @@ function initMap(g, kind){
   const target = cameraTarget(g, stored, kind);
   if(stored) mapAnimateTo(target); else { MAP.vb = target; applyVB(svg, target); mapPersistCamera(); }
   // delegated events: one set of listeners for the life of the map
-  let drag = null, suppressClick = false;
-  svg.addEventListener('pointerdown', e => { if(e.button !== 0) return; mapStopAnim(); drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; });
-  const onMove = e => { if(!document.body.contains(svg)){ window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); return; } if(!drag) return; const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } };
-  const onUp = () => { if(drag && drag.moved){ mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
+  let drag = null, suppressClick = false, pinch = null; const touchPts = new Map();
+  const screenToVB = (cx, cy) => { const r = svg.getBoundingClientRect(); return [MAP.vb.x + (cx - r.left)/r.width*MAP.vb.w, MAP.vb.y + (cy - r.top)/r.height*MAP.vb.h]; };
+  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g.bbox); const nw = Math.min(Math.max(vb.w*f, 260), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(MAP.svg, MAP.vb); };
+  svg.addEventListener('pointerdown', e => {
+    if(e.pointerType === 'touch'){ touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY }); mapStopAnim();
+      if(touchPts.size === 1){ drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
+      else if(touchPts.size === 2){ drag = null; const p = [...touchPts.values()]; pinch = { dist: Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y) }; }
+      return; }
+    if(e.button !== 0) return; mapStopAnim(); drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false };
+  });
+  const onMove = e => { if(!document.body.contains(svg)){ window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); return; }
+    if(e.pointerType === 'touch'){
+      if(touchPts.has(e.pointerId)) touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+      if(touchPts.size >= 2 && pinch){ const p = [...touchPts.values()]; const dist = Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y); if(dist > 0){ const mid = screenToVB((p[0].x+p[1].x)/2, (p[0].y+p[1].y)/2); zoomAbout(mid[0], mid[1], pinch.dist/dist); pinch = { dist }; suppressClick = true; } }
+      else if(touchPts.size === 1 && drag){ const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } }
+      return;
+    }
+    if(!drag) return; const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } };
+  const onUp = e => { if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
+    if(drag && drag.moved){ mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
-  svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const vb = MAP.vb, fit = fitBox(MAP.g.bbox); const r = svg.getBoundingClientRect(); const px = vb.x + (e.clientX - r.left)/r.width*vb.w, py = vb.y + (e.clientY - r.top)/r.height*vb.h; const f = e.deltaY > 0 ? 1.12 : 1/1.12; const nw = Math.min(Math.max(vb.w*f, 260), fit.w*3); const nh = nw/(vb.w/vb.h); MAP.vb = { x: px - (px - vb.x)*(nw/vb.w), y: py - (py - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); mapPersistCamera(); }, {passive:false});
-  svg.addEventListener('pointermove', e => { const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
+  svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); mapPersistCamera(); }, {passive:false});
+  svg.addEventListener('pointermove', e => { if(e.pointerType === 'touch') return; const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
   svg.addEventListener('pointerleave', () => mapHover(null));
   svg.addEventListener('click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
+  const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; };
+  window.addEventListener('blur', clearTouches);
   $('#mapFit').onclick = () => { mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); };
   $('#mapCollapse').onclick = () => go('#/map/home');
-}
-function patchMap(g, kind){
-  const M = MAP; M.g = g; M.hover = null; M.tip.hidden = true; M.svg.classList.remove('dimmed');
-  patchMapSVG(g);
-  $('.mapbar .mapcrumbs').outerHTML = mapCrumbs();
-  const dr = $('#drawer'); dr.innerHTML = drawerHTML(); dr.scrollTop = 0;
-  const cur = M.anim ? M.vb : M.vb; mapStopAnim(); const target = cameraTarget(g, cur, kind);
-  if(Math.abs(target.x-cur.x) > 1 || Math.abs(target.y-cur.y) > 1 || Math.abs(target.w-cur.w) > 1) mapAnimateTo(target); else mapPersistCamera();
-  document.querySelector('.mapstage').classList.toggle('open', !!mapState.dom);
+  return () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); window.removeEventListener('blur', clearTouches); if(MAP && MAP.svg === svg) MAP = null; };
 }
 function renderMap(kind, id){
   if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }

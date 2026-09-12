@@ -47,6 +47,7 @@ function route(){
     case 'map': return renderMap(parts[1], parts[2]);
     case 'lab': return renderLab();
     case 'explore': return renderExplore(parts[1]);
+    case 'concepts': return renderConcepts();
     case 'topic': return location.replace(TOPICS[parts[1]] ? '#/map/t/'+parts[1] : '#/map');
     case 'diagnose': return renderDiagnose(parts[1], parts[2]);
     case 'smell': return renderDiagnose('smells', parts[1]);
@@ -68,11 +69,13 @@ $('#railToggle').onclick = () => { const r = $('#rail'); if(r) r.classList.toggl
 let SHELL = false;
 function ensureShell(){ if(SHELL) return; app.innerHTML = `<div class="shell"><aside class="rail" id="rail"></aside><section class="pane" id="pane"></section></div>`; SHELL = true; }
 function railHTML(activeDom, activeTopic){
+  const openSet = new Set(store.get('sideOpen', [])); if(activeDom) openSet.add(activeDom);
   return `<div class="railhead">
       <button class="railgraph" id="railGraph">⌗ Graph overview</button>
+      <a class="railgraph" href="#/concepts">⌘ Concept index</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
-    <div class="raillist">${DOMAINS.map(d => { const open = d.id===activeDom; return `<div class="raildom ${open?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
+    <div class="raillist">${DOMAINS.map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
       <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(d.t)}</span><span class="rn">${d.topics.filter(t=>seen.has(t)).length}/${d.topics.length}</span></button>
       <div class="railtopics">${d.topics.map(t => `<button class="railtopic ${t===activeTopic?'active':''} ${seen.has(t)?'seen':''}" data-topic="${t}">${esc(TOPICS[t].t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
@@ -82,11 +85,11 @@ function railActive(){
   if(parts[0]==='map'){ if(parts[1]==='t' && TOPICS[parts[2]]) return { dom: TOPICS[parts[2]].d, topic: parts[2] }; if(parts[1]==='d' && DOM[parts[2]]) return { dom: parts[2], topic: null }; }
   if(parts[0]==='topic' && TOPICS[parts[1]]) return { dom: TOPICS[parts[1]].d, topic: parts[1] };
   if(parts[0]==='explore' && DOM[parts[1]]) return { dom: parts[1], topic: null };
-  return { dom: mapState.dom, topic: mapState.topic };
+  return { dom: null, topic: null };
 }
 function updateRail(){
   ensureShell(); const r = $('#rail'); if(!r) return; const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
-  r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; const willOpen = !dom.classList.contains('open'); dom.classList.toggle('open', willOpen); }));
+  r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
   r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; if(window.innerWidth <= 1100) r.classList.remove('open'); }));
   const g = $('#railGraph'); if(g) g.onclick = () => openGraph();
   const s = $('#railSearch');
@@ -100,7 +103,7 @@ function openGraph(){
   m.innerHTML = `<div class="graphmodal"><div class="mapbar">${mapCrumbs()}<div class="row" style="gap:6px"><button class="btn sm ghost" id="mapFit">⤢ fit</button><button class="btn sm ghost" id="mapCollapse">⊖ collapse</button><button class="btn sm ghost" onclick="closeModals()">✕ close</button></div></div>
     <div class="mapwrap one" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="-700 -600 1400 1200" role="img" aria-label="Brain map of the guide">${g.inner}</svg><div class="maptip" id="maptip" hidden></div></div></div>`;
   m.addEventListener('click', e => { if(e.target === m) closeModals(); });
-  document.body.appendChild(m); initMap(g, 'home');
+  document.body.appendChild(m); m._cleanup = initMap(g, 'home');
 }
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button onclick="location.hash='${it[1]}'">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
@@ -163,14 +166,6 @@ const DOMAIN_DIAGRAMS = { ux: DIAGRAM_HIERARCHY };
 /* =====================================================================
    EXPLORE + TOPIC
    ===================================================================== */
-function sidebar(activeDomain, activeTopic){
-  const open = new Set(store.get('sideOpen', [activeDomain].filter(Boolean)));
-  if(activeDomain) open.add(activeDomain);
-  return `<aside class="side sticky" id="side"><button class="btn side-toggle" onclick="this.parentElement.classList.toggle('open')"><span>☰ Browse topics</span><span class="car">▸</span></button>${DOMAINS.map(d => `<div class="dom ${open.has(d.id)?'open':''}" data-id="${d.id}" style="--dc:${d.color}">
-    <button onclick="__toggleDom('${d.id}')"><span class="dot"></span>${esc(d.t)}<span class="n">${d.topics.filter(t=>seen.has(t)).length}/${d.topics.length}</span><span class="car">▸</span></button>
-    <div class="topics">${d.topics.map(tid => `<button class="${tid===activeTopic?'active':''} ${seen.has(tid)?'seen':''}" onclick="location.hash='#/topic/${tid}'"><span class="seen"></span>${esc(TOPICS[tid].t)}</button>`).join('')}</div></div>`).join('')}</aside>`;
-}
-window.__toggleDom = id => { const el = $(`.side .dom[data-id="${id}"]`); if(!el) return; el.classList.toggle('open'); store.set('sideOpen', $$('.side .dom.open').map(e => e.dataset.id)); };
 
 function renderExplore(domainId){
   const d = DOM[domainId];
@@ -212,6 +207,33 @@ function sectionBody(key, t){
   return '';
 }
 
+function topicContexts(t){
+  return {
+    home: DOM[t.d],
+    refs: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)),
+    smells: SMELLS.filter(s => s.causes.some(c => c.top === t.id)),
+    loops: LOOP_PARTS.filter(p => (p.top||[]).includes(t.id)),
+    steps: LOOP_STEPS.filter(s => (s.top||[]).includes(t.id))
+  };
+}
+function contextsPanel(t){
+  const c = topicContexts(t);
+  const chips = [`<span class="chip dom" style="--dc:${c.home.color}">${esc(c.home.t)} · home</span>`]
+    .concat(c.refs.map(x => `<span class="chip" style="cursor:pointer" onclick="location.hash='#/map/t/${x.id}'">${esc(DOM[x.d].t)} · ${esc(x.t)}</span>`));
+  return `<div class="card contexts"><h4>Appears in</h4><div class="small muted">One concept, several contexts. Its home domain, then every concept that references it. The article is not duplicated.</div>
+    <div class="chips" style="margin-top:8px">${chips.join('')}</div>
+    ${c.smells.length ? `<div class="small" style="margin-top:8px"><b>Diagnoses smells:</b> ${c.smells.map(s => `<a href="#/smell/${s.id}">${esc(s.t)}</a>`).join(', ')}</div>` : ''}
+    ${c.loops.length ? `<div class="small" style="margin-top:4px"><b>Core-loop links:</b> ${c.loops.map(p => esc(p.t)).join(', ')}</div>` : ''}
+    ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(n => `<a href="#/ai/loop/${n}">${n}</a>`).join(', ')}</div>` : ''}</div>`;
+}
+function renderConcepts(){
+  const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));
+  const card = r => `<div class="card clickable tint" style="--dc:${DOM[r.t.d].color}" onclick="location.hash='#/map/t/${r.t.id}'"><b>${esc(r.t.t)}</b><div class="small dim">${esc(DOM[r.t.d].t)} · referenced by ${r.n}</div></div>`;
+  setView(`${crumbs([['Map','#/map'],['Concept index']])}<h1>Concept index</h1><p class="dim">All ${TOPIC_LIST.length} concepts, most referenced first. A concept lives in one home domain and is referenced from others, so it belongs to several contexts without being copied.</p>
+    <div class="field"><input id="ciFilter" placeholder="Filter concepts…"></div>
+    <div class="grid auto" id="ciList">${rows.map(card).join('')}</div>`);
+  const f = $('#ciFilter'); f.addEventListener('input', () => { const q = f.value.trim().toLowerCase(); $('#ciList').innerHTML = rows.filter(r => r.t.t.toLowerCase().includes(q) || DOM[r.t.d].t.toLowerCase().includes(q)).map(card).join('') || '<div class="empty">No concept matches.</div>'; });
+}
 function topicBody(id){
   const t = TOPICS[id];
   if(!t){ return `<div class="empty">Unknown topic: ${esc(id)}</div>`; }
@@ -228,6 +250,7 @@ function topicBody(id){
     <div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       <div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div></div>
     ${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
+    ${contextsPanel(t)}
     ${secs}${techSec}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
@@ -734,7 +757,7 @@ const LADDER = [
   { n:7, stage:'Mechanisms to critique', role:"Devil's advocate", you:'Weigh the critique. Decide what it kills.', ai:'Attack each mechanism: who would not care, what breaks after 30 minutes and after 10 hours, why it might be a reskin, what an incumbent could copy, and the one assumption carrying it.', caution:'A critique is input, not a verdict. AI does not decide.', prompt:`Mechanisms: [MECHANISMS]. As a hostile reviewer, for each mechanism give: why a player would not care, the behaviour after 30 minutes and after 10 hours, whether the difference is mechanical or cosmetic, which incumbent could copy it, and the single assumption it depends on.` },
   { n:8, stage:'Critique to hypothesis', role:'Hypothesis framer', you:'Commit to a claim you are willing to kill.', ai:'Help write it in standard form: we believe [player] will [behaviour] because [reason]. Signal. Kill criterion.', caution:'If the kill criterion is missing, it is hope, not a hypothesis.', prompt:`Chosen direction: [DIRECTION]. Write it as: we believe [PLAYER] will [OBSERVABLE BEHAVIOUR] because [MECHANISM]. We will know it works when [SIGNAL]. We will kill it if [CRITERION]. Then name the alternative explanation that would produce the same signal.` },
   { n:9, stage:'Hypothesis to prototype', role:'Prototype designer', you:'Accept the scope. The prototype proves one thing.', ai:'Design the smallest test: only the mechanics needed, exposed tuning values, full logging, exclusions.', caution:'If the prototype answers more than the hypothesis, it is too big.', prompt:`Hypothesis: [HYPOTHESIS]. Build the smallest playable test in [ENGINE] that could disprove it. Only the mechanics needed, grey boxes, no menus or saves, expose [VALUES] as live sliders, log every input, decision, failure and session boundary with timestamps. List the design decisions the code will embed before writing it.` },
-  { n:10, stage:'Player evidence', role:'Playtest analyst', you:'Watch the players. Interpret the context only you have.', ai:'Find patterns in notes, transcripts and logs; separate behaviour from self-report; surface contradictions.', caution:'Simulation is not evidence. Only real players count.', prompt:`Here are observer notes, transcripts and logs: [DATA]. Cluster behaviour, mark patterns present in 3 or more players versus outliers, align notes to telemetry by time, and separate what players did from what they said. State what the evidence does and does not support. Do not interpret causes or recommend changes.` },
+  { n:10, stage:'Player evidence', role:'Playtest analyst', you:'Watch the players. Interpret the context only you have.', ai:'Find patterns in notes, transcripts and logs. Separate behaviour from self-report. Surface contradictions.', caution:'Simulation is not evidence. Only real players count.', prompt:`Here are observer notes, transcripts and logs: [DATA]. Cluster behaviour, mark patterns present in 3 or more players versus outliers, align notes to telemetry by time, and separate what players did from what they said. State what the evidence does and does not support. Do not interpret causes or recommend changes.` },
   { n:11, stage:'Evidence to decision', role:'You, the human', you:'Kill, iterate, prototype again, or commit. Nobody else can make this call.', ai:'Summarize the evidence and the open questions. Nothing more.', caution:'If AI is choosing whether to continue, the process has failed.', prompt:`Here is the evidence: [EVIDENCE]. Summarize what it shows, what it cannot show, and the open questions. Present the options kill, iterate, prototype again, or commit, with the tradeoffs of each. Recommend nothing.` },
   { n:12, stage:'Decision to Idea Card', role:'Concept editor', you:'Own the final words.', ai:'Compress the chain into the Idea Card: player, promise, mechanism, core verb, fantasy, constraints, hypothesis, biggest risk, cheapest test, evidence level.', caution:'Compression, not creation. If the card contains a claim the chain does not, delete it.', prompt:`Here is the full reasoning chain: [CHAIN]. Compress it into an Idea Card with: player, desire, tension, opportunity, promise, core verb, mechanism, differentiation, fantasy, constraints, hypothesis, biggest risk, cheapest test, and the evidence level of each claim. Do not add anything that is not in the chain.` }
 ];
@@ -896,7 +919,7 @@ function renderSearch(){ const q = $('#searchInput').value; searchResults = sear
   $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); }); }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
 function openSearch(){ $('#searchModal').classList.add('show'); const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); setTimeout(() => inp.focus(), 10); }
-function closeModals(){ $$('.modal-bg').forEach(m => { if(m.id === 'graphModal') m.remove(); else m.classList.remove('show'); }); }
+function closeModals(){ $$('.modal-bg').forEach(m => { if(m.id === 'graphModal'){ if(m._cleanup) m._cleanup(); m.remove(); } else m.classList.remove('show'); }); }
 $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });

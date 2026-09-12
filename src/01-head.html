@@ -571,9 +571,6 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .kgraph .view .disc{fill:color-mix(in srgb,var(--accent2) 20%,var(--bg2));stroke:var(--accent2)}
 .kgraph .edge.smell{stroke:var(--bad)}
 .kgraph .edge.view{stroke:var(--accent2)}
-.mapstage{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
-@media (max-width:1000px){.mapstage{grid-template-columns:1fr}}
-.mapstage .mapwrap{padding:6px}
 .mapside{position:sticky;top:70px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:14px;font-size:.9rem;min-height:220px}
 .mapside h3{margin-bottom:4px}
 .mapside ul{padding-left:16px;margin:6px 0}
@@ -606,10 +603,6 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .presets button{background:var(--bg3);border:1px solid var(--line);border-radius:2px;padding:4px 8px;font-size:.8rem;color:var(--fg2)}
 .presets button:hover{border-color:var(--accent);color:var(--fg)}
 /* ---------- one brain map ---------- */
-.mapstage.one{grid-template-columns:minmax(0,1fr) minmax(440px,46%);gap:16px}
-@media (max-width:1100px){.mapstage.one{grid-template-columns:1fr}}
-.mapcol{position:sticky;top:64px}
-@media (max-width:1100px){.mapcol{position:static}}
 .mapbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .mapbar .mapcrumbs{margin:0}
 .mapwrap.one{padding:0;overflow:hidden;touch-action:none;cursor:grab;background:var(--panel)}
@@ -648,12 +641,7 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .drawer .mapside-list{padding-left:16px}
 .drawer .mapside-list li{margin:5px 0;font-size:.9rem}
 .drawer .mapside-list .why{color:var(--fg3)}
-.mapdock{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line2);border-left:4px solid var(--accent);border-radius:2px;padding:8px 12px 8px 10px;color:var(--fg);text-decoration:none;box-shadow:4px 4px 0 var(--line2);max-width:340px}
-.mapdock:hover{text-decoration:none;transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--line2)}
-.mapdock .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent);flex:none}
-.mapdock b{display:block;font-family:var(--display);font-stretch:92%;font-size:.9rem;line-height:1.1}
-.mapdock small{display:block;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-@media (max-width:700px){.mapdock{right:10px;bottom:10px;max-width:70vw}.mapdock small{max-width:52vw}.drawer{padding:14px 12px;scroll-margin-top:104px}.drawer .topic-head h1{font-size:1.5rem}}
+@media (max-width:700px){.drawer{padding:14px 12px;scroll-margin-top:104px}.drawer .topic-head h1{font-size:1.5rem}}
 .presets button.on{background:var(--accent);color:var(--ink);border-color:var(--accent)}
 /* reference library grid */
 .reflib{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:8px 0}
@@ -709,8 +697,8 @@ details.comp .body{padding-top:6px}
 .shell{display:grid;grid-template-columns:360px minmax(0,1fr);align-items:start}
 .rail{position:sticky;top:0;height:100vh;overflow:auto;padding:84px 12px 24px;border-right:1px solid var(--line);background:var(--panel)}
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.railgraph{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
-.railgraph:hover{border-color:var(--accent);color:var(--fg)}
+.railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+.railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
 .railsearch{width:100%}
 .raildom{margin-bottom:2px}
 .raildom-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:0;color:var(--fg);padding:7px 6px;border-radius:var(--r3);font-weight:600;font-family:var(--display);font-stretch:92%}
@@ -804,5 +792,4 @@ details.comp .body{padding-top:6px}
   </div>
 </div>
 <div class="toast" id="toast"></div>
-<a class="mapdock" id="mapDock" href="#/map" hidden title="Return to the brain map where you left it (M)" style="display:none" aria-hidden="true"></a>
 <script>

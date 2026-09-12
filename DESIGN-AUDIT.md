@@ -123,7 +123,13 @@ eight sections.
 - Distinguishes complexity from depth and content from design quality: dedicated
   topics, the rule audit, the content-or-mechanic tree.
 
-## The map as the spine, not a menu
+## The map as the spine, not a menu (superseded by the knowledge rail)
+
+**Historical.** This section describes the radial map that the persistent knowledge rail
+replaced, including the camera, in-place patching and the two interaction bugs it fixed
+(pointer capture swallowing clicks, and a destructuring typo that produced `NaN` paths).
+The bug lessons still hold. The architecture that ships now is described under "The
+second brain" above.
 
 Three generations. The first was a static wheel linking to pages. The second had
 three separate zoom levels, which read as three different maps. The third, current
@@ -313,7 +319,7 @@ expandable, so names never depend on hover and the list scales by scroll rather 
 shrinking nodes. The radial map survives as an on-demand Graph overview opened from the
 rail or with `M`, used for relationships rather than navigation. A `#/lab` Idea Lab
 treats an idea as a chain (signal, tension, opportunity, design question, design space,
-mechanisms, converge, critique, experiment, decide) with an evidence level on every
+mechanisms, critique, converge, experiment, decide) with an evidence level on every
 fact-bearing artifact and a ten-lens convergence that returns confidence, not a score.
 `#/ai/ladder` adds the prompt ladder: twelve rungs, each with the human decision, the
 AI partner, a prompt and the failure to avoid. The home panel gains a "What are you
