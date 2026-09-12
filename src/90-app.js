@@ -77,6 +77,7 @@ function ensureShell(){
         <button class="btn sm ghost" id="mapZoomOut" title="Zoom out">－</button>
         <button class="btn sm ghost" id="mapZoomIn" title="Zoom in">＋</button>
         <button class="btn sm ghost" id="mapFit" title="Fit the map">⤢ fit</button>
+        <button class="btn sm ghost" id="mapReset" title="Reset dragged nodes to the tidy layout">↺ reset</button>
         <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
         <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
       </div></div>
@@ -258,7 +259,7 @@ function contextsPanel(t){
     <div class="chips" style="margin-top:8px">${chips.join('')}</div>
     ${c.smells.length ? `<div class="small" style="margin-top:8px"><b>Diagnoses smells:</b> ${c.smells.map(s => `<a href="#/smell/${s.id}">${esc(s.t)}</a>`).join(', ')}</div>` : ''}
     ${c.loops.length ? `<div class="small" style="margin-top:4px"><b>Core-loop links:</b> ${c.loops.map(p => esc(p.t)).join(', ')}</div>` : ''}
-    ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(n => `<a href="#/ai/loop/${n}">${n}</a>`).join(', ')}</div>` : ''}</div>`;
+    ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(s => `<a href="#/ai/loop/${s.n}">${s.n}</a>`).join(', ')}</div>` : ''}</div>`;
 }
 function renderConcepts(){
   const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));

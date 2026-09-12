@@ -700,6 +700,13 @@ details.comp .body{padding-top:6px}
 .hide-left #rail,.hide-left #splitL{display:none}
 .hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
 .hide-right #pane,.hide-right #splitR{display:none}
+/* Explicit column placement: display:none must collapse a pane, not let the
+   browser auto-place the remaining items into the 0-width first column. */
+.shell > .rail{grid-column:1}
+.shell > #splitL{grid-column:2}
+.shell > .mapstage{grid-column:3}
+.shell > #splitR{grid-column:4}
+.shell > .pane{grid-column:5}
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
 .railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
@@ -738,6 +745,17 @@ details.comp .body{padding-top:6px}
 .kgraph .edge.open{stroke:var(--accent);opacity:.9}
 .kgraph .dimmed .node:not(.hl):not(.center){opacity:.35}
 .kgraph .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
+/* fourth layer: smaller leaf nodes under the selected topic */
+.kgraph .node.leaf .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 8%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 52%,var(--line2));stroke-width:1}
+.kgraph .node.smell .disc{fill:color-mix(in srgb,var(--bad) 14%,var(--bg2));stroke:var(--bad)}
+.kgraph .node.view .disc{fill:color-mix(in srgb,var(--accent2) 12%,var(--bg2));stroke:var(--accent2)}
+.kgraph .node.leaf .lbl{font-weight:600;fill:var(--fg2)}
+.kgraph .node.leaf.hl .disc,.kgraph .node.leaf:hover .disc{stroke:var(--accent);stroke-width:2}
+.kgraph .edge.ext{stroke-width:1.1;opacity:.6}
+/* cross-branch links: faint dashed curves, highlighted on hover */
+.kgraph .edge.dd{opacity:.2;stroke-dasharray:4 5}
+.kgraph .edge.cross{opacity:.16;stroke-dasharray:3 5}
+.kgraph .edge.home{opacity:.3;stroke-dasharray:5 5}
 /* prompt ladder */
 .ladderflow{display:flex;flex-direction:column;margin:12px 0}
 .rung-card{display:grid;grid-template-columns:44px 1fr;gap:12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);padding:12px 14px}

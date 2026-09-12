@@ -83,10 +83,13 @@ function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim =
 function mapPersistCamera(){ if(!MAP) return; mapState.vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h }; store.set('mapState', mapState); }
 
 function mapTipHTML(n){
-  const kind = n.dataset.kind, id = n.dataset.id;
+  const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
   if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom || mapState.topic || mapState.smell ? 'click to reset the branch' : 'click for the starting paths'}</div>`;
   if(kind==='domain'){ const d = DOM[id]; return `<b style="color:${d.color}">${esc(d.t)}</b><div>${esc(d.short)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':'click to expand and read'}</div>`; }
   if(kind==='topic'){ const t = TOPICS[id]; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div><div class="muted">click to read in the panel</div>`; }
+  if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${why?`<div class="why"><b>Why it connects:</b> ${esc(why)}</div>`:''}<div class="muted">click to open this concept</div>`; }
+  if(kind==='smell'){ const s = SMELLS.find(x => x.id===id); return `<b style="color:var(--bad)">Design smell</b><div>${esc(s?s.t:id)}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open in Diagnose</div>`; }
+  if(kind==='view'){ const v = VIEW_LINKS[id]; return `<b style="color:var(--accent2)">Tool</b><div>${esc(v?v[1]:id)}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open</div>`; }
   return '';
 }
 function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
@@ -94,9 +97,9 @@ function mapHover(n, e){
   const M = MAP; if(M.hover === n){ if(n && e) mapMoveTip(e); return; }
   if(M.hover){ M.svg.classList.remove('dimmed'); $$('.hl', M.svg).forEach(x => x.classList.remove('hl')); M.tip.hidden = true; }
   M.hover = n; if(!n) return;
-  const id = n.dataset.id;
+  const key = n.dataset.key;
   M.svg.classList.add('dimmed'); n.classList.add('hl');
-  $$('.edge', M.svg).forEach(ed => { const k = ed.dataset.key; const hit = k.endsWith('>' + id) || k.startsWith('e:' + id + '>'); ed.classList.toggle('hl', hit); });
+  $$('.edge', M.svg).forEach(ed => { const hit = ed.dataset.a === key || ed.dataset.b === key; ed.classList.toggle('hl', hit); if(hit){ const other = ed.dataset.a === key ? ed.dataset.b : ed.dataset.a; const on = other && M.svg.querySelector(`.node[data-key="${other}"]`); if(on) on.classList.add('hl'); } });
   if(e && e.pointerType !== 'touch'){ M.tip.innerHTML = mapTipHTML(n); M.tip.hidden = false; mapMoveTip(e); }
 }
 function mapClick(n){
@@ -104,42 +107,72 @@ function mapClick(n){
   if(kind==='center'){ if(mapState.dom || mapState.topic || mapState.smell) return go('#/map/home'); return openStart(); }
   if(kind==='domain') return go(n.classList.contains('open') ? '#/map/home' : '#/map/d/'+id);
   if(kind==='topic') return go('#/map/t/'+id);
+  if(kind==='leaf') return go('#/map/t/'+id);
+  if(kind==='smell') return go('#/map/s/'+id);
+  if(kind==='view'){ const v = VIEW_LINKS[id]; if(v) go(v[0]); }
 }
 
 function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); } }
 window.__fitMap = fitMap;
+function redrawGraph(){
+  if(!MAP || !document.body.contains(MAP.svg)) return;
+  const g = PlayableGraph.build(mapState, seen, VIEW_LINKS);
+  g.focus = treeFocus(g);
+  MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
+  MAP.svg.innerHTML = g.inner;
+}
+function resetMapNodes(){ mapState.off = {}; saveMap(); if(MAP) MAP.vb = null; renderTree(); }
 function initMapStage(){
   if(MAP && document.body.contains(MAP.svg)) return;
   const wrap = $('#mapwrap'), svg = $('#mapsvg'), tip = $('#maptip');
   MAP = { wrap, svg, tip, g:null, vb:null, anim:null, hover:null };
   const screenToVB = (cx, cy) => { const r = svg.getBoundingClientRect(); return [MAP.vb.x + (cx - r.left)/r.width*MAP.vb.w, MAP.vb.y + (cy - r.top)/r.height*MAP.vb.h]; };
   const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); mapPersistCamera(); };
-  let drag = null, suppressClick = false, pinch = null; const touchPts = new Map();
+  let drag = null, nodeDrag = null, suppressClick = false, pinch = null, raf = 0; const touchPts = new Map();
+  const nodeKeyAt = e => { const n = e.target.closest ? e.target.closest('.node') : null; return n ? n.dataset.key : null; };
+  const startNode = (key, x, y, id) => { const o = (mapState.off && mapState.off[key]) || { x:0, y:0 }; nodeDrag = { key, id, x, y, base:{ x:o.x, y:o.y }, moved:false }; };
+  const moveNode = e => {
+    if(nodeDrag.id !== undefined && e.pointerId !== undefined && e.pointerId !== nodeDrag.id) return;
+    const r = svg.getBoundingClientRect();
+    const dx = (e.clientX - nodeDrag.x)/r.width*MAP.vb.w, dy = (e.clientY - nodeDrag.y)/r.height*MAP.vb.h;
+    if(Math.abs(e.clientX-nodeDrag.x)+Math.abs(e.clientY-nodeDrag.y) > 4) nodeDrag.moved = true;
+    if(!nodeDrag.moved) return;
+    mapState.off = mapState.off || {};
+    mapState.off[nodeDrag.key] = { x: nodeDrag.base.x + dx, y: nodeDrag.base.y + dy };
+    if(!raf) raf = requestAnimationFrame(() => { raf = 0; redrawGraph(); });
+  };
   svg.addEventListener('pointerdown', e => {
     if(e.pointerType === 'touch'){ touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY }); mapStopAnim();
-      if(touchPts.size === 1){ drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
-      else if(touchPts.size === 2){ drag = null; const p = [...touchPts.values()]; pinch = { dist: Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y) }; }
+      if(touchPts.size === 1){ const key = nodeKeyAt(e); if(key) startNode(key, e.clientX, e.clientY, e.pointerId); else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
+      else if(touchPts.size === 2){ drag = null; nodeDrag = null; const p = [...touchPts.values()]; pinch = { dist: Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y) }; }
       return; }
-    if(e.button !== 0) return; mapStopAnim(); drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false };
+    if(e.button !== 0) return; mapStopAnim();
+    const key = nodeKeyAt(e);
+    if(key) startNode(key, e.clientX, e.clientY, e.pointerId);
+    else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false };
   });
   const onMove = e => {
     if(!document.body.contains(svg)) return;
     if(e.pointerType === 'touch'){
       if(touchPts.has(e.pointerId)) touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY });
       if(touchPts.size >= 2 && pinch){ const p = [...touchPts.values()]; const dist = Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y); if(dist > 0){ const mid = screenToVB((p[0].x+p[1].x)/2, (p[0].y+p[1].y)/2); zoomAbout(mid[0], mid[1], pinch.dist/dist); pinch = { dist }; suppressClick = true; } }
-      else if(touchPts.size === 1 && drag){ const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } }
+      else if(touchPts.size === 1){ if(nodeDrag) moveNode(e); else if(drag){ const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } } }
       return;
     }
+    if(nodeDrag){ moveNode(e); return; }
     if(!drag) return; const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } };
-  const onUp = e => { if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
+  const onUp = e => {
+    if(nodeDrag){ if(nodeDrag.moved){ saveMap(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } nodeDrag = null; if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
+    if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
     if(drag && drag.moved){ mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
-  const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; }; window.addEventListener('blur', clearTouches);
+  const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; nodeDrag = null; }; window.addEventListener('blur', clearTouches);
   svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); }, {passive:false});
-  svg.addEventListener('pointermove', e => { if(e.pointerType === 'touch') return; const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
-  svg.addEventListener('pointerleave', () => mapHover(null));
+  svg.addEventListener('pointermove', e => { if(e.pointerType === 'touch' || nodeDrag || drag) return; const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
+  svg.addEventListener('pointerleave', () => { if(!nodeDrag && !drag) mapHover(null); });
   svg.addEventListener('click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
   $('#mapFit').onclick = fitMap;
+  $('#mapReset').onclick = resetMapNodes;
   $('#mapZoomIn').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1/1.15);
   $('#mapZoomOut').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1.15);
 }
@@ -147,15 +180,16 @@ function treeFocus(g){
   if(!g.nodes) return null;
   const dom = g.nodes.find(n => n.kind==='domain' && n.id===mapState.dom);
   if(!dom) return null;
-  const kids = dom.children || [];
-  const xs = [dom.x, dom.x + dom.w].concat(kids.map(c => [c.x, c.x + c.w]).flat());
-  const ys = [dom.y - dom.h/2, dom.y + dom.h/2].concat(kids.map(c => [c.y - c.h/2, c.y + c.h/2]).flat());
+  const xs = [], ys = [];
+  const walk = n => { xs.push(n.x, n.x + n.w); ys.push(n.y - n.h/2, n.y + n.h/2); (n.children || []).forEach(walk); };
+  walk(dom);
   const top = Math.min(...ys) - 20, bot = Math.max(...ys) + 20;
-  return { x: -20, y: top, w: Math.max(...xs) + 60, h: bot - top };
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  return { x: minX - 20, y: top, w: maxX - minX + 40, h: bot - top };
 }
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
-  const g = PlayableGraph.build(mapState, seen);
+  const g = PlayableGraph.build(mapState, seen, VIEW_LINKS);
   g.focus = treeFocus(g);
   MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;

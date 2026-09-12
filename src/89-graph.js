@@ -3,63 +3,157 @@
    The radial map was replaced because a circle cannot hold names as the
    content grows. This is a tidy horizontal tree (the structure XMind and
    d3.tree use): the root sits on the left, domains on the next layer, and
-   a domain's topics on the third layer only while it is open. Nodes are
-   labelled cards, always readable, and the layout grows by stacking and
-   panning, not by shrinking. Coordinates are centred on (0,0) per row and
-   the caller fits the viewBox.
+   a domain's topics on the third layer while it is open. The selected
+   topic grows a fourth layer of smaller leaf nodes: the concepts it
+   relates to, the smells it helps diagnose and the tools it points to.
+   Nodes are labelled cards, always readable, and the layout grows by
+   stacking and panning, not by shrinking. Coordinates are centred on (0,0)
+   per row and the caller fits the viewBox.
+
+   Cross-branch links are drawn as faint dashed curves, matching the old
+   radial map: domain <-> domain, an open topic -> a related topic's
+   domain, and a leaf -> its home domain. They carry a title so hovering an
+   edge names the relationship; the app's hover handler highlights the
+   edges attached to the hovered node using data-a / data-b node keys.
    ===================================================================== */
 window.PlayableGraph = (function(){
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const SIZE = { root:{ w:280, h:74 }, domain:{ w:262, h:46 }, topic:{ w:300, h:34 } };
-  const COL = 340, VGAP = 11, PAD = 40;
+  const SIZE = { root:{ w:280, h:74 }, domain:{ w:262, h:46 }, topic:{ w:300, h:34 }, leaf:{ w:236, h:30 } };
+  const COL = 340, VGAP = 30, PAD = 40;
 
   const cut = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
-  const maxFor = kind => kind === 'root' ? 30 : kind === 'domain' ? 24 : 36;
+  const maxFor = kind => kind === 'center' ? 30 : kind === 'domain' ? 24 : kind === 'topic' ? 36 : 30;
+  // Horizontal-tangent cubic between two points; dx is how far the control
+  // points sit from each end (negative to bow left, as the cross links do).
+  const link = (ax, ay, bx, by, dx) => `M${ax},${ay} C${ax + dx},${ay} ${bx + dx},${by} ${bx},${by}`;
+  const smooth = (ax, ay, bx, by) => `M${ax},${ay} C${(ax + bx) / 2},${ay} ${(ax + bx) / 2},${by} ${bx},${by}`;
 
-  function build(state, seen){
+  const LEAF_KINDS = { leaf:'leaf', smell:'smell', view:'view' };
+
+  function build(state, seen, views){
+    views = views || {};
+    const dcolor = id => { const d = DOMAINS.find(x => x.id === id); return d ? d.color : 'var(--accent)'; };
+    const dtitle = id => { const d = DOMAINS.find(x => x.id === id); return d ? d.t : id; };
+
     const root = { kind:'center', id:'root', label:'Make something people want to play', w:SIZE.root.w, h:SIZE.root.h, children:[] };
+    let sel = null;
     DOMAINS.forEach(d => {
       const sn = d.topics.filter(t => seen.has(t)).length;
       const node = { kind:'domain', id:d.id, label:d.t, sub:`${sn}/${d.topics.length} read`, color:d.color, open:state.dom === d.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
-      if(state.dom === d.id) d.topics.forEach(t => node.children.push({ kind:'topic', id:t, label:TOPICS[t].t, color:d.color, seen:seen.has(t), w:SIZE.topic.w, h:SIZE.topic.h, children:[] }));
+      if(state.dom === d.id) d.topics.forEach(t => {
+        const tn = { kind:'topic', id:t, label:TOPICS[t].t, color:d.color, seen:seen.has(t), w:SIZE.topic.w, h:SIZE.topic.h, children:[] };
+        if(state.topic === t) sel = tn;
+        node.children.push(tn);
+      });
       root.children.push(node);
     });
 
-    // tidy vertical layout: leaves take the next slot, parents centre on their children
-    let cursor = 0;
+    // fourth layer: the selected topic's related concepts, smells and tools.
+    if(sel){
+      const t = TOPICS[state.topic] || {};
+      (t.rel || []).forEach(([rid, why]) => {
+        const rt = TOPICS[rid];
+        if(rt) sel.children.push({ kind:'leaf', id:rid, label:rt.t, color:dcolor(rt.d), why, home:rt.d, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] });
+        else sel.children.push({ kind:'view', id:rid, label:(views[rid] ? views[rid][1] : rid), why, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] });
+      });
+      SMELLS.filter(s => s.causes.some(c => c.top === state.topic)).slice(0, 4)
+        .forEach(s => sel.children.push({ kind:'smell', id:s.id, label:`! ${s.t}`, color:'var(--bad)', why:s.sym, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] }));
+    }
+
+    // two-sided tidy layout: the domains split into two balanced groups, one on
+    // each side of the goal, so the cross links fan out instead of piling up.
+    const keyOf = n => n.kind === 'center' ? 'c' : n.kind === 'domain' ? 'd:' + n.id : n.kind === 'topic' ? 't:' + n.id : 'l:' + n.id;
+    root.side = 0;
+    const half = Math.ceil(root.children.length / 2);
+    root.children.forEach((node, i) => { node.side = i < half ? 1 : -1; });
+
+    const xFor = (n, depth) => n.side < 0 ? -(depth * COL) - n.w : depth * COL;
+    const cursors = { '1': 0, '-1': 0 };
     const assign = (n, depth) => {
-      n.x = depth * COL;
-      if(!n.children.length){ n.y = cursor; cursor += n.h + VGAP; }
+      n.depth = depth;
+      n.x = n.kind === 'center' ? -n.w / 2 : xFor(n, depth);
+      if(n.kind !== 'center') n.children.forEach(c => { c.side = n.side; });
+      if(!n.children.length){ const c = cursors[n.side] || 0; n.y = c; cursors[n.side] = c + n.h + VGAP; }
       else {
         const ys = []; n.children.forEach(c => { assign(c, depth + 1); ys.push(c.y); });
         n.y = (ys[0] + ys[ys.length - 1]) / 2;
         const span = ys[ys.length - 1] - ys[0];
-        if(span < n.h) cursor += (n.h - span) + VGAP;
+        if(span < n.h){ const c = cursors[n.side] || 0; cursors[n.side] = c + (n.h - span) + VGAP; }
       }
+      n.lx = n.x; n.ly = n.y;
     };
     assign(root, 0);
+    // centre each side on the goal so the root sits between the two groups
+    const shiftSide = s => {
+      const list = []; const collect = n => { list.push(n); n.children.forEach(collect); };
+      root.children.filter(n => n.side === s).forEach(collect);
+      if(!list.length) return;
+      const top = Math.min(...list.map(n => n.y - n.h / 2)), bot = Math.max(...list.map(n => n.y + n.h / 2));
+      const mid = (top + bot) / 2;
+      list.forEach(n => { n.y -= mid; n.ly -= mid; });
+    };
+    shiftSide(1); shiftSide(-1);
+    root.y = 0; root.ly = 0;
 
-    const nodes = [], edges = [], xs = [], ys = [];
+    // manual positions: a dragged node nudges its whole branch, so descendants
+    // inherit the offset and edges keep following the nodes.
+    const off = state.off || {};
+    const applyOff = (n, px, py) => {
+      const o = off[keyOf(n)];
+      n.dx = px + (o ? o.x : 0); n.dy = py + (o ? o.y : 0);
+      n.x = n.lx + n.dx; n.y = n.ly + n.dy;
+      n.children.forEach(c => applyOff(c, n.dx, n.dy));
+    };
+    applyOff(root, 0, 0);
+
+    const innerX = n => n.side < 0 ? n.x + n.w : n.x;   // edge facing the goal
+    const nodes = [], byKey = {}, edges = [], xs = [], ys = [];
     const walk = (n, parent) => {
-      nodes.push(n); xs.push(n.x, n.x + n.w); ys.push(n.y - n.h / 2, n.y + n.h / 2);
+      nodes.push(n); byKey[keyOf(n)] = n; xs.push(n.x, n.x + n.w); ys.push(n.y - n.h / 2, n.y + n.h / 2);
       if(parent){
-        const sx = parent.x + parent.w, sy = parent.y, ex = n.x, ey = n.y, mx = sx + (ex - sx) / 2;
-        edges.push(`<path class="edge ${parent.open ? 'open' : ''}" data-key="e:${parent.id}>${n.id}" d="M${sx},${sy} H${mx} V${ey} H${ex}"/>`);
+        const sx = n.side < 0 ? parent.x : parent.x + parent.w, sy = parent.y;
+        const ex = innerX(n), ey = n.y, mx = sx + (ex - sx) / 2;
+        const ext = LEAF_KINDS[n.kind] ? ' ext' : '';
+        edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="M${sx},${sy} C${mx},${sy} ${mx},${ey} ${ex},${ey}"/>`);
       }
       n.children.forEach(c => walk(c, n));
     };
     walk(root, null);
 
+    // cross-branch links: faint dashed curves that leave the tree. Same-side
+    // links bow away from the goal; cross-side links pass under it.
+    DOMAINS.forEach(d => (d.links || []).forEach(([to, why]) => {
+      const a = byKey['d:' + d.id], b = byKey['d:' + to];
+      if(!a || !b) return;
+      const path = a.side === b.side ? link(innerX(a), a.y, innerX(b), b.y, -a.side * 55) : smooth(innerX(a), a.y, innerX(b), b.y);
+      edges.push(`<path class="edge dd" data-a="d:${d.id}" data-b="d:${to}" d="${path}"><title>${esc(why)}</title></path>`);
+    }));
+    if(state.dom){
+      (DOMAINS.find(d => d.id === state.dom).topics || []).forEach(tid => {
+        const tn = byKey['t:' + tid]; if(!tn) return;
+        (TOPICS[tid].rel || []).forEach(([rid, why]) => {
+          const rt = TOPICS[rid]; if(!rt || rt.d === state.dom) return;
+          const dn = byKey['d:' + rt.d]; if(!dn) return;
+          edges.push(`<path class="edge cross" data-a="t:${tid}" data-b="d:${rt.d}" d="${smooth(innerX(tn), tn.y, innerX(dn), dn.y)}"><title>${esc(rt.t)}: ${esc(why)}</title></path>`);
+        });
+      });
+    }
+    if(sel) sel.children.filter(l => l.home && l.home !== state.dom).forEach(l => {
+      const dn = byKey['d:' + l.home]; if(!dn) return;
+      edges.push(`<path class="edge home" data-a="l:${l.id}" data-b="d:${l.home}" d="${smooth(innerX(l), l.y, innerX(dn), dn.y)}"><title>${esc(l.label)} lives in ${esc(dtitle(l.home))}</title></path>`);
+    });
+
     const mark = (n) => {
-      const x = n.x, y = n.y - n.h / 2, dc = n.color ? ` style="--dc:${n.color}"` : '';
-      const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : (n.seen ? 'topic seen' : 'topic');
-      const fs = n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : 13;
-      const tx = x + 14, ty = n.sub ? n.y - 2 : n.y + 4;
-      let g = `<g class="node ${cls}" data-key="${n.kind === 'center' ? 'c' : (n.kind === 'domain' ? 'd:' : 't:') + n.id}" data-kind="${n.kind}" data-id="${n.id}"${dc}>`;
+      const x = n.x, y = n.y - n.h / 2, left = n.side < 0, dc = n.color ? ` style="--dc:${n.color}"` : '';
+      const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : n.kind === 'topic' ? (n.seen ? 'topic seen' : 'topic') : ('leaf ' + n.kind);
+      const fs = n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
+      const tx = left ? x + n.w - 14 : x + 14, ty = n.sub ? n.y - 2 : n.y + 4, anchor = left ? 'end' : 'start';
+      const why = n.why ? ` data-why="${esc(n.why)}"` : '';
+      let g = `<g class="node ${cls}" data-key="${keyOf(n)}" data-kind="${n.kind}" data-id="${n.id}"${why}${dc}>`;
       g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
-      if(n.kind === 'domain') g += `<text class="glyph" x="${x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
-      g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="start" font-size="${fs}">${esc(cut(n.label, maxFor(n.kind)))}</text>`;
-      if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="start" font-size="9.5">${esc(n.sub)}</text>`;
+      if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
+      g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.kind)))}</text>`;
+      if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(n.sub)}</text>`;
       g += `</g>`;
       return g;
     };

@@ -315,10 +315,16 @@ typographic tile otherwise. The distant dashed edges of the brain map were raise
 The front door and the navigator were rebuilt twice. The radial map and its floating
 "back to map" dock are gone. The layout is now three persistent panes: a named, counted,
 collapsible **index** on the left; an always-visible **mind map** in the centre; and a
-**content** panel on the right. The map is a horizontal collapsible tidy tree (the goal,
-the fourteen domains, a domain's topics while it is open) with labelled cards, so names
-never depend on hover and the structure grows by stacking and panning rather than by
-shrinking a circle. Panels are resized by dragging the dividers and collapsed from the
+**content** panel on the right. The map is a horizontal collapsible tidy tree: the goal in
+the middle with the fourteen domains split into two balanced groups on either side, a
+domain's topics while it is open, and a further layer of related concepts, smells and
+tools under the selected topic, all as labelled cards joined by smooth
+curves, so names never depend on hover and the structure grows by stacking and panning
+rather than by shrinking a circle. Faint dashed cross-branch links connect domains to each
+other, an open topic to a related concept's domain, and a leaf back to its home domain;
+hovering a node highlights its links. A node can be dragged to reposition its branch, with
+a **reset** button restoring the tidy layout; all gestures are pointer-based so they work
+with mouse and touch. Panels are resized by dragging the dividers and collapsed from the
 toolbar; on phones the index and content are slide-over drawers with a tap-away scrim.
 The centre button opens the starting paths at the overview and collapses an open branch.
 A `#/lab` Idea Lab treats an idea as a chain (signal, tension, opportunity, design

@@ -17,10 +17,17 @@ node was to hover.
 - **Index** (left): domains and topics, named and counted, with a search box. Expand
   what you need.
 - **Mind map** (centre): the always-visible map, drawn as a horizontal collapsible tidy
-  tree. The goal is on the left, the fourteen domains on the next layer, and a domain's
-  topics on the third layer while it is open. Nodes are labelled cards, so names never
-  depend on hover, and the tree grows by stacking and panning rather than by shrinking a
-  circle. Drag to pan, wheel or pinch to zoom.
+  tree. The goal sits in the middle with the fourteen domains split into two balanced
+  groups, one on each side, and a domain's topics on the next layer while it is open.
+  Selecting a topic grows another layer of smaller nodes: the concepts it relates to, the
+  smells it diagnoses and the tools it points to. Faint dashed cross-branch links connect
+  domains to each other, an open topic to a related concept's domain, and a leaf back to
+  its home domain, and hover highlights a node's links. Nodes are labelled cards joined by
+  smooth curves, so names never depend on hover, and the tree grows by stacking and panning
+  rather than by shrinking a circle.
+  Dragging a node nudges its whole branch (persisted per node key; **reset** restores the
+  tidy layout); dragging empty space pans, and wheel or pinch zooms. Every gesture is
+  pointer-based, so mouse and touch behave the same.
 - **Content** (right): whatever you are reading or doing.
 
 All three are visible at once on desktop; panels are resized by dragging the dividers and
@@ -130,8 +137,9 @@ non-AI action.
 - **Search** understands symptoms for smells via keyword lists, and topics via their
   text, but there is no dedicated symptom index across the whole guide.
 - **Reference art** covers eleven of fifteen games; four use typographic tiles.
-- The **mind map** is a horizontal tidy tree. It holds names and scales by stacking and
-  panning, but a domain with very many topics makes a tall column, and deep nesting is not
-  yet used; a future pass could add a top-down variant or node search-in-map.
+- The **mind map** is a horizontal tidy tree with four layers used (goal, domains, topics,
+  selected-topic leaves). It holds names and scales by stacking and panning, but a domain
+  with very many topics makes a tall column, and the cross-branch links show as one faint
+  dashed layer; a future pass could add node search-in-map or edge filtering.
 - Verdict and confidence are qualitative by design. Where a reader wants a number,
   there deliberately is none.
