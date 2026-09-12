@@ -121,7 +121,14 @@ function redrawGraph(){
   MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
 }
-function resetMapNodes(){ mapState.off = {}; saveMap(); if(MAP) MAP.vb = null; renderTree(); }
+function resetMapDrag(){ mapState.off = {}; saveMap(); redrawGraph(); }
+function resetMapDefault(){
+  mapState.dom = null; mapState.topic = null; mapState.smell = null;
+  mapState.off = {}; mapState.vb = null;
+  saveMap();
+  if(MAP) MAP.vb = null;
+  go('#/map/home');
+}
 function initMapStage(){
   if(MAP && document.body.contains(MAP.svg)) return;
   const wrap = $('#mapwrap'), svg = $('#mapsvg'), tip = $('#maptip');
@@ -172,7 +179,8 @@ function initMapStage(){
   svg.addEventListener('pointerleave', () => { if(!nodeDrag && !drag) mapHover(null); });
   svg.addEventListener('click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
   $('#mapFit').onclick = fitMap;
-  $('#mapReset').onclick = resetMapNodes;
+  $('#mapResetDrag').onclick = resetMapDrag;
+  $('#mapResetDefault').onclick = resetMapDefault;
   $('#mapZoomIn').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1/1.15);
   $('#mapZoomOut').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1.15);
 }

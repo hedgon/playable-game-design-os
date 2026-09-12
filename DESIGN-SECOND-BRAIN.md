@@ -25,8 +25,9 @@ node was to hover.
   its home domain, and hover highlights a node's links. Nodes are labelled cards joined by
   smooth curves, so names never depend on hover, and the tree grows by stacking and panning
   rather than by shrinking a circle.
-  Dragging a node nudges its whole branch (persisted per node key; **reset** restores the
-  tidy layout); dragging empty space pans, and wheel or pinch zooms. Every gesture is
+  Dragging a node nudges its whole branch (persisted per node key; **drag** puts the nodes
+  back in the tidy layout and **default** collapses every branch and fits the overview);
+  dragging empty space pans, and wheel or pinch zooms. Every gesture is
   pointer-based, so mouse and touch behave the same.
 - **Content** (right): whatever you are reading or doing.
 

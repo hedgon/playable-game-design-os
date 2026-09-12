@@ -77,7 +77,8 @@ function ensureShell(){
         <button class="btn sm ghost" id="mapZoomOut" title="Zoom out">－</button>
         <button class="btn sm ghost" id="mapZoomIn" title="Zoom in">＋</button>
         <button class="btn sm ghost" id="mapFit" title="Fit the map">⤢ fit</button>
-        <button class="btn sm ghost" id="mapReset" title="Reset dragged nodes to the tidy layout">↺ reset</button>
+        <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout">↺ drag</button>
+        <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview">⟲ default</button>
         <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
         <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
       </div></div>

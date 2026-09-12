@@ -323,8 +323,8 @@ curves, so names never depend on hover and the structure grows by stacking and p
 rather than by shrinking a circle. Faint dashed cross-branch links connect domains to each
 other, an open topic to a related concept's domain, and a leaf back to its home domain;
 hovering a node highlights its links. A node can be dragged to reposition its branch, with
-a **reset** button restoring the tidy layout; all gestures are pointer-based so they work
-with mouse and touch. Panels are resized by dragging the dividers and collapsed from the
+**drag** and **default** buttons (put the dragged nodes back in the tidy layout; return to
+the collapsed overview); all gestures are pointer-based so they work with mouse and touch. Panels are resized by dragging the dividers and collapsed from the
 toolbar; on phones the index and content are slide-over drawers with a tap-away scrim.
 The centre button opens the starting paths at the overview and collapses an open branch.
 A `#/lab` Idea Lab treats an idea as a chain (signal, tension, opportunity, design
