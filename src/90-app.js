@@ -71,6 +71,52 @@ function promptBox(label, text){ const id = 'p'+Math.random().toString(36).slice
 function list(arr){ return `<ul>${(arr||[]).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
 function chainHTML(items, cls){ return `<div class="chain">${items.map((it, i) => (i ? '<span class="arrow">→</span>' : '') + `<span class="cn ${it[2]||cls||''}" onclick="location.hash='${it[1]}'" title="${esc(it[3]||'')}">${esc(it[0])}</span>`).join('')}</div>`; }
 
+/* ---------- inline SVG diagrams (theme-aware, no external assets) ---------- */
+const DIAGRAM_HIERARCHY = `<svg class="diagram" viewBox="0 0 640 232" role="img" aria-label="Information hierarchy: one attention budget, sorted by how fast it must be read">
+  <text class="dhead" x="0" y="13">One attention budget, sorted by how fast it must be read</text>
+  <rect class="bar1" x="0" y="26" width="632" height="52" rx="2"/>
+  <text class="dt" x="14" y="48">The decision in action</text>
+  <text x="14" y="66">size, contrast and motion, never text</text>
+  <rect class="bar2" x="0" y="92" width="452" height="52" rx="2"/>
+  <text class="dt" x="14" y="114">State checked between actions</text>
+  <text x="14" y="132">recognition, not recall. The world can carry most of it</text>
+  <rect class="bar3" x="0" y="158" width="300" height="52" rx="2"/>
+  <text class="dt" x="14" y="180">Reference only</text>
+  <text x="14" y="198">read when stopped. If nobody uses it, cut it</text>
+</svg>`;
+const DIAGRAM_FEEDBACK = `<svg class="diagram" viewBox="0 0 620 246" role="img" aria-label="The feedback loop: action, simulation, feedback, model update">
+  <defs><marker id="arrfb" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="fill-a" d="M0,0 L6,3 L0,6 Z"/></marker></defs>
+  <text class="dhead" x="0" y="13">The loop that teaches: Dan Cook's skill atom</text>
+  <rect class="box" x="20" y="30" width="220" height="64" rx="2"/><text class="dt" x="34" y="54">Action</text><text x="34" y="72">the player does something</text>
+  <rect class="box" x="380" y="30" width="220" height="64" rx="2"/><text class="dt" x="394" y="54">Simulation</text><text x="394" y="72">the rules resolve it</text>
+  <rect class="box" x="380" y="150" width="220" height="64" rx="2"/><text class="dt" x="394" y="174">Feedback</text><text x="394" y="192">the game shows what happened</text>
+  <rect class="box" x="20" y="150" width="220" height="64" rx="2"/><text class="dt" x="34" y="174">Model update</text><text x="34" y="192">the player updates belief</text>
+  <line class="stroke-a" x1="242" y1="62" x2="374" y2="62" marker-end="url(#arrfb)"/>
+  <line class="stroke-a" x1="490" y1="96" x2="490" y2="144" marker-end="url(#arrfb)"/>
+  <line class="stroke-a" x1="378" y1="182" x2="246" y2="182" marker-end="url(#arrfb)"/>
+  <line class="stroke-a" x1="130" y1="148" x2="130" y2="100" marker-end="url(#arrfb)"/>
+</svg>`;
+const DIAGRAM_DISSECTION = `<svg class="diagram" viewBox="0 0 704 258" role="img" aria-label="Dissect each comparable with one template, then cross-reference your concept against all of them">
+  <defs><marker id="arrds" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="fill-b" d="M0,0 L6,3 L0,6 Z"/></marker></defs>
+  <text class="dhead" x="0" y="13">Dissect each comparable with one template</text>
+  <rect class="box" x="0" y="24" width="160" height="58" rx="2"/><text class="dt" x="14" y="48">Want served</text><text x="14" y="66">the reason they play</text>
+  <rect class="box" x="182" y="24" width="160" height="58" rx="2"/><text class="dt" x="196" y="48">Core verb</text><text x="196" y="66">what they do most</text>
+  <rect class="box" x="364" y="24" width="160" height="58" rx="2"/><text class="dt" x="378" y="48">First 30s</text><text x="378" y="66">what teaches the game</text>
+  <rect class="box" x="546" y="24" width="160" height="58" rx="2"/><text class="dt" x="560" y="48">Decision/min</text><text x="560" y="66">the repeatable choice</text>
+  <line class="stroke-b" x1="162" y1="53" x2="178" y2="53" marker-end="url(#arrds)"/>
+  <line class="stroke-b" x1="344" y1="53" x2="360" y2="53" marker-end="url(#arrds)"/>
+  <line class="stroke-b" x1="526" y1="53" x2="542" y2="53" marker-end="url(#arrds)"/>
+  <text class="dhead" x="0" y="118">Then cross-reference your concept against all of them</text>
+  <rect class="box" x="0" y="130" width="160" height="58" rx="2"/><text class="dt" x="14" y="154">Why it worked</text><text x="14" y="172">the mechanism, cited</text>
+  <rect class="box" x="182" y="130" width="160" height="58" rx="2"/><text class="dt" x="196" y="154">Complaints</text><text x="196" y="172">the want left unserved</text>
+  <rect class="box" x="364" y="130" width="160" height="58" rx="2"/><text class="dt" x="378" y="154">Lesson</text><text x="378" y="172">what you must not skip</text>
+  <rect class="box" x="546" y="130" width="160" height="58" rx="2"/><text class="dt" x="560" y="154">Copies miss</text><text x="560" y="172">the usual failure</text>
+  <text x="0" y="222">Shared want, a difference visible in one screenshot, an answered complaint, and a bar you can reach.</text>
+  <text class="muted" x="0" y="242">Sources are heuristics. Verify every claim about why a game worked, or mark it unknown.</text>
+</svg>`;
+const DIAGRAMS = { 'ux-as-design': DIAGRAM_HIERARCHY, 'readability-and-hierarchy': DIAGRAM_HIERARCHY, 'feedback-and-affordance': DIAGRAM_FEEDBACK, 'learning-from-success': DIAGRAM_DISSECTION };
+const DOMAIN_DIAGRAMS = { ux: DIAGRAM_HIERARCHY };
+
 /* =====================================================================
    MAP
    ===================================================================== */
@@ -93,8 +139,9 @@ function renderExplore(domainId){
   let main;
   if(d){
     main = `${crumbs([['Map','#/map'],['Explore','#/explore'],[d.t]])}
-      <div class="domain-hero" style="--dc:${d.color}"><h1>${esc(d.t)}</h1><p class="dim" style="font-size:1.05rem;max-width:820px">${esc(d.sum)}</p>
+      <div class="domain-hero" style="--dc:${d.color}"><h1>${esc(d.t)}</h1><p class="dim" style="max-width:820px">${esc(d.sum)}</p>
         <div class="chips">${d.links.map(([to]) => `<span class="chip dom" style="--dc:${DOM[to].color};cursor:pointer" onclick="location.hash='#/explore/${to}'">→ ${esc(DOM[to].t)}</span>`).join('')}</div></div>
+      ${DOMAIN_DIAGRAMS[d.id] ? `<div class="card diagram-card">${DOMAIN_DIAGRAMS[d.id]}</div>` : ''}
       <div class="row" style="margin-bottom:10px"><a class="btn sm primary" href="#/map/d/${d.id}">Open this branch on the map ↗</a></div>
       <div class="section-head"><h2>Topics</h2></div>
       <div class="grid auto">${d.topics.map(tid => { const t = TOPICS[tid]; return `<div class="card clickable tint" style="--dc:${d.color}" onclick="location.hash='#/topic/${tid}'"><h3>${esc(t.t)} ${seen.has(tid)?'<span class="chip ok">read</span>':''}</h3><p class="dim small" style="margin:0">${esc(t.tag)}</p></div>`; }).join('')}</div>
@@ -142,6 +189,7 @@ function topicBody(id){
   const main = `${crumbs([['Map','#/map'],['Explore','#/explore'],[d.t,'#/explore/'+d.id],[t.t]])}
     <div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       <div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div></div>
+    ${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
     ${secs}${techSec}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
@@ -199,7 +247,7 @@ function wireSmellSearch(){
 function funView(dim){
   const funSmells = SMELLS.filter(s => s.fun);
   const active = FUN_DIMS.find(d => d[0] === dim);
-  return `<div class="callout"><b>Ask "what is the player actually enjoying here?"</b> not "what feature should we add?" Different games combine these dimensions differently; the working set below draws on LeBlanc's eight kinds of fun, Lazzaro's four keys, Koster's fun-as-learning and Self-Determination Theory. It is a vocabulary, not a law.</div>
+  return `<div class="callout"><b>Ask "what is the player actually enjoying here?"</b> not "what feature should we add?" Different games combine these dimensions differently. The working set below draws on LeBlanc's eight kinds of fun, Lazzaro's four keys, Koster's fun-as-learning and Self-Determination Theory. It is a vocabulary, not a law.</div>
     <h3>Dimensions of fun <span class="muted small">click one to see its test question and the smells where it goes flat</span></h3>
     <div class="dims">${FUN_DIMS.map(d => `<button class="${d[0]===dim?'active':''}" onclick="location.hash='#/diagnose/fun/${d[0]}'">${d[0]}<div class="small muted" style="font-weight:400">${esc(d[1])}</div></button>`).join('')}</div>
     ${active ? `<div class="card" style="margin-top:12px"><h3>${active[0]}</h3><p>${esc(active[1])}</p><p><b>Playtest question:</b> ${esc(active[2])}</p><h4>Smells where ${active[0]} goes flat</h4><div class="smell-list">${funSmells.filter(s => s.dims && s.dims.includes(active[0])).map(smellCard).join('') || '<div class="empty">No smell tagged with this dimension yet.</div>'}</div></div>` : ''}
@@ -219,7 +267,7 @@ function loopView(part){
 }
 
 function unfairView(){
-  return `<div class="callout"><b>"Unfair" is a specific complaint with specific causes.</b> Treating it as "too hard" leads to the wrong fix. Tick the signs you observed; the likely causes rise to the top. Every fix preserves the challenge.</div>
+  return `<div class="callout"><b>"Unfair" is a specific complaint with specific causes.</b> Treating it as "too hard" leads to the wrong fix. Tick the signs you observed. The likely causes rise to the top. Every fix preserves the challenge.</div>
     <div class="grid c2"><div class="card checklist" id="unfairSigns"><h3>What did you observe?</h3>${UNFAIR_CAUSES.flatMap(c => c.signs.map(s => `<label><input type="checkbox" data-c="${c.id}"><span>${esc(s)}</span></label>`)).join('')}</div>
     <div id="unfairResult"><div class="empty">Tick signs on the left to rank causes.</div></div></div>`;
 }
@@ -232,12 +280,12 @@ function wireUnfair(){
 }
 
 function depthView(){
-  const saved = store.get('ruleAudit', [{r:'Attack costs stamina; stamina regenerates when not attacking', k:'decision'},{r:'Three currency types with separate wallets', k:'load'},{r:'Fire spreads on grass; enemies avoid fire', k:'interaction'}]);
+  const saved = store.get('ruleAudit', [{r:'Attack costs stamina. Stamina regenerates when not attacking', k:'decision'},{r:'Three currency types with separate wallets', k:'load'},{r:'Fire spreads on grass. Enemies avoid fire', k:'interaction'}]);
   return `<div class="grid c2">
-    <div class="card"><h3>Complexity</h3><p>The number of rules, exceptions and pieces of state the player must understand to play. Paid up front, by every player, before any depth is reached.</p><h3>Depth</h3><p>The number of meaningful, situationally different decisions those rules generate. Enjoyed only by players who stay.</p><h3>Elegance</h3><p>Depth per unit of complexity. Chess: few rules, enormous depth. A game with 300 stats can be shallow. No agreed metric exists; use the audit as a lens.</p>
+    <div class="card"><h3>Complexity</h3><p>The number of rules, exceptions and pieces of state the player must understand to play. Paid up front, by every player, before any depth is reached.</p><h3>Depth</h3><p>The number of meaningful, situationally different decisions those rules generate. Enjoyed only by players who stay.</p><h3>Elegance</h3><p>Depth per unit of complexity. Chess: few rules, enormous depth. A game with 300 stats can be shallow. No agreed metric exists. Use the audit as a lens.</p>
       <div class="callout warn"><b>AI-era note:</b> adding rules is now nearly free. Complexity inflation is the default failure. Cut rules that create no decision.</div>
       ${promptBox('Depth audit prompt', `Evaluate this system for depth rather than feature count: [RULES]. For each rule, classify it as (a) creates a situational decision, (b) enables an interaction with another rule, or (c) adds cognitive or implementation load only. Propose merges or deletions for every (c), stating what the player would lose. Estimate how many distinct meaningful decisions the simplified system still produces.`)}</div>
-    <div class="card rule-audit"><h3>Rule audit <span class="muted small">saved locally</span></h3><p class="small dim">List your rules. Mark what each does. The meter shows depth per rule; the list shows what to cut.</p>
+    <div class="card rule-audit"><h3>Rule audit <span class="muted small">saved locally</span></h3><p class="small dim">List your rules. Mark what each does. The meter shows depth per rule. The list shows what to cut.</p>
       <div id="rules">${saved.map(x => ruleRow(x)).join('')}</div>
       <div class="row" style="margin-top:8px"><input id="newRule" placeholder="Add a rule…" style="flex:1"><button class="btn" id="addRule">Add</button></div>
       <div id="ruleStats" style="margin-top:12px"></div></div></div>`;
@@ -247,7 +295,7 @@ function wireDepth(){
   const rules = $('#rules'); if(!rules) return;
   const read = () => $$('.rule', rules).map(r => ({ r: $('.rtext', r).value, k: $('.rkind', r).value }));
   const update = () => { const rs = read(); store.set('ruleAudit', rs); const n = rs.length, dec = rs.filter(x => x.k==='decision').length, inter = rs.filter(x => x.k==='interaction').length, load = rs.filter(x => x.k==='load').length; const score = n ? Math.round(100*(dec+inter)/n) : 0;
-    $('#ruleStats').innerHTML = n ? `<div class="kv"><dt>Rules (complexity)</dt><dd>${n}</dd><dt>Decision rules</dt><dd>${dec}</dd><dt>Interaction rules</dt><dd>${inter}</dd><dt>Load-only rules</dt><dd style="color:${load?'var(--bad)':'inherit'}">${load}</dd><dt>Elegance</dt><dd><div class="meter"><i style="width:${score}%"></i></div><span class="small muted">${score}% of rules earn their place</span></dd></div>${load ? `<div class="callout bad" style="margin-top:10px"><b>Cut list:</b> ${rs.filter(x=>x.k==='load').map(x=>esc(x.r)).join('; ')}. Prototype without them. Most players will not notice.</div>` : ''}` : '<div class="empty">No rules yet.</div>'; };
+    $('#ruleStats').innerHTML = n ? `<div class="kv"><dt>Rules (complexity)</dt><dd>${n}</dd><dt>Decision rules</dt><dd>${dec}</dd><dt>Interaction rules</dt><dd>${inter}</dd><dt>Load-only rules</dt><dd style="color:${load?'var(--bad)':'inherit'}">${load}</dd><dt>Elegance</dt><dd><div class="meter"><i style="width:${score}%"></i></div><span class="small muted">${score}% of rules earn their place</span></dd></div>${load ? `<div class="callout bad" style="margin-top:10px"><b>Cut list:</b> ${rs.filter(x=>x.k==='load').map(x=>esc(x.r)).join('. ')}. Prototype without them. Most players will not notice.</div>` : ''}` : '<div class="empty">No rules yet.</div>'; };
   rules.addEventListener('input', update); rules.addEventListener('change', update);
   rules.addEventListener('click', e => { if(e.target.classList.contains('rdel')){ e.target.closest('.rule').remove(); update(); } });
   $('#addRule').onclick = () => { const v = $('#newRule').value.trim(); if(!v) return; rules.insertAdjacentHTML('beforeend', ruleRow({r:v,k:'decision'})); $('#newRule').value=''; update(); };
@@ -277,7 +325,7 @@ function wireContentTree(){
    BUILD (tools)
    ===================================================================== */
 const TOOLS = [
-  ['idea','Idea Finder','From no idea to a concept people want: player → want → fantasy → verb → test'],
+  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it'],
   ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded'],
   ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check'],
   ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not'],
@@ -285,7 +333,7 @@ const TOOLS = [
   ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE'],
   ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…'],
   ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required'],
-  ['sysmap','System Relationship Map','Nodes and typed edges; collision questions generated'],
+  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated'],
   ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE'],
   ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view']
 ];
@@ -318,7 +366,7 @@ function toolCanvas(el){
   bindForm('canvasTool', fields.map(f => 'cv_'+f[0]), d => {
     const st = `A ${d.cv_emotions||'[emotions]'} experience where ${d.cv_player||'[player]'} gets to be ${d.cv_fantasy||'[fantasy]'} by ${d.cv_moment||'[moment-to-moment]'}. Not ${d.cv_not||'[what it is not]'}.`;
     const md = `# Core experience\n\n> ${st}\n\n${fields.map(([id,l]) => `**${l}:** ${d['cv_'+id]||'(blank)'}`).join('\n\n')}\n\n## Check\n- Do the fantasy verbs appear in the moment-to-moment activity?\n- Can the target emotions be produced by the mechanics described?\n- Would a playtester use the emotion words unprompted?`;
-    $('#cv_out').innerHTML = `<h4>Experience statement (draft)</h4><div class="quotebig" style="font-size:1.05rem">${esc(st)}</div>${outputBox(md)}<div class="row"><a class="btn sm" href="#/topic/core-experience">Read: core experience</a><a class="btn sm" href="#/topic/fantasy">Read: fantasy</a></div>`;
+    $('#cv_out').innerHTML = `<h4>Experience statement (draft)</h4><div class="quotebig sm">${esc(st)}</div>${outputBox(md)}<div class="row"><a class="btn sm" href="#/topic/core-experience">Read: core experience</a><a class="btn sm" href="#/topic/fantasy">Read: fantasy</a></div>`;
   });
 }
 
@@ -328,15 +376,15 @@ function toolLadder(el){
     `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="ladderEx">Load the crafting example</button></div><div class="grid c2"><div class="ladder">${rungs.map(([id,l,h]) => `<div class="rung"><b>${esc(l)}</b><div>${field('ld_'+id, '', h, '', 2)}</div></div>`).join('')}</div><div id="ld_out"></div></div>`;
   const d = bindForm('ladderTool', rungs.map(r => 'ld_'+r[0]), d => {
     const same = (d.ld_feature||'').trim() && (d.ld_refeature||'').trim() && d.ld_feature.trim().toLowerCase() === d.ld_refeature.trim().toLowerCase();
-    const md = `# Behavior ladder\n\n${rungs.map(([id,l]) => `**${l}:** ${d['ld_'+id]||'(blank)'}`).join('\n\n')}\n\n## Prompt\nSomeone proposed the feature "${d.ld_feature||'[FEATURE]'}". The behavior we actually want is: ${d.ld_behavior||'[BEHAVIOR]'}. Propose 5 mechanics, smallest first, that would produce this behavior; for each, the rule in one sentence, the decision it creates, what it interacts with, and how we would observe the behavior in a 15-minute test. Then argue that an existing system could be changed to produce it without any new mechanic.`;
-    $('#ld_out').innerHTML = `<h4>Live output</h4>${outputBox(md)}${same ? '<div class="callout warn">You landed on the same feature you started with. Fine if the ladder really led there; suspicious if you wrote the behavior to justify the noun.</div>' : ''}<div class="row"><a class="btn sm" href="#/build/feature">Now run: Should we build this?</a><a class="btn sm" href="#/topic/feature-vs-experience">Read: experience thinking</a></div>`;
+    const md = `# Behavior ladder\n\n${rungs.map(([id,l]) => `**${l}:** ${d['ld_'+id]||'(blank)'}`).join('\n\n')}\n\n## Prompt\nSomeone proposed the feature "${d.ld_feature||'[FEATURE]'}". The behavior we actually want is: ${d.ld_behavior||'[BEHAVIOR]'}. Propose 5 mechanics, smallest first, that would produce this behavior. For each, the rule in one sentence, the decision it creates, what it interacts with, and how we would observe the behavior in a 15-minute test. Then argue that an existing system could be changed to produce it without any new mechanic.`;
+    $('#ld_out').innerHTML = `<h4>Live output</h4>${outputBox(md)}${same ? '<div class="callout warn">You landed on the same feature you started with. Fine if the ladder really led there. Suspicious if you wrote the behavior to justify the noun.</div>' : ''}<div class="row"><a class="btn sm" href="#/build/feature">Now run: Should we build this?</a><a class="btn sm" href="#/topic/feature-vs-experience">Read: experience thinking</a></div>`;
   });
   $('#ladderEx').onclick = () => { const ex = LADDER_EXAMPLE; const map = {feature:ex.feature, behavior:ex.behavior, experience:ex.experience, system:ex.system, mechanic:ex.mechanic, refeature:ex.refeature}; Object.entries(map).forEach(([k,v]) => { const i = $('#ld_'+k); i.value = v; i.dispatchEvent(new Event('input')); }); };
 }
 
 function toolFeature(el){
   const saved = store.get('featureTool', {name:'', answers:{}});
-  el.innerHTML = toolHead('Should we build this?', 'Nine questions a feature must survive. The verdict is a heuristic that weights evidence, decisions and loop impact; use it to structure the argument, not to end it.', 'featureTool') +
+  el.innerHTML = toolHead('Should we build this?', 'Nine questions a feature must survive. The verdict is a heuristic that weights evidence, decisions and loop impact. Use it to structure the argument, not to end it.', 'featureTool') +
     field('ft_name', 'Feature under review', '', saved.name) + `<div id="ft_qs"></div><div id="ft_verdict"></div>`;
   const render = () => { const a = saved.answers; let score = 0, done = 0;
     $('#ft_qs').innerHTML = FEATURE_TREE.map((q, qi) => { const sel = a[q.id]; if(sel !== undefined){ score += q.opts[sel][1]; done++; } return `<div class="tree-q"><b>${qi+1}. ${esc(q.q)}</b><div class="opts">${q.opts.map((o, oi) => `<button class="${sel===oi?'sel':''}" data-q="${q.id}" data-o="${oi}">${esc(o[0])}</button>`).join('')}</div></div>`; }).join('');
@@ -354,9 +402,9 @@ function toolHypothesis(el){
   el.innerHTML = toolHead('Playtest Hypothesis Builder', 'Every significant design decision, expressible as a claim about player behavior with a signal and a kill criterion, written before the build.', 'hypTool') + `<div class="grid c2"><div>${f.map(([id,l,h]) => field('hy_'+id, l, h, '', 2)).join('')}</div><div id="hy_out"></div></div>`;
   bindForm('hypTool', f.map(x => 'hy_'+x[0]), d => {
     const st = `We believe ${d.hy_who||'[PLAYER]'} will ${d.hy_will||'[BEHAVIOR]'} because ${d.hy_because||'[REASON]'}. We will know this is working when ${d.hy_signal||'[SIGNAL]'}. We will kill or change it if ${d.hy_kill||'[KILL CRITERION]'}.`;
-    const md = `# Hypothesis\n\n> ${st}\n\n**Smallest experiment:** ${d.hy_smallest||'(blank)'}\n\n**Alternative explanation to rule out:** ${d.hy_alt||'(blank)'}\n\n## Prototype brief (paste to AI)\nAct as a prototype engineer. Hypothesis: ${st} Build the smallest playable test in [ENGINE]: only the mechanics needed, shapes only, no menus or saves. Expose [VALUES] as live sliders. Log with timestamps every input, decision point with the option chosen, failure with cause, and session start/end; export CSV. Before coding, list the design decisions the code will embed and wait for my choices.\n\n## Observation protocol (paste to AI)\nDesign a silent observation protocol for this hypothesis with [N] players for [MINUTES]: what to log, a non-leading interview guide ordered from behavior to opinion, a coding scheme, and a results template that separates behavior from self-report.`;
+    const md = `# Hypothesis\n\n> ${st}\n\n**Smallest experiment:** ${d.hy_smallest||'(blank)'}\n\n**Alternative explanation to rule out:** ${d.hy_alt||'(blank)'}\n\n## Prototype brief (paste to AI)\nAct as a prototype engineer. Hypothesis: ${st} Build the smallest playable test in [ENGINE]: only the mechanics needed, shapes only, no menus or saves. Expose [VALUES] as live sliders. Log with timestamps every input, decision point with the option chosen, failure with cause, and session start/end. Export CSV. Before coding, list the design decisions the code will embed and wait for my choices.\n\n## Observation protocol (paste to AI)\nDesign a silent observation protocol for this hypothesis with [N] players for [MINUTES]: what to log, a non-leading interview guide ordered from behavior to opinion, a coding scheme, and a results template that separates behavior from self-report.`;
     const warn = []; if(/feel|enjoy|like|fun/i.test(d.hy_will||'')) warn.push('The behavior mentions feeling or fun. Rewrite it as something observable.'); if(!(d.hy_kill||'').trim()) warn.push('No kill criterion yet.');
-    $('#hy_out').innerHTML = `<h4>Hypothesis</h4><div class="quotebig" style="font-size:1.05rem">${esc(st)}</div>${warn.length ? `<div class="callout warn">${warn.map(esc).join('<br>')}</div>` : ''}${outputBox(md)}<div class="row"><a class="btn sm" href="#/topic/hypothesis-driven-design">Read: hypothesis-driven design</a><a class="btn sm" href="#/playtest">Playtest question bank</a></div>`;
+    $('#hy_out').innerHTML = `<h4>Hypothesis</h4><div class="quotebig sm">${esc(st)}</div>${warn.length ? `<div class="callout warn">${warn.map(esc).join('<br>')}</div>` : ''}${outputBox(md)}<div class="row"><a class="btn sm" href="#/topic/hypothesis-driven-design">Read: hypothesis-driven design</a><a class="btn sm" href="#/playtest">Playtest question bank</a></div>`;
   });
 }
 
@@ -395,16 +443,20 @@ function toolSysmap(el){
     $$('#sm_edges button').forEach(b => b.onclick = () => { saved.edges.splice(+b.dataset.i,1); store.set('sysmapTool', saved); render(); });
     const optsHTML = N.map(n => `<option>${esc(n.n)}</option>`).join(''); $('#sm_ea').innerHTML = optsHTML; $('#sm_eb').innerHTML = optsHTML;
     // svg
-    const W=520, H=400, cx=W/2, cy=H/2, R=Math.min(W,H)/2-50; const pos = {}; N.forEach((n,i) => { const a = -Math.PI/2 + i*2*Math.PI/Math.max(N.length,1); pos[n.n] = [cx+R*Math.cos(a), cy+R*Math.sin(a)]; });
+    const W=560, H=440, NR=34, cx=W/2, cy=H/2, R=Math.min(W,H)/2-72; const pos = {}; N.forEach((n,i) => { const a = -Math.PI/2 + i*2*Math.PI/Math.max(N.length,1); pos[n.n] = [cx+R*Math.cos(a), cy+R*Math.sin(a)]; });
     const col = {resource:'var(--d-systems)',mechanic:'var(--d-core)',ability:'var(--d-experience)',enemy:'var(--d-product)',environment:'var(--d-level)',progression:'var(--d-production)','player choice':'var(--d-player)'};
-    $('#sm_svg').innerHTML = `<svg viewBox="0 0 ${W} ${H}"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg3)"/></marker></defs>
-      ${E.map(e => { const [x1,y1]=pos[e[0]], [x2,y2]=pos[e[2]]; const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1; const ex=x2-dx/len*30, ey=y2-dy/len*30, sx=x1+dx/len*30, sy=y1+dy/len*30; const mx=(sx+ex)/2 - dy/len*14, my=(sy+ey)/2 + dx/len*14; return `<path class="se ${e[1]}" d="M${sx},${sy} Q${mx},${my} ${ex},${ey}" marker-end="url(#arr)"/><text class="se-label" x="${mx}" y="${my}" text-anchor="middle">${e[1]}</text>`; }).join('')}
-      ${N.map(n => { const [x,y]=pos[n.n]; const deg = E.filter(e => e[0]===n.n||e[2]===n.n).length; return `<g class="sn" transform="translate(${x},${y})"><circle r="26" fill="${col[n.t]||'var(--accent)'}" opacity="${deg?0.25:0.08}" stroke="${deg?col[n.t]:'var(--bad)'}" stroke-width="${deg?2:1.5}" stroke-dasharray="${deg?'':'4 3'}"/><text text-anchor="middle" y="3">${esc(n.n.length>11?n.n.slice(0,10)+'…':n.n)}</text><text text-anchor="middle" y="40" style="font-size:9px;fill:var(--fg3);font-weight:400">${n.t}</text></g>`; }).join('')}</svg>`;
+    const wrapName = s => { const words = String(s).split(/\s+/).filter(Boolean); const lines = []; let cur = ''; for(const w of words){ if(!cur) cur = w; else if((cur+' '+w).length <= 9) cur += ' '+w; else { lines.push(cur); cur = w; } } if(cur) lines.push(cur); if(lines.length > 3){ lines[2] = lines.slice(2).join(' '); lines.length = 3; } return lines.map(l => l.length > 12 ? l.slice(0,11)+'…' : l); };
+    const geo = (e,i) => { const [x1,y1]=pos[e[0]], [x2,y2]=pos[e[2]]; const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1; const side = i%2 ? 1 : -1; const sx=x1+dx/len*(NR+4), sy=y1+dy/len*(NR+4), ex=x2-dx/len*(NR+9), ey=y2-dy/len*(NR+9); const b=20*side; const mx=(sx+ex)/2 - dy/len*b, my=(sy+ey)/2 + dx/len*b; return { sx, sy, ex, ey, mx, my, side }; };
+    const labelPos = (g,i) => { const t=[0.5,0.34,0.66][i%3], u=1-t; const px=u*u*g.sx+2*u*t*g.mx+t*t*g.ex, py=u*u*g.sy+2*u*t*g.my+t*t*g.ey; const tx=2*u*(g.mx-g.sx)+2*t*(g.ex-g.mx), ty=2*u*(g.my-g.sy)+2*t*(g.ey-g.my); const tl=Math.hypot(tx,ty)||1; const off=14*g.side; return [px - (ty/tl)*off, py + (tx/tl)*off]; };
+    const edgePath = (e,i) => { const g=geo(e,i); return `<path class="se ${e[1]}" d="M${g.sx.toFixed(1)},${g.sy.toFixed(1)} Q${g.mx.toFixed(1)},${g.my.toFixed(1)} ${g.ex.toFixed(1)},${g.ey.toFixed(1)}" marker-end="url(#arr)"/>`; };
+    const edgeLabel = (e,i) => { const g=geo(e,i); const p=labelPos(g,i); const lx=p[0], ly=p[1]; const w = e[1].length*5.8+8; return `<g><rect x="${(lx-w/2).toFixed(1)}" y="${(ly-8).toFixed(1)}" width="${w.toFixed(1)}" height="13" rx="2" fill="var(--bg2)" stroke="var(--line)" stroke-width="0.5"/><text class="se-label" x="${lx.toFixed(1)}" y="${(ly+1).toFixed(1)}" text-anchor="middle">${e[1]}</text></g>`; };
+    const nodeG = n => { const [x,y]=pos[n.n]; const deg = E.filter(e => e[0]===n.n||e[2]===n.n).length; const lines = wrapName(n.n); const first = lines.length>1 ? -(lines.length-1)*6.5 : 3; return `<g class="sn" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><circle r="${NR}" fill="${col[n.t]||'var(--accent)'}" opacity="${deg?0.25:0.08}" stroke="${deg?col[n.t]:'var(--bad)'}" stroke-width="${deg?2:1.5}" stroke-dasharray="${deg?'':'4 3'}"/><text text-anchor="middle" font-size="11">${lines.map((l,k)=>`<tspan x="0" dy="${k===0?first:13}">${esc(l)}</tspan>`).join('')}</text><text text-anchor="middle" y="${NR+13}" style="font-size:9px;fill:var(--fg3);font-weight:400">${esc(n.t)}</text></g>`; };
+    $('#sm_svg').innerHTML = `<svg viewBox="0 0 ${W} ${H}"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg3)"/></marker></defs>${E.map(edgePath).join('')}${E.map((e,i)=>edgeLabel(e,i)).join('')}${N.map(nodeG).join('')}</svg>`;
     // analysis
     const isolated = N.filter(n => !E.some(e => e[0]===n.n||e[2]===n.n));
     const pairs = []; for(let i=0;i<N.length;i++) for(let j=i+1;j<N.length;j++){ const a=N[i].n, b=N[j].n; if(!E.some(e => (e[0]===a&&e[2]===b)||(e[0]===b&&e[2]===a))) pairs.push([N[i],N[j]]); }
     const questions = pairs.slice(0,8).map(([a,b]) => `What happens when <b>${esc(a.n)}</b> (${a.t}) meets <b>${esc(b.n)}</b> (${b.t})? Could one ${a.t==='resource'||b.t==='resource'?'consume or produce':'amplify or counter'} the other?`);
-    const md = `# System map\n\nNodes: ${N.map(n=>`${n.n} (${n.t})`).join(', ')}\n\nEdges:\n${E.map(e=>`- ${e[0]} ${e[1]} ${e[2]}`).join('\n')}\n\nIsolated: ${isolated.map(n=>n.n).join(', ')||'none'}\n\n## Prompt\nHere are our systems and their relationships: ${E.map(e=>`${e[0]} ${e[1]} ${e[2]}`).join('; ')}. Nodes with no relationships: ${isolated.map(n=>n.n).join(', ')||'none'}. For the ${pairs.length} unconnected pairs, propose one concrete interaction rule each where it would fit the fantasy "[FANTASY]", the emergent strategy it might produce, and the smallest prototype that would show it. Then list the 3 most dangerous existing interactions that could produce exploits.`;
+    const md = `# System map\n\nNodes: ${N.map(n=>`${n.n} (${n.t})`).join(', ')}\n\nEdges:\n${E.map(e=>`- ${e[0]} ${e[1]} ${e[2]}`).join('\n')}\n\nIsolated: ${isolated.map(n=>n.n).join(', ')||'none'}\n\n## Prompt\nHere are our systems and their relationships: ${E.map(e=>`${e[0]} ${e[1]} ${e[2]}`).join('. ')}. Nodes with no relationships: ${isolated.map(n=>n.n).join(', ')||'none'}. For the ${pairs.length} unconnected pairs, propose one concrete interaction rule each where it would fit the fantasy "[FANTASY]", the emergent strategy it might produce, and the smallest prototype that would show it. Then list the 3 most dangerous existing interactions that could produce exploits.`;
     $('#sm_analysis').innerHTML = `<h4 style="margin-top:12px">Analysis</h4>${isolated.length ? `<div class="callout warn"><b>Isolated:</b> ${isolated.map(n=>esc(n.n)).join(', ')}. A system that touches nothing is a mini-game. Connect it or cut it.</div>` : '<div class="callout ok">No isolated nodes.</div>'}<h4>Collision questions <span class="muted">(${pairs.length} unconnected pairs)</span></h4><ul class="small">${questions.map(q=>`<li>${q}</li>`).join('')||'<li>Every pair is connected. Now ask which existing edges could be exploited.</li>'}</ul>${outputBox(md)}<div class="row"><a class="btn sm" href="#/topic/systemic-design">Read: systemic design</a><a class="btn sm" href="#/topic/agency-and-emergence">Read: emergence</a></div>`; };
   $('#sm_addn').onclick = () => { const v = $('#sm_nn').value.trim(); if(!v || saved.nodes.some(n=>n.n===v)) return; saved.nodes.push({n:v, t:$('#sm_nt').value}); $('#sm_nn').value=''; store.set('sysmapTool', saved); render(); };
   $('#sm_nn').onkeydown = e => { if(e.key==='Enter') $('#sm_addn').click(); };
@@ -413,12 +465,12 @@ function toolSysmap(el){
 }
 
 function toolPrompt(el){
-  const parts = [['context','CONTEXT','Player, fantasy, core loop, systems. The situation as it is.',3],['intent','INTENT','The experience you want and the decision you need to make.',2],['constraints','CONSTRAINTS','Platform, scope, team, what is off the table.',2],['evidence','EVIDENCE','Playtest results, telemetry, known problems. If none, say so; the task should then be a test design.',2],['role','ROLE','Skeptical systems designer? UX researcher? Devil’s advocate? Pick one stance.',1],['task','TASK','Analyze, generate, compare, build, simulate, code. Specific verbs, specific counts.',2],['output','OUTPUT FORMAT','Table columns, ranked list, code with logging, a hypothesis in standard form.',1],['critique','CRITIQUE','What the AI should attack in its own output, and what it must not do (recommend, decide, add scope).',2]];
+  const parts = [['context','CONTEXT','Player, fantasy, core loop, systems. The situation as it is.',3],['intent','INTENT','The experience you want and the decision you need to make.',2],['constraints','CONSTRAINTS','Platform, scope, team, what is off the table.',2],['evidence','EVIDENCE','Playtest results, telemetry, known problems. If none, say so. The task should then be a test design.',2],['role','ROLE','Skeptical systems designer? UX researcher? Devil’s advocate? Pick one stance.',1],['task','TASK','Analyze, generate, compare, build, simulate, code. Specific verbs, specific counts.',2],['output','OUTPUT FORMAT','Table columns, ranked list, code with logging, a hypothesis in standard form.',1],['critique','CRITIQUE','What the AI should attack in its own output, and what it must not do (recommend, decide, add scope).',2]];
   el.innerHTML = toolHead('AI Prompt Generator', 'The formula: CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT FORMAT + CRITIQUE. Fill what you know. Blanks are shown as brackets so you notice what you have not decided yet.', 'promptTool') +
     `<div class="formula">${parts.map(p => `<button onclick="document.getElementById('pg_${p[0]}').focus()">${p[1]}</button>`).join('<span class="plus">+</span>')}</div><div class="grid c2"><div>${parts.map(([id,l,h,r]) => field('pg_'+id, l, h, '', r)).join('')}</div><div id="pg_out"></div></div>`;
   bindForm('promptTool', parts.map(p => 'pg_'+p[0]), d => {
     const v = k => (d['pg_'+k]||'').trim();
-    const txt = `CONTEXT: ${v('context')||'[player, fantasy, loop, systems]'}\n\nINTENT: ${v('intent')||'[the experience we want; the decision I must make]'}\n\nCONSTRAINTS: ${v('constraints')||'[platform, scope, team, off-limits]'}\n\nEVIDENCE: ${v('evidence')||'[playtest results, telemetry, known problems; or "none yet"]'}\n\nROLE: Act as a skeptical ${v('role')||'[role]'}.\n\nTASK: ${v('task')||'Analyze the design space, identify the assumptions in the current design, generate mechanically distinct alternatives, compare their tradeoffs, and propose the smallest experiments that would distinguish between them.'}\n\nOUTPUT FORMAT: ${v('output')||'[table columns / ranked list / code with logging]'}\n\nCRITIQUE: ${v('critique')||'Finally, attack your own output: what assumptions did you make (mark given, inferred, invented), what could make each alternative fail, what player behavior would prove it wrong, and what did you leave out? Do not recommend a final choice; I will decide.'}`;
+    const txt = `CONTEXT: ${v('context')||'[player, fantasy, loop, systems]'}\n\nINTENT: ${v('intent')||'[the experience we want. The decision I must make]'}\n\nCONSTRAINTS: ${v('constraints')||'[platform, scope, team, off-limits]'}\n\nEVIDENCE: ${v('evidence')||'[playtest results, telemetry, known problems. Or "none yet"]'}\n\nROLE: Act as a skeptical ${v('role')||'[role]'}.\n\nTASK: ${v('task')||'Analyze the design space, identify the assumptions in the current design, generate mechanically distinct alternatives, compare their tradeoffs, and propose the smallest experiments that would distinguish between them.'}\n\nOUTPUT FORMAT: ${v('output')||'[table columns / ranked list / code with logging]'}\n\nCRITIQUE: ${v('critique')||'Finally, attack your own output: what assumptions did you make (mark given, inferred, invented), what could make each alternative fail, what player behavior would prove it wrong, and what did you leave out? Do not recommend a final choice. I will decide.'}`;
     const missing = parts.filter(p => !v(p[0])).map(p => p[1]);
     $('#pg_out').innerHTML = `<h4>Generated prompt</h4>${outputBox(txt)}${missing.length ? `<div class="callout warn"><b>Unfilled:</b> ${missing.join(', ')}. ${missing.includes('EVIDENCE') ? 'No evidence: consider making the task "design the test" instead of "design the feature".' : ''} ${missing.includes('INTENT') ? 'No intent: the AI will pick the decision for you.' : ''}</div>` : '<div class="callout ok">All eight terms filled. After the output, run the verification pass.</div>'}<div class="row"><a class="btn sm" href="#/prompts/verify">Verification pass prompt</a><a class="btn sm" href="#/ai/roles">Choose a role</a><a class="btn sm" href="#/prompts">Prompt library</a></div>`;
   });
@@ -443,16 +495,16 @@ function toolGameAI(el){
   const recommend = () => {
     const base = {
       states:{ primary:'Finite state machine (FSM)', why:'Exclusive modes with explicit transitions are the easiest thing to reason about, hand-author and debug.', cost:'Transitions multiply combinatorially and it handles decisions that mix several factors badly.', fallback:'Move to a behaviour tree once shared sub-behaviour or the state count grows.', debug:'Current state, plus the condition that caused the last transition.' },
-      tasks:{ primary:'Behaviour tree', why:'Composable priorities and reusable subtrees that a designer can read and extend.', cost:'Priority mistakes cause never-fires branches; conditions must stay cheap.', fallback:'Add a utility selector when the "priorities" are really weighted trade-offs.', debug:'The active path from root, with the failed condition at each fall-through.' },
-      factors:{ primary:'Utility AI (decision layer) + a BT/FSM executor', why:'Scores many competing considerations smoothly and is tunable through weights and response curves.', cost:'Hard to explain a single decision; poor curves make behaviour feel mushy.', fallback:'A BT with explicit priorities if the factors reduce to a clear order.', debug:'The score of every candidate action and each consideration contribution.' },
+      tasks:{ primary:'Behaviour tree', why:'Composable priorities and reusable subtrees that a designer can read and extend.', cost:'Priority mistakes cause never-fires branches. Conditions must stay cheap.', fallback:'Add a utility selector when the "priorities" are really weighted trade-offs.', debug:'The active path from root, with the failed condition at each fall-through.' },
+      factors:{ primary:'Utility AI (decision layer) + a BT/FSM executor', why:'Scores many competing considerations smoothly and is tunable through weights and response curves.', cost:'Hard to explain a single decision. Poor curves make behaviour feel mushy.', fallback:'A BT with explicit priorities if the factors reduce to a clear order.', debug:'The score of every candidate action and each consideration contribution.' },
       plan:{ primary:'Goal-oriented planner (GOAP / HTN)', why:'Long-horizon, emergent, multi-step behaviour that uses the same world rules as the player.', cost:'Heavy action authoring, a search budget, valid-but-absurd plans, and the hardest debugging of the family.', fallback:'Keep a BT/utility system for the mass of agents and the planner for one showcase archetype.', debug:'The chosen plan, the actions considered, their costs and unmet preconditions.' }
     }[cfg.shape];
     const warn = [];
     if(cfg.author === 'engineer') warn.push('Behaviour in code means designers wait on engineering for every balance pass. Budget a data/tooling layer or accept slow iteration.');
-    if(cfg.debug === 'explain' && (cfg.shape === 'factors' || cfg.shape === 'plan')) warn.push('This technique is the hardest of the family to explain; the debug view is not optional, and neither is a fallback for the cheap common case.');
-    if(cfg.agents === 'high') warn.push('At this agent count, stagger perception and decisions, time-slice pathfinding, and LOD distant agents. Most agents must run cheap behaviour; reserve the full system for the few on camera.');
+    if(cfg.debug === 'explain' && (cfg.shape === 'factors' || cfg.shape === 'plan')) warn.push('This technique is the hardest of the family to explain. The debug view is not optional, and neither is a fallback for the cheap common case.');
+    if(cfg.agents === 'high') warn.push('At this agent count, stagger perception and decisions, time-slice pathfinding, and LOD distant agents. Most agents must run cheap behaviour. Reserve the full system for the few on camera.');
     if(cfg.agents === 'high' && cfg.shape === 'plan') warn.push('A planner for the whole crowd is usually a budget and debug trap. Keep it to a handful of agents.');
-    const budget = cfg.agents === 'low' ? 'Cap pathfinding frequency and cache routes; you still have headroom, but do not path every frame.'
+    const budget = cfg.agents === 'low' ? 'Cap pathfinding frequency and cache routes. You still have headroom, but do not path every frame.'
       : cfg.agents === 'medium' ? 'Set an explicit per-frame AI budget, stagger perception (~10 Hz) and decisions (~5 Hz), keep motion every frame.'
       : 'Partition and LOD are mandatory: the many run cheap behaviour, the few get the full system. Test at the worst-case count on target hardware.';
     return { ...base, warn, budget };
@@ -461,7 +513,7 @@ function toolGameAI(el){
     const r = recommend();
     const goal = (cfg.goal || '[THE HARDEST DECISION]').trim();
     const md = `# In-game AI technique plan\n\n**Hardest decision:** ${goal}\n\n**Recommendation:** ${r.primary}\n\n- Why: ${r.why}\n- Cost / risk: ${r.cost}\n- If it fails: ${r.fallback}\n- Debug view: ${r.debug}\n- Budget: ${r.budget}\n\n## Prompt (paste to AI)\nAct as a gameplay AI engineer. Our agent must make this decision: ${goal}. Team constraints: ${cfg.author === 'designer' ? 'designers retune behaviour in data after launch' : 'behaviour changes require an engineer'}. Explainability need: ${cfg.debug === 'explain' ? 'every choice must be explainable on the spot' : 'opaque is acceptable if it is tunable'}. Worst-case simultaneous agents: ${cfg.agents}. We are leaning toward ${r.primary}. Attack this choice: name the specific failure that would make us regret it, describe the debug view we need, the worst-case test we must run, and the cheapest fallback if we are wrong. Do not write code.`;
-    $('#ga_out').innerHTML = `<h4>Recommendation</h4><div class="quotebig" style="font-size:1.05rem">${esc(r.primary)}</div>
+    $('#ga_out').innerHTML = `<h4>Recommendation</h4><div class="quotebig sm">${esc(r.primary)}</div>
       <div class="small" style="margin:6px 0"><b>Why.</b> ${esc(r.why)}</div>
       <div class="small"><b>Cost / risk.</b> ${esc(r.cost)}</div>
       <div class="small"><b>If it fails.</b> ${esc(r.fallback)}</div>
@@ -475,76 +527,89 @@ function toolGameAI(el){
   out();
 }
 
-/* ---------- Idea Finder: from no idea to a concept people want ---------- */
-const IDEA_BANK = {
-  roles:['thief','lighthouse keeper','cartographer','negotiator','gardener','smuggler','detective','conductor','shepherd','tinkerer','courier','archivist','diver','beekeeper','warden','forger','innkeeper','stormchaser'],
-  verbs:['sneak past','barter with','chart','tend','rebuild','deduce the secrets of','herd','orchestrate','salvage from','forecast','disguise yourself among','bind','dismantle','translate','ration','lure','outlast','befriend'],
-  objects:['a city that forgets you every night','a sea that keeps its dead','a machine nobody understands','a town of rivals who trade favors','a forest that moves when unwatched','a market of liars','a fleet of ghosts','a border that shifts daily','an orchestra of monsters','a mountain of debts','a garden that grows from memories','a rail network of feuding families'],
-  tensions:['while the light runs out','before the tide returns','as the map redraws itself','with a rival who learns from you','while every mistake is remembered','with one chance per day','as your tools wear out','while the truth changes hands','with less room each time','while someone is counting on you']
-};
-const IDEA_PRESETS = [
-  ['Commuter','Commuter, 8-minute sessions, phone, one thumb; plays puzzle and auto-battler games; quits when a session cannot finish cleanly.'],
-  ['Couch co-op pair','Two people on a couch, 45-minute evenings, controllers; finish story and co-op games together; hate when one player idles.'],
-  ['Ladder competitor','Competitive PC player, 2-hour sessions; chases rank in tactics or fighting games; quits when losses feel unexplainable.'],
-  ['Cozy completionist','30-minute sessions on Switch; collects everything in farming and life sims; leaves when the checklist becomes a chore.'],
-  ['Systems tinkerer','PC, 3-hour weekends; builds factories and breaks economies; leaves when the optimum is found.'],
-  ['Story-first','Any platform, 1-hour sessions; finishes narrative games and replays choices; leaves when choices stop mattering.']
+/* ---------- Idea Shaper: read a market, find the gap, shape one idea ---------- */
+const GAP_KINDS = [
+  ['exit','Exit reason','Players quit because of it. The strongest kind of gap.'],
+  ['unmet','Unmet want','Players ask for something no shipped game delivers.'],
+  ['tolerated','Tolerated cost','Players accept it as the price of the genre. Fixing it wins no one.'],
+  ['taste','Your taste','You dislike it but the audience does not. That is taste, not a want.']
 ];
+function ideaVerdict(s){
+  const v = k => (s[k]||'').trim();
+  if(s.gap_class === 'taste') return ['NOT A WANT','You dislike this but the audience does not. That is taste, not a gap. Drop it or find something players actually leave over.'];
+  if(s.gap_class === 'tolerated') return ['NOT A WEDGE','Players accept this as the price of the genre. Fixing it wins you no one and costs you scope. Look for an exit reason or an unmet want instead.'];
+  if(!v('keeps') || !v('complaints')) return ['NOT OBSERVED YET','You have played this market, you have not observed it. Read the reviews, the forums and the patch-note reactions before you shape anything.'];
+  if(!/mechanic|rule|system|loop|control|interface|economy|card|board|budget|resource/i.test(v('gap_mech'))) return ['FEATURE, NOT A WEDGE','The gap is not mechanical. Content, theme, price and polish do not reshape the core loop, so they cannot carry a new game. Turn it into a rule or drop it.'];
+  if(!v('why_open')) return ['LOUD GAP, WEAK WEDGE','Nothing structural stops an incumbent from closing this gap the moment it proves to work. Name why they cannot, or you are about to build their next patch.'];
+  if(!v('copybarrier')) return ['COPIABLE','Your mechanism could be lifted by an incumbent in a patch. A differentiator that can be copied is a feature, not a wedge.'];
+  if(!v('constraints')) return ['UNBUILDABLE','No constraints stated. A mechanism only becomes unique when it is shaped by what you can actually build.'];
+  return ['REAL WEDGE','Players leave over this or ask for it, incumbents structurally cannot serve it, and one mechanism your constraints allow keeps the promise. Now try to kill it cheaply with the market tests below.'];
+}
 function toolIdea(el){
-  const saved = store.get('ideaTool', { player:'', games:'', complaints:'', wish:'', dims:[], constraints:'', fantasy:'', verb:'', loop_action:'', loop_decision:'', loop_change:'', alternatives:'', cands:[] });
+  const saved = store.get('ideaTool', { market:'', games:'', proof:'', keeps:'', complaints:'', workaround:'', gap_class:'', gap_mech:'', why_open:'', wish:'', mechanism:'', copybarrier:'', verb:'', player:'', fantasy:'', constraints:'' });
   const save = () => store.set('ideaTool', saved);
-  const pick = arr => arr[Math.floor(Math.random()*arr.length)];
-  const gen = () => Array.from({length:6}, () => `You are a ${pick(IDEA_BANK.roles)} who must ${pick(IDEA_BANK.verbs)} ${pick(IDEA_BANK.objects)}, ${pick(IDEA_BANK.tensions)}.`);
-  if(!saved.cands.length) saved.cands = gen();
-  el.innerHTML = toolHead('Idea Finder', 'You do not need an idea. You need a want: a specific person, what they already love, what they complain about, and what they wish existed. Ideas that start there get played; ideas that start from "wouldn’t it be cool" get admired. Eight steps, live output, ending in three tests that show whether people want it before you build it.', 'ideaTool') +
+  const fields = [
+    ['market','The market you already watch','Genre, platform and audience in one line. Pick a space you have spent real time in, not one that looks hot.','2'],
+    ['games','Three to five shipped games to observe','Name them. You will watch these, not admire them.','1'],
+    ['proof','Where you watch this market','Forums, review sections, streamer chats, patch-note reactions, achievement data. No source means you are guessing.','1'],
+    ['keeps','What keeps players here, in their words','Recurring praise. Quote it and note where you saw it.','2'],
+    ['complaints','What players leave about, in their words','Recurring complaints. Quote it and note where you saw it.','2'],
+    ['workaround','What players do to get around the gap','Mods, spreadsheets, house rules, third-party tools, alt accounts. Work is the strongest evidence of an unserved want.','2'],
+    ['gap_mech','Can a rule address it, or is it content, theme or price?','Say which. If the fix is more content, a new theme or a lower price, it is not a wedge.','2'],
+    ['why_open','Why has no incumbent closed this gap already?','Their business model forbids it, their scope cannot afford it, their design assumes the opposite, they cannot teach it, or it is hard to build. Name the structural reason.','2'],
+    ['wish','The promise, in the player words','Finish this line: you will be able to ______ without ______.','1'],
+    ['mechanism','The one mechanic that keeps the promise','A single rule, not a feature list. If it needs three rules, you have not found the idea yet.','2'],
+    ['copybarrier','Why an incumbent cannot copy it without breaking what works for them','The moat is a conflict with their constraints, not a head start. If they could ship it in a patch, it is a feature.','2'],
+    ['verb','The core verb','The one thing the player does most. It must be the action the mechanism rewards.','1'],
+    ['player','The specific player','Session length, device, the games they finish, when they quit. Not gamers.','2'],
+    ['fantasy','The fantasy','In this game I get to be someone who...','2'],
+    ['constraints','Your team, time, platform and skills','Two people, four months, PC, strong at systems and weak at art. Constraints are what make a mechanism yours.','2']
+  ];
+  const F = Object.fromEntries(fields.map(f => [f[0], f]));
+  const fl = k => field('id_'+k, F[k][1], F[k][2], saved[k], +F[k][3]);
+  el.innerHTML = toolHead('Idea Shaper', 'An idea you cannot derive from the market is a guess. This tool walks a chain: observe how a market behaves, find the want players leave over or ask for, and shape one mechanism that answers it in a way the incumbents structurally cannot. It reasons from evidence you can gather alone, not from a survey.', 'ideaTool') +
   `<div class="grid c2"><div>
-    <div class="step-num">Step 1 · Who is the player?</div>
-    <div class="presets">${IDEA_PRESETS.map((p,i) => `<button data-p="${i}">${esc(p[0])}</button>`).join('')}</div>
-    ${field('id_player','A specific person','Session length, device, the games they finish, when they quit. Pick a preset or write your own. Not "gamers".', saved.player, 2)}
-    <div class="step-num">Step 2 · What do they already want?</div>
-    ${field('id_games','Three games they love','Name them. These are the conventions they know and the bar you are measured against.', saved.games, 1)}
-    ${field('id_complaints','What they complain about in those games','Read their reviews and forum threads. Complaints are unmet wants with a price tag already attached.', saved.complaints, 2)}
-    ${field('id_wish','What they wish existed','"I wish there was a game where I could…" Write three. Steal from real conversations.', saved.wish, 2)}
-    <div class="step-num">Step 3 · Which kinds of fun? (pick two or three)</div>
-    <div class="dims" id="id_dims">${FUN_DIMS.map(d => `<button data-d="${d[0]}" class="${saved.dims.includes(d[0])?'active':''}" title="${esc(d[1])}">${d[0]}</button>`).join('')}</div>
-    <div class="step-num">Step 4 · Constraints</div>
-    ${field('id_constraints','Team, time, platform, skills','"Two people, four months, PC, strong at systems and weak at art." Constraints are where distinctive ideas come from.', saved.constraints, 2)}
-    <div class="step-num">Step 5 · Fantasy: who do they get to be?</div>
-    <p class="small dim">Random collisions to react to. None of these is your game; the one that makes you say "no, but…" is the lead. Click to adopt, then rewrite it in your own words.</p>
-    <div class="idea-cands" id="id_cands"></div>
-    <div class="row" style="margin:8px 0"><button class="btn sm" id="id_reroll">Reroll</button></div>
-    ${field('id_fantasy','Your fantasy sentence','"In this game I get to be someone who…" Must contain a verb the player performs constantly.', saved.fantasy, 2)}
-    <div class="step-num">Step 6 · The core verb and the loop</div>
-    ${field('id_verb','Core verb','The one thing the player does most. It must be the fantasy verb.', saved.verb, 1)}
-    ${field('id_loop_action','Action: what do they do, physically, every few seconds?','', saved.loop_action, 1)}
-    ${field('id_loop_decision','Decision: what tradeoff do they face every minute?','', saved.loop_decision, 1)}
-    ${field('id_loop_change','Change: what is different after each loop?','', saved.loop_change, 1)}
-    <div class="step-num">Step 7 · Versus what?</div>
-    ${field('id_alternatives','What will this player play instead of yours?','Name the two or three games your player already has. The concept has to beat them on the want from step 2, not on feature count.', saved.alternatives, 1)}
-    <div class="step-num">Step 8 · Is it actually good? Dissect the games that succeeded</div>
-    <div class="callout" style="margin-top:4px"><p>A raw idea is a guess. Take the games from step 7 apart with one template (want served, core verb, decision per minute, why it worked, what players complain about), then answer seven cross-reference questions. The verdict tells you whether you are promising, derivative, unproven or undeliverable, and what to test first.</p><div class="row"><a class="btn primary sm" href="#/build/dissect">Open Reference Dissection →</a><a class="btn sm" href="#/map/t/learning-from-success">Read: dissect games that succeeded</a></div>${(() => { const ds = store.get('dissectTool', null); if(!ds || !ds.comps || !ds.comps.length) return ''; const done = XREF_QS.filter(q => ds.answers && ds.answers[q.id] !== undefined).length; const score = XREF_QS.reduce((s,q) => s + (ds.answers && ds.answers[q.id] !== undefined ? q.opts[ds.answers[q.id]][1] : 0), 0); return `<div class="small" style="margin-top:8px">Comparables: <b>${ds.comps.map(c => esc(c.t)).join(', ')}</b>. ${done === XREF_QS.length ? 'Verdict: <b>'+dissectVerdict(ds.answers, score)[0]+'</b>' : (XREF_QS.length-done)+' cross-reference questions left.'}</div>`; })()}</div>
+    <div class="step-num">Step 1 · Choose the market you already watch</div>
+    <p class="small dim">Observation beats survey. You can read a market alone at any scale. You cannot interview it.</p>
+    ${fl('market')}${fl('games')}${fl('proof')}
+    <div class="step-num">Step 2 · Observe, do not survey</div>
+    <p class="small dim">Watch what players do and quote what they say. Praise tells you what the incumbent protects. Complaints tell you where it bleeds.</p>
+    ${fl('keeps')}${fl('complaints')}${fl('workaround')}
+    <div class="step-num">Step 3 · Classify the gap</div>
+    <p class="small dim">Pick the one complaint you will build against, then say what kind it is. Only two kinds are worth a game.</p>
+    <div class="dims" id="id_gapkinds">${GAP_KINDS.map(([id,t,d]) => `<button data-k="${id}" class="${saved.gap_class===id?'active':''}" title="${esc(d)}">${t}</button>`).join('')}</div>
+    ${fl('gap_mech')}${fl('why_open')}
+    <div class="step-num">Step 4 · The promise</div>
+    ${fl('wish')}
+    <div class="step-num">Step 5 · One mechanic, and the moat</div>
+    <p class="small dim">Uniqueness is not being first. It is a conflict between your mechanism and the constraints that keep the incumbents where they are.</p>
+    ${fl('mechanism')}${fl('copybarrier')}${fl('verb')}
+    <div class="step-num">Step 6 · Who it is for, and what you may build</div>
+    ${fl('player')}${fl('fantasy')}${fl('constraints')}
   </div><div id="id_out"></div></div>`;
-  const ids = ['player','games','complaints','wish','constraints','fantasy','verb','loop_action','loop_decision','loop_change','alternatives'];
-  const renderCands = () => { $('#id_cands').innerHTML = saved.cands.map((c,i) => `<button data-i="${i}" class="${saved.fantasy===c?'sel':''}">${esc(c)}</button>`).join(''); $$('#id_cands button').forEach(b => b.onclick = () => { saved.fantasy = saved.cands[+b.dataset.i]; $('#id_fantasy').value = saved.fantasy; save(); renderCands(); out(); }); };
   const out = () => {
     const v = k => (saved[k]||'').trim();
-    const dims = saved.dims;
+    const who = v('player') ? v('player').split(/[,.\n]/)[0].trim() : '[PLAYER]';
+    const promise = v('wish') || '[A PROMISE PLAYERS CANNOT GET TODAY]';
+    const pos = `For ${who} in ${v('market')||'[MARKET]'}, this is the game where you ${v('verb')||'[CORE VERB]'}. One rule carries it: ${v('mechanism')||'[MECHANISM]'}. The incumbents (${v('games')||'[COMPARABLES]'}) cannot copy it. The barrier: ${v('copybarrier')||'[STRUCTURAL REASON]'}.`;
+    const hyp = `We believe ${who} will choose this over ${v('games')||'[COMPARABLES]'} because it lets them ${promise}. We will know it is working when players of ${v('games')||'[COMPARABLES]'} describe the ${v('verb')||'[CORE VERB]'} in their own words without a prompt, and ask to keep playing after one session. We will kill it if they compare it to ${v('games')||'[COMPARABLES]'} and cannot say what it does differently.`;
     const warn = [];
-    if(!v('complaints') && !v('wish')) warn.push('No wants yet. An idea without a want is a genre reflex. Fill step 2 before step 5.');
-    if(dims.length > 3) warn.push('More than three kinds of fun. Focus produces a game people can describe; breadth produces "something for everyone".');
-    if(v('fantasy') && v('verb') && !v('fantasy').toLowerCase().includes(v('verb').toLowerCase().split(' ')[0])) warn.push('The core verb does not appear in the fantasy sentence. One of them is wrong.');
-    if(!v('constraints')) warn.push('No constraints. Constraints are what make an idea buildable and distinctive.');
-    const who = v('player') ? v('player').split(/[,;.\n]/)[0].trim() : '[PLAYER]';
-    const pos = `For ${who} who ${v('wish')?('want '+v('wish').split(/[.\n]/)[0].trim().replace(/^i wish (there was|for)?\s*/i,'').replace(/\bI could\b/g,'they can').replace(/\bI\b/g,'they')):(v('complaints')?('are tired of '+v('complaints').split(/[.\n]/)[0].trim()):'[WANT]')}, this is the game where you ${v('verb')||'[CORE VERB]'}${v('fantasy')?(' as '+v('fantasy').replace(/^In this game I get to be someone who\s*/i,'').replace(/^You are\s*/i,'')):''}, unlike ${v('alternatives')||'[ALTERNATIVES]'}.`;
-    const hyp = `We believe ${v('player')?v('player').split(/[,.]/)[0]:'[PLAYER]'} will voluntarily replay a 10-minute paper or grey-box prototype of "${v('verb')||'[CORE VERB]'}" because it delivers ${dims.length?dims.slice(0,3).join(', '):'[KINDS OF FUN]'} that ${v('alternatives')||'[ALTERNATIVES]'} do not. We will know when at least 3 of 5 matched players ask to play again or describe the fantasy in first person. We will kill it if nobody replays and nobody can say what they were trying to do.`;
-    const md = `# Concept: ${v('fantasy')||'(untitled)'}\n\n**Player:** ${v('player')||'(blank)'}\n**They love:** ${v('games')||'(blank)'}\n**They complain about:** ${v('complaints')||'(blank)'}\n**They wish:** ${v('wish')||'(blank)'}\n**Kinds of fun:** ${dims.join(', ')||'(none chosen)'}\n**Constraints:** ${v('constraints')||'(blank)'}\n**Fantasy:** ${v('fantasy')||'(blank)'}\n**Core verb:** ${v('verb')||'(blank)'}\n**Loop:** action: ${v('loop_action')||'?'} · decision: ${v('loop_decision')||'?'} · change: ${v('loop_change')||'?'}\n**Instead of:** ${v('alternatives')||'(blank)'}\n\n## Positioning\n${pos}\n\n## Hypothesis\n${hyp}\n\n## Want tests (run before building anything)\n1. Stranger pitch: say the positioning sentence to 10 people who match the player. Count who asks a question about how it plays and who asks when they can play it. Kill if fewer than 3 ask anything.\n2. Fake one-pager: one image (a mock screenshot, even drawn) plus the sentence. Show it to 10 matched players; ask "what do you think you would do in this?" Pass if their answer contains the core verb. Kill if they describe a different game.\n3. Paper or grey-box loop: one day to build, 10 minutes per player, 5 matched players. Pass if 3 replay voluntarily and can say what they were trying to do.\n\n## Prompts\n### Complaint mining\nHere are review excerpts and forum posts for ${v('games')||'[THREE GAMES]'} written by players like this: ${v('player')||'[PLAYER]'}. Cluster complaints and praise by underlying want (competence, autonomy, relatedness, fantasy, novelty, comfort). For each cluster, state the want in the players' own words, how often it appears, and which of the three games comes closest to satisfying it. Do not propose game ideas.\n\n### Concept expansion\nPlayer: ${v('player')||'[PLAYER]'}. Their wants: ${v('complaints')||'[COMPLAINTS]'} / ${v('wish')||'[WISHES]'}. Kinds of fun to serve: ${dims.join(', ')||'[DIMS]'}. Constraints: ${v('constraints')||'[CONSTRAINTS]'}. Lead fantasy: ${v('fantasy')||'[FANTASY]'}. Generate 8 mechanically distinct concepts that serve these wants inside these constraints. For each: fantasy sentence, core verb, the first 30 seconds of play, the decision the player faces every minute, why THIS player would choose it over ${v('alternatives')||'[ALTERNATIVES]'}, and the cheapest test that would show they want it. Reject your own concepts that are genre averages. Do not recommend.\n\n### Devil's advocate\nArgue that nobody wants "${v('fantasy')||'[FANTASY]'}": that ${v('alternatives')||'[ALTERNATIVES]'} already satisfy the want, that the core verb "${v('verb')||'[VERB]'}" is not fun for 10 minutes in grey boxes, and that the constraints (${v('constraints')||'[CONSTRAINTS]'}) make the fantasy undeliverable. Then state exactly what evidence from the three want tests would change your mind.`;
-    $('#id_out').innerHTML = `<h4>Positioning</h4><div class="quotebig" style="font-size:1.05rem">${esc(pos)}</div>${warn.length ? `<div class="callout warn">${warn.map(esc).join('<br>')}</div>` : '<div class="callout ok">Every step has an answer. Run the three want tests before writing a line of production code.</div>'}<h4>Hypothesis</h4><p class="small">${esc(hyp)}</p><h4>Concept one-pager, tests and prompts</h4>${outputBox(md)}<div class="row"><a class="btn sm" href="#/topic/finding-an-idea">Read: start from a want</a><a class="btn sm" href="#/build/canvas">Next: Core Experience Canvas</a><a class="btn sm" href="#/build/hypothesis">Hypothesis Builder</a><a class="btn sm" href="#/topic/audience-and-positioning">Positioning</a></div>`;
+    if(!v('keeps') || !v('complaints')) warn.push('No observation yet. Read the reviews and the forums before you trust this shape.');
+    if(!v('workaround')) warn.push('No workaround found. If the want were strong, some players would already be hacking around it.');
+    if(!saved.gap_class) warn.push('Classify the gap in step 3. Exit reason and unmet want are wedges. Tolerated cost and taste are not.');
+    if(v('mechanism') && v('mechanism').split(',').length > 2) warn.push('That mechanism reads like several rules. Cut it to the one that carries the promise.');
+    if(v('wish') && /fun|epic|immersive|engaging|addictive|unique/i.test(v('wish'))) warn.push('The promise uses a word any game could claim. Say what the player does, not how it feels.');
+    if(v('fantasy') && v('verb') && !v('fantasy').toLowerCase().includes(v('verb').toLowerCase().split(' ')[0])) warn.push('The core verb does not appear in the fantasy. One of them is wrong.');
+    const res = ideaVerdict(saved);
+    const verdict = res[0], text = res[1];
+    const cls = verdict==='REAL WEDGE' ? 'BUILD' : verdict==='FEATURE, NOT A WEDGE' ? 'SIMPLIFY' : verdict==='UNBUILDABLE' ? 'REMOVE' : 'DEFER';
+    const gapLabel = (GAP_KINDS.find(g => g[0] === saved.gap_class) || [,'(not classified)'])[1];
+    const md = `# Idea shape: ${v('fantasy')||'(untitled)'}\n\n**Market:** ${v('market')||'(blank)'}\n**Observed games:** ${v('games')||'(blank)'}\n**Where observed:** ${v('proof')||'(blank)'}\n**What keeps players here:** ${v('keeps')||'(blank)'}\n**What players leave about:** ${v('complaints')||'(blank)'}\n**Workaround:** ${v('workaround')||'(blank)'}\n**Gap class:** ${gapLabel}\n**Mechanical or not:** ${v('gap_mech')||'(blank)'}\n**Why still open:** ${v('why_open')||'(blank)'}\n**Promise:** ${promise}\n**Mechanism:** ${v('mechanism')||'(blank)'}\n**Copy barrier:** ${v('copybarrier')||'(blank)'}\n**Core verb:** ${v('verb')||'(blank)'}\n**Player:** ${v('player')||'(blank)'}\n**Fantasy:** ${v('fantasy')||'(blank)'}\n**Constraints:** ${v('constraints')||'(blank)'}\n\n## Positioning\n${pos}\n\n## Hypothesis\n${hyp}\n\n## Market tests (observation, not surveys)\n1. Workaround audit. Search the incumbent communities for mods, spreadsheets, house rules and third-party tools that already do the thing. Count the distinct tools and the interest around them. No workarounds means the want is weak.\n2. Comment mining. Watch three sessions of the incumbents on stream or video and timestamp every unprompted complaint or wish that matches your gap. Frequency and intensity are the evidence, not a poll.\n3. One-mechanism greybox. Build only the mechanism, in one day. Put it in front of three players of the incumbent and watch. Do they describe the promised verb unprompted, and ask to keep going? Behaviour, not satisfaction.\n4. Store-page side by side. Put your one image next to the incumbent store page. A fan should state your mechanism without being told. If they say it is like X but Y, the wedge is invisible.\n\n## Prompts\n### Complaint mining\nHere are review excerpts and forum posts for ${v('games')||'[GAMES]'} written by players like ${who}: [PASTE]. Cluster complaints and praise by underlying want, count frequency, and for each want say whether my mechanism (${v('mechanism')||'[MECHANISM]'}) answers it mechanically, cosmetically, or not at all. Do not propose game ideas.\n\n### Structural moat\nMy mechanism is: ${v('mechanism')||'[MECHANISM]'}. The incumbents are: ${v('games')||'[GAMES]'} with business models and design assumptions [DESCRIBE]. Argue, as each incumbent, why you would not ship this mechanism and what you would have to give up to do it. Then name the one move that would neutralise it.\n\n### Steelman the market\nYou are a player who loves ${v('games')||'[GAMES]'}, not a designer. My promise is: ${promise}. Give the strongest reasons you would ignore it, keep playing what you have, and never hear about it. Then name the single thing that would change your mind.\n\n### Five mechanisms\nPromise: ${promise}. Constraints: ${v('constraints')||'[CONSTRAINTS]'}. Propose 5 mechanically distinct ways to keep that promise, smallest first. For each: the rule in one sentence, the decision it creates every minute, the emotion intended, the incumbent it threatens, and the likely failure mode. Do not recommend one.\n\n### Genericness audit\nHere is my positioning: ${pos}. List every word or phrase that could describe any game in this market, then rewrite the sentence using only concrete, checkable claims.`;
+    $('#id_out').innerHTML = `<div class="verdict ${cls}"><h2>${verdict}</h2><p>${esc(text)}</p></div><h4>Positioning</h4><div class="quotebig sm">${esc(pos)}</div>${warn.length ? `<div class="callout warn">${warn.map(esc).join('<br>')}</div>` : '<div class="callout ok">The chain is complete. Run the market tests before you write production code.</div>'}<h4>Hypothesis</h4><p class="small">${esc(hyp)}</p>${outputBox(md)}<div class="row"><a class="btn sm primary" href="#/build/dissect">Check it against the comparables</a><a class="btn sm" href="#/build/canvas">Core Experience Canvas</a><a class="btn sm" href="#/build/hypothesis">Hypothesis Builder</a><a class="btn sm" href="#/map/t/finding-an-idea">Read: start from a want</a></div>`;
   };
-  ids.forEach(k => { const e = $('#id_'+k); e.addEventListener('input', () => { saved[k] = e.value; save(); if(k==='fantasy') renderCands(); out(); }); });
-  $$('.presets button', el).forEach(b => b.onclick = () => { saved.player = IDEA_PRESETS[+b.dataset.p][1]; $('#id_player').value = saved.player; save(); out(); });
-  $$('#id_dims button').forEach(b => b.onclick = () => { const d = b.dataset.d; saved.dims = saved.dims.includes(d) ? saved.dims.filter(x => x!==d) : [...saved.dims, d]; b.classList.toggle('active'); save(); out(); });
-  $('#id_reroll').onclick = () => { saved.cands = gen(); save(); renderCands(); };
-  renderCands(); out();
+  fields.forEach(f => { const e = $('#id_'+f[0]); e.addEventListener('input', () => { saved[f[0]] = e.value; save(); out(); }); });
+  $$('#id_gapkinds button').forEach(b => b.onclick = () => { saved.gap_class = b.dataset.k; save(); $$('#id_gapkinds button').forEach(x => x.classList.toggle('active', x===b)); out(); });
+  out();
 }
 
 /* =====================================================================
@@ -569,7 +634,7 @@ window.__loopHere = n => { store.set('loopHere', n); renderAI('loop', String(n))
 function aiLoopView(arg){
   const here = store.get('loopHere', null);
   const n = +(arg || here || 1); const s = LOOP_STEPS[n-1] || LOOP_STEPS[0];
-  return `<div class="callout"><b>The visual backbone of this guide.</b> Player evidence sits between exploration and commitment. Mark where your project is; it persists. Skipping steps 5 to 8 is how AI-era projects fail.</div>
+  return `<div class="callout"><b>The visual backbone of this guide.</b> Player evidence sits between exploration and commitment. Mark where your project is. It persists. Skipping steps 5 to 8 is how AI-era projects fail.</div>
     <div class="stepper">${LOOP_STEPS.map(x => `<button class="${x.n===s.n?'active':''} ${x.n===here?'here':''}" onclick="location.hash='#/ai/loop/${x.n}'"><b>${x.n}</b>${esc(x.t)}</button>`).join('')}</div>
     <div class="card"><div class="row between"><h2 style="margin:0">${s.n}. ${esc(s.t)} <span class="muted" style="font-weight:500;font-size:1rem">${esc(s.goal)}</span></h2><button class="btn sm ${here===s.n?'primary':''}" onclick="__loopHere(${s.n})">${here===s.n?'✓ We are here':'Mark: we are here'}</button></div>
       <div class="think-grid" style="margin-top:12px"><div class="box" style="border-color:color-mix(in srgb,var(--d-player) 50%,transparent)"><h4 style="color:var(--d-player)">Human does</h4><p>${esc(s.human)}</p></div><div class="box" style="border-color:color-mix(in srgb,var(--d-ai) 50%,transparent)"><h4 style="color:var(--d-ai)">AI does</h4><p>${esc(s.ai)}</p></div><div class="box good"><h4>Output</h4><p>${esc(s.out)}</p><h4>Exit criterion</h4><p>${esc(s.exit)}</p></div><div class="box bad"><h4>Common failure</h4><p>${esc(s.fail)}</p><h4 style="color:var(--fg2)">Go deeper</h4><ul>${s.top.map(t => `<li>${topicLink(t)}</li>`).join('')}</ul></div></div>
@@ -596,7 +661,7 @@ function aiRolesView(arg){
     <div class="section-head"><h2>A good sequence</h2></div>${chainHTML([['Brainstormer','#/ai/roles/brainstormer','ai'],['Critic','#/ai/roles/critic','ai'],['Systems designer','#/ai/roles/systems','ai'],['Human decides what to test','#/topic/hypothesis-driven-design','human'],['Prototype engineer','#/ai/roles/engineer','ai'],['Players','#/topic/playtesting','evidence'],['Playtest analyst','#/ai/roles/analyst','ai'],['Human interprets and decides','#/ai/loop/9','human'],["Devil's advocate before commit",'#/ai/roles/devil','ai'],['Content generator, after validation','#/ai/roles/content','ai']])}`;
 }
 function aiMatrixView(){
-  return `<div class="callout">Decide who owns each task before the work starts. <span class="chip human">PRIMARY human</span> <span class="chip ai">PRIMARY AI</span> <span class="chip shared">Shared</span> Click a row for the reason. Filter to see the pattern: judgment stays human; volume, simulation and production go to AI.</div>
+  return `<div class="callout">Decide who owns each task before the work starts. <span class="chip human">PRIMARY human</span> <span class="chip ai">PRIMARY AI</span> <span class="chip shared">Shared</span> Click a row for the reason. Filter to see the pattern: judgment stays human, volume, simulation and production go to AI.</div>
     <div class="pill-tabs" id="mxFilter"><button class="active" data-f="">All</button><button data-f="human">Human primary</button><button data-f="ai">AI primary</button><button data-f="shared">Shared</button></div>
     <div class="tablewrap"><table class="matrix"><thead><tr><th>Task</th><th>Human</th><th>AI</th></tr></thead><tbody id="mxBody">${MATRIX.map((m, i) => { const cls = m[1]==='PRIMARY'&&m[2]!=='PRIMARY' ? 'human' : m[2]==='PRIMARY'&&m[1]!=='PRIMARY' ? 'ai' : 'shared'; return `<tr data-f="${cls}" data-i="${i}" style="cursor:pointer"><td>${esc(m[0])}</td><td class="who"><span class="chip ${m[1]==='PRIMARY'?'human':''}">${m[1]}</span></td><td class="who"><span class="chip ${m[2]==='PRIMARY'?'ai':''}">${m[2]}</span></td></tr><tr class="why hidden" data-for="${i}"><td colspan="3" class="small dim" style="background:var(--bg2)">${esc(m[3])}</td></tr>`; }).join('')}</tbody></table></div>
     <div class="row" style="margin-top:12px"><a class="btn" href="#/build/delegate">Plan your own tasks in the Delegation Planner</a><a class="btn" href="#/topic/responsibility-matrix">Read the topic</a></div>`;
@@ -607,7 +672,7 @@ function wireMatrix(){
 }
 function aiFrameworkView(){
   const terms = FORMULA_TERMS;
-  return `<div class="callout">The best prompt is rarely "give me ideas". It is: <i>here is the player, fantasy, current loop, constraints, evidence and known problems; analyze the design space, identify assumptions, generate alternatives, compare tradeoffs, and propose the smallest experiments that distinguish between them.</i></div>
+  return `<div class="callout">The best prompt is rarely "give me ideas". It is: <i>here is the player, fantasy, current loop, constraints, evidence and known problems, analyze the design space, identify assumptions, generate alternatives, compare tradeoffs, and propose the smallest experiments that distinguish between them.</i></div>
     <div class="formula" id="fmla">${terms.map((t,i) => `<button data-i="${i}" class="${i===0?'active':''}">${t[0]}</button>`).join('<span class="plus">+</span>')}</div>
     <div class="card" id="fmlaInfo"><h3>${terms[0][0]}</h3><p>${esc(terms[0][1])}</p></div>
     <div class="grid c2" style="margin-top:14px"><div class="card" style="border-color:color-mix(in srgb,var(--bad) 50%,transparent)"><h4 style="color:var(--bad)">Weak</h4><pre>Design a fun combat system.</pre><p class="small dim">No player, no fantasy, no constraint, no evidence, no role, no output shape. You will get the genre average with confidence.</p></div>
@@ -645,11 +710,11 @@ function renderPlaytest(){
     <div class="section-head"><h2>Methods and what each is for</h2></div>
     <div class="tablewrap"><table><thead><tr><th>Method</th><th>Reveals</th><th>Blind to</th><th>AI can</th></tr></thead><tbody>
       <tr><td>Silent observation</td><td>Behavior, hesitation, confusion, replay</td><td>Intent, feeling</td><td>Code timestamped notes into clusters</td></tr>
-      <tr><td>Think-aloud</td><td>Mental model, intent</td><td>Distorts behavior and pace</td><td>Transcribe; extract model statements</td></tr>
-      <tr><td>Task-based usability</td><td>Whether specific things can be done</td><td>Engagement</td><td>Design tasks; compute success and time</td></tr>
-      <tr><td>Interview</td><td>Memory, meaning, what stuck</td><td>Accuracy; politeness bias</td><td>Draft non-leading guides; code answers</td></tr>
-      <tr><td>Telemetry</td><td>Choices, retries, session ends at scale</td><td>Why</td><td>Correlate with observed events; find distributions</td></tr>
-      <tr><td>Replay analysis</td><td>Strategies, unintended approaches</td><td>What the player was thinking</td><td>Classify approaches; count variety</td></tr>
+      <tr><td>Think-aloud</td><td>Mental model, intent</td><td>Distorts behavior and pace</td><td>Transcribe. Extract model statements</td></tr>
+      <tr><td>Task-based usability</td><td>Whether specific things can be done</td><td>Engagement</td><td>Design tasks. Compute success and time</td></tr>
+      <tr><td>Interview</td><td>Memory, meaning, what stuck</td><td>Accuracy. Politeness bias</td><td>Draft non-leading guides. Code answers</td></tr>
+      <tr><td>Telemetry</td><td>Choices, retries, session ends at scale</td><td>Why</td><td>Correlate with observed events. Find distributions</td></tr>
+      <tr><td>Replay analysis</td><td>Strategies, unintended approaches</td><td>What the player was thinking</td><td>Classify approaches. Count variety</td></tr>
       <tr><td>Retention</td><td>Whether they came back</td><td>Everything else</td><td>Segment by first-session behavior</td></tr></tbody></table></div>
     <div class="section-head"><h2>Session flow</h2></div>
     ${chainHTML([['Write the question and hypothesis','#/build/hypothesis','human'],['Recruit matched players','#/topic/who-is-the-player','human'],['Silent observation, timestamped notes','#/topic/playtesting','evidence'],['Tasks if needed','#/topic/ux-as-design','evidence'],['Open interview, behavior first','#/topic/playtesting','evidence'],['AI codes and clusters','#/topic/ai-for-playtest-analysis','ai'],['Human adds context, interprets','#/ai/loop/8','human'],['Decide one or two changes','#/ai/loop/9','human'],['Log it','#/topic/iteration-and-evidence','human']])}
@@ -666,7 +731,7 @@ function renderPlaytest(){
 function renderPrompts(id){
   const cats = [...new Set(PROMPT_TEMPLATES.map(p => p.cat))];
   const sel = PROMPT_TEMPLATES.find(p => p.id === id);
-  setView(`${crumbs([['Map','#/map'],['Prompt library']])}<h1>Prompt library</h1><p class="dim">Reusable patterns built on the formula. Fill the variables; the prompt updates live. Every template ends with a stop or critique instruction so the AI does not decide for you.</p>
+  setView(`${crumbs([['Map','#/map'],['Prompt library']])}<h1>Prompt library</h1><p class="dim">Reusable patterns built on the formula. Fill the variables. The prompt updates live. Every template ends with a stop or critique instruction so the AI does not decide for you.</p>
     <div class="split"><aside class="side sticky"><button class="btn side-toggle" onclick="this.parentElement.classList.toggle('open')"><span>☰ Browse templates</span><span class="car">▸</span></button>${cats.map(c => `<div class="dom open"><button style="cursor:default"><span class="dot" style="background:var(--d-ai)"></span>${c}</button><div class="topics">${PROMPT_TEMPLATES.filter(p => p.cat===c).map(p => `<button class="${p.id===id?'active':''}" onclick="location.hash='#/prompts/${p.id}'">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}</aside>
     <div id="promptMain">${sel ? '' : `<div class="grid auto">${PROMPT_TEMPLATES.map(p => `<div class="card clickable" onclick="location.hash='#/prompts/${p.id}'"><span class="chip ai">${p.cat}</span><h3 style="margin-top:6px">${esc(p.t)}</h3><p class="small dim" style="margin:0">${esc(p.p.slice(0,140))}…</p></div>`).join('')}</div><div class="callout" style="margin-top:14px">Want to compose your own? The <a href="#/build/prompt">Prompt Generator</a> walks the eight terms. Topic pages each carry prompts specific to that concept.</div>`}</div></div>`);
   if(sel){
@@ -685,7 +750,7 @@ function renderPrompts(id){
 function renderChecklists(id){
   const sel = CHECKLISTS.find(c => c.id === id) || CHECKLISTS[0];
   const state = store.get('check.'+sel.id, {});
-  setView(`${crumbs([['Map','#/map'],['Checklists']])}<h1>Checklists</h1><p class="dim">Practical reviews. Checkbox state is saved per checklist; reset when you start a new feature or session.</p>
+  setView(`${crumbs([['Map','#/map'],['Checklists']])}<h1>Checklists</h1><p class="dim">Practical reviews. Checkbox state is saved per checklist. Reset when you start a new feature or session.</p>
     <div class="pill-tabs">${CHECKLISTS.map(c => `<button class="${c.id===sel.id?'active':''}" onclick="location.hash='#/checklists/${c.id}'">${esc(c.t)}</button>`).join('')}</div>
     <div class="card"><div class="row between"><div><h2>${esc(sel.t)}</h2><p class="dim" style="margin:0">${esc(sel.desc)}</p></div><div class="row"><span class="chip" id="ckCount"></span><button class="btn sm" id="ckExport">Export Markdown</button><button class="btn sm ghost danger" id="ckReset">Reset</button></div></div>
       <div class="grid c2" style="margin-top:12px">${sel.groups.map(([g, items], gi) => `<div class="checklist"><h4>${esc(g)}</h4>${items.map((it, ii) => { const k = gi+'.'+ii; return `<label class="${state[k]?'done':''}"><input type="checkbox" data-k="${k}" ${state[k]?'checked':''}><span>${esc(it)}</span></label>`; }).join('')}</div>`).join('')}</div></div>`);
@@ -701,36 +766,36 @@ function renderChecklists(id){
    SOURCES AND LINEAGE
    ===================================================================== */
 const SOURCES = [
-  ['MDA framework and the eight kinds of fun','Hunicke, LeBlanc and Zubek (2004): mechanics are what designers write, dynamics what happens at runtime, aesthetics what players feel. Designers build bottom-up; players experience top-down. LeBlanc’s eight aesthetics (sensation, fantasy, narrative, challenge, fellowship, discovery, expression, submission) are an explicitly non-exhaustive vocabulary.','Used in: Fun dimensions, Mechanics and rules.','heuristic'],
+  ['MDA framework and the eight kinds of fun','Hunicke, LeBlanc and Zubek (2004): mechanics are what designers write, dynamics what happens at runtime, aesthetics what players feel. Designers build bottom-up. Players experience top-down. LeBlanc’s eight aesthetics (sensation, fantasy, narrative, challenge, fellowship, discovery, expression, submission) are an explicitly non-exhaustive vocabulary.','Used in: Fun dimensions, Mechanics and rules.','heuristic'],
   ['Four keys to fun','Nicole Lazzaro (2004), from observing players’ emotional expressions: hard fun (mastery, fiero), easy fun (curiosity), people fun (social), serious fun (meaning). Her heuristic: successful games offer at least three.','Used in: Fun dimensions.','heuristic'],
   ['Self-Determination Theory in games','Ryan, Rigby and Przybylski (2006) and Rigby and Ryan, Glued to Games (2011): enjoyment and continued play track satisfaction of competence, autonomy and relatedness. One of the few research-backed models here.','Used in: Player motivation, Return and quit, Social experience.','research'],
-  ['Flow and player-steered difficulty','Csikszentmihalyi’s flow (challenge matching skill); Jenova Chen’s thesis Flow in Games (2006) argues for letting players steer difficulty through play rather than hidden adjustment. Flow-channel literalism is contested; some games live outside the band on purpose.','Used in: Difficulty, Fun dimensions.','contested'],
-  ['Interesting decisions','Sid Meier (GDC 2012): a game is a series of interesting decisions; interesting ones involve tradeoffs, depend on the situation, and express the player. Decisions need visible consequences and enough information to reason.','Used in: Meaningful decisions, Risk and reward, Core loop diagnostic.','heuristic'],
-  ['Depth versus complexity; elegance','Popularized by Extra Credits (2013) and widely used since: complexity is what the player must learn, depth is the meaningful decisions that result; elegance is depth per rule. Soren Johnson’s Water Finds a Crack (2011): players exploit every hole. No agreed metric; use as a lens.','Used in: Depth vs complexity, Rule audit tool.','heuristic'],
-  ['A Theory of Fun','Raph Koster (2004): fun is the pleasure of learning and mastering patterns; boredom arrives when the pattern is exhausted, trivial, or too noisy to perceive.','Used in: Fun dimensions, Skill and mastery, Repetitive smell.','heuristic'],
+  ['Flow and player-steered difficulty','Csikszentmihalyi’s flow (challenge matching skill). Jenova Chen’s thesis Flow in Games (2006) argues for letting players steer difficulty through play rather than hidden adjustment. Flow-channel literalism is contested. Some games live outside the band on purpose.','Used in: Difficulty, Fun dimensions.','contested'],
+  ['Interesting decisions','Sid Meier (GDC 2012): a game is a series of interesting decisions, interesting ones involve tradeoffs, depend on the situation, and express the player. Decisions need visible consequences and enough information to reason.','Used in: Meaningful decisions, Risk and reward, Core loop diagnostic.','heuristic'],
+  ['Depth versus complexity. Elegance','Popularized by Extra Credits (2013) and widely used since: complexity is what the player must learn, depth is the meaningful decisions that result, elegance is depth per rule. Soren Johnson’s Water Finds a Crack (2011): players exploit every hole. No agreed metric. Use as a lens.','Used in: Depth vs complexity, Rule audit tool.','heuristic'],
+  ['A Theory of Fun','Raph Koster (2004): fun is the pleasure of learning and mastering patterns, boredom arrives when the pattern is exhausted, trivial, or too noisy to perceive.','Used in: Fun dimensions, Skill and mastery, Repetitive smell.','heuristic'],
   ['The Art of Game Design','Jesse Schell (2008): the elemental tetrad (mechanics, story, aesthetics, technology) and the lenses, question-sets that force one viewpoint at a time. This guide’s eight-part topic structure is in that spirit.','Used in: the topic structure, Narrative and Presentation domains.','heuristic'],
-  ['Game Feel and the Art of Screenshake','Steve Swink (2008): real-time control of virtual objects, in a simulated space, emphasized by polish; response within about 100 ms. Jan Willem Nijman (Vlambeer, 2013): a live demo of how much perceived quality comes from layered feedback.','Used in: Game feel and juice, Feedback, Floaty combat smell.','heuristic'],
-  ['Kishōtenketsu level structure','Koichi Hayashida (Nintendo, 2012 interview on Super Mario 3D Land): introduce, develop, twist, conclude; each level a short lesson about one idea. Celeste (Maddy Thorson, GDC 2017): one movement idea per room, failure kept cheap.','Used in: Level structure (teach, test, twist, combine, master, rest).','heuristic'],
+  ['Game Feel and the Art of Screenshake','Steve Swink (2008): real-time control of virtual objects, in a simulated space, emphasized by polish, response within about 100 ms. Jan Willem Nijman (Vlambeer, 2013): a live demo of how much perceived quality comes from layered feedback.','Used in: Game feel and juice, Feedback, Floaty combat smell.','heuristic'],
+  ['Kishōtenketsu level structure','Koichi Hayashida (Nintendo, 2012 interview on Super Mario 3D Land): introduce, develop, twist, conclude, each level a short lesson about one idea. Celeste (Maddy Thorson, GDC 2017): one movement idea per room, failure kept cheap.','Used in: Level structure (teach, test, twist, combine, master, rest).','heuristic'],
   ['Ludonarrative dissonance','Clint Hocking (2007), on a game whose mechanics rewarded self-interest while its story preached altruism. Sometimes a deliberate expressive tool, not always a defect.','Used in: Ludonarrative alignment.','heuristic'],
-  ['Ten thousand bowls of oatmeal','Kate Compton (2016): a generator can make endless mathematically unique outputs that all read as the same thing. Perceptual uniqueness is the real bar; perceptual differentiation the minimum.','Used in: Procedural and AI-generated content, Content spam failure mode.','heuristic'],
-  ['Game UX: usability and engage-ability','Celia Hodent, The Gamer’s Brain (2017): usability (signs and feedback, clarity, form follows function, consistency, minimum workload, error recovery, flexibility) versus engage-ability. Don Norman’s affordances and signifiers; Nielsen’s heuristics adapted for games.','Used in: the whole UX domain.','research'],
+  ['Ten thousand bowls of oatmeal','Kate Compton (2016): a generator can make endless mathematically unique outputs that all read as the same thing. Perceptual uniqueness is the real bar. Perceptual differentiation the minimum.','Used in: Procedural and AI-generated content, Content spam failure mode.','heuristic'],
+  ['Game UX: usability and engage-ability','Celia Hodent, The Gamer’s Brain (2017): usability (signs and feedback, clarity, form follows function, consistency, minimum workload, error recovery, flexibility) versus engage-ability. Don Norman’s affordances and signifiers. Nielsen’s heuristics adapted for games.','Used in: the whole UX domain.','research'],
   ['Playtesting as empiricism','Mike Ambinder (Valve, GDC 2009): designs are hypotheses, playtests are experiments, observe behavior and weigh self-report against it. Richard Lemarchand, A Playful Production Process (2021): concentric development, vertical slice, regular structured playtesting. Dan Cook: skill atoms, loops and arcs.','Used in: Playtesting, Hypothesis-driven design, Vertical slice, Content multiplies.','practice'],
-  ['Designing Games','Tynan Sylvester (2013): games are systems for generating experiences; target emotion, design for emergence, and maximize emotional power while minimizing burden on players and team.','Used in: Core experience, Systemic design, Agency and emergence.','heuristic'],
-  ['Studio maxims, read carefully','Jaime Griesemer’s “30 seconds of fun” (Bungie) meant nested loops of roughly 3 seconds, 30 seconds and 3 minutes, not one repeated loop. “Easy to learn, hard to master” is Bushnell’s Law (Atari), adopted by Blizzard; a slogan, not a method.','Used in: Core loop, Goals at three horizons.','contested'],
-  ['Hypothesis-driven design','The “We believe X will Y because Z; we will know when W” template comes from Lean Startup (Eric Ries) and Lean UX (Gothelf and Seiden), not from a game-specific source; its game analogue is Ambinder’s and Lemarchand’s practice of testing with a written question.','Used in: Hypothesis Builder, the 12-step loop.','practice'],
-  ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025; Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
+  ['Designing Games','Tynan Sylvester (2013): games are systems for generating experiences, target emotion, design for emergence, and maximize emotional power while minimizing burden on players and team.','Used in: Core experience, Systemic design, Agency and emergence.','heuristic'],
+  ['Studio maxims, read carefully','Jaime Griesemer’s “30 seconds of fun” (Bungie) meant nested loops of roughly 3 seconds, 30 seconds and 3 minutes, not one repeated loop. “Easy to learn, hard to master” is Bushnell’s Law (Atari), adopted by Blizzard. A slogan, not a method.','Used in: Core loop, Goals at three horizons.','contested'],
+  ['Hypothesis-driven design','The “We believe X will Y because Z. We will know when W” template comes from Lean Startup (Eric Ries) and Lean UX (Gothelf and Seiden), not from a game-specific source. Its game analogue is Ambinder’s and Lemarchand’s practice of testing with a written question.','Used in: Hypothesis Builder, the 12-step loop.','practice'],
+  ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
   ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
-  ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments; later work (Nick Yee, Quantic Foundry) treats motivations as continuous scales. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
+  ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work (Nick Yee, Quantic Foundry) treats motivations as continuous scales. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
   ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
   ['Utility AI and goal-oriented planners','Dave Mark’s GDC work on utility/infinite-axis utility, and Jeff Orkin’s F.E.A.R. talk (GDC 2006) on a goal-oriented action planner, are the standard practitioner references for scoring competing actions and for long-horizon, emergent plans. Both are heuristics tuned per game, not general algorithms.','Used in: Choosing a behaviour technique, Adaptive AI and directors.','practice'],
-  ['Game AI as experience, not optimality','A long-standing practitioner position (Mick West on Killer Instinct’s readable AI, Richard Evans on The Sims, the “AI is a lie” thread in Game AI Pro) holds that in-game AI is judged by the experience it creates, not by how smart it is; faked, scripted and telegraphed behaviour often reads better than simulation.','Used in: What in-game AI is for, Readable and fair AI, Scripted vs simulated.','practice'],
+  ['Game AI as experience, not optimality','A long-standing practitioner position (Mick West on Killer Instinct’s readable AI, Richard Evans on The Sims, the “AI is a lie” thread in Game AI Pro) holds that in-game AI is judged by the experience it creates, not by how smart it is. Faked, scripted and telegraphed behaviour often reads better than simulation.','Used in: What in-game AI is for, Readable and fair AI, Scripted vs simulated.','practice'],
   ['Learning-based game AI','Yannakakis and Togelius, Artificial Intelligence and Games (2018), plus headline results (DeepMind AlphaStar, OpenAI Five): learned policies reach superhuman play, but shipping constraints (determinism, debuggability, cost, unfair-but-strong play) keep most production wins in testing, balance, animation and control rather than shipped opponents.','Used in: Learning-based and ML-driven AI.','contested']
 ];
 function renderSources(){
   const tag = k => ({research:'<span class="chip ok">research-backed</span>', heuristic:'<span class="chip">practitioner heuristic</span>', contested:'<span class="chip warn">contested</span>', practice:'<span class="chip shared">practice</span>'})[k];
-  setView(`${crumbs([['Map','#/map'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesizes established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres; a few items rest on research; several are contested and marked as such. Verify against your players.</p>
+  setView(`${crumbs([['Map','#/map'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesizes established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres. A few items rest on research. Several are contested and marked as such. Verify against your players.</p>
     <div class="grid c2">${SOURCES.map(s => `<div class="card"><div class="row between"><h3 style="margin:0">${esc(s[0])}</h3>${tag(s[3])}</div><p style="margin:8px 0 6px">${esc(s[1])}</p><div class="small muted">${esc(s[2])}</div></div>`).join('')}</div>
-    <div class="callout" style="margin-top:14px"><b>How the synthesis was done.</b> Frameworks were checked for attribution and date; where a maxim is routinely misquoted, the guide states the original intent. Where a template has no game-specific origin (the hypothesis form), the guide says so. Where ideas conflict (definitions of fun, flow literalism, player types), they are presented as lenses and the reader is told to test against players.</div>`);
+    <div class="callout" style="margin-top:14px"><b>How the synthesis was done.</b> Frameworks were checked for attribution and date. Where a maxim is routinely misquoted, the guide states the original intent. Where a template has no game-specific origin (the hypothesis form), the guide says so. Where ideas conflict (definitions of fun, flow literalism, player types), they are presented as lenses and the reader is told to test against players.</div>`);
 }
 
 /* =====================================================================

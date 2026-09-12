@@ -8,6 +8,20 @@
    so the map never flashes.
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
    ===================================================================== */
+/* The four doors into the guide. Shared by the start panel in the drawer and
+   the overlay the centre node opens, so the copy lives in one place. */
+const START_PATHS = [
+  ['#/build/idea','I do not know what to make','Read a market for an unserved want, then shape one core idea that only your constraints allow.',''],
+  ['#/build/dissect','I have an idea and want to know if it is good','Cross-reference it against games that already won the audience you want.','var(--accent2)'],
+  ['#/build/ladder','I have a feature idea','Climb from the feature to the behavior, then decide whether to build it.','var(--d-core)'],
+  ['#/diagnose','I have a design problem','Start from the symptom: likely causes, experiments and a prompt.','var(--bad)']
+];
+function startPathsHTML(){
+  return START_PATHS.map(([href, b, s, c]) => `<button class="path" onclick="location.hash='${href}'"${c?` style="border-left-color:${c}"`:''}><b>${esc(b)}</b><span>${esc(s)}</span></button>`).join('');
+}
+function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); $('#startModal').classList.add('show'); }
+{ const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
+
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
 function saveMap(){ store.set('mapState', mapState); updateDock(); }
 function mapHash(){ return mapState.smell ? `#/map/s/${mapState.smell}` : mapState.topic ? `#/map/t/${mapState.topic}` : mapState.dom ? `#/map/d/${mapState.dom}` : '#/map'; }
@@ -24,21 +38,18 @@ function mapCrumbs(){
 function startPanel(){
   return `<span class="overline">Field manual · ${TOPIC_LIST.length} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
     <h1 style="margin:6px 0 8px">Make something people want to play.</h1>
-    <p class="dim">The map is the guide. Click a domain to open its topics; click a topic to read it here and to see what it connects to. The branch you open, the node you read and your zoom are remembered; every other view has a button back to this exact spot.</p>
-    <div class="paths">
-      <button class="path" onclick="location.hash='#/build/idea'"><b>I do not know what to make</b><span>Find a want before an idea, then dissect the games that already succeeded with that want.</span></button>
-      <button class="path" onclick="location.hash='#/build/dissect'" style="border-left-color:var(--accent2)"><b>I have an idea and want to know if it is good</b><span>Cross-reference it against successful games: shared want, visible differentiator, borrowed patterns, quality bar.</span></button>
-      <button class="path" onclick="location.hash='#/build/ladder'" style="border-left-color:var(--d-core)"><b>I have a feature idea</b><span>Climb from the feature to the behavior, then decide whether to build it.</span></button>
-      <button class="path" onclick="location.hash='#/diagnose'" style="border-left-color:var(--bad)"><b>I have a design problem</b><span>Start from the symptom: likely causes, experiments and a prompt.</span></button>
-    </div>
+    <p class="dim">The map is the guide. Click a domain to open its topics. Click a topic to read it here and to see what it connects to. The branch you open, the node you read and your zoom are remembered. Every other view has a button back to this exact spot.</p>
+    <div class="paths">${startPathsHTML()}</div>
     <div class="section-head" style="margin-top:22px"><h2>Two chains to hold in your head</h2></div>
-    <div class="card" style="margin-bottom:10px"><h4>How a game becomes an experience</h4>${chainHTML([['Player','#/map/t/who-is-the-player'],['Desire','#/map/t/player-motivation'],['Fantasy','#/map/t/fantasy'],['Core experience','#/map/t/core-experience'],['Game loop','#/map/t/core-loop'],['Mechanics','#/map/t/mechanics-and-rules'],['Decisions','#/map/t/decisions'],['Challenge','#/map/t/challenge-failure-recovery'],['Feedback','#/map/t/feedback-and-affordance'],['Progression','#/map/t/progression'],['Content','#/map/t/content-multiplies'],['UX','#/map/t/ux-as-design'],['Retention','#/map/t/return-and-quit']])}<p class="small muted" style="margin:6px 0 0">Read left to right to design, right to left to diagnose.</p></div>
-    <div class="card"><h4>How a design becomes true</h4>${chainHTML([['Human judgment','#/map/t/bottleneck-shift','human'],['AI assistance','#/map/t/ai-roles','ai'],['Prototype','#/map/t/prototyping','ai'],['Playtest','#/map/t/playtesting','evidence'],['Evidence','#/map/t/iteration-and-evidence','evidence'],['Revision','#/map/t/hypothesis-driven-design','human'],['Repeat','#/ai/loop','']])}<p class="small muted" style="margin:6px 0 0">The only step that tells the truth is the one with players in it. <a href="#/ai/philosophy">Why the bottleneck moved →</a></p></div>`;
+    <div class="stack">
+    <div class="card"><h4>How a game becomes an experience</h4>${chainHTML([['Player','#/map/t/who-is-the-player'],['Desire','#/map/t/player-motivation'],['Fantasy','#/map/t/fantasy'],['Core experience','#/map/t/core-experience'],['Game loop','#/map/t/core-loop'],['Mechanics','#/map/t/mechanics-and-rules'],['Decisions','#/map/t/decisions'],['Challenge','#/map/t/challenge-failure-recovery'],['Feedback','#/map/t/feedback-and-affordance'],['Progression','#/map/t/progression'],['Content','#/map/t/content-multiplies'],['UX','#/map/t/ux-as-design'],['Retention','#/map/t/return-and-quit']])}<p class="small muted" style="margin:6px 0 0">Read left to right to design, right to left to diagnose.</p></div>
+    <div class="card"><h4>How a design becomes true</h4>${chainHTML([['Human judgment','#/map/t/bottleneck-shift','human'],['AI assistance','#/map/t/ai-roles','ai'],['Prototype','#/map/t/prototyping','ai'],['Playtest','#/map/t/playtesting','evidence'],['Evidence','#/map/t/iteration-and-evidence','evidence'],['Revision','#/map/t/hypothesis-driven-design','human'],['Repeat','#/ai/loop','']])}<p class="small muted" style="margin:6px 0 0">The only step that tells the truth is the one with players in it. <a href="#/ai/philosophy">Why the bottleneck moved →</a></p></div>
+    </div>`;
 }
 function domainPanel(d){
   const links = d.links.map(([to, why]) => `<li><b style="color:${DOM[to].color};cursor:pointer" onclick="location.hash='#/map/d/${to}'">${esc(DOM[to].t)}</b> <span class="why">${esc(why)}</span></li>`).join('');
   const inbound = DOMAINS.filter(o => o.links.some(([to]) => to===d.id) && !d.links.some(([to]) => to===o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<li><b style="color:${o.color};cursor:pointer" onclick="location.hash='#/map/d/${o.id}'">${esc(o.t)}</b> <span class="why">${esc(why)}</span></li>`; }).join('');
-  return `<div class="chips" style="margin-bottom:6px">${domChip(d.id)}<span class="chip">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</span></div><h1 style="margin-bottom:6px">${esc(d.t)}</h1><p class="dim" style="font-size:1.02rem">${esc(d.sum)}</p>
+  return `<div class="chips" style="margin-bottom:6px">${domChip(d.id)}<span class="chip">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</span></div><h1 style="margin-bottom:6px">${esc(d.t)}</h1><p class="dim">${esc(d.sum)}</p>
     <h4>Topics · click one on the map or here</h4><div class="grid auto" style="margin-bottom:14px">${d.topics.map(t => `<div class="card clickable tint" style="--dc:${d.color};padding:10px 12px" onclick="location.hash='#/map/t/${t}'"><b>${esc(TOPICS[t].t)}</b> ${seen.has(t)?'<span class="chip ok">read</span>':''}<div class="small dim">${esc(TOPICS[t].tag)}</div></div>`).join('')}</div>
     <h4>Why it connects</h4><ul class="mapside-list">${links}${inbound}</ul>`;
 }
@@ -96,7 +107,7 @@ function mapTipHTML(n){
   if(kind==='topic' || kind==='leaf'){ const t = TOPICS[id]; const leaf = kind==='leaf' ? MAP.g.leaves[+n.dataset.key.slice(2)] : null; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${leaf ? `<div class="why"><b>Why it connects:</b> ${esc(leaf.why)}</div>` : ''}<div class="muted">${kind==='leaf' ? 'click to travel there' : n.classList.contains('active') ? 'click to collapse' : 'click to read'}</div>`; }
   if(kind==='smell'){ const s = SMELLS.find(x => x.id===id); return `<b style="color:var(--bad)">Design smell</b><div>${esc(s.t)}</div><div class="muted">${esc(s.sym)}</div>`; }
   if(kind==='view'){ const v = VIEW_LINKS[id]; return `<b style="color:var(--accent2)">Tool</b><div>${esc(v ? v[1] : id)}</div>`; }
-  if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom ? 'click to collapse everything' : 'click for the three starting paths'}</div>`;
+  if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom ? 'click to collapse everything' : 'click for the starting paths'}</div>`;
   return '';
 }
 function mapHover(n, e){
@@ -111,7 +122,7 @@ function mapHover(n, e){
 function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
 function mapClick(n){
   const kind = n.dataset.kind, id = n.dataset.id;
-  if(kind==='center') return go('#/map/home');
+  if(kind==='center'){ if(mapState.dom || mapState.topic || mapState.smell) return go('#/map/home'); return openStart(); }
   if(kind==='domain') return go(n.classList.contains('open') ? '#/map/home' : '#/map/d/'+id);
   if(kind==='topic') return go(n.classList.contains('active') ? '#/map/d/'+mapState.dom : '#/map/t/'+id);
   if(kind==='leaf') return go('#/map/t/'+id);

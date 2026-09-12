@@ -1,16 +1,16 @@
-# Design audit — Playable
+﻿# Design audit — Playable
 
 Inspected as a senior game designer would, against the brief's final quality test.
 
 ## What the guide covers
 
-Thirteen domains, 80 topics, all with the same eight-part practical structure
+Fourteen domains, 90 topics, all with the same eight-part practical structure
 (topics with a real implementation decision add a ninth, "Techniques to compare"):
 
 | Domain | Topics |
 | --- | --- |
 | Player | who is the player, motivation (SDT), fantasy and desire, why players return or quit |
-| Experience | core experience, fun as dimensions, goals at three horizons, tension and release, mastery / discovery / expression, social experience, experience thinking vs feature thinking |
+| Experience | core experience, fun as dimensions, goals at three horizons, tension and release, mastery / discovery / expression, social experience, experience thinking vs feature thinking, design pillars and creative direction |
 | Core Gameplay | the core loop, meaningful decisions, risk and reward, agency and emergence, challenge / failure / recovery, skill acquisition |
 | Systems | mechanics and rules, depth vs complexity, systemic design, economy and resources, progression, difficulty and calibration, builds and loadouts |
 | Content | content multiplies systems, encounters and enemies, items / weapons / abilities, quests and events, procedural and AI-generated content |
@@ -18,15 +18,24 @@ Thirteen domains, 80 topics, all with the same eight-part practical structure
 | UX / UI | UX as design, readability and cognitive load, feedback and affordance, onboarding, controls and friction, accessibility |
 | Narrative | premise and world, ludonarrative alignment, environmental storytelling, narrative agency, narrative pacing and integration |
 | Art / Audio / Feel | visual language, game feel and juice, audio and music, animation / VFX / camera |
-| Product | audience and positioning, platform and session, business model, scope control |
+| Product | audience and positioning, platform and session, business model, scope control, launch and discoverability, post-launch and live operations, localization and culturalization, ethics and responsibility |
+| Studio | design documents and communication, metrics / telemetry and success criteria, team / roles and collaboration, planning / milestones and schedule, quality assurance and build health |
 | Production | prototyping, hypothesis-driven design, playtesting, iteration on evidence, vertical slice and MVP, risk and dependencies, when to polish |
 | AI Collaboration | the bottleneck shift, AI roles, prompting framework, verifying AI output, AI failure modes, responsibility matrix, AI for prototyping and implementation, AI for playtest analysis, the 12-step loop |
 | In-game AI | what in-game AI is for (and when to fake or script it), choosing a behaviour technique (FSM, behaviour tree, utility AI, GOAP/HTN), perception and memory, navigation and pathfinding, readable and fair AI, adaptive AI and directors, allies and companions, learning-based/ML AI, budgets and debugging, scripted vs simulated |
 
-Plus: 24 design smells with 60+ cause → experiment pairs, 19 fun dimensions, a
+Plus: 33 design smells with 120 cause → experiment pairs, 19 fun dimensions, a
 core-loop diagnostic, an unfairness diagnostic, a rule audit, a content-or-mechanic
 decision tree, 9 AI roles, 14 AI failure modes, a 20-row responsibility matrix,
 17 prompt templates, 6 checklists, 11 tools, and a sources page.
+
+The Studio domain carries the practice layer that surrounds a design: design documents
+and communication, metrics and success criteria, team and ownership, planning and
+milestones, and quality assurance and build health. Product gained launch and
+discoverability, post-launch and live operations, localization and culturalization, and
+ethics and responsibility, and Experience gained design pillars and creative direction.
+These are written as guide material, genre-neutral and tool-independent, not as
+role-specific advice.
 
 ## Mental models it uses
 
@@ -62,7 +71,7 @@ master") are presented with their original intent.
 ## How AI collaboration is integrated
 
 - It is a first-class domain with nine topics, not a footnote.
-- **Every one of the 80 topics** has an "AI is good at / AI should not decide"
+- **Every one of the 90 topics** has an "AI is good at / AI should not decide"
   split, at least one concrete prompt with real context slots (never "design a fun
   X"), topic-specific verification questions plus the nine universal ones, and
   playtest questions. So every topic answers "how do I work with AI on this" and
@@ -120,7 +129,7 @@ Three generations. The first was a static wheel linking to pages. The second had
 three separate zoom levels, which read as three different maps. The third, current
 one is a single brain map that expands and collapses in place:
 
-- The goal in the centre, the thirteen domains always on ring one.
+- The goal in the centre, the fourteen domains always on ring one.
 - Click a domain: its topics fan out on ring two around that domain; other
   domains stay visible and faint cross-links show where those topics reach.
 - Click a topic: everything it connects to fans out on ring three (related topics
@@ -156,13 +165,13 @@ is gone 600 ms later.
 Label geometry: domain labels sit outside their nodes, wrapped to two lines and
 anchored by angle; topic and leaf labels run radially (sunburst style, flipped on
 the left half) so neighbours in a fan cannot collide. `src/check-layout.js` renders
-all 83 map states (overview, each domain open, each topic selected) and tests every
+all 105 map states (overview, each domain open, each topic selected) and tests every
 label against every other label and node using oriented boxes and a separating-axis
 test. It reports zero overlaps and now runs inside `node src/build.js`, failing the
 build on any overlap, so added content cannot ship a collision. Geometry is
 adaptive rather than fixed: the domain ring widens as domains are added and a
 domain's topic fan grows its radius to hold the minimum gap, so the same map scales
-from the current 13 domains × 80 topics to far larger content without changing its
+from the current 14 domains × 90 topics to far larger content without changing its
 look at the current size (verified on synthetic sets up to 720 topics, including
 720 in a single domain, and up to 48 domains: zero overlaps). The earlier
 axis-aligned version of this check is what exposed the collisions the user saw.
@@ -197,35 +206,38 @@ the console at least once.
 
 Beyond raw ideation, the guide now leads a designer through cross-referencing a
 concept against games that demonstrably succeeded with a similar want. A library of
-fourteen dissected games (Slay the Spire, Stardew Valley, Vampire Survivors, Balatro,
+fifteen dissected games (Slay the Spire, Stardew Valley, Vampire Survivors, Balatro,
 Celeste, Hades, Into the Breach, Minecraft, Among Us, Wordle, Hollow Knight, Animal
 Crossing: New Horizons, Factorio, Portal, Tetris) applies one template: want served,
 core verb, first 30 seconds, decision per minute, engines, why it worked, what players
 complain about, the lesson, and what copies miss. Entries describe mechanisms rather
 than sales, and the topic warns that success narratives are heuristics to verify.
 
-The **Reference Dissection** tool pulls the concept from the Idea Finder, lets the
+The **Reference Dissection** tool pulls the concept from the Idea Shaper, lets the
 designer add comparables (library or custom, with an AI dissection prompt that demands
 sources or "unknown"), shows a comparison matrix, and asks seven cross-reference
 questions: shared proven want, visible mechanical differentiator, answered complaint,
 re-derived borrowed patterns, where fans would find it weaker, quality bar
 reachability, and evidence of an underserved audience. The verdict (promising,
-derivative, unproven, undeliverable, needs work) names the next test. The Idea Finder
-gained a Step 8 that summarizes this verdict, and the map's starting paths include
-"I have an idea and want to know if it is good".
+derivative, unproven, undeliverable, needs work) names the next test. The map's
+starting paths include "I have an idea and want to know if it is good".
 
 ## From no idea to a concept people want
 
-For readers with no idea yet, the guide adds a topic ("Start from a want, not an
-idea"), a smell ("We do not know what game to make") and the **Idea Finder** tool,
-which is now the default Build tool and the first path on the map. Its logic is the
-guide's thesis applied to ideation: begin with a specific player, their complaints
-and wishes about named games, the kinds of fun they chase and your constraints;
-only then generate fantasy collisions to react to; end with a positioning sentence,
-a hypothesis and three want tests (stranger pitch, fake one-pager, one-day loop) with
-kill criteria, so the concept is tested against people before anything is built.
-The tool warns when wants are blank, when more than three kinds of fun are chosen,
-when the core verb is missing from the fantasy, and when constraints are absent.
+For readers with no idea yet, the guide adds a topic ("Read the market, then shape
+one idea"), a smell ("We do not know what game to make") and the **Idea Shaper** tool,
+which is now the default Build tool and the first path on the map. Its logic reasons
+from market observation instead of surveys: choose a market you already watch and
+three to five shipped games, read what their players praise, complain about and work
+around, classify the gap as an exit reason, an unmet want, a tolerated cost or your
+own taste, name why no incumbent has closed it, write the promise in the player words,
+and shape the single rule that keeps it and that an incumbent cannot copy without
+breaking what works for them. The output is a positioning sentence, a hypothesis and
+four observation tests (workaround audit, comment mining, one-mechanism greybox,
+store-page side by side), each with a kill criterion. The tool warns when no
+observation exists, when no workaround is found, when the gap is unclassified or not
+mechanical, when the mechanism is really several rules, when the promise uses generic
+words, and when constraints are absent.
 
 ## Visual identity
 
@@ -237,6 +249,38 @@ dashed graph edges, charcoal dark mode and paper-and-ink light mode. All fonts
 are system fonts, so the file stays fully offline. Mobile (375 px) was tested
 for overflow on 25 routes, sidebar collapse, and nav scrolling; desktop
 (1440 px) was screenshotted in both themes.
+
+## Interaction, diagrams and prose
+
+- **The centre node now does what its tooltip promised.** Clicking it with a branch
+  open collapses to the overview; clicking it at the overview opens an overlay with the
+  four starting paths. Before this, the overlay never existed and the click was a no-op
+  when the map was already at the overview.
+- **Scrollbars are themed.** A global thin, square scrollbar is styled in the same
+  ink-and-line palette in both themes, instead of the default OS widget. The mobile nav
+  strip keeps its own hidden scrollbar.
+- **Illustrations are inline SVG, not images.** The UI/UX topics carry an attention
+  budget diagram and a feedback-loop diagram, and the reference-dissection topic and
+  tool carry a template diagram. All draw with CSS variables, so they follow the theme
+  and keep the single file offline and free of copyrighted assets.
+- **Prose pass.** Roughly 1,000 clause-joining semicolons across the topic, smell,
+  prompt and tool copy were rewritten as periods and commas, and the few dashes were
+  removed. Voice is unchanged. Code semicolons and CSS in inline styles are untouched.
+- **Map labels were rebuilt after real-browser review.** Screenshots showed ring-two
+  topic labels truncated with an ellipsis and rotated text running across neighbouring
+  nodes. Ring-two labels are now full (no truncation), uniform 13px, at a uniform gap
+  from the node, and the checker confirms zero label or node overlaps. Ring-three leaves
+  carry no canvas text at all; the hover tooltip names them and the drawer lists the
+  related topics, which removes the tangle of rotated labels. A separate pass measured
+  every one of the 90 topic states at three viewports: no label is clipped by the map
+  viewport.
+- **Header and type scale.** The nav wrapped into a second (and often third) line on any
+  screen under 1500px, leaving a 104px sticky header. The breakpoint is now 1200px, the
+  nav never wraps its labels, and the header is a single row on desktop. The drawer scroll
+  target gained a scroll offset so a topic title is no longer hidden under the sticky
+  header on phones. The ad-hoc font sizes were collapsed onto a small scale (heading and
+  paragraph margins are now fixed pixels rather than em, so vertical rhythm does not
+  change with font size).
 
 ## Assumptions and limitations
 

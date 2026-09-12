@@ -9,7 +9,8 @@ fs.writeFileSync(path.join(root, 'playable.html'), out);
 console.log(`playable.html: ${(out.length/1024).toFixed(0)} KB`);
 execSync(`node "${path.join(__dirname, 'validate.js')}"`, { stdio: 'inherit' });
 execSync(`node "${path.join(__dirname, 'check-layout.js')}"`, { stdio: 'inherit' });
-const js = out.split('\n<script>\n')[1].split('\n</script>')[0];
+const match = out.match(/<script>([\s\S]*)<\/script>/);
+const js = match ? match[1] : '';
 fs.writeFileSync(path.join(__dirname, '_bundle-check.js'), js);
 try { execSync(`node --check "${path.join(__dirname, '_bundle-check.js')}"`, { stdio: 'inherit' }); console.log('JS syntax OK'); }
 finally { fs.unlinkSync(path.join(__dirname, '_bundle-check.js')); }

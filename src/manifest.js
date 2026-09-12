@@ -14,7 +14,9 @@ const DATA = [
   '18-data-tech.js',
   '19-data-tech.js',
   '20-data-tech.js',
-  '21-data-tech.js'
+  '21-data-tech.js',
+  '22-data-practice.js',
+  '23-data-practice.js'
 ];
 const GRAPH = '89-graph.js';
 const APP = ['90-app.js', '91-map.js', '92-ideas.js'];

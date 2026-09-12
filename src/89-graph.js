@@ -1,11 +1,11 @@
-/* =====================================================================
+﻿/* =====================================================================
    ONE BRAIN MAP
    A single radial mind map that expands and collapses in place:
      centre  : the goal
      ring 1  : the domains (always visible)
      ring 2  : topics of the ONE expanded domain, fanned around it
      ring 3  : for the selected topic: related topics, smells it diagnoses,
-               tools it points to — fanned around the topic. Related topics
+               tools it points to - fanned around the topic. Related topics
                draw a dashed line home to their own domain.
    Coordinates are centred on (0,0); the caller fits the viewBox.
    Labels are always outside nodes, wrapped, anchored by angle.
@@ -18,7 +18,7 @@ window.PlayableGraph = (function(){
   // a fan would otherwise cram its nodes closer than the minimum gap.
   const R1 = 230, R2 = 440, R3 = 720; // base radii (kept for external reference)
   const DOMAIN_ARC = 120;   // px of ring-1 arc reserved per domain
-  const T_GAP = 48, T_MAXSPAN = 2.2, T_BASE = 440;  // topic ring
+  const T_GAP = 70, T_MAXSPAN = 2.6, T_BASE = 560;  // topic ring
   const L_GAP = 38, L_MAXSPAN = 2.2, L_BASE = 720;  // leaf ring
   const ringR = (n, base, gap, maxSpan) => n < 2 ? base : Math.max(base, (n - 1) * gap / maxSpan);
   const fanA = (center, n, r, gap, maxSpan, minStep) => {
@@ -44,7 +44,7 @@ window.PlayableGraph = (function(){
     let startY = ly - total/2 + size*.85;
     if(anchor === 'middle') startY = s > 0 ? ly + size*.9 : ly - total + size*.85;
     let html = ls.map((l,i) => `<text class="${cls}" x="${lx}" y="${startY + i*lh}" text-anchor="${anchor}" font-size="${size}">${esc(l)}</text>`).join('');
-    if(sub) html += `<text class="${cls} sub" x="${lx}" y="${startY + ls.length*lh - size*.15}" text-anchor="${anchor}" font-size="${size*.72}">${esc(sub)}</text>`;
+    if(sub) html += `<text class="${cls} sub" x="${lx}" y="${startY + ls.length*lh - size*.15}" text-anchor="${anchor}" font-size="${size*.78}">${esc(sub)}</text>`;
     return { html, ext:[lx + (anchor==='start'? size*.55*Math.max(...ls.map(l=>l.length)) : anchor==='end' ? -size*.55*Math.max(...ls.map(l=>l.length)) : 0), ly] };
   }
   // Radial (sunburst) label: runs along the radius so neighbours in a fan never collide.
@@ -53,7 +53,7 @@ window.PlayableGraph = (function(){
     let deg = a*180/Math.PI, anchor = 'start'; const flip = Math.cos(a) < -0.001; if(flip){ deg += 180; anchor = 'end'; }
     const lx = x + Math.cos(a)*gap, ly = y + Math.sin(a)*gap;
     const t = text.length > max ? text.slice(0, max-1).trimEnd() + '…' : text;
-    const w = t.length*size*0.56;
+    const w = t.length*size*0.62;
     return { html:`<text class="${cls}" x="${lx}" y="${ly}" dy="0.35em" text-anchor="${anchor}" font-size="${size}" transform="rotate(${deg.toFixed(2)} ${lx.toFixed(1)} ${ly.toFixed(1)})" data-rad="${a.toFixed(4)}" data-w="${w.toFixed(1)}">${esc(t)}</text>`, ext:[lx + Math.cos(a)*w, ly + Math.sin(a)*w] };
   }
   const curve = (x1,y1,x2,y2,bend=.18) => { const mx=(x1+x2)/2*(1-bend), my=(y1+y2)/2*(1-bend); return `M${x1},${y1} Q${mx},${my} ${x2},${y2}`; };
@@ -98,7 +98,7 @@ window.PlayableGraph = (function(){
     if(sel){
       const [[sx,sy], sa] = tPos[sel.id];
       (sel.rel||[]).forEach(([rid, why]) => { if(TOPICS[rid]) leaves.push({kind:'topic', id:rid, why, t:TOPICS[rid]}); else leaves.push({kind:'view', id:rid, why}); });
-      SMELLS.filter(s => s.causes.some(c => c.top === sel.id)).slice(0,6).forEach(s => leaves.push({kind:'smell', id:s.id, why:s.sym, s}));
+      SMELLS.filter(s => s.causes.some(c => c.top === sel.id)).slice(0,4).forEach(s => leaves.push({kind:'smell', id:s.id, why:s.sym, s}));
       const k = leaves.length;
       const r3 = Math.max(L_BASE, topicR + 240, ringR(k, L_BASE, L_GAP, L_MAXSPAN));
       fanA(sa, k, r3, L_GAP, L_MAXSPAN, 0.14).forEach((la, i) => { const [x,y] = pol(r3, la); leaves[i].x = x; leaves[i].y = y; leaves[i].a = la;
@@ -107,20 +107,20 @@ window.PlayableGraph = (function(){
     }
     // domain nodes
     DOMAINS.forEach((d,i) => { const [x,y] = dPos[d.id]; const a = dAngle[d.id]; const n = d.topics.length, sn = d.topics.filter(t => seen.has(t)).length; const r = 30; const circ = 2*Math.PI*(r+6); const open = ex && ex.id===d.id;
-      const lbl = outsideLabel(x, y, a, r+16, d.t, `${sn}/${n} read`, 'lbl', open?15:14, 15);
+      const lbl = outsideLabel(x, y, a, r+14, d.t, `${sn}/${n} read`, 'lbl', 13, 18);
       nodes += `<g class="node domain ${open?'open':''}" data-kind="domain" data-id="${d.id}" data-key="d:${d.id}" style="--dc:${d.color}"><circle class="hit" cx="${x}" cy="${y}" r="${r+14}"/><circle class="ring" cx="${x}" cy="${y}" r="${r+6}" stroke-dasharray="${circ*sn/n} ${circ}" transform="rotate(-90 ${x} ${y})"/><circle class="disc" cx="${x}" cy="${y}" r="${r}"/><text class="glyph" x="${x}" y="${y+5}" text-anchor="middle">${open?'−':String(i+1).padStart(2,'0')}</text>${lbl.html}</g>`;
       mark(x,y,r+20); pts.push(lbl.ext); if(open){ fmark(x,y,r+20); fpts.push(lbl.ext); } });
     // topic nodes
     if(ex) ex.topics.forEach(t => { const [[x,y], a] = tPos[t]; const tp = TOPICS[t]; const isSel = sel && sel.id===t; const r = isSel ? 26 : 20;
-      const lbl = radialLabel(x, y, a, r+10, tp.t, 'lbl topic-lbl', 13.5, 24);
+      const lbl = radialLabel(x, y, a, r+14, tp.t, 'lbl topic-lbl', 13, 60);
       nodes += `<g class="node topic ${seen.has(t)?'seen':''} ${isSel?'active':''}" data-kind="topic" data-id="${t}" data-key="t:${t}" style="--dc:${ex.color}"><circle class="hit" cx="${x}" cy="${y}" r="${r+14}"/><circle class="disc" cx="${x}" cy="${y}" r="${r}"/>${seen.has(t)?`<circle class="dot" cx="${x}" cy="${y}" r="4.5"/>`:''}${isSel?`<text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">−</text>`:''}${lbl.html}</g>`;
       mark(x,y,r+16); pts.push(lbl.ext); fmark(x,y,r+16); fpts.push(lbl.ext); });
     // leaf nodes
-    leaves.forEach((l,i) => { const {x,y,a} = l;
-      if(l.kind==='smell'){ const lbl = radialLabel(x,y,a,22,'smell · '+l.s.t,'lbl leaf-lbl smell-lbl',12.5,34); nodes += `<g class="node smell" data-kind="smell" data-id="${l.id}" data-key="l:${i}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><rect class="disc" x="${x-13}" y="${y-13}" width="26" height="26" transform="rotate(45 ${x} ${y})"/><text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">!</text>${lbl.html}</g>`; pts.push(lbl.ext); }
-      else if(l.kind==='view'){ const lbl = radialLabel(x,y,a,22,'tool · '+l.id.replace(/-view$/,'').replace(/-/g,' '),'lbl leaf-lbl',12.5,34); nodes += `<g class="node view" data-kind="view" data-id="${l.id}" data-key="l:${i}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><rect class="disc" x="${x-13}" y="${y-13}" width="26" height="26" rx="3"/><text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">▸</text>${lbl.html}</g>`; pts.push(lbl.ext); }
-      else { const od = D[l.t.d]; const lbl = radialLabel(x,y,a,22,`${l.t.t} · ${od.t}`,'lbl leaf-lbl',12.5,34); nodes += `<g class="node topic leaf ${seen.has(l.id)?'seen':''}" data-kind="leaf" data-id="${l.id}" data-key="l:${i}" style="--dc:${od.color}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><circle class="disc" cx="${x}" cy="${y}" r="15"/>${seen.has(l.id)?`<circle class="dot" cx="${x}" cy="${y}" r="4"/>`:''}${lbl.html}</g>`; pts.push(lbl.ext); }
-      fpts.push(pts[pts.length-1]); mark(x,y,30); fmark(x,y,30); });
+    leaves.forEach((l,i) => { const {x,y} = l;
+      if(l.kind==='smell'){ nodes += `<g class="node smell" data-kind="smell" data-id="${l.id}" data-key="l:${i}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><rect class="disc" x="${x-13}" y="${y-13}" width="26" height="26" transform="rotate(45 ${x} ${y})"/><text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">!</text></g>`; }
+      else if(l.kind==='view'){ nodes += `<g class="node view" data-kind="view" data-id="${l.id}" data-key="l:${i}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><rect class="disc" x="${x-13}" y="${y-13}" width="26" height="26" rx="3"/><text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">▸</text></g>`; }
+      else { const od = D[l.t.d]; nodes += `<g class="node topic leaf ${seen.has(l.id)?'seen':''}" data-kind="leaf" data-id="${l.id}" data-key="l:${i}" style="--dc:${od.color}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><circle class="disc" cx="${x}" cy="${y}" r="15"/>${seen.has(l.id)?`<circle class="dot" cx="${x}" cy="${y}" r="4"/>`:''}</g>`; }
+      mark(x,y,30); fmark(x,y,30); });
     // bboxes
     const box = P => { const xs = P.map(p=>p[0]), ys = P.map(p=>p[1]); return { x: Math.min(...xs)-30, y: Math.min(...ys)-30, w: Math.max(...xs)-Math.min(...xs)+60, h: Math.max(...ys)-Math.min(...ys)+60 }; };
     // three layers so in-place patching can append new elements without breaking z-order
