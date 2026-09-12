@@ -78,7 +78,7 @@ nav.primary button{background:none;border:0;padding:7px 11px;border-radius:var(-
 nav.primary button:hover{background:var(--bg3);color:var(--fg)}
 nav.primary button.active{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
 .topbar .spacer{flex:1}
-.searchbtn{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:7px 10px;color:var(--fg3);min-width:220px;font-size:.9rem}
+.searchbtn{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:7px 10px;color:var(--fg3);font-size:.9rem;white-space:nowrap}
 .searchbtn .lbl{white-space:nowrap}
 .searchbtn:hover{border-color:var(--line2);color:var(--fg2)}
 .searchbtn kbd{margin-left:auto}
@@ -192,7 +192,7 @@ details .body{padding:0 14px 12px}
 
 /* ---------- map ---------- */
 .mapwrap{position:relative;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--accent) 6%,transparent),transparent 55%),var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
-.mapwrap svg{width:100%;height:auto;display:block}
+.mapwrap svg{width:100%;height:100%;display:block}
 .mapwrap .node{cursor:pointer}
 .mapwrap .node circle{transition:filter .15s}
 .mapwrap .node:hover circle.main{filter:brightness(1.15)}
@@ -227,7 +227,7 @@ details .body{padding:0 14px 12px}
 @media (max-width:800px){.workflow-compare{grid-template-columns:1fr}}
 
 /* ---------- loop stepper ---------- */
-.stepper{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:10px 0}
+.stepper{display:grid;grid-template-columns:repeat(12,minmax(72px,1fr));gap:4px;margin:10px 0;overflow-x:auto}
 @media (max-width:1000px){.stepper{grid-template-columns:repeat(6,1fr)}}
 @media (max-width:600px){.stepper{grid-template-columns:repeat(4,1fr)}}
 .stepper button{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r3);padding:8px 4px;font-size:.75rem;font-weight:700;color:var(--fg2);text-align:center;line-height:1.2}
@@ -348,7 +348,7 @@ details .body{padding:0 14px 12px}
 .sysmap .se-label{fill:var(--fg2);font-size:10px}
 .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem;color:var(--fg3)}
 .legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px;border-radius:2px}
-.plan-row{display:grid;grid-template-columns:1fr 200px 36px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.plan-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,200px) 36px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
 .plan-row select{width:100%}
 @media (max-width:700px){.plan-row{grid-template-columns:1fr}}
 .ladder{display:grid;gap:8px}
@@ -419,8 +419,6 @@ footer a{color:var(--fg2)}
   .rule-audit .rule select{grid-area:b;width:100%}
   .rule-audit .rule .rdel{grid-area:c}
   .bottleneck .mid{transform:rotate(90deg);font-size:1.6rem}
-  .mapwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .mapwrap svg{min-width:820px}
   .map-mobile{display:block}
   .modal-bg{padding-top:4vh;align-items:flex-start}
   .modal{max-height:88vh;border-radius:12px}
@@ -634,14 +632,9 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .maplegend i.lg.t{border-color:var(--d-systems);width:8px;height:8px}
 .maplegend i.lg.l{border-color:var(--d-ux);width:7px;height:7px}
 .maplegend i.lg.s{border-color:var(--bad);border-radius:0;transform:rotate(45deg);width:7px;height:7px}
-.drawer{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:18px 20px;min-height:400px;scroll-margin-top:112px}
-.drawer .crumbs{display:none}
-.drawer .topic-head h1{font-size:2.3rem}
-.drawer .sec{background:var(--bg2)}
-.drawer .mapside-list{padding-left:16px}
-.drawer .mapside-list li{margin:5px 0;font-size:.9rem}
-.drawer .mapside-list .why{color:var(--fg3)}
-@media (max-width:700px){.drawer{padding:14px 12px;scroll-margin-top:104px}.drawer .topic-head h1{font-size:1.5rem}}
+.mapside-list{padding-left:16px}
+.mapside-list li{margin:5px 0;font-size:.9rem}
+.mapside-list .why{color:var(--fg3)}
 .presets button.on{background:var(--accent);color:var(--ink);border-color:var(--accent)}
 /* reference library grid */
 .reflib{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:8px 0}
@@ -693,9 +686,20 @@ details.comp .body{padding-top:6px}
 .diagram .muted{fill:var(--fg3)}
 .diagram-card{padding:12px 14px;display:flex;justify-content:center}
 .diagram-cap{font-size:.8rem;color:var(--fg3);margin:0}
-/* ---------- persistent knowledge rail + pane ---------- */
-.shell{display:grid;grid-template-columns:360px minmax(0,1fr);align-items:start}
-.rail{position:sticky;top:0;height:100vh;overflow:auto;padding:84px 12px 24px;border-right:1px solid var(--line);background:var(--panel)}
+/* ---------- persistent shell: index | mind map | content ---------- */
+.shell{display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--paneW,460px);align-items:start}
+.rail{position:sticky;top:74px;height:calc(100vh - 74px);overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel)}
+.split{position:sticky;top:74px;height:calc(100vh - 74px);cursor:col-resize;background:var(--line)}
+.split:hover{background:var(--accent)}
+.mapstage{position:sticky;top:74px;height:calc(100vh - 74px);display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line);border-right:1px solid var(--line);background:var(--bg)}
+.mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.mapbar .mapcrumbs{margin:0}
+.mapwrap{flex:1;min-height:0;border:0;border-radius:0;touch-action:none;cursor:grab;background:var(--panel)}
+.pane{min-width:0;padding:16px 20px 60px;overflow-x:auto}
+.hide-left{grid-template-columns:0 0 minmax(0,1fr) 6px var(--paneW,460px)}
+.hide-left #rail,.hide-left #splitL{display:none}
+.hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
+.hide-right #pane,.hide-right #splitR{display:none}
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
 .railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
@@ -712,11 +716,28 @@ details.comp .body{padding-top:6px}
 .railtopic:hover{color:var(--fg);background:var(--bg3)}
 .railtopic.active{border-left-color:var(--accent);color:var(--fg);font-weight:700}
 .railtopic.seen::before{content:'✓ ';color:var(--ok);font-size:.72rem}
-.pane{min-width:0;padding:18px 24px 72px;max-width:1200px}
 .railbtn{display:none}
-.graphmodal{width:min(1400px,96vw);height:86vh;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r2);display:flex;flex-direction:column;overflow:hidden;box-shadow:8px 8px 0 var(--line2)}
-.graphmodal .mapbar{margin:8px 10px}
-.graphmodal .mapwrap{flex:1;min-height:0;border-radius:0;border:0}
+.scrim{display:none}
+.drawer-close{display:none}
+@media (max-width:1100px){
+  .scrim.show{display:block;position:fixed;inset:0;z-index:79;background:rgba(0,0,0,.45)}
+  .drawer-close.show{display:grid;place-items:center;position:fixed;top:10px;right:10px;z-index:82;width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--fg);font-size:1rem;box-shadow:var(--shadow)}
+}
+/* horizontal mind-map nodes and edges */
+.kgraph .node{cursor:pointer}
+.kgraph .node .disc{fill:var(--bg2);stroke:var(--line2);stroke-width:1.2}
+.kgraph .node.domain .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 16%,var(--bg2));stroke:var(--dc,var(--accent))}
+.kgraph .node.domain.open .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 32%,var(--bg2));stroke:var(--dc,var(--accent));stroke-width:2}
+.kgraph .node.topic .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 9%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 48%,var(--line2))}
+.kgraph .node.center .disc{fill:var(--panel);stroke:var(--accent2);stroke-width:2}
+.kgraph .node.hl .disc,.kgraph .node:hover .disc{stroke:var(--accent);stroke-width:2}
+.kgraph .node .glyph{fill:var(--fg2);font-family:var(--mono);font-weight:700;pointer-events:none}
+.kgraph .node .lbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700;pointer-events:none;paint-order:normal;stroke:none}
+.kgraph .node .lbl.sub{fill:var(--fg3);font-family:var(--mono);font-weight:500}
+.kgraph .edge{fill:none;stroke:var(--line2);stroke-width:1.4;opacity:.7}
+.kgraph .edge.open{stroke:var(--accent);opacity:.9}
+.kgraph .dimmed .node:not(.hl):not(.center){opacity:.35}
+.kgraph .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
 /* prompt ladder */
 .ladderflow{display:flex;flex-direction:column;margin:12px 0}
 .rung-card{display:grid;grid-template-columns:44px 1fr;gap:12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);padding:12px 14px}
@@ -738,12 +759,16 @@ details.comp .body{padding-top:6px}
 .symptom:hover{border-color:var(--bad);color:var(--fg)}
 .symptom.more{border-left-color:var(--accent);color:var(--accent);text-decoration:none}
 @media (max-width:1100px){
-  .shell{grid-template-columns:1fr}
-  .rail{position:fixed;top:0;left:0;bottom:0;height:auto;width:min(86vw,340px);padding-top:70px;z-index:80;transform:translateX(-101%);transition:transform .18s;border-right:1px solid var(--line2);box-shadow:10px 0 0 rgba(0,0,0,.18)}
+  .shell{display:block}
+  .split{display:none}
+  .mapstage{position:sticky;top:74px;height:calc(100vh - 74px)}
+  .rail{position:fixed;top:0;left:0;bottom:0;width:min(86vw,340px);height:auto;padding:70px 12px 24px;z-index:80;transform:translateX(-101%);transition:transform .18s;border-right:1px solid var(--line2);box-shadow:10px 0 0 rgba(0,0,0,.18);display:block}
   .rail.open{transform:none}
   .railbtn{display:inline-flex}
-  .pane{padding:14px 14px 72px}
+  .pane{position:fixed;top:0;right:0;bottom:0;width:min(92vw,520px);height:auto;padding:70px 14px 40px;z-index:81;background:var(--panel);border-left:1px solid var(--line2);transform:translateX(101%);transition:transform .18s;overflow:auto}
+  .pane.open{transform:none}
 }
+@media (max-width:700px){ .mapbar .mapcrumbs{display:none} }
 </style>
 </head>
 <body>
@@ -753,7 +778,7 @@ details.comp .body{padding-top:6px}
   <nav class="primary" id="primaryNav" aria-label="Primary"></nav>
   <span class="spacer"></span>
   <div class="progress" id="progress" title="Topics you have opened"><span id="progressText">0 / 0</span><span class="bar"><i id="progressBar"></i></span></div>
-  <button class="searchbtn" id="searchBtn" aria-label="Search">🔍 <span class="lbl">Search concepts, smells, prompts…</span> <kbd>Ctrl K</kbd></button>
+  <button class="searchbtn" id="searchBtn" aria-label="Search">🔍 <span class="lbl">Search…</span> <kbd>Ctrl K</kbd></button>
   <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts (?)">?</button>
   <button class="iconbtn" id="themeBtn" title="Toggle light/dark theme">◐</button>
 </header>
@@ -775,7 +800,7 @@ details.comp .body{padding-top:6px}
       <tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>Switch main view (Idea Lab, Map, Explore, Diagnose, Build, AI, Playtest, Prompts, Checklists)</td></tr>
       <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Previous / next topic while reading</td></tr>
       <tr><td><kbd>E</kbd></td><td>Expand or collapse all sections of a topic</td></tr>
-      <tr><td><kbd>M</kbd></td><td>Back to the map</td></tr>
+      <tr><td><kbd>M</kbd></td><td>Fit the mind map</td></tr>
       <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
       <tr><td><kbd>?</kbd></td><td>This help</td></tr>
     </table>

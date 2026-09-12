@@ -63,15 +63,59 @@ function route(){
 window.addEventListener('hashchange', route);
 $('#primaryNav').innerHTML = VIEWS.map(([id, t]) => `<button data-view="${id}" onclick="location.hash='#/${id}'">${t}</button>`).join('');
 $('#brandBtn').onclick = () => go('#/map');
-$('#railToggle').onclick = () => { const r = $('#rail'); if(r) r.classList.toggle('open'); };
+$('#railToggle').onclick = () => { const r = $('#rail'); if(r){ r.classList.toggle('open'); if(window.__syncScrim) window.__syncScrim(); } };
 
-/* ---------- persistent shell: always-visible knowledge rail + content pane ---------- */
+/* ---------- persistent shell: index (left) + mind map (centre) + content (right) ---------- */
 let SHELL = false;
-function ensureShell(){ if(SHELL) return; app.innerHTML = `<div class="shell"><aside class="rail" id="rail"></aside><section class="pane" id="pane"></section></div>`; SHELL = true; }
+function ensureShell(){
+  if(SHELL) return;
+  app.innerHTML = `<div class="shell" id="shell">
+    <aside class="rail" id="rail"></aside>
+    <div class="split" id="splitL" title="Drag to resize"></div>
+    <section class="mapstage" id="mapstage">
+      <div class="mapbar"><div class="mapcrumbs"></div><div class="row" style="gap:4px">
+        <button class="btn sm ghost" id="mapZoomOut" title="Zoom out">－</button>
+        <button class="btn sm ghost" id="mapZoomIn" title="Zoom in">＋</button>
+        <button class="btn sm ghost" id="mapFit" title="Fit the map">⤢ fit</button>
+        <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
+        <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
+      </div></div>
+      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="img" aria-label="Knowledge mind map"></svg><div class="maptip" id="maptip" hidden></div></div>
+    </section>
+    <div class="split" id="splitR" title="Drag to resize"></div>
+    <section class="pane" id="pane"></section>
+  </div><div class="scrim" id="scrim"></div><button class="drawer-close" id="drawerClose" aria-label="Close panel">✕</button>`;
+  SHELL = true; wireShell();
+}
+function wireShell(){
+  const shell = $('#shell');
+  if(store.get('railW')) shell.style.setProperty('--railW', store.get('railW') + 'px');
+  if(store.get('paneW')) shell.style.setProperty('--paneW', store.get('paneW') + 'px');
+  if(store.get('hideLeft')) shell.classList.add('hide-left');
+  if(store.get('hideRight')) shell.classList.add('hide-right');
+  const dragSplit = (handle, which) => handle.addEventListener('pointerdown', e => {
+    e.preventDefault(); const startX = e.clientX;
+    const startRail = parseInt(getComputedStyle(shell).getPropertyValue('--railW')) || 300;
+    const startPane = parseInt(getComputedStyle(shell).getPropertyValue('--paneW')) || 460;
+    const move = ev => { if(which === 'L'){ const w = Math.max(200, Math.min(560, startRail + (ev.clientX - startX))); shell.style.setProperty('--railW', w + 'px'); store.set('railW', w); } else { const w = Math.max(300, Math.min(820, startPane - (ev.clientX - startX))); shell.style.setProperty('--paneW', w + 'px'); store.set('paneW', w); } };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  });
+  dragSplit($('#splitL'), 'L'); dragSplit($('#splitR'), 'R');
+  const scrim = $('#scrim');
+  const syncScrim = () => { const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && window.innerWidth <= 1100; scrim.classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); };
+  window.__syncScrim = syncScrim;
+  const closeDrawers = () => { $('#rail').classList.remove('open'); $('#pane').classList.remove('open'); syncScrim(); };
+  scrim.onclick = closeDrawers;
+  $('#drawerClose').onclick = closeDrawers;
+  $('#collapseLeft').onclick = () => { if(window.innerWidth <= 1100){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
+  $('#collapseRight').onclick = () => { if(window.innerWidth <= 1100){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
+  renderTree('home');
+}
 function railHTML(activeDom, activeTopic){
   const openSet = new Set(store.get('sideOpen', [])); if(activeDom) openSet.add(activeDom);
   return `<div class="railhead">
-      <button class="railgraph" id="railGraph">⌗ Graph overview</button>
+      <button class="railgraph" id="railFit" onclick="__fitMap()">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
@@ -90,21 +134,11 @@ function railActive(){
 function updateRail(){
   ensureShell(); const r = $('#rail'); if(!r) return; const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
-  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; if(window.innerWidth <= 1100) r.classList.remove('open'); }));
-  const g = $('#railGraph'); if(g) g.onclick = () => openGraph();
+  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; if(window.innerWidth <= 1100){ r.classList.remove('open'); const p = $('#pane'); if(p) p.classList.add('open'); if(window.__syncScrim) window.__syncScrim(); } }));
   const s = $('#railSearch');
   if(s) s.addEventListener('input', () => { const q = s.value.trim().toLowerCase(); r.querySelectorAll('.raildom').forEach(de => { let any = false; de.querySelectorAll('.railtopic').forEach(tb => { const hit = !q || tb.textContent.toLowerCase().includes(q); tb.style.display = hit ? '' : 'none'; if(hit) any = true; }); const dn = de.querySelector('.rt').textContent.toLowerCase(); de.style.display = (!q || any || dn.includes(q)) ? '' : 'none'; if(q && any) de.classList.add('open'); }); });
 }
 function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
-function openGraph(){
-  const g = PlayableGraph.build(mapState, seen);
-  const m = document.createElement('div');
-  m.className = 'modal-bg show graph-modal'; m.id = 'graphModal';
-  m.innerHTML = `<div class="graphmodal"><div class="mapbar">${mapCrumbs()}<div class="row" style="gap:6px"><button class="btn sm ghost" id="mapFit">⤢ fit</button><button class="btn sm ghost" id="mapCollapse">⊖ collapse</button><button class="btn sm ghost" onclick="closeModals()">✕ close</button></div></div>
-    <div class="mapwrap one" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="-700 -600 1400 1200" role="img" aria-label="Brain map of the guide">${g.inner}</svg><div class="maptip" id="maptip" hidden></div></div></div>`;
-  m.addEventListener('click', e => { if(e.target === m) closeModals(); });
-  document.body.appendChild(m); m._cleanup = initMap(g, 'home');
-}
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button onclick="location.hash='${it[1]}'">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
@@ -246,8 +280,7 @@ function topicBody(id){
   const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header onclick="__toggleSec(this.parentElement)"><span class="letter">T</span><h3>Techniques to compare</h3><span class="car">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
   const rel = (t.rel||[]).map(([rid, why]) => { const rt = TOPICS[rid]; const v = VIEW_LINKS[rid]; const href = rt ? `#/topic/${rid}` : (v ? v[0] : '#/explore'); const label = rt ? rt.t : (v ? v[1] : rid); const dc = rt ? DOM[rt.d].color : 'var(--accent)'; return `<div class="rel" onclick="location.hash='${href}'" style="border-left:3px solid ${dc}"><b>${esc(label)}</b><div class="why">${esc(why)}</div></div>`; }).join('');
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
-  const main = `${crumbs([['Map','#/map'],['Explore','#/explore'],[d.t,'#/explore/'+d.id],[t.t]])}
-    <div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
+  const main = `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       <div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div></div>
     ${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
     ${contextsPanel(t)}
@@ -919,7 +952,7 @@ function renderSearch(){ const q = $('#searchInput').value; searchResults = sear
   $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); }); }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
 function openSearch(){ $('#searchModal').classList.add('show'); const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); setTimeout(() => inp.focus(), 10); }
-function closeModals(){ $$('.modal-bg').forEach(m => { if(m.id === 'graphModal'){ if(m._cleanup) m._cleanup(); m.remove(); } else m.classList.remove('show'); }); }
+function closeModals(){ $$('.modal-bg').forEach(m => m.classList.remove('show')); }
 $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
@@ -937,7 +970,7 @@ document.addEventListener('keydown', e => {
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ $('#helpModal').classList.add('show'); return; }
   if(/^[1-9]$/.test(e.key)){ go('#/'+VIEWS[+e.key-1][0]); return; }
-  if(e.key.toLowerCase()==='m'){ openGraph(); return; }
+  if(e.key.toLowerCase()==='m'){ __fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
   const m = location.hash.match(/^#\/map\/t\/([\w-]+)/);
   if(m){ const t = TOPICS[m[1]]; if(!t) return; const list = DOM[t.d].topics, i = list.indexOf(m[1]);

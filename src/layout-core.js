@@ -16,9 +16,9 @@ function boxes(svgInner) {
       if (t[5] !== undefined) { const a = +t[5], w = +t[6]; const c = Math.cos(a), s = Math.sin(a), h = size * 0.5; const nx = -s * h, ny = c * h; polys.push([[x + nx, y + ny], [x + c * w + nx, y + s * w + ny], [x + c * w - nx, y + s * w - ny], [x - nx, y - ny]]); continue; }
       const w = t[7].length * size * 0.56; const anc = t[3]; const lx = anc === 'start' ? x : anc === 'end' ? x - w : x - w / 2; polys.push([[lx, y - size * 0.9], [lx + w, y - size * 0.9], [lx + w, y + size * 0.2], [lx, y + size * 0.2]]);
     }
-    const disc = inner.match(/<(?:circle|rect) class="disc"[^>]*(?:cx="([-\d.]+)" cy="([-\d.]+)" r="([\d.]+)"|x="([-\d.]+)" y="([-\d.]+)")/);
+    const disc = inner.match(/<(?:circle|rect) class="disc"[^>]*(?:cx="([-\d.]+)" cy="([-\d.]+)" r="([\d.]+)"|x="([-\d.]+)" y="([-\d.]+)"(?: width="([\d.]+)" height="([\d.]+)")?)/);
     let discPoly = null;
-    if (disc) { if (disc[3]) { const cx = +disc[1], cy = +disc[2], r = +disc[3] * 0.85; discPoly = [[cx - r, cy - r], [cx + r, cy - r], [cx + r, cy + r], [cx - r, cy + r]]; } else { const x = +disc[4], y = +disc[5]; discPoly = [[x + 3, y + 3], [x + 23, y + 3], [x + 23, y + 23], [x + 3, y + 23]]; } }
+    if (disc) { if (disc[3]) { const cx = +disc[1], cy = +disc[2], r = +disc[3] * 0.85; discPoly = [[cx - r, cy - r], [cx + r, cy - r], [cx + r, cy + r], [cx - r, cy + r]]; } else { const x = +disc[4], y = +disc[5], w = disc[6] ? +disc[6] : 20, h = disc[7] ? +disc[7] : 20; discPoly = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]; } }
     out.push({ kind, id, polys, disc: discPoly });
   }
   return out;
@@ -43,6 +43,7 @@ function overlaps(G, DOMAINS, TOPICS) {
       if (anyOv(b[i].polys, b[j].polys)) problems.push(`${name}: label "${b[i].id}" overlaps label "${b[j].id}"`);
       if (b[j].disc && anyOv(b[i].polys, [b[j].disc])) problems.push(`${name}: label "${b[i].id}" overlaps node "${b[j].id}"`);
       if (b[i].disc && anyOv(b[j].polys, [b[i].disc])) problems.push(`${name}: label "${b[j].id}" overlaps node "${b[i].id}"`);
+      if (b[i].disc && b[j].disc && anyOv([b[i].disc], [b[j].disc])) problems.push(`${name}: node "${b[i].id}" overlaps node "${b[j].id}"`);
     }
   };
   check({ dom: null, topic: null }, 'overview');

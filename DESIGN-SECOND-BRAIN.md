@@ -12,22 +12,25 @@ Idea Shaper) that produced a report. The map was attractive, but a radial fan ca
 hold names as nodes grow: labels shrink, rotate, truncate, and the only way to read a
 node was to hover.
 
-**New.** Two layers that do different jobs.
+**New.** Three layers that do different jobs.
 
-- **A persistent knowledge rail** (left, always visible on desktop, collapsible on
-  phones) is the navigator. Domains and topics are named, counted, expandable, and
-  scrollable, so a hundred or three hundred concepts cost nothing but scroll. No
-  floating "back to map" panel exists any more. Clicking a domain expands its topics;
-  clicking a topic fills the pane. A search box jumps to any concept.
-- **A content pane** (right) holds whatever you are doing: reading a topic, using a
-  tool, diagnosing a smell, shaping an idea. The rail never leaves.
-- **A graph overview** (the old radial map) is now an on-demand picture opened from
-  the rail or with `M`. It is used for relationships, not for navigation, which is the
-  only job a node graph is actually good at.
+- **Index** (left): domains and topics, named and counted, with a search box. Expand
+  what you need.
+- **Mind map** (centre): the always-visible map, drawn as a horizontal collapsible tidy
+  tree. The goal is on the left, the fourteen domains on the next layer, and a domain's
+  topics on the third layer while it is open. Nodes are labelled cards, so names never
+  depend on hover, and the tree grows by stacking and panning rather than by shrinking a
+  circle. Drag to pan, wheel or pinch to zoom.
+- **Content** (right): whatever you are reading or doing.
 
-The change follows the principle: a graph is for relationships, a list is for
-navigation, a workflow is a flow, a diagnostic is a decision tree. Do not force every
-information type into a radial graph.
+All three are visible at once on desktop; panels are resized by dragging the dividers and
+collapsed from the toolbar. On phones the index and content are slide-over drawers with a
+tap-away scrim, and the map fills the width.
+
+This replaced a radial map whose fan could not hold names as the content grew. Expanding
+the circle and shrinking the nodes both hurt readability, so the map is a tree now. The
+principle: a graph is for relationships, a list is for navigation, a workflow is a flow, a
+diagnostic is a decision tree.
 
 ## Ideation methodology (the Idea Lab)
 
@@ -127,7 +130,8 @@ non-AI action.
 - **Search** understands symptoms for smells via keyword lists, and topics via their
   text, but there is no dedicated symptom index across the whole guide.
 - **Reference art** covers eleven of fifteen games; four use typographic tiles.
-- The **radial graph** is preserved as an overview; it remains hard to read for the
-  largest domains, which is why it is no longer the navigator.
+- The **mind map** is a horizontal tidy tree. It holds names and scales by stacking and
+  panning, but a domain with very many topics makes a tall column, and deep nesting is not
+  yet used; a future pass could add a top-down variant or node search-in-map.
 - Verdict and confidence are qualitative by design. Where a reader wants a number,
   there deliberately is none.

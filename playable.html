@@ -78,7 +78,7 @@ nav.primary button{background:none;border:0;padding:7px 11px;border-radius:var(-
 nav.primary button:hover{background:var(--bg3);color:var(--fg)}
 nav.primary button.active{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
 .topbar .spacer{flex:1}
-.searchbtn{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:7px 10px;color:var(--fg3);min-width:220px;font-size:.9rem}
+.searchbtn{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:7px 10px;color:var(--fg3);font-size:.9rem;white-space:nowrap}
 .searchbtn .lbl{white-space:nowrap}
 .searchbtn:hover{border-color:var(--line2);color:var(--fg2)}
 .searchbtn kbd{margin-left:auto}
@@ -192,7 +192,7 @@ details .body{padding:0 14px 12px}
 
 /* ---------- map ---------- */
 .mapwrap{position:relative;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--accent) 6%,transparent),transparent 55%),var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
-.mapwrap svg{width:100%;height:auto;display:block}
+.mapwrap svg{width:100%;height:100%;display:block}
 .mapwrap .node{cursor:pointer}
 .mapwrap .node circle{transition:filter .15s}
 .mapwrap .node:hover circle.main{filter:brightness(1.15)}
@@ -227,7 +227,7 @@ details .body{padding:0 14px 12px}
 @media (max-width:800px){.workflow-compare{grid-template-columns:1fr}}
 
 /* ---------- loop stepper ---------- */
-.stepper{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:10px 0}
+.stepper{display:grid;grid-template-columns:repeat(12,minmax(72px,1fr));gap:4px;margin:10px 0;overflow-x:auto}
 @media (max-width:1000px){.stepper{grid-template-columns:repeat(6,1fr)}}
 @media (max-width:600px){.stepper{grid-template-columns:repeat(4,1fr)}}
 .stepper button{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r3);padding:8px 4px;font-size:.75rem;font-weight:700;color:var(--fg2);text-align:center;line-height:1.2}
@@ -348,7 +348,7 @@ details .body{padding:0 14px 12px}
 .sysmap .se-label{fill:var(--fg2);font-size:10px}
 .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem;color:var(--fg3)}
 .legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px;border-radius:2px}
-.plan-row{display:grid;grid-template-columns:1fr 200px 36px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
+.plan-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,200px) 36px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)}
 .plan-row select{width:100%}
 @media (max-width:700px){.plan-row{grid-template-columns:1fr}}
 .ladder{display:grid;gap:8px}
@@ -419,8 +419,6 @@ footer a{color:var(--fg2)}
   .rule-audit .rule select{grid-area:b;width:100%}
   .rule-audit .rule .rdel{grid-area:c}
   .bottleneck .mid{transform:rotate(90deg);font-size:1.6rem}
-  .mapwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .mapwrap svg{min-width:820px}
   .map-mobile{display:block}
   .modal-bg{padding-top:4vh;align-items:flex-start}
   .modal{max-height:88vh;border-radius:12px}
@@ -634,14 +632,9 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .maplegend i.lg.t{border-color:var(--d-systems);width:8px;height:8px}
 .maplegend i.lg.l{border-color:var(--d-ux);width:7px;height:7px}
 .maplegend i.lg.s{border-color:var(--bad);border-radius:0;transform:rotate(45deg);width:7px;height:7px}
-.drawer{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:18px 20px;min-height:400px;scroll-margin-top:112px}
-.drawer .crumbs{display:none}
-.drawer .topic-head h1{font-size:2.3rem}
-.drawer .sec{background:var(--bg2)}
-.drawer .mapside-list{padding-left:16px}
-.drawer .mapside-list li{margin:5px 0;font-size:.9rem}
-.drawer .mapside-list .why{color:var(--fg3)}
-@media (max-width:700px){.drawer{padding:14px 12px;scroll-margin-top:104px}.drawer .topic-head h1{font-size:1.5rem}}
+.mapside-list{padding-left:16px}
+.mapside-list li{margin:5px 0;font-size:.9rem}
+.mapside-list .why{color:var(--fg3)}
 .presets button.on{background:var(--accent);color:var(--ink);border-color:var(--accent)}
 /* reference library grid */
 .reflib{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:8px 0}
@@ -693,9 +686,20 @@ details.comp .body{padding-top:6px}
 .diagram .muted{fill:var(--fg3)}
 .diagram-card{padding:12px 14px;display:flex;justify-content:center}
 .diagram-cap{font-size:.8rem;color:var(--fg3);margin:0}
-/* ---------- persistent knowledge rail + pane ---------- */
-.shell{display:grid;grid-template-columns:360px minmax(0,1fr);align-items:start}
-.rail{position:sticky;top:0;height:100vh;overflow:auto;padding:84px 12px 24px;border-right:1px solid var(--line);background:var(--panel)}
+/* ---------- persistent shell: index | mind map | content ---------- */
+.shell{display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--paneW,460px);align-items:start}
+.rail{position:sticky;top:74px;height:calc(100vh - 74px);overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel)}
+.split{position:sticky;top:74px;height:calc(100vh - 74px);cursor:col-resize;background:var(--line)}
+.split:hover{background:var(--accent)}
+.mapstage{position:sticky;top:74px;height:calc(100vh - 74px);display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line);border-right:1px solid var(--line);background:var(--bg)}
+.mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.mapbar .mapcrumbs{margin:0}
+.mapwrap{flex:1;min-height:0;border:0;border-radius:0;touch-action:none;cursor:grab;background:var(--panel)}
+.pane{min-width:0;padding:16px 20px 60px;overflow-x:auto}
+.hide-left{grid-template-columns:0 0 minmax(0,1fr) 6px var(--paneW,460px)}
+.hide-left #rail,.hide-left #splitL{display:none}
+.hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
+.hide-right #pane,.hide-right #splitR{display:none}
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
 .railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
@@ -712,11 +716,28 @@ details.comp .body{padding-top:6px}
 .railtopic:hover{color:var(--fg);background:var(--bg3)}
 .railtopic.active{border-left-color:var(--accent);color:var(--fg);font-weight:700}
 .railtopic.seen::before{content:'✓ ';color:var(--ok);font-size:.72rem}
-.pane{min-width:0;padding:18px 24px 72px;max-width:1200px}
 .railbtn{display:none}
-.graphmodal{width:min(1400px,96vw);height:86vh;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r2);display:flex;flex-direction:column;overflow:hidden;box-shadow:8px 8px 0 var(--line2)}
-.graphmodal .mapbar{margin:8px 10px}
-.graphmodal .mapwrap{flex:1;min-height:0;border-radius:0;border:0}
+.scrim{display:none}
+.drawer-close{display:none}
+@media (max-width:1100px){
+  .scrim.show{display:block;position:fixed;inset:0;z-index:79;background:rgba(0,0,0,.45)}
+  .drawer-close.show{display:grid;place-items:center;position:fixed;top:10px;right:10px;z-index:82;width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--fg);font-size:1rem;box-shadow:var(--shadow)}
+}
+/* horizontal mind-map nodes and edges */
+.kgraph .node{cursor:pointer}
+.kgraph .node .disc{fill:var(--bg2);stroke:var(--line2);stroke-width:1.2}
+.kgraph .node.domain .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 16%,var(--bg2));stroke:var(--dc,var(--accent))}
+.kgraph .node.domain.open .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 32%,var(--bg2));stroke:var(--dc,var(--accent));stroke-width:2}
+.kgraph .node.topic .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 9%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 48%,var(--line2))}
+.kgraph .node.center .disc{fill:var(--panel);stroke:var(--accent2);stroke-width:2}
+.kgraph .node.hl .disc,.kgraph .node:hover .disc{stroke:var(--accent);stroke-width:2}
+.kgraph .node .glyph{fill:var(--fg2);font-family:var(--mono);font-weight:700;pointer-events:none}
+.kgraph .node .lbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700;pointer-events:none;paint-order:normal;stroke:none}
+.kgraph .node .lbl.sub{fill:var(--fg3);font-family:var(--mono);font-weight:500}
+.kgraph .edge{fill:none;stroke:var(--line2);stroke-width:1.4;opacity:.7}
+.kgraph .edge.open{stroke:var(--accent);opacity:.9}
+.kgraph .dimmed .node:not(.hl):not(.center){opacity:.35}
+.kgraph .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
 /* prompt ladder */
 .ladderflow{display:flex;flex-direction:column;margin:12px 0}
 .rung-card{display:grid;grid-template-columns:44px 1fr;gap:12px;border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);padding:12px 14px}
@@ -738,12 +759,16 @@ details.comp .body{padding-top:6px}
 .symptom:hover{border-color:var(--bad);color:var(--fg)}
 .symptom.more{border-left-color:var(--accent);color:var(--accent);text-decoration:none}
 @media (max-width:1100px){
-  .shell{grid-template-columns:1fr}
-  .rail{position:fixed;top:0;left:0;bottom:0;height:auto;width:min(86vw,340px);padding-top:70px;z-index:80;transform:translateX(-101%);transition:transform .18s;border-right:1px solid var(--line2);box-shadow:10px 0 0 rgba(0,0,0,.18)}
+  .shell{display:block}
+  .split{display:none}
+  .mapstage{position:sticky;top:74px;height:calc(100vh - 74px)}
+  .rail{position:fixed;top:0;left:0;bottom:0;width:min(86vw,340px);height:auto;padding:70px 12px 24px;z-index:80;transform:translateX(-101%);transition:transform .18s;border-right:1px solid var(--line2);box-shadow:10px 0 0 rgba(0,0,0,.18);display:block}
   .rail.open{transform:none}
   .railbtn{display:inline-flex}
-  .pane{padding:14px 14px 72px}
+  .pane{position:fixed;top:0;right:0;bottom:0;width:min(92vw,520px);height:auto;padding:70px 14px 40px;z-index:81;background:var(--panel);border-left:1px solid var(--line2);transform:translateX(101%);transition:transform .18s;overflow:auto}
+  .pane.open{transform:none}
 }
+@media (max-width:700px){ .mapbar .mapcrumbs{display:none} }
 </style>
 </head>
 <body>
@@ -753,7 +778,7 @@ details.comp .body{padding-top:6px}
   <nav class="primary" id="primaryNav" aria-label="Primary"></nav>
   <span class="spacer"></span>
   <div class="progress" id="progress" title="Topics you have opened"><span id="progressText">0 / 0</span><span class="bar"><i id="progressBar"></i></span></div>
-  <button class="searchbtn" id="searchBtn" aria-label="Search">🔍 <span class="lbl">Search concepts, smells, prompts…</span> <kbd>Ctrl K</kbd></button>
+  <button class="searchbtn" id="searchBtn" aria-label="Search">🔍 <span class="lbl">Search…</span> <kbd>Ctrl K</kbd></button>
   <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts (?)">?</button>
   <button class="iconbtn" id="themeBtn" title="Toggle light/dark theme">◐</button>
 </header>
@@ -775,7 +800,7 @@ details.comp .body{padding-top:6px}
       <tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>Switch main view (Idea Lab, Map, Explore, Diagnose, Build, AI, Playtest, Prompts, Checklists)</td></tr>
       <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Previous / next topic while reading</td></tr>
       <tr><td><kbd>E</kbd></td><td>Expand or collapse all sections of a topic</td></tr>
-      <tr><td><kbd>M</kbd></td><td>Back to the map</td></tr>
+      <tr><td><kbd>M</kbd></td><td>Fit the mind map</td></tr>
       <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
       <tr><td><kbd>?</kbd></td><td>This help</td></tr>
     </table>
@@ -3475,126 +3500,76 @@ TECH('ethics-and-responsibility',[
 ]);
 
 ﻿/* =====================================================================
-   ONE BRAIN MAP
-   A single radial mind map that expands and collapses in place:
-     centre  : the goal
-     ring 1  : the domains (always visible)
-     ring 2  : topics of the ONE expanded domain, fanned around it
-     ring 3  : for the selected topic: related topics, smells it diagnoses,
-               tools it points to - fanned around the topic. Related topics
-               draw a dashed line home to their own domain.
-   Coordinates are centred on (0,0); the caller fits the viewBox.
-   Labels are always outside nodes, wrapped, anchored by angle.
+   HORIZONTAL COLLAPSIBLE MIND MAP
+   The radial map was replaced because a circle cannot hold names as the
+   content grows. This is a tidy horizontal tree (the structure XMind and
+   d3.tree use): the root sits on the left, domains on the next layer, and
+   a domain's topics on the third layer only while it is open. Nodes are
+   labelled cards, always readable, and the layout grows by stacking and
+   panning, not by shrinking. Coordinates are centred on (0,0) per row and
+   the caller fits the viewBox.
    ===================================================================== */
 window.PlayableGraph = (function(){
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const pol = (r, a) => [r*Math.cos(a), r*Math.sin(a)];
-  // Geometry is adaptive: ring radii grow with content so spacing never
-  // collapses. The base values keep the current look; a ring only expands when
-  // a fan would otherwise cram its nodes closer than the minimum gap.
-  const R1 = 230, R2 = 440, R3 = 720; // base radii (kept for external reference)
-  const DOMAIN_ARC = 120;   // px of ring-1 arc reserved per domain
-  const T_GAP = 70, T_MAXSPAN = 2.6, T_BASE = 560;  // topic ring
-  const L_GAP = 38, L_MAXSPAN = 2.2, L_BASE = 720;  // leaf ring
-  const ringR = (n, base, gap, maxSpan) => n < 2 ? base : Math.max(base, (n - 1) * gap / maxSpan);
-  const fanA = (center, n, r, gap, maxSpan, minStep) => {
-    if (n <= 1) return [center];
-    const span = Math.min(maxSpan, Math.max((n - 1) * minStep, (n - 1) * gap / r));
-    return Array.from({ length: n }, (_, i) => center + (i - (n - 1) / 2) * (span / (n - 1)));
-  };
+  const SIZE = { root:{ w:280, h:74 }, domain:{ w:262, h:46 }, topic:{ w:300, h:34 } };
+  const COL = 340, VGAP = 11, PAD = 40;
 
-  function lines(label, max=14){
-    if(label.length <= max) return [label];
-    const words = label.split(' '); const out = []; let cur = '';
-    for(const w of words){ if((cur+' '+w).trim().length <= max || !cur) cur = (cur+' '+w).trim(); else { out.push(cur); cur = w; } }
-    if(cur) out.push(cur);
-    if(out.length > 2){ out[1] = out.slice(1).join(' '); out.length = 2; if(out[1].length > max+4) out[1] = out[1].slice(0, max+2) + '…'; }
-    return out;
-  }
-  function outsideLabel(x, y, a, gap, text, sub, cls, size, max){
-    const c = Math.cos(a), s = Math.sin(a);
-    const anchor = c > .3 ? 'start' : c < -.3 ? 'end' : 'middle';
-    const lx = x + c*gap, ly = y + s*gap;
-    const ls = lines(text, max || 14);
-    const lh = size*1.15, total = ls.length*lh + (sub ? size*.85 : 0);
-    let startY = ly - total/2 + size*.85;
-    if(anchor === 'middle') startY = s > 0 ? ly + size*.9 : ly - total + size*.85;
-    let html = ls.map((l,i) => `<text class="${cls}" x="${lx}" y="${startY + i*lh}" text-anchor="${anchor}" font-size="${size}">${esc(l)}</text>`).join('');
-    if(sub) html += `<text class="${cls} sub" x="${lx}" y="${startY + ls.length*lh - size*.15}" text-anchor="${anchor}" font-size="${size*.78}">${esc(sub)}</text>`;
-    return { html, ext:[lx + (anchor==='start'? size*.55*Math.max(...ls.map(l=>l.length)) : anchor==='end' ? -size*.55*Math.max(...ls.map(l=>l.length)) : 0), ly] };
-  }
-  const curve = (x1,y1,x2,y2,bend=.18) => { const mx=(x1+x2)/2*(1-bend), my=(y1+y2)/2*(1-bend); return `M${x1},${y1} Q${mx},${my} ${x2},${y2}`; };
+  const cut = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
+  const maxFor = kind => kind === 'root' ? 30 : kind === 'domain' ? 24 : 36;
 
-  /* state = { dom, topic, smell } ; seen = Set of read topic ids */
   function build(state, seen){
-    const D = Object.fromEntries(DOMAINS.map(d => [d.id, d]));
-    const pts = []; // for the whole-map bbox
-    const fpts = []; // for the focus bbox: centre + open domain + its fan + selected leaves
-    let edges = '', nodes = '', guides = '';
-    const mark = (x,y,m=60) => { pts.push([x-m,y-m],[x+m,y+m]); };
-    const fmark = (x,y,m=40) => { fpts.push([x-m,y-m],[x+m,y+m]); };
-    fmark(0,0,95);
-    const dAngle = {}; DOMAINS.forEach((d,i) => dAngle[d.id] = -Math.PI/2 + i*2*Math.PI/DOMAINS.length);
-    const r1 = Math.max(R1, DOMAINS.length * DOMAIN_ARC / (2 * Math.PI));
-    const dPos = {}; DOMAINS.forEach(d => dPos[d.id] = pol(r1, dAngle[d.id]));
-    // guides
-    guides += `<circle class="guide" data-key="g:ring1" cx="0" cy="0" r="${r1}"/>`;
-    // domain-domain links (faint, highlight on hover)
-    DOMAINS.forEach(d => d.links.forEach(([to, why]) => { const [x1,y1]=dPos[d.id], [x2,y2]=dPos[to]; edges += `<path class="edge dd" data-key="e:dd:${d.id}:${to}" data-a="d:${d.id}" data-b="d:${to}" d="${curve(x1,y1,x2,y2,.35)}"><title>${esc(why)}</title></path>`; }));
-    // centre
-    nodes += `<g class="node center" data-kind="center" data-key="c"><circle class="halo" r="86"/><circle class="core" r="72"/>${['MAKE SOMETHING','PEOPLE WANT','TO PLAY'].map((l,i) => `<text class="ctitle" y="${-14+i*17}" text-anchor="middle" font-size="12.5">${l}</text>`).join('')}<text class="csub" y="44" text-anchor="middle" font-size="8.5">${state.dom ? 'click to collapse' : 'start here'}</text></g>`;
-    mark(0,0,90);
-    // expanded domain
-    const ex = state.dom && D[state.dom] ? D[state.dom] : null;
-    const tPos = {};
-    let topicR = 0;
-    if(ex){
-      const a = dAngle[ex.id]; const n = ex.topics.length;
-      const r2 = Math.max(T_BASE, r1 + 210, ringR(n, T_BASE, T_GAP, T_MAXSPAN)); topicR = r2;
-      const angles = fanA(a, n, r2, T_GAP, T_MAXSPAN, 0.18);
-      if(n > 1) guides += `<path class="guide arc" data-key="g:arc:${ex.id}" d="${arcPath(r2, angles[0] - .08, angles[n-1] + .08)}"/>`;
-      angles.forEach((ta, i) => { const t = ex.topics[i]; tPos[t] = [pol(r2, ta), ta]; });
-      const [dx,dy] = dPos[ex.id];
-      ex.topics.forEach(t => { const [[x,y]] = tPos[t]; edges += `<path class="edge dt" data-key="e:dt:${t}" data-a="d:${ex.id}" data-b="t:${t}" d="${curve(dx,dy,x,y,.05)}"/>`; });
-      // cross links from topics to other domains (faint, shown on hover)
-      ex.topics.forEach(t => (TOPICS[t].rel||[]).forEach(([rid, why]) => { const rt = TOPICS[rid]; if(!rt || rt.d === ex.id) return; const [x1,y1] = tPos[t][0], [x2,y2] = dPos[rt.d]; edges += `<path class="edge cross" data-key="e:x:${t}:${rid}" data-a="t:${t}" data-b="d:${rt.d}" d="${curve(x1,y1,x2,y2,.4)}"><title>${esc(rt.t)}: ${esc(why)}</title></path>`; }));
-    }
-    // selected topic leaves
-    const sel = state.topic && TOPICS[state.topic] && ex && TOPICS[state.topic].d === ex.id ? TOPICS[state.topic] : null;
-    const leaves = [];
-    if(sel){
-      const [[sx,sy], sa] = tPos[sel.id];
-      (sel.rel||[]).forEach(([rid, why]) => { if(TOPICS[rid]) leaves.push({kind:'topic', id:rid, why, t:TOPICS[rid]}); else leaves.push({kind:'view', id:rid, why}); });
-      SMELLS.filter(s => s.causes.some(c => c.top === sel.id)).slice(0,4).forEach(s => leaves.push({kind:'smell', id:s.id, why:s.sym, s}));
-      const k = leaves.length;
-      const r3 = Math.max(L_BASE, topicR + 240, ringR(k, L_BASE, L_GAP, L_MAXSPAN));
-      fanA(sa, k, r3, L_GAP, L_MAXSPAN, 0.14).forEach((la, i) => { const [x,y] = pol(r3, la); leaves[i].x = x; leaves[i].y = y; leaves[i].a = la;
-        edges += `<path class="edge tl ${leaves[i].kind}" data-key="e:tl:${sel.id}:${leaves[i].id}" data-a="t:${sel.id}" data-b="l:${i}" d="${curve(sx,sy,x,y,.05)}"><title>${esc(leaves[i].why)}</title></path>`;
-        if(leaves[i].kind==='topic'){ const [hx,hy] = dPos[leaves[i].t.d]; edges += `<path class="edge home" data-key="e:h:${sel.id}:${leaves[i].id}" data-a="l:${i}" data-b="d:${leaves[i].t.d}" d="${curve(x,y,hx,hy,.45)}"><title>${esc(leaves[i].t.t)} lives in ${esc(D[leaves[i].t.d].t)}</title></path>`; } });
-    }
-    // domain nodes
-    DOMAINS.forEach((d,i) => { const [x,y] = dPos[d.id]; const a = dAngle[d.id]; const n = d.topics.length, sn = d.topics.filter(t => seen.has(t)).length; const r = 30; const circ = 2*Math.PI*(r+6); const open = ex && ex.id===d.id;
-      const lbl = outsideLabel(x, y, a, r+14, d.t, `${sn}/${n} read`, 'lbl', 13, 18);
-      nodes += `<g class="node domain ${open?'open':''}" data-kind="domain" data-id="${d.id}" data-key="d:${d.id}" style="--dc:${d.color}"><circle class="hit" cx="${x}" cy="${y}" r="${r+14}"/><circle class="ring" cx="${x}" cy="${y}" r="${r+6}" stroke-dasharray="${circ*sn/n} ${circ}" transform="rotate(-90 ${x} ${y})"/><circle class="disc" cx="${x}" cy="${y}" r="${r}"/><text class="glyph" x="${x}" y="${y+5}" text-anchor="middle">${open?'−':String(i+1).padStart(2,'0')}</text>${lbl.html}</g>`;
-      mark(x,y,r+20); pts.push(lbl.ext); if(open){ fmark(x,y,r+20); fpts.push(lbl.ext); } });
-    // topic nodes
-    if(ex) ex.topics.forEach((t, ti) => { const [[x,y]] = tPos[t]; const isSel = sel && sel.id===t; const r = isSel ? 26 : 20;
-      nodes += `<g class="node topic ${seen.has(t)?'seen':''} ${isSel?'active':''}" data-kind="topic" data-id="${t}" data-key="t:${t}" style="--dc:${ex.color}"><circle class="hit" cx="${x}" cy="${y}" r="${r+14}"/><circle class="disc" cx="${x}" cy="${y}" r="${r}"/>${seen.has(t)?`<circle class="dot" cx="${x}" cy="${y}" r="4.5"/>`:''}<text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="${isSel?12:11}">${ti+1}</text></g>`;
-      mark(x,y,r+16); fmark(x,y,r+16); });
-    // leaf nodes
-    leaves.forEach((l,i) => { const {x,y} = l;
-      if(l.kind==='smell'){ nodes += `<g class="node smell" data-kind="smell" data-id="${l.id}" data-key="l:${i}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><rect class="disc" x="${x-13}" y="${y-13}" width="26" height="26" transform="rotate(45 ${x} ${y})"/><text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">!</text></g>`; }
-      else if(l.kind==='view'){ nodes += `<g class="node view" data-kind="view" data-id="${l.id}" data-key="l:${i}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><rect class="disc" x="${x-13}" y="${y-13}" width="26" height="26" rx="3"/><text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">▸</text></g>`; }
-      else { const od = D[l.t.d]; nodes += `<g class="node topic leaf ${seen.has(l.id)?'seen':''}" data-kind="leaf" data-id="${l.id}" data-key="l:${i}" style="--dc:${od.color}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><circle class="disc" cx="${x}" cy="${y}" r="15"/>${seen.has(l.id)?`<circle class="dot" cx="${x}" cy="${y}" r="4"/>`:''}</g>`; }
-      mark(x,y,30); fmark(x,y,30); });
-    // bboxes
-    const box = P => { const xs = P.map(p=>p[0]), ys = P.map(p=>p[1]); return { x: Math.min(...xs)-30, y: Math.min(...ys)-30, w: Math.max(...xs)-Math.min(...xs)+60, h: Math.max(...ys)-Math.min(...ys)+60 }; };
-    // three layers so in-place patching can append new elements without breaking z-order
-    const inner = `<g class="lay guides">${guides}</g><g class="lay edges">${edges}</g><g class="lay nodes">${nodes}</g>`;
-    return { inner, bbox: box(pts), focus: ex ? box(fpts) : null, leaves, tPos, dPos };
+    const root = { kind:'center', id:'root', label:'Make something people want to play', w:SIZE.root.w, h:SIZE.root.h, children:[] };
+    DOMAINS.forEach(d => {
+      const sn = d.topics.filter(t => seen.has(t)).length;
+      const node = { kind:'domain', id:d.id, label:d.t, sub:`${sn}/${d.topics.length} read`, color:d.color, open:state.dom === d.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
+      if(state.dom === d.id) d.topics.forEach(t => node.children.push({ kind:'topic', id:t, label:TOPICS[t].t, color:d.color, seen:seen.has(t), w:SIZE.topic.w, h:SIZE.topic.h, children:[] }));
+      root.children.push(node);
+    });
+
+    // tidy vertical layout: leaves take the next slot, parents centre on their children
+    let cursor = 0;
+    const assign = (n, depth) => {
+      n.x = depth * COL;
+      if(!n.children.length){ n.y = cursor; cursor += n.h + VGAP; }
+      else {
+        const ys = []; n.children.forEach(c => { assign(c, depth + 1); ys.push(c.y); });
+        n.y = (ys[0] + ys[ys.length - 1]) / 2;
+        const span = ys[ys.length - 1] - ys[0];
+        if(span < n.h) cursor += (n.h - span) + VGAP;
+      }
+    };
+    assign(root, 0);
+
+    const nodes = [], edges = [], xs = [], ys = [];
+    const walk = (n, parent) => {
+      nodes.push(n); xs.push(n.x, n.x + n.w); ys.push(n.y - n.h / 2, n.y + n.h / 2);
+      if(parent){
+        const sx = parent.x + parent.w, sy = parent.y, ex = n.x, ey = n.y, mx = sx + (ex - sx) / 2;
+        edges.push(`<path class="edge ${parent.open ? 'open' : ''}" data-key="e:${parent.id}>${n.id}" d="M${sx},${sy} H${mx} V${ey} H${ex}"/>`);
+      }
+      n.children.forEach(c => walk(c, n));
+    };
+    walk(root, null);
+
+    const mark = (n) => {
+      const x = n.x, y = n.y - n.h / 2, dc = n.color ? ` style="--dc:${n.color}"` : '';
+      const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : (n.seen ? 'topic seen' : 'topic');
+      const fs = n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : 13;
+      const tx = x + 14, ty = n.sub ? n.y - 2 : n.y + 4;
+      let g = `<g class="node ${cls}" data-key="${n.kind === 'center' ? 'c' : (n.kind === 'domain' ? 'd:' : 't:') + n.id}" data-kind="${n.kind}" data-id="${n.id}"${dc}>`;
+      g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
+      if(n.kind === 'domain') g += `<text class="glyph" x="${x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
+      g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="start" font-size="${fs}">${esc(cut(n.label, maxFor(n.kind)))}</text>`;
+      if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="start" font-size="9.5">${esc(n.sub)}</text>`;
+      g += `</g>`;
+      return g;
+    };
+
+    const inner = `<g class="lay guides"></g><g class="lay edges">${edges.join('')}</g><g class="lay nodes">${nodes.map(mark).join('')}</g>`;
+    const bbox = { x: Math.min(...xs) - PAD, y: Math.min(...ys) - PAD, w: Math.max(...xs) - Math.min(...xs) + PAD * 2, h: Math.max(...ys) - Math.min(...ys) + PAD * 2 };
+    return { inner, bbox, focus:null, nodes };
   }
-  function arcPath(r, a0, a1){ const [x0,y0]=pol(r,a0), [x1,y1]=pol(r,a1); return `M${x0},${y0} A${r},${r} 0 ${a1-a0>Math.PI?1:0} 1 ${x1},${y1}`; }
-  return { build, R1, R2, R3 };
+  return { build };
 })();
 
 /* =====================================================================
@@ -3662,15 +3637,59 @@ function route(){
 window.addEventListener('hashchange', route);
 $('#primaryNav').innerHTML = VIEWS.map(([id, t]) => `<button data-view="${id}" onclick="location.hash='#/${id}'">${t}</button>`).join('');
 $('#brandBtn').onclick = () => go('#/map');
-$('#railToggle').onclick = () => { const r = $('#rail'); if(r) r.classList.toggle('open'); };
+$('#railToggle').onclick = () => { const r = $('#rail'); if(r){ r.classList.toggle('open'); if(window.__syncScrim) window.__syncScrim(); } };
 
-/* ---------- persistent shell: always-visible knowledge rail + content pane ---------- */
+/* ---------- persistent shell: index (left) + mind map (centre) + content (right) ---------- */
 let SHELL = false;
-function ensureShell(){ if(SHELL) return; app.innerHTML = `<div class="shell"><aside class="rail" id="rail"></aside><section class="pane" id="pane"></section></div>`; SHELL = true; }
+function ensureShell(){
+  if(SHELL) return;
+  app.innerHTML = `<div class="shell" id="shell">
+    <aside class="rail" id="rail"></aside>
+    <div class="split" id="splitL" title="Drag to resize"></div>
+    <section class="mapstage" id="mapstage">
+      <div class="mapbar"><div class="mapcrumbs"></div><div class="row" style="gap:4px">
+        <button class="btn sm ghost" id="mapZoomOut" title="Zoom out">－</button>
+        <button class="btn sm ghost" id="mapZoomIn" title="Zoom in">＋</button>
+        <button class="btn sm ghost" id="mapFit" title="Fit the map">⤢ fit</button>
+        <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
+        <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
+      </div></div>
+      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="img" aria-label="Knowledge mind map"></svg><div class="maptip" id="maptip" hidden></div></div>
+    </section>
+    <div class="split" id="splitR" title="Drag to resize"></div>
+    <section class="pane" id="pane"></section>
+  </div><div class="scrim" id="scrim"></div><button class="drawer-close" id="drawerClose" aria-label="Close panel">✕</button>`;
+  SHELL = true; wireShell();
+}
+function wireShell(){
+  const shell = $('#shell');
+  if(store.get('railW')) shell.style.setProperty('--railW', store.get('railW') + 'px');
+  if(store.get('paneW')) shell.style.setProperty('--paneW', store.get('paneW') + 'px');
+  if(store.get('hideLeft')) shell.classList.add('hide-left');
+  if(store.get('hideRight')) shell.classList.add('hide-right');
+  const dragSplit = (handle, which) => handle.addEventListener('pointerdown', e => {
+    e.preventDefault(); const startX = e.clientX;
+    const startRail = parseInt(getComputedStyle(shell).getPropertyValue('--railW')) || 300;
+    const startPane = parseInt(getComputedStyle(shell).getPropertyValue('--paneW')) || 460;
+    const move = ev => { if(which === 'L'){ const w = Math.max(200, Math.min(560, startRail + (ev.clientX - startX))); shell.style.setProperty('--railW', w + 'px'); store.set('railW', w); } else { const w = Math.max(300, Math.min(820, startPane - (ev.clientX - startX))); shell.style.setProperty('--paneW', w + 'px'); store.set('paneW', w); } };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  });
+  dragSplit($('#splitL'), 'L'); dragSplit($('#splitR'), 'R');
+  const scrim = $('#scrim');
+  const syncScrim = () => { const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && window.innerWidth <= 1100; scrim.classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); };
+  window.__syncScrim = syncScrim;
+  const closeDrawers = () => { $('#rail').classList.remove('open'); $('#pane').classList.remove('open'); syncScrim(); };
+  scrim.onclick = closeDrawers;
+  $('#drawerClose').onclick = closeDrawers;
+  $('#collapseLeft').onclick = () => { if(window.innerWidth <= 1100){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
+  $('#collapseRight').onclick = () => { if(window.innerWidth <= 1100){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
+  renderTree('home');
+}
 function railHTML(activeDom, activeTopic){
   const openSet = new Set(store.get('sideOpen', [])); if(activeDom) openSet.add(activeDom);
   return `<div class="railhead">
-      <button class="railgraph" id="railGraph">⌗ Graph overview</button>
+      <button class="railgraph" id="railFit" onclick="__fitMap()">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
@@ -3689,21 +3708,11 @@ function railActive(){
 function updateRail(){
   ensureShell(); const r = $('#rail'); if(!r) return; const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
-  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; if(window.innerWidth <= 1100) r.classList.remove('open'); }));
-  const g = $('#railGraph'); if(g) g.onclick = () => openGraph();
+  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; if(window.innerWidth <= 1100){ r.classList.remove('open'); const p = $('#pane'); if(p) p.classList.add('open'); if(window.__syncScrim) window.__syncScrim(); } }));
   const s = $('#railSearch');
   if(s) s.addEventListener('input', () => { const q = s.value.trim().toLowerCase(); r.querySelectorAll('.raildom').forEach(de => { let any = false; de.querySelectorAll('.railtopic').forEach(tb => { const hit = !q || tb.textContent.toLowerCase().includes(q); tb.style.display = hit ? '' : 'none'; if(hit) any = true; }); const dn = de.querySelector('.rt').textContent.toLowerCase(); de.style.display = (!q || any || dn.includes(q)) ? '' : 'none'; if(q && any) de.classList.add('open'); }); });
 }
 function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
-function openGraph(){
-  const g = PlayableGraph.build(mapState, seen);
-  const m = document.createElement('div');
-  m.className = 'modal-bg show graph-modal'; m.id = 'graphModal';
-  m.innerHTML = `<div class="graphmodal"><div class="mapbar">${mapCrumbs()}<div class="row" style="gap:6px"><button class="btn sm ghost" id="mapFit">⤢ fit</button><button class="btn sm ghost" id="mapCollapse">⊖ collapse</button><button class="btn sm ghost" onclick="closeModals()">✕ close</button></div></div>
-    <div class="mapwrap one" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="-700 -600 1400 1200" role="img" aria-label="Brain map of the guide">${g.inner}</svg><div class="maptip" id="maptip" hidden></div></div></div>`;
-  m.addEventListener('click', e => { if(e.target === m) closeModals(); });
-  document.body.appendChild(m); m._cleanup = initMap(g, 'home');
-}
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button onclick="location.hash='${it[1]}'">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
@@ -3845,8 +3854,7 @@ function topicBody(id){
   const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header onclick="__toggleSec(this.parentElement)"><span class="letter">T</span><h3>Techniques to compare</h3><span class="car">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
   const rel = (t.rel||[]).map(([rid, why]) => { const rt = TOPICS[rid]; const v = VIEW_LINKS[rid]; const href = rt ? `#/topic/${rid}` : (v ? v[0] : '#/explore'); const label = rt ? rt.t : (v ? v[1] : rid); const dc = rt ? DOM[rt.d].color : 'var(--accent)'; return `<div class="rel" onclick="location.hash='${href}'" style="border-left:3px solid ${dc}"><b>${esc(label)}</b><div class="why">${esc(why)}</div></div>`; }).join('');
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
-  const main = `${crumbs([['Map','#/map'],['Explore','#/explore'],[d.t,'#/explore/'+d.id],[t.t]])}
-    <div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
+  const main = `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       <div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div></div>
     ${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
     ${contextsPanel(t)}
@@ -4518,7 +4526,7 @@ function renderSearch(){ const q = $('#searchInput').value; searchResults = sear
   $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); }); }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
 function openSearch(){ $('#searchModal').classList.add('show'); const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); setTimeout(() => inp.focus(), 10); }
-function closeModals(){ $$('.modal-bg').forEach(m => { if(m.id === 'graphModal'){ if(m._cleanup) m._cleanup(); m.remove(); } else m.classList.remove('show'); }); }
+function closeModals(){ $$('.modal-bg').forEach(m => m.classList.remove('show')); }
 $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
@@ -4536,7 +4544,7 @@ document.addEventListener('keydown', e => {
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ $('#helpModal').classList.add('show'); return; }
   if(/^[1-9]$/.test(e.key)){ go('#/'+VIEWS[+e.key-1][0]); return; }
-  if(e.key.toLowerCase()==='m'){ openGraph(); return; }
+  if(e.key.toLowerCase()==='m'){ __fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
   const m = location.hash.match(/^#\/map\/t\/([\w-]+)/);
   if(m){ const t = TOPICS[m[1]]; if(!t) return; const list = DOM[t.d].topics, i = list.indexOf(m[1]);
@@ -4547,17 +4555,11 @@ document.addEventListener('keydown', e => {
 
 
 /* =====================================================================
-   ONE BRAIN MAP + READING DRAWER + RETURN DOCK
-   The map is the guide. Expand a domain, select a topic, and read it in
-   the drawer beside the map. State (open branch, selected node, pan and
-   zoom) persists; every other view shows a dock that returns you here.
-   The SVG is patched in place on every change: persistent elements are
-   updated, new ones fade in, removed ones disappear. No full re-render,
-   so the map never flashes.
+   PERSISTENT MIND MAP (centre) + INDEX (left) + CONTENT (right)
+   The map is always on screen. It is a horizontal collapsible tidy tree,
+   not a circle, so it grows by stacking and panning rather than shrinking.
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
    ===================================================================== */
-/* The four doors into the guide. Shared by the start panel in the drawer and
-   the overlay the centre node opens, so the copy lives in one place. */
 const START_PATHS = [
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
   ['#/build/dissect','I have an idea and want to know if it is good','Cross-reference it against games that already won the audience you want.','var(--accent2)'],
@@ -4573,12 +4575,11 @@ const SYMPTOMS = [
   ['Combat feels floaty','floaty-combat'],['Players say it is unfair','unfair'],['Too many features, not better','features-not-better'],['AI keeps giving generic ideas','ai-ideas-none-right']
 ];
 function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) => `<button class="symptom" onclick="location.hash='#/smell/${id}'">${esc(s)}</button>`).join('')}<a class="symptom more" href="#/diagnose/smells">All ${SMELLS.length} smells →</a></div>`; }
-function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); $('#startModal').classList.add('show'); }
+function openStart(){ closeModals(); const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); $('#startModal').classList.add('show'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
 function saveMap(){ store.set('mapState', mapState); }
-
 
 function mapCrumbs(){
   const parts = [`<button onclick="location.hash='#/map/home'">All domains</button>`];
@@ -4590,7 +4591,7 @@ function mapCrumbs(){
 function startPanel(){
   return `<span class="overline">Field manual · ${TOPIC_LIST.length} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
     <h1 style="margin:6px 0 8px">Make something people want to play.</h1>
-    <p class="dim">The knowledge rail on the left is always here. Open a domain, pick a topic, and it reads in this pane. Use <b>Graph overview</b> when you want the radial map as a picture.</p>
+    <p class="dim">The mind map on the left is always here. Click a domain to expand it in place, click a topic to read it in this panel. The index and the map do the same work, so use whichever suits you.</p>
     <div class="paths">${startPathsHTML()}</div>
     <div class="section-head" style="margin-top:22px"><h2>What are you trying to solve?</h2><span class="muted">symptom to likely cause to experiment</span></div>
     ${symptomsHTML()}
@@ -4617,7 +4618,6 @@ function drawerHTML(){
 /* ---- camera ---- */
 function fitBox(b){ const A = 1.18; let {x,y,w,h} = b; if(w/h < A){ const nw = h*A; x -= (nw-w)/2; w = nw; } else { const nh = w/A; y -= (nh-h)/2; h = nh; } return {x,y,w,h}; }
 function applyVB(svg, vb){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); }
-// rAF pauses in hidden tabs, so fall back to a timer there; the result is identical either way.
 const nextFrame = fn => document.hidden ? { kind:'t', id: setTimeout(() => fn(performance.now()), 16) } : { kind:'r', id: requestAnimationFrame(fn) };
 const cancelFrame = h => { if(!h) return; if(h.kind === 't') clearTimeout(h.id); else cancelAnimationFrame(h.id); };
 function cameraTarget(g, cam, kind){
@@ -4628,9 +4628,8 @@ function cameraTarget(g, cam, kind){
   return { x: cx - w/2, y: cy - h/2, w, h };
 }
 
-/* ---- the live map: one context, patched in place ---- */
 let MAP = null; // { wrap, svg, tip, g, vb, anim, hover }
-function mapAnimateTo(to, ms=520){
+function mapAnimateTo(to, ms=480){
   const M = MAP; if(!M) return; if(M.anim) cancelFrame(M.anim.h);
   const from = Object.assign({}, M.vb); const t0 = performance.now(); const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
   const step = now => { const k = Math.min(1, (now - t0)/ms), e = ease(k); M.vb = { x: from.x + (to.x-from.x)*e, y: from.y + (to.y-from.y)*e, w: from.w + (to.w-from.w)*e, h: from.h + (to.h-from.h)*e }; applyVB(M.svg, M.vb); if(k < 1) M.anim.h = nextFrame(step); else { M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); } };
@@ -4639,46 +4638,39 @@ function mapAnimateTo(to, ms=520){
 function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim = null; } }
 function mapPersistCamera(){ if(!MAP) return; mapState.vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h }; store.set('mapState', mapState); }
 
-// Patch one layer: keyed reconcile. Existing elements are updated in place (no
 function mapTipHTML(n){
   const kind = n.dataset.kind, id = n.dataset.id;
-  if(kind==='domain'){ const d = DOM[id]; return `<b style="color:${d.color}">${esc(d.t)}</b><div>${esc(d.short)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':'click to expand'}</div>`; }
-  if(kind==='topic' || kind==='leaf'){ const t = TOPICS[id]; const leaf = kind==='leaf' ? MAP.g.leaves[+n.dataset.key.slice(2)] : null; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${leaf ? `<div class="why"><b>Why it connects:</b> ${esc(leaf.why)}</div>` : ''}<div class="muted">${kind==='leaf' ? 'click to travel there' : n.classList.contains('active') ? 'click to collapse' : 'click to read'}</div>`; }
-  if(kind==='smell'){ const s = SMELLS.find(x => x.id===id); return `<b style="color:var(--bad)">Design smell</b><div>${esc(s.t)}</div><div class="muted">${esc(s.sym)}</div>`; }
-  if(kind==='view'){ const v = VIEW_LINKS[id]; return `<b style="color:var(--accent2)">Tool</b><div>${esc(v ? v[1] : id)}</div>`; }
-  if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom ? 'click to collapse everything' : 'click for the starting paths'}</div>`;
+  if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom || mapState.topic || mapState.smell ? 'click to reset the branch' : 'click for the starting paths'}</div>`;
+  if(kind==='domain'){ const d = DOM[id]; return `<b style="color:${d.color}">${esc(d.t)}</b><div>${esc(d.short)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':'click to expand and read'}</div>`; }
+  if(kind==='topic'){ const t = TOPICS[id]; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div><div class="muted">click to read in the panel</div>`; }
   return '';
 }
+function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
 function mapHover(n, e){
-  const M = MAP; if(M.hover === n) { if(n && e) mapMoveTip(e); return; }
+  const M = MAP; if(M.hover === n){ if(n && e) mapMoveTip(e); return; }
   if(M.hover){ M.svg.classList.remove('dimmed'); $$('.hl', M.svg).forEach(x => x.classList.remove('hl')); M.tip.hidden = true; }
   M.hover = n; if(!n) return;
-  const key = n.dataset.key;
+  const id = n.dataset.id;
   M.svg.classList.add('dimmed'); n.classList.add('hl');
-  $$('.edge', M.svg).forEach(ed => { const hit = ed.dataset.a === key || ed.dataset.b === key; ed.classList.toggle('hl', hit); if(hit){ const other = ed.dataset.a === key ? ed.dataset.b : ed.dataset.a; const on = M.svg.querySelector(`.node[data-key="${other}"]`); if(on) on.classList.add('hl'); } });
+  $$('.edge', M.svg).forEach(ed => { const k = ed.dataset.key; const hit = k.endsWith('>' + id) || k.startsWith('e:' + id + '>'); ed.classList.toggle('hl', hit); });
   if(e && e.pointerType !== 'touch'){ M.tip.innerHTML = mapTipHTML(n); M.tip.hidden = false; mapMoveTip(e); }
 }
-function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
 function mapClick(n){
   const kind = n.dataset.kind, id = n.dataset.id;
   if(kind==='center'){ if(mapState.dom || mapState.topic || mapState.smell) return go('#/map/home'); return openStart(); }
   if(kind==='domain') return go(n.classList.contains('open') ? '#/map/home' : '#/map/d/'+id);
-  if(kind==='topic') return go(n.classList.contains('active') ? '#/map/d/'+mapState.dom : '#/map/t/'+id);
-  if(kind==='leaf') return go('#/map/t/'+id);
-  if(kind==='smell') return go('#/map/s/'+id);
-  if(kind==='view'){ const v = VIEW_LINKS[id]; if(v) go(v[0]); }
+  if(kind==='topic') return go('#/map/t/'+id);
 }
-function initMap(g, kind){
+
+function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); } }
+window.__fitMap = fitMap;
+function initMapStage(){
+  if(MAP && document.body.contains(MAP.svg)) return;
   const wrap = $('#mapwrap'), svg = $('#mapsvg'), tip = $('#maptip');
-  const stored = mapState.vb && mapState.vb.w ? { x:mapState.vb.x, y:mapState.vb.y, w:mapState.vb.w, h:mapState.vb.h } : null;
-  MAP = { wrap, svg, tip, g, vb: stored || fitBox(g.bbox), anim:null, hover:null };
-  applyVB(svg, MAP.vb);
-  const target = cameraTarget(g, stored, kind);
-  if(stored) mapAnimateTo(target); else { MAP.vb = target; applyVB(svg, target); mapPersistCamera(); }
-  // delegated events: one set of listeners for the life of the map
-  let drag = null, suppressClick = false, pinch = null; const touchPts = new Map();
+  MAP = { wrap, svg, tip, g:null, vb:null, anim:null, hover:null };
   const screenToVB = (cx, cy) => { const r = svg.getBoundingClientRect(); return [MAP.vb.x + (cx - r.left)/r.width*MAP.vb.w, MAP.vb.y + (cy - r.top)/r.height*MAP.vb.h]; };
-  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g.bbox); const nw = Math.min(Math.max(vb.w*f, 260), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(MAP.svg, MAP.vb); };
+  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); mapPersistCamera(); };
+  let drag = null, suppressClick = false, pinch = null; const touchPts = new Map();
   svg.addEventListener('pointerdown', e => {
     if(e.pointerType === 'touch'){ touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY }); mapStopAnim();
       if(touchPts.size === 1){ drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
@@ -4686,7 +4678,8 @@ function initMap(g, kind){
       return; }
     if(e.button !== 0) return; mapStopAnim(); drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false };
   });
-  const onMove = e => { if(!document.body.contains(svg)){ window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); return; }
+  const onMove = e => {
+    if(!document.body.contains(svg)) return;
     if(e.pointerType === 'touch'){
       if(touchPts.has(e.pointerId)) touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY });
       if(touchPts.size >= 2 && pinch){ const p = [...touchPts.values()]; const dist = Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y); if(dist > 0){ const mid = screenToVB((p[0].x+p[1].x)/2, (p[0].y+p[1].y)/2); zoomAbout(mid[0], mid[1], pinch.dist/dist); pinch = { dist }; suppressClick = true; } }
@@ -4697,15 +4690,37 @@ function initMap(g, kind){
   const onUp = e => { if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
     if(drag && drag.moved){ mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
-  svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); mapPersistCamera(); }, {passive:false});
+  const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; }; window.addEventListener('blur', clearTouches);
+  svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); }, {passive:false});
   svg.addEventListener('pointermove', e => { if(e.pointerType === 'touch') return; const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
   svg.addEventListener('pointerleave', () => mapHover(null));
   svg.addEventListener('click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
-  const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; };
-  window.addEventListener('blur', clearTouches);
-  $('#mapFit').onclick = () => { mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); };
-  $('#mapCollapse').onclick = () => go('#/map/home');
-  return () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); window.removeEventListener('blur', clearTouches); if(MAP && MAP.svg === svg) MAP = null; };
+  $('#mapFit').onclick = fitMap;
+  $('#mapZoomIn').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1/1.15);
+  $('#mapZoomOut').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1.15);
+}
+function treeFocus(g){
+  if(!g.nodes) return null;
+  const dom = g.nodes.find(n => n.kind==='domain' && n.id===mapState.dom);
+  if(!dom) return null;
+  const kids = dom.children || [];
+  const xs = [dom.x, dom.x + dom.w].concat(kids.map(c => [c.x, c.x + c.w]).flat());
+  const ys = [dom.y - dom.h/2, dom.y + dom.h/2].concat(kids.map(c => [c.y - c.h/2, c.y + c.h/2]).flat());
+  const top = Math.min(...ys) - 20, bot = Math.max(...ys) + 20;
+  return { x: -20, y: top, w: Math.max(...xs) + 60, h: bot - top };
+}
+function renderTree(kind){
+  if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
+  const g = PlayableGraph.build(mapState, seen);
+  g.focus = treeFocus(g);
+  MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
+  MAP.svg.innerHTML = g.inner;
+  const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
+  const stored = mapState.vb && mapState.vb.w ? mapState.vb : null;
+  if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
+  let target = cameraTarget(g, stored || MAP.vb, kind);
+  if(window.innerWidth <= 1100 && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
+  mapAnimateTo(target);
 }
 function renderMap(kind, id){
   if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
@@ -4714,7 +4729,8 @@ function renderMap(kind, id){
   else if(kind==='s' && SMELLS.some(s => s.id===id)){ mapState.smell = id; }
   saveMap();
   if(mapState.topic) markSeen(mapState.topic);
-  setView(`${mapCrumbs()}${drawerHTML()}`);
+  setView(drawerHTML());
+  renderTree(kind);
 }
 
 ﻿/* =====================================================================

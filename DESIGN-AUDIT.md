@@ -123,9 +123,9 @@ eight sections.
 - Distinguishes complexity from depth and content from design quality: dedicated
   topics, the rule audit, the content-or-mechanic tree.
 
-## The map as the spine, not a menu (superseded by the knowledge rail)
+## The map as the spine, not a menu (superseded by the three-pane mind map)
 
-**Historical.** This section describes the radial map that the persistent knowledge rail
+**Historical.** This section describes the radial map that the three-pane mind map
 replaced, including the camera, in-place patching and the two interaction bugs it fixed
 (pointer capture swallowing clicks, and a destructuring typo that produced `NaN` paths).
 The bug lessons still hold. The architecture that ships now is described under "The
@@ -310,20 +310,23 @@ exists (`assets/games/*.jpg`, a local folder so the page needs no network) and a
 typographic tile otherwise. The distant dashed edges of the brain map were raised from
 0.18 and 0.08 opacity to 0.34 and 0.16 so the connections are visible.
 
-## The second brain: persistent rail, Idea Lab, prompt ladder
+## The second brain: three panes, Idea Lab, prompt ladder
 
-The front door and the navigator were rebuilt. The old radial map plus a floating
-"back to map" dock is gone. A persistent knowledge rail now sits on the left on desktop
-(collapsible behind a toggle on phones): every domain and topic is named, counted and
-expandable, so names never depend on hover and the list scales by scroll rather than by
-shrinking nodes. The radial map survives as an on-demand Graph overview opened from the
-rail or with `M`, used for relationships rather than navigation. A `#/lab` Idea Lab
-treats an idea as a chain (signal, tension, opportunity, design question, design space,
-mechanisms, critique, converge, experiment, decide) with an evidence level on every
-fact-bearing artifact and a ten-lens convergence that returns confidence, not a score.
-`#/ai/ladder` adds the prompt ladder: twelve rungs, each with the human decision, the
-AI partner, a prompt and the failure to avoid. The home panel gains a "What are you
-trying to solve?" symptom router. See `DESIGN-SECOND-BRAIN.md`.
+The front door and the navigator were rebuilt twice. The radial map and its floating
+"back to map" dock are gone. The layout is now three persistent panes: a named, counted,
+collapsible **index** on the left; an always-visible **mind map** in the centre; and a
+**content** panel on the right. The map is a horizontal collapsible tidy tree (the goal,
+the fourteen domains, a domain's topics while it is open) with labelled cards, so names
+never depend on hover and the structure grows by stacking and panning rather than by
+shrinking a circle. Panels are resized by dragging the dividers and collapsed from the
+toolbar; on phones the index and content are slide-over drawers with a tap-away scrim.
+The centre button opens the starting paths at the overview and collapses an open branch.
+A `#/lab` Idea Lab treats an idea as a chain (signal, tension, opportunity, design
+question, design space, mechanisms, critique, converge, experiment, decide) with an
+evidence level on every fact-bearing artifact and a ten-lens convergence that returns
+confidence, not a score. `#/ai/ladder` adds the prompt ladder: twelve rungs, each with
+the human decision, the AI partner, a prompt and the failure to avoid. The home panel
+gains a "What are you trying to solve?" symptom router. See `DESIGN-SECOND-BRAIN.md`.
 
 ## Assumptions and limitations
 
