@@ -282,6 +282,43 @@ for overflow on 25 routes, sidebar collapse, and nav scrolling; desktop
   paragraph margins are now fixed pixels rather than em, so vertical rhythm does not
   change with font size).
 
+## Ideation: the Idea Lab
+
+The guide's first-class ideation surface is the Idea Lab (`#/lab`, `src/93-lab.js`,
+and the first item in the navigation). It treats an idea as a chain of reasoning
+rather than a form. Five entry modes (observation, desired feeling, a game you like, a
+constraint, or "I do not know what to make") lead through small artifacts: signal,
+tension, opportunity, design question, design space, mechanisms, critique, experiment.
+Every fact-bearing artifact carries an evidence level (observed, reported, inferred,
+hypothesized, simulated, validated) so AI-assisted thinking cannot manufacture
+confidence. Each artifact has an example and a stage-specific AI prompt, and the chain
+compresses into an Idea Card that opens in the Idea Shaper. The methodology works with
+the AI removed.
+
+This was a deliberate response to a review finding: the earlier Idea Shaper was a
+fifteen-field questionnaire that produced a report without teaching ideation. It keeps
+its role as the compression and communication artifact, not the entry point.
+
+Reference library: the fifteen dissected games now carry official store art where it
+exists (`assets/games/*.jpg`, a local folder so the page needs no network) and a
+typographic tile otherwise. The distant dashed edges of the brain map were raised from
+0.18 and 0.08 opacity to 0.34 and 0.16 so the connections are visible.
+
+## The second brain: persistent rail, Idea Lab, prompt ladder
+
+The front door and the navigator were rebuilt. The old radial map plus a floating
+"back to map" dock is gone. A persistent knowledge rail now sits on the left on desktop
+(collapsible behind a toggle on phones): every domain and topic is named, counted and
+expandable, so names never depend on hover and the list scales by scroll rather than by
+shrinking nodes. The radial map survives as an on-demand Graph overview opened from the
+rail or with `M`, used for relationships rather than navigation. A `#/lab` Idea Lab
+treats an idea as a chain (signal, tension, opportunity, design question, design space,
+mechanisms, converge, critique, experiment, decide) with an evidence level on every
+fact-bearing artifact and a ten-lens convergence that returns confidence, not a score.
+`#/ai/ladder` adds the prompt ladder: twelve rungs, each with the human decision, the
+AI partner, a prompt and the failure to avoid. The home panel gains a "What are you
+trying to solve?" symptom router. See `DESIGN-SECOND-BRAIN.md`.
+
 ## Assumptions and limitations
 
 - **It is a heuristic system.** Verdicts (BUILD / PROTOTYPE FIRST / …, the

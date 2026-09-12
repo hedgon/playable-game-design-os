@@ -19,7 +19,7 @@ const DATA = [
   '23-data-practice.js'
 ];
 const GRAPH = '89-graph.js';
-const APP = ['90-app.js', '91-map.js', '92-ideas.js'];
+const APP = ['90-app.js', '91-map.js', '92-ideas.js', '93-lab.js'];
 const TAIL = '99-tail.js';
 const ORDER = [HEAD, ...DATA, GRAPH, ...APP, TAIL];
 module.exports = { HEAD, DATA, GRAPH, APP, TAIL, ORDER };

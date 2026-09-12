@@ -34,7 +34,7 @@ async function copyText(text){ try { await navigator.clipboard.writeText(text); 
 window.__copy = copyText;
 
 /* ---------- router ---------- */
-const VIEWS = [['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists']];
+const VIEWS = [['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists']];
 const VIEW_LINKS = { 'playtest-view':['#/playtest','Playtest view: question bank and hypothesis builder'], 'ai-roles-view':['#/ai/roles','AI Workflow: interactive role cards'], 'matrix-view':['#/ai/matrix','AI Workflow: responsibility matrix'], 'loop-view':['#/ai/loop','AI Workflow: the 12-step loop'], 'ai-failures-view':['#/ai/failures','AI Workflow: when AI makes your game worse'], 'checklists-view':['#/checklists','Checklists view'], 'prompt-library':['#/prompts','Prompt library'], 'should-we-build-this':['#/build/feature','Build: Should we build this? decision tree'] };
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
 function route(){
@@ -43,9 +43,9 @@ function route(){
   const view = parts[0];
   $$('#primaryNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   closeModals();
-  updateDock();
   switch(view){
     case 'map': return renderMap(parts[1], parts[2]);
+    case 'lab': return renderLab();
     case 'explore': return renderExplore(parts[1]);
     case 'topic': return location.replace(TOPICS[parts[1]] ? '#/map/t/'+parts[1] : '#/map');
     case 'diagnose': return renderDiagnose(parts[1], parts[2]);
@@ -62,8 +62,46 @@ function route(){
 window.addEventListener('hashchange', route);
 $('#primaryNav').innerHTML = VIEWS.map(([id, t]) => `<button data-view="${id}" onclick="location.hash='#/${id}'">${t}</button>`).join('');
 $('#brandBtn').onclick = () => go('#/map');
+$('#railToggle').onclick = () => { const r = $('#rail'); if(r) r.classList.toggle('open'); };
 
-function setView(html){ app.innerHTML = `<div class="view">${html}</div>`; app.scrollTop = 0; window.scrollTo({top:0}); }
+/* ---------- persistent shell: always-visible knowledge rail + content pane ---------- */
+let SHELL = false;
+function ensureShell(){ if(SHELL) return; app.innerHTML = `<div class="shell"><aside class="rail" id="rail"></aside><section class="pane" id="pane"></section></div>`; SHELL = true; }
+function railHTML(activeDom, activeTopic){
+  return `<div class="railhead">
+      <button class="railgraph" id="railGraph">⌗ Graph overview</button>
+      <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
+    </div>
+    <div class="raillist">${DOMAINS.map(d => { const open = d.id===activeDom; return `<div class="raildom ${open?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
+      <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(d.t)}</span><span class="rn">${d.topics.filter(t=>seen.has(t)).length}/${d.topics.length}</span></button>
+      <div class="railtopics">${d.topics.map(t => `<button class="railtopic ${t===activeTopic?'active':''} ${seen.has(t)?'seen':''}" data-topic="${t}">${esc(TOPICS[t].t)}</button>`).join('')}</div></div>`; }).join('')}
+    </div>`;
+}
+function railActive(){
+  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if(parts[0]==='map'){ if(parts[1]==='t' && TOPICS[parts[2]]) return { dom: TOPICS[parts[2]].d, topic: parts[2] }; if(parts[1]==='d' && DOM[parts[2]]) return { dom: parts[2], topic: null }; }
+  if(parts[0]==='topic' && TOPICS[parts[1]]) return { dom: TOPICS[parts[1]].d, topic: parts[1] };
+  if(parts[0]==='explore' && DOM[parts[1]]) return { dom: parts[1], topic: null };
+  return { dom: mapState.dom, topic: mapState.topic };
+}
+function updateRail(){
+  ensureShell(); const r = $('#rail'); if(!r) return; const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
+  r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; const willOpen = !dom.classList.contains('open'); dom.classList.toggle('open', willOpen); }));
+  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; if(window.innerWidth <= 1100) r.classList.remove('open'); }));
+  const g = $('#railGraph'); if(g) g.onclick = () => openGraph();
+  const s = $('#railSearch');
+  if(s) s.addEventListener('input', () => { const q = s.value.trim().toLowerCase(); r.querySelectorAll('.raildom').forEach(de => { let any = false; de.querySelectorAll('.railtopic').forEach(tb => { const hit = !q || tb.textContent.toLowerCase().includes(q); tb.style.display = hit ? '' : 'none'; if(hit) any = true; }); const dn = de.querySelector('.rt').textContent.toLowerCase(); de.style.display = (!q || any || dn.includes(q)) ? '' : 'none'; if(q && any) de.classList.add('open'); }); });
+}
+function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
+function openGraph(){
+  const g = PlayableGraph.build(mapState, seen);
+  const m = document.createElement('div');
+  m.className = 'modal-bg show graph-modal'; m.id = 'graphModal';
+  m.innerHTML = `<div class="graphmodal"><div class="mapbar">${mapCrumbs()}<div class="row" style="gap:6px"><button class="btn sm ghost" id="mapFit">⤢ fit</button><button class="btn sm ghost" id="mapCollapse">⊖ collapse</button><button class="btn sm ghost" onclick="closeModals()">✕ close</button></div></div>
+    <div class="mapwrap one" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="-700 -600 1400 1200" role="img" aria-label="Brain map of the guide">${g.inner}</svg><div class="maptip" id="maptip" hidden></div></div></div>`;
+  m.addEventListener('click', e => { if(e.target === m) closeModals(); });
+  document.body.appendChild(m); initMap(g, 'home');
+}
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button onclick="location.hash='${it[1]}'">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
@@ -152,7 +190,7 @@ function renderExplore(domainId){
     main = `${crumbs([['Map','#/map'],['Explore']])}<h1>Explore all domains</h1><p class="dim">${DOMAINS.length} domains, ${TOPIC_LIST.length} topics. Each topic has the same practical parts (some add a techniques breakdown to compare implementation approaches), so you always know where the prompt patterns, verification questions and playtest questions are.</p>
       <div class="grid auto">${DOMAINS.map(d => `<div class="card clickable tint" style="--dc:${d.color}" onclick="location.hash='#/explore/${d.id}'"><h3>${esc(d.t)}</h3><p class="dim small">${esc(d.short)}</p><div class="small muted">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</div></div>`).join('')}</div>`;
   }
-  setView(`<div class="split">${sidebar(domainId)}<div>${main}</div></div>`);
+  setView(main);
 }
 
 function sectionBody(key, t){
@@ -352,22 +390,24 @@ function toolHead(t, p, key){ return `<div class="toolhead"><div><h2>${esc(t)}</
 function toolLoop(el){
   const parts = [['action','Action','What does the player physically do, most often? Is it the fantasy verb?'],['feedback','Feedback','How does the game tell them what happened and why, within ~100 ms?'],['decision','Decision','What choice do they face next, and what is the tradeoff?'],['consequence','Consequence and reward','What changes because of the choice, visibly, now?'],['situation','New situation','How is the next iteration different from this one?']];
   el.innerHTML = toolHead('Game Loop Builder', 'Write the loop from the player’s point of view, one sentence per link. Then answer the weak-link question for each. If you cannot answer it, that link is where to look first.', 'loopTool') +
-    `<div class="grid c2"><div>${parts.map(([id, l, h]) => field('lb_'+id, l, h, '', 2) + field('lb_'+id+'_ev', 'How would a playtest show this link is strong?', 'Observable behavior, not opinion.', '', 1)).join('')}</div><div id="lb_out"></div></div>`;
+    `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="loopEx">Load a worked example</button></div><div class="grid c2"><div>${parts.map(([id, l, h]) => field('lb_'+id, l, h, '', 2) + field('lb_'+id+'_ev', 'How would a playtest show this link is strong?', 'Observable behavior, not opinion.', '', 1)).join('')}</div><div id="lb_out"></div></div>`;
   bindForm('loopTool', parts.flatMap(([id]) => ['lb_'+id, 'lb_'+id+'_ev']), d => {
     const weak = parts.filter(([id]) => !(d['lb_'+id]||'').trim() || !(d['lb_'+id+'_ev']||'').trim());
     const md = `# Core loop\n\n${parts.map(([id, l]) => `**${l}:** ${d['lb_'+id]||'(blank)'}\n  - Evidence it is strong: ${d['lb_'+id+'_ev']||'(blank)'}`).join('\n')}\n\n## Diagnosis\n${weak.length ? `Weak or untested links: ${weak.map(w=>w[1]).join(', ')}. Fix these before multiplying the loop with content or progression.` : 'All links described with evidence. Now build the bare loop in grey boxes and test whether players repeat it voluntarily.'}\n\n## Prompt\nAct as a skeptical systems designer. Here is our core loop as the player experiences it:\n${parts.map(([id,l]) => `- ${l}: ${d['lb_'+id]||''}`).join('\n')}\nFor each link, rate its strength using only my description, name the playtest symptom if weak, and propose 3 mechanically distinct fixes for the weakest link with the decision created, intended emotion, failure mode and validating signal. Do not recommend one.`;
     $('#lb_out').innerHTML = `<h4>Live output</h4>${outputBox(md)}${weak.length ? `<div class="callout warn"><b>Look first at:</b> ${weak.map(w => `<a href="#/diagnose/loop/${w[0]}">${w[1]}</a>`).join(', ')}</div>` : '<div class="callout ok">Every link has a claim and an observable. Prototype the bare loop next.</div>'}`;
   });
+  $('#loopEx').onclick = () => { const ex = { action:'move to dodge the crowd and sweep up the gems they drop', feedback:'enemies pop on contact with your aura, gems burst, a level-up chime, the screen shakes', decision:'which of three upgrades to take, and whether to risk the chest now', consequence:'your build changes and the same crowd now dies twice as fast', situation:'the next wave is denser and you are stronger than the last one' }; Object.entries(ex).forEach(([k,v]) => { const i = $('#lb_'+k); if(i){ i.value = v; i.dispatchEvent(new Event('input')); } }); };
 }
 
 function toolCanvas(el){
   const fields = [['player','Player','A specific person: their last three games, their session, their device.',2],['fantasy','Fantasy','"In this game I get to be someone who…"',1],['verbs','Fantasy verbs','Three verbs the fantasy implies. Are they the loop verbs?',1],['emotions','Target emotions and rhythm','Two or three emotions and the order they alternate in.',1],['moment','Moment-to-moment','What the player does with hands and mind every few seconds.',2],['session','Session goal','What a satisfying session accomplishes.',1],['long','Long-term goal','Why they come back next week.',1],['not','What this game is NOT','Adjacent experiences you refuse. The not-list.',2],['refs','Reference moments','Moments from other games that produce the target feeling, and what exactly produces it.',2]];
-  el.innerHTML = toolHead('Core Experience Canvas', 'One page that every discipline aims at. If any field is hard to fill, that is the design work to do first.', 'canvasTool') + `<div class="grid c2"><div>${fields.map(([id,l,h,r]) => field('cv_'+id, l, h, '', r)).join('')}</div><div id="cv_out"></div></div>`;
+  el.innerHTML = toolHead('Core Experience Canvas', 'One page that every discipline aims at. If any field is hard to fill, that is the design work to do first.', 'canvasTool') + `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="cvEx">Load a worked example</button></div><div class="grid c2"><div>${fields.map(([id,l,h,r]) => field('cv_'+id, l, h, '', r)).join('')}</div><div id="cv_out"></div></div>`;
   bindForm('canvasTool', fields.map(f => 'cv_'+f[0]), d => {
     const st = `A ${d.cv_emotions||'[emotions]'} experience where ${d.cv_player||'[player]'} gets to be ${d.cv_fantasy||'[fantasy]'} by ${d.cv_moment||'[moment-to-moment]'}. Not ${d.cv_not||'[what it is not]'}.`;
     const md = `# Core experience\n\n> ${st}\n\n${fields.map(([id,l]) => `**${l}:** ${d['cv_'+id]||'(blank)'}`).join('\n\n')}\n\n## Check\n- Do the fantasy verbs appear in the moment-to-moment activity?\n- Can the target emotions be produced by the mechanics described?\n- Would a playtester use the emotion words unprompted?`;
     $('#cv_out').innerHTML = `<h4>Experience statement (draft)</h4><div class="quotebig sm">${esc(st)}</div>${outputBox(md)}<div class="row"><a class="btn sm" href="#/topic/core-experience">Read: core experience</a><a class="btn sm" href="#/topic/fantasy">Read: fantasy</a></div>`;
   });
+  $('#cvEx').onclick = () => { const ex = { player:'A commuter with 25 minutes on a laptop who finished Hades and Slay the Spire', fantasy:'In this game I get to be someone who reads a fight and picks the exact tool for it', verbs:'read, choose, commit', emotions:'tension, then clarity, then satisfaction', moment:'scan the board, commit to one of three options, watch it resolve', session:'finish one run and understand why it went the way it did', long:'unlock one new tool that changes how a familiar fight reads', not:'a twitch action game, a grind, a story you cannot steer', refs:'Into the Breach: every consequence is visible before you commit. Slay the Spire: the reward is the decision.' }; Object.entries(ex).forEach(([k,v]) => { const i = $('#cv_'+k); if(i){ i.value = v; i.dispatchEvent(new Event('input')); } }); };
 }
 
 function toolLadder(el){
@@ -616,10 +656,11 @@ function toolIdea(el){
    AI WORKFLOW
    ===================================================================== */
 function renderAI(sub='loop', arg){
-  const tabs = [['loop','The 12-step loop'],['philosophy','Bottleneck shift'],['roles','AI roles'],['matrix','Responsibility matrix'],['framework','Prompting framework'],['failures','When AI makes it worse']];
+  const tabs = [['loop','The 12-step loop'],['ladder','Prompt ladder'],['philosophy','Bottleneck shift'],['roles','AI roles'],['matrix','Responsibility matrix'],['framework','Prompting framework'],['failures','When AI makes it worse']];
   const head = `${crumbs([['Map','#/map'],['AI Workflow']])}<h1>AI Workflow</h1><p class="dim">How to delegate design work to AI without delegating design judgment.</p><div class="tabs">${tabs.map(([id,t]) => `<button class="${id===sub?'active':''}" onclick="location.hash='#/ai/${id}'">${t}</button>`).join('')}</div>`;
   let body = '';
   if(sub==='loop') body = aiLoopView(arg);
+  else if(sub==='ladder') body = aiLadderView();
   else if(sub==='philosophy') body = aiPhilosophyView();
   else if(sub==='roles') body = aiRolesView(arg);
   else if(sub==='matrix') body = aiMatrixView();
@@ -681,6 +722,25 @@ function aiFrameworkView(){
 }
 const FORMULA_TERMS = [['CONTEXT','Player, fantasy, core loop, systems. The world as it is. Without it you get the genre average.'],['INTENT','The experience you want and the decision you need to make. Without it the AI picks the decision.'],['CONSTRAINTS','Platform, scope, team, off-limits. Without them you get the biggest plausible answer.'],['EVIDENCE','Playtest results, telemetry, known problems. Without it the task should be "design the test", not "design the feature".'],['ROLE','The stance: skeptical systems designer, UX researcher, devil’s advocate. Without it you get mild everything.'],['TASK','Analyze, generate N, compare, simulate, build with logging. Specific verbs and counts.'],['OUTPUT FORMAT','A table, a ranked list, code with an exposed tuning panel, a hypothesis in standard form. How you will consume it.'],['CRITIQUE','What the AI must attack in its own output and what it must not do: recommend, decide, add scope.']];
 function wireFramework(){ $$('#fmla button').forEach(b => b.onclick = () => { $$('#fmla button').forEach(x => x.classList.remove('active')); b.classList.add('active'); const t = FORMULA_TERMS[+b.dataset.i]; $('#fmlaInfo').innerHTML = `<h3>${esc(t[0])}</h3><p>${esc(t[1])}</p>`; }); }
+const LADDER = [
+  { n:1, stage:'Observe', role:'Observer', you:'Collect what players actually do: reviews, forums, streams, patch-note reactions, mods, spreadsheets, third-party tools.', ai:'Structure the raw artefacts, cluster recurring behaviour, and mark each claim fact, inference or speculation.', caution:'AI must never invent evidence. If it cannot cite the artefact, it is speculation.', prompt:`Here are raw player artefacts (reviews, forum posts, clips, tool descriptions): [PASTE]. Extract the recurring behaviours. For each, give the artefact it came from and label it fact, inference or speculation. Do not propose game ideas.` },
+  { n:2, stage:'Signal to tension', role:'Opportunity analyst', you:'Decide which signal is interesting. Complaints are not automatically opportunities.', ai:'Find the want underneath the behaviour: what players are trying to do, what they tolerate, what they work around, where the contradiction is.', caution:'Do not let AI turn every complaint into a feature.', prompt:`Signals: [SIGNALS]. For each, state the underlying want in the players' own words, the contradiction or friction around it, and the workaround players already use. Mark what is observed and what is inferred. Do not propose solutions.` },
+  { n:3, stage:'Tension to opportunity', role:'Opportunity analyst', you:'Decide whether the tension is worth building for.', ai:'State the opportunity in one sentence that names a player, a desire we can serve, and what they do instead today.', caution:'An opportunity is a claim, not a fact. Keep the evidence level attached.', prompt:`Tensions: [TENSIONS]. Write one opportunity sentence per tension: for [PLAYER], there may be an opportunity to [DO SOMETHING] that today they get from [WORKAROUND] instead. For each, say what evidence exists and what is only inferred.` },
+  { n:4, stage:'Opportunity to design question', role:'Question generator', you:'Choose the question that changes what the player does.', ai:'Turn opportunities into can-we questions. Questions only.', caution:'If AI starts answering, stop it. A question is the product of this stage.', prompt:`Opportunity: [OPPORTUNITY]. Write 5 design questions in the form Can we ... ? Each should change the player's behaviour rather than add a feature. Rank them by how much they change what the player does. Do not answer any of them.` },
+  { n:5, stage:'Design question to design space', role:'Design-space explorer', you:'Recognise which axes matter and which are noise.', ai:'Name the dimensions along which the problem can be solved, the options on each, and the extreme corners of the space.', caution:'Do not converge here. Expansion is the point.', prompt:`Design question: [QUESTION]. Identify the 3 axes that matter most for solving it, 3 to 5 options on each, and describe the extreme corner of each combination. Do not choose a direction.` },
+  { n:6, stage:'Design space to mechanisms', role:'Mechanism designer', you:'Look for rules that produce genuinely different behaviour, not reskins.', ai:'Generate mechanically distinct rules. For each: the rule, the decision it creates every minute, the intended emotion, the systemic interactions, the failure mode, the implementation cost.', caution:'Mechanisms, not pitches. Do not ask which is best yet.', prompt:`Design question: [QUESTION]. Design space: [SPACE]. Propose 6 mechanically distinct mechanisms, smallest first. For each: the rule in one sentence, the decision it creates, the intended emotion, the systems it touches, the failure mode, and the cheapest way to fake it for a test. Do not recommend one.` },
+  { n:7, stage:'Mechanisms to critique', role:"Devil's advocate", you:'Weigh the critique. Decide what it kills.', ai:'Attack each mechanism: who would not care, what breaks after 30 minutes and after 10 hours, why it might be a reskin, what an incumbent could copy, and the one assumption carrying it.', caution:'A critique is input, not a verdict. AI does not decide.', prompt:`Mechanisms: [MECHANISMS]. As a hostile reviewer, for each mechanism give: why a player would not care, the behaviour after 30 minutes and after 10 hours, whether the difference is mechanical or cosmetic, which incumbent could copy it, and the single assumption it depends on.` },
+  { n:8, stage:'Critique to hypothesis', role:'Hypothesis framer', you:'Commit to a claim you are willing to kill.', ai:'Help write it in standard form: we believe [player] will [behaviour] because [reason]. Signal. Kill criterion.', caution:'If the kill criterion is missing, it is hope, not a hypothesis.', prompt:`Chosen direction: [DIRECTION]. Write it as: we believe [PLAYER] will [OBSERVABLE BEHAVIOUR] because [MECHANISM]. We will know it works when [SIGNAL]. We will kill it if [CRITERION]. Then name the alternative explanation that would produce the same signal.` },
+  { n:9, stage:'Hypothesis to prototype', role:'Prototype designer', you:'Accept the scope. The prototype proves one thing.', ai:'Design the smallest test: only the mechanics needed, exposed tuning values, full logging, exclusions.', caution:'If the prototype answers more than the hypothesis, it is too big.', prompt:`Hypothesis: [HYPOTHESIS]. Build the smallest playable test in [ENGINE] that could disprove it. Only the mechanics needed, grey boxes, no menus or saves, expose [VALUES] as live sliders, log every input, decision, failure and session boundary with timestamps. List the design decisions the code will embed before writing it.` },
+  { n:10, stage:'Player evidence', role:'Playtest analyst', you:'Watch the players. Interpret the context only you have.', ai:'Find patterns in notes, transcripts and logs; separate behaviour from self-report; surface contradictions.', caution:'Simulation is not evidence. Only real players count.', prompt:`Here are observer notes, transcripts and logs: [DATA]. Cluster behaviour, mark patterns present in 3 or more players versus outliers, align notes to telemetry by time, and separate what players did from what they said. State what the evidence does and does not support. Do not interpret causes or recommend changes.` },
+  { n:11, stage:'Evidence to decision', role:'You, the human', you:'Kill, iterate, prototype again, or commit. Nobody else can make this call.', ai:'Summarize the evidence and the open questions. Nothing more.', caution:'If AI is choosing whether to continue, the process has failed.', prompt:`Here is the evidence: [EVIDENCE]. Summarize what it shows, what it cannot show, and the open questions. Present the options kill, iterate, prototype again, or commit, with the tradeoffs of each. Recommend nothing.` },
+  { n:12, stage:'Decision to Idea Card', role:'Concept editor', you:'Own the final words.', ai:'Compress the chain into the Idea Card: player, promise, mechanism, core verb, fantasy, constraints, hypothesis, biggest risk, cheapest test, evidence level.', caution:'Compression, not creation. If the card contains a claim the chain does not, delete it.', prompt:`Here is the full reasoning chain: [CHAIN]. Compress it into an Idea Card with: player, desire, tension, opportunity, promise, core verb, mechanism, differentiation, fantasy, constraints, hypothesis, biggest risk, cheapest test, and the evidence level of each claim. Do not add anything that is not in the chain.` }
+];
+function aiLadderView(){
+  return `<div class="callout"><b>Do not ask AI for the game.</b> Ask it for one rung at a time, in order. Each rung names the partner, what you decide, what AI does, a prompt, and the failure to avoid.</div>
+    <div class="ladderflow">${LADDER.map(s => `<div class="rung-card"><div class="rung-num">${s.n}</div><div class="rung-body"><div class="rung-stage">${esc(s.stage)}</div><div class="rung-grid"><div class="box"><h4>You decide</h4><p>${esc(s.you)}</p></div><div class="box"><h4>AI partner · ${esc(s.role)}</h4><p>${esc(s.ai)}</p></div></div>${promptBox('Prompt for this rung', s.prompt)}<div class="callout warn" style="margin-top:6px"><b>Failure to avoid:</b> ${esc(s.caution)}</div></div></div>`).join('<div class="rung-arrow">↓</div>')}</div>
+    <div class="row" style="margin-top:12px"><a class="btn sm primary" href="#/lab">Open the Idea Lab</a><a class="btn sm" href="#/ai/roles">AI roles</a><a class="btn sm" href="#/ai/matrix">Responsibility matrix</a></div>`;
+}
 function aiFailuresView(){
   return `<h2>When AI makes your game worse</h2><p class="dim">Fourteen systematic failures. Each follows from AI strengths (fluency, volume, plausibility) meeting human weaknesses (deference, impatience, fear of deciding). Symptom → why → how to detect → how to correct.</p>
     <div class="grid c2">${FAILURES.map(f => `<div class="fail"><h3>${esc(f.t)}</h3><dl class="kv"><dt>Symptom</dt><dd>${esc(f.sym)}</dd><dt>Why it happens</dt><dd>${esc(f.why)}</dd><dt>How to detect</dt><dd>${esc(f.detect)}</dd><dt>How to correct</dt><dd><b>${esc(f.fix)}</b></dd></dl></div>`).join('')}</div>
@@ -806,13 +866,14 @@ function buildIndex(){
   const INDEX = [];
 TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p)].join(' ').toLowerCase() }));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
-const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched', 'tutorial-too-long':'onboarding skip text explain', 'impressive-but-boring':'polish spectacle graphics demo', 'fun-but-no-return':'retention churn day two return', 'meaningless-progression':'grind number goes up unlock pointless', 'too-many-currencies':'economy wallet gems coins', 'floaty-combat':'weight impact hit feel juice', 'unfair':'cheap random punishing difficulty spike', 'no-experiment':'curiosity try things safe', 'same-way':'style variety identical', 'features-not-better':'feature creep scope bloat roadmap', 'ai-ideas-none-right':'generic brainstorm options proposals', 'quit-early':'drop off first session bounce', 'dont-understand-system':'mental model confusing rules', 'ignore-content':'skip side content rush optional', 'players-lose-agency':'choices do not matter cutscene control', 'dont-know-what-to-do':'lost aimless wander objective' };
+const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
 PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
 REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${g.lesson.slice(0,90)}…`, href:'#/build/dissect', text:(g.t+' '+g.genre+' '+g.want+' '+g.verb+' '+g.why+' '+g.lesson+' '+g.misses).toLowerCase() }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
+LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));
 CHECKLISTS.forEach(c => INDEX.push({ type:'checklist', t:c.t, snip:c.desc, href:'#/checklists/'+c.id, text:(c.t+' '+c.desc+' '+c.groups.flatMap(g=>g[1]).join(' ')).toLowerCase() }));
 LOOP_STEPS.forEach(s => INDEX.push({ type:'loop step', t:`${s.n}. ${s.t}`, snip:s.goal, href:'#/ai/loop/'+s.n, text:(s.t+' '+s.goal+' '+s.human+' '+s.ai+' '+s.fail).toLowerCase() }));
@@ -833,7 +894,7 @@ function renderSearch(){ const q = $('#searchInput').value; searchResults = sear
   $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); }); }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
 function openSearch(){ $('#searchModal').classList.add('show'); const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); setTimeout(() => inp.focus(), 10); }
-function closeModals(){ $$('.modal-bg').forEach(m => m.classList.remove('show')); }
+function closeModals(){ $$('.modal-bg').forEach(m => { if(m.id === 'graphModal') m.remove(); else m.classList.remove('show'); }); }
 $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
@@ -850,8 +911,8 @@ document.addEventListener('keydown', e => {
   if(typing) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ $('#helpModal').classList.add('show'); return; }
-  if(/^[1-8]$/.test(e.key)){ go('#/'+VIEWS[+e.key-1][0]); return; }
-  if(e.key.toLowerCase()==='m'){ go(mapHash()); return; }
+  if(/^[1-9]$/.test(e.key)){ go('#/'+VIEWS[+e.key-1][0]); return; }
+  if(e.key.toLowerCase()==='m'){ openGraph(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
   const m = location.hash.match(/^#\/map\/t\/([\w-]+)/);
   if(m){ const t = TOPICS[m[1]]; if(!t) return; const list = DOM[t.d].topics, i = list.indexOf(m[1]);

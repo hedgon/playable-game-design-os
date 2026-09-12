@@ -11,7 +11,7 @@
 /* The four doors into the guide. Shared by the start panel in the drawer and
    the overlay the centre node opens, so the copy lives in one place. */
 const START_PATHS = [
-  ['#/build/idea','I do not know what to make','Read a market for an unserved want, then shape one core idea that only your constraints allow.',''],
+  ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
   ['#/build/dissect','I have an idea and want to know if it is good','Cross-reference it against games that already won the audience you want.','var(--accent2)'],
   ['#/build/ladder','I have a feature idea','Climb from the feature to the behavior, then decide whether to build it.','var(--d-core)'],
   ['#/diagnose','I have a design problem','Start from the symptom: likely causes, experiments and a prompt.','var(--bad)']
@@ -19,14 +19,20 @@ const START_PATHS = [
 function startPathsHTML(){
   return START_PATHS.map(([href, b, s, c]) => `<button class="path" onclick="location.hash='${href}'"${c?` style="border-left-color:${c}"`:''}><b>${esc(b)}</b><span>${esc(s)}</span></button>`).join('');
 }
+const SYMPTOMS = [
+  ['I do not have an idea','no-idea'],['Players do not know what to do','dont-know-what-to-do'],['The game feels repetitive','repetitive'],
+  ['Players use only one build','one-build'],['They enjoy it but do not return','fun-but-no-return'],['Progression is just numbers','meaningless-progression'],
+  ['Combat feels floaty','floaty-combat'],['Players say it is unfair','unfair'],['Too many features, not better','features-not-better'],['AI keeps giving generic ideas','ai-ideas-none-right']
+];
+function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) => `<button class="symptom" onclick="location.hash='#/smell/${id}'">${esc(s)}</button>`).join('')}<a class="symptom more" href="#/diagnose/smells">All ${SMELLS.length} smells →</a></div>`; }
 function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); $('#startModal').classList.add('show'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
-function saveMap(){ store.set('mapState', mapState); updateDock(); }
+function saveMap(){ store.set('mapState', mapState); }
 function mapHash(){ return mapState.smell ? `#/map/s/${mapState.smell}` : mapState.topic ? `#/map/t/${mapState.topic}` : mapState.dom ? `#/map/d/${mapState.dom}` : '#/map'; }
 function mapPathLabel(){ const parts = [mapState.dom && DOM[mapState.dom] && DOM[mapState.dom].t, mapState.topic && TOPICS[mapState.topic] && TOPICS[mapState.topic].t, mapState.smell && (SMELLS.find(s => s.id===mapState.smell)||{}).t].filter(Boolean); return parts.length ? parts.join(' › ') : 'overview'; }
-function updateDock(){ const d = $('#mapDock'); if(!d) return; d.hidden = location.hash.startsWith('#/map') || location.hash === ''; $('#mapDockPath').textContent = mapPathLabel(); d.setAttribute('href', mapHash()); }
+function updateDock(){ /* removed: the knowledge rail is always visible */ }
 
 function mapCrumbs(){
   const parts = [`<button onclick="location.hash='#/map/home'">All domains</button>`];
@@ -38,8 +44,10 @@ function mapCrumbs(){
 function startPanel(){
   return `<span class="overline">Field manual · ${TOPIC_LIST.length} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
     <h1 style="margin:6px 0 8px">Make something people want to play.</h1>
-    <p class="dim">The map is the guide. Click a domain to open its topics. Click a topic to read it here and to see what it connects to. The branch you open, the node you read and your zoom are remembered. Every other view has a button back to this exact spot.</p>
+    <p class="dim">The knowledge rail on the left is always here. Open a domain, pick a topic, and it reads in this pane. Use <b>Graph overview</b> when you want the radial map as a picture.</p>
     <div class="paths">${startPathsHTML()}</div>
+    <div class="section-head" style="margin-top:22px"><h2>What are you trying to solve?</h2><span class="muted">symptom to likely cause to experiment</span></div>
+    ${symptomsHTML()}
     <div class="section-head" style="margin-top:22px"><h2>Two chains to hold in your head</h2></div>
     <div class="stack">
     <div class="card"><h4>How a game becomes an experience</h4>${chainHTML([['Player','#/map/t/who-is-the-player'],['Desire','#/map/t/player-motivation'],['Fantasy','#/map/t/fantasy'],['Core experience','#/map/t/core-experience'],['Game loop','#/map/t/core-loop'],['Mechanics','#/map/t/mechanics-and-rules'],['Decisions','#/map/t/decisions'],['Challenge','#/map/t/challenge-failure-recovery'],['Feedback','#/map/t/feedback-and-affordance'],['Progression','#/map/t/progression'],['Content','#/map/t/content-multiplies'],['UX','#/map/t/ux-as-design'],['Retention','#/map/t/return-and-quit']])}<p class="small muted" style="margin:6px 0 0">Read left to right to design, right to left to diagnose.</p></div>
@@ -50,7 +58,7 @@ function domainPanel(d){
   const links = d.links.map(([to, why]) => `<li><b style="color:${DOM[to].color};cursor:pointer" onclick="location.hash='#/map/d/${to}'">${esc(DOM[to].t)}</b> <span class="why">${esc(why)}</span></li>`).join('');
   const inbound = DOMAINS.filter(o => o.links.some(([to]) => to===d.id) && !d.links.some(([to]) => to===o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<li><b style="color:${o.color};cursor:pointer" onclick="location.hash='#/map/d/${o.id}'">${esc(o.t)}</b> <span class="why">${esc(why)}</span></li>`; }).join('');
   return `<div class="chips" style="margin-bottom:6px">${domChip(d.id)}<span class="chip">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</span></div><h1 style="margin-bottom:6px">${esc(d.t)}</h1><p class="dim">${esc(d.sum)}</p>
-    <h4>Topics · click one on the map or here</h4><div class="grid auto" style="margin-bottom:14px">${d.topics.map(t => `<div class="card clickable tint" style="--dc:${d.color};padding:10px 12px" onclick="location.hash='#/map/t/${t}'"><b>${esc(TOPICS[t].t)}</b> ${seen.has(t)?'<span class="chip ok">read</span>':''}<div class="small dim">${esc(TOPICS[t].tag)}</div></div>`).join('')}</div>
+    <h4>Topics</h4><div class="grid auto" style="margin-bottom:14px">${d.topics.map(t => `<div class="card clickable tint" style="--dc:${d.color};padding:10px 12px" onclick="location.hash='#/map/t/${t}'"><b>${esc(TOPICS[t].t)}</b> ${seen.has(t)?'<span class="chip ok">read</span>':''}<div class="small dim">${esc(TOPICS[t].tag)}</div></div>`).join('')}</div>
     <h4>Why it connects</h4><ul class="mapside-list">${links}${inbound}</ul>`;
 }
 function drawerHTML(){
@@ -159,23 +167,11 @@ function patchMap(g, kind){
   document.querySelector('.mapstage').classList.toggle('open', !!mapState.dom);
 }
 function renderMap(kind, id){
-  if(kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
+  if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
   else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; }
   else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; }
   else if(kind==='s' && SMELLS.some(s => s.id===id)){ mapState.smell = id; }
   saveMap();
   if(mapState.topic) markSeen(mapState.topic);
-  const g = PlayableGraph.build(mapState, seen);
-  const live = MAP && document.body.contains(MAP.svg) && $('#mapstage');
-  if(live){ patchMap(g, kind); }
-  else {
-    const open = !!mapState.dom;
-    setView(`<div class="mapstage one ${open?'open':''}" id="mapstage">
-      <div class="mapcol"><div class="mapbar">${mapCrumbs()}<div class="row" style="gap:4px"><button class="btn sm ghost" id="mapFit" title="Fit the whole map">⤢ fit</button><button class="btn sm ghost" id="mapCollapse" title="Collapse all branches">⊖ collapse</button></div></div>
-        <div class="mapwrap one" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="-700 -600 1400 1200" role="img" aria-label="Brain map of the guide">${g.inner}</svg><div class="maptip" id="maptip" hidden></div></div>
-        <div class="maplegend static"><span><i class="lg d"></i>domain · ring shows reading progress</span><span><i class="lg t"></i>topic of the open domain</span><span><i class="lg l"></i>related topic (dashed line goes home)</span><span><i class="lg s"></i>design smell</span><span class="muted">drag to pan · wheel to zoom · fit resets</span></div></div>
-      <aside class="drawer" id="drawer">${drawerHTML()}</aside></div>`);
-    initMap(g, kind);
-  }
-  const dr = $('#drawer'); if(dr && (kind==='t' || kind==='s') && window.innerWidth < 1100) dr.scrollIntoView({behavior:'smooth', block:'start'});
+  setView(`${mapCrumbs()}${drawerHTML()}`);
 }

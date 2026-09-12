@@ -47,15 +47,6 @@ window.PlayableGraph = (function(){
     if(sub) html += `<text class="${cls} sub" x="${lx}" y="${startY + ls.length*lh - size*.15}" text-anchor="${anchor}" font-size="${size*.78}">${esc(sub)}</text>`;
     return { html, ext:[lx + (anchor==='start'? size*.55*Math.max(...ls.map(l=>l.length)) : anchor==='end' ? -size*.55*Math.max(...ls.map(l=>l.length)) : 0), ly] };
   }
-  // Radial (sunburst) label: runs along the radius so neighbours in a fan never collide.
-  // Flipped on the left half so it always reads left to right. Truncated; the tooltip has the full text.
-  function radialLabel(x, y, a, gap, text, cls, size, max){
-    let deg = a*180/Math.PI, anchor = 'start'; const flip = Math.cos(a) < -0.001; if(flip){ deg += 180; anchor = 'end'; }
-    const lx = x + Math.cos(a)*gap, ly = y + Math.sin(a)*gap;
-    const t = text.length > max ? text.slice(0, max-1).trimEnd() + '…' : text;
-    const w = t.length*size*0.62;
-    return { html:`<text class="${cls}" x="${lx}" y="${ly}" dy="0.35em" text-anchor="${anchor}" font-size="${size}" transform="rotate(${deg.toFixed(2)} ${lx.toFixed(1)} ${ly.toFixed(1)})" data-rad="${a.toFixed(4)}" data-w="${w.toFixed(1)}">${esc(t)}</text>`, ext:[lx + Math.cos(a)*w, ly + Math.sin(a)*w] };
-  }
   const curve = (x1,y1,x2,y2,bend=.18) => { const mx=(x1+x2)/2*(1-bend), my=(y1+y2)/2*(1-bend); return `M${x1},${y1} Q${mx},${my} ${x2},${y2}`; };
 
   /* state = { dom, topic, smell } ; seen = Set of read topic ids */
@@ -111,10 +102,9 @@ window.PlayableGraph = (function(){
       nodes += `<g class="node domain ${open?'open':''}" data-kind="domain" data-id="${d.id}" data-key="d:${d.id}" style="--dc:${d.color}"><circle class="hit" cx="${x}" cy="${y}" r="${r+14}"/><circle class="ring" cx="${x}" cy="${y}" r="${r+6}" stroke-dasharray="${circ*sn/n} ${circ}" transform="rotate(-90 ${x} ${y})"/><circle class="disc" cx="${x}" cy="${y}" r="${r}"/><text class="glyph" x="${x}" y="${y+5}" text-anchor="middle">${open?'−':String(i+1).padStart(2,'0')}</text>${lbl.html}</g>`;
       mark(x,y,r+20); pts.push(lbl.ext); if(open){ fmark(x,y,r+20); fpts.push(lbl.ext); } });
     // topic nodes
-    if(ex) ex.topics.forEach(t => { const [[x,y], a] = tPos[t]; const tp = TOPICS[t]; const isSel = sel && sel.id===t; const r = isSel ? 26 : 20;
-      const lbl = radialLabel(x, y, a, r+14, tp.t, 'lbl topic-lbl', 13, 60);
-      nodes += `<g class="node topic ${seen.has(t)?'seen':''} ${isSel?'active':''}" data-kind="topic" data-id="${t}" data-key="t:${t}" style="--dc:${ex.color}"><circle class="hit" cx="${x}" cy="${y}" r="${r+14}"/><circle class="disc" cx="${x}" cy="${y}" r="${r}"/>${seen.has(t)?`<circle class="dot" cx="${x}" cy="${y}" r="4.5"/>`:''}${isSel?`<text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">−</text>`:''}${lbl.html}</g>`;
-      mark(x,y,r+16); pts.push(lbl.ext); fmark(x,y,r+16); fpts.push(lbl.ext); });
+    if(ex) ex.topics.forEach((t, ti) => { const [[x,y]] = tPos[t]; const isSel = sel && sel.id===t; const r = isSel ? 26 : 20;
+      nodes += `<g class="node topic ${seen.has(t)?'seen':''} ${isSel?'active':''}" data-kind="topic" data-id="${t}" data-key="t:${t}" style="--dc:${ex.color}"><circle class="hit" cx="${x}" cy="${y}" r="${r+14}"/><circle class="disc" cx="${x}" cy="${y}" r="${r}"/>${seen.has(t)?`<circle class="dot" cx="${x}" cy="${y}" r="4.5"/>`:''}<text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="${isSel?12:11}">${ti+1}</text></g>`;
+      mark(x,y,r+16); fmark(x,y,r+16); });
     // leaf nodes
     leaves.forEach((l,i) => { const {x,y} = l;
       if(l.kind==='smell'){ nodes += `<g class="node smell" data-kind="smell" data-id="${l.id}" data-key="l:${i}"><circle class="hit" cx="${x}" cy="${y}" r="30"/><rect class="disc" x="${x-13}" y="${y-13}" width="26" height="26" transform="rotate(45 ${x} ${y})"/><text class="glyph" x="${x}" y="${y+4}" text-anchor="middle" font-size="11">!</text></g>`; }

@@ -3,15 +3,23 @@
 A single self-contained HTML file that teaches how to think, decide, experiment
 and collaborate with AI to make a game people actually want to play.
 
-Open `playable.html` in any modern browser. No server, no build step, no
-network access, no external libraries. Everything you type into the tools and
-every checkbox you tick is saved in your browser's localStorage and never
-leaves your machine. Works on desktop, tablet and phone.
+Open `playable.html` in any modern browser. No server, no build step, no network
+access, no external libraries. Reference-game art lives in a small local
+`assets/games/` folder beside the file; everything else is embedded. Everything
+you type into the tools and every checkbox you tick is saved in your browser's
+localStorage and never leaves your machine. Works on desktop, tablet and phone.
+
+Navigation is a **persistent knowledge rail** on the left (domains and topics, named,
+counted, collapsible, always visible) plus a content pane on the right. The radial
+brain map is now an on-demand **Graph overview** rather than the only way around. The
+ideation surface is the **Idea Lab** (`#/lab`). The architecture, the ideation method
+and the AI collaboration model are written up in `DESIGN-SECOND-BRAIN.md`.
 
 ## What is inside
 
 | View | What it is for |
 | --- | --- |
+| **Idea Lab** | The ideation surface, and the first door. An idea is treated as a chain of reasoning, not a filled-in form. Five entry modes (I noticed something / I want players to feel something / I like a game but / I have a constraint / I do not know what to make) feed small artifacts: Signal, Tension, Opportunity, Design question, Design space, Mechanisms, Critique, Experiment. Each artifact carries an evidence level (observed / reported / inferred / hypothesized / simulated / validated), an example, and a stage-specific AI prompt. The chain compresses into an **Idea Card** (player, promise, mechanism, core verb, fantasy, constraints, hypothesis) that opens in the Idea Shaper. Works without AI. |
 | **Map** | One brain map that expands and collapses in place. The goal sits in the centre; the fourteen domains (including In-game AI, for NPCs, navigation, perception, directors and fairness) are always on the first ring; clicking a domain fans its topics out around it; clicking a topic fans out everything it connects to (related topics with a dashed line back to their home domain, design smells it diagnoses, tools) and opens the full topic in the reading drawer beside the map. Hover shows why an edge exists. Drag to pan, wheel to zoom, "fit" to reset. The camera keeps your zoom level when you click: it pans smoothly to the branch you opened (keeping the centre in view), zooms out only when a fan does not fit, and never zooms in on its own; "fit" and "collapse" animate. New nodes fade in. The open branch, selected node and zoom are saved, so `#/map` always returns to where you were, and every other view shows a **Back to map** dock (or press `M`) that lands on the exact spot. Rings are adaptive: the first ring widens as domains are added, and a domain's topic fan grows its radius and uses the minimum angular spacing it needs, so a domain can hold far more topics (or the guide far more domains) without labels colliding. Routes: `#/map/d/<domain>`, `#/map/t/<topic>`, `#/map/s/<smell>`, `#/map/home`. |
 | **Explore** | A list view of the same 90 topics for people who prefer lists. Every link opens the topic on the map. Every topic has the same eight parts: What is it, Why it matters, How a human should think about it, How to actually do it, What AI should and should not do, How to prompt AI, How to verify AI output, What to playtest. Topics with a real implementation decision also carry a **Techniques to compare** section (how each technique works, when it fits, what it costs, what to watch out for). Related concepts always say *why* they connect. |
 | **Diagnose** | Start from a symptom. 33 design smells (each with likely causes, an experiment per cause and a diagnostic prompt), the Fun Diagnostic (19 dimensions of fun), the Core Loop diagnostic (Action → Feedback → Decision → Consequence → New situation), the Unfairness diagnostic, the Depth-vs-Complexity rule audit, and the Content-or-Mechanic decision tree. |
@@ -94,6 +102,8 @@ Two valid ways to edit:
 playable.html          the deliverable: open this
 README.md              this file
 DESIGN-AUDIT.md        what the guide covers, its mental models, tools, limitations
+DESIGN-SECOND-BRAIN.md the second-brain architecture, ideation method and AI model
+assets/games/          local reference-game art referenced by the reference library
 src/                   optional: sources and maintenance scripts (see above)
   01-head.html         CSS and page shell
   10-data-domains.js   domains + Player, Experience, Core Gameplay topics
@@ -112,6 +122,7 @@ src/                   optional: sources and maintenance scripts (see above)
   90-app.js            router, views, tools, search
   91-map.js            map view: drawer, pan/zoom, persistence, return dock
   92-ideas.js          Reference Dissection tool
+  93-lab.js            Idea Lab: entry modes, reasoning chain, Idea Card
   99-tail.js           boot
   manifest.js          ordered list of source files (single place to add/rename one)
   build.js             concatenates sources, validates data, layout and syntax
