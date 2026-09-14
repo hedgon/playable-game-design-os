@@ -4,8 +4,16 @@ Inspected as a senior game designer would, against the brief's final quality tes
 
 ## What the guide covers
 
-Fourteen domains, 90 topics, all with the same eight-part practical structure
-(topics with a real implementation decision add a ninth, "Techniques to compare"):
+Nineteen domains, 133 topics, all with the same eight-part practical structure
+(topics with a real implementation decision add a ninth, "Techniques to compare").
+The original fourteen design domains carry a Godot and a Unity tab (how a client
+built in that engine reaches for the same idea) and an Interview tab (junior / mid
+/ senior questions with model answers). Five more domains (Backend, Infrastructure,
+Game Server, Project Management, Team Leadership) extend the guide from design into
+the engineering and people practice around a live game; the first three also carry
+engine tabs (framed as "how the client consumes this"), and the last two carry only
+an Interview tab, since there is no client-side counterpart to a project-management
+decision:
 
 | Domain | Topics |
 | --- | --- |
@@ -23,6 +31,11 @@ Fourteen domains, 90 topics, all with the same eight-part practical structure
 | Production | prototyping, hypothesis-driven design, playtesting, iteration on evidence, vertical slice and MVP, risk and dependencies, when to polish |
 | AI Collaboration | the bottleneck shift, AI roles, prompting framework, verifying AI output, AI failure modes, responsibility matrix, AI for prototyping and implementation, AI for playtest analysis, the 12-step loop |
 | In-game AI | what in-game AI is for (and when to fake or script it), choosing a behaviour technique (FSM, behaviour tree, utility AI, GOAP/HTN), perception and memory, navigation and pathfinding, readable and fair AI, adaptive AI and directors, allies and companions, learning-based/ML AI, budgets and debugging, scripted vs simulated |
+| Backend (Go-first) | clean layering and dependency direction, compile-time DI and one binary/many modes, API protocol choices (REST/JSON, protobuf over HTTP, gRPC), request context/middleware/idempotency, domain error taxonomy, transactions/query layers/delta state sync, caching tiers and Redis patterns, schema migrations/config/secrets, logging/tracing/profiling/action logs, testing tiers and test integrity, Go concurrency/lifecycle/generics/module hygiene |
+| Infrastructure | containers and compose-based dev environments, deploy models (processes on VMs, Kubernetes, serverless, cron), CI pipeline stages and graded failure, artifacts/versioning/provenance, secrets management, CDN and asset delivery, managed data stores/replicas/sharding/queues, monitoring/alerting/incidents/cost |
+| Game Server | authority models (server-authoritative, host mode, client-simulate-server-verify), deterministic simulation and parity testing, state sync (delta sync, interpolation vs prediction, tick rates), realtime protocols (WebSocket framing, op codes, channels), matchmaking/rooms/sessions/reconnection, scaling (sharding, pub/sub fan-out), anti-cheat and abuse handling, live operations (maintenance gates, force update, batches, master data) |
+| Project Management | scoping and the cut list, estimation under uncertainty, risk registers and de-risking order, sprints/kanban for content-heavy teams, cross-discipline handoffs, QA planning and release trains, live-ops cadence and release calendars, post-mortems and retrospectives |
+| Team Leadership | what a lead actually does, 1:1s/feedback/growth, code review culture and merge discipline, written conventions and decision records, onboarding and knowledge transfer, hiring loops, incident handling and blameless learning, saying no and prioritisation |
 
 Plus: 33 design smells with 120 cause → experiment pairs, 19 fun dimensions, a
 core-loop diagnostic, an unfairness diagnostic, a rule audit, a content-or-mechanic
@@ -88,6 +101,34 @@ master") are presented with their original intent.
 - The **Prompt Generator** enforces the eight-term formula and warns when INTENT or
   EVIDENCE are blank, since those are the two omissions that let the AI decide for you.
 
+## Engine translation, interview preparation and experience
+
+Every topic page carries a tab strip: **Overview | Godot | Unity | Interview**.
+Overview is the original eight-part page, unchanged. Godot and Unity name the
+engine-native term, the nodes or components to reach for, a short real snippet
+(GDScript or C#, at most 15 lines), an engine-specific pitfall, and a one-line
+"same idea, different name" mapping back to the other engine; a topic without an
+engine counterpart (Project Management, Team Leadership) simply has no Godot or
+Unity tab, so nothing renders blank. Interview holds six to ten questions grouped
+junior / mid / senior, each with a model-answer outline, an expected follow-up
+question, and a red-flag answer, plus a **your story** textarea that is never part
+of the shipped data: it saves to `localStorage` under `story.<topicId>` so a
+designer can draft their own interview answer against the model one without that
+text ever being embedded in the file. Tabs are deep-linkable
+(`#/map/t/<id>/<tab>`, `overview` omitted from the URL) and the last tab used is
+remembered per browser.
+
+The **Experience** view (`#/experience`) turns three real, shipped projects into
+the shape an interview actually asks for: context, architecture, five to eight
+decisions each with a trade-off, what went wrong and the lesson, three to five STAR
+interview stories, and links back into the relevant topics with a reason. The
+anonymisation rule that produced them is strict and one-directional: **the
+technique travels, the names do not.** A project, company, teammate, internal
+hostname, database or schema name, or business figure never appears; a public
+library or vendor name (Go, protobuf, gorilla/mux, google/wire, Redis, Unity,
+Addressables, UniTask, Jenkins, Fusion) is fine, because naming a tool is not the
+same as naming who used it or on what.
+
 ## Interactive tools and how they were verified
 
 All eleven tools, the six diagnostics, the matrix filter, the role cards, the loop
@@ -101,6 +142,23 @@ overflow (none), the sidebar collapses behind a toggle, and the nav scrolls.
 `src/validate.js` confirms every cross-link (related topics, smell causes,
 loop parts, unfairness causes, loop steps) resolves and every topic has all
 eight sections.
+
+The Phase 3 expansion (five new domains, engine tabs, interview tabs, the
+Experience view) was checked in the browser directly, not just by build script:
+all 43 topics in the five new domains and 14 sampled topics from the original
+domains were opened and every present tab exercised (title, tab strip, snippet
+presence, no `undefined` / `[object Object]` / `NaN` / stray escape codes); the
+three Experience case studies were opened and their sections, expandable STAR
+stories and related-topic links exercised; the mind map was expanded, dragged,
+reset (both drag-reset and default-reset), zoomed and fit; search was run
+against engine, interview and case-study content and a result was opened; the
+twelve pre-existing routes were re-checked for console errors; and the whole
+guide was re-tested at a 375 px phone width, including opening the content
+drawer, switching tabs by tap, and confirming a code snippet scrolls inside
+itself without the page ever gaining a horizontal scrollbar. One real mobile
+defect was found and fixed (a long "Appears in" chip clipped past the edge of a
+375 px drawer instead of wrapping) and `check-layout.js` still reports zero
+label overlaps across all 153 map states.
 
 ## Against the brief's final quality test
 

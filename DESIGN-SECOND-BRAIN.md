@@ -101,6 +101,14 @@ non-AI action.
 - Symptom router on the home panel ("What are you trying to solve?") that routes ten
   common symptoms into the smell, cause, and experiment.
 - Reference library with official local art, and a system map that wraps node names.
+- Tab strip on every topic (Overview / Godot / Unity / Interview), added rather than
+  a second parallel page, so a topic still has exactly one URL and one place in the
+  map and rail. Overview stays the default tab because the eight-part practical
+  argument is what the whole guide teaches; the engine and interview material are a
+  translation of that argument for a specific audience (an implementer in a specific
+  engine, an interviewer), not a replacement for it, and a reader who came for the
+  design thinking should never have to click past code or interview questions to
+  reach it.
 
 ## Research notes
 
