@@ -73,7 +73,7 @@ function ensureShell(){
   if(SHELL) return;
   app.innerHTML = `<div class="shell" id="shell">
     <aside class="rail" id="rail"></aside>
-    <div class="split" id="splitL" title="Drag to resize"></div>
+    <div class="splitter" id="splitL" title="Drag to resize"></div>
     <section class="mapstage" id="mapstage">
       <div class="mapbar"><div class="mapcrumbs"></div><div class="row" style="gap:4px">
         <button class="btn sm ghost" id="mapZoomOut" title="Zoom out">－</button>
@@ -86,7 +86,7 @@ function ensureShell(){
       </div></div>
       <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="img" aria-label="Knowledge mind map"></svg><div class="maptip" id="maptip" hidden></div></div>
     </section>
-    <div class="split" id="splitR" title="Drag to resize"></div>
+    <div class="splitter" id="splitR" title="Drag to resize"></div>
     <section class="pane" id="pane"></section>
   </div><div class="scrim" id="scrim"></div><button class="drawer-close" id="drawerClose" aria-label="Close panel">✕</button>`;
   SHELL = true; wireShell();

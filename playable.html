@@ -722,8 +722,10 @@ details.comp .body{padding-top:6px}
 /* ---------- persistent shell: index | mind map | content ---------- */
 .shell{display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--paneW,460px);align-items:start}
 .rail{position:sticky;top:74px;height:calc(100vh - 74px);overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel)}
-.split{position:sticky;top:74px;height:calc(100vh - 74px);cursor:col-resize;background:var(--line)}
-.split:hover{background:var(--accent)}
+/* .splitter is the shell's drag divider; .split (above) is the two-column
+   page layout used by Prompts, Explore and the tools. Keep them apart. */
+.splitter{position:sticky;top:74px;height:calc(100vh - 74px);cursor:col-resize;background:var(--line)}
+.splitter:hover{background:var(--accent)}
 .mapstage{position:sticky;top:74px;height:calc(100vh - 74px);display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line);border-right:1px solid var(--line);background:var(--bg)}
 .mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
 .mapbar .mapcrumbs{margin:0}
@@ -811,7 +813,7 @@ details.comp .body{padding-top:6px}
 .symptom.more{border-left-color:var(--accent);color:var(--accent);text-decoration:none}
 @media (max-width:1100px){
   .shell{display:block}
-  .split{display:none}
+  .splitter{display:none}
   .mapstage{position:sticky;top:74px;height:calc(100vh - 74px)}
   .rail{position:fixed;top:0;left:0;bottom:0;width:min(86vw,340px);height:auto;padding:70px 12px 24px;z-index:80;transform:translateX(-101%);transition:transform .18s;border-right:1px solid var(--line2);box-shadow:10px 0 0 rgba(0,0,0,.18);display:block}
   .rail.open{transform:none}
@@ -15138,7 +15140,7 @@ function ensureShell(){
   if(SHELL) return;
   app.innerHTML = `<div class="shell" id="shell">
     <aside class="rail" id="rail"></aside>
-    <div class="split" id="splitL" title="Drag to resize"></div>
+    <div class="splitter" id="splitL" title="Drag to resize"></div>
     <section class="mapstage" id="mapstage">
       <div class="mapbar"><div class="mapcrumbs"></div><div class="row" style="gap:4px">
         <button class="btn sm ghost" id="mapZoomOut" title="Zoom out">－</button>
@@ -15151,7 +15153,7 @@ function ensureShell(){
       </div></div>
       <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="img" aria-label="Knowledge mind map"></svg><div class="maptip" id="maptip" hidden></div></div>
     </section>
-    <div class="split" id="splitR" title="Drag to resize"></div>
+    <div class="splitter" id="splitR" title="Drag to resize"></div>
     <section class="pane" id="pane"></section>
   </div><div class="scrim" id="scrim"></div><button class="drawer-close" id="drawerClose" aria-label="Close panel">✕</button>`;
   SHELL = true; wireShell();
