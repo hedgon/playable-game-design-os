@@ -129,6 +129,9 @@ main{flex:1;width:100%;min-width:0}
 .chip.shared{color:var(--d-ux);border-color:color-mix(in srgb,var(--d-ux) 45%,transparent)}
 .chip.evidence{color:var(--d-systems);border-color:color-mix(in srgb,var(--d-systems) 45%,transparent)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
+/* a chip inside a chip row wraps instead of running past a narrow pane
+   (the "Appears in" panel carries "Domain · long topic title" chips) */
+.chips .chip{white-space:normal;max-width:100%;min-width:0}
 .btn{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r3);padding:7px 12px;font-weight:600;font-size:.9rem;color:var(--fg)}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.primary{background:var(--accent);color:#04121c;border-color:transparent}
@@ -461,7 +464,6 @@ footer a{color:var(--fg2)}
   .toolhead{flex-direction:column}
   .promptbox pre{padding-right:14px;padding-top:40px}
   .copybtn{top:6px;right:6px}
-  .chips .chip{white-space:normal;max-width:100%}
 }
 .map-mobile{display:none;padding:10px 12px 14px}
 .map-mobile .grid{gap:8px}
