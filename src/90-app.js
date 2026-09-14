@@ -44,6 +44,7 @@ function route(){
   const view = parts[0];
   $$('#primaryNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   closeModals();
+  syncMapMode(view, parts[1]);
   switch(view){
     case 'map': return renderMap(parts[1], parts[2], parts[3]);
     case 'lab': return renderLab();
@@ -57,10 +58,20 @@ function route(){
     case 'playtest': return renderPlaytest();
     case 'prompts': return renderPrompts(parts[1]);
     case 'checklists': return renderChecklists(parts[1]);
-    case 'experience': return renderExperience(parts[1]);
+    case 'experience': return renderExperience(parts[1], parts[2], parts[3]);
     case 'sources': return renderSources();
     default: return renderMap();
   }
+}
+// The centre stage shows either the guide map or one project's map. Every
+// route that is not a project page puts it back to the guide map, whose own
+// state (open domain, selected topic, node offsets, camera) was never touched
+// while the project map was up.
+function syncMapMode(view, id){
+  if(mapMode !== 'project') return;
+  if(view === 'experience' && id && CASE_STUDIES.some(c => c.id === id)) return;
+  mapMode = 'domains';
+  if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 window.addEventListener('hashchange', route);
 $('#primaryNav').innerHTML = VIEWS.map(([id, t]) => `<button data-view="${id}" onclick="location.hash='#/${id}'">${t}</button>`).join('');
@@ -129,6 +140,21 @@ function railHTML(activeDom, activeTopic){
       <div class="railtopics">${d.topics.map(t => `<button class="railtopic ${t===activeTopic?'active':''} ${seen.has(t)?'seen':''}" data-topic="${t}">${esc(TOPICS[t].t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
 }
+// The rail follows the centre stage: in project mode it lists the projects and
+// this project's systems and parts, using the same markup the domain list uses.
+function railProjectHTML(c, sysId, partId){
+  const systems = c.systems || [];
+  return `<div class="railhead">
+      <a class="railgraph" href="#/map">← Domains</a>
+      <input class="railsearch" id="railSearch" placeholder="Jump to a part…" autocomplete="off">
+    </div>
+    <div class="railprojects"><span class="railtitle">Projects</span>${CASE_STUDIES.map(x => `<a class="railproj ${x.id === c.id ? 'active' : ''}" href="#/experience/${x.id}">${esc(x.t)}</a>`).join('')}</div>
+    <div class="raillist">${systems.map(s => `<div class="raildom ${s.id === sysId ? 'open' : ''}" data-dom="${s.id}" style="--dc:${kindColor(s.kind)}">
+      <button class="raildom-btn" data-sys="${s.id}"><span class="rdot"></span><span class="rt">${esc(s.t)}</span><span class="rn">${(s.parts || []).length}</span></button>
+      <div class="railtopics">${(s.parts || []).map(p => `<button class="railtopic ${p.id === partId ? 'active' : ''}" data-sys="${s.id}" data-part="${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}
+    </div>
+    ${systems.length ? '' : '<div class="empty">No systems written for this project yet.</div>'}`;
+}
 function railActive(){
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if(parts[0]==='map'){ if(parts[1]==='t' && TOPICS[parts[2]]) return { dom: TOPICS[parts[2]].d, topic: parts[2] }; if(parts[1]==='d' && DOM[parts[2]]) return { dom: parts[2], topic: null }; }
@@ -136,12 +162,31 @@ function railActive(){
   if(parts[0]==='explore' && DOM[parts[1]]) return { dom: parts[1], topic: null };
   return { dom: null, topic: null };
 }
+function closeRailDrawer(r){ if(window.innerWidth <= 1100){ r.classList.remove('open'); const p = $('#pane'); if(p) p.classList.add('open'); if(window.__syncScrim) window.__syncScrim(); } }
+function railFilter(r, sel){
+  const s = $('#railSearch'); if(!s) return;
+  s.addEventListener('input', () => { const q = s.value.trim().toLowerCase();
+    r.querySelectorAll('.raildom').forEach(de => { let any = false;
+      de.querySelectorAll(sel).forEach(tb => { const hit = !q || tb.textContent.toLowerCase().includes(q); tb.style.display = hit ? '' : 'none'; if(hit) any = true; });
+      const dn = de.querySelector('.rt').textContent.toLowerCase();
+      de.style.display = (!q || any || dn.includes(q)) ? '' : 'none';
+      if(q && any) de.classList.add('open'); }); });
+}
 function updateRail(){
-  ensureShell(); const r = $('#rail'); if(!r) return; const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
+  ensureShell(); const r = $('#rail'); if(!r) return;
+  const hash = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  const proj = hash[0] === 'experience' && hash[1] ? CASE_STUDIES.find(x => x.id === hash[1]) : null;
+  if(proj){
+    r.innerHTML = railProjectHTML(proj, hash[2], hash[3]);
+    r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/experience/${proj.id}` : `#/experience/${proj.id}/${b.dataset.sys}`; }));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = `#/experience/${proj.id}/${b.dataset.sys}/${b.dataset.part}`; closeRailDrawer(r); }));
+    railFilter(r, '.railtopic');
+    return;
+  }
+  const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
-  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; if(window.innerWidth <= 1100){ r.classList.remove('open'); const p = $('#pane'); if(p) p.classList.add('open'); if(window.__syncScrim) window.__syncScrim(); } }));
-  const s = $('#railSearch');
-  if(s) s.addEventListener('input', () => { const q = s.value.trim().toLowerCase(); r.querySelectorAll('.raildom').forEach(de => { let any = false; de.querySelectorAll('.railtopic').forEach(tb => { const hit = !q || tb.textContent.toLowerCase().includes(q); tb.style.display = hit ? '' : 'none'; if(hit) any = true; }); const dn = de.querySelector('.rt').textContent.toLowerCase(); de.style.display = (!q || any || dn.includes(q)) ? '' : 'none'; if(q && any) de.classList.add('open'); }); });
+  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; closeRailDrawer(r); }));
+  railFilter(r, '.railtopic');
 }
 function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button onclick="location.hash='${it[1]}'">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
@@ -246,6 +291,21 @@ function sectionBody(key, t){
   return '';
 }
 
+// Reverse index from every project part's `rel` back to the guide topic it
+// demonstrates. Built once, on first use, and shared by three readers: the
+// "Seen in practice" chips below, the runtime view links the domain map's
+// leaves travel through, and the map itself.
+let _PRACTICE = null;
+function practice(){
+  if(!_PRACTICE){ _PRACTICE = PlayableGraph.practiceLinks(CASE_STUDIES, 2); Object.assign(VIEW_LINKS, _PRACTICE.views); }
+  return _PRACTICE;
+}
+function practiceChips(topicId){
+  const hits = practice().hits[topicId] || [];
+  if(!hits.length) return '';
+  return `<div class="small" style="margin-top:8px"><b>Seen in practice:</b> one part of a shipped project that is this idea in the field.</div>
+    <div class="chips" style="margin-top:5px">${hits.map(h => `<span class="chip prac" title="${esc(h.why)}" onclick="location.hash='#/experience/${h.cs.id}/${h.sys.id}/${h.part.id}'">◆ ${esc(h.cs.t)} · ${esc(h.part.t)}</span>`).join('')}</div>`;
+}
 function topicContexts(t){
   return {
     home: DOM[t.d],
@@ -263,7 +323,8 @@ function contextsPanel(t){
     <div class="chips" style="margin-top:8px">${chips.join('')}</div>
     ${c.smells.length ? `<div class="small" style="margin-top:8px"><b>Diagnoses smells:</b> ${c.smells.map(s => `<a href="#/smell/${s.id}">${esc(s.t)}</a>`).join(', ')}</div>` : ''}
     ${c.loops.length ? `<div class="small" style="margin-top:4px"><b>Core-loop links:</b> ${c.loops.map(p => esc(p.t)).join(', ')}</div>` : ''}
-    ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(s => `<a href="#/ai/loop/${s.n}">${s.n}</a>`).join(', ')}</div>` : ''}</div>`;
+    ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(s => `<a href="#/ai/loop/${s.n}">${s.n}</a>`).join(', ')}</div>` : ''}
+    ${practiceChips(t.id)}</div>`;
 }
 function renderConcepts(){
   const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));
@@ -995,6 +1056,7 @@ function casePage(c){
   return `${crumbs([['Map','#/map'],['Experience','#/experience'],[c.t]])}
     <div class="casehead"><h1>${esc(c.t)}</h1><div class="chips">${[c.role, c.period].map(x => `<span class="chip">${esc(x)}</span>`).join('')}${c.stack.map(s => `<span class="chip api">${esc(s)}</span>`).join('')}</div></div>
     <p class="dim" style="max-width:820px">${esc(c.context)}</p>
+    ${systemsSection(c)}
     <div class="section-head"><h2>Architecture</h2><span class="muted">what the pieces were</span></div>
     <ul class="archlist">${c.arch.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
     <div class="section-head"><h2>Decisions</h2><span class="muted">each one cost something</span></div>
@@ -1006,9 +1068,68 @@ function casePage(c){
     <div class="section-head"><h2>Related concepts</h2><span class="muted">what this case is evidence for</span></div>
     <div class="related">${c.rel.map(([rid, why]) => { const rt = TOPICS[rid]; if(!rt) return ''; return `<div class="rel" onclick="location.hash='#/map/t/${rid}'" style="border-left:3px solid ${DOM[rt.d].color}"><b>${esc(rt.t)}</b><div class="why">${esc(why)}</div></div>`; }).join('')}</div>`;
 }
-function renderExperience(id){
+/* ---------- a case study as a browsable project ---------- */
+const kindColor = k => (KIND_COLOR[k] || 'var(--accent2)');
+const kindChip = k => `<span class="chip kind" style="--dc:${kindColor(k)}">${esc(KIND_LABEL[k] || k)}</span>`;
+const partCount = s => `${(s.parts || []).length} part${(s.parts || []).length === 1 ? '' : 's'}`;
+function findPart(c, pid){ for(const s of (c.systems || [])){ const p = (s.parts || []).find(x => x.id === pid); if(p) return { s, p }; } return null; }
+function sysCard(c, s){
+  return `<div class="card clickable tint" style="--dc:${kindColor(s.kind)}" onclick="location.hash='#/experience/${c.id}/${s.id}'">
+    <div class="chips" style="margin-bottom:7px">${kindChip(s.kind)}<span class="chip">${partCount(s)}</span></div>
+    <b>${esc(s.t)}</b><div class="small dim" style="margin-top:5px">${esc(s.sum)}</div></div>`;
+}
+function systemsSection(c){
+  const systems = c.systems || [];
+  if(!systems.length) return '';
+  return `<div class="section-head"><h2>Systems</h2><span class="muted">the pieces, and what is inside each</span></div>
+    <p class="small muted" style="margin:0 0 10px">The map in the centre is this project. Click a system to open its parts, click a part to read it and to see which topics of the guide it demonstrates.</p>
+    <div class="grid auto">${systems.map(s => sysCard(c, s)).join('')}</div>`;
+}
+function relCards(rel){
+  return `<div class="related">${(rel || []).map(([rid, why]) => { const rt = TOPICS[rid]; if(!rt) return ''; return `<div class="rel" onclick="location.hash='#/map/t/${rid}'" style="border-left:3px solid ${DOM[rt.d].color}"><b>${esc(rt.t)}</b><div class="why">${esc(why)}</div></div>`; }).join('')}</div>`;
+}
+function systemPage(c, s){
+  const dc = kindColor(s.kind), parts = s.parts || [];
+  return `${crumbs([['Experience','#/experience'],[c.t,'#/experience/'+c.id],[s.t]])}
+    <div class="casehead" style="border-left-color:${dc}">
+      <div class="chips" style="margin-bottom:7px">${kindChip(s.kind)}<span class="chip">${partCount(s)}</span></div>
+      <h1>${esc(s.t)}</h1>
+      <div class="chips">${(s.stack || []).map(x => `<span class="chip api">${esc(x)}</span>`).join('')}</div></div>
+    <p class="dim" style="max-width:820px">${esc(s.sum)}</p>
+    <div class="section-head"><h2>Parts</h2><span class="muted">what each one is, and the decision behind it</span></div>
+    <div class="grid auto">${parts.map(p => `<div class="card clickable tint" style="--dc:${dc}" onclick="location.hash='#/experience/${c.id}/${s.id}/${p.id}'">
+      <b>${esc(p.t)}</b><div class="small dim" style="margin-top:6px">${esc(p.what)}</div>
+      <div class="small" style="margin-top:6px"><b>Why.</b> ${esc(p.why)}</div></div>`).join('')}</div>
+    <div class="topic-nav"><button class="btn ghost" onclick="location.hash='#/experience/${c.id}'">← ${esc(c.t)}</button></div>`;
+}
+function partPage(c, s, p){
+  const dc = kindColor(s.kind), parts = s.parts || [], i = parts.indexOf(p);
+  const prev = i > 0 ? parts[i-1] : null, next = i < parts.length - 1 ? parts[i+1] : null;
+  const linked = (p.links || []).map(([pid, why]) => { const o = findPart(c, pid); return o ? `<div class="small partlink"><span class="chip" onclick="location.hash='#/experience/${c.id}/${o.s.id}/${o.p.id}'">${esc(o.p.t)}</span> <span class="why">${esc(why)}</span></div>` : ''; }).join('');
+  return `${crumbs([['Experience','#/experience'],[c.t,'#/experience/'+c.id],[s.t,`#/experience/${c.id}/${s.id}`],[p.t]])}
+    <div class="casehead" style="border-left-color:${dc}">
+      <div class="chips" style="margin-bottom:7px">${kindChip(s.kind)}<span class="chip">${esc(s.t)}</span><span class="chip">${i+1} of ${parts.length}</span></div>
+      <h1>${esc(p.t)}</h1></div>
+    <p class="dim" style="max-width:820px">${esc(p.what)}</p>
+    <div class="section-head"><h2>How it actually worked</h2></div>
+    <ol class="howlist" style="--dc:${dc}">${(p.how || []).map(h => `<li>${esc(h)}</li>`).join('')}</ol>
+    <div class="callout"><b>Why it was done this way.</b> ${esc(p.why)}</div>
+    <div class="callout warn"><b>What it cost.</b> ${esc(p.trade)}</div>
+    ${p.story ? `<div class="section-head"><h2>The story</h2><span class="muted">a draft to rewrite in your own words</span></div><div class="card"><p style="margin:0">${esc(p.story)}</p></div>` : ''}
+    <div class="section-head"><h2>Topics this demonstrates</h2><span class="muted">read the idea, then come back</span></div>
+    ${relCards(p.rel)}
+    ${linked ? `<div class="section-head"><h2>Depends on</h2><span class="muted">other parts of this project</span></div><div class="stack">${linked}</div>` : ''}
+    <div class="topic-nav">${prev ? `<button class="btn" onclick="location.hash='#/experience/${c.id}/${s.id}/${prev.id}'">← ${esc(prev.t)}</button>` : `<button class="btn ghost" onclick="location.hash='#/experience/${c.id}/${s.id}'">← ${esc(s.t)}</button>`}<button class="btn ghost" onclick="location.hash='#/experience/${c.id}'">Project</button>${next ? `<button class="btn" onclick="location.hash='#/experience/${c.id}/${s.id}/${next.id}'">${esc(next.t)} →</button>` : `<button class="btn" onclick="location.hash='#/experience'">All projects →</button>`}</div>`;
+}
+function renderExperience(id, sysId, partId){
   const c = CASE_STUDIES.find(x => x.id === id);
-  if(c) return setView(casePage(c));
+  if(c){
+    const s = (c.systems || []).find(x => x.id === sysId) || null;
+    const p = s ? (s.parts || []).find(x => x.id === partId) || null : null;
+    enterProject(c, s, p);
+    setView(p ? partPage(c, s, p) : s ? systemPage(c, s) : casePage(c));
+    return renderTree(p ? 'part' : s ? 'sys' : 'home');
+  }
   setView(`${crumbs([['Map','#/map'],['Experience']])}<h1>Experience</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
     ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/29-data-experience.js and appear here as soon as one is written.</div>'}`);
 }
@@ -1024,6 +1145,7 @@ const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map
 TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
 TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.role} · ${c.period} · ${c.stack.join(', ')}`, href:'#/experience/'+c.id, text:(c.t+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
+CASE_STUDIES.forEach(c => (c.systems||[]).forEach(s => (s.parts||[]).forEach(p => INDEX.push({ type:'experience', t:c.t+' · '+p.t, snip:`${s.t} · ${p.why}`, href:`#/experience/${c.id}/${s.id}/${p.id}`, text:(c.t+' '+s.t+' '+s.kind+' '+(s.stack||[]).join(' ')+' '+p.t+' '+p.what+' '+(p.how||[]).join(' ')+' '+p.why+' '+p.trade+' '+(p.story||'')).toLowerCase() }))));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));

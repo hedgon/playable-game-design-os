@@ -12,7 +12,8 @@ const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_S
 // an error to a warning count. Shape errors in the data that IS there always
 // fail, in both modes.
 const STRICT = !(process.env.PLAYABLE_STRICT === '0' || process.argv.includes('--lenient'));
-const warns = { eng: 0, iv: 0 };
+const warns = { eng: 0, iv: 0, sys: 0, few: 0 };
+const SYSTEM_KINDS = new Set(['client', 'server', 'backend', 'data', 'infra', 'cicd', 'tooling', 'process']);
 const VIEW_LINKS = ['playtest-view','ai-roles-view','matrix-view','loop-view','ai-failures-view','checklists-view','prompt-library','should-we-build-this'];
 const errors = [];
 const domIds = new Set(DOMAINS.map(d => d.id));
@@ -74,6 +75,47 @@ for (const c of (CASE_STUDIES || [])) {
   }
   if (!Array.isArray(c.rel) || !c.rel.length) errors.push(`${where}: rel empty`);
   else for (const [rid, why] of c.rel) { if (!TOPICS[rid]) errors.push(`${where}: rel -> unknown topic ${rid}`); if (!why || !String(why).trim()) errors.push(`${where}: rel ${rid} has no why`); }
+  // systems: the case as a browsable project. Content lands file by file, so
+  // a case with no systems at all is a warning in lenient mode; anything
+  // that IS there is shape-checked in both modes.
+  if (c.systems === undefined) { if (STRICT) errors.push(`${where}: missing systems`); else warns.sys++; }
+  else if (!Array.isArray(c.systems)) errors.push(`${where}: systems must be an array`);
+  else {
+    // Too few systems is incompleteness, so lenient mode counts it as a warning
+    // the way a missing eng tab is. Too many is over budget for the map and
+    // always fails.
+    if (c.systems.length > 8) errors.push(`${where}: has ${c.systems.length} systems, expected 5 to 8`);
+    else if (c.systems.length < 5) { if (STRICT) errors.push(`${where}: has ${c.systems.length} systems, expected 5 to 8`); else warns.few++; }
+    const sysIds = new Set(), partIds = new Set();
+    for (const s of c.systems) {
+      const sw = `${where} system ${s.id || '(no id)'}`;
+      for (const k of ['id', 't', 'kind', 'sum']) if (!s[k] || !String(s[k]).trim()) errors.push(`${sw}: ${k} empty`);
+      if (s.kind && !SYSTEM_KINDS.has(s.kind)) errors.push(`${sw}: unknown kind "${s.kind}", expected one of ${[...SYSTEM_KINDS].join(', ')}`);
+      if (!Array.isArray(s.stack) || !s.stack.length || s.stack.some(x => !String(x).trim())) errors.push(`${sw}: stack must be a non-empty array of non-empty strings`);
+      if (sysIds.has(s.id)) errors.push(`${sw}: duplicate system id`); else sysIds.add(s.id);
+      if (!Array.isArray(s.parts) || s.parts.length < 2 || s.parts.length > 5) { errors.push(`${sw}: has ${Array.isArray(s.parts) ? s.parts.length : 'no'} parts, expected 2 to 5`); continue; }
+      for (const p of s.parts) {
+        const pw = `${sw} part ${p.id || '(no id)'}`;
+        for (const k of ['id', 't', 'what', 'why', 'trade']) if (!p[k] || !String(p[k]).trim()) errors.push(`${pw}: ${k} empty`);
+        if (p.id && s.id && !String(p.id).startsWith(s.id + '-')) errors.push(`${pw}: part id must start with "${s.id}-"`);
+        if (partIds.has(p.id)) errors.push(`${pw}: duplicate part id`); else partIds.add(p.id);
+        if (!Array.isArray(p.how) || !p.how.length || p.how.some(x => !String(x).trim())) errors.push(`${pw}: how must be a non-empty array of non-empty strings`);
+        if (!Array.isArray(p.rel) || !p.rel.length) errors.push(`${pw}: rel must name at least one topic`);
+        else for (const [rid, why] of p.rel) { if (!TOPICS[rid]) errors.push(`${pw}: rel -> unknown topic ${rid}`); if (!why || !String(why).trim()) errors.push(`${pw}: rel ${rid} has no why`); }
+        if (p.story !== undefined && !String(p.story).trim()) errors.push(`${pw}: story present but empty`);
+      }
+    }
+    // links resolve only after every part id in the project is known.
+    for (const s of c.systems) for (const p of (Array.isArray(s.parts) ? s.parts : [])) {
+      if (p.links === undefined) continue;
+      if (!Array.isArray(p.links)) { errors.push(`${where} part ${p.id}: links must be an array`); continue; }
+      for (const [pid, why] of p.links) {
+        if (!partIds.has(pid)) errors.push(`${where} part ${p.id}: links -> unknown part ${pid} in this project`);
+        if (pid === p.id) errors.push(`${where} part ${p.id}: links to itself`);
+        if (!why || !String(why).trim()) errors.push(`${where} part ${p.id}: links ${pid} has no why`);
+      }
+    }
+  }
 }
 for (const d of DOMAINS) for (const [to] of d.links) if (!domIds.has(to)) errors.push(`domain ${d.id}: link -> unknown ${to}`);
 for (const s of SMELLS) { for (const c of s.causes) if (!TOPICS[c.top]) errors.push(`smell ${s.id}: cause -> unknown topic ${c.top}`); for (const d of s.dom) if (!domIds.has(d)) errors.push(`smell ${s.id}: unknown domain ${d}`); if (s.fun && !s.dims?.length) errors.push(`smell ${s.id}: fun without dims`); }
@@ -89,8 +131,11 @@ LOOP_STEPS.forEach(s => s.top.forEach(t => inbound.add(t)));
 const orphans = topics.filter(t => !inbound.has(t.id)).map(t => t.id);
 console.log(`domains: ${DOMAINS.length}, topics: ${topics.length}, smells: ${SMELLS.length}, roles: ${ctx.ROLES.length}, failures: ${ctx.FAILURES.length}, prompts: ${ctx.PROMPT_TEMPLATES.length}, checklists: ${ctx.CHECKLISTS.length}`);
 console.log('topics per domain:', DOMAINS.map(d => `${d.id}=${topics.filter(t => t.d === d.id).length}`).join(' '));
+const sysCases = (CASE_STUDIES || []).filter(c => Array.isArray(c.systems));
+const partCount = sysCases.reduce((n, c) => n + c.systems.reduce((m, s) => m + (Array.isArray(s.parts) ? s.parts.length : 0), 0), 0);
 console.log(`case studies: ${(CASE_STUDIES || []).length}, engine views: ${topics.filter(t => t.eng).length}, interview views: ${topics.filter(t => t.iv).length}`);
+console.log(`projects with systems: ${sysCases.length}, systems: ${sysCases.reduce((n, c) => n + c.systems.length, 0)}, parts: ${partCount}`);
 if (orphans.length) console.log('WARN topics with no inbound links:', orphans.join(', '));
-if (!STRICT) console.log(`WARN lenient mode: ${warns.eng} topics missing eng, ${warns.iv} topics missing iv`);
+if (!STRICT) console.log(`WARN lenient mode: ${warns.eng} topics missing eng, ${warns.iv} topics missing iv, ${warns.sys} case studies with no systems, ${warns.few} with fewer than 5`);
 if (errors.length) { console.log('ERRORS:\n' + errors.join('\n')); process.exit(1); }
 console.log('OK: all cross-links resolve, all topics complete.');

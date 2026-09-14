@@ -32,13 +32,18 @@ function sat(A, B) {
 const anyOv = (ps, qs) => ps.some(p => qs.some(q => sat(p, q)));
 
 // Returns { states, problems }. A problem is a human-readable string.
-function overlaps(G, DOMAINS, TOPICS) {
+// CASE_STUDIES is optional; when given, every project map state is rendered
+// too (project overview, each system open, each part selected) and the
+// "seen in practice" leaves are fed into the domain states, so the checker
+// sees the same fourth layer the app draws.
+function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES) {
   DOMAINS.forEach(d => d.topics = Object.values(TOPICS).filter(t => t.d === d.id).map(t => t.id));
   const seen = new Set();
+  const pl = G.practiceLinks ? G.practiceLinks(CASE_STUDIES || []) : { views: {}, extra: {} };
   let states = 0; const problems = [];
-  const check = (state, name) => {
+  const scan = (inner, name) => {
     states++;
-    const b = boxes(G.build(state, seen).inner);
+    const b = boxes(inner);
     for (let i = 0; i < b.length; i++) for (let j = i + 1; j < b.length; j++) {
       if (anyOv(b[i].polys, b[j].polys)) problems.push(`${name}: label "${b[i].id}" overlaps label "${b[j].id}"`);
       if (b[j].disc && anyOv(b[i].polys, [b[j].disc])) problems.push(`${name}: label "${b[i].id}" overlaps node "${b[j].id}"`);
@@ -46,8 +51,20 @@ function overlaps(G, DOMAINS, TOPICS) {
       if (b[i].disc && b[j].disc && anyOv([b[i].disc], [b[j].disc])) problems.push(`${name}: node "${b[i].id}" overlaps node "${b[j].id}"`);
     }
   };
+  const check = (state, name) => scan(G.build(state, seen, pl.views).inner, name);
   check({ dom: null, topic: null }, 'overview');
-  for (const d of DOMAINS) { check({ dom: d.id, topic: null }, `open:${d.id}`); for (const t of d.topics) check({ dom: d.id, topic: t }, `sel:${t}`); }
+  for (const d of DOMAINS) {
+    check({ dom: d.id, topic: null }, `open:${d.id}`);
+    for (const t of d.topics) check({ dom: d.id, topic: t, extra: pl.extra[t] || [] }, `sel:${t}`);
+  }
+  for (const c of (CASE_STUDIES || [])) {
+    if (!c.systems || !c.systems.length) continue;
+    scan(G.buildProject(c, { sys: null, part: null }, TOPICS, DOMAINS).inner, `proj:${c.id}`);
+    for (const s of c.systems) {
+      scan(G.buildProject(c, { sys: s.id, part: null }, TOPICS, DOMAINS).inner, `proj:${c.id}/${s.id}`);
+      for (const p of (s.parts || [])) scan(G.buildProject(c, { sys: s.id, part: p.id }, TOPICS, DOMAINS).inner, `proj:${c.id}/${s.id}/${p.id}`);
+    }
+  }
   return { states, problems };
 }
 module.exports = { boxes, sat, overlaps };

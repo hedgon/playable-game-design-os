@@ -23,6 +23,44 @@
 const CASE_STUDIES = [];
 function CASE(o){ CASE_STUDIES.push(o); }
 
+/* ---------------------------------------------------------------------
+   PROJECT SYSTEMS
+   A case study is also a browsable project: its systems and the parts
+   inside each, drawn as a mind map under #/experience/<cs>. Attached to an
+   existing case the same way ENGINE and INTERVIEW attach to a topic, so
+   the systems live in their own files (33-35) and the case stays readable.
+
+   SYSTEMS('cs-id', [{
+     id:'', t:'', kind:'',                  // kind is one of KIND_COLOR below
+     sum:'',                                // one or two sentences: what this system is
+     stack:[''],                            // public tech names only
+     parts:[{
+       id:'',                               // prefixed by the system id: "api-routing"
+       t:'',
+       what:'',                             // 2-4 sentences: what it is and how it fits
+       how:[''],                            // 3-6 bullets: how it actually worked
+       why:'',                              // the decision behind it, 1-3 sentences
+       trade:'',                            // what it cost, 1-3 sentences
+       rel:[['topic-id','why this part demonstrates that topic']],   // at least one
+       links:[['part-id','why it depends on that part']],            // optional, same project
+       story:''                             // optional first-person interview paragraph
+     }]
+   }])
+
+   6 to 8 systems per project, 2 to 5 parts each. Ids unique within a
+   project. The same anonymisation rule as the case itself applies to every
+   string: the technique travels, the names do not.
+   --------------------------------------------------------------------- */
+const KIND_COLOR = {
+  client:'var(--d-ux)', server:'var(--d-server)', backend:'var(--d-backend)', data:'var(--d-systems)',
+  infra:'var(--d-infra)', cicd:'var(--d-production)', tooling:'var(--d-studio)', process:'var(--d-management)'
+};
+const KIND_LABEL = {
+  client:'Client', server:'Game server', backend:'Backend', data:'Data',
+  infra:'Infrastructure', cicd:'CI / CD', tooling:'Tooling', process:'Process'
+};
+function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('SYSTEMS: unknown case ' + csId); c.systems = arr; }
+
 CASE({
   id:'cs-go-game-backend',
   t:'A Go backend for a live mobile game',

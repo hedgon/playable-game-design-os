@@ -25,7 +25,48 @@ function openStart(){ closeModals(); const el = $('#startPaths'); if(el) el.inne
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
 function saveMap(){ store.set('mapState', mapState); }
 
+/* ---- two maps, one stage ----
+   'domains' draws the guide. 'project' draws one case study as systems and
+   parts. The two states never touch: leaving a project restores the domain
+   map exactly as it was, and coming back to a project restores that project.
+   Each project keeps its own open system, selected part, node offsets and
+   camera under projMap.<cs>. */
+let mapMode = 'domains';
+let projState = null;
+function saveProj(){ if(projState) store.set('projMap.' + projState.cs, projState); }
+function projCase(){ return projState ? CASE_STUDIES.find(x => x.id === projState.cs) : null; }
+// Called by the router before the pane renders: the route is the truth about
+// which system is open and which part is selected, the store only supplies the
+// camera and the dragged-node offsets.
+function enterProject(c, s, p){
+  if(!projState || projState.cs !== c.id) projState = Object.assign({ sys:null, part:null, off:{}, vb:null }, store.get('projMap.' + c.id, {}), { cs:c.id });
+  projState.sys = s ? s.id : null;
+  projState.part = p ? p.id : null;
+  mapMode = 'project';
+  saveProj();
+}
+function curState(){ return mapMode === 'project' && projState ? projState : mapState; }
+function saveCur(){ if(mapMode === 'project') saveProj(); else saveMap(); }
+// The domain map's fourth layer gains the project parts that demonstrate the
+// selected topic. They are runtime links, not data, so they ride along on a
+// copy of mapState instead of being stored in it.
+function buildGraph(){
+  const c = projCase();
+  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, projState, TOPICS, DOMAINS);
+  const pr = practice();
+  return PlayableGraph.build(Object.assign({}, mapState, { extra: (mapState.topic && pr.extra[mapState.topic]) || [] }), seen, VIEW_LINKS);
+}
+
 function mapCrumbs(){
+  if(mapMode === 'project'){
+    const c = projCase(); if(!c) return `<div class="mapcrumbs"></div>`;
+    const s = (c.systems || []).find(x => x.id === projState.sys);
+    const parts = [`<button onclick="location.hash='#/experience'">Projects</button>`, `<span>›</span><button onclick="location.hash='#/experience/${c.id}'">${esc(c.t)}</button>`];
+    if(s) parts.push(`<span>›</span><button onclick="location.hash='#/experience/${c.id}/${s.id}'">${esc(s.t)}</button>`);
+    const p = s ? (s.parts || []).find(x => x.id === projState.part) : null;
+    if(p) parts.push(`<span>›</span><b>${esc(p.t)}</b>`);
+    return `<div class="mapcrumbs">${parts.join('')}</div>`;
+  }
   const parts = [`<button onclick="location.hash='#/map/home'">All domains</button>`];
   if(mapState.dom && DOM[mapState.dom]) parts.push(`<span>›</span><button onclick="location.hash='#/map/d/${mapState.dom}'">${esc(DOM[mapState.dom].t)}</button>`);
   if(mapState.topic && TOPICS[mapState.topic]) parts.push(`<span>›</span><button onclick="location.hash='#/map/t/${mapState.topic}'">${esc(TOPICS[mapState.topic].t)}</button>`);
@@ -80,16 +121,30 @@ function mapAnimateTo(to, ms=480){
   M.anim = { h: nextFrame(step) };
 }
 function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim = null; } }
-function mapPersistCamera(){ if(!MAP) return; mapState.vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h }; store.set('mapState', mapState); }
+function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h }; saveCur(); }
 
+function projTipHTML(n){
+  const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
+  const c = projCase(); if(!c) return '';
+  if(kind==='center') return `<b style="color:var(--accent2)">${esc(c.t)}</b><div>${esc(c.role)} · ${esc(c.period)}</div><div class="muted">${projState.sys ? 'click to collapse back to the project' : 'click to read the project page'}</div>`;
+  if(kind==='domain'){ const s = (c.systems||[]).find(x => x.id===id); if(!s) return ''; return `<b style="color:${KIND_COLOR[s.kind]||'var(--accent2)'}">${esc(s.t)}</b><div>${esc(s.sum)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${(s.parts||[]).length} parts`}</div>`; }
+  if(kind==='topic'){ const s = (c.systems||[]).find(x => x.id===projState.sys); const p = s && (s.parts||[]).find(x => x.id===id); if(!p) return ''; return `<b>${esc(p.t)}</b><div>${esc(p.why)}</div><div class="muted">click to read this part</div>`; }
+  if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${why?`<div class="why"><b>What it demonstrates:</b> ${esc(why)}</div>`:''}<div class="muted">click to read the topic on the guide map</div>`; }
+  return '';
+}
 function mapTipHTML(n){
+  if(n.dataset.scope === 'project') return projTipHTML(n);
   const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
   if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom || mapState.topic || mapState.smell ? 'click to reset the branch' : 'click for the starting paths'}</div>`;
   if(kind==='domain'){ const d = DOM[id]; return `<b style="color:${d.color}">${esc(d.t)}</b><div>${esc(d.short)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':'click to expand and read'}</div>`; }
   if(kind==='topic'){ const t = TOPICS[id]; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div><div class="muted">click to read in the panel</div>`; }
   if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${why?`<div class="why"><b>Why it connects:</b> ${esc(why)}</div>`:''}<div class="muted">click to open this concept</div>`; }
   if(kind==='smell'){ const s = SMELLS.find(x => x.id===id); return `<b style="color:var(--bad)">Design smell</b><div>${esc(s?s.t:id)}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open in Diagnose</div>`; }
-  if(kind==='view'){ const v = VIEW_LINKS[id]; return `<b style="color:var(--accent2)">Tool</b><div>${esc(v?v[1]:id)}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open</div>`; }
+  if(kind==='view'){ const v = VIEW_LINKS[id];
+    // v[2] is only set on the runtime "seen in practice" links, where it names
+    // the project the part belongs to.
+    if(v && v[2]) return `<b style="color:var(--accent2)">Seen in practice</b><div>${esc(v[2])}</div><div>${esc(v[1].replace(/^◆\s*/, ''))}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open that part of the project</div>`;
+    return `<b style="color:var(--accent2)">Tool</b><div>${esc(v?v[1]:id)}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open</div>`; }
   return '';
 }
 function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
@@ -102,7 +157,16 @@ function mapHover(n, e){
   $$('.edge', M.svg).forEach(ed => { const hit = ed.dataset.a === key || ed.dataset.b === key; ed.classList.toggle('hl', hit); if(hit){ const other = ed.dataset.a === key ? ed.dataset.b : ed.dataset.a; const on = other && M.svg.querySelector(`.node[data-key="${other}"]`); if(on) on.classList.add('hl'); } });
   if(e && e.pointerType !== 'touch'){ M.tip.innerHTML = mapTipHTML(n); M.tip.hidden = false; mapMoveTip(e); }
 }
+function projClick(n){
+  const kind = n.dataset.kind, id = n.dataset.id, c = projCase();
+  if(!c) return;
+  if(kind==='center') return go(`#/experience/${c.id}`);
+  if(kind==='domain') return go(n.classList.contains('open') ? `#/experience/${c.id}` : `#/experience/${c.id}/${id}`);
+  if(kind==='topic') return go(`#/experience/${c.id}/${projState.sys}/${id}`);
+  if(kind==='leaf') return go('#/map/t/' + id);
+}
 function mapClick(n){
+  if(n.dataset.scope === 'project') return projClick(n);
   const kind = n.dataset.kind, id = n.dataset.id;
   if(kind==='center'){ if(mapState.dom || mapState.topic || mapState.smell) return go('#/map/home'); return openStart(); }
   if(kind==='domain') return go(n.classList.contains('open') ? '#/map/home' : '#/map/d/'+id);
@@ -116,13 +180,20 @@ function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bb
 window.__fitMap = fitMap;
 function redrawGraph(){
   if(!MAP || !document.body.contains(MAP.svg)) return;
-  const g = PlayableGraph.build(mapState, seen, VIEW_LINKS);
+  const g = buildGraph();
   g.focus = treeFocus(g);
   MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
 }
-function resetMapDrag(){ mapState.off = {}; saveMap(); redrawGraph(); }
+function resetMapDrag(){ curState().off = {}; saveCur(); redrawGraph(); }
 function resetMapDefault(){
+  if(mapMode === 'project' && projState){
+    const c = projCase();
+    projState.sys = null; projState.part = null; projState.off = {}; projState.vb = null;
+    saveProj();
+    if(MAP) MAP.vb = null;
+    return go('#/experience/' + (c ? c.id : projState.cs));
+  }
   mapState.dom = null; mapState.topic = null; mapState.smell = null;
   mapState.off = {}; mapState.vb = null;
   saveMap();
@@ -137,15 +208,18 @@ function initMapStage(){
   const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); mapPersistCamera(); };
   let drag = null, nodeDrag = null, suppressClick = false, pinch = null, raf = 0; const touchPts = new Map();
   const nodeKeyAt = e => { const n = e.target.closest ? e.target.closest('.node') : null; return n ? n.dataset.key : null; };
-  const startNode = (key, x, y, id) => { const o = (mapState.off && mapState.off[key]) || { x:0, y:0 }; nodeDrag = { key, id, x, y, base:{ x:o.x, y:o.y }, moved:false }; };
+  // Offsets belong to whichever map is on stage, so a nudge on the project map
+  // never lands in the domain map's saved layout.
+  const startNode = (key, x, y, id) => { const off = curState().off; const o = (off && off[key]) || { x:0, y:0 }; nodeDrag = { key, id, x, y, base:{ x:o.x, y:o.y }, moved:false }; };
   const moveNode = e => {
     if(nodeDrag.id !== undefined && e.pointerId !== undefined && e.pointerId !== nodeDrag.id) return;
     const r = svg.getBoundingClientRect();
     const dx = (e.clientX - nodeDrag.x)/r.width*MAP.vb.w, dy = (e.clientY - nodeDrag.y)/r.height*MAP.vb.h;
     if(Math.abs(e.clientX-nodeDrag.x)+Math.abs(e.clientY-nodeDrag.y) > 4) nodeDrag.moved = true;
     if(!nodeDrag.moved) return;
-    mapState.off = mapState.off || {};
-    mapState.off[nodeDrag.key] = { x: nodeDrag.base.x + dx, y: nodeDrag.base.y + dy };
+    const st = curState();
+    st.off = st.off || {};
+    st.off[nodeDrag.key] = { x: nodeDrag.base.x + dx, y: nodeDrag.base.y + dy };
     if(!raf) raf = requestAnimationFrame(() => { raf = 0; redrawGraph(); });
   };
   svg.addEventListener('pointerdown', e => {
@@ -169,7 +243,7 @@ function initMapStage(){
     if(nodeDrag){ moveNode(e); return; }
     if(!drag) return; const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } };
   const onUp = e => {
-    if(nodeDrag){ if(nodeDrag.moved){ saveMap(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } nodeDrag = null; if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
+    if(nodeDrag){ if(nodeDrag.moved){ saveCur(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } nodeDrag = null; if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
     if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
     if(drag && drag.moved){ mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
@@ -186,7 +260,8 @@ function initMapStage(){
 }
 function treeFocus(g){
   if(!g.nodes) return null;
-  const dom = g.nodes.find(n => n.kind==='domain' && n.id===mapState.dom);
+  const openId = mapMode === 'project' ? (projState && projState.sys) : mapState.dom;
+  const dom = openId ? g.nodes.find(n => n.kind==='domain' && n.id===openId) : null;
   if(!dom) return null;
   const xs = [], ys = [];
   const walk = n => { xs.push(n.x, n.x + n.w); ys.push(n.y - n.h/2, n.y + n.h/2); (n.children || []).forEach(walk); };
@@ -195,14 +270,25 @@ function treeFocus(g){
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   return { x: minX - 20, y: top, w: maxX - minX + 40, h: bot - top };
 }
+// `stageKey` is the mode plus, in project mode, which project: switching stage
+// swaps the camera for the one that stage last had instead of carrying the
+// other map's viewBox across.
+let mapStage = null;
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
-  const g = PlayableGraph.build(mapState, seen, VIEW_LINKS);
+  const st = curState();
+  const g = buildGraph();
   g.focus = treeFocus(g);
   MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
   const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
-  const stored = mapState.vb && mapState.vb.w ? mapState.vb : null;
+  const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : 'domains';
+  if(mapStage !== stageKey){
+    mapStage = stageKey; mapStopAnim();
+    MAP.vb = st.vb && st.vb.w ? Object.assign({}, st.vb) : null;
+    if(MAP.vb) applyVB(MAP.svg, MAP.vb);
+  }
+  const stored = st.vb && st.vb.w ? st.vb : null;
   if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
   let target = cameraTarget(g, stored || MAP.vb, kind);
   if(window.innerWidth <= 1100 && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
@@ -212,6 +298,7 @@ function renderTree(kind){
 // view the content pane shows and is deliberately kept out of mapState: the
 // tree does not change when the tab does.
 function renderMap(kind, id, tab){
+  mapMode = 'domains';
   if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
   else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; }
   else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; setTopicTab(TOPICS[id], tab); }

@@ -26,6 +26,9 @@ const DATA = [
   '30-data-engine-a.js',
   '31-data-engine-b.js',
   '32-data-engine-c.js',
+  '33-data-experience-systems-a.js',
+  '34-data-experience-systems-b.js',
+  '35-data-experience-systems-c.js',
   '40-data-interview-a.js',
   '41-data-interview-b.js',
   '42-data-interview-c.js'
