@@ -208,10 +208,13 @@ function renderTree(kind){
   if(window.innerWidth <= 1100 && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
   mapAnimateTo(target);
 }
-function renderMap(kind, id){
+// `tab` is the fourth route part (#/map/t/<id>/<tab>). It selects which topic
+// view the content pane shows and is deliberately kept out of mapState: the
+// tree does not change when the tab does.
+function renderMap(kind, id, tab){
   if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
   else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; }
-  else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; }
+  else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; setTopicTab(TOPICS[id], tab); }
   else if(kind==='s' && SMELLS.some(s => s.id===id)){ mapState.smell = id; }
   saveMap();
   if(mapState.topic) markSeen(mapState.topic);

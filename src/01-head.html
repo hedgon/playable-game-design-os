@@ -23,6 +23,9 @@
   --d-player:#f28cb1; --d-experience:#f59e5b; --d-core:#f2cd4a; --d-systems:#a9d15b; --d-content:#5ccf9a;
   --d-level:#4fc9c0; --d-ux:#63b8f0; --d-narrative:#9b98f5; --d-presentation:#c58cf2; --d-product:#f47c7c;
   --d-production:#e5b25a; --d-ai:#e884e0; --d-gameai:#8fb3d9; --d-studio:#9fb0c4;
+  /* engineering and people domains: hues chosen to sit as far as possible
+     from the fourteen above in CIELAB while keeping 5:1 contrast on this bg */
+  --d-backend:#62da7e; --d-infra:#d4b89b; --d-server:#cb9bd4; --d-management:#d28e89; --d-leadership:#da62a6;
 }
 html[data-theme="light"]{
   /* light: paper and ink. */
@@ -33,6 +36,7 @@ html[data-theme="light"]{
   --d-player:#c2185b; --d-experience:#c2410c; --d-core:#9a7b00; --d-systems:#4d7c0f; --d-content:#047857;
   --d-level:#0f766e; --d-ux:#0369a1; --d-narrative:#4338ca; --d-presentation:#7e22ce; --d-product:#b91c1c;
   --d-production:#b45309; --d-ai:#a21caf; --d-gameai:#2f5d8a; --d-studio:#475569;
+  --d-backend:#14712a; --d-infra:#84572a; --d-server:#752a84; --d-management:#7a251f; --d-leadership:#711448;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
@@ -160,6 +164,32 @@ details .body{padding:0 14px 12px}
 .tabs button:hover{color:var(--fg);background:var(--bg3)}
 .tabs button.active{color:var(--fg)}
 .tabs button.active::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;background:var(--accent)}
+/* topic tab strip (Overview / Godot / Unity / Interview): one row that scrolls
+   sideways on a phone instead of stacking into three rows. */
+.topictabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;margin-top:4px}
+.topictabs button{flex:none;white-space:nowrap}
+.topictabs button.active::after{bottom:0}
+.tabbody{min-width:0}
+/* engine view: term, API chips, snippet, pitfall, mapping */
+.engview h4{margin:14px 0 6px}
+.engview .chips.apis{gap:5px}
+.chip.api{color:var(--accent2);border-color:color-mix(in srgb,var(--accent2) 45%,transparent);font-size:.72rem}
+pre.snippet{white-space:pre;overflow-x:auto;border-left:3px solid var(--dc,var(--accent));font-size:.8rem;line-height:1.55;tab-size:4}
+/* interview view: question cards, answers hidden until asked for */
+.ivlist{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.ivq{border-left:3px solid var(--dc,var(--accent));margin:0}
+.ivq summary{align-items:flex-start;line-height:1.35}
+.ivq .body{border-top:1px dashed var(--line);padding-top:8px}
+.ivq .body h4{margin:10px 0 4px}
+.ivq .body h4:first-child{margin-top:0}
+.ivq .body h4.redflag{color:var(--bad)}
+.ivq .body p{margin:0;color:var(--fg2);font-size:.92rem}
+/* case study page */
+.casehead{border-left:4px solid var(--accent2);padding-left:14px;margin-bottom:12px}
+.casehead h1{margin-bottom:8px}
+.archlist{list-style:none;padding:0;margin:0}
+.archlist li{border-left:2px solid var(--line2);padding:4px 0 4px 12px;margin:0 0 4px;color:var(--fg2);font-size:.92rem}
+.casedec{border-top:3px solid var(--accent2)}
 .pill-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .pill-tabs button{background:var(--bg2);border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:.85rem;font-weight:600;color:var(--fg2)}
 .pill-tabs button.active{border-color:var(--accent);color:var(--fg);background:color-mix(in srgb,var(--accent) 14%,transparent)}
@@ -431,6 +461,7 @@ footer a{color:var(--fg2)}
   .toolhead{flex-direction:column}
   .promptbox pre{padding-right:14px;padding-top:40px}
   .copybtn{top:6px;right:6px}
+  .chips .chip{white-space:normal;max-width:100%}
 }
 .map-mobile{display:none;padding:10px 12px 14px}
 .map-mobile .grid{gap:8px}

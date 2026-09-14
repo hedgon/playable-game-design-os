@@ -16,7 +16,19 @@ const DATA = [
   '20-data-tech.js',
   '21-data-tech.js',
   '22-data-practice.js',
-  '23-data-practice.js'
+  '23-data-practice.js',
+  '24-data-backend.js',
+  '25-data-infra.js',
+  '26-data-server.js',
+  '27-data-management.js',
+  '28-data-leadership.js',
+  '29-data-experience.js',
+  '30-data-engine-a.js',
+  '31-data-engine-b.js',
+  '32-data-engine-c.js',
+  '40-data-interview-a.js',
+  '41-data-interview-b.js',
+  '42-data-interview-c.js'
 ];
 const GRAPH = '89-graph.js';
 const APP = ['90-app.js', '91-map.js', '92-ideas.js', '93-lab.js'];

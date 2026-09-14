@@ -55,6 +55,13 @@ const SECTION_META = [
 
 const TOPICS = {};
 function T(id, o){ o.id = id; TOPICS[id] = o; }
+/* Engine and interview views, attached after the topics are defined (same
+   pattern as TECH). eng: how this concept is built in Godot 4 and Unity 6.
+   iv: the questions an interviewer asks about it, grouped by seniority.
+     eng = { godot:{term,api:[],snippet,pitfall,map}, unity:{...}, note? }
+     iv  = { junior:[{q,a,follow,red}], mid:[...], senior:[...] } */
+function ENGINE(id, o){ const t = TOPICS[id]; if(!t) throw new Error('ENGINE: unknown topic '+id); t.eng = o; }
+function INTERVIEW(id, o){ const t = TOPICS[id]; if(!t) throw new Error('INTERVIEW: unknown topic '+id); t.iv = o; }
 
 /* ---------------- PLAYER ---------------- */
 T('who-is-the-player',{ d:'player', t:'Who is the player?', tag:'A concrete person with prior knowledge, a context, and a reason to be here. Not "gamers".',

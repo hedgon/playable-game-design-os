@@ -34,7 +34,8 @@ async function copyText(text){ try { await navigator.clipboard.writeText(text); 
 window.__copy = copyText;
 
 /* ---------- router ---------- */
-const VIEWS = [['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists']];
+// Keys 1-9 map to the first nine entries, so anything added here goes last.
+const VIEWS = [['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
 const VIEW_LINKS = { 'playtest-view':['#/playtest','Playtest view: question bank and hypothesis builder'], 'ai-roles-view':['#/ai/roles','AI Workflow: interactive role cards'], 'matrix-view':['#/ai/matrix','AI Workflow: responsibility matrix'], 'loop-view':['#/ai/loop','AI Workflow: the 12-step loop'], 'ai-failures-view':['#/ai/failures','AI Workflow: when AI makes your game worse'], 'checklists-view':['#/checklists','Checklists view'], 'prompt-library':['#/prompts','Prompt library'], 'should-we-build-this':['#/build/feature','Build: Should we build this? decision tree'] };
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
 function route(){
@@ -44,7 +45,7 @@ function route(){
   $$('#primaryNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   closeModals();
   switch(view){
-    case 'map': return renderMap(parts[1], parts[2]);
+    case 'map': return renderMap(parts[1], parts[2], parts[3]);
     case 'lab': return renderLab();
     case 'explore': return renderExplore(parts[1]);
     case 'concepts': return renderConcepts();
@@ -56,6 +57,7 @@ function route(){
     case 'playtest': return renderPlaytest();
     case 'prompts': return renderPrompts(parts[1]);
     case 'checklists': return renderChecklists(parts[1]);
+    case 'experience': return renderExperience(parts[1]);
     case 'sources': return renderSources();
     default: return renderMap();
   }
@@ -119,6 +121,7 @@ function railHTML(activeDom, activeTopic){
   return `<div class="railhead">
       <button class="railgraph" id="railFit" onclick="__fitMap()">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
+      <a class="railgraph" href="#/experience">❖ Experience</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
     <div class="raillist">${DOMAINS.map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
@@ -270,6 +273,62 @@ function renderConcepts(){
     <div class="grid auto" id="ciList">${rows.map(card).join('')}</div>`);
   const f = $('#ciFilter'); f.addEventListener('input', () => { const q = f.value.trim().toLowerCase(); $('#ciList').innerHTML = rows.filter(r => r.t.t.toLowerCase().includes(q) || DOM[r.t.d].t.toLowerCase().includes(q)).map(card).join('') || '<div class="empty">No concept matches.</div>'; });
 }
+/* ---------- topic tabs: overview / godot / unity / interview ---------- */
+const TOPIC_TABS = [['overview','Overview'],['godot','Godot'],['unity','Unity'],['interview','Interview']];
+// A tab only exists when the topic carries its data, so nothing renders blank.
+function tabsFor(t){ return TOPIC_TABS.filter(([k]) => k === 'overview' || (k === 'interview' ? !!t.iv : !!(t.eng && t.eng[k]))); }
+let topicTab = 'overview';
+// The tab in the URL wins; otherwise the last one this browser used; unknown
+// or unavailable falls back to overview. Only an explicit URL tab is stored.
+function setTopicTab(t, tab){
+  const avail = tabsFor(t).map(x => x[0]);
+  const want = tab || store.get('topicTab', 'overview');
+  topicTab = avail.includes(want) ? want : 'overview';
+  if(tab) store.set('topicTab', topicTab);
+}
+// Overview is omitted from the URL, so its hash equals the bare topic hash and
+// route() would re-resolve the tab from the store. Record the choice first.
+window.__topicTab = (id, tab) => { store.set('topicTab', tab); go('#/map/t/' + id + (tab === 'overview' ? '' : '/' + tab)); };
+window.__topicTabKey = e => {
+  const strip = e.target.closest && e.target.closest('.topictabs'); if(!strip) return;
+  if(!/^(ArrowLeft|ArrowRight|ArrowUp|ArrowDown|Home|End)$/.test(e.key)) return;
+  e.preventDefault();
+  const btns = $$('button', strip), i = btns.indexOf(e.target);
+  const n = e.key === 'Home' ? 0 : e.key === 'End' ? btns.length - 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? (i - 1 + btns.length) % btns.length : (i + 1) % btns.length;
+  btns[n].click();
+  setTimeout(() => { const b = $('.topictabs button.active'); if(b) b.focus(); }, 0);
+};
+function engineBody(t, which){
+  const v = t.eng[which], d = DOM[t.d];
+  const sid = 'sn' + Math.random().toString(36).slice(2);
+  return `<div class="engview" style="--dc:${d.color}">
+    <div class="overline">${which === 'godot' ? 'Godot 4' : 'Unity 6'} · what this is called here</div>
+    <p>${esc(v.term)}</p>
+    <h4>Reach for</h4><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
+    <div class="promptbox"><pre class="snippet" id="${sid}">${esc(v.snippet)}</pre><button class="btn sm copybtn" onclick="__copy(document.getElementById('${sid}').textContent)">Copy</button></div>
+    <div class="callout bad"><b>Pitfall.</b> ${esc(v.pitfall)}</div>
+    <div class="callout ok"><b>Same idea, different name.</b> ${esc(v.map)}</div>
+    ${t.eng.note ? `<div class="callout"><b>Why this is the counterpart.</b> ${esc(t.eng.note)}</div>` : ''}</div>`;
+}
+function interviewBody(t){
+  const d = DOM[t.d], LV = [['junior','Junior'],['mid','Mid'],['senior','Senior']];
+  const groups = LV.map(([k, label]) => { const arr = (t.iv && t.iv[k]) || []; if(!arr.length) return '';
+    return `<div class="section-head"><h2>${label}</h2><span class="muted">${arr.length} question${arr.length === 1 ? '' : 's'}</span></div>
+      <div class="ivlist">${arr.map(x => `<details class="ivq" style="--dc:${d.color}"><summary>${esc(x.q)}</summary><div class="body">
+        <h4>Answer outline</h4><p>${esc(x.a)}</p>
+        <h4>Follow-up coming</h4><p>${esc(x.follow)}</p>
+        <h4 class="redflag">Red flag</h4><p>${esc(x.red)}</p></div></details>`).join('')}</div>`; }).join('');
+  const idx = d.topics.indexOf(t.id);
+  const near = [['prev', idx > 0 ? d.topics[idx-1] : null], ['next', idx < d.topics.length-1 ? d.topics[idx+1] : null]]
+    .filter(([, id]) => id && TOPICS[id] && TOPICS[id].iv)
+    .map(([dir, id]) => `<button class="btn" onclick="location.hash='#/map/t/${id}/interview'">${dir === 'prev' ? '← ' : ''}${esc(TOPICS[id].t)}${dir === 'next' ? ' →' : ''}</button>`).join('');
+  return `<div class="ivview">${groups}
+    <div class="section-head"><h2>Your story</h2><span class="muted">the one you will actually tell</span></div>
+    <p class="small dim">An outline is not an answer. Write the time you did this, what you changed and what happened, in your own words. Autosaved in this browser, never in the data, never sent anywhere.</p>
+    <div class="field"><textarea id="ivStory" rows="6" placeholder="Situation, what I decided, the trade-off I accepted, what actually happened…" oninput="__saveStory('${t.id}', this.value)">${esc(store.get('story.' + t.id, ''))}</textarea><div class="hint">Autosaved in this browser as you type.</div></div>
+    ${near ? `<div class="topic-nav">${near}</div>` : ''}</div>`;
+}
+window.__saveStory = (id, v) => store.set('story.' + id, v);
 function topicBody(id){
   const t = TOPICS[id];
   if(!t){ return `<div class="empty">Unknown topic: ${esc(id)}</div>`; }
@@ -278,23 +337,33 @@ function topicBody(id){
   const idx = d.topics.indexOf(id);
   const prev = idx > 0 ? d.topics[idx-1] : null, next = idx < d.topics.length-1 ? d.topics[idx+1] : null;
   const openSecs = new Set(store.get('openSecs', ['what','why','think']));
-  const secs = SECTION_META.map(([key, letter, title]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header onclick="__toggleSec(this.parentElement)"><span class="letter">${letter}</span><h3>${esc(title)}</h3><span class="car">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join('');
+  const secTitle = key => (d.titles && d.titles[key]) || SECTION_META.find(m => m[0] === key)[2];
+  const secs = SECTION_META.map(([key, letter]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header onclick="__toggleSec(this.parentElement)"><span class="letter">${letter}</span><h3>${esc(secTitle(key))}</h3><span class="car">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join('');
   const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header onclick="__toggleSec(this.parentElement)"><span class="letter">T</span><h3>Techniques to compare</h3><span class="car">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
   const rel = (t.rel||[]).map(([rid, why]) => { const rt = TOPICS[rid]; const v = VIEW_LINKS[rid]; const href = rt ? `#/topic/${rid}` : (v ? v[0] : '#/explore'); const label = rt ? rt.t : (v ? v[1] : rid); const dc = rt ? DOM[rt.d].color : 'var(--accent)'; return `<div class="rel" onclick="location.hash='${href}'" style="border-left:3px solid ${dc}"><b>${esc(label)}</b><div class="why">${esc(why)}</div></div>`; }).join('');
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
-  const main = `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
-      <div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div></div>
-    ${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
+  // Diagram and "Appears in" belong to the Overview body, so the engine and
+  // interview tabs start directly under the strip instead of below the fold.
+  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
     ${contextsPanel(t)}
     ${secs}${techSec}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
     ${smells.length ? `<div class="section-head"><h2>Design smells this topic helps diagnose</h2></div><div class="chips">${smells.map(s => `<span class="chip" style="cursor:pointer;padding:6px 10px" onclick="location.hash='#/smell/${s.id}'">${esc(s.t)}</span>`).join('')}</div>` : ''}
     <div class="topic-nav">${prev ? `<button class="btn" onclick="location.hash='#/map/t/${prev}'">← ${esc(TOPICS[prev].t)}</button>` : `<button class="btn ghost" onclick="location.hash='#/map/d/${d.id}'">← ${esc(d.t)} overview</button>`}<button class="btn ghost" onclick="location.hash='#/explore/${d.id}'">List view</button>${next ? `<button class="btn" onclick="location.hash='#/map/t/${next}'">${esc(TOPICS[next].t)} →</button>` : `<button class="btn" onclick="location.hash='#/map/home'">All domains →</button>`}</div>`;
-  return main;
+  const tabs = tabsFor(t);
+  const tab = tabs.some(x => x[0] === topicTab) ? topicTab : 'overview';
+  // One tab means there is nothing to choose, so the strip is not drawn at all.
+  const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Topic views">${tabs.map(([k, label]) => `<button role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" onkeydown="__topicTabKey(event)" onclick="__topicTab('${id}','${k}')">${label}</button>`).join('')}</div>` : '';
+  const body = tab === 'interview' ? interviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : overview;
+  return `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
+      ${tab === 'overview' ? `<div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div>` : ''}</div>
+    ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
 }
 window.__toggleSec = el => { el.classList.toggle('open'); store.set('openSecs', $$('.sec.open').map(s => s.dataset.key)); };
-window.__expandAll = on => { $$('.sec').forEach(s => s.classList.toggle('open', on)); store.set('openSecs', on ? SECTION_META.map(m => m[0]) : []); };
+// No-op when no sections are on screen (an engine or interview tab), so the
+// head buttons and the E shortcut cannot silently wipe the overview's state.
+window.__expandAll = on => { const secs = $$('.sec'); if(!secs.length) return; secs.forEach(s => s.classList.toggle('open', on)); store.set('openSecs', on ? SECTION_META.map(m => m[0]) : []); };
 
 /* =====================================================================
    DIAGNOSE
@@ -919,12 +988,42 @@ function renderSources(){
 }
 
 /* =====================================================================
+   EXPERIENCE: anonymised case studies
+   ===================================================================== */
+function caseCard(c){ return `<div class="card clickable tint" style="--dc:var(--accent2)" onclick="location.hash='#/experience/${c.id}'"><h3>${esc(c.t)}</h3><div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0">${esc(c.context.slice(0, 180))}${c.context.length > 180 ? '…' : ''}</p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></div>`; }
+function casePage(c){
+  return `${crumbs([['Map','#/map'],['Experience','#/experience'],[c.t]])}
+    <div class="casehead"><h1>${esc(c.t)}</h1><div class="chips">${[c.role, c.period].map(x => `<span class="chip">${esc(x)}</span>`).join('')}${c.stack.map(s => `<span class="chip api">${esc(s)}</span>`).join('')}</div></div>
+    <p class="dim" style="max-width:820px">${esc(c.context)}</p>
+    <div class="section-head"><h2>Architecture</h2><span class="muted">what the pieces were</span></div>
+    <ul class="archlist">${c.arch.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+    <div class="section-head"><h2>Decisions</h2><span class="muted">each one cost something</span></div>
+    <div class="grid c2">${c.decisions.map(x => `<div class="card casedec"><b>${esc(x.d)}</b><div class="small" style="margin-top:6px"><b>Why.</b> ${esc(x.why)}</div><div class="small muted" style="margin-top:4px"><b>Trade-off.</b> ${esc(x.trade)}</div></div>`).join('')}</div>
+    <div class="section-head"><h2>What went wrong</h2><span class="muted">and what it taught</span></div>
+    <div class="stack">${c.lessons.map(x => `<div class="callout warn"><b>${esc(x.what)}</b><div class="small" style="margin-top:4px">${esc(x.lesson)}</div></div>`).join('')}</div>
+    <div class="section-head"><h2>Interview stories</h2><span class="muted">situation, task, action, result</span></div>
+    <div class="ivlist">${c.stories.map(s => `<details class="ivq" style="--dc:var(--accent2)"><summary>${esc(s.s)}</summary><div class="body"><h4>Task</h4><p>${esc(s.t)}</p><h4>Action</h4><p>${esc(s.a)}</p><h4>Result</h4><p>${esc(s.r)}</p></div></details>`).join('')}</div>
+    <div class="section-head"><h2>Related concepts</h2><span class="muted">what this case is evidence for</span></div>
+    <div class="related">${c.rel.map(([rid, why]) => { const rt = TOPICS[rid]; if(!rt) return ''; return `<div class="rel" onclick="location.hash='#/map/t/${rid}'" style="border-left:3px solid ${DOM[rt.d].color}"><b>${esc(rt.t)}</b><div class="why">${esc(why)}</div></div>`; }).join('')}</div>`;
+}
+function renderExperience(id){
+  const c = CASE_STUDIES.find(x => x.id === id);
+  if(c) return setView(casePage(c));
+  setView(`${crumbs([['Map','#/map'],['Experience']])}<h1>Experience</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
+    ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/29-data-experience.js and appear here as soon as one is written.</div>'}`);
+}
+
+/* =====================================================================
    SEARCH
    ===================================================================== */
 let _INDEX = null;
 function buildIndex(){
   const INDEX = [];
-TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p)].join(' ').toLowerCase() }));
+const engText = t => t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k].term, ...(t.eng[k].api||[]), t.eng[k].pitfall, t.eng[k].map] : []) : [];
+const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map(x => x.q)) : [];
+TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
+TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
+CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.role} · ${c.period} · ${c.stack.join(', ')}`, href:'#/experience/'+c.id, text:(c.t+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
