@@ -109,6 +109,13 @@ non-AI action.
   engine, an interviewer), not a replacement for it, and a reader who came for the
   design thinking should never have to click past code or interview questions to
   reach it.
+- A second map sharing one stage: opening a project under Experience does not open a
+  separate view, it swaps what the same centre mind map draws, systems and parts
+  instead of domains and topics, with the same drag, zoom, fit and reset gestures a
+  reader already knows. The two maps never fight over state (each keeps its own open
+  branch, offsets and camera) and stay connected in both directions: a part's guide
+  topics are leaves that travel onto the domain map, and a topic gains a chip back to
+  every part that demonstrates it in practice.
 
 ## Research notes
 

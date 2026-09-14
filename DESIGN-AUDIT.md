@@ -129,6 +129,28 @@ library or vendor name (Go, protobuf, gorilla/mux, google/wire, Redis, Unity,
 Addressables, UniTask, Jenkins, Fusion) is fine, because naming a tool is not the
 same as naming who used it or on what.
 
+Opening a project (`#/experience/<project>`) turns it into a second kind of mind
+map on the same centre stage the domain map uses: the project in the middle, its
+6 to 8 systems where domains sit, and a system's 2 to 5 parts where topics sit
+while it is open. The two maps share `PlayableGraph`'s layout, patching and camera
+code (`build` for the domain map, `buildProject` for a project) so the gestures,
+the drag-to-nudge, the fit and the reset controls are identical, and they share
+node kinds (`center|domain|topic|leaf`) so the CSS never forks. Project nodes are
+told apart only by `data-scope="project"` and by `sys:<id>` / `part:<id>` keys.
+Selecting a part grows leaves for the guide topics its `rel` names, coloured by
+that topic's home domain, which travel to `#/map/t/<id>` on the domain map. A
+part's `links` to other parts of the same project draw as the same dashed cross
+edges the domain map uses between related concepts. The two maps' state is kept
+in two separate places by design: `mapState` for the domain map (`dom`, `topic`,
+`smell`, node offsets, camera) is untouched by a visit to a project, and each
+project keeps its own `projMap.<id>` (open system, selected part, offsets, camera),
+so leaving a project and coming back to the domain map restores it exactly as it
+was left. The bridge back the other way is a reverse index built once from every
+project's parts (`PlayableGraph.practiceLinks`): it maps a guide topic to every
+part that demonstrates it, which feeds the "Seen in practice" chips on a topic
+page and, capped at two per topic so `check-layout.js` stays green, a `◆` view
+leaf on that topic's fourth layer that also travels straight to the part.
+
 ## Interactive tools and how they were verified
 
 All eleven tools, the six diagnostics, the matrix filter, the role cards, the loop
@@ -159,6 +181,19 @@ itself without the page ever gaining a horizontal scrollbar. One real mobile
 defect was found and fixed (a long "Appears in" chip clipped past the edge of a
 375 px drawer instead of wrapping) and `check-layout.js` still reports zero
 label overlaps across all 153 map states.
+
+The project-map pass (three case studies turned into 24 systems and 81 parts)
+repeated the same discipline. Every one of the 81 parts was opened by route and
+checked against its own data (title, `how` bullet count, both callouts, related-
+topic and linked-part counts, leaf count, no `undefined` / `[object Object]` /
+`NaN`), every one of the 24 systems was clicked open on the map, and all three
+project overviews were confirmed against `.node[data-scope=project]` counts, with
+zero console errors per project. Six cross-map round trips (two per project: a
+part's leaf → the topic on the domain map → its "Seen in practice" chip → back to
+the part) were run, and the domain map's own saved state was byte-identical before
+entering a project and after leaving it. `check-layout.js` now reports zero
+overlaps across 261 map states (up from 153), and `node src/validate.js` confirms
+3 projects, 24 systems and 81 parts with every `rel` and `links` id resolved.
 
 ## Against the brief's final quality test
 
