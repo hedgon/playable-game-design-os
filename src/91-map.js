@@ -36,12 +36,13 @@ let projState = null;
 function saveProj(){ if(projState) store.set('projMap.' + projState.cs, projState); }
 function projCase(){ return projState ? CASE_STUDIES.find(x => x.id === projState.cs) : null; }
 // Called by the router before the pane renders: the route is the truth about
-// which system is open and which part is selected, the store only supplies the
-// camera and the dragged-node offsets.
-function enterProject(c, s, p){
+// which branch is open and which child is selected, the store only supplies
+// the camera and the dragged-node offsets. `sysId` is a system id or the
+// reserved 'workflows'; `partId` is then a part id or a flow id.
+function enterProject(c, sysId, partId){
   if(!projState || projState.cs !== c.id) projState = Object.assign({ sys:null, part:null, off:{}, vb:null }, store.get('projMap.' + c.id, {}), { cs:c.id });
-  projState.sys = s ? s.id : null;
-  projState.part = p ? p.id : null;
+  projState.sys = sysId || null;
+  projState.part = partId || null;
   mapMode = 'project';
   saveProj();
 }
@@ -60,8 +61,14 @@ function buildGraph(){
 function mapCrumbs(){
   if(mapMode === 'project'){
     const c = projCase(); if(!c) return `<div class="mapcrumbs"></div>`;
-    const s = (c.systems || []).find(x => x.id === projState.sys);
     const parts = [`<button onclick="location.hash='#/experience'">Projects</button>`, `<span>›</span><button onclick="location.hash='#/experience/${c.id}'">${esc(c.t)}</button>`];
+    if(projState.sys === 'workflows'){
+      parts.push(`<span>›</span><button onclick="location.hash='#/experience/${c.id}/workflows'">Workflows</button>`);
+      const f = (c.flows || []).find(x => x.id === projState.part);
+      if(f) parts.push(`<span>›</span><b>${esc(f.t)}</b>`);
+      return `<div class="mapcrumbs">${parts.join('')}</div>`;
+    }
+    const s = (c.systems || []).find(x => x.id === projState.sys);
     if(s) parts.push(`<span>›</span><button onclick="location.hash='#/experience/${c.id}/${s.id}'">${esc(s.t)}</button>`);
     const p = s ? (s.parts || []).find(x => x.id === projState.part) : null;
     if(p) parts.push(`<span>›</span><b>${esc(p.t)}</b>`);
@@ -126,8 +133,10 @@ function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MA
 function projTipHTML(n){
   const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
   const c = projCase(); if(!c) return '';
-  if(kind==='center') return `<b style="color:var(--accent2)">${esc(c.t)}</b><div>${esc(c.role)} · ${esc(c.period)}</div><div class="muted">${projState.sys ? 'click to collapse back to the project' : 'click to read the project page'}</div>`;
+  if(kind==='center') return `<b style="color:var(--accent2)">${esc(c.t)}</b>${c.sub?`<div>${esc(c.sub)}</div>`:''}<div>${esc(c.role)} · ${esc(c.period)}</div><div class="muted">${projState.sys ? 'click to collapse back to the project' : 'click to read the project page'}</div>`;
+  if(kind==='domain' && id==='workflows'){ const n2 = (c.flows||[]).length; return `<b style="color:var(--accent2)">Workflows</b><div>How this project behaves end to end, drawn as charts.</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${n2} flow${n2===1?'':'s'}`}</div>`; }
   if(kind==='domain'){ const s = (c.systems||[]).find(x => x.id===id); if(!s) return ''; return `<b style="color:${KIND_COLOR[s.kind]||'var(--accent2)'}">${esc(s.t)}</b><div>${esc(s.sum)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${(s.parts||[]).length} parts`}</div>`; }
+  if(kind==='topic' && projState.sys==='workflows'){ const f = (c.flows||[]).find(x => x.id===id); if(!f) return ''; return `<b style="color:var(--accent2)">${esc(f.t)}</b><div>${esc(f.sum)}</div><div class="muted">click to open this workflow chart</div>`; }
   if(kind==='topic'){ const s = (c.systems||[]).find(x => x.id===projState.sys); const p = s && (s.parts||[]).find(x => x.id===id); if(!p) return ''; return `<b>${esc(p.t)}</b><div>${esc(p.why)}</div><div class="muted">click to read this part</div>`; }
   if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${why?`<div class="why"><b>What it demonstrates:</b> ${esc(why)}</div>`:''}<div class="muted">click to read the topic on the guide map</div>`; }
   return '';
@@ -162,6 +171,7 @@ function projClick(n){
   if(!c) return;
   if(kind==='center') return go(`#/experience/${c.id}`);
   if(kind==='domain') return go(n.classList.contains('open') ? `#/experience/${c.id}` : `#/experience/${c.id}/${id}`);
+  if(kind==='topic' && projState.sys==='workflows') return go(`#/experience/${c.id}/flow/${id}`);
   if(kind==='topic') return go(`#/experience/${c.id}/${projState.sys}/${id}`);
   if(kind==='leaf') return go('#/map/t/' + id);
 }

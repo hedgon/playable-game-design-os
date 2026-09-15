@@ -12,8 +12,16 @@ const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_S
 // an error to a warning count. Shape errors in the data that IS there always
 // fail, in both modes.
 const STRICT = !(process.env.PLAYABLE_STRICT === '0' || process.argv.includes('--lenient'));
-const warns = { eng: 0, iv: 0, sys: 0, few: 0 };
+const warns = { eng: 0, iv: 0, sys: 0, few: 0, flows: 0, fewFlows: 0, projIv: 0, sysIv: 0 };
 const SYSTEM_KINDS = new Set(['client', 'server', 'backend', 'data', 'infra', 'cicd', 'tooling', 'process']);
+// Route words under #/experience/<cs>/... A system id claiming one would
+// shadow the page that word routes to.
+const RESERVED_SYSTEM_IDS = new Set(['workflows', 'interview', 'flow', 'overview']);
+// One shape check for both scales of interview data. Topic and project use the
+// level object, a system uses a flat array of the same items.
+function checkIvItems(arr, where, errors) {
+  arr.forEach((x, i) => { for (const k of ['q', 'a', 'follow', 'red']) if (!x[k] || !String(x[k]).trim()) errors.push(`${where}[${i}].${k} empty`); });
+}
 const VIEW_LINKS = ['playtest-view','ai-roles-view','matrix-view','loop-view','ai-failures-view','checklists-view','prompt-library','should-we-build-this'];
 const errors = [];
 const domIds = new Set(DOMAINS.map(d => d.id));
@@ -65,7 +73,7 @@ for (const d of DOMAINS) if (d.titles) for (const k of Object.keys(d.titles)) {
 const caseIds = new Set();
 for (const c of (CASE_STUDIES || [])) {
   const where = `case ${c.id || '(no id)'}`;
-  for (const k of ['id', 't', 'role', 'period', 'context']) if (!c[k] || !String(c[k]).trim()) errors.push(`${where}: ${k} empty`);
+  for (const k of ['id', 't', 'code', 'sub', 'role', 'period', 'context']) if (!c[k] || !String(c[k]).trim()) errors.push(`${where}: ${k} empty`);
   if (caseIds.has(c.id)) errors.push(`${where}: duplicate id`); else caseIds.add(c.id);
   for (const k of ['stack', 'arch']) if (!Array.isArray(c[k]) || !c[k].length || c[k].some(x => !String(x).trim())) errors.push(`${where}: ${k} must be a non-empty array of non-empty strings`);
   const shapes = { decisions: ['d', 'why', 'trade'], lessons: ['what', 'lesson'], stories: ['s', 't', 'a', 'r'] };
@@ -90,7 +98,13 @@ for (const c of (CASE_STUDIES || [])) {
     for (const s of c.systems) {
       const sw = `${where} system ${s.id || '(no id)'}`;
       for (const k of ['id', 't', 'kind', 'sum']) if (!s[k] || !String(s[k]).trim()) errors.push(`${sw}: ${k} empty`);
+      if (RESERVED_SYSTEM_IDS.has(s.id)) errors.push(`${sw}: "${s.id}" is a reserved route word, pick another system id`);
       if (s.kind && !SYSTEM_KINDS.has(s.kind)) errors.push(`${sw}: unknown kind "${s.kind}", expected one of ${[...SYSTEM_KINDS].join(', ')}`);
+      // iv: three "likely questions" on the system page. Lands file by file,
+      // so absence is a warning in lenient mode like a missing engine tab.
+      if (s.iv === undefined) { if (STRICT) errors.push(`${sw}: missing iv`); else warns.sysIv++; }
+      else if (!Array.isArray(s.iv) || s.iv.length !== 3) errors.push(`${sw}: iv has ${Array.isArray(s.iv) ? s.iv.length : 'no'} questions, expected exactly 3`);
+      else checkIvItems(s.iv, `${sw}: iv`, errors);
       if (!Array.isArray(s.stack) || !s.stack.length || s.stack.some(x => !String(x).trim())) errors.push(`${sw}: stack must be a non-empty array of non-empty strings`);
       if (sysIds.has(s.id)) errors.push(`${sw}: duplicate system id`); else sysIds.add(s.id);
       if (!Array.isArray(s.parts) || s.parts.length < 2 || s.parts.length > 5) { errors.push(`${sw}: has ${Array.isArray(s.parts) ? s.parts.length : 'no'} parts, expected 2 to 5`); continue; }
@@ -116,6 +130,74 @@ for (const c of (CASE_STUDIES || [])) {
       }
     }
   }
+  // flows: the workflow charts. Like systems, content lands file by file, so
+  // absence is a warning in lenient mode and a shape error in both modes.
+  const knownSys = new Set((Array.isArray(c.systems) ? c.systems : []).map(s => s.id));
+  if (c.flows === undefined) { if (STRICT) errors.push(`${where}: missing flows`); else warns.flows++; }
+  else if (!Array.isArray(c.flows)) errors.push(`${where}: flows must be an array`);
+  else {
+    if (c.flows.length > 4) errors.push(`${where}: has ${c.flows.length} flows, expected 2 to 4`);
+    else if (c.flows.length < 2) { if (STRICT) errors.push(`${where}: has ${c.flows.length} flows, expected 2 to 4`); else warns.fewFlows++; }
+    const flowIds = new Set();
+    for (const f of c.flows) {
+      const fw = `${where} flow ${f.id || '(no id)'}`;
+      for (const k of ['id', 't', 'sum']) if (!f[k] || !String(f[k]).trim()) errors.push(`${fw}: ${k} empty`);
+      if (flowIds.has(f.id)) errors.push(`${fw}: duplicate flow id`); else flowIds.add(f.id);
+      if (!Array.isArray(f.steps) || f.steps.length < 4 || f.steps.length > 9) { errors.push(`${fw}: has ${Array.isArray(f.steps) ? f.steps.length : 'no'} steps, expected 4 to 9`); continue; }
+      const stepIds = new Set();
+      for (const s of f.steps) {
+        const sw = `${fw} step ${s.id || '(no id)'}`;
+        for (const k of ['id', 't', 'd']) if (!s[k] || !String(s[k]).trim()) errors.push(`${sw}: ${k} empty`);
+        if (stepIds.has(s.id)) errors.push(`${sw}: duplicate step id`); else stepIds.add(s.id);
+        if (s.sys !== undefined && !knownSys.has(s.sys)) errors.push(`${sw}: sys -> unknown system ${s.sys} in this project`);
+      }
+      if (!Array.isArray(f.edges) || !f.edges.length) { errors.push(`${fw}: edges must be a non-empty array`); continue; }
+      const out = {};
+      f.steps.forEach(s => { out[s.id] = []; });
+      let edgesOk = true;
+      for (const e of f.edges) {
+        if (!Array.isArray(e) || e.length < 2) { errors.push(`${fw}: an edge must be [from, to] or [from, to, label]`); edgesOk = false; continue; }
+        const [a, b, label] = e;
+        if (!stepIds.has(a)) { errors.push(`${fw}: edge from unknown step ${a}`); edgesOk = false; continue; }
+        if (!stepIds.has(b)) { errors.push(`${fw}: edge to unknown step ${b}`); edgesOk = false; continue; }
+        if (a === b) { errors.push(`${fw}: step ${a} has an edge to itself`); edgesOk = false; continue; }
+        if (label !== undefined && !String(label).trim()) errors.push(`${fw}: edge ${a} -> ${b} has an empty label`);
+        out[a].push(b);
+      }
+      if (!edgesOk) continue;
+      // acyclic: a depth-first walk that meets a node already on the stack
+      // has found a cycle, which the layered layout cannot draw.
+      const state = {};
+      let cycle = null;
+      const visit = id => {
+        if (state[id] === 2) return;
+        if (state[id] === 1) { cycle = id; return; }
+        state[id] = 1;
+        out[id].forEach(visit);
+        state[id] = 2;
+      };
+      f.steps.forEach(s => visit(s.id));
+      if (cycle) errors.push(`${fw}: edges form a cycle through step ${cycle}`);
+      // reachability from the first step, which is where the layout starts.
+      const seenSteps = new Set();
+      const walk = id => { if (seenSteps.has(id)) return; seenSteps.add(id); out[id].forEach(walk); };
+      walk(f.steps[0].id);
+      const stranded = f.steps.filter(s => !seenSteps.has(s.id)).map(s => s.id);
+      if (stranded.length) errors.push(`${fw}: steps not reachable from ${f.steps[0].id}: ${stranded.join(', ')}`);
+    }
+  }
+  // iv: the project-level interview, 10 to 12 questions, at least 2 per level.
+  if (c.iv === undefined) { if (STRICT) errors.push(`${where}: missing iv`); else warns.projIv++; }
+  else {
+    let total = 0;
+    for (const lvl of ['junior', 'mid', 'senior']) {
+      const arr = c.iv[lvl];
+      if (!Array.isArray(arr) || arr.length < 2) { errors.push(`${where}: iv.${lvl} needs at least two questions`); continue; }
+      total += arr.length;
+      checkIvItems(arr, `${where}: iv.${lvl}`, errors);
+    }
+    if (total < 10 || total > 12) errors.push(`${where}: iv has ${total} questions, expected 10 to 12`);
+  }
 }
 for (const d of DOMAINS) for (const [to] of d.links) if (!domIds.has(to)) errors.push(`domain ${d.id}: link -> unknown ${to}`);
 for (const s of SMELLS) { for (const c of s.causes) if (!TOPICS[c.top]) errors.push(`smell ${s.id}: cause -> unknown topic ${c.top}`); for (const d of s.dom) if (!domIds.has(d)) errors.push(`smell ${s.id}: unknown domain ${d}`); if (s.fun && !s.dims?.length) errors.push(`smell ${s.id}: fun without dims`); }
@@ -136,6 +218,9 @@ const partCount = sysCases.reduce((n, c) => n + c.systems.reduce((m, s) => m + (
 console.log(`case studies: ${(CASE_STUDIES || []).length}, engine views: ${topics.filter(t => t.eng).length}, interview views: ${topics.filter(t => t.iv).length}`);
 console.log(`projects with systems: ${sysCases.length}, systems: ${sysCases.reduce((n, c) => n + c.systems.length, 0)}, parts: ${partCount}`);
 if (orphans.length) console.log('WARN topics with no inbound links:', orphans.join(', '));
+const flowCount = (CASE_STUDIES || []).reduce((n, c) => n + (Array.isArray(c.flows) ? c.flows.length : 0), 0);
+console.log(`workflows: ${flowCount}, projects with an interview: ${(CASE_STUDIES || []).filter(c => c.iv).length}, systems with likely questions: ${sysCases.reduce((n, c) => n + c.systems.filter(s => s.iv).length, 0)}`);
 if (!STRICT) console.log(`WARN lenient mode: ${warns.eng} topics missing eng, ${warns.iv} topics missing iv, ${warns.sys} case studies with no systems, ${warns.few} with fewer than 5`);
+if (!STRICT) console.log(`WARN lenient mode: ${warns.flows} case studies with no flows, ${warns.fewFlows} with fewer than 2, ${warns.projIv} with no project interview, ${warns.sysIv} systems with no likely questions`);
 if (errors.length) { console.log('ERRORS:\n' + errors.join('\n')); process.exit(1); }
 console.log('OK: all cross-links resolve, all topics complete.');

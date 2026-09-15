@@ -33,8 +33,12 @@ const DATA = [
   '41-data-interview-b.js',
   '42-data-interview-c.js'
 ];
+// FLOW draws the workflow charts, GRAPH the mind maps. Both are pure renderers
+// with no dependency on each other, but FLOW loads first so the order matches
+// the file numbering the browser and the checkers share.
+const FLOW = '88-flow.js';
 const GRAPH = '89-graph.js';
 const APP = ['90-app.js', '91-map.js', '92-ideas.js', '93-lab.js'];
 const TAIL = '99-tail.js';
-const ORDER = [HEAD, ...DATA, GRAPH, ...APP, TAIL];
-module.exports = { HEAD, DATA, GRAPH, APP, TAIL, ORDER };
+const ORDER = [HEAD, ...DATA, FLOW, GRAPH, ...APP, TAIL];
+module.exports = { HEAD, DATA, FLOW, GRAPH, APP, TAIL, ORDER };

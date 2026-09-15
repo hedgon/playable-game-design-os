@@ -36,7 +36,29 @@ const anyOv = (ps, qs) => ps.some(p => qs.some(q => sat(p, q)));
 // too (project overview, each system open, each part selected) and the
 // "seen in practice" leaves are fed into the domain states, so the checker
 // sees the same fourth layer the app draws.
-function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES) {
+// `F` is the flow renderer (PlayableFlow), optional. When given, every flow's
+// cards are laid out in node and axis-aligned-box tested against each other:
+// the chart is deterministic, so a collision found here is a collision in the
+// browser. The direction has to be the one the app renders, because the two
+// directions have different card sizes and gaps.
+const FLOW_DIR = 'v';
+function flowOverlaps(F, CASE_STUDIES, problems) {
+  let states = 0;
+  for (const c of (CASE_STUDIES || [])) for (const f of (c.flows || [])) {
+    states++;
+    const name = `flow:${c.id}/${f.id}`;
+    const g = F.layout(f, FLOW_DIR);
+    const nodes = g.nodes;
+    // a card outside the viewBox would be clipped rather than merely ugly.
+    for (const n of nodes) if (n.x < 0 || n.y < 0 || n.x + n.w > g.w + 1e-6 || n.y + n.h > g.h + 1e-6) problems.push(`${name}: card "${n.id}" falls outside the chart box`);
+    for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+      const a = nodes[i], b = nodes[j];
+      if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) problems.push(`${name}: card "${a.id}" overlaps card "${b.id}"`);
+    }
+  }
+  return states;
+}
+function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F) {
   DOMAINS.forEach(d => d.topics = Object.values(TOPICS).filter(t => t.d === d.id).map(t => t.id));
   const seen = new Set();
   const pl = G.practiceLinks ? G.practiceLinks(CASE_STUDIES || []) : { views: {}, extra: {} };
@@ -64,7 +86,14 @@ function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES) {
       scan(G.buildProject(c, { sys: s.id, part: null }, TOPICS, DOMAINS).inner, `proj:${c.id}/${s.id}`);
       for (const p of (s.parts || [])) scan(G.buildProject(c, { sys: s.id, part: p.id }, TOPICS, DOMAINS).inner, `proj:${c.id}/${s.id}/${p.id}`);
     }
+    // the Workflows branch is a node on the same map, so its open state and
+    // every flow selected under it are states the map has to survive too.
+    if ((c.flows || []).length) {
+      scan(G.buildProject(c, { sys: 'workflows', part: null }, TOPICS, DOMAINS).inner, `proj:${c.id}/workflows`);
+      for (const f of c.flows) scan(G.buildProject(c, { sys: 'workflows', part: f.id }, TOPICS, DOMAINS).inner, `proj:${c.id}/workflows/${f.id}`);
+    }
   }
+  if (F) states += flowOverlaps(F, CASE_STUDIES, problems);
   return { states, problems };
 }
-module.exports = { boxes, sat, overlaps };
+module.exports = { boxes, sat, overlaps, flowOverlaps };

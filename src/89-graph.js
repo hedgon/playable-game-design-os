@@ -117,7 +117,7 @@ window.PlayableGraph = (function(){
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
     g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.w, fs)))}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(n.sub)}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(cut(n.sub, maxFor(n.w, 9.5)))}</text>`;
     g += `</g>`;
     return g;
   }
@@ -201,8 +201,15 @@ window.PlayableGraph = (function(){
     T = T || (typeof TOPICS === 'undefined' ? {} : TOPICS);
     D = D || (typeof DOMAINS === 'undefined' ? [] : DOMAINS);
     const dcolor = id => { const d = D.find(x => x.id === id); return d ? d.color : 'var(--accent)'; };
-    const systems = cs.systems || [];
-    const root = { kind:'center', id:cs.id, label:cs.t, sub:`${systems.length} system${systems.length === 1 ? '' : 's'}`, w:SIZE.root.w, h:SIZE.root.h, children:[] };
+    const systems = cs.systems || [], flows = cs.flows || [];
+    // The root names the project by its codename, so the descriptive line has
+    // to travel with it. The system count joins it only when both fit inside
+    // the card; otherwise the description wins, because the count is also on
+    // every system node.
+    const count = `${systems.length} system${systems.length === 1 ? '' : 's'}`;
+    const both = cs.sub ? `${cs.sub} · ${count}` : count;
+    const rootSub = cs.sub && both.length > maxFor(SIZE.root.w, 9.5) ? cs.sub : both;
+    const root = { kind:'center', id:cs.id, label:cs.t, sub:rootSub, w:SIZE.root.w, h:SIZE.root.h, children:[] };
     let sel = null, open = null;
     systems.forEach(s => {
       const color = (typeof KIND_COLOR === 'undefined' ? null : KIND_COLOR[s.kind]) || 'var(--accent2)';
@@ -218,6 +225,14 @@ window.PlayableGraph = (function(){
       }
       root.children.push(node);
     });
+    // One extra branch beside the systems: the project's workflow charts. It
+    // behaves like a system node (open on state.sys === 'workflows') and its
+    // children are the flows, which is why 'workflows' is a reserved system id.
+    if(flows.length){
+      const node = { kind:'domain', id:'workflows', label:'Workflows', sub:`${flows.length} flow${flows.length === 1 ? '' : 's'}`, color:'var(--accent2)', open:state.sys === 'workflows', w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
+      if(state.sys === 'workflows') flows.forEach(f => node.children.push({ kind:'topic', id:f.id, label:f.t, color:'var(--accent2)', w:SIZE.topic.w, h:SIZE.topic.h, children:[] }));
+      root.children.push(node);
+    }
     if(sel && open){
       const p = (open.parts || []).find(x => x.id === state.part) || {};
       (p.rel || []).forEach(([rid, why]) => {

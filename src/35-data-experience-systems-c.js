@@ -37,6 +37,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'arch', t:'Code architecture and state', kind:'client',
     sum:`The default assembly kept deliberately monolithic, three coexisting source styles, and the lookup and state-machine conventions that hold a decompiler-derived codebase together.`,
     stack:['Unity','C#','IL2CPP'],
+    iv:[
+      {
+        q:`Why does gameplay stay in one default assembly instead of splitting into layered assemblies?`,
+        a:`Because the code obfuscator that runs at player build time picks its protected target by assembly name, and that target is the default assembly. Splitting gameplay into feature assemblies would have moved most of the game outside the set the obfuscator protects, with no build error to announce it. A slower compile that everyone waits on was judged cheaper than a build that still passed and shipped unprotected. The real cost outside compile time lands on the test side. A test assembly can never reference the game assembly, so verification has to go through a reflection harness instead of a direct reference.`,
+        follow:`How did the team find out the assembly split would have broken obfuscation before it shipped that way?`,
+        red:`Proposing to split the assembly anyway and add an obfuscator exemption to cover the fallout. That inverts the whole reason the assembly stayed whole.`
+      },
+      {
+        q:`What do the two component lookup helpers actually decide, and why not just call the engine's raw lookup?`,
+        a:`One helper is for a reference that may legitimately be missing, like an optional companion on a prefab variant, and it returns null quietly. The other is for a reference whose absence means the scene or prefab is wired wrong, and it throws immediately with the component and object name. Raw lookup is banned in new code by written convention, so the author has to decide, at the call site, which of those two facts they are looking at, instead of leaving every missing reference read the same way in a log.`,
+        follow:`Old call sites written before the convention still use the raw lookup. What happens to those?`,
+        red:`Saying the two helpers are interchangeable, or that the required one should log and continue instead of throwing. That defeats the entire point of naming the difference.`
+      },
+      {
+        q:`Why a hand-rolled state machine instead of a general framework, and why not reuse the animation system's own state graph?`,
+        a:`Each state declares its own transitions from an event id in its own file, so the table stays close to the state it belongs to, which matters most in a codebase that already carries three coexisting source styles. The animation library has its own internal state machine, but that graph drives playback of clips, not gameplay decisions, and reusing it would have coupled two concerns that only accidentally share the word state. One simpler mode uses a plain begin and update state object, because the full hierarchical machine was judged too heavy for a mode that never needed hierarchy or a transition table.`,
+        follow:`How does adding a new state actually work, file by file?`,
+        red:`Suggesting the animation system's state graph should have driven gameplay too, to avoid maintaining two state concepts. That is exactly the coupling the design avoided.`
+      }
+    ],
     parts:[
       {
         id:'arch-monolith', t:'One default assembly, kept whole on purpose',
@@ -112,6 +132,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'mp', t:'Multiplayer', kind:'server',
     sum:`A commercial tick-based transport underneath an inherited authoritative protocol, host mode instead of dedicated servers, and the two policies that make disconnection and protection simple by being strict.`,
     stack:['Fusion','C#'],
+    iv:[
+      {
+        q:`Why layer a hand-written authoritative protocol on top of a commercial netcode SDK instead of using the SDK's own networked-property system?`,
+        a:`The hand-written protocol was inherited from an earlier title, proven across a shipped release and understood by the team, and replacing it with the SDK's native property system would have meant re-deriving behaviour that already worked. The SDK carries one networked property in the whole project, a player-id value with a change callback, plus two remote procedure calls. Everything else moves over a hand-rolled binary protocol on the SDK's reliable and unreliable data channels, with reliable sends carrying a per-target monotonic sequence number so ordering can be checked without trusting the transport alone.`,
+        follow:`What does that sequence number actually protect against that the transport alone would not?`,
+        red:`Proposing to rewrite everything onto the SDK's native networked properties for simplicity, without weighing the cost of re-deriving a protocol that already shipped once.`
+      },
+      {
+        q:`Why interpolation with light prediction instead of rollback, and what does the room code's environment tag actually protect against?`,
+        a:`Sessions run as host mode with lag compensation and host migration both off. Small cooperative sessions cared more about remote motion looking smooth than about frame-accurate contention, so interpolation strategies chosen per entity type, plus a lightweight prediction that the next authoritative message reconciles, bought the right thing for less cost than rollback. The room code is a short number prefixed with a letter naming which environment issued it, because development and live share one backend application id, and that tag only prevents a mismatch it can see. It does nothing for two rooms colliding inside the same environment.`,
+        follow:`What kind of collision does the environment tag not protect against?`,
+        red:`Claiming the environment tag prevents any two rooms from colliding. It only rules out a cross-environment mismatch.`
+      },
+      {
+        q:`Tell me about the collision between the obfuscator and the netcode. How was it found and fixed?`,
+        a:`Remote players stopped appearing in a build the week code renaming was turned on, and only in that build. The editor stayed healthy, so the usual breakpoint debugging loop was unavailable. Bisecting by build configuration rather than by code, disabling each protection layer in turn, pointed at the renaming pass rather than the asset hashing pass within two attempts. The networking library resolves its generated members by name at runtime, so renaming them had silently broken remote player registration. The whole generated class was exempted rather than the specific members that had broken, with a short comment left at the attribute explaining why.`,
+        follow:`Why exempt the whole class instead of just the members that actually broke?`,
+        red:`Proposing a member-level exemption as tidier. That approach had already been tried and had already failed once when the SDK regenerated a member.`
+      }
+    ],
     parts:[
       {
         id:'mp-netcode-layers', t:'A commercial transport under a hand-written protocol',
@@ -190,6 +230,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'platform', t:'Platform abstraction', kind:'client',
     sum:`One facade so gameplay never learns which platform it is running on, and the three places platform actually has to leak through: identity, saves and touch.`,
     stack:['Unity','C#'],
+    iv:[
+      {
+        q:`How does the game avoid a platform branch anywhere in gameplay code?`,
+        a:`A single using alias per build target picks the concrete platform manager once, at compile time, before any other code compiles, and the facade class itself has no logic. Eleven small coordinator interfaces split platform services by responsibility, session, invites, friends, avatar images, privileges, connection state, notifications and the rest, and every implementation of every interface honours the same contract. Gameplay written against the interface never contains its own platform check.`,
+        follow:`What happens when a new capability only makes sense on one platform?`,
+        red:`Proposing runtime platform detection with branches inside gameplay as a simpler alternative. That is exactly what the facade exists to avoid.`
+      },
+      {
+        q:`How was touch added to a game that never had it, without teaching gameplay a second input source?`,
+        a:`On-screen widgets feed the existing controller and binding layer as if they were another physical device, rather than gameplay learning a second input path. All twelve files that make up the touch module live together, and the platform conditional that decides whether touch exists at all appears in exactly one of them. An editor-only preview define lets the mobile UI be exercised and tuned on a desktop machine without a device in hand.`,
+        follow:`Why does it matter that the platform conditional lives in exactly one file instead of being local to each of the twelve?`,
+        red:`Branching at every call site where gameplay reads a controller. That was the first draft, and it doubled the input paths through code the port was not otherwise meant to touch.`
+      },
+      {
+        q:`Why keep the list of build define symbols so short, and what does CI do with the diagnostics one?`,
+        a:`Every define symbol is a build configuration nobody tests directly, so each one multiplies the number of builds that could theoretically differ from the one anybody ran. The list stays to five symbols, each with a single stated purpose: memory diagnostics, a development-build flag, a sideload-friendly package format, a mobile UI preview, and a marker for code shared with the originating project. CI reads the current define string, appends or removes the diagnostics symbol for the run, builds, and restores the original string afterward as its own step.`,
+        follow:`What happens if CI's restore step is skipped or fails after a run?`,
+        red:`Suggesting a symbol be added per team request without a maintenance bar. That is exactly the growth the short list is meant to resist.`
+      }
+    ],
     parts:[
       {
         id:'platform-facade', t:'A compile-time facade over platform services',
@@ -264,6 +324,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'assets', t:'Asset pipeline', kind:'data',
     sum:`Bundles managed by hand instead of by the engine's own asset system, protected two ways, scoped to a lifetime, and shaped for a store that ships megabytes instead of gigabytes.`,
     stack:['AssetBundles','C#'],
+    iv:[
+      {
+        q:`Why hand-manage encrypted, name-hashed bundles instead of using the engine's built-in asset system?`,
+        a:`The content is worth datamining and the binary is worth reverse engineering, and those are different threats with different defences. Bundles ship AES-encrypted, loaded through a small runtime of five files behind one asset service, and file and folder names outside a short exclusion list are separately hashed to a fixed length. Managing bundles by hand instead of through the built-in system was also already true of the inherited project, and there was no budget to migrate a shipped pipeline mid-port.`,
+        follow:`Why are encryption and name hashing two separate settings instead of one obfuscation switch?`,
+        red:`Saying the project should just adopt the engine's managed asset system, without addressing either the threat model or the cost of migrating a shipped pipeline mid-port.`
+      },
+      {
+        q:`How does reference counting by lifetime scope avoid the manual bookkeeping that had already failed once?`,
+        a:`Every loaded asset is counted against one of four lifetime scopes, boot, session, scene or screen, and released automatically when its scope exits rather than by a call a person has to remember. The table mapping each scope to its release trigger is generated by enumerating the scope values themselves, so a new scope cannot be added without also getting an entry in the table, closing the exact gap that manual bookkeeping had already failed at once before.`,
+        follow:`What does a load counted against the wrong scope look like in practice?`,
+        red:`Proposing manual unload calls reviewed carefully at code review as sufficient. That is the exact approach that had already failed on this codebase.`
+      },
+      {
+        q:`Walk me through the tier rule and the kill switch. What does each one actually catch?`,
+        a:`The tier rule sorts scenes into dependency tiers, boot, shell UI, meta world and gameplay, and each tier has a forbidden list of bundle shards it may never reference, checked as part of the build. A shell UI scene pulling in character-model or motion bundles fails at build time and names the scene and the shard together, instead of only showing up as a memory number later. The kill switch is a different tool for a different moment. A persistent-data flag disables the real unload call at runtime, so a suspected leak can be isolated on a device by comparing memory with the flag on and off, without a rebuild for every hypothesis.`,
+        follow:`Why does the kill switch still count references while skipping the actual unload call?`,
+        red:`Treating the kill switch as something that could ship on. It is a diagnostic tool only, confirmed off before every release build.`
+      }
+    ],
     parts:[
       {
         id:'assets-encrypted-bundles', t:'Hand-managed, encrypted, and name-hashed',
@@ -343,6 +423,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'obf', t:'Obfuscation layers', kind:'tooling',
     sum:`Two independent protections for two different threats, each one switchable alone so a failure can be told apart from the other.`,
     stack:['IL2CPP'],
+    iv:[
+      {
+        q:`Why two independent obfuscation layers instead of one obfuscation switch?`,
+        a:`Asset-name hashing and code renaming defend against two different things, datamining of shipped content and reverse engineering of the shipped binary. Bundling both into a single switch would have made a failure in either one indistinguishable from a failure in the other. Pipeline configuration exposes both as separate booleans, so a diagnostic build can disable one while keeping the other, which is what makes an obfuscation-related bug findable at all instead of a shrug.`,
+        follow:`Given a bug report, how do you tell which of the two layers is actually responsible?`,
+        red:`Proposing to bundle the two protections for simplicity. That removes the one property, isolating a failure to one layer, that makes either of them diagnosable.`
+      },
+      {
+        q:`What actually breaks when the code renaming pass runs, and why does it only show up in one kind of build?`,
+        a:`Anything in the game that resolves a type or member by its name at runtime is a candidate to break once renaming runs, because the obfuscator rewrites namespace, class and member names in the compiled output after compilation. A session-state flag skips the whole pass for local or debug builds, so the failure only appears in a protected player build, the one configuration the editor never produces on its own.`,
+        follow:`Why does the pass run after compilation instead of as a source transform on the checked-in code?`,
+        red:`Assuming the editor would surface any renaming-related failure. The editor build stays healthy precisely because it skips the pass entirely.`
+      },
+      {
+        q:`When you have to exempt code from the renamer, how do you decide the scope of the exemption?`,
+        a:`The exemption is written at the class level, with a skip attribute and a short comment recording why, rather than picked member by member. A partial exemption had already been tried once and had already broken again the next time that generated code changed shape, because a regenerated member simply was not covered. Exempting the whole class is the version of the fix that does not need revisiting.`,
+        follow:`What is the downside of exempting at the class level instead of picking individual members?`,
+        red:`Defaulting to member-level exemptions as more precise or safer. That is the approach already shown to fail on this project.`
+      }
+    ],
     parts:[
       {
         id:'obf-code-renaming', t:'Renaming the default assembly at build time',
@@ -402,6 +502,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'cicd', t:'Build pipelines and CI', kind:'cicd',
     sum:`Ten desktop pipelines behind one entry point, three declarative CI pipelines around them, and the marks and markers that make a two-hour build tell the truth about itself.`,
     stack:['Jenkins','PowerShell'],
+    iv:[
+      {
+        q:`Why one long entry-point script for ten pipelines instead of ten separate scripts?`,
+        a:`Ten separate scripts for what is really one build with different endpoints would have drifted the way similar client build jobs elsewhere already had. A single entry point branches internally on which named pipeline was requested, and a table documenting all ten, with time estimates, is the reference anyone consults before choosing one. Naming follows what a pipeline produces and skips, full, full-skip-upload, player-only, rather than a number or a date.`,
+        follow:`What is the cost of one script now being a single point of failure for every one of the ten pipelines?`,
+        red:`Proposing to split the pipelines back into separate scripts for isolation. That reintroduces the exact drift the single entry point exists to prevent.`
+      },
+      {
+        q:`Why does the wrapper trust a result marker the build writes over the process exit code?`,
+        a:`The editor could exit non-zero after a build that had actually succeeded, and could also exit zero after one that had not, specifically in the way this project launched it headless. A signal that lies in both directions cannot be trusted alone, so the build now writes a one-line result marker near the end of its own run, and the wrapper treats that as the pass or fail signal. Every stage also writes a start and end trace into a phases log and a one-line status file, so a two-hour build can be triaged by reading one line instead of scrolling to the end.`,
+        follow:`What happens if the build crashes before it gets far enough to write the result marker?`,
+        red:`Saying the exit code should simply be fixed at the source. In this launch mode the exit code had already been observed lying in both directions, which is why a second, build-authored signal was needed instead.`
+      },
+      {
+        q:`Walk me through why restoring the workspace is its own explicit CI stage, and how failures are graded.`,
+        a:`The build process itself mutates the local working tree, deleting scenes and files and patching a few third-party sources, so restoring it back to a starting state is an explicit first stage rather than an assumption that the previous run cleaned up after itself. Free-text parameters are validated in a cheap setup stage before anything expensive starts. A compile or build failure stops the pipeline hard, because the resulting artefact would be worthless, while a failed symbol or store upload marks the run unstable instead of failed, keeping the built artefact so it can be uploaded by hand.`,
+        follow:`What is the risk if the list of paths the build touches and the list restore reverses drift apart?`,
+        red:`Treating every CI failure the same, either all hard fails or all soft warnings, instead of grading by what the failure actually destroys.`
+      }
+    ],
     parts:[
       {
         id:'cicd-ten-pipelines', t:'Ten named pipelines behind one entry point',
@@ -488,6 +608,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'runtime', t:'Logging, settings and memory budgets', kind:'client',
     sum:`A logger that costs nothing in a release build, settings that survive a missing key gracefully, and quality defaults chosen from the hardware actually in the player's hand.`,
     stack:['Unity','C#'],
+    iv:[
+      {
+        q:`How does the logging facade cost nothing in a release build?`,
+        a:`Every method on the facade carries compile-time conditional attributes tied to editor and development-build symbols. In a release build the call sites disappear entirely, arguments and all, rather than running and being filtered by a level check. A runtime level check still pays the cost of building the log message before deciding to discard it, and on a fixed lower-tier device that cost is not free. Removing the call site at compile time removes the cost along with the log line.`,
+        follow:`What has to happen for a diagnostic that must survive into a release build to actually work?`,
+        red:`Proposing a runtime log-level check as equivalent. It still builds the message, interpolated string and all, before deciding not to print it.`
+      },
+      {
+        q:`Why does loading settings default a missing key instead of treating it as an error?`,
+        a:`Player settings are string keys mapping to enum-defined integer values, persisted through the same platform-swapped save backend as everything else. Loading applies a documented default for any key the save data does not contain, which is what lets a new setting be added later as just a new key with a documented default, requiring no migration of existing save data. The risk is that a wrong default is much harder to notice than a wrong current value, because it only shows up for players who never touched that setting.`,
+        follow:`How would you catch a wrong default before it ships, given it is invisible until a player who never touched it is affected?`,
+        red:`Proposing to fail loudly on any missing key. That breaks every existing save the moment a new setting is added, which is the exact migration cost defaulting was meant to avoid.`
+      },
+      {
+        q:`Why derive memory budgets from measured device memory instead of from the platform name?`,
+        a:`Two phones running the same platform can carry very different amounts of installed memory, and capping quality by platform alone would have let the weaker half of the installed base pick settings the device could not sustain through a load spike. A tier classifier reads installed memory at start-up and sorts the device into low, mid or high, publishing three separate numbers per tier, a steady-state budget, a peak-during-load allowance, and a loading-stage budget.`,
+        follow:`Why does the loading spike get its own separate number instead of folding into the steady-state budget?`,
+        red:`Proposing one single memory number per tier instead of the three separate figures. That collapses exactly the distinction the load-spike allowance exists to make.`
+      }
+    ],
     parts:[
       {
         id:'runtime-logger', t:'A logging facade that disappears in release',
@@ -547,6 +687,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'process', t:'Testing, rationing and conventions', kind:'process',
     sum:`Tests that resolve the game by name because they are not allowed to reference it, a compiler that is the real gate, and the written rules that keep two coding eras and a null policy from colliding.`,
     stack:['Unity Test Framework'],
+    iv:[
+      {
+        q:`Why do tests resolve game types by name through reflection instead of referencing the game assembly directly?`,
+        a:`Test code lives only in dedicated, editor-only assemblies that never reference the game assembly, a direct consequence of keeping gameplay in the one assembly the obfuscator protects. That forces every test that needs a game type to resolve it by string name from the loaded application domain and drive it through reflected accessors, and that reflection is centralised in one harness file rather than scattered across every test.`,
+        follow:`What kind of bug does this move from a compile error into a test failure instead?`,
+        red:`Proposing that tests simply reference the game assembly and exempt it from obfuscation. That reopens the exact gap the assembly boundary exists to close.`
+      },
+      {
+        q:`Why do the settings tests boot the real boot scene instead of mocking startup?`,
+        a:`A test that mocks initialisation only proves the mock works. The settings suite loads the actual boot scene, waits with an explicit timeout for a specific runtime object that only exists once meta-progress has initialised, and fails loudly if that object never appears. Assertions afterward read logged or stored values, setting a non-default value, saving, reloading, and asserting the value came back, never a visual check.`,
+        follow:`What kind of bug would a mocked version of this test have missed entirely?`,
+        red:`Proposing to mock initialisation to speed the suite up, since it is slower and more fragile than a unit test. That trades away the one thing this suite exists to catch.`
+      },
+      {
+        q:`Walk me through the build-rationing ladder. Why isn't a clean compile good enough on its own?`,
+        a:`Compiling clean, with no new warnings introduced, is the bar every change has to clear before anything more expensive runs, and it is the de facto gate for most changes. Above it sits a written ladder: static inspection of the diff and logs, a compile-only check, editor play mode, one batched device build, and a second device build only if the first falsifies the hypothesis being tested. A protected player build took hours, so treating every question as needing one would have made iteration impossibly slow, while never reaching for one would have missed exactly the failures that only appear on a device.`,
+        follow:`What keeps the ladder from becoming a licence to guess under deadline pressure?`,
+        red:`Saying every uncertain change should just go straight to a device build to be safe, since that is the most trustworthy answer. That is precisely the instinct the ladder exists to interrupt.`
+      }
+    ],
     parts:[
       {
         id:'process-reflection-harness', t:'Reflection harnesses, because tests cannot reference the game',
@@ -623,3 +783,184 @@ SYSTEMS('cs-unity-multiplatform-port', [
     ]
   }
 ]);
+
+/* ---------------------------------------------------------------------
+   FLOWS and PROJECT_INTERVIEW for cs-unity-multiplatform-port.
+   Contract and step/edge rules live in src/29-data-experience.js.
+   Content sourced only from the multiplatform port survey and the
+   systems and parts already written above.
+   --------------------------------------------------------------------- */
+FLOWS('cs-unity-multiplatform-port', [
+  {
+    id:'session',
+    t:'A multiplayer session',
+    sum:`One session from a room code to a torn-down runner. The interesting parts are the ones that only exist because two environments share one backend id, and the one that only exists because a phone can be interrupted at any time.`,
+    steps:[
+      { id:'room-code', t:'Room code with env tag', sys:'mp',
+        d:`A short numeric room code is issued with a one-letter prefix naming which environment issued it, because the development and live environments share a single backend application id.` },
+      { id:'join', t:'Session join attempt', sys:'mp',
+        d:`The client submits the room code to the commercial SDK's session join call, which is the only decision point between a normal join and a refusal.` },
+      { id:'join-fail', t:'Join fails, back to lobby', sys:'mp',
+        d:`A join can be refused for a wrong code, a full room, or a mismatched environment, and any of those returns the client to the lobby screen to try again with a fresh code.` },
+      { id:'host-mode', t:'Host mode starts', sys:'mp',
+        d:`A successful join starts the session in host mode rather than a dedicated server, with lag compensation and host migration both off.` },
+      { id:'protocol', t:'Custom protocol runs', sys:'mp',
+        d:`The hand-written authoritative protocol inherited from an earlier title takes over messaging, riding the SDK's reliable and unreliable data channels with its own message types.` },
+      { id:'interp', t:'Remote entities interpolate', sys:'mp',
+        d:`Remote players are shown through swappable interpolation strategies driven by incoming messages, while local interaction predicts a target the next authoritative message reconciles.` },
+      { id:'suspend', t:'OS suspend detected', sys:'mp',
+        d:`When the operating system suspends the application during play, the client treats the notification as fatal for the current session rather than as a pause.` },
+      { id:'teardown', t:'Session torn down', sys:'mp',
+        d:`The session ends immediately with no reconnect path, so coming back from a suspend always means a fresh join through a new room code.` }
+    ],
+    edges:[
+      ['room-code','join'],
+      ['join','join-fail','refused'],
+      ['join','host-mode','accepted'],
+      ['host-mode','protocol'],
+      ['protocol','interp'],
+      ['interp','suspend'],
+      ['suspend','teardown']
+    ]
+  },
+  {
+    id:'release-build',
+    t:'Desktop release build',
+    sum:`Ten pipelines behind one entry point, walked as the one path that matters: markers to a restored workspace, with the build's own result marker deciding which branch the end of the run takes.`,
+    steps:[
+      { id:'markers', t:'Marker toggles set', sys:'cicd',
+        d:`Local dotfiles or CI parameters pick which pipeline runs, which branch to pull, and which build-info key names the target environment.` },
+      { id:'restore-git', t:'Git restore, clean, pull', sys:'cicd',
+        d:`The working tree is restored, cleaned and pulled fresh before any step that mutates it runs, because a leftover change from a cancelled build cannot be assumed gone.` },
+      { id:'prepare', t:'Workspace prepared', sys:'cicd',
+        d:`A prepare step deletes every scene outside the boot scene from the build set and patches a few third-party sources, mutations the restore stage will later undo.` },
+      { id:'pipeline', t:'Phase-traced pipeline runs', sys:'cicd',
+        d:`The chosen named pipeline builds through the engine headless, with every stage writing a start and end trace and a one-line status file as it goes.` },
+      { id:'obfuscate', t:'Optional obfuscation', sys:'obf',
+        d:`Asset name hashing and code renaming run unless a session-state flag skips one or both for a build that needs to stay readable or fast.` },
+      { id:'result', t:'RESULT marker read', sys:'cicd',
+        d:`The wrapper reads a result marker line the build process writes near the end of its own run, because the exit code alone had already proven unreliable in this launch mode.` },
+      { id:'upload', t:'Symbol upload, store or archive', sys:'cicd',
+        d:`On a passing result, symbols are uploaded and the build either goes to the store or is archived, depending on the pipeline parameter that chose the upload target.` },
+      { id:'restore', t:'Workspace restored', sys:'cicd',
+        d:`The mutated paths are restored to their pre-build state as an explicit step, leaving source, editor scripts and project settings untouched throughout.` }
+    ],
+    edges:[
+      ['markers','restore-git'],
+      ['restore-git','prepare'],
+      ['prepare','pipeline'],
+      ['pipeline','obfuscate'],
+      ['obfuscate','result'],
+      ['result','upload','pass'],
+      ['result','restore','fail'],
+      ['upload','restore']
+    ]
+  },
+  {
+    id:'memory-triage',
+    t:'Memory regression triage',
+    sum:`How a memory number becomes a fix without burning a two-hour build on every guess: a build-time check for the cheap case, and a kill-switch bisect for the case that only shows up on a device.`,
+    steps:[
+      { id:'report', t:'Memory report arrives', sys:'runtime',
+        d:`A device shows memory climbing across a long session, or a scene fails the tier check outright during a build.` },
+      { id:'tier-check', t:'Tier rule checked', sys:'assets',
+        d:`The scene's actual bundle dependencies are compared against its dependency tier's forbidden shard list before the build proceeds any further.` },
+      { id:'tier-fail', t:'Build fails early', sys:'assets',
+        d:`A forbidden dependency, such as a shell screen pulling in a character-model bundle, fails the build immediately and names the scene and the shard together.` },
+      { id:'snapshot', t:'Memory snapshot taken', sys:'runtime',
+        d:`When the tier rule passes and the regression is a runtime one, a profiler snapshot narrows the suspect scope before any device build gets scheduled.` },
+      { id:'bisect', t:'Kill-switch bisect', sys:'assets',
+        d:`A persistent-data flag disables the real unload call on a build already in hand, and comparing memory with the flag on and off narrows the leak without a rebuild.` },
+      { id:'device-build', t:'One batched device build', sys:'cicd',
+        d:`A single on-device build validates the hypothesis the kill-switch comparison pointed at, rather than reaching for a build for every guess.` },
+      { id:'fix', t:'Fix applied', sys:'arch',
+        d:`The actual cause the bisect narrowed to, such as a load never released or never counted against the right scope, gets corrected in code.` },
+      { id:'remeasure', t:'Budgets re-measured', sys:'runtime',
+        d:`The device's memory behaviour is re-checked against its tier's steady-state and peak-during-load budgets to confirm the fix actually holds.` }
+    ],
+    edges:[
+      ['report','tier-check'],
+      ['tier-check','tier-fail','fails'],
+      ['tier-check','snapshot','passes'],
+      ['snapshot','bisect'],
+      ['bisect','device-build'],
+      ['device-build','fix'],
+      ['fix','remeasure']
+    ]
+  }
+]);
+
+PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
+  junior:[
+    {
+      q:`What was this project, and what part of it did you personally own?`,
+      a:`It was porting a shipped console title to desktop and mobile in Unity, keeping its multiplayer and content while fitting a fraction of the original memory budget. Work started across the client as a general engineer on the port, then moved into a technical lead role. Day to day that meant the platform abstraction layer, the asset pipeline's memory budgets, and later the build pipelines and CI, plus features like adding touch input to a game that had never had it.`,
+      follow:`Which of those areas did you spend the most time in, and why?`,
+      red:`Describing the whole project in vague generalities without naming a single system or decision actually touched.`
+    },
+    {
+      q:`Walk me through what happens when a player joins a multiplayer session, from the room code to being in the game.`,
+      a:`A room code is a short number prefixed with a letter naming which environment issued it, because development and live share one backend application id. The client submits the code through the commercial SDK's session join call. If it is accepted, the session starts in host mode, and a hand-written authoritative protocol running over the SDK's data channels takes over messaging. Remote players are shown through interpolation driven by incoming messages rather than prediction and rollback. If the join fails, the client just goes back to the lobby to try again.`,
+      follow:`Why does the room code need an environment tag at all?`,
+      red:`Describing this as if the commercial SDK's own networked-property system carries gameplay state. Almost none of it does. The SDK is transport and session only.`
+    }
+  ],
+  mid:[
+    {
+      q:`Why does gameplay code stay in one big default assembly instead of being split into smaller ones?`,
+      a:`The code obfuscator that protects the shipped binary selects its target by assembly name, and that target is the default assembly. Splitting gameplay out would have quietly moved most of the game outside the set the obfuscator protects, with no build error telling anyone. A slower compile everyone waits on was judged a better trade than a build that ships unprotected without saying so.`,
+      follow:`What did that decision cost on the testing side?`,
+      red:`Saying the split should happen anyway because compile time matters more, without engaging with what an unprotected build with no error means for an offline shippable binary.`
+    },
+    {
+      q:`Tell me about the hardest bug you debugged on this project.`,
+      a:`Remote players stopped appearing on device the week code obfuscation was turned on, and only in that build, never in the editor. Bisecting by build configuration instead of by code, disabling each protection layer on its own and rebuilding, pointed at the renaming pass rather than the asset-hashing pass. The networking SDK resolves its generated network members by name at runtime, so renaming them had silently broken remote player registration. The whole generated class was exempted rather than individual members, because a partial exemption had already failed once when the SDK regenerated a member, with a comment left explaining why.`,
+      follow:`Why did bisecting by build configuration work faster than bisecting by code here?`,
+      red:`Jumping straight to a networking explanation and debugging the protocol, when the move that actually found it was isolating which build-time transform was responsible.`
+    },
+    {
+      q:`How did the team decide when a change needed an actual device build versus just compiling?`,
+      a:`There was a written escalation ladder: static inspection of the diff and logs, a compile-only check, editor play mode, then one batched device build, and a second device build only if the first one disproved the hypothesis being tested. A protected player build took hours, so treating every question as needing a device build would have made iteration impossibly slow, but skipping device builds entirely would have missed exactly the failures that only show up on one. Pull requests recorded which rungs of the ladder were expected against which were actually used, so the ladder could not quietly turn into everyone just guessing.`,
+      follow:`What stopped the ladder from becoming a licence to skip verification under deadline pressure?`,
+      red:`Saying the team always built on device for anything uncertain. That ignores the entire reason the ladder existed.`
+    },
+    {
+      q:`Walk me through what a desktop release build actually does, end to end.`,
+      a:`It starts from marker-file toggles for a local run or parameters for CI, restores and cleans the git working tree and pulls, then a prepare step strips non-boot scenes and patches a few third-party sources, because the build process itself mutates the working tree. The chosen named pipeline runs with a phase trace written at the start and end of every stage. Code obfuscation runs unless a flag skips it. The wrapper reads a result marker the build itself writes, because the process exit code had proven unreliable in that launch mode, rather than trusting the exit code alone. On success, symbols are uploaded and the build either goes to the store or gets archived. Either way, the workspace gets explicitly restored afterward, undoing exactly the paths the build is known to mutate.`,
+      follow:`Why does restoring the workspace need to be its own explicit stage rather than an assumption?`,
+      red:`Skipping the restore-workspace step in the walkthrough entirely, as if the build touches nothing outside its own artefact.`
+    }
+  ],
+  senior:[
+    {
+      q:`Walk me through the overall architecture: what already existed, what you added, and how the pieces talk to each other.`,
+      a:`The inherited base was a console title's gameplay: three source styles under one default assembly, a hand-written authoritative network protocol, and a large body of decompiler-derived code. The port layered a commercial tick-based SDK under that protocol for transport and sessions, added a per-platform online services facade behind eleven coordinator interfaces so gameplay never branches on platform, bridged touch into the existing input middleware as a virtual device, moved assets to hand-managed encrypted bundles with scope-based reference counting, and built ten named desktop pipelines behind one entry point with three declarative CI pipelines around them. Almost everything new had to slot in without disturbing the assembly boundary the obfuscator depends on.`,
+      follow:`Which of those additions had to be most careful about not breaking that assembly boundary, and why?`,
+      red:`Describing the port as a rewrite rather than as new layers added around an inherited core. That misrepresents both the risk profile and the actual work.`
+    },
+    {
+      q:`What would you do differently if you started the port again?`,
+      a:`Treating an operating system suspend as instant session death was the right call for correctness, but it is the decision the team knew going in that a live service with a stronger continuity requirement would have to revisit. A design pass on a real reconnect path would be worth doing even if it shipped disabled at first, rather than an architecture with no path to add one later. The tier table and the obfuscation exemption list would also be worth reviewing on a schedule instead of only when something breaks, since both are lists that go stale silently.`,
+      follow:`What would a minimal reconnect path have needed that a same-session teardown does not?`,
+      red:`Claiming the memory or obfuscation trade-offs would have been avoided entirely. Both were deliberate, load-bearing decisions with named alternatives already rejected for good reasons.`
+    },
+    {
+      q:`Tell me about a release incident: something that went wrong close to shipping and how you handled it.`,
+      a:`A two-hour build reported success through its exit code after actually failing, and the artefact it produced could not be installed. The exit code had proven unreliable in the specific way the pipeline launched the editor headless, in both directions, reporting success after failure and failure after success. The fix was to stop trusting it alone. The build itself now writes a result marker line near the end of its run, and the wrapper treats that as the deciding signal, with phase traces at every stage boundary so a failure that does happen can be triaged from one status line instead of an hour of log reading.`,
+      follow:`What made the team confident the new result-marker signal was actually trustworthy, rather than just a second guess?`,
+      red:`Treating the exit code as fixable in isolation, or assuming a second signal is automatically more trustworthy without ever having watched it fail correctly first.`
+    },
+    {
+      q:`How was the port scoped and rationed, given it had to fit a fraction of the original memory budget?`,
+      a:`Budgets were set per device tier from measured installed memory rather than from the platform name, with separate numbers for steady state, the spike during a scene load, and the loading stage itself, because a phone covers a huge spread of actual hardware. Scenes were classified into dependency tiers with a forbidden-shard list per tier, so an accidental dependency became a build failure instead of a memory regression discovered later. Manual load and unload bookkeeping had already failed once, so reference counting moved to lifetime scopes with the release table generated from the enum, and a runtime kill switch let a suspected leak be isolated on a device without a multi-hour rebuild for every hypothesis.`,
+      follow:`Why does the loading-stage budget need its own number instead of being covered by the steady-state figure?`,
+      red:`Describing memory management here as reactive profiling rather than as budgets enforced ahead of time at build and design level.`
+    },
+    {
+      q:`Two people disagree about whether an inherited convention, like the reflection-only test harness or an obfuscator exemption, should be relaxed. How do you make that call?`,
+      a:`The move is to trace what the convention is actually protecting before touching it. The reflection harness exists only because test assemblies cannot reference the game assembly, itself a direct consequence of keeping gameplay in the one assembly the obfuscator protects. Relaxing it means either weakening that protection or moving gameplay out of the protected set, and both have to be argued on those terms, not on test convenience alone. An obfuscation exemption is narrower. It is justified once, for a specific class, with a comment saying why, and a new exemption has to be justified on its own rather than assumed safe because a similar one exists elsewhere. Either way the decision has to be traced back to the threat the convention defends against, not decided by which team is more annoyed by it today.`,
+      follow:`What would actually change your mind about relaxing the assembly restriction itself?`,
+      red:`Treating both conventions as arbitrary friction to be removed for developer convenience, without naming what either one is defending against.`
+    }
+  ]
+});

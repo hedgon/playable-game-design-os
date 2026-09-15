@@ -728,6 +728,27 @@ details.comp .body{padding-top:6px}
 .diagram .muted{fill:var(--fg3)}
 .diagram-card{padding:12px 14px;display:flex;justify-content:center}
 .diagram-cap{font-size:.8rem;color:var(--fg3);margin:0}
+/* workflow charts: the mind map's visual language, laid out top to bottom so
+   a two-way branch fits the content pane at phone width. The svg's inline
+   max-width is its own layout width, so a wide pane shows it at 1:1 and a
+   narrow one scales it down a little rather than scrolling sideways. */
+.flowwrap{display:block;max-width:100%;padding:10px 12px}
+.flowsvg{width:100%;height:auto;display:block;margin:0 auto}
+.flowsvg .fdisc{fill:color-mix(in srgb,var(--dc,var(--accent2)) 14%,var(--bg2));stroke:var(--dc,var(--accent2));stroke-width:1.6}
+.flowsvg .flbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700;pointer-events:none}
+.flowsvg .fnum{fill:var(--fg3);font-family:var(--mono);font-weight:600;pointer-events:none}
+.flowsvg .fedge{fill:none;stroke:var(--line2);stroke-width:1.6;opacity:.85}
+.flowsvg .farrow{fill:var(--line2)}
+.flowsvg .flabel rect{fill:var(--panel);stroke:var(--line);stroke-width:1}
+.flowsvg .flabel text{fill:var(--fg2);font-family:var(--mono);letter-spacing:.02em}
+.flowsvg .flownode:hover .fdisc{fill:color-mix(in srgb,var(--dc,var(--accent2)) 30%,var(--bg2))}
+.flowsteps{list-style:none;padding:0;margin:0 0 10px;counter-reset:fstep}
+.flowsteps li{position:relative;padding:6px 0 6px 26px;border-bottom:1px dashed var(--line)}
+.flowsteps li:last-child{border-bottom:0}
+.flowsteps .fsdot{position:absolute;left:4px;top:11px;width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--dc,var(--accent2)) 55%,transparent);border:2px solid var(--dc,var(--accent2))}
+.flowsteps b{font-family:var(--display);font-stretch:92%}
+.casesub{color:var(--fg2);font-size:.95rem;margin:0 0 8px}
+.card .casesub{font-size:.86rem;margin:2px 0 4px}
 /* ---------- persistent shell: index | mind map | content ---------- */
 .shell{display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--paneW,460px);align-items:start}
 .rail{position:sticky;top:74px;height:calc(100vh - 74px);overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel)}
@@ -835,6 +856,9 @@ details.comp .body{padding-top:6px}
   .railbtn{display:inline-flex}
   .pane{position:fixed;top:0;right:0;bottom:0;width:min(92vw,520px);height:auto;padding:70px 14px 40px;z-index:81;background:var(--panel);border-left:1px solid var(--line2);transform:translateX(101%);transition:transform .18s;overflow:auto}
   .pane.open{transform:none}
+  /* every pixel the wrapper does not take is a pixel the chart renders at,
+     and in the drawer the chart is already the widest thing on the page. */
+  .flowwrap{padding:10px 2px}
 }
 @media (max-width:700px){ .mapbar .mapcrumbs{display:none} }
 </style>

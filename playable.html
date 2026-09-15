@@ -728,6 +728,27 @@ details.comp .body{padding-top:6px}
 .diagram .muted{fill:var(--fg3)}
 .diagram-card{padding:12px 14px;display:flex;justify-content:center}
 .diagram-cap{font-size:.8rem;color:var(--fg3);margin:0}
+/* workflow charts: the mind map's visual language, laid out top to bottom so
+   a two-way branch fits the content pane at phone width. The svg's inline
+   max-width is its own layout width, so a wide pane shows it at 1:1 and a
+   narrow one scales it down a little rather than scrolling sideways. */
+.flowwrap{display:block;max-width:100%;padding:10px 12px}
+.flowsvg{width:100%;height:auto;display:block;margin:0 auto}
+.flowsvg .fdisc{fill:color-mix(in srgb,var(--dc,var(--accent2)) 14%,var(--bg2));stroke:var(--dc,var(--accent2));stroke-width:1.6}
+.flowsvg .flbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700;pointer-events:none}
+.flowsvg .fnum{fill:var(--fg3);font-family:var(--mono);font-weight:600;pointer-events:none}
+.flowsvg .fedge{fill:none;stroke:var(--line2);stroke-width:1.6;opacity:.85}
+.flowsvg .farrow{fill:var(--line2)}
+.flowsvg .flabel rect{fill:var(--panel);stroke:var(--line);stroke-width:1}
+.flowsvg .flabel text{fill:var(--fg2);font-family:var(--mono);letter-spacing:.02em}
+.flowsvg .flownode:hover .fdisc{fill:color-mix(in srgb,var(--dc,var(--accent2)) 30%,var(--bg2))}
+.flowsteps{list-style:none;padding:0;margin:0 0 10px;counter-reset:fstep}
+.flowsteps li{position:relative;padding:6px 0 6px 26px;border-bottom:1px dashed var(--line)}
+.flowsteps li:last-child{border-bottom:0}
+.flowsteps .fsdot{position:absolute;left:4px;top:11px;width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--dc,var(--accent2)) 55%,transparent);border:2px solid var(--dc,var(--accent2))}
+.flowsteps b{font-family:var(--display);font-stretch:92%}
+.casesub{color:var(--fg2);font-size:.95rem;margin:0 0 8px}
+.card .casesub{font-size:.86rem;margin:2px 0 4px}
 /* ---------- persistent shell: index | mind map | content ---------- */
 .shell{display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--paneW,460px);align-items:start}
 .rail{position:sticky;top:74px;height:calc(100vh - 74px);overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel)}
@@ -835,6 +856,9 @@ details.comp .body{padding-top:6px}
   .railbtn{display:inline-flex}
   .pane{position:fixed;top:0;right:0;bottom:0;width:min(92vw,520px);height:auto;padding:70px 14px 40px;z-index:81;background:var(--panel);border-left:1px solid var(--line2);transform:translateX(101%);transition:transform .18s;overflow:auto}
   .pane.open{transform:none}
+  /* every pixel the wrapper does not take is a pixel the chart renders at,
+     and in the drawer the chart is already the widest thing on the page. */
+  .flowwrap{padding:10px 2px}
 }
 @media (max-width:700px){ .mapbar .mapcrumbs{display:none} }
 </style>
@@ -7606,7 +7630,9 @@ INTERVIEW('lead-saying-no',{
 
    CASE({
      id:'',                                  // url slug, unique
-     t:'',                                   // the case study title, anonymised
+     t:'',                                   // the project codename, e.g. "Project S · Backend"
+     code:'',                                // the same codename, named explicitly for search and chips
+     sub:'',                                 // the descriptive line under it, e.g. "A Go backend for a live mobile game"
      role:'', period:'',                     // "Server engineer", "2 years"
      stack:[''],                             // public tech names only
      context:'',                             // what the thing was and what it had to do
@@ -7616,6 +7642,13 @@ INTERVIEW('lead-saying-no',{
      stories:[{s:'',t:'',a:'',r:''}],         // 3-5 STAR interview stories
      rel:[['topic-id','why this case is evidence for that topic']]
    })
+
+   `t` is the codename so that every place that already reads `c.t` (the map
+   root, the crumbs, the rail, the "seen in practice" chips, the search index)
+   names the repo the work belongs to. `sub` carries the old descriptive title
+   and is shown under the codename on cards, on the project page and on the
+   map root. Two projects may share a codename when they are two repos of one
+   product; the suffix after the middle dot is what separates them.
    ===================================================================== */
 
 const CASE_STUDIES = [];
@@ -7632,6 +7665,7 @@ function CASE(o){ CASE_STUDIES.push(o); }
      id:'', t:'', kind:'',                  // kind is one of KIND_COLOR below
      sum:'',                                // one or two sentences: what this system is
      stack:[''],                            // public tech names only
+     iv:[{q:'',a:'',follow:'',red:''}],     // exactly 3 "likely questions" on the system page
      parts:[{
        id:'',                               // prefixed by the system id: "api-routing"
        t:'',
@@ -7646,8 +7680,14 @@ function CASE(o){ CASE_STUDIES.push(o); }
    }])
 
    6 to 8 systems per project, 2 to 5 parts each. Ids unique within a
-   project. The same anonymisation rule as the case itself applies to every
-   string: the technique travels, the names do not.
+   project. `iv` is the same q/a/follow/red shape the topics use, flat rather
+   than split by level, and renders as "Likely questions" on the system page.
+   The same anonymisation rule as the case itself applies to every string: the
+   technique travels, the names do not.
+
+   Reserved: a system id may not be `workflows`, `interview`, `flow` or
+   `overview`. Those four are route words under #/experience/<cs>/... and a
+   system claiming one would shadow a page.
    --------------------------------------------------------------------- */
 const KIND_COLOR = {
   client:'var(--d-ux)', server:'var(--d-server)', backend:'var(--d-backend)', data:'var(--d-systems)',
@@ -7659,9 +7699,57 @@ const KIND_LABEL = {
 };
 function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('SYSTEMS: unknown case ' + csId); c.systems = arr; }
 
+/* ---------------------------------------------------------------------
+   WORKFLOWS
+   How the project behaves end to end, as charts rather than prose: the life
+   of a request, the path from a push to production, a session from join to
+   teardown. Each flow is data and one generic renderer draws it, so a flow
+   costs no layout work and cannot drift from the visual language.
+
+   FLOWS('cs-id', [{
+     id:'',                                 // url slug, unique inside the project
+     t:'',                                  // the flow title, e.g. "Life of a request"
+     sum:'',                                // one or two sentences: what the chart shows
+     steps:[{
+       id:'',                               // unique inside the flow
+       t:'',                                // the card label, short enough for two lines
+       d:'',                                // one sentence, shown in the list and as the card tooltip
+       sys:''                               // optional system id of this project; it colours the card
+     }],
+     edges:[['from-step','to-step','label']]  // label optional, used on a branch
+   }])
+
+   2 to 4 flows per project, 4 to 9 steps each. The edges form a directed
+   acyclic graph: branches are allowed (a step may have two outgoing edges,
+   for example refused and handled), every step has to be reachable from
+   steps[0], and no edge may point backwards or at itself. The renderer puts
+   a step in the column of its longest path from steps[0], so the chart reads
+   left to right in the order the work actually happens.
+   --------------------------------------------------------------------- */
+function FLOWS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('FLOWS: unknown case ' + csId); c.flows = arr; }
+
+/* ---------------------------------------------------------------------
+   PROJECT INTERVIEW
+   The questions asked about a project on a CV rather than about one system:
+   walk me through the architecture, what would you change, the hardest bug,
+   how you decided X, what you owned. Same q/a/follow/red shape as a topic's
+   interview tab, and the same "your story" textarea, keyed story.<cs-id>.
+
+   PROJECT_INTERVIEW('cs-id', {
+     junior:[{q:'',a:'',follow:'',red:''}],
+     mid:[...], senior:[...]
+   })
+
+   10 to 12 questions in total, at least 2 at every level. Answer outlines
+   have to stay consistent with the systems and parts already written.
+   --------------------------------------------------------------------- */
+function PROJECT_INTERVIEW(csId, iv){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('PROJECT_INTERVIEW: unknown case ' + csId); c.iv = iv; }
+
 CASE({
   id:'cs-go-game-backend',
-  t:'A Go backend for a live mobile game',
+  t:'Project S · Backend',
+  code:'Project S · Backend',
+  sub:'A Go backend for a live mobile game',
   role:'Server engineer, later backend lead',
   period:'3 years, live product',
   stack:['Go','protobuf','gorilla/mux','google/wire','MySQL','Redis','memcached','goose'],
@@ -7744,7 +7832,9 @@ CASE({
 
 CASE({
   id:'cs-unity-mobile-client-ci',
-  t:'A Unity mobile client and its CI',
+  t:'Project S · Client and CI',
+  code:'Project S · Client and CI',
+  sub:'A Unity mobile client and its CI',
   role:'Unity client engineer, later owner of the build and CI',
   period:'3 years, live product',
   stack:['Unity','C#','Addressables','UniTask','protobuf','gRPC','Jenkins','PowerShell'],
@@ -7827,7 +7917,9 @@ CASE({
 
 CASE({
   id:'cs-unity-multiplatform-port',
-  t:'Porting a console game to PC and mobile in Unity',
+  t:'Project P · Port',
+  code:'Project P · Port',
+  sub:'Porting a console game to PC and mobile in Unity',
   role:'Client engineer on the port, later technical lead',
   period:'2 years, shipped port',
   stack:['Unity','C#','IL2CPP','Fusion','AssetBundles','Jenkins','Memory Profiler'],
@@ -11299,6 +11391,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'api', t:'Public API server', kind:'backend',
     sum:`The process every player talks to. One router per process mode, a fixed middleware chain, protobuf over plain HTTP, and one error type that decides what the client sees.`,
     stack:['Go','net/http','gorilla/mux','protobuf','memcached'],
+    iv:[
+      {
+        q:`Why protobuf over plain HTTP instead of gRPC?`,
+        a:`Because of what sits between a phone and the server. A request passes a carrier proxy, a content delivery network, a load balancer and sometimes a corporate firewall, and all of those understand ordinary HTTP while some of them do not understand streaming. Protobuf bodies keep the payload small and typed on a bad network, and every middleware, every load balancer rule and every cache header we already had kept working. What we gave up was streaming and generated client stubs, so the client hand writes thin wrappers and the header contract is agreed by documentation rather than by a tool.`,
+        follow:`So what does the header contract actually carry, and what happens when the two sides disagree?`,
+        red:`Answering with a benchmark. Speed was not the deciding factor and a candidate who reaches for it has not thought about the path a mobile request travels.`
+      },
+      {
+        q:`A new endpoint has to be authenticated. What does the engineer adding it have to remember?`,
+        a:`Nothing, and that is the point. Authentication is attached to the subrouter that owns the path prefix, not to the handler, so registering the route under the right prefix is what applies it. The chain around it is fixed: context seeding, then logging, then the maintenance gate, then the client version gate, then session authentication, then the duplicate request lock. Per handler opt in was never on the table, because the first time somebody forgets it the endpoint is open and nothing says so.`,
+        follow:`The gates have an allow list of exempt prefixes. What is on it and why does it have to exist?`,
+        red:`Proposing a per handler middleware decorator as an improvement. It moves a security property from structure back into memory.`
+      },
+      {
+        q:`What is the cost of that fixed chain, and where has it bitten you?`,
+        a:`Order inside it is load bearing and invisible. Context seeding has to run before anything reads the context, the version gate has to run after the header is parsed and before any handler can answer, and none of that is expressed in a type. It lives in one routing file that nobody opens until it breaks. The other cost is the exemption list on the maintenance and version gates: the health check and the force update endpoint have to answer while the gate is closed, so there is a hand maintained list of prefixes that skip a check, which is exactly the kind of list that goes stale.`,
+        follow:`How would you make the ordering a compile time property rather than a convention?`,
+        red:`Claiming there is no cost. A fixed chain trades explicitness for safety and a senior answer names the trade.`
+      }
+    ],
     parts:[
       {
         id:'api-routing', t:'Routing and the middleware chain',
@@ -11360,6 +11472,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'realtime', t:'Realtime and matchmaking servers', kind:'server',
     sum:`Two WebSocket processes and a matchmaker sitting behind the same binary as the API. Framed protobuf messages, an op-code dispatch loop per connection, and a ticket pool that hands matched peers to a session.`,
     stack:['Go','gobwas/ws','protobuf','Redis'],
+    iv:[
+      {
+        q:`Why hand roll the frame format instead of using an existing WebSocket messaging library?`,
+        a:`Because both realtime servers already spoke protobuf for the HTTP API, and adopting a second serialization format for one feature was not worth it. A length prefixed frame carrying a message id, an op code and a protobuf payload reuses the same tooling and the same generated types the API already has. The cost is that the envelope and the op code switch are not covered by any library, so a new op code is a manual addition on both the server switch and whatever client decodes it, and a malformed frame is a decode bug rather than something a library rejects for you.`,
+        follow:`How does a reply get correlated back to the request that caused it, given a socket has no built in request and response pairing?`,
+        red:`Suggesting a general purpose message queue library as a drop in fix. It solves a problem that was not the one being asked and ignores the shared protobuf tooling that made the hand rolled envelope cheap.`
+      },
+      {
+        q:`Chat and presence run on more than one instance. How does a publish on one instance reach a subscriber connected to another?`,
+        a:`A channel name is hashed and taken modulo the instance count, so each instance subscribes to only the shards it owns in Redis pub/sub, and a reconnect and retry loop keeps that subscription alive without dropping the local WebSocket clients. A stat repository tracks the subscriber set per channel, so presence counts do not need asking every instance directly.`,
+        follow:`What happens to a channel's subscribers during a rolling deploy that crosses a shard boundary?`,
+        red:`Describing this as a message queue. It is pub/sub with no persistence and no delivery guarantee, and treating it like a queue would hide the fact that a dropped connection loses whatever was published while it was down.`
+      },
+      {
+        q:`The matchmaker holds its ticket pool behind a single mutex. What does that cost, and when does it stop being fine?`,
+        a:`A mutex guarded scan is simple enough to reason about directly, and a ticket carrying capacity plus rule predicates lets the matching rules evolve without redesigning the queue. The cost is that only one scan can run at a time, so the whole approach is sized for the volume it was built for. It becomes the first thing a future scaling pass has to replace once ticket volume outgrows a single scan.`,
+        follow:`What would you replace the single mutex with first, and what would you have to give up to do it?`,
+        red:`Claiming the mutex is free because matches are small. The cost is throughput of the scan itself, not the size of one match, and a senior answer separates those two things.`
+      }
+    ],
     parts:[
       {
         id:'realtime-framing', t:'Framed protobuf and op-code dispatch',
@@ -11419,6 +11551,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'simparity', t:'Simulation parity package', kind:'server',
     sum:`A deterministic reimplementation of the client's simulation, run again on the server so the result that counts is never only the one the client reported.`,
     stack:['Go','C#'],
+    iv:[
+      {
+        q:`Why port the random generator bit for bit instead of reimplementing it from its documented behaviour?`,
+        a:`Two generators that only agree on distribution will still diverge step by step once real match data runs through them, and the contract here needs the client and the server to reach the identical last bit, not an equivalent answer. A behavioural port could pass every statistical test and still disagree with the client on move one thousand of a specific match. Porting bit for bit removes that whole class of failure at the cost of both sides being frozen against a specific compiler and runtime behaviour.`,
+        follow:`What broke the first time the two implementations disagreed, and how was the divergence actually found?`,
+        red:`Answering that a large enough test suite would have caught it eventually. Bit exactness is a property of the toolchain, and a statistical test cannot see a single bit difference that only shows up on one input shape.`
+      },
+      {
+        q:`The trace gate diffs step by step instead of comparing the final score. Why does that distinction matter?`,
+        a:`Two different simulations can land on the same final score while disagreeing about every step that produced it, so a score only test would have let the actual bug through. Diffing fails on the first differing step, so one divergent instruction fails the whole test instead of being averaged away by a similar outcome. The trade is that the gate is only as good as its fixture coverage, and a fixture set has to keep growing as the simulation gains mechanics or it quietly stops testing the newest code.`,
+        follow:`How do the fixtures get chosen, and what happens when the simulation gains a mechanic no fixture exercises yet?`,
+        red:`Proposing to compare only final results as a simplification. That is the exact gap that let the original bug through, and offering it back as an improvement is a red flag on its own.`
+      },
+      {
+        q:`Server re-simulation doubles as anti-cheat. Why aggregate before acting instead of banning on the first mismatch?`,
+        a:`Aggregating across matches avoids punishing a false positive on one anomalous result, so an account is shadow-banned on a pattern rather than a single flagged submission. Replays are retained so a flagged account can be reviewed against real gameplay, not only the trace numbers. The trade is that a confirmed cheater keeps playing until the pattern is established, which is a deliberate choice to protect honest players from a wrongful ban.`,
+        follow:`What signal besides a result mismatch feeds the aggregation, and how long does a pattern typically take to establish?`,
+        red:`Proposing an instant ban on the first mismatch as a stronger stance. It ignores that a mismatch alone was already shown to include false positives, and a senior answer weighs that against the cost of a slower ban.`
+      }
+    ],
     parts:[
       {
         id:'simparity-determinism', t:'Bit exact RNG port and FMA free math',
@@ -11479,6 +11631,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'data', t:'Data layer, caching and Redis', kind:'data',
     sum:`Seven MySQL schemas behind one host abstraction, controller-scoped transactions, dirty-table delta sync back to the client, three cache tiers, and Redis doing three unrelated jobs.`,
     stack:['Go','MySQL','gocraft/dbr','goose','Redis','memcached'],
+    iv:[
+      {
+        q:`Walk through what happens if a repository writes to the database but forgets to register its table in the dirty set.`,
+        a:`Nothing fails loudly. The handler still returns success, the response still looks normal, and the client keeps believing whatever it held before for that one table, because the delta response only reloads tables the dirty set names. It shows up later as a slow trickle of support reports from players whose local state disagrees with the server for one specific screen. The convention is enforced by review rather than by the compiler, so it survives only as a written rule and a review item.`,
+        follow:`How would you catch that class of bug before it reaches a player, given nothing at the type level ties a write to a dirty set entry?`,
+        red:`Insisting this cannot happen because reviewers check for it. The story is precisely that it did happen, and a senior answer treats a review only guard as a known gap rather than a solved problem.`
+      },
+      {
+        q:`Why open every transaction a handler needs up front and commit or roll back all of them at the end, instead of committing schema by schema as the handler goes?`,
+        a:`Deciding commit or roll back once, at the top of the handler, means a request touching three schemas cannot commit two and roll back the third by accident at some early return nobody remembered to guard. A deferred function keyed off the handler's own named return error runs that decision exactly once no matter which path the handler took to get there. The trade is that the pattern reads as magic until someone explains the deferred function and the named return together.`,
+        follow:`What stops a write repository from writing outside a transaction when nothing at the type level distinguishes a session from a transaction?`,
+        red:`Suggesting a two phase commit across the schemas as a stronger guarantee. That solves a distributed consistency problem this system does not have, since every schema lives behind one host and one process.`
+      },
+      {
+        q:`Why does one Redis deployment do leaderboards, locking and pub/sub instead of three separate stores?`,
+        a:`Each job maps cleanly onto a Redis data structure that already does most of the work, and reusing one deployment was a real cost saving early on. The trade is that the three jobs share fate. An operational incident on that Redis instance is a leaderboard incident, a locking incident and a chat incident at the same time, and nothing at the infrastructure level isolates them from each other.`,
+        follow:`If you had to isolate one of the three jobs onto its own store first, which would you pick and why?`,
+        red:`Calling this a free optimisation with no downside. The blast radius cost is real, and a candidate who does not name it has not thought about what happens when that instance has a bad day.`
+      }
+    ],
     parts:[
       {
         id:'data-schemas-transactions', t:'Multi-schema transactions',
@@ -11574,6 +11746,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'platform', t:'Config, secrets and observability', kind:'infra',
     sum:`Configuration compiled into the binary, environment variables as the only external knob, and the observability stack that makes a live process explainable after the fact.`,
     stack:['Go','viper','logrus'],
+    iv:[
+      {
+        q:`Configuration is compiled into the binary. What does that buy you, and what did it end up costing?`,
+        a:`A build that carries its own configuration cannot be pointed at the wrong environment by a stray file left on a host, and the diff between two environments is visible as plain YAML in one file instead of scattered across servers. It also made that file feel like the natural home for anything configurable, which is exactly how database credentials and a chat webhook ended up compiled into a binary and committed to version control.`,
+        follow:`Once you found credentials in that file, what was the actual fix, and why wasn't deleting them from the file enough?`,
+        red:`Saying the fix was deleting the values from the file. A pushed secret is compromised the moment it is pushed, so the fix is rotation, and deletion alone leaves the old value reachable in history.`
+      },
+      {
+        q:`You found live secrets committed in the repository. How did you raise it, and why not just flag it immediately in a team channel?`,
+        a:`I wrote the exposure as facts instead of a complaint: who could read those values today, what an old clone or a departed teammate's checkout still holds, and how long a full rotation would take given the current layout. Then I proposed the smallest first step rather than a platform rewrite, moving one environment's values to a secret store injected at deploy time and rotating them. An outraged message would have achieved nothing against a problem that predated everyone and competed with feature deadlines.`,
+        follow:`What made rotation time the number worth tracking instead of, say, counting how many places the secret appeared?`,
+        red:`Describing this as reporting it and moving on. Stopping at deletion or rotation for a single environment without naming what was still unfixed is not the same as owning the exposure.`
+      },
+      {
+        q:`Why split logging into a dozen or more named streams instead of one combined log?`,
+        a:`Splitting by concern turns a question like whether the database is slow into one file to open instead of a full text search across everything, and naming a tracing transaction at the same place a route is declared means tracing coverage cannot silently fall behind routing coverage. The trade is that a dozen files is more than one operator, so the split only earns its keep once someone has the muscle memory of which file answers which question, and it fits poorly with search tooling that expects a single stream.`,
+        follow:`How does log rotation work across that many files without the process owning its own rotation schedule?`,
+        red:`Proposing to merge everything into one stream and filter at query time as an obvious improvement, without acknowledging that the existing search tooling already struggles with a single stream at this volume.`
+      }
+    ],
     parts:[
       {
         id:'platform-embedded-config', t:'Configuration embedded at build time',
@@ -11634,6 +11826,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'cicd', t:'Build, CI and deploy', kind:'cicd',
     sum:`A pull request gate cheap enough to run on every review, a heavier push gate that proves the schema and every server mode actually boot, a build that stamps its own provenance, and a docker-compose stack for local development.`,
     stack:['Drone','Docker','MySQL','Redis','memcached'],
+    iv:[
+      {
+        q:`A pull request only runs lint and unit tests, while schema provisioning and end to end happen after merge. Isn't that backwards?`,
+        a:`The heavy stage takes tens of minutes, too slow for how often a reviewer wants feedback during review, so splitting by cost buys fast per review feedback without pretending lint and unit tests prove the schema and the full binary actually boot together. The real cost is honest: a pull request can show green while the check that would catch a schema or wiring problem has not run yet, so a branch is not fully verified until after it merges.`,
+        follow:`What would it take to move that verification earlier without making every review wait tens of minutes?`,
+        red:`Claiming a green pull request means the branch is fully verified. The whole point of naming this trade-off out loud is that it does not, and pretending otherwise is the failure mode this practice exists to avoid.`
+      },
+      {
+        q:`Why does the build stamp its own version, commit hash and build date instead of relying on a deployment manifest?`,
+        a:`A binary that can name its own build is a debugging shortcut when a live incident starts with figuring out which version is even running, since the answer travels with the artefact instead of living in a separate system that could be out of sync. The client-facing version is read from master data rather than baked in, so a version bump the client needs to see does not by itself require a server redeploy.`,
+        follow:`What happens if the linker flags are missing for one build, and how would you notice?`,
+        red:`Saying a deployment manifest makes this redundant. A manifest can drift from what is actually running, and the binary reporting its own provenance is exactly the check that catches that drift.`
+      },
+      {
+        q:`Deploy is a shell supervisor running processes on fixed ports rather than a container orchestrator. What are you giving up?`,
+        a:`There is no orchestrator managing process placement, restart policy or scaling, so all of that lives in shell scripts and in whoever operates them. It is a real capability gap against a platform that handles it natively, accepted because migrations run as their own explicit step scoped per schema and per environment, kept separate from the application deploy, which was the property that mattered most at the time.`,
+        follow:`What is the first failure mode you would expect from a shell supervisor that an orchestrator would have caught automatically?`,
+        red:`Dismissing container orchestration as unnecessary complexity in general. The honest answer names what was given up, not that nothing was.`
+      }
+    ],
     parts:[
       {
         id:'cicd-pipeline-stages', t:'Two-speed CI: lint on PR, full provision on push',
@@ -11695,6 +11907,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'tooling', t:'Batch jobs and admin tooling', kind:'tooling',
     sum:`Everything that keeps the live product operable outside the player-facing path: scheduled batch binaries, an admin and debug server on its own mode, and the ops scripts that move code and data between environments.`,
     stack:['Go','MySQL'],
+    iv:[
+      {
+        q:`Roughly twenty batch binaries build from the same module as the server. How do you know which ones are safe to run right now?`,
+        a:`Each batch binary carries a header comment documenting its own cron schedule, or stating plainly that it is manual-recovery-only and must never be put on a schedule, so the answer travels with the code instead of living in someone's memory. The trade is that nothing forces the header comment to stay honest once someone changes the schedule and not the file, and twenty small binaries from one module is twenty things that can silently stop being scheduled if a cron entry is lost.`,
+        follow:`How would you catch a batch binary whose header comment no longer matches its actual cron entry?`,
+        red:`Claiming the header comment is a sufficient guarantee on its own. The system already admits it can go stale, and a senior answer treats it as documentation to verify, not a control to trust blindly.`
+      },
+      {
+        q:`Why is the admin and debug surface a separate mode of the binary instead of a set of privileged routes on the player-facing router?`,
+        a:`Keeping admin and debug entirely out of the player-facing router means a bug in the route table cannot accidentally expose an administrative action to a player, because the code paths never share a listener. Basic authentication in front of the whole mode is judged sufficient specifically because the mode listens on its own port, not the one a public load balancer forwards.`,
+        follow:`What has to be true in every environment, including a developer's laptop, for that port-based isolation to actually hold?`,
+        red:`Saying basic auth alone is fine on any port. The reasoning depends entirely on the port not being reachable from outside, and skipping that assumption misses the actual argument.`
+      },
+      {
+        q:`Why keep DDL diffing and cross-environment sync as scripts in a toolbox rather than folding them into the application?`,
+        a:`Centralising these as scripts instead of tribal-knowledge commands means the operation itself, not just its output, is reviewable and repeatable by the next person who needs to run it, and a DDL diff tool catches a migration that silently reorders or drops a column before it reaches an environment that matters. The trade is that nobody owns pruning the toolbox, so a script written once during a specific migration tends to outlive that migration and sit unused but undeleted.`,
+        follow:`How would you decide whether a script in that toolbox is still needed versus safe to delete?`,
+        red:`Proposing to delete anything that looks unused without checking who might still run it manually. Operational scripts are exactly the kind of code whose only caller is a person, not a test suite.`
+      }
+    ],
     parts:[
       {
         id:'tooling-batch-binaries', t:'Scheduled and manual-recovery batch binaries',
@@ -11756,6 +11988,26 @@ SYSTEMS('cs-go-game-backend', [
     id:'process', t:'Engineering process: rules, red-first, migration PRs, E2E integrity', kind:'process',
     sum:`The written rules that made the rest of this project maintainable: tests that fail before a fix exists, end to end expectations that owe nothing to the code under test, and migrations that never ride along with a feature.`,
     stack:['Go','TypeScript','Mocha'],
+    iv:[
+      {
+        q:`Why does red-first discipline require the failing test to be shown, not just claimed, in the pull request?`,
+        a:`A test written after the fix tends to test what the fix does rather than what the bug was, and that difference only shows up the next time someone touches the code. Seeing the failure first, pasted into the pull request as evidence, is the only proof the test would have caught the original bug rather than merely agreeing with whatever the fix happened to produce.`,
+        follow:`What stops someone from pasting a red log tail that was faked or copied from an unrelated failure?`,
+        red:`Saying a code reviewer can just trust the description of what failed. The whole practice exists because a description is not evidence, and skipping the pasted log defeats the point.`
+      },
+      {
+        q:`Why is deriving an end to end expectation from observed output forbidden, even when the output looks correct?`,
+        a:`A test built from observed output proves the code did something, not that it did the right thing, and it stops failing the moment a bug becomes consistent instead of getting fixed. Expectations have to come from master data or from the specification's own math instead, and a setup failure has to fail the test outright rather than call skip, because a silently skipped setup makes every assertion after it vacuously true.`,
+        follow:`A previously green case just turned red. Walk through how you would decide whether the change or the test is wrong.`,
+        red:`Treating a green-to-red flip as proof the test is outdated by default. The rule here is the opposite, guilty until proven innocent, and getting that backwards defeats the whole practice.`
+      },
+      {
+        q:`Why require a migration to land in its own pull request separate from the code that will use the new column?`,
+        a:`Keeping migration pull requests and code pull requests apart means a migration failure or a bad migration rollback is never entangled with a logic change in the same diff, so either piece can be reverted on its own. The trade is that a feature needing a new column now needs two pull requests in the right order, tracked by convention rather than by any automated check.`,
+        follow:`What actually enforces the ordering between the migration pull request and the code pull request that depends on it?`,
+        red:`Suggesting the two pull requests could just be combined for convenience when a change is small. That is the exact shortcut the rule exists to prevent, and proposing it back as an improvement misses why the separation exists.`
+      }
+    ],
     parts:[
       {
         id:'process-red-first', t:'Red-first discipline as a written rule',
@@ -11816,6 +12068,196 @@ SYSTEMS('cs-go-game-backend', [
   }
 ]);
 
+/* ---------------------------------------------------------------------
+   WORKFLOWS for this project (shape and rules in 29-data-experience.js).
+   Each flow is a small acyclic graph drawn as a chart by PlayableFlow:
+   4 to 9 steps, `sys` naming a system of this project so the card takes
+   that system's colour, edges forming a DAG with every step reachable
+   from steps[0]. Branch labels stay short, because they are drawn in the
+   gap between two columns.
+   --------------------------------------------------------------------- */
+FLOWS('cs-go-game-backend', [
+  {
+    id:'request',
+    t:'Life of a request',
+    sum:`One player action, from the socket to the response. The interesting parts are the things the handler never has to ask for: the context it reads, the gates it inherits, the duplicate it never sees, and the response it does not assemble.`,
+    steps:[
+      { id:'arrive', t:'Request arrives', sys:'api',
+        d:`A form encoded request reaches the API mode of the binary through the load balancer, carrying session, platform, language, client version and master data version as headers plus a counter describing the state the client already holds.` },
+      { id:'chain', t:'Middleware chain runs', sys:'api',
+        d:`One fixed chain seeds the request scoped context and its per request memo cache, writes the request log line, then runs the maintenance gate, the client version gate and session authentication, each consulting an allow list of exempt path prefixes.` },
+      { id:'dedupe', t:'Duplicate request lock', sys:'api',
+        d:`An add if absent key of player, method and path goes into the distributed cache with a short expiry. Whether that write succeeds is the whole decision about which of the two paths below the request takes.` },
+      { id:'refused', t:'Refused with a domain code', sys:'api',
+        d:`A second copy arriving inside the window never reaches a handler. It is answered with a numeric domain code from the block that owns idempotency, so the client can tell a refused retry apart from a real failure.` },
+      { id:'handler', t:'Handler and interactor', sys:'api',
+        d:`The controller opens the transactions this request needs from a shared runner, then calls an interactor that knows only the repository interfaces it declared. Nothing in that layer imports a driver.` },
+      { id:'commit', t:'Transactions commit', sys:'data',
+        d:`Every write repository call registers the table it touched into a dirty set on the context. A deferred commit or rollback reads the named return error once and decides all the schemas the request touched as a single outcome.` },
+      { id:'delta', t:'Delta response is built', sys:'data',
+        d:`One post dispatch step reloads exactly the tables in the dirty set, compares against the generation counter the client sent, and marshals the result as protobuf, so the response carries what changed instead of the whole player.` },
+      { id:'recorded', t:'Recorded and traced', sys:'platform',
+        d:`Both endings land in the same place. The route's monitoring transaction closes, the execution time line is written to its own stream, and a game event goes to the append only action log with the identifiers hashed.` }
+    ],
+    edges:[
+      ['arrive','chain'],
+      ['chain','dedupe'],
+      ['dedupe','refused','duplicate'],
+      ['dedupe','handler','first copy'],
+      ['handler','commit'],
+      ['commit','delta'],
+      ['delta','recorded'],
+      ['refused','recorded']
+    ]
+  },
+  {
+    id:'push',
+    t:'Push to production',
+    sum:`What happens between a merged pull request and a running deploy. Migration order and seed drift only ever show up when a database is built from nothing, so this chart is where that proof actually runs.`,
+    steps:[
+      { id:'pr-gate', t:'PR lint and tests', sys:'cicd',
+        d:`A pull request runs lint and unit tests only, fast enough to give feedback inside a review cycle, before anything heavier starts.` },
+      { id:'merge', t:'Merge to integration branch', sys:'cicd',
+        d:`The pull request merges once its lint and test stage is green, which triggers the heavier push pipeline.` },
+      { id:'provision', t:'Schemas provisioned from zero', sys:'data',
+        d:`Every schema is created from nothing, every migration runs in order, and master data is seeded before anything is built.` },
+      { id:'e2e', t:'End to end suite on push', sys:'process',
+        d:`Every server mode boots against the freshly provisioned schemas and the full end to end suite runs against the running binaries.` },
+      { id:'build', t:'Build with version flags', sys:'cicd',
+        d:`Version, commit hash, build date and toolchain version are stamped into the binary through linker flags.` },
+      { id:'migrate', t:'Migration target run', sys:'data',
+        d:`Migrations run as their own explicit environment-scoped step, kept separate from the application deploy so a bad migration is never bundled with a bad rollout.` },
+      { id:'restart', t:'Process supervisor restart', sys:'cicd',
+        d:`The shell supervisor restarts each server mode by name on its own port, picking up the new binary one process at a time.` },
+      { id:'notice', t:'Chat notice', sys:'platform',
+        d:`Either ending posts to the same chat channel, so a broken push is visible immediately and a completed deploy is visible just as fast.` }
+    ],
+    edges:[
+      ['pr-gate','merge'],
+      ['merge','provision'],
+      ['provision','e2e'],
+      ['e2e','notice','fails'],
+      ['e2e','build','passes'],
+      ['build','migrate'],
+      ['migrate','restart'],
+      ['restart','notice']
+    ]
+  },
+  {
+    id:'match-verification',
+    t:'Match result verification',
+    sum:`Why the result a player sees is never the result that counts on its own. The client's simulation buys responsiveness, and everything after compare exists because that simulation is not trusted by itself.`,
+    steps:[
+      { id:'simulate', t:'Client simulates match',
+        d:`The client plays the match out locally so the player sees a result immediately, with no round trip to the server.` },
+      { id:'submit', t:'Result submitted', sys:'api',
+        d:`The client submits its simulated result and inputs to the API over the same protobuf request the API already expects.` },
+      { id:'resim', t:'Server re-simulates', sys:'simparity',
+        d:`The server replays the identical inputs through the bit-exact simulation package to produce its own independent result.` },
+      { id:'compare', t:'Compare results', sys:'simparity',
+        d:`An inspector step compares the client-submitted result against the server re-simulation step by step, not only the final score.` },
+      { id:'accept', t:'Result accepted', sys:'api',
+        d:`A matching result is accepted and the match outcome is written back through the normal transaction path.` },
+      { id:'flag', t:'Result flagged', sys:'simparity',
+        d:`A mismatch is flagged as the primary anti-cheat signal rather than acted on immediately by itself.` },
+      { id:'aggregate', t:'Shadow-ban aggregation batch', sys:'simparity',
+        d:`Flagged mismatches aggregate across matches off the request path, so an account is shadow-banned on a pattern rather than one noisy result.` },
+      { id:'replay', t:'Replay retained', sys:'simparity',
+        d:`The match replay is retained past the match itself, so a flagged account can be reviewed against real gameplay later.` }
+    ],
+    edges:[
+      ['simulate','submit'],
+      ['submit','resim'],
+      ['resim','compare'],
+      ['compare','accept','match'],
+      ['compare','flag','mismatch'],
+      ['flag','aggregate'],
+      ['aggregate','replay']
+    ]
+  }
+]);
+
+/* ---------------------------------------------------------------------
+   PROJECT INTERVIEW for this project (shape and rules in
+   29-data-experience.js). These are the questions asked about the project
+   as a whole, the kind that follow "walk me through this" on a CV, rather
+   than the system-level "likely questions" attached above.
+   --------------------------------------------------------------------- */
+PROJECT_INTERVIEW('cs-go-game-backend', {
+  junior:[
+    {
+      q:`Walk me through the architecture of this backend in two minutes.`,
+      a:`One Go module produced every server process behind a live mobile game: the public API, an admin tool server, two WebSocket servers, and about twenty scheduled batch binaries, all one deploy artefact selected by a mode flag. Controllers call interactors, interactors call repository interfaces they own, and concrete adapters for database, cache, queue and tracing are injected inward by a compile-time dependency injection generator. The client plays a simulation locally for responsiveness, and the server re-runs the identical simulation to decide the result that actually counts.`,
+      follow:`Which of those processes did you personally work on the most, and why that one?`,
+      red:`Naming a framework or a language feature as the architecture. The architecture is the shape of the dependencies and the process boundaries, not the tools used to build it.`
+    },
+    {
+      q:`What was your role on this project, and what did you own by the end?`,
+      a:`I joined as one of several server engineers and later owned the backend and its conventions. Early work was inside individual interactors and repository code behind the public API. By the end I owned the migration and pull request conventions, the push pipeline that provisions every schema from zero, and the parity testing between the client simulation and the server re-simulation.`,
+      follow:`What is one convention you introduced that the team was still using when you left?`,
+      red:`Describing ownership only as writing code, with no mention of a convention, a process, or a decision that outlived a single pull request.`
+    },
+    {
+      q:`What is protobuf over HTTP, and why did this project use it instead of plain JSON or gRPC?`,
+      a:`Requests are form encoded and bound through a declarative field map, and responses are marshalled as protobuf messages, with custom headers carrying session, platform, client version and a state generation counter. It sits between REST with JSON and gRPC. It keeps ordinary HTTP semantics through proxies and load balancers that a phone's request has to pass, while keeping payloads small and typed compared to JSON.`,
+      follow:`What would have broken if the client had used gRPC directly against a mobile network?`,
+      red:`Answering only that it is faster than JSON, with no mention of the mobile network path or the header contract.`
+    }
+  ],
+  mid:[
+    {
+      q:`Tell me about the hardest bug you debugged on this project.`,
+      a:`Clients and the server occasionally disagreed about who won a match, rarely and only on some devices. I built a trace exporter on both sides that dumped every simulation step instead of only the final result, then diffed the traces to find the first point of divergence. It was one floating point expression the compiler was allowed to fold into a fused multiply add, so identical inputs produced different last bits depending on the build. I rewrote the math helpers to forbid that fold and ported the random generator bit for bit instead of matching its documented behaviour.`,
+      follow:`Why was comparing traces necessary instead of just comparing final results earlier in the investigation?`,
+      red:`A bug story where the fix was found by trial and error with no mention of how the actual divergence point was located.`
+    },
+    {
+      q:`How did dirty-table delta sync work, and what is the failure mode when someone gets it wrong?`,
+      a:`Every write repository call registers the table it touched into a set carried on the request context. After the handler succeeds, one step reloads exactly those tables against the client's generation counter and returns only what changed. If a repository writes without registering its table, nothing fails loudly. The handler still returns success and the client silently keeps stale state for that one table, which surfaces later as a trickle of support reports rather than an error anyone sees immediately.`,
+      follow:`The convention is enforced by review, not the compiler. How would you make that mistake harder to make in the first place?`,
+      red:`Saying the convention basically never fails because reviewers catch it. The whole point of the story is that it did fail exactly once and looked like nothing until traced.`
+    },
+    {
+      q:`How did the team work day to day, given the client shipped every two weeks and the server shipped continuously?`,
+      a:`Server engineers worked against a shared set of conventions written as rule files next to the code they governed, so a decision did not need to be relitigated every time someone touched that area. Migrations were required in their own pull request separate from code, and a bug fix or feature had to show a failing test before the fix, with both the red and green log tails pasted into the pull request.`,
+      follow:`What happened when someone skipped one of those conventions? Walk me through a real instance.`,
+      red:`Describing team process purely in terms of meetings or communication tools, with no mention of a convention that actually changed what a pull request had to contain.`
+    },
+    {
+      q:`Describe a decision on this project you would make differently if you started over.`,
+      a:`Provisioning every schema from zero on every push and running the full end to end suite there instead of at pull request time. It caught real migration and seed drift, but it also meant a pull request could show green on lint and unit tests alone, so a branch was never actually proven until after it merged. I would look harder for a way to make at least a lighter version of that provisioning check run before merge, even if it meant a slower review cycle.`,
+      follow:`What made that expensive check hard to move earlier at the time?`,
+      red:`Naming a decision with no real cost, like a stack choice everyone already agreed with, instead of a genuine trade-off that had a downside worth naming.`
+    }
+  ],
+  senior:[
+    {
+      q:`You found live credentials committed in the repository. Walk me through exactly what you did.`,
+      a:`I wrote the exposure as facts rather than a complaint: who could read those values today, what an old clone or a departed teammate's checkout still held, and how long a full rotation would take given the current layout, which was most of a day across environments. I proposed the smallest first step rather than a platform rewrite, moving one environment's values to a secret store injected at deploy time and rotating them. That environment's rotation time went from most of a day to one deploy. I did not get the full history rewritten, and I say that plainly rather than implying the problem was fully solved.`,
+      follow:`Why frame it as facts instead of raising it as an incident immediately? What was the risk of waiting?`,
+      red:`A story that ends at telling someone with no description of what actually changed afterward, or one that claims the whole history was rewritten when it was not.`
+    },
+    {
+      q:`How did you decide to move heavy verification into the post-merge pipeline instead of pushing for it on every pull request?`,
+      a:`A main branch that went red on schema changes was hurting the release window, and the team had learned to expect it. I moved the expensive step, provisioning every schema from zero, migrating, seeding master data, booting every mode and running end to end, into the push pipeline because it takes tens of minutes and reviewers needed faster feedback than that. I also said out loud, in review, that this left the pull request gate covering only lint and unit tests, so nobody could mistake a green pull request for a proven branch.`,
+      follow:`What would have to change about the pipeline or the test suite before that check could move earlier without slowing every review down?`,
+      red:`Presenting the split as a clean win with no downside. The honest version names exactly what a green pull request no longer guarantees.`
+    },
+    {
+      q:`Tell me about a release incident and how you handled it under pressure.`,
+      a:`Migrations kept breaking after merge instead of before it, which meant schema breakage regularly landed inside the release window. As the person who owned backend conventions, I moved the expensive verification into the push pipeline and wrote down two rules the team had been improvising: migration pull requests stay separate from code pull requests, and an end to end expectation has to come from master data or specification math, never from observed output. Schema breakage moved out of the release window after that.`,
+      follow:`What told you the problem was where verification ran, rather than a discipline problem with individual engineers?`,
+      red:`Blaming individual engineers for the breakage instead of identifying the process gap that let it recur regardless of who was on call.`
+    },
+    {
+      q:`If you were handing this backend to a new lead tomorrow, what would you tell them to watch first?`,
+      a:`Watch the pull request gate versus the push gate. A green pull request only means lint and unit tests passed, not that the schema or the wiring works, so do not let that tick get read as more than it is. Watch the dirty-table convention on new repositories, because a missed registration desyncs a client silently and only a review catches it. And watch the config file, because it is the natural place anyone reaches for a new setting, which is exactly how credentials ended up there once already.`,
+      follow:`Of those three, which would you fix structurally first if you had one sprint?`,
+      red:`An answer with no specific risk named, or one that lists only positives about the system with nothing to watch for.`
+    }
+  ]
+});
+
 /* =====================================================================
    PROJECT SYSTEMS - B: the Unity mobile client and its CI
    Case: cs-unity-mobile-client-ci (defined in 29-data-experience.js)
@@ -11857,6 +12299,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'arch', t:'Assembly architecture, boot and scene routing', kind:'client',
     sum:`The layering that keeps a large client compiling in pieces, the boot sequence that turns a cold process into a playable scene, and the router that moves between scenes without every screen remembering to clean up after itself.`,
     stack:['Unity','C#','UniTask'],
+    iv:[
+      {
+        q:`The one way assembly dependency direction is enforced by review, not by a build step. What happens the first time someone gets it past review, and would you add a compile time check?`,
+        a:`It has happened. A feature folder ends up referencing something one layer up because the fastest fix that day was a direct call instead of an interface, and it survives until a later reviewer notices the import list looks wrong. The rule holds mostly because it is written down and everyone defends it the same way, not because a tool stops it. I looked at a script that walks assembly definition references and fails the build on a forward reference, and the reason it never shipped is that assembly definitions already state their references explicitly, so the same information a linter would compute is visible in the inspector. The cost of building the check never beat the cost of a reviewer reading one file.`,
+        follow:`If you had shipped that check, what is the first false positive you would have expected from it?`,
+        red:`Saying the rule never gets violated. A convention enforced by humans gets violated sometimes, and pretending otherwise means the candidate has not actually maintained one.`
+      },
+      {
+        q:`Walk me through what happens at boot when one registration needs a value that is not registered yet.`,
+        a:`The bootstrap method registers services in a fixed order, so a later registration can always read an earlier one directly. The problem is the other direction, when an earlier registration would want something that only exists later in the same method. Instead of reordering the whole method around one dependency, that registration takes a resolver function, a small closure that looks the value up when it is actually called rather than when it is registered. It reads as a wart because it is one, and every place it appears carries a comment saying why, because the alternative was rewriting boot around one exception.`,
+        follow:`Why not just move the earlier registration later instead of adding a resolver function?`,
+        red:`Proposing a full dependency graph resolver as the fix. That is a real answer for a bigger project, but it replaces a five line workaround with a subsystem for a boot sequence that runs once and rarely changes.`
+      },
+      {
+        q:`A soft reset skips one system's cleanup. What does that actually look like to a player, and how would you catch it before they do?`,
+        a:`It does not throw. The system's state just carries into the next session looking like normal data, so the first symptom is usually a support report describing behaviour that only makes sense if some earlier session never really ended. That is why soft reset is its own item on the pull request checklist rather than something assumed to work because the router fires the right events. Catching it earlier means a test that runs a soft reset and asserts specific state was cleared, not just that the screen changed, because the screen changing is the part that was never actually broken.`,
+        follow:`What would that assertion actually check, given the state lives across several unrelated systems?`,
+        red:`Treating a soft reset as equivalent to a full app restart. The whole reason it is a distinct path is that it deliberately keeps some state alive, so the checklist item is about which state, not whether any state survives.`
+      }
+    ],
     parts:[
       {
         id:'arch-layering', t:'Assembly boundaries and the one way dependency chain',
@@ -11928,6 +12390,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'assets', t:'Asset pipeline: scopes, tiers and delivery', kind:'data',
     sum:`Everything a scene needs arrives through one wrapper over Addressables, scoped to how long it should live and tiered to what the device can afford to download.`,
     stack:['Unity','Addressables'],
+    iv:[
+      {
+        q:`Why four scopes, resident, current base, current overlay, next scene, instead of two, resident and everything else?`,
+        a:`Two scopes would answer whether something survives a transition, but not which transition. A base scene and an overlay above it die at different moments, a modal closing should not release what the screen behind it is still showing, and content staged for the next scene has to exist before the transition that needs it happens. Four values map directly onto the scene layers the router already has, so a load site states a fact about when it stops mattering instead of a guess. Fewer scopes would have pushed that decision back into ad hoc release calls, which is exactly the pattern that was leaking memory before.`,
+        follow:`Give me a concrete asset that would be scoped resident versus current overlay, and why the difference matters.`,
+        red:`Saying more scopes are always better. A finer grained scope model is a bigger surface to get wrong at the call site, and four was chosen because it matched the transitions that already exist, not because more granularity is free.`
+      },
+      {
+        q:`The pool's double release detection warns instead of throwing. Walk me through why you picked that.`,
+        a:`A double release is a real bug, but it is a bug in one object's lifecycle, not proof the whole session is unsafe to continue. Throwing turns that local bug into a crashed session for the player holding the phone, which is a worse outcome than the bug itself in almost every case I saw. Warning under a debug define means the bug is loud to whoever is testing with diagnostics on, and costs nothing in a released build, since the check compiles out entirely outside that define. The trade is that a shipped build with the define off could theoretically hit the same bug silently, so the warning only protects the people actually looking.`,
+        follow:`What would make you flip that to a hard throw instead?`,
+        red:`Arguing every bug should throw in every build to surface it as early as possible. That is true for a build breaking bug, not for one that degrades a pool and would otherwise take the whole session down over something recoverable.`
+      },
+      {
+        q:`Walk me through exactly when the graphics tier decision gets made and what it actually changes.`,
+        a:`Tier is decided once, from a device classification read at start up, and it drives two things off the same value: which quality settings the game runs at and which resource list suffix the asset fetch uses. Because both come from one decision made at one point in time, a session never ends up running high quality settings against a low tier manifest or the other way around. The resource list itself is just a suffixed path on the same CDN location, so supporting a new tier costs a new list, not a new delivery pipeline.`,
+        follow:`What happens if a device's classification would change mid session, say thermal throttling kicks in?`,
+        red:`Assuming tier is re-evaluated per frame or per scene. It is a start up decision on purpose, because re-evaluating it mid session would mean re-fetching assets against a different manifest while the game is running.`
+      }
+    ],
     parts:[
       {
         id:'assets-scopes', t:'A four value scope wrapping Addressables',
@@ -11983,6 +12465,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'net', t:'Networking: request, push and relay', kind:'client',
     sum:`Three separate channels carry three different kinds of traffic, ordinary request and response calls, server initiated push, and a hand framed relay socket for realtime and chat.`,
     stack:['C#','protobuf','gRPC','UnityWebRequest'],
+    iv:[
+      {
+        q:`Why two separate network stacks, request and response over HTTP and a hand framed socket for realtime, instead of putting everything on one WebSocket?`,
+        a:`They serve traffic with different shapes. Game API calls are one request, one response, need to survive being replayed by a flaky mobile connection, and benefit from every piece of HTTP infrastructure already in place, proxies, load balancers, caching headers. Chat, presence and matched sessions are long lived and server initiated, which HTTP was never built for. Forcing both onto one socket would mean either giving up the HTTP guarantees the API traffic depends on, or building request and response semantics on top of a socket for traffic that never needed them. Keeping them separate means a socket disconnect never breaks an ordinary API call, and an API outage never drops a live match.`,
+        follow:`What would actually break first if you merged them onto one channel?`,
+        red:`Claiming a single channel is simpler with no real cost named. Simplicity on paper here trades away the HTTP semantics the request and response side depends on, and that cost has to be named to make the trade honestly.`
+      },
+      {
+        q:`There is no built in request and response pairing on a WebSocket. Walk me through how a reply actually finds its request.`,
+        a:`Every frame carries a message id alongside its type and op code. Sending a request stores a pending entry keyed by that id before the frame goes out, and when a frame comes back with the same id, the dispatch loop resolves whichever caller is waiting on it. A timeout clears the entry if nothing ever comes back, so a caller does not wait forever on a dropped reply. It is a small table, not a protocol, and it only works because both sides agree on the id being unique for as long as the pending entry lives.`,
+        follow:`What happens if two different requests are accidentally sent with the same message id?`,
+        red:`Assuming the socket itself guarantees ordering or delivery. It does neither on its own, which is exactly why the correlation table and its timeout exist instead of just trusting replies to arrive in order.`
+      },
+      {
+        q:`WebGL has no raw socket access. Walk me through the compile-time swap and what changes for that platform.`,
+        a:`The relay transport sits behind one interface, and which concrete implementation satisfies it is chosen by platform define at compile time, the same pattern the platform facade uses elsewhere. On WebGL, the implementation goes through the browser's own socket support instead of a native one, but everything above that interface, framing, correlation, the relay clients on top, stays identical because it only ever talks to the interface. The gameplay and chat code that uses the relay never has a WebGL branch of its own.`,
+        follow:`What is the actual behavioural difference a player on WebGL would notice, if any?`,
+        red:`Saying WebGL just works the same as native with no adaptation needed. The transport swap exists specifically because it does not, and pretending otherwise skips the actual engineering decision.`
+      }
+    ],
     parts:[
       {
         id:'net-protobuf-http', t:'Protobuf over HTTP with a fluent header contract',
@@ -12038,6 +12540,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'platform', t:'Platform bridges and store identity', kind:'client',
     sum:`Where platform stops being an abstraction and starts deciding identity, which store the client claims to be, and which native SDK answers a given call.`,
     stack:['Unity','C#'],
+    iv:[
+      {
+        q:`The platform facade fails to compile on an unsupported platform rather than falling back to a default. Why is that the right trade for something like a store identifier?`,
+        a:`The store identifier is not cosmetic, it is a claim the server checks against, so a wrong guess at runtime is not a display bug, it is the client telling the server something false. A compile error catches an unsupported platform the moment someone tries to build for it, at the point where the fix is obvious, add the branch. A runtime default would ship silently and the wrong identity would only surface when a server side check rejected it, far from the code that caused it. Paying the cost at compile time is cheaper than paying it after a build reaches a store.`,
+        follow:`Where else in the client did you make the same call, fail loud at compile time instead of guessing at runtime?`,
+        red:`Arguing a sensible runtime default is always friendlier to developers. Friendlier to a developer building locally is not the same as safe for an identity value the server trusts, and the two get confused easily.`
+      },
+      {
+        q:`Walk me through adding support for a new store. What actually has to change, and where?`,
+        a:`The platform facade gets a new branch inside its existing conditional chain, nested the same way the alternative Android store or the disabled desktop path already are, returning the platform string and store identifier for the new case. Everything else in the codebase reads the facade's values rather than testing a define itself, so nothing outside that one file needs to know a new store exists. The actual risk is in that one file getting dense enough that adding a branch means understanding several existing ones first, since every platform's logic lives together there.`,
+        follow:`At what point would you split that facade into more than one file, and what would the split be along?`,
+        red:`Describing the change as touching many files across the codebase. If it does, the abstraction has already leaked, because the whole point of the facade is that only it knows about the new define.`
+      },
+      {
+        q:`Why put a purchase bridge behind an interface shaped for the game instead of wrapping the native SDK's own API directly?`,
+        a:`A native SDK's API is written for every game that might integrate it, so it carries configuration and callback shapes this game never uses. An interface declared in core states only the handful of calls the game actually makes, purchase, restore, price lookup, and the app layer implementation is the only place that has to know the SDK's real shape. That keeps an SDK migration or a version bump contained to one implementation file instead of every call site across the client.`,
+        follow:`What happens when the SDK's next version changes a callback shape the interface assumed?`,
+        red:`Saying the interface should just mirror the SDK one to one for completeness. That defeats the purpose, since a one to one mirror carries the SDK's whole surface into the game instead of narrowing it to what is actually used.`
+      }
+    ],
     parts:[
       {
         id:'platform-facade', t:'A compile-time platform facade with no silent fallback',
@@ -12076,6 +12598,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'testing', t:'Testing: tiers, device walk and spec generation', kind:'tooling',
     sum:`Four tiers of evidence about whether the client works, from a pure logic test that runs in a second to a spreadsheet a non-engineer can read.`,
     stack:['Unity Test Framework','NUnit'],
+    iv:[
+      {
+        q:`The house rule is assert on logged values, never on the GUI. Why, and what did you see go wrong when a test read the screen instead?`,
+        a:`A GUI assertion is really an assertion about layout, spacing, a font, whatever happened to be on screen, and a legitimate relayout breaks it for a reason that has nothing to do with the behaviour the test claims to check. Asserting on a value the code already logged means the test survives a visual change and only fails when the actual computed result changes. It also means a test author writes the log line as part of implementing the feature, not as an afterthought bolted onto the test.`,
+        follow:`What do you do when the value you need was never logged in the first place?`,
+        red:`Defending a GUI assertion as fine because relayouts do not happen often. That confidence is exactly what a relayout later punishes, and the rule exists so nobody has to guess how often is often enough.`
+      },
+      {
+        q:`What does the on device smoke walk actually catch that a PlayMode test running in the editor would not?`,
+        a:`PlayMode runs in the editor's own memory and thermal conditions, which never resemble a mid tier phone five minutes into a session. The smoke walk measures transition time, memory, CPU and frame rate on a real device after walking every non debug scene, so it catches the failure mode that only exists after sustained real use, a leak that shows up as a slow climb, a scene that is fine alone but expensive after several transitions. Numbered cases get cited directly in commits, so a fix references the exact case it addressed instead of a vague description.`,
+        follow:`Random taps exercise the app during the walk. What is a real failure that found, and how would a scripted walk have missed it?`,
+        red:`Claiming the smoke walk replaces PlayMode tests. It is slower and noisier by design, useful for exactly the failures a fast deterministic test cannot reach, not a substitute for one.`
+      },
+      {
+        q:`Why gate the device farm behind its own define instead of running it as part of every normal build?`,
+        a:`Every device farm type compiles only under that define specifically so a normal build has zero chance of shipping test scaffolding by accident, which matters more than convenience for the person running the farm. Running the farm itself is expensive and slow enough that it cannot ride along with every commit either, so it is triggered deliberately with scenario numbers, a device preset and a timeout, and CI compares boot time, lap time and system info across runs rather than reading through logs.`,
+        follow:`Given it only runs when triggered, how long could a regression sit before the farm catches it, and is that acceptable?`,
+        red:`Suggesting the farm run on every push regardless of cost. That ignores exactly the trade the gating exists to manage, cost and turnaround against how often a device only regression actually happens.`
+      }
+    ],
     parts:[
       {
         id:'testing-tiers', t:'EditMode and PlayMode in assemblies that cannot ship',
@@ -12145,6 +12687,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'build', t:'Client build pipeline', kind:'cicd',
     sum:`One entry point, parameterised entirely by flags, turns a checked-out repository into a signed, provenance-stamped artefact for whichever target asked for it.`,
     stack:['Unity','IL2CPP','fastlane'],
+    iv:[
+      {
+        q:`Walk me through the two-pass build. Why does that workaround exist and why not fix the underlying timing bug instead?`,
+        a:`The asset database did not reliably finish reacting to a bulk deletion before a build read it in the same editor session, so a build would sometimes still include a file the exclusion step had just deleted. The fix runs the entry point once with a build skip flag purely to let the deletion and its refresh settle, swallowing whatever that pass throws since it never produces a player, then runs the real build as a second, separate invocation. Fixing the underlying timing would mean patching how the asset database itself schedules its refresh, which is engine internals, not something the pipeline owns. A second isolated invocation was the workaround that was actually reliable, at the cost of a second editor startup on every build.`,
+        follow:`What would you check first if you suspected this workaround itself had started masking a different bug?`,
+        red:`Calling the two-pass build an obvious design flaw without asking why it exists. It reads that way until you learn about the timing bug, which is exactly why the comment at the call site exists.`
+      },
+      {
+        q:`The exclusion XML and the CI sparse checkout excludes are two lists that have to describe the same paths. What happens when they drift?`,
+        a:`A folder renamed in one list and not the other either breaks the build, because the builder expects a path that sparse checkout never brought down, or it ships something meant to stay internal, because sparse checkout brought a path down that the builder no longer excludes. Nothing today enforces that the two lists agree, so it is caught by review or by a build failure, not by a check that runs before either. The two lists exist as two systems because sparse checkout has to act before the agent even has the files, while the builder's deletion acts on what is already checked out.`,
+        follow:`How would you make the two lists provably the same instead of trusting them to stay in sync?`,
+        red:`Saying this has never actually caused a problem so it is not worth worrying about. Two lists with no enforced agreement is a live risk regardless of whether it has bitten yet.`
+      },
+      {
+        q:`How do you decide what belongs in the CLI flag list versus what goes into the layered config file?`,
+        a:`A flag is for something that changes per invocation, per target, per job, the build number, whether it is a development build, which XML exclusion file applies. Config layering, default then region and environment then a free text override, is for values that are mostly stable per environment but occasionally need a one off exception without a new committed file. The dividing line is whether a human is likely to type it fresh for this specific run or whether it describes a place the build is going, and getting that wrong in either direction either bloats the flag list past what a manual invocation can hold in their head or forces a config file edit for a genuinely one off run.`,
+        follow:`Give me an example of a value you moved from one side to the other, and what made you move it.`,
+        red:`Treating flags and config as interchangeable with no principle for which goes where. That is exactly how a flag list grows past what anyone can invoke by hand.`
+      }
+    ],
     parts:[
       {
         id:'build-cli-entry', t:'One CLI-parameterised entry point',
@@ -12220,6 +12782,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'ci', t:'CI repository: pipelines, agents and self-tests', kind:'cicd',
     sum:`The pipelines that call that entry point, table-driven instead of duplicated, tested against their own configuration, and honest about which failures destroy a build and which just need a retry.`,
     stack:['Jenkins','PowerShell','Groovy'],
+    iv:[
+      {
+        q:`Walk me through the negative control in the job table test. Why did the test need a case that proves it can fail?`,
+        a:`The test asserted my table matched the values measured off the live CI server, and it passed immediately, which should have worried me more than it did, because at that point it was only comparing the table to itself. It had never been observed failing, so it had not actually proven the migration was faithful, only that I had not made an obvious typo. I added a final case that corrupts one field on purpose and requires the check to fail, and only once that case failed correctly did the earlier passing cases mean the table really matched the eight jobs I was about to delete.`,
+        follow:`What is a plausible way that test could still pass while the migration was wrong?`,
+        red:`Treating a passing migration test as sufficient proof with no negative control mentioned. A test that has never been shown capable of failing has not actually tested anything yet.`
+      },
+      {
+        q:`Why detect a Unity build failure two ways, a log pattern list and the exit code, instead of trusting one signal?`,
+        a:`Both had already been wrong on their own. The editor can emit a fatal error and still exit zero, and it can also exit non zero after producing something usable, so either signal alone had already let a broken artefact through at some point. Requiring agreement, or a fatal pattern on its own, treats a mismatch as exactly the situation both signals exist to catch, instead of picking one and hoping it stays reliable.`,
+        follow:`The pattern list needs review after every engine upgrade. How would you know it had gone stale before it let something through?`,
+        red:`Saying the exit code alone is good enough because it is usually right. Usually right is exactly the failure mode that let a broken build through the first time, which is why a second signal exists at all.`
+      },
+      {
+        q:`What is the actual risk of collapsing eight near identical jobs into one pipeline, and how did you mitigate it?`,
+        a:`One pipeline is a single point of failure for every target it now serves, so a change intended for one job has to be reasoned about against all of them before it merges, which was not true when each job was its own file. The mitigation was sequencing the migration itself: read the live configuration of all eight jobs into a table, prove that table matches with a test that includes a negative control, then move targets one at a time, keeping the old job alive until its replacement produced a green artefact. Collapsing the jobs did not remove the risk, it just made the risk visible in one place instead of eight.`,
+        follow:`How would you structure a change today that only needs to affect one target, given the collapsed pipeline?`,
+        red:`Presenting the collapse as risk free because it reduced duplication. Reducing duplication and concentrating blast radius are the same move, and only one of those gets mentioned if the answer stops at less duplication.`
+      }
+    ],
     parts:[
       {
         id:'ci-pipeline-table', t:'One pipeline driven by a job-name table',
@@ -12279,6 +12861,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     id:'conv', t:'Conventions and documentation', kind:'process',
     sum:`The rules and templates that keep the previous seven systems legible to the next person, written down because review memory does not scale past a few people.`,
     stack:['Markdown'],
+    iv:[
+      {
+        q:`Why do the rule files have to state explicitly that project rules outrank accumulated session memory? What made that necessary instead of assumed?`,
+        a:`Without it, the default is a person or an agent falling back on whatever pattern feels most familiar from other projects or from an earlier point in the same working session, which quietly overrides a decision the team already made and wrote down for a reason. Stating precedence explicitly, with the incident that made it necessary recorded next to it, means the fallback is not needed because the rule is genuinely easy to find and easy to trust as current. It is a small sentence that exists because relying on memory to defer to documentation had already failed at least once.`,
+        follow:`Tell me about a time you saw memory win over a written rule, and what happened.`,
+        red:`Treating this as obvious and not worth writing down. It is obvious in hindsight, which is exactly the kind of rule that gets skipped until the incident that forces someone to write it.`
+      },
+      {
+        q:`Twenty rule files is a lot to keep alive. How do you stop them decaying into ritual nobody actually reads?`,
+        a:`Each one is narrow enough to read in under a minute and carries the incident that justified it, so reading a rule also tells you why it exists, not just what to do. That does not fully solve staleness on its own, a rule stated too narrowly for its origin incident can miss a situation that is almost but not quite the same shape, and nobody was formally assigned to prune them. What kept them alive in practice was that they sat next to the code they governed, so they were in the way of the next change rather than in a folder nobody opened.`,
+        follow:`What would an actual pruning process for these files look like, if you built one?`,
+        red:`Claiming the files maintain themselves once written. Every one of them needs someone to notice when the practice it describes has moved on, and that upkeep does not happen automatically.`
+      },
+      {
+        q:`What does the PR template's fixed checklist protect against that a general approval from a reviewer would not catch?`,
+        a:`A general approval depends entirely on what the specific reviewer happens to remember to ask that day, and soft reset verification is the clearest example of an item that used to fail exactly that way, a reviewer approving a change because everything they thought to check looked fine. Naming the evidence explicitly, does this run clean with zero warnings, does a soft reset still work, means the checklist does not depend on any one reviewer's memory, and a new reviewer asks for the same evidence a senior one would.`,
+        follow:`What is a category of regression this checklist still would not catch, because nobody put it on the list?`,
+        red:`Saying a good enough reviewer makes the checklist unnecessary. The whole point is that the checklist does not depend on how good today's reviewer happens to be.`
+      }
+    ],
     parts:[
       {
         id:'conv-rule-files', t:'Narrow, origin-stamped rule files that outrank memory',
@@ -12316,6 +12918,191 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     ]
   }
 ]);
+
+/* ---------------------------------------------------------------------
+   WORKFLOWS for this project (shape and rules in 29-data-experience.js).
+   3 flows: boot to the first playable scene, a player build from job
+   parameters to a device-tested artefact, and a pull request from branch
+   to a merged, smoke-tested main. Steps stay reachable from steps[0] and
+   the edges form a DAG, branches allowed where the project actually has
+   a pass/fail or approve/request-changes fork.
+   --------------------------------------------------------------------- */
+FLOWS('cs-unity-mobile-client-ci', [
+  {
+    id:'boot',
+    t:'Boot and first scene',
+    sum:`A cold process turning into a playable scene. Nothing here reads as exciting on its own, but the order is the whole point: each step exists to make the next one safe to run.`,
+    steps:[
+      { id:'boot-scene', t:'Boot scene loads', sys:'arch',
+        d:`The boot scene is the entry point, the leanest assembly in the stack, holding no gameplay code of its own.` },
+      { id:'serializer-init', t:'Serializer set up', sys:'arch',
+        d:`Boot's own startup step initializes the serializer resolver and shows a caution graphic held for a minimum display floor.` },
+      { id:'bootstrap', t:'Async bootstrap runs', sys:'arch',
+        d:`One long async method registers services in a fixed order, so what exists at each point in boot is a fact readable top to bottom.` },
+      { id:'di-chain', t:'DI chain resolves', sys:'arch',
+        d:`Each registration either reads a value already resolved or takes a resolver function when the value is not ready yet, so ordering stays visible in the method itself.` },
+      { id:'manager-scene', t:'Manager scene loads', sys:'arch',
+        d:`An additive persistent manager scene loads on top of boot, carrying the systems every later scene depends on.` },
+      { id:'resource-list', t:'Resource list fetched', sys:'assets',
+        d:`A per platform resource list resolves against the device's graphics tier, so a low end device fetches a smaller manifest from the same CDN path.` },
+      { id:'scopes-resolved', t:'Addressables scopes resolved', sys:'assets',
+        d:`The four value scope wrapper primes resident content and stages next scene, ready for the first transition to promote it.` },
+      { id:'first-transition', t:'First transition fires', sys:'arch',
+        d:`The router promotes next scene into current base, the boot scene unloads itself, and the player reaches the first real screen.` }
+    ],
+    edges:[
+      ['boot-scene','serializer-init'],
+      ['serializer-init','bootstrap'],
+      ['bootstrap','di-chain'],
+      ['di-chain','manager-scene'],
+      ['manager-scene','resource-list'],
+      ['resource-list','scopes-resolved'],
+      ['scopes-resolved','first-transition']
+    ]
+  },
+  {
+    id:'player-build',
+    t:'Player build',
+    sum:`One CLI invocation turning a checked-out repository into a signed, provenance-stamped artefact ready for a device farm, with the pipeline grading a hardening failure hard while everything downstream stays retryable.`,
+    steps:[
+      { id:'job-params', t:'Job parameters read', sys:'build',
+        d:`The CLI entry point reads product name, bundle id, environment, region and every other flag the job passed in.` },
+      { id:'sparse-checkout', t:'Sparse checkout excludes', sys:'ci',
+        d:`CI reads the same exclusion lists the build XML declares and checks the repository out with the excluded paths never touching the agent's disk.` },
+      { id:'two-pass', t:'Two-pass build settles', sys:'build',
+        d:`A skip pass lets the exclusion deletions and their asset database refresh settle, then the real build runs against a stable database.` },
+      { id:'harden', t:'Obfuscate and re-sign', sys:'build',
+        d:`Android runs an external obfuscation step and a re-sign, Windows hardens two extracted binaries, and each wrapped step checks its real exit code.` },
+      { id:'build-fails', t:'Build fails hard', sys:'ci',
+        d:`A non-zero exit from the hardening step fails the stage outright, because a mis-signed artefact is worthless to upload anywhere.` },
+      { id:'artefacts', t:'Artefacts and release note', sys:'build',
+        d:`A generated release note carries job, repo, branch and commit provenance since the last successful build, alongside the binary and its log.` },
+      { id:'upload-lane', t:'Upload lane runs', sys:'ci',
+        d:`A graded upload step marks a network failure unstable rather than failed, so a valid artefact is never discarded over a flaky last step.` },
+      { id:'device-tests', t:'Downstream device tests', sys:'testing',
+        d:`A downstream job triggers the device farm with scenario numbers, a device preset and a timeout against the freshly built artefact.` }
+    ],
+    edges:[
+      ['job-params','sparse-checkout'],
+      ['sparse-checkout','two-pass'],
+      ['two-pass','harden'],
+      ['harden','build-fails','fails'],
+      ['harden','artefacts','signed'],
+      ['artefacts','upload-lane'],
+      ['upload-lane','device-tests']
+    ]
+  },
+  {
+    id:'pull-request',
+    t:'A pull request',
+    sum:`How one change actually reaches main. The checklist and the two CI gates exist because a general approval had already let a partial soft reset and an under-tested change through before.`,
+    steps:[
+      { id:'branch', t:'Feature branch cut', sys:'conv',
+        d:`Work starts on a branch named for the change, following the same commit hygiene the rule files already state.` },
+      { id:'pr-template', t:'PR template filled', sys:'conv',
+        d:`The bilingual template asks what data the reviewer needs to verify the change and whether the run produced zero warnings or errors.` },
+      { id:'review', t:'Review checklist run', sys:'conv',
+        d:`A reviewer works the fixed checklist, including the soft reset item added after a partial reset once slipped through.` },
+      { id:'changes-requested', t:'Changes requested', sys:'conv',
+        d:`A checklist item that fails sends the branch back with a specific reason instead of a general request for more polish.` },
+      { id:'ci-checks', t:'CI lint and EditMode', sys:'ci',
+        d:`An approved pull request runs lint and EditMode tests, fast enough to give feedback inside the same review cycle.` },
+      { id:'merge', t:'Merge to main', sys:'ci',
+        d:`The branch merges once its checks are green and its checklist items are all satisfied, not before either one.` },
+      { id:'smoke-report', t:'Nightly smoke walk report', sys:'testing',
+        d:`A scheduled run walks every non-debug scene on a real device and posts transition time, memory and frame rate against the newly merged main.` }
+    ],
+    edges:[
+      ['branch','pr-template'],
+      ['pr-template','review'],
+      ['review','changes-requested','changes'],
+      ['review','ci-checks','approved'],
+      ['ci-checks','merge'],
+      ['merge','smoke-report']
+    ]
+  }
+]);
+
+/* ---------------------------------------------------------------------
+   PROJECT INTERVIEW for this project (shape and rules in
+   29-data-experience.js). 11 questions total: 3 junior, 4 mid, 4 senior.
+   Outlines stay consistent with the systems and stories already written
+   above and in 29-data-experience.js.
+   --------------------------------------------------------------------- */
+PROJECT_INTERVIEW('cs-unity-mobile-client-ci', {
+  junior:[
+    {
+      q:`Walk me through the architecture of this client at a high level.`,
+      a:`It is one Unity codebase producing a mobile client, a desktop build, a WebGL build and a headless server process from the same source, with content excluded per target. Assemblies are layered in one direction, entry point down to app, game, shared and core, and a feature only ever imports something below it. Boot is one explicit sequence, boot scene, an async bootstrap that registers services in order, a persistent manager scene, then the first transition into the game. Dependency injection is a typed static service locator rather than a container, and assets go through Addressables behind a four value scope wrapper tied to scene transitions.`,
+      follow:`Which of those pieces would you point to as the one decision that shaped everything else?`,
+      red:`Describing only the feature they personally worked on with no picture of how it fits the rest of the client. A CV level architecture answer has to place the work inside the whole system, not just describe one corner of it.`
+    },
+    {
+      q:`What did you personally own on this project?`,
+      a:`I started on client systems, screens and feature work inside the layered assemblies, and moved into owning the build and pipeline side, which is where most of the interesting failures actually lived. That meant the CLI-parameterised build entry point, the content exclusion lists and their CI mirror, the two-pass build workaround, signing and hardening per platform, and the CI repository itself, the table-driven pipeline that replaced eight near identical jobs and the failure detection and grading around it.`,
+      follow:`Of everything on that list, what is the piece you would want to be quizzed on in more depth?`,
+      red:`A vague answer like "I worked on the client" with no specific system named. Ownership on a CV should map to something a follow-up question can actually probe.`
+    },
+    {
+      q:`How is testing structured on a project like this, and where does your work show up in it?`,
+      a:`There are three tiers. Editor-only test assemblies gated by a test define hold EditMode tests for pure logic and PlayMode tests for anything needing a frame or a GameObject, both asserting on logged values rather than reading the GUI. Above that sits an on-device smoke walk that tours every non-debug scene, taps randomly, and measures transition time, memory and frame rate on real hardware, with numbered cases cited in commits. A separate device farm harness runs actual game loop scenarios across many devices, gated behind its own compile define so it never reaches a normal build.`,
+      follow:`Why does the smoke walk need to run on a real device instead of just in the editor with a simulated frame budget?`,
+      red:`Only mentioning unit tests and nothing about device-level verification. On a mobile client, most of the interesting failures only show up on hardware.`
+    }
+  ],
+  mid:[
+    {
+      q:`What is the hardest bug you debugged on this project?`,
+      a:`Memory climbed steadily across sessions that moved through several screens, and it only reproduced on real devices after a long run, which made the normal profiler loop too slow to iterate on. I tied every asset handle to the scope enum built from the scene transition events we already had, so a transition promotes the next scope and releases the one before it, then added release diagnostics and a warning level double release check under a debug define instead of a throw, since ending the session over a pooling bug was worse than logging it. The climb flattened and stayed flat, and the scope is now the thing reviewers ask about whenever a new load call appears.`,
+      follow:`Why did the profiler loop being too slow matter so much here, and what would have made it faster?`,
+      red:`Jumping straight to "we added logging" with no account of how the leak was actually isolated to scope, or no mention of why a throw was the wrong choice for the double release check.`
+    },
+    {
+      q:`Walk me through a build or release incident you were close to, and what changed afterward.`,
+      a:`A store upload failing at the end of a two hour build used to discard the whole run and force a restart from checkout, so any last stage network flake cost the entire build. I graded failures instead of treating them as one outcome, a compile failure still fails the stage hard because the output is worthless, but a failed symbol or store upload marks the run unstable and keeps the artefact for a manual upload. I also wrapped every network touching step in retry with backoff and moved parameter validation into a cheap early stage, so an invalid upload target fails in a minute instead of after two hours.`,
+      follow:`How did you decide which failures deserved a hard stop versus which deserved the unstable grading?`,
+      red:`Treating "add retries everywhere" as the whole fix. Retrying blindly would have hidden the cases that genuinely needed to fail hard, like a compile failure.`
+    },
+    {
+      q:`How did the review process actually work day to day, and what did the checklist catch that a general approval would not?`,
+      a:`Every pull request went through a bilingual template with a fixed checklist, what data the reviewer needs to verify the change, whether the run produced zero warnings or errors, and whether a soft reset still runs clean. Soft reset was on there specifically because a partial reset had already been a real failure before it became a checklist item, and a reviewer who was not specifically prompted to check it would approve on the strength of everything else looking fine. Automated review findings went through a written triage, fix, decline with a reason, or escalate, rather than being auto-applied or ignored.`,
+      follow:`Tell me about a time the checklist caught something a plain "looks good to me" would have missed.`,
+      red:`Describing review as purely a human judgment call with no mention of what the template forced reviewers to check regardless of who they were.`
+    },
+    {
+      q:`Explain the scope design behind the Addressables wrapper. Why four values?`,
+      a:`Resident, current base scene, current overlay and next scene map onto the scene layers the router already has, so a load site states when it stops mattering instead of someone guessing. A transition promotes next scene into current base and releases whatever the old current base and overlay held, tying release to an event that already fires instead of a call somebody has to remember. Fewer scopes would have collapsed distinctions that actually matter, a modal closing should not release what the screen behind it is still showing, and more would have added granularity nobody asked for.`,
+      follow:`Give a concrete example of something that would be scoped wrong and what symptom that produces.`,
+      red:`Describing the scope system as "just tagging assets" with no explanation of why the specific four values were chosen over some other number.`
+    }
+  ],
+  senior:[
+    {
+      q:`What decision on this project would you reverse if you could go back?`,
+      a:`I would have written the job-name table and its negative-control test the moment a fifth near-identical CI job appeared, instead of waiting until there were eight and the drift between them was already expensive to reconstruct. By the time I did the migration, reconstructing the live configuration of all eight jobs into one trustworthy table was itself a project, and a test that could prove it wrong was what made deleting the old jobs safe. Catching the pattern at job four or five would have made the whole thing a small refactor instead of a migration with real risk attached.`,
+      follow:`What signal would have told you, in the moment, that job three or four was already the start of a pattern worth stopping?`,
+      red:`Naming a decision that had no real cost, or answering with a generic "communicate more" instead of a specific engineering call that was made too late.`
+    },
+    {
+      q:`Tell me about a time you had to hold a technical line against pressure from the team or a deadline.`,
+      a:`A teammate asked to let a lower layer reference the screen layer so a feature could ship on time, one day before a milestone. The one-way assembly direction was the architectural rule we actually enforced, and saying yes once would have ended it as a rule rather than a preference. I said no to the inversion and spent the next hour on the alternative instead of the argument, declaring the dependency as an interface in the lower layer, implemented in the screen layer and injected at boot, which turned out to be about the same amount of code and shipped on the same milestone. I wrote the reasoning into the rule file afterward as a worked example.`,
+      follow:`What would you have done if the interface-based alternative had actually cost significantly more time than the inversion?`,
+      red:`Framing this as pure stubbornness, "I just said no." The part that actually mattered was supplying a working alternative within the hour, not the refusal itself.`
+    },
+    {
+      q:`Describe a build or CI incident where the system reported success incorrectly, and what you changed structurally.`,
+      a:`A build had failed and the pipeline reported success anyway, and the artefact it produced could not be installed, because the process exit code was the only signal trusted and the editor had exited zero after a failure that mattered. I added a second, independent signal, a curated list of fatal log patterns, and made the pipeline distrust an exit code that disagreed with what the log actually said happened. The structural change was treating agreement between two signals as the only real pass, not picking whichever single signal seemed more reliable, because both signals had already been wrong once on their own.`,
+      follow:`How do you keep the fatal-pattern list from silently going stale after an engine upgrade changes its own message text?`,
+      red:`Presenting the fix as "we added more logging." The actual fix was changing what the pipeline trusted as a pass signal, not just producing more information for a human to read.`
+    },
+    {
+      q:`How did you approach owning conventions and rule files for a team, rather than just writing code?`,
+      a:`I treated a rule remembered only in one person's head as a rule that does not survive that person leaving the room, so decisions like the assembly direction, the exclusion list mirroring, and the PR checklist items all got written into narrow files stamped with the incident that justified them. An explicit precedence rule said project rules outrank whatever anyone remembers from a previous session, because relying on memory to defer to documentation had already failed once. The trade is real, twenty-odd files take a search to navigate, and a rule stated too narrowly for its origin can miss the next situation that is almost but not quite the same shape.`,
+      follow:`How do you know when a rule file has gone stale, versus just narrow?`,
+      red:`Treating documentation as a one-time writing exercise. The senior part of this is the precedence rule and the incident-stamping, not just that documents existed.`
+    }
+  ]
+});
 
 /* =====================================================================
    PROJECT SYSTEMS - C: the Unity multiplatform port
@@ -12356,6 +13143,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'arch', t:'Code architecture and state', kind:'client',
     sum:`The default assembly kept deliberately monolithic, three coexisting source styles, and the lookup and state-machine conventions that hold a decompiler-derived codebase together.`,
     stack:['Unity','C#','IL2CPP'],
+    iv:[
+      {
+        q:`Why does gameplay stay in one default assembly instead of splitting into layered assemblies?`,
+        a:`Because the code obfuscator that runs at player build time picks its protected target by assembly name, and that target is the default assembly. Splitting gameplay into feature assemblies would have moved most of the game outside the set the obfuscator protects, with no build error to announce it. A slower compile that everyone waits on was judged cheaper than a build that still passed and shipped unprotected. The real cost outside compile time lands on the test side. A test assembly can never reference the game assembly, so verification has to go through a reflection harness instead of a direct reference.`,
+        follow:`How did the team find out the assembly split would have broken obfuscation before it shipped that way?`,
+        red:`Proposing to split the assembly anyway and add an obfuscator exemption to cover the fallout. That inverts the whole reason the assembly stayed whole.`
+      },
+      {
+        q:`What do the two component lookup helpers actually decide, and why not just call the engine's raw lookup?`,
+        a:`One helper is for a reference that may legitimately be missing, like an optional companion on a prefab variant, and it returns null quietly. The other is for a reference whose absence means the scene or prefab is wired wrong, and it throws immediately with the component and object name. Raw lookup is banned in new code by written convention, so the author has to decide, at the call site, which of those two facts they are looking at, instead of leaving every missing reference read the same way in a log.`,
+        follow:`Old call sites written before the convention still use the raw lookup. What happens to those?`,
+        red:`Saying the two helpers are interchangeable, or that the required one should log and continue instead of throwing. That defeats the entire point of naming the difference.`
+      },
+      {
+        q:`Why a hand-rolled state machine instead of a general framework, and why not reuse the animation system's own state graph?`,
+        a:`Each state declares its own transitions from an event id in its own file, so the table stays close to the state it belongs to, which matters most in a codebase that already carries three coexisting source styles. The animation library has its own internal state machine, but that graph drives playback of clips, not gameplay decisions, and reusing it would have coupled two concerns that only accidentally share the word state. One simpler mode uses a plain begin and update state object, because the full hierarchical machine was judged too heavy for a mode that never needed hierarchy or a transition table.`,
+        follow:`How does adding a new state actually work, file by file?`,
+        red:`Suggesting the animation system's state graph should have driven gameplay too, to avoid maintaining two state concepts. That is exactly the coupling the design avoided.`
+      }
+    ],
     parts:[
       {
         id:'arch-monolith', t:'One default assembly, kept whole on purpose',
@@ -12431,6 +13238,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'mp', t:'Multiplayer', kind:'server',
     sum:`A commercial tick-based transport underneath an inherited authoritative protocol, host mode instead of dedicated servers, and the two policies that make disconnection and protection simple by being strict.`,
     stack:['Fusion','C#'],
+    iv:[
+      {
+        q:`Why layer a hand-written authoritative protocol on top of a commercial netcode SDK instead of using the SDK's own networked-property system?`,
+        a:`The hand-written protocol was inherited from an earlier title, proven across a shipped release and understood by the team, and replacing it with the SDK's native property system would have meant re-deriving behaviour that already worked. The SDK carries one networked property in the whole project, a player-id value with a change callback, plus two remote procedure calls. Everything else moves over a hand-rolled binary protocol on the SDK's reliable and unreliable data channels, with reliable sends carrying a per-target monotonic sequence number so ordering can be checked without trusting the transport alone.`,
+        follow:`What does that sequence number actually protect against that the transport alone would not?`,
+        red:`Proposing to rewrite everything onto the SDK's native networked properties for simplicity, without weighing the cost of re-deriving a protocol that already shipped once.`
+      },
+      {
+        q:`Why interpolation with light prediction instead of rollback, and what does the room code's environment tag actually protect against?`,
+        a:`Sessions run as host mode with lag compensation and host migration both off. Small cooperative sessions cared more about remote motion looking smooth than about frame-accurate contention, so interpolation strategies chosen per entity type, plus a lightweight prediction that the next authoritative message reconciles, bought the right thing for less cost than rollback. The room code is a short number prefixed with a letter naming which environment issued it, because development and live share one backend application id, and that tag only prevents a mismatch it can see. It does nothing for two rooms colliding inside the same environment.`,
+        follow:`What kind of collision does the environment tag not protect against?`,
+        red:`Claiming the environment tag prevents any two rooms from colliding. It only rules out a cross-environment mismatch.`
+      },
+      {
+        q:`Tell me about the collision between the obfuscator and the netcode. How was it found and fixed?`,
+        a:`Remote players stopped appearing in a build the week code renaming was turned on, and only in that build. The editor stayed healthy, so the usual breakpoint debugging loop was unavailable. Bisecting by build configuration rather than by code, disabling each protection layer in turn, pointed at the renaming pass rather than the asset hashing pass within two attempts. The networking library resolves its generated members by name at runtime, so renaming them had silently broken remote player registration. The whole generated class was exempted rather than the specific members that had broken, with a short comment left at the attribute explaining why.`,
+        follow:`Why exempt the whole class instead of just the members that actually broke?`,
+        red:`Proposing a member-level exemption as tidier. That approach had already been tried and had already failed once when the SDK regenerated a member.`
+      }
+    ],
     parts:[
       {
         id:'mp-netcode-layers', t:'A commercial transport under a hand-written protocol',
@@ -12509,6 +13336,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'platform', t:'Platform abstraction', kind:'client',
     sum:`One facade so gameplay never learns which platform it is running on, and the three places platform actually has to leak through: identity, saves and touch.`,
     stack:['Unity','C#'],
+    iv:[
+      {
+        q:`How does the game avoid a platform branch anywhere in gameplay code?`,
+        a:`A single using alias per build target picks the concrete platform manager once, at compile time, before any other code compiles, and the facade class itself has no logic. Eleven small coordinator interfaces split platform services by responsibility, session, invites, friends, avatar images, privileges, connection state, notifications and the rest, and every implementation of every interface honours the same contract. Gameplay written against the interface never contains its own platform check.`,
+        follow:`What happens when a new capability only makes sense on one platform?`,
+        red:`Proposing runtime platform detection with branches inside gameplay as a simpler alternative. That is exactly what the facade exists to avoid.`
+      },
+      {
+        q:`How was touch added to a game that never had it, without teaching gameplay a second input source?`,
+        a:`On-screen widgets feed the existing controller and binding layer as if they were another physical device, rather than gameplay learning a second input path. All twelve files that make up the touch module live together, and the platform conditional that decides whether touch exists at all appears in exactly one of them. An editor-only preview define lets the mobile UI be exercised and tuned on a desktop machine without a device in hand.`,
+        follow:`Why does it matter that the platform conditional lives in exactly one file instead of being local to each of the twelve?`,
+        red:`Branching at every call site where gameplay reads a controller. That was the first draft, and it doubled the input paths through code the port was not otherwise meant to touch.`
+      },
+      {
+        q:`Why keep the list of build define symbols so short, and what does CI do with the diagnostics one?`,
+        a:`Every define symbol is a build configuration nobody tests directly, so each one multiplies the number of builds that could theoretically differ from the one anybody ran. The list stays to five symbols, each with a single stated purpose: memory diagnostics, a development-build flag, a sideload-friendly package format, a mobile UI preview, and a marker for code shared with the originating project. CI reads the current define string, appends or removes the diagnostics symbol for the run, builds, and restores the original string afterward as its own step.`,
+        follow:`What happens if CI's restore step is skipped or fails after a run?`,
+        red:`Suggesting a symbol be added per team request without a maintenance bar. That is exactly the growth the short list is meant to resist.`
+      }
+    ],
     parts:[
       {
         id:'platform-facade', t:'A compile-time facade over platform services',
@@ -12583,6 +13430,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'assets', t:'Asset pipeline', kind:'data',
     sum:`Bundles managed by hand instead of by the engine's own asset system, protected two ways, scoped to a lifetime, and shaped for a store that ships megabytes instead of gigabytes.`,
     stack:['AssetBundles','C#'],
+    iv:[
+      {
+        q:`Why hand-manage encrypted, name-hashed bundles instead of using the engine's built-in asset system?`,
+        a:`The content is worth datamining and the binary is worth reverse engineering, and those are different threats with different defences. Bundles ship AES-encrypted, loaded through a small runtime of five files behind one asset service, and file and folder names outside a short exclusion list are separately hashed to a fixed length. Managing bundles by hand instead of through the built-in system was also already true of the inherited project, and there was no budget to migrate a shipped pipeline mid-port.`,
+        follow:`Why are encryption and name hashing two separate settings instead of one obfuscation switch?`,
+        red:`Saying the project should just adopt the engine's managed asset system, without addressing either the threat model or the cost of migrating a shipped pipeline mid-port.`
+      },
+      {
+        q:`How does reference counting by lifetime scope avoid the manual bookkeeping that had already failed once?`,
+        a:`Every loaded asset is counted against one of four lifetime scopes, boot, session, scene or screen, and released automatically when its scope exits rather than by a call a person has to remember. The table mapping each scope to its release trigger is generated by enumerating the scope values themselves, so a new scope cannot be added without also getting an entry in the table, closing the exact gap that manual bookkeeping had already failed at once before.`,
+        follow:`What does a load counted against the wrong scope look like in practice?`,
+        red:`Proposing manual unload calls reviewed carefully at code review as sufficient. That is the exact approach that had already failed on this codebase.`
+      },
+      {
+        q:`Walk me through the tier rule and the kill switch. What does each one actually catch?`,
+        a:`The tier rule sorts scenes into dependency tiers, boot, shell UI, meta world and gameplay, and each tier has a forbidden list of bundle shards it may never reference, checked as part of the build. A shell UI scene pulling in character-model or motion bundles fails at build time and names the scene and the shard together, instead of only showing up as a memory number later. The kill switch is a different tool for a different moment. A persistent-data flag disables the real unload call at runtime, so a suspected leak can be isolated on a device by comparing memory with the flag on and off, without a rebuild for every hypothesis.`,
+        follow:`Why does the kill switch still count references while skipping the actual unload call?`,
+        red:`Treating the kill switch as something that could ship on. It is a diagnostic tool only, confirmed off before every release build.`
+      }
+    ],
     parts:[
       {
         id:'assets-encrypted-bundles', t:'Hand-managed, encrypted, and name-hashed',
@@ -12662,6 +13529,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'obf', t:'Obfuscation layers', kind:'tooling',
     sum:`Two independent protections for two different threats, each one switchable alone so a failure can be told apart from the other.`,
     stack:['IL2CPP'],
+    iv:[
+      {
+        q:`Why two independent obfuscation layers instead of one obfuscation switch?`,
+        a:`Asset-name hashing and code renaming defend against two different things, datamining of shipped content and reverse engineering of the shipped binary. Bundling both into a single switch would have made a failure in either one indistinguishable from a failure in the other. Pipeline configuration exposes both as separate booleans, so a diagnostic build can disable one while keeping the other, which is what makes an obfuscation-related bug findable at all instead of a shrug.`,
+        follow:`Given a bug report, how do you tell which of the two layers is actually responsible?`,
+        red:`Proposing to bundle the two protections for simplicity. That removes the one property, isolating a failure to one layer, that makes either of them diagnosable.`
+      },
+      {
+        q:`What actually breaks when the code renaming pass runs, and why does it only show up in one kind of build?`,
+        a:`Anything in the game that resolves a type or member by its name at runtime is a candidate to break once renaming runs, because the obfuscator rewrites namespace, class and member names in the compiled output after compilation. A session-state flag skips the whole pass for local or debug builds, so the failure only appears in a protected player build, the one configuration the editor never produces on its own.`,
+        follow:`Why does the pass run after compilation instead of as a source transform on the checked-in code?`,
+        red:`Assuming the editor would surface any renaming-related failure. The editor build stays healthy precisely because it skips the pass entirely.`
+      },
+      {
+        q:`When you have to exempt code from the renamer, how do you decide the scope of the exemption?`,
+        a:`The exemption is written at the class level, with a skip attribute and a short comment recording why, rather than picked member by member. A partial exemption had already been tried once and had already broken again the next time that generated code changed shape, because a regenerated member simply was not covered. Exempting the whole class is the version of the fix that does not need revisiting.`,
+        follow:`What is the downside of exempting at the class level instead of picking individual members?`,
+        red:`Defaulting to member-level exemptions as more precise or safer. That is the approach already shown to fail on this project.`
+      }
+    ],
     parts:[
       {
         id:'obf-code-renaming', t:'Renaming the default assembly at build time',
@@ -12721,6 +13608,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'cicd', t:'Build pipelines and CI', kind:'cicd',
     sum:`Ten desktop pipelines behind one entry point, three declarative CI pipelines around them, and the marks and markers that make a two-hour build tell the truth about itself.`,
     stack:['Jenkins','PowerShell'],
+    iv:[
+      {
+        q:`Why one long entry-point script for ten pipelines instead of ten separate scripts?`,
+        a:`Ten separate scripts for what is really one build with different endpoints would have drifted the way similar client build jobs elsewhere already had. A single entry point branches internally on which named pipeline was requested, and a table documenting all ten, with time estimates, is the reference anyone consults before choosing one. Naming follows what a pipeline produces and skips, full, full-skip-upload, player-only, rather than a number or a date.`,
+        follow:`What is the cost of one script now being a single point of failure for every one of the ten pipelines?`,
+        red:`Proposing to split the pipelines back into separate scripts for isolation. That reintroduces the exact drift the single entry point exists to prevent.`
+      },
+      {
+        q:`Why does the wrapper trust a result marker the build writes over the process exit code?`,
+        a:`The editor could exit non-zero after a build that had actually succeeded, and could also exit zero after one that had not, specifically in the way this project launched it headless. A signal that lies in both directions cannot be trusted alone, so the build now writes a one-line result marker near the end of its own run, and the wrapper treats that as the pass or fail signal. Every stage also writes a start and end trace into a phases log and a one-line status file, so a two-hour build can be triaged by reading one line instead of scrolling to the end.`,
+        follow:`What happens if the build crashes before it gets far enough to write the result marker?`,
+        red:`Saying the exit code should simply be fixed at the source. In this launch mode the exit code had already been observed lying in both directions, which is why a second, build-authored signal was needed instead.`
+      },
+      {
+        q:`Walk me through why restoring the workspace is its own explicit CI stage, and how failures are graded.`,
+        a:`The build process itself mutates the local working tree, deleting scenes and files and patching a few third-party sources, so restoring it back to a starting state is an explicit first stage rather than an assumption that the previous run cleaned up after itself. Free-text parameters are validated in a cheap setup stage before anything expensive starts. A compile or build failure stops the pipeline hard, because the resulting artefact would be worthless, while a failed symbol or store upload marks the run unstable instead of failed, keeping the built artefact so it can be uploaded by hand.`,
+        follow:`What is the risk if the list of paths the build touches and the list restore reverses drift apart?`,
+        red:`Treating every CI failure the same, either all hard fails or all soft warnings, instead of grading by what the failure actually destroys.`
+      }
+    ],
     parts:[
       {
         id:'cicd-ten-pipelines', t:'Ten named pipelines behind one entry point',
@@ -12807,6 +13714,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'runtime', t:'Logging, settings and memory budgets', kind:'client',
     sum:`A logger that costs nothing in a release build, settings that survive a missing key gracefully, and quality defaults chosen from the hardware actually in the player's hand.`,
     stack:['Unity','C#'],
+    iv:[
+      {
+        q:`How does the logging facade cost nothing in a release build?`,
+        a:`Every method on the facade carries compile-time conditional attributes tied to editor and development-build symbols. In a release build the call sites disappear entirely, arguments and all, rather than running and being filtered by a level check. A runtime level check still pays the cost of building the log message before deciding to discard it, and on a fixed lower-tier device that cost is not free. Removing the call site at compile time removes the cost along with the log line.`,
+        follow:`What has to happen for a diagnostic that must survive into a release build to actually work?`,
+        red:`Proposing a runtime log-level check as equivalent. It still builds the message, interpolated string and all, before deciding not to print it.`
+      },
+      {
+        q:`Why does loading settings default a missing key instead of treating it as an error?`,
+        a:`Player settings are string keys mapping to enum-defined integer values, persisted through the same platform-swapped save backend as everything else. Loading applies a documented default for any key the save data does not contain, which is what lets a new setting be added later as just a new key with a documented default, requiring no migration of existing save data. The risk is that a wrong default is much harder to notice than a wrong current value, because it only shows up for players who never touched that setting.`,
+        follow:`How would you catch a wrong default before it ships, given it is invisible until a player who never touched it is affected?`,
+        red:`Proposing to fail loudly on any missing key. That breaks every existing save the moment a new setting is added, which is the exact migration cost defaulting was meant to avoid.`
+      },
+      {
+        q:`Why derive memory budgets from measured device memory instead of from the platform name?`,
+        a:`Two phones running the same platform can carry very different amounts of installed memory, and capping quality by platform alone would have let the weaker half of the installed base pick settings the device could not sustain through a load spike. A tier classifier reads installed memory at start-up and sorts the device into low, mid or high, publishing three separate numbers per tier, a steady-state budget, a peak-during-load allowance, and a loading-stage budget.`,
+        follow:`Why does the loading spike get its own separate number instead of folding into the steady-state budget?`,
+        red:`Proposing one single memory number per tier instead of the three separate figures. That collapses exactly the distinction the load-spike allowance exists to make.`
+      }
+    ],
     parts:[
       {
         id:'runtime-logger', t:'A logging facade that disappears in release',
@@ -12866,6 +13793,26 @@ SYSTEMS('cs-unity-multiplatform-port', [
     id:'process', t:'Testing, rationing and conventions', kind:'process',
     sum:`Tests that resolve the game by name because they are not allowed to reference it, a compiler that is the real gate, and the written rules that keep two coding eras and a null policy from colliding.`,
     stack:['Unity Test Framework'],
+    iv:[
+      {
+        q:`Why do tests resolve game types by name through reflection instead of referencing the game assembly directly?`,
+        a:`Test code lives only in dedicated, editor-only assemblies that never reference the game assembly, a direct consequence of keeping gameplay in the one assembly the obfuscator protects. That forces every test that needs a game type to resolve it by string name from the loaded application domain and drive it through reflected accessors, and that reflection is centralised in one harness file rather than scattered across every test.`,
+        follow:`What kind of bug does this move from a compile error into a test failure instead?`,
+        red:`Proposing that tests simply reference the game assembly and exempt it from obfuscation. That reopens the exact gap the assembly boundary exists to close.`
+      },
+      {
+        q:`Why do the settings tests boot the real boot scene instead of mocking startup?`,
+        a:`A test that mocks initialisation only proves the mock works. The settings suite loads the actual boot scene, waits with an explicit timeout for a specific runtime object that only exists once meta-progress has initialised, and fails loudly if that object never appears. Assertions afterward read logged or stored values, setting a non-default value, saving, reloading, and asserting the value came back, never a visual check.`,
+        follow:`What kind of bug would a mocked version of this test have missed entirely?`,
+        red:`Proposing to mock initialisation to speed the suite up, since it is slower and more fragile than a unit test. That trades away the one thing this suite exists to catch.`
+      },
+      {
+        q:`Walk me through the build-rationing ladder. Why isn't a clean compile good enough on its own?`,
+        a:`Compiling clean, with no new warnings introduced, is the bar every change has to clear before anything more expensive runs, and it is the de facto gate for most changes. Above it sits a written ladder: static inspection of the diff and logs, a compile-only check, editor play mode, one batched device build, and a second device build only if the first falsifies the hypothesis being tested. A protected player build took hours, so treating every question as needing one would have made iteration impossibly slow, while never reaching for one would have missed exactly the failures that only appear on a device.`,
+        follow:`What keeps the ladder from becoming a licence to guess under deadline pressure?`,
+        red:`Saying every uncertain change should just go straight to a device build to be safe, since that is the most trustworthy answer. That is precisely the instinct the ladder exists to interrupt.`
+      }
+    ],
     parts:[
       {
         id:'process-reflection-harness', t:'Reflection harnesses, because tests cannot reference the game',
@@ -12942,6 +13889,187 @@ SYSTEMS('cs-unity-multiplatform-port', [
     ]
   }
 ]);
+
+/* ---------------------------------------------------------------------
+   FLOWS and PROJECT_INTERVIEW for cs-unity-multiplatform-port.
+   Contract and step/edge rules live in src/29-data-experience.js.
+   Content sourced only from the multiplatform port survey and the
+   systems and parts already written above.
+   --------------------------------------------------------------------- */
+FLOWS('cs-unity-multiplatform-port', [
+  {
+    id:'session',
+    t:'A multiplayer session',
+    sum:`One session from a room code to a torn-down runner. The interesting parts are the ones that only exist because two environments share one backend id, and the one that only exists because a phone can be interrupted at any time.`,
+    steps:[
+      { id:'room-code', t:'Room code with env tag', sys:'mp',
+        d:`A short numeric room code is issued with a one-letter prefix naming which environment issued it, because the development and live environments share a single backend application id.` },
+      { id:'join', t:'Session join attempt', sys:'mp',
+        d:`The client submits the room code to the commercial SDK's session join call, which is the only decision point between a normal join and a refusal.` },
+      { id:'join-fail', t:'Join fails, back to lobby', sys:'mp',
+        d:`A join can be refused for a wrong code, a full room, or a mismatched environment, and any of those returns the client to the lobby screen to try again with a fresh code.` },
+      { id:'host-mode', t:'Host mode starts', sys:'mp',
+        d:`A successful join starts the session in host mode rather than a dedicated server, with lag compensation and host migration both off.` },
+      { id:'protocol', t:'Custom protocol runs', sys:'mp',
+        d:`The hand-written authoritative protocol inherited from an earlier title takes over messaging, riding the SDK's reliable and unreliable data channels with its own message types.` },
+      { id:'interp', t:'Remote entities interpolate', sys:'mp',
+        d:`Remote players are shown through swappable interpolation strategies driven by incoming messages, while local interaction predicts a target the next authoritative message reconciles.` },
+      { id:'suspend', t:'OS suspend detected', sys:'mp',
+        d:`When the operating system suspends the application during play, the client treats the notification as fatal for the current session rather than as a pause.` },
+      { id:'teardown', t:'Session torn down', sys:'mp',
+        d:`The session ends immediately with no reconnect path, so coming back from a suspend always means a fresh join through a new room code.` }
+    ],
+    edges:[
+      ['room-code','join'],
+      ['join','join-fail','refused'],
+      ['join','host-mode','accepted'],
+      ['host-mode','protocol'],
+      ['protocol','interp'],
+      ['interp','suspend'],
+      ['suspend','teardown']
+    ]
+  },
+  {
+    id:'release-build',
+    t:'Desktop release build',
+    sum:`Ten pipelines behind one entry point, walked as the one path that matters: markers to a restored workspace, with the build's own result marker deciding which branch the end of the run takes.`,
+    steps:[
+      { id:'markers', t:'Marker toggles set', sys:'cicd',
+        d:`Local dotfiles or CI parameters pick which pipeline runs, which branch to pull, and which build-info key names the target environment.` },
+      { id:'restore-git', t:'Git restore, clean, pull', sys:'cicd',
+        d:`The working tree is restored, cleaned and pulled fresh before any step that mutates it runs, because a leftover change from a cancelled build cannot be assumed gone.` },
+      { id:'prepare', t:'Workspace prepared', sys:'cicd',
+        d:`A prepare step deletes every scene outside the boot scene from the build set and patches a few third-party sources, mutations the restore stage will later undo.` },
+      { id:'pipeline', t:'Phase-traced pipeline runs', sys:'cicd',
+        d:`The chosen named pipeline builds through the engine headless, with every stage writing a start and end trace and a one-line status file as it goes.` },
+      { id:'obfuscate', t:'Optional obfuscation', sys:'obf',
+        d:`Asset name hashing and code renaming run unless a session-state flag skips one or both for a build that needs to stay readable or fast.` },
+      { id:'result', t:'RESULT marker read', sys:'cicd',
+        d:`The wrapper reads a result marker line the build process writes near the end of its own run, because the exit code alone had already proven unreliable in this launch mode.` },
+      { id:'upload', t:'Symbol upload, store or archive', sys:'cicd',
+        d:`On a passing result, symbols are uploaded and the build either goes to the store or is archived, depending on the pipeline parameter that chose the upload target.` },
+      { id:'restore', t:'Workspace restored', sys:'cicd',
+        d:`The mutated paths are restored to their pre-build state as an explicit step, leaving source, editor scripts and project settings untouched throughout.` }
+    ],
+    edges:[
+      ['markers','restore-git'],
+      ['restore-git','prepare'],
+      ['prepare','pipeline'],
+      ['pipeline','obfuscate'],
+      ['obfuscate','result'],
+      ['result','upload','pass'],
+      ['result','restore','fail'],
+      ['upload','restore']
+    ]
+  },
+  {
+    id:'memory-triage',
+    t:'Memory regression triage',
+    sum:`How a memory number becomes a fix without burning a two-hour build on every guess: a build-time check for the cheap case, and a kill-switch bisect for the case that only shows up on a device.`,
+    steps:[
+      { id:'report', t:'Memory report arrives', sys:'runtime',
+        d:`A device shows memory climbing across a long session, or a scene fails the tier check outright during a build.` },
+      { id:'tier-check', t:'Tier rule checked', sys:'assets',
+        d:`The scene's actual bundle dependencies are compared against its dependency tier's forbidden shard list before the build proceeds any further.` },
+      { id:'tier-fail', t:'Build fails early', sys:'assets',
+        d:`A forbidden dependency, such as a shell screen pulling in a character-model bundle, fails the build immediately and names the scene and the shard together.` },
+      { id:'snapshot', t:'Memory snapshot taken', sys:'runtime',
+        d:`When the tier rule passes and the regression is a runtime one, a profiler snapshot narrows the suspect scope before any device build gets scheduled.` },
+      { id:'bisect', t:'Kill-switch bisect', sys:'assets',
+        d:`A persistent-data flag disables the real unload call on a build already in hand, and comparing memory with the flag on and off narrows the leak without a rebuild.` },
+      { id:'device-build', t:'One batched device build', sys:'cicd',
+        d:`A single on-device build validates the hypothesis the kill-switch comparison pointed at, rather than reaching for a build for every guess.` },
+      { id:'fix', t:'Fix applied', sys:'arch',
+        d:`The actual cause the bisect narrowed to, such as a load never released or never counted against the right scope, gets corrected in code.` },
+      { id:'remeasure', t:'Budgets re-measured', sys:'runtime',
+        d:`The device's memory behaviour is re-checked against its tier's steady-state and peak-during-load budgets to confirm the fix actually holds.` }
+    ],
+    edges:[
+      ['report','tier-check'],
+      ['tier-check','tier-fail','fails'],
+      ['tier-check','snapshot','passes'],
+      ['snapshot','bisect'],
+      ['bisect','device-build'],
+      ['device-build','fix'],
+      ['fix','remeasure']
+    ]
+  }
+]);
+
+PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
+  junior:[
+    {
+      q:`What was this project, and what part of it did you personally own?`,
+      a:`It was porting a shipped console title to desktop and mobile in Unity, keeping its multiplayer and content while fitting a fraction of the original memory budget. Work started across the client as a general engineer on the port, then moved into a technical lead role. Day to day that meant the platform abstraction layer, the asset pipeline's memory budgets, and later the build pipelines and CI, plus features like adding touch input to a game that had never had it.`,
+      follow:`Which of those areas did you spend the most time in, and why?`,
+      red:`Describing the whole project in vague generalities without naming a single system or decision actually touched.`
+    },
+    {
+      q:`Walk me through what happens when a player joins a multiplayer session, from the room code to being in the game.`,
+      a:`A room code is a short number prefixed with a letter naming which environment issued it, because development and live share one backend application id. The client submits the code through the commercial SDK's session join call. If it is accepted, the session starts in host mode, and a hand-written authoritative protocol running over the SDK's data channels takes over messaging. Remote players are shown through interpolation driven by incoming messages rather than prediction and rollback. If the join fails, the client just goes back to the lobby to try again.`,
+      follow:`Why does the room code need an environment tag at all?`,
+      red:`Describing this as if the commercial SDK's own networked-property system carries gameplay state. Almost none of it does. The SDK is transport and session only.`
+    }
+  ],
+  mid:[
+    {
+      q:`Why does gameplay code stay in one big default assembly instead of being split into smaller ones?`,
+      a:`The code obfuscator that protects the shipped binary selects its target by assembly name, and that target is the default assembly. Splitting gameplay out would have quietly moved most of the game outside the set the obfuscator protects, with no build error telling anyone. A slower compile everyone waits on was judged a better trade than a build that ships unprotected without saying so.`,
+      follow:`What did that decision cost on the testing side?`,
+      red:`Saying the split should happen anyway because compile time matters more, without engaging with what an unprotected build with no error means for an offline shippable binary.`
+    },
+    {
+      q:`Tell me about the hardest bug you debugged on this project.`,
+      a:`Remote players stopped appearing on device the week code obfuscation was turned on, and only in that build, never in the editor. Bisecting by build configuration instead of by code, disabling each protection layer on its own and rebuilding, pointed at the renaming pass rather than the asset-hashing pass. The networking SDK resolves its generated network members by name at runtime, so renaming them had silently broken remote player registration. The whole generated class was exempted rather than individual members, because a partial exemption had already failed once when the SDK regenerated a member, with a comment left explaining why.`,
+      follow:`Why did bisecting by build configuration work faster than bisecting by code here?`,
+      red:`Jumping straight to a networking explanation and debugging the protocol, when the move that actually found it was isolating which build-time transform was responsible.`
+    },
+    {
+      q:`How did the team decide when a change needed an actual device build versus just compiling?`,
+      a:`There was a written escalation ladder: static inspection of the diff and logs, a compile-only check, editor play mode, then one batched device build, and a second device build only if the first one disproved the hypothesis being tested. A protected player build took hours, so treating every question as needing a device build would have made iteration impossibly slow, but skipping device builds entirely would have missed exactly the failures that only show up on one. Pull requests recorded which rungs of the ladder were expected against which were actually used, so the ladder could not quietly turn into everyone just guessing.`,
+      follow:`What stopped the ladder from becoming a licence to skip verification under deadline pressure?`,
+      red:`Saying the team always built on device for anything uncertain. That ignores the entire reason the ladder existed.`
+    },
+    {
+      q:`Walk me through what a desktop release build actually does, end to end.`,
+      a:`It starts from marker-file toggles for a local run or parameters for CI, restores and cleans the git working tree and pulls, then a prepare step strips non-boot scenes and patches a few third-party sources, because the build process itself mutates the working tree. The chosen named pipeline runs with a phase trace written at the start and end of every stage. Code obfuscation runs unless a flag skips it. The wrapper reads a result marker the build itself writes, because the process exit code had proven unreliable in that launch mode, rather than trusting the exit code alone. On success, symbols are uploaded and the build either goes to the store or gets archived. Either way, the workspace gets explicitly restored afterward, undoing exactly the paths the build is known to mutate.`,
+      follow:`Why does restoring the workspace need to be its own explicit stage rather than an assumption?`,
+      red:`Skipping the restore-workspace step in the walkthrough entirely, as if the build touches nothing outside its own artefact.`
+    }
+  ],
+  senior:[
+    {
+      q:`Walk me through the overall architecture: what already existed, what you added, and how the pieces talk to each other.`,
+      a:`The inherited base was a console title's gameplay: three source styles under one default assembly, a hand-written authoritative network protocol, and a large body of decompiler-derived code. The port layered a commercial tick-based SDK under that protocol for transport and sessions, added a per-platform online services facade behind eleven coordinator interfaces so gameplay never branches on platform, bridged touch into the existing input middleware as a virtual device, moved assets to hand-managed encrypted bundles with scope-based reference counting, and built ten named desktop pipelines behind one entry point with three declarative CI pipelines around them. Almost everything new had to slot in without disturbing the assembly boundary the obfuscator depends on.`,
+      follow:`Which of those additions had to be most careful about not breaking that assembly boundary, and why?`,
+      red:`Describing the port as a rewrite rather than as new layers added around an inherited core. That misrepresents both the risk profile and the actual work.`
+    },
+    {
+      q:`What would you do differently if you started the port again?`,
+      a:`Treating an operating system suspend as instant session death was the right call for correctness, but it is the decision the team knew going in that a live service with a stronger continuity requirement would have to revisit. A design pass on a real reconnect path would be worth doing even if it shipped disabled at first, rather than an architecture with no path to add one later. The tier table and the obfuscation exemption list would also be worth reviewing on a schedule instead of only when something breaks, since both are lists that go stale silently.`,
+      follow:`What would a minimal reconnect path have needed that a same-session teardown does not?`,
+      red:`Claiming the memory or obfuscation trade-offs would have been avoided entirely. Both were deliberate, load-bearing decisions with named alternatives already rejected for good reasons.`
+    },
+    {
+      q:`Tell me about a release incident: something that went wrong close to shipping and how you handled it.`,
+      a:`A two-hour build reported success through its exit code after actually failing, and the artefact it produced could not be installed. The exit code had proven unreliable in the specific way the pipeline launched the editor headless, in both directions, reporting success after failure and failure after success. The fix was to stop trusting it alone. The build itself now writes a result marker line near the end of its run, and the wrapper treats that as the deciding signal, with phase traces at every stage boundary so a failure that does happen can be triaged from one status line instead of an hour of log reading.`,
+      follow:`What made the team confident the new result-marker signal was actually trustworthy, rather than just a second guess?`,
+      red:`Treating the exit code as fixable in isolation, or assuming a second signal is automatically more trustworthy without ever having watched it fail correctly first.`
+    },
+    {
+      q:`How was the port scoped and rationed, given it had to fit a fraction of the original memory budget?`,
+      a:`Budgets were set per device tier from measured installed memory rather than from the platform name, with separate numbers for steady state, the spike during a scene load, and the loading stage itself, because a phone covers a huge spread of actual hardware. Scenes were classified into dependency tiers with a forbidden-shard list per tier, so an accidental dependency became a build failure instead of a memory regression discovered later. Manual load and unload bookkeeping had already failed once, so reference counting moved to lifetime scopes with the release table generated from the enum, and a runtime kill switch let a suspected leak be isolated on a device without a multi-hour rebuild for every hypothesis.`,
+      follow:`Why does the loading-stage budget need its own number instead of being covered by the steady-state figure?`,
+      red:`Describing memory management here as reactive profiling rather than as budgets enforced ahead of time at build and design level.`
+    },
+    {
+      q:`Two people disagree about whether an inherited convention, like the reflection-only test harness or an obfuscator exemption, should be relaxed. How do you make that call?`,
+      a:`The move is to trace what the convention is actually protecting before touching it. The reflection harness exists only because test assemblies cannot reference the game assembly, itself a direct consequence of keeping gameplay in the one assembly the obfuscator protects. Relaxing it means either weakening that protection or moving gameplay out of the protected set, and both have to be argued on those terms, not on test convenience alone. An obfuscation exemption is narrower. It is justified once, for a specific class, with a comment saying why, and a new exemption has to be justified on its own rather than assumed safe because a similar one exists elsewhere. Either way the decision has to be traced back to the threat the convention defends against, not decided by which team is more annoyed by it today.`,
+      follow:`What would actually change your mind about relaxing the assembly restriction itself?`,
+      red:`Treating both conventions as arbitrary friction to be removed for developer convenience, without naming what either one is defending against.`
+    }
+  ]
+});
 
 /* =====================================================================
    INTERVIEW VIEWS (part E1): player, experience, core, systems, content,
@@ -16633,6 +17761,166 @@ INTERVIEW('quality-and-build-health',{
   ] });
 
 /* =====================================================================
+   WORKFLOW CHARTS
+   One generic renderer for the flows attached to a project by FLOWS(). A
+   flow is a small directed acyclic graph of steps; this draws it as a
+   layered chart in the same visual language as the mind map: labelled cards
+   joined by curves, CSS variables only, no images.
+
+   Layout. A step sits in the RANK of its longest path from steps[0], so a
+   step never comes before something it depends on and the chart reads in
+   the order the work actually happens. Steps sharing a rank are laid out in
+   data order and the group is centred on the chart's middle line, so a
+   branch fans out symmetrically. Nothing here is random or time dependent:
+   the same flow always produces the same boxes, which is what lets the
+   layout checker AABB-test the cards in node.
+
+   Direction. 'v' (the default, and what the app renders) puts a rank on a
+   row and reads top to bottom, sized so that a two way branch fits the
+   content pane at phone width without sideways scrolling. 'h' puts a rank
+   in a column and reads left to right; it is kept because it is the shape
+   a wide screen wants, and either direction can be laid out and checked.
+
+   `layout(flow, dir)` returns the geometry ({ w, h, nodes, edges }) and is
+   what the checker calls. `render(flow, colorOf, dir)` returns the SVG
+   string and is what the app calls; `colorOf(sysId)` supplies the card's
+   accent so a step is coloured by the system it belongs to.
+   ===================================================================== */
+window.PlayableFlow = (function(){
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // Vertical is sized so a two way branch (2 cards + the gap + both pads)
+  // is 412px, which fits the content pane inside a 375px phone drawer with
+  // only a slight scale down. Horizontal keeps the wider card.
+  const DIM = {
+    v: { W:184, H:44, HGAP:20, VGAP:34, PAD:12 },
+    h: { W:220, H:44, HGAP:92, VGAP:26, PAD:20 }
+  };
+  const FS = 12.5, LFS = 9.5;
+  // Same per-character estimate the map's label fitting uses, so a title is
+  // only broken or shortened when it would really not fit the card.
+  const charsFor = W => Math.floor((W - 24) / (FS * 0.56));
+
+  // Break a title into at most two lines on a word boundary, shortening the
+  // second line rather than letting it run past the card.
+  function lines(t, chars){
+    const words = String(t || '').split(/\s+/).filter(Boolean);
+    const out = [''];
+    for(const word of words){
+      const line = out[out.length - 1];
+      const next = line ? line + ' ' + word : word;
+      if(next.length <= chars || !line) out[out.length - 1] = next;
+      else if(out.length < 2) out.push(word);
+      else out[1] = out[1] + ' ' + word;
+    }
+    out.forEach((l, i) => { if(l.length > chars) out[i] = l.slice(0, chars - 1).trimEnd() + '…'; });
+    return out.filter(Boolean);
+  }
+
+  // Rank of every step: the longest path from steps[0]. On an acyclic graph
+  // whose every node is reachable from the first, relaxing each edge forward
+  // settles in at most |steps| passes.
+  function ranks(steps, live){
+    const rank = {};
+    steps.forEach(s => { rank[s.id] = 0; });
+    for(let pass = 0; pass < steps.length; pass++){
+      let moved = false;
+      live.forEach(([a, b]) => { if(rank[b] < rank[a] + 1){ rank[b] = rank[a] + 1; moved = true; } });
+      if(!moved) break;
+    }
+    const groups = [];
+    steps.forEach(s => { const r = rank[s.id]; (groups[r] || (groups[r] = [])).push(s); });
+    return groups;
+  }
+
+  function layout(flow, dir){
+    dir = dir === 'h' ? 'h' : 'v';
+    const D = DIM[dir];
+    const steps = (flow && flow.steps) || [], edges = (flow && flow.edges) || [];
+    const known = {};
+    steps.forEach(s => { known[s.id] = true; });
+    const live = edges.filter(([a, b]) => known[a] && known[b] && a !== b);
+    const groups = ranks(steps, live);
+    const widest = groups.reduce((n, g) => Math.max(n, g ? g.length : 0), 0);
+    // "main" runs along the reading direction, "cross" across it.
+    const mainPitch = dir === 'v' ? D.H + D.VGAP : D.W + D.HGAP;
+    const crossPitch = dir === 'v' ? D.W + D.HGAP : D.H + D.VGAP;
+    // Card extent across the reading direction: its width when reading down,
+    // its height when reading right.
+    const crossCard = dir === 'v' ? D.W : D.H;
+    const crossSize = (widest - 1) * crossPitch + crossCard;
+    const mainSize = (groups.length - 1) * mainPitch + (dir === 'v' ? D.H : D.W);
+    const nodes = [], byId = {};
+    groups.forEach((list, r) => {
+      const span = (list.length - 1) * crossPitch + crossCard;
+      const start = D.PAD + (crossSize - span) / 2;
+      list.forEach((s, i) => {
+        const along = D.PAD + r * mainPitch;
+        const across = start + i * crossPitch;
+        const n = { id:s.id, t:s.t, d:s.d, sys:s.sys || null, rank:r, at:i,
+          x: dir === 'v' ? across : along, y: dir === 'v' ? along : across, w:D.W, h:D.H };
+        n.cx = n.x + D.W / 2; n.cy = n.y + D.H / 2;
+        nodes.push(n); byId[s.id] = n;
+      });
+    });
+    // Edges leave the trailing edge of a card and enter the leading edge of
+    // the next, so the curve's tangents are along the reading direction. The
+    // midpoint of that cubic is the arithmetic midpoint of its two ends,
+    // which is where an edge label sits.
+    const out = live.map(([a, b, label]) => {
+      const A = byId[a], B = byId[b];
+      const p = dir === 'v'
+        ? { x1:A.cx, y1:A.y + A.h, x2:B.cx, y2:B.y }
+        : { x1:A.x + A.w, y1:A.cy, x2:B.x, y2:B.cy };
+      return Object.assign({ a, b, label: label || '' }, p, { mx:(p.x1 + p.x2) / 2, my:(p.y1 + p.y2) / 2 });
+    });
+    return {
+      dir,
+      w: D.PAD * 2 + (dir === 'v' ? crossSize : mainSize),
+      h: D.PAD * 2 + (dir === 'v' ? mainSize : crossSize),
+      chars: charsFor(D.W), nodes, edges: out, byId
+    };
+  }
+
+  function render(flow, colorOf, dir){
+    const g = layout(flow, dir);
+    const arrow = 'fa-' + String(flow.id || 'flow').replace(/[^\w-]/g, '');
+    const paths = g.edges.map(e => {
+      const d = g.dir === 'v'
+        ? `M${e.x1},${e.y1} C${e.x1},${e.my} ${e.x2},${e.my} ${e.x2},${e.y2}`
+        : `M${e.x1},${e.y1} C${e.mx},${e.y1} ${e.mx},${e.y2} ${e.x2},${e.y2}`;
+      return `<path class="fedge" d="${d}" marker-end="url(#${arrow})"/>`;
+    }).join('');
+    const labels = g.edges.filter(e => e.label).map(e => {
+      const w = e.label.length * LFS * 0.62 + 12;
+      return `<g class="flabel"><rect x="${(e.mx - w / 2).toFixed(1)}" y="${(e.my - 8).toFixed(1)}" width="${w.toFixed(1)}" height="16" rx="2"/>`
+        + `<text x="${e.mx.toFixed(1)}" y="${(e.my + 3.5).toFixed(1)}" text-anchor="middle" font-size="${LFS}">${esc(e.label)}</text></g>`;
+    }).join('');
+    // The number on a card is its position in the data, so it matches the
+    // numbered step list under the chart rather than the layout order.
+    const order = {};
+    (flow.steps || []).forEach((s, i) => { order[s.id] = i + 1; });
+    const cards = g.nodes.map(n => {
+      const dc = (colorOf && colorOf(n.sys)) || 'var(--accent2)';
+      const ls = lines(n.t, g.chars);
+      const text = ls.length > 1
+        ? `<text class="flbl" x="${n.cx}" y="${(n.cy - 3).toFixed(1)}" text-anchor="middle" font-size="${FS}"><tspan x="${n.cx}">${esc(ls[0])}</tspan><tspan x="${n.cx}" dy="14">${esc(ls[1])}</tspan></text>`
+        : `<text class="flbl" x="${n.cx}" y="${(n.cy + 4.5).toFixed(1)}" text-anchor="middle" font-size="${FS}">${esc(ls[0] || '')}</text>`;
+      return `<g class="flownode" data-step="${esc(n.id)}" style="--dc:${dc}"><title>${esc(n.d)}</title>`
+        + `<rect class="fdisc" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="3"/>`
+        + `<text class="fnum" x="${n.x + 8}" y="${(n.y + 13).toFixed(1)}" font-size="9.5">${order[n.id] || ''}</text>`
+        + text + `</g>`;
+    }).join('');
+    // max-width pins the chart at 1:1 on a wide pane and lets a narrow one
+    // scale it down, which is why there is no min-width and no side scroll.
+    return `<svg class="flowsvg" viewBox="0 0 ${g.w.toFixed(0)} ${g.h.toFixed(0)}" style="max-width:${g.w.toFixed(0)}px" role="img" aria-label="${esc(flow.t || 'Workflow')}">`
+      + `<defs><marker id="${arrow}" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path class="farrow" d="M0,0 L7,3 L0,6 Z"/></marker></defs>`
+      + `<g class="lay edges">${paths}</g><g class="lay labels">${labels}</g><g class="lay nodes">${cards}</g></svg>`;
+  }
+
+  return { render, layout };
+})();
+
+/* =====================================================================
    HORIZONTAL COLLAPSIBLE MIND MAP
    The radial map was replaced because a circle cannot hold names as the
    content grows. This is a tidy horizontal tree (the structure XMind and
@@ -16751,7 +18039,7 @@ window.PlayableGraph = (function(){
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
     g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.w, fs)))}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(n.sub)}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(cut(n.sub, maxFor(n.w, 9.5)))}</text>`;
     g += `</g>`;
     return g;
   }
@@ -16835,8 +18123,15 @@ window.PlayableGraph = (function(){
     T = T || (typeof TOPICS === 'undefined' ? {} : TOPICS);
     D = D || (typeof DOMAINS === 'undefined' ? [] : DOMAINS);
     const dcolor = id => { const d = D.find(x => x.id === id); return d ? d.color : 'var(--accent)'; };
-    const systems = cs.systems || [];
-    const root = { kind:'center', id:cs.id, label:cs.t, sub:`${systems.length} system${systems.length === 1 ? '' : 's'}`, w:SIZE.root.w, h:SIZE.root.h, children:[] };
+    const systems = cs.systems || [], flows = cs.flows || [];
+    // The root names the project by its codename, so the descriptive line has
+    // to travel with it. The system count joins it only when both fit inside
+    // the card; otherwise the description wins, because the count is also on
+    // every system node.
+    const count = `${systems.length} system${systems.length === 1 ? '' : 's'}`;
+    const both = cs.sub ? `${cs.sub} · ${count}` : count;
+    const rootSub = cs.sub && both.length > maxFor(SIZE.root.w, 9.5) ? cs.sub : both;
+    const root = { kind:'center', id:cs.id, label:cs.t, sub:rootSub, w:SIZE.root.w, h:SIZE.root.h, children:[] };
     let sel = null, open = null;
     systems.forEach(s => {
       const color = (typeof KIND_COLOR === 'undefined' ? null : KIND_COLOR[s.kind]) || 'var(--accent2)';
@@ -16852,6 +18147,14 @@ window.PlayableGraph = (function(){
       }
       root.children.push(node);
     });
+    // One extra branch beside the systems: the project's workflow charts. It
+    // behaves like a system node (open on state.sys === 'workflows') and its
+    // children are the flows, which is why 'workflows' is a reserved system id.
+    if(flows.length){
+      const node = { kind:'domain', id:'workflows', label:'Workflows', sub:`${flows.length} flow${flows.length === 1 ? '' : 's'}`, color:'var(--accent2)', open:state.sys === 'workflows', w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
+      if(state.sys === 'workflows') flows.forEach(f => node.children.push({ kind:'topic', id:f.id, label:f.t, color:'var(--accent2)', w:SIZE.topic.w, h:SIZE.topic.h, children:[] }));
+      root.children.push(node);
+    }
     if(sel && open){
       const p = (open.parts || []).find(x => x.id === state.part) || {};
       (p.rel || []).forEach(([rid, why]) => {
@@ -17043,13 +18346,20 @@ function railHTML(activeDom, activeTopic){
 // The rail follows the centre stage: in project mode it lists the projects and
 // this project's systems and parts, using the same markup the domain list uses.
 function railProjectHTML(c, sysId, partId){
-  const systems = c.systems || [];
+  const systems = c.systems || [], flows = c.flows || [];
+  // Workflows is a group beside the systems, listing the flows the way a
+  // system lists its parts. It is open on the Workflows tab and on a flow
+  // route, where sysId is the route word 'flow' and partId the flow id.
+  const flowOpen = sysId === 'workflows' || sysId === 'flow';
+  const flowGroup = flows.length ? `<div class="raildom ${flowOpen ? 'open' : ''}" data-dom="workflows" style="--dc:var(--accent2)">
+      <button class="raildom-btn" data-sys="workflows"><span class="rdot"></span><span class="rt">Workflows</span><span class="rn">${flows.length}</span></button>
+      <div class="railtopics">${flows.map(f => `<button class="railtopic ${sysId === 'flow' && f.id === partId ? 'active' : ''}" data-flow="${f.id}">${esc(f.t)}</button>`).join('')}</div></div>` : '';
   return `<div class="railhead">
       <a class="railgraph" href="#/map">← Domains</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a part…" autocomplete="off">
     </div>
     <div class="railprojects"><span class="railtitle">Projects</span>${CASE_STUDIES.map(x => `<a class="railproj ${x.id === c.id ? 'active' : ''}" href="#/experience/${x.id}">${esc(x.t)}</a>`).join('')}</div>
-    <div class="raillist">${systems.map(s => `<div class="raildom ${s.id === sysId ? 'open' : ''}" data-dom="${s.id}" style="--dc:${kindColor(s.kind)}">
+    <div class="raillist">${flowGroup}${systems.map(s => `<div class="raildom ${s.id === sysId ? 'open' : ''}" data-dom="${s.id}" style="--dc:${kindColor(s.kind)}">
       <button class="raildom-btn" data-sys="${s.id}"><span class="rdot"></span><span class="rt">${esc(s.t)}</span><span class="rn">${(s.parts || []).length}</span></button>
       <div class="railtopics">${(s.parts || []).map(p => `<button class="railtopic ${p.id === partId ? 'active' : ''}" data-sys="${s.id}" data-part="${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}
     </div>
@@ -17079,7 +18389,7 @@ function updateRail(){
   if(proj){
     r.innerHTML = railProjectHTML(proj, hash[2], hash[3]);
     r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/experience/${proj.id}` : `#/experience/${proj.id}/${b.dataset.sys}`; }));
-    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = `#/experience/${proj.id}/${b.dataset.sys}/${b.dataset.part}`; closeRailDrawer(r); }));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = b.dataset.flow ? `#/experience/${proj.id}/flow/${b.dataset.flow}` : `#/experience/${proj.id}/${b.dataset.sys}/${b.dataset.part}`; closeRailDrawer(r); }));
     railFilter(r, '.railtopic');
     return;
   }
@@ -17271,25 +18581,36 @@ function engineBody(t, which){
     <div class="callout ok"><b>Same idea, different name.</b> ${esc(v.map)}</div>
     ${t.eng.note ? `<div class="callout"><b>Why this is the counterpart.</b> ${esc(t.eng.note)}</div>` : ''}</div>`;
 }
-function interviewBody(t){
-  const d = DOM[t.d], LV = [['junior','Junior'],['mid','Mid'],['senior','Senior']];
-  const groups = LV.map(([k, label]) => { const arr = (t.iv && t.iv[k]) || []; if(!arr.length) return '';
+// One interview renderer for both scales. `iv` is the { junior, mid, senior }
+// object, `color` tints the cards, `storyKey` is the storage key of the "your
+// story" textarea (story.<topic-id> for a topic, story.<case-id> for a
+// project) and `near` is optional prev/next button HTML.
+function ivCards(arr, color){
+  return `<div class="ivlist">${arr.map(x => `<details class="ivq" style="--dc:${color}"><summary>${esc(x.q)}</summary><div class="body">
+    <h4>Answer outline</h4><p>${esc(x.a)}</p>
+    <h4>Follow-up coming</h4><p>${esc(x.follow)}</p>
+    <h4 class="redflag">Red flag</h4><p>${esc(x.red)}</p></div></details>`).join('')}</div>`;
+}
+function interviewBody(iv, color, storyKey, near){
+  const LV = [['junior','Junior'],['mid','Mid'],['senior','Senior']];
+  const groups = LV.map(([k, label]) => { const arr = (iv && iv[k]) || []; if(!arr.length) return '';
     return `<div class="section-head"><h2>${label}</h2><span class="muted">${arr.length} question${arr.length === 1 ? '' : 's'}</span></div>
-      <div class="ivlist">${arr.map(x => `<details class="ivq" style="--dc:${d.color}"><summary>${esc(x.q)}</summary><div class="body">
-        <h4>Answer outline</h4><p>${esc(x.a)}</p>
-        <h4>Follow-up coming</h4><p>${esc(x.follow)}</p>
-        <h4 class="redflag">Red flag</h4><p>${esc(x.red)}</p></div></details>`).join('')}</div>`; }).join('');
+      ${ivCards(arr, color)}`; }).join('');
+  return `<div class="ivview">${groups}
+    <div class="section-head"><h2>Your story</h2><span class="muted">the one you will actually tell</span></div>
+    <p class="small dim">An outline is not an answer. Write the time you did this, what you changed and what happened, in your own words. Autosaved in this browser, never in the data, never sent anywhere.</p>
+    <div class="field"><textarea id="ivStory" rows="6" placeholder="Situation, what I decided, the trade-off I accepted, what actually happened…" oninput="__saveStory('${storyKey}', this.value)">${esc(store.get(storyKey, ''))}</textarea><div class="hint">Autosaved in this browser as you type.</div></div>
+    ${near ? `<div class="topic-nav">${near}</div>` : ''}</div>`;
+}
+function topicInterviewBody(t){
+  const d = DOM[t.d];
   const idx = d.topics.indexOf(t.id);
   const near = [['prev', idx > 0 ? d.topics[idx-1] : null], ['next', idx < d.topics.length-1 ? d.topics[idx+1] : null]]
     .filter(([, id]) => id && TOPICS[id] && TOPICS[id].iv)
     .map(([dir, id]) => `<button class="btn" onclick="location.hash='#/map/t/${id}/interview'">${dir === 'prev' ? '← ' : ''}${esc(TOPICS[id].t)}${dir === 'next' ? ' →' : ''}</button>`).join('');
-  return `<div class="ivview">${groups}
-    <div class="section-head"><h2>Your story</h2><span class="muted">the one you will actually tell</span></div>
-    <p class="small dim">An outline is not an answer. Write the time you did this, what you changed and what happened, in your own words. Autosaved in this browser, never in the data, never sent anywhere.</p>
-    <div class="field"><textarea id="ivStory" rows="6" placeholder="Situation, what I decided, the trade-off I accepted, what actually happened…" oninput="__saveStory('${t.id}', this.value)">${esc(store.get('story.' + t.id, ''))}</textarea><div class="hint">Autosaved in this browser as you type.</div></div>
-    ${near ? `<div class="topic-nav">${near}</div>` : ''}</div>`;
+  return interviewBody(t.iv, d.color, 'story.' + t.id, near);
 }
-window.__saveStory = (id, v) => store.set('story.' + id, v);
+window.__saveStory = (key, v) => store.set(key, v);
 function topicBody(id){
   const t = TOPICS[id];
   if(!t){ return `<div class="empty">Unknown topic: ${esc(id)}</div>`; }
@@ -17316,7 +18637,7 @@ function topicBody(id){
   const tab = tabs.some(x => x[0] === topicTab) ? topicTab : 'overview';
   // One tab means there is nothing to choose, so the strip is not drawn at all.
   const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Topic views">${tabs.map(([k, label]) => `<button role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" onkeydown="__topicTabKey(event)" onclick="__topicTab('${id}','${k}')">${label}</button>`).join('')}</div>` : '';
-  const body = tab === 'interview' ? interviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : overview;
+  const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : overview;
   return `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       ${tab === 'overview' ? `<div class="row"><button class="btn sm" onclick="__expandAll(true)">Expand all</button><button class="btn sm ghost" onclick="__expandAll(false)">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
@@ -17951,11 +19272,16 @@ function renderSources(){
 /* =====================================================================
    EXPERIENCE: anonymised case studies
    ===================================================================== */
-function caseCard(c){ return `<div class="card clickable tint" style="--dc:var(--accent2)" onclick="location.hash='#/experience/${c.id}'"><h3>${esc(c.t)}</h3><div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0">${esc(c.context.slice(0, 180))}${c.context.length > 180 ? '…' : ''}</p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></div>`; }
-function casePage(c){
+function caseCard(c){ return `<div class="card clickable tint" style="--dc:var(--accent2)" onclick="location.hash='#/experience/${c.id}'"><h3>${esc(c.t)}</h3>${c.sub ? `<div class="casesub">${esc(c.sub)}</div>` : ''}<div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0">${esc(c.context.slice(0, 180))}${c.context.length > 180 ? '…' : ''}</p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></div>`; }
+// The head is separate from the body because the project page puts a tab
+// strip between them: the codename, its description and the chips stay put
+// while Overview, Workflows and Interview swap underneath.
+function caseHead(c){
   return `${crumbs([['Map','#/map'],['Experience','#/experience'],[c.t]])}
-    <div class="casehead"><h1>${esc(c.t)}</h1><div class="chips">${[c.role, c.period].map(x => `<span class="chip">${esc(x)}</span>`).join('')}${c.stack.map(s => `<span class="chip api">${esc(s)}</span>`).join('')}</div></div>
-    <p class="dim" style="max-width:820px">${esc(c.context)}</p>
+    <div class="casehead"><h1>${esc(c.t)}</h1>${c.sub ? `<p class="casesub">${esc(c.sub)}</p>` : ''}<div class="chips">${[c.role, c.period].map(x => `<span class="chip">${esc(x)}</span>`).join('')}${c.stack.map(s => `<span class="chip api">${esc(s)}</span>`).join('')}</div></div>`;
+}
+function casePage(c){
+  return `<p class="dim" style="max-width:820px">${esc(c.context)}</p>
     ${systemsSection(c)}
     <div class="section-head"><h2>Architecture</h2><span class="muted">what the pieces were</span></div>
     <ul class="archlist">${c.arch.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
@@ -18000,6 +19326,8 @@ function systemPage(c, s){
     <div class="grid auto">${parts.map(p => `<div class="card clickable tint" style="--dc:${dc}" onclick="location.hash='#/experience/${c.id}/${s.id}/${p.id}'">
       <b>${esc(p.t)}</b><div class="small dim" style="margin-top:6px">${esc(p.what)}</div>
       <div class="small" style="margin-top:6px"><b>Why.</b> ${esc(p.why)}</div></div>`).join('')}</div>
+    ${(s.iv && s.iv.length) ? `<div class="section-head"><h2>Likely questions</h2><span class="muted">what an interviewer asks once this system is on the table</span></div>
+    ${ivCards(s.iv, dc)}` : ''}
     <div class="topic-nav"><button class="btn ghost" onclick="location.hash='#/experience/${c.id}'">← ${esc(c.t)}</button></div>`;
 }
 function partPage(c, s, p){
@@ -18021,14 +19349,78 @@ function partPage(c, s, p){
     ${linked ? `<div class="section-head"><h2>Depends on</h2><span class="muted">other parts of this project</span></div><div class="stack">${linked}</div>` : ''}
     <div class="topic-nav">${prev ? `<button class="btn" onclick="location.hash='#/experience/${c.id}/${s.id}/${prev.id}'">← ${esc(prev.t)}</button>` : `<button class="btn ghost" onclick="location.hash='#/experience/${c.id}/${s.id}'">← ${esc(s.t)}</button>`}<button class="btn ghost" onclick="location.hash='#/experience/${c.id}'">Project</button>${next ? `<button class="btn" onclick="location.hash='#/experience/${c.id}/${s.id}/${next.id}'">${esc(next.t)} →</button>` : `<button class="btn" onclick="location.hash='#/experience'">All projects →</button>`}</div>`;
 }
-function renderExperience(id, sysId, partId){
+/* ---------- project tabs: overview / workflows / interview ---------- */
+// Same component as the topic tab strip, down to the class and the keyboard
+// handler, so there is one tab behaviour in the app rather than two.
+const PROJ_TABS = [['overview','Overview'],['workflows','Workflows'],['interview','Interview']];
+function projTabsFor(c){ return PROJ_TABS.filter(([k]) => k === 'overview' || (k === 'workflows' ? !!(c.flows && c.flows.length) : !!c.iv)); }
+let projTab = 'overview';
+function setProjTab(c, tab){
+  const avail = projTabsFor(c).map(x => x[0]);
+  const want = tab || store.get('projTab', 'overview');
+  projTab = avail.includes(want) ? want : 'overview';
+  if(tab) store.set('projTab', projTab);
+}
+// Overview is omitted from the URL, so its hash equals the bare project hash
+// and route() would re-resolve the tab from the store. Record the choice first.
+window.__projTab = (id, tab) => { store.set('projTab', tab); go('#/experience/' + id + (tab === 'overview' ? '' : '/' + tab)); };
+function flowColorOf(c){ return sys => { const s = (c.systems || []).find(x => x.id === sys); return s ? kindColor(s.kind) : 'var(--accent2)'; }; }
+function workflowsBody(c){
+  const flows = c.flows || [];
+  if(!flows.length) return '<div class="empty">No workflows written for this project yet.</div>';
+  return `<p class="small muted" style="margin:0 0 10px">How the project behaves end to end rather than what it is made of. Each chart is the same shape as the map: cards for the steps, curves for what follows what, colour for the system the step belongs to.</p>
+    <div class="grid auto">${flows.map(f => `<div class="card clickable tint" style="--dc:var(--accent2)" onclick="location.hash='#/experience/${c.id}/flow/${f.id}'">
+      <b>${esc(f.t)}</b><div class="small dim" style="margin-top:6px">${esc(f.sum)}</div>
+      <div class="chips" style="margin-top:8px"><span class="chip">${(f.steps || []).length} steps</span></div></div>`).join('')}</div>`;
+}
+function projectPage(c){
+  const tabs = projTabsFor(c);
+  const tab = tabs.some(x => x[0] === projTab) ? projTab : 'overview';
+  const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Project views">${tabs.map(([k, label]) => `<button role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" onkeydown="__topicTabKey(event)" onclick="__projTab('${c.id}','${k}')">${label}</button>`).join('')}</div>` : '';
+  const body = tab === 'workflows' ? workflowsBody(c)
+    : tab === 'interview' ? interviewBody(c.iv, 'var(--accent2)', 'story.' + c.id)
+    : casePage(c);
+  return `${caseHead(c)}${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
+}
+function flowPage(c, f){
+  const flows = c.flows || [], i = flows.indexOf(f);
+  const prev = i > 0 ? flows[i-1] : null, next = i < flows.length - 1 ? flows[i+1] : null;
+  const colorOf = flowColorOf(c);
+  const steps = f.steps || [];
+  const touched = [];
+  steps.forEach(s => { if(s.sys && !touched.includes(s.sys)) touched.push(s.sys); });
+  const sysChips = touched.map(sid => { const s = (c.systems || []).find(x => x.id === sid); if(!s) return '';
+    return `<span class="chip kind" style="--dc:${kindColor(s.kind)};cursor:pointer" onclick="location.hash='#/experience/${c.id}/${s.id}'">${esc(s.t)}</span>`; }).join('');
+  return `${crumbs([['Experience','#/experience'],[c.t,'#/experience/'+c.id],['Workflows',`#/experience/${c.id}/workflows`],[f.t]])}
+    <div class="casehead"><div class="chips" style="margin-bottom:7px"><span class="chip">Workflow</span><span class="chip">${steps.length} steps</span></div>
+      <h1>${esc(f.t)}</h1></div>
+    <p class="dim" style="max-width:820px">${esc(f.sum)}</p>
+    <div class="card diagram-card flowwrap">${PlayableFlow.render(f, colorOf)}</div>
+    <div class="section-head"><h2>The steps</h2><span class="muted">in the order the work happens</span></div>
+    <ol class="flowsteps">${steps.map(s => `<li><span class="fsdot" style="--dc:${colorOf(s.sys)}"></span><b>${esc(s.t)}</b><div class="small dim">${esc(s.d)}</div></li>`).join('')}</ol>
+    ${sysChips ? `<div class="section-head"><h2>Systems this touches</h2><span class="muted">read the piece, then come back</span></div><div class="chips">${sysChips}</div>` : ''}
+    <div class="topic-nav">${prev ? `<button class="btn" onclick="location.hash='#/experience/${c.id}/flow/${prev.id}'">← ${esc(prev.t)}</button>` : `<button class="btn ghost" onclick="location.hash='#/experience/${c.id}/workflows'">← All workflows</button>`}<button class="btn ghost" onclick="location.hash='#/experience/${c.id}'">Project</button>${next ? `<button class="btn" onclick="location.hash='#/experience/${c.id}/flow/${next.id}'">${esc(next.t)} →</button>` : `<button class="btn" onclick="location.hash='#/experience/${c.id}'">${esc(c.t)} →</button>`}</div>`;
+}
+// `a` is a system id, or one of the reserved route words: 'workflows' and
+// 'interview' select a tab of the project page, 'flow' makes `b` a flow id.
+function renderExperience(id, a, b){
   const c = CASE_STUDIES.find(x => x.id === id);
   if(c){
-    const s = (c.systems || []).find(x => x.id === sysId) || null;
-    const p = s ? (s.parts || []).find(x => x.id === partId) || null : null;
-    enterProject(c, s, p);
-    setView(p ? partPage(c, s, p) : s ? systemPage(c, s) : casePage(c));
-    return renderTree(p ? 'part' : s ? 'sys' : 'home');
+    if(a === 'flow'){
+      const f = (c.flows || []).find(x => x.id === b);
+      if(f){ enterProject(c, 'workflows', f.id); setView(flowPage(c, f)); return renderTree('part'); }
+    }
+    const s = (c.systems || []).find(x => x.id === a) || null;
+    if(!s){
+      setProjTab(c, a === 'workflows' || a === 'interview' ? a : null);
+      enterProject(c, projTab === 'workflows' ? 'workflows' : null, null);
+      setView(projectPage(c));
+      return renderTree(projTab === 'workflows' ? 'sys' : 'home');
+    }
+    const p = (s.parts || []).find(x => x.id === b) || null;
+    enterProject(c, s.id, p ? p.id : null);
+    setView(p ? partPage(c, s, p) : systemPage(c, s));
+    return renderTree(p ? 'part' : 'sys');
   }
   setView(`${crumbs([['Map','#/map'],['Experience']])}<h1>Experience</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
     ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/29-data-experience.js and appear here as soon as one is written.</div>'}`);
@@ -18044,8 +19436,11 @@ const engText = t => t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k]
 const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map(x => x.q)) : [];
 TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
 TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
-CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.role} · ${c.period} · ${c.stack.join(', ')}`, href:'#/experience/'+c.id, text:(c.t+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
+CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.sub ? c.sub + ' · ' : ''}${c.role} · ${c.period}`, href:'#/experience/'+c.id, text:(c.t+' '+(c.sub||'')+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).forEach(s => (s.parts||[]).forEach(p => INDEX.push({ type:'experience', t:c.t+' · '+p.t, snip:`${s.t} · ${p.why}`, href:`#/experience/${c.id}/${s.id}/${p.id}`, text:(c.t+' '+s.t+' '+s.kind+' '+(s.stack||[]).join(' ')+' '+p.t+' '+p.what+' '+(p.how||[]).join(' ')+' '+p.why+' '+p.trade+' '+(p.story||'')).toLowerCase() }))));
+CASE_STUDIES.forEach(c => (c.flows||[]).forEach(f => INDEX.push({ type:'experience', t:(c.code||c.t)+' · '+f.t, snip:`Workflow · ${(f.steps||[]).length} steps · ${f.sum}`, href:`#/experience/${c.id}/flow/${f.id}`, text:('workflow flow chart '+(c.code||c.t)+' '+f.t+' '+f.sum+' '+(f.steps||[]).map(s=>s.t+' '+s.d).join(' ')+' '+(f.edges||[]).map(e=>e[2]||'').join(' ')).toLowerCase() })));
+CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t+' · interview', snip:`${c.sub || c.role} · questions, model answers and red flags`, href:'#/experience/'+c.id+'/interview', text:('interview questions answers red flag junior mid senior project '+c.t+' '+(c.sub||'')+' '+['junior','mid','senior'].flatMap(k => (c.iv[k]||[]).map(x => x.q+' '+x.a)).join(' ')).toLowerCase() }));
+CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
@@ -18141,12 +19536,13 @@ let projState = null;
 function saveProj(){ if(projState) store.set('projMap.' + projState.cs, projState); }
 function projCase(){ return projState ? CASE_STUDIES.find(x => x.id === projState.cs) : null; }
 // Called by the router before the pane renders: the route is the truth about
-// which system is open and which part is selected, the store only supplies the
-// camera and the dragged-node offsets.
-function enterProject(c, s, p){
+// which branch is open and which child is selected, the store only supplies
+// the camera and the dragged-node offsets. `sysId` is a system id or the
+// reserved 'workflows'; `partId` is then a part id or a flow id.
+function enterProject(c, sysId, partId){
   if(!projState || projState.cs !== c.id) projState = Object.assign({ sys:null, part:null, off:{}, vb:null }, store.get('projMap.' + c.id, {}), { cs:c.id });
-  projState.sys = s ? s.id : null;
-  projState.part = p ? p.id : null;
+  projState.sys = sysId || null;
+  projState.part = partId || null;
   mapMode = 'project';
   saveProj();
 }
@@ -18165,8 +19561,14 @@ function buildGraph(){
 function mapCrumbs(){
   if(mapMode === 'project'){
     const c = projCase(); if(!c) return `<div class="mapcrumbs"></div>`;
-    const s = (c.systems || []).find(x => x.id === projState.sys);
     const parts = [`<button onclick="location.hash='#/experience'">Projects</button>`, `<span>›</span><button onclick="location.hash='#/experience/${c.id}'">${esc(c.t)}</button>`];
+    if(projState.sys === 'workflows'){
+      parts.push(`<span>›</span><button onclick="location.hash='#/experience/${c.id}/workflows'">Workflows</button>`);
+      const f = (c.flows || []).find(x => x.id === projState.part);
+      if(f) parts.push(`<span>›</span><b>${esc(f.t)}</b>`);
+      return `<div class="mapcrumbs">${parts.join('')}</div>`;
+    }
+    const s = (c.systems || []).find(x => x.id === projState.sys);
     if(s) parts.push(`<span>›</span><button onclick="location.hash='#/experience/${c.id}/${s.id}'">${esc(s.t)}</button>`);
     const p = s ? (s.parts || []).find(x => x.id === projState.part) : null;
     if(p) parts.push(`<span>›</span><b>${esc(p.t)}</b>`);
@@ -18231,8 +19633,10 @@ function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MA
 function projTipHTML(n){
   const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
   const c = projCase(); if(!c) return '';
-  if(kind==='center') return `<b style="color:var(--accent2)">${esc(c.t)}</b><div>${esc(c.role)} · ${esc(c.period)}</div><div class="muted">${projState.sys ? 'click to collapse back to the project' : 'click to read the project page'}</div>`;
+  if(kind==='center') return `<b style="color:var(--accent2)">${esc(c.t)}</b>${c.sub?`<div>${esc(c.sub)}</div>`:''}<div>${esc(c.role)} · ${esc(c.period)}</div><div class="muted">${projState.sys ? 'click to collapse back to the project' : 'click to read the project page'}</div>`;
+  if(kind==='domain' && id==='workflows'){ const n2 = (c.flows||[]).length; return `<b style="color:var(--accent2)">Workflows</b><div>How this project behaves end to end, drawn as charts.</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${n2} flow${n2===1?'':'s'}`}</div>`; }
   if(kind==='domain'){ const s = (c.systems||[]).find(x => x.id===id); if(!s) return ''; return `<b style="color:${KIND_COLOR[s.kind]||'var(--accent2)'}">${esc(s.t)}</b><div>${esc(s.sum)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${(s.parts||[]).length} parts`}</div>`; }
+  if(kind==='topic' && projState.sys==='workflows'){ const f = (c.flows||[]).find(x => x.id===id); if(!f) return ''; return `<b style="color:var(--accent2)">${esc(f.t)}</b><div>${esc(f.sum)}</div><div class="muted">click to open this workflow chart</div>`; }
   if(kind==='topic'){ const s = (c.systems||[]).find(x => x.id===projState.sys); const p = s && (s.parts||[]).find(x => x.id===id); if(!p) return ''; return `<b>${esc(p.t)}</b><div>${esc(p.why)}</div><div class="muted">click to read this part</div>`; }
   if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${why?`<div class="why"><b>What it demonstrates:</b> ${esc(why)}</div>`:''}<div class="muted">click to read the topic on the guide map</div>`; }
   return '';
@@ -18267,6 +19671,7 @@ function projClick(n){
   if(!c) return;
   if(kind==='center') return go(`#/experience/${c.id}`);
   if(kind==='domain') return go(n.classList.contains('open') ? `#/experience/${c.id}` : `#/experience/${c.id}/${id}`);
+  if(kind==='topic' && projState.sys==='workflows') return go(`#/experience/${c.id}/flow/${id}`);
   if(kind==='topic') return go(`#/experience/${c.id}/${projState.sys}/${id}`);
   if(kind==='leaf') return go('#/map/t/' + id);
 }

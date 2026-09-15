@@ -8,7 +8,9 @@
 
    CASE({
      id:'',                                  // url slug, unique
-     t:'',                                   // the case study title, anonymised
+     t:'',                                   // the project codename, e.g. "Project S · Backend"
+     code:'',                                // the same codename, named explicitly for search and chips
+     sub:'',                                 // the descriptive line under it, e.g. "A Go backend for a live mobile game"
      role:'', period:'',                     // "Server engineer", "2 years"
      stack:[''],                             // public tech names only
      context:'',                             // what the thing was and what it had to do
@@ -18,6 +20,13 @@
      stories:[{s:'',t:'',a:'',r:''}],         // 3-5 STAR interview stories
      rel:[['topic-id','why this case is evidence for that topic']]
    })
+
+   `t` is the codename so that every place that already reads `c.t` (the map
+   root, the crumbs, the rail, the "seen in practice" chips, the search index)
+   names the repo the work belongs to. `sub` carries the old descriptive title
+   and is shown under the codename on cards, on the project page and on the
+   map root. Two projects may share a codename when they are two repos of one
+   product; the suffix after the middle dot is what separates them.
    ===================================================================== */
 
 const CASE_STUDIES = [];
@@ -34,6 +43,7 @@ function CASE(o){ CASE_STUDIES.push(o); }
      id:'', t:'', kind:'',                  // kind is one of KIND_COLOR below
      sum:'',                                // one or two sentences: what this system is
      stack:[''],                            // public tech names only
+     iv:[{q:'',a:'',follow:'',red:''}],     // exactly 3 "likely questions" on the system page
      parts:[{
        id:'',                               // prefixed by the system id: "api-routing"
        t:'',
@@ -48,8 +58,14 @@ function CASE(o){ CASE_STUDIES.push(o); }
    }])
 
    6 to 8 systems per project, 2 to 5 parts each. Ids unique within a
-   project. The same anonymisation rule as the case itself applies to every
-   string: the technique travels, the names do not.
+   project. `iv` is the same q/a/follow/red shape the topics use, flat rather
+   than split by level, and renders as "Likely questions" on the system page.
+   The same anonymisation rule as the case itself applies to every string: the
+   technique travels, the names do not.
+
+   Reserved: a system id may not be `workflows`, `interview`, `flow` or
+   `overview`. Those four are route words under #/experience/<cs>/... and a
+   system claiming one would shadow a page.
    --------------------------------------------------------------------- */
 const KIND_COLOR = {
   client:'var(--d-ux)', server:'var(--d-server)', backend:'var(--d-backend)', data:'var(--d-systems)',
@@ -61,9 +77,57 @@ const KIND_LABEL = {
 };
 function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('SYSTEMS: unknown case ' + csId); c.systems = arr; }
 
+/* ---------------------------------------------------------------------
+   WORKFLOWS
+   How the project behaves end to end, as charts rather than prose: the life
+   of a request, the path from a push to production, a session from join to
+   teardown. Each flow is data and one generic renderer draws it, so a flow
+   costs no layout work and cannot drift from the visual language.
+
+   FLOWS('cs-id', [{
+     id:'',                                 // url slug, unique inside the project
+     t:'',                                  // the flow title, e.g. "Life of a request"
+     sum:'',                                // one or two sentences: what the chart shows
+     steps:[{
+       id:'',                               // unique inside the flow
+       t:'',                                // the card label, short enough for two lines
+       d:'',                                // one sentence, shown in the list and as the card tooltip
+       sys:''                               // optional system id of this project; it colours the card
+     }],
+     edges:[['from-step','to-step','label']]  // label optional, used on a branch
+   }])
+
+   2 to 4 flows per project, 4 to 9 steps each. The edges form a directed
+   acyclic graph: branches are allowed (a step may have two outgoing edges,
+   for example refused and handled), every step has to be reachable from
+   steps[0], and no edge may point backwards or at itself. The renderer puts
+   a step in the column of its longest path from steps[0], so the chart reads
+   left to right in the order the work actually happens.
+   --------------------------------------------------------------------- */
+function FLOWS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('FLOWS: unknown case ' + csId); c.flows = arr; }
+
+/* ---------------------------------------------------------------------
+   PROJECT INTERVIEW
+   The questions asked about a project on a CV rather than about one system:
+   walk me through the architecture, what would you change, the hardest bug,
+   how you decided X, what you owned. Same q/a/follow/red shape as a topic's
+   interview tab, and the same "your story" textarea, keyed story.<cs-id>.
+
+   PROJECT_INTERVIEW('cs-id', {
+     junior:[{q:'',a:'',follow:'',red:''}],
+     mid:[...], senior:[...]
+   })
+
+   10 to 12 questions in total, at least 2 at every level. Answer outlines
+   have to stay consistent with the systems and parts already written.
+   --------------------------------------------------------------------- */
+function PROJECT_INTERVIEW(csId, iv){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('PROJECT_INTERVIEW: unknown case ' + csId); c.iv = iv; }
+
 CASE({
   id:'cs-go-game-backend',
-  t:'A Go backend for a live mobile game',
+  t:'Project S · Backend',
+  code:'Project S · Backend',
+  sub:'A Go backend for a live mobile game',
   role:'Server engineer, later backend lead',
   period:'3 years, live product',
   stack:['Go','protobuf','gorilla/mux','google/wire','MySQL','Redis','memcached','goose'],
@@ -146,7 +210,9 @@ CASE({
 
 CASE({
   id:'cs-unity-mobile-client-ci',
-  t:'A Unity mobile client and its CI',
+  t:'Project S · Client and CI',
+  code:'Project S · Client and CI',
+  sub:'A Unity mobile client and its CI',
   role:'Unity client engineer, later owner of the build and CI',
   period:'3 years, live product',
   stack:['Unity','C#','Addressables','UniTask','protobuf','gRPC','Jenkins','PowerShell'],
@@ -229,7 +295,9 @@ CASE({
 
 CASE({
   id:'cs-unity-multiplatform-port',
-  t:'Porting a console game to PC and mobile in Unity',
+  t:'Project P · Port',
+  code:'Project P · Port',
+  sub:'Porting a console game to PC and mobile in Unity',
   role:'Client engineer on the port, later technical lead',
   period:'2 years, shipped port',
   stack:['Unity','C#','IL2CPP','Fusion','AssetBundles','Jenkins','Memory Profiler'],
