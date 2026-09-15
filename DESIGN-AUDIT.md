@@ -121,35 +121,63 @@ remembered per browser.
 The **Experience** view (`#/experience`) turns three real, shipped projects into
 the shape an interview actually asks for: context, architecture, five to eight
 decisions each with a trade-off, what went wrong and the lesson, three to five STAR
-interview stories, and links back into the relevant topics with a reason. The
-anonymisation rule that produced them is strict and one-directional: **the
-technique travels, the names do not.** A project, company, teammate, internal
-hostname, database or schema name, or business figure never appears; a public
-library or vendor name (Go, protobuf, gorilla/mux, google/wire, Redis, Unity,
-Addressables, UniTask, Jenkins, Fusion) is fine, because naming a tool is not the
-same as naming who used it or on what.
+interview stories, and links back into the relevant topics with a reason. Each
+project is named by codename rather than by its real identity: `Project S ·
+Backend`, `Project S · Client and CI` (two repos of one product, told apart by the
+text after the middle dot), and `Project P · Port`. The old descriptive title
+becomes a `sub` line shown under the codename everywhere the codename appears
+(cards, the project head, chips). The anonymisation rule that produced all of it is
+strict and one-directional: **the technique travels, the names do not.** A project,
+company, teammate, internal hostname, database or schema name, or business figure
+never appears; a public library or vendor name (Go, protobuf, gorilla/mux,
+google/wire, Redis, Unity, Addressables, UniTask, Jenkins, Fusion) is fine, because
+naming a tool is not the same as naming who used it or on what.
 
-Opening a project (`#/experience/<project>`) turns it into a second kind of mind
-map on the same centre stage the domain map uses: the project in the middle, its
-6 to 8 systems where domains sit, and a system's 2 to 5 parts where topics sit
-while it is open. The two maps share `PlayableGraph`'s layout, patching and camera
-code (`build` for the domain map, `buildProject` for a project) so the gestures,
-the drag-to-nudge, the fit and the reset controls are identical, and they share
-node kinds (`center|domain|topic|leaf`) so the CSS never forks. Project nodes are
-told apart only by `data-scope="project"` and by `sys:<id>` / `part:<id>` keys.
+Opening a project (`#/experience/<project>`) shows a tab strip, **Overview |
+Workflows | Interview**, built from the exact same component the topic tab strip
+uses, down to the class name and the keyboard handler, so there is one tab
+behaviour in the app rather than two. Overview turns the project into a second
+kind of mind map on the same centre stage the domain map uses: the project in the
+middle, its 6 to 8 systems where domains sit, and a system's 2 to 5 parts where
+topics sit while it is open. The two maps share `PlayableGraph`'s layout, patching
+and camera code (`build` for the domain map, `buildProject` for a project) so the
+gestures, the drag-to-nudge, the fit and the reset controls are identical, and they
+share node kinds (`center|domain|topic|leaf`) so the CSS never forks. Project nodes
+are told apart only by `data-scope="project"` and by `sys:<id>` / `part:<id>` keys.
 Selecting a part grows leaves for the guide topics its `rel` names, coloured by
 that topic's home domain, which travel to `#/map/t/<id>` on the domain map. A
 part's `links` to other parts of the same project draw as the same dashed cross
-edges the domain map uses between related concepts. The two maps' state is kept
-in two separate places by design: `mapState` for the domain map (`dom`, `topic`,
-`smell`, node offsets, camera) is untouched by a visit to a project, and each
-project keeps its own `projMap.<id>` (open system, selected part, offsets, camera),
-so leaving a project and coming back to the domain map restores it exactly as it
-was left. The bridge back the other way is a reverse index built once from every
-project's parts (`PlayableGraph.practiceLinks`): it maps a guide topic to every
-part that demonstrates it, which feeds the "Seen in practice" chips on a topic
-page and, capped at two per topic so `check-layout.js` stays green, a `◆` view
-leaf on that topic's fourth layer that also travels straight to the part.
+edges the domain map uses between related concepts. A system's own page adds a
+"Likely questions" section, three deep-dive questions in the same `{q,a,follow,red}`
+shape a topic's interview uses. The two maps' state is kept in two separate places
+by design: `mapState` for the domain map (`dom`, `topic`, `smell`, node offsets,
+camera) is untouched by a visit to a project, and each project keeps its own
+`projMap.<id>` (open system, selected part, offsets, camera), so leaving a project
+and coming back to the domain map restores it exactly as it was left. The bridge
+back the other way is a reverse index built once from every project's parts
+(`PlayableGraph.practiceLinks`): it maps a guide topic to every part that
+demonstrates it, which feeds the "Seen in practice" chips on a topic page and,
+capped at two per topic so `check-layout.js` stays green, a `◆` view leaf on that
+topic's fourth layer that also travels straight to the part.
+
+The **Workflows** tab lists the project's two to four flows as cards (title,
+summary, step count). Each opens its own route, `#/experience/<project>/flow/<id>`,
+with the chart, a numbered step list underneath (title plus one sentence per step),
+and links to the systems it touches. A flow is data, steps and a DAG of edges with
+some carrying a short branch label, and one renderer, `src/88-flow.js`, draws all
+of them: a layered layout puts each step in the column of its longest path from
+the first step, so the chart reads left to right (or top to bottom on a narrow
+pane) in the order the work actually happens, with the same card, curve and colour
+language the mind map already uses. `check-layout.js` renders every flow as an
+AABB check on its cards (no overlaps) the same way it checks the mind map's
+labels. The rail's project tree grows a "Workflows" branch beside the systems,
+listing the flows the way a system lists its parts, open whenever the Workflows
+tab or a flow route is active and highlighting the current flow. The **Interview**
+tab is a project-level interview, ten to twelve questions across junior/mid/senior
+answering the "walk me through the architecture" register rather than a system's
+deep dive, with the same private story textarea pattern, keyed `story.<project-id>`
+instead of `story.<topic-id>` so a project's draft answer never collides with a
+topic's.
 
 ## Interactive tools and how they were verified
 
@@ -194,6 +222,32 @@ the part) were run, and the domain map's own saved state was byte-identical befo
 entering a project and after leaving it. `check-layout.js` now reports zero
 overlaps across 261 map states (up from 153), and `node src/validate.js` confirms
 3 projects, 24 systems and 81 parts with every `rel` and `links` id resolved.
+
+The codenames, workflow-chart and project-interview pass repeated the same
+discipline once more. All nine flows (three per project) were opened by route and
+checked against their own data: the heading matched the flow title, the rendered
+`.flownode`/`.fedge`/`.flabel` counts matched the step, edge and labelled-edge
+counts in the source, the numbered step list matched the step count, every card
+sat fully inside the chart's own bounding box with no card overlapping another,
+and the step-list dots were coloured per system. The rail's Workflows branch was
+confirmed open with the active flow highlighted on all nine routes. All three
+project Interview tabs (11 questions each) and all 24 system "Likely questions"
+sections (exactly 3 each) were opened and counted. The private story textarea was
+exercised on all three projects and confirmed to write only its own
+`story.<project-id>` key, never a `story.<topic-id>` key. Three cross-map round
+trips (one per project, mirroring the earlier six) reconfirmed a part's leaf →
+topic → "Seen in practice" chip → back to the part still holds with the codenames
+in place, and search was re-run against flow titles, step text and the codenames
+themselves ("life of a request", "pull request", "memory regression", "Project
+P"), each returning the matching flow or project as a top result. All twelve
+pre-existing regression routes plus the topic interview at `#/map/t/core-loop/
+interview` were re-checked with zero console errors. At a 375 px width, a flow
+route's chart was confirmed to fit the drawer with no page-level horizontal
+overflow and its edge labels legible. `check-layout.js` now reports zero overlaps
+across 282 map states (up from 261, the difference being the nine flow chart
+states), and `node src/build.js` confirms 3 projects, 24 systems, 81 parts, 9
+workflows, 3 project interviews and 24 systems with likely questions, all
+cross-links resolved.
 
 ## Against the brief's final quality test
 

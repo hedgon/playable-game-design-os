@@ -27,11 +27,20 @@ and red flags, plus a private "your story" note that stays in your browser). The
 **Experience** view (`#/experience`) walks through three anonymised, shipped
 projects the way an interview actually asks for them: architecture, decisions and
 their trade-offs, what went wrong, and STAR interview stories, linked back into
-the relevant topics. Open a project (`#/experience/<project>`) and the centre stage
-switches from the domain map to that project's own mind map: its systems and the
-parts inside each, at routes `#/experience/<project>/<system>/<part>`. A selected
-part grows leaves for the guide topics it demonstrates, which travel to that topic
-on the domain map, and every topic a project touches gains a "Seen in practice" chip
+the relevant topics. Each project is named by codename rather than by its real
+name: `Project S · Backend` and `Project S · Client and CI` share a codename
+because they are two repos of one product, and `Project P · Port` is the third.
+The old descriptive title still shows as a subtitle under the codename. Open a
+project (`#/experience/<project>`) and it becomes a tab strip: **Overview** (the
+project mind map, its systems and the parts inside each, at routes
+`#/experience/<project>/<system>/<part>`), **Workflows** (two to four charts of
+how the project behaves end to end, for example the life of a request or a push
+to production, each its own route `#/experience/<project>/flow/<id>`), and
+**Interview** (ten to twelve project-level questions, the "walk me through the
+architecture" kind, plus the private story note). A system's own page adds a
+"Likely questions" section of three deep-dive questions. A selected part grows
+leaves for the guide topics it demonstrates, which travel to that topic on the
+domain map, and every topic a project touches gains a "Seen in practice" chip
 that leads straight back to the part.
 
 ## What is inside
@@ -41,7 +50,7 @@ that leads straight back to the part.
 | **Idea Lab** | The ideation surface, and the first door. An idea is treated as a chain of reasoning, not a filled-in form. Five entry modes (I noticed something / I want players to feel something / I like a game but / I have a constraint / I do not know what to make) feed small artifacts: Signal, Tension, Opportunity, Design question, Design space, Mechanisms, Critique, Experiment. Each artifact carries an evidence level (observed / reported / inferred / hypothesized / simulated / validated), an example, and a stage-specific AI prompt. The chain compresses into an **Idea Card** (player, promise, mechanism, core verb, fantasy, constraints, hypothesis) that opens in the Idea Shaper. Works without AI. |
 | **Map** | The always-visible mind map, drawn as a horizontal tidy tree: the goal in the middle, with the nineteen domains split into two balanced groups, one to its left and one to its right, and a domain's topics on the next layer while it is open. A selected topic grows another layer of smaller nodes: the concepts it relates to, the design smells it helps diagnose and the tools it points to. Nodes are labelled cards joined by smooth curves, so names never depend on hover. Faint dashed cross-branch links connect domains to each other, an open topic to a related concept's domain, and a leaf back to its home domain; hovering a node highlights its links. Click a domain to expand or collapse it in place, click a topic to read it in the right panel, click a leaf to travel. Drag a node to nudge its whole branch wherever you like (it persists in this browser); **drag** puts the nodes back in the tidy layout and **default** returns the map to the overview (branches collapsed, camera fit). Drag empty space to pan, wheel or pinch to zoom, **fit** to reset the camera. Every gesture works with mouse and touch. The tree stacks and pans as content grows instead of shrinking. Routes: `#/map/d/<domain>`, `#/map/t/<topic>`, `#/map/s/<smell>`, `#/map/home`. |
 | **Explore** | A list view of the same 133 topics for people who prefer lists. Every link opens the topic on the map. Every topic has the same eight parts: What is it, Why it matters, How a human should think about it, How to actually do it, What AI should and should not do, How to prompt AI, How to verify AI output, What to playtest, behind an **Overview** tab. Most topics add a **Godot** and a **Unity** tab (the engine-native term, the APIs to reach for, a short snippet, a pitfall, a same-idea-different-name mapping) and every topic adds an **Interview** tab (junior/mid/senior questions with model answers and red flags, plus a private story note). Topics with a real implementation decision also carry a **Techniques to compare** section (how each technique works, when it fits, what it costs, what to watch out for). Related concepts always say *why* they connect. |
-| **Experience** | Three anonymised, shipped projects (`#/experience`) told the way an interview actually asks for them: stack, architecture, five to eight decisions each with a trade-off, what went wrong and the lesson, three to five STAR interview stories, and related topics with a reason. Open one and its systems and parts (six to eight systems, two to five parts each) become a project mind map on the same centre stage the domain map uses, at routes `#/experience/<project>/<system>/<part>`. A part's leaves travel to the guide topics it demonstrates, and every topic those parts touch gains a "Seen in practice" chip back into the project. The technique travels; the project, company, colleague and internal names never do. |
+| **Experience** | Three anonymised, shipped projects (`#/experience`) told the way an interview actually asks for them: stack, architecture, five to eight decisions each with a trade-off, what went wrong and the lesson, three to five STAR interview stories, and related topics with a reason. Each is named by codename, with the old descriptive title kept as a subtitle; two projects share a codename because they are two repos of one product. Open one for a tab strip: **Overview** (its systems and parts, six to eight systems and two to five parts each, become a project mind map on the same centre stage the domain map uses, at routes `#/experience/<project>/<system>/<part>`, and a system's page adds three "Likely questions"), **Workflows** (two to four charts of the project end to end, for example the life of a request or a push to production, each at its own route `#/experience/<project>/flow/<id>`), and **Interview** (ten to twelve project-level questions with the same q/a/follow/red shape and a private story note). A part's leaves travel to the guide topics it demonstrates, and every topic those parts touch gains a "Seen in practice" chip back into the project. The technique travels; the project, company, colleague and internal names never do. |
 | **Diagnose** | Start from a symptom. 33 design smells (each with likely causes, an experiment per cause and a diagnostic prompt), the Fun Diagnostic (19 dimensions of fun), the Core Loop diagnostic (Action → Feedback → Decision → Consequence → New situation), the Unfairness diagnostic, the Depth-vs-Complexity rule audit, and the Content-or-Mechanic decision tree. |
 | **Build** | Eleven working tools. **Reference Dissection** (is my idea actually good? Pick the games your player already plays from a library of fifteen dissected successes or add your own; each is taken apart with one template: want served, core verb, first 30 seconds, decision per minute, why it worked, what players complain about, what copies miss; then seven cross-reference questions produce a verdict: promising, derivative, unproven, undeliverable, or needs work, with the next test), **Idea Shaper** (for people who do not yet know what to make: read a market you already watch, find what players praise, complain about and work around, classify the gap as an exit reason, an unmet want, a tolerated cost or your own taste, name the structural reason incumbents have not closed it, then shape the one rule only your constraints allow; outputs a positioning sentence, a hypothesis, four observation tests, and prompts for complaint mining, a structural moat, five rules and a genericness audit), Game Loop Builder, Core Experience Canvas, Behavior Ladder (feature → behavior → system → mechanic → feature), Should We Build This? (nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE), Playtest Hypothesis Builder, AI Delegation Planner, System Relationship Map, AI Prompt Generator, In-game AI Technique Chooser (decision shape + team + budget → primary technique, trade-offs, debug view). Each exports Markdown. |
 | **AI Workflow** | The 12-step AI-era development loop (mark where your project is), the bottleneck-shift philosophy, nine AI roles with use / do-not-use conditions and starter prompts, the Human-vs-AI responsibility matrix, the prompting formula, and the catalogue "When AI makes your game worse" (14 failure modes with symptom, cause, detector, correction). |
@@ -154,6 +163,7 @@ src/                   optional: sources and maintenance scripts (see above)
   40-data-interview-a.js Interview tabs for player, experience, core, systems, content, level
   41-data-interview-b.js Interview tabs for ux, narrative, presentation, product
   42-data-interview-c.js Interview tabs for production, ai, gameai, studio
+  88-flow.js           workflow chart renderer: layered layout for the Workflows tab and flow routes
   89-graph.js          horizontal tidy-tree mind-map layout (the centre map)
   90-app.js            router, views, tools, search
   91-map.js            persistent mind map: tree render, pan/zoom/pinch, reading panels
@@ -199,28 +209,58 @@ per level), each entry `{q, a, follow, red}`: the question, a model-answer outli
 an expected follow-up, and a concrete red-flag answer. The reader's own answer never
 lives in this data; the app saves it to `localStorage` under `story.<topicId>`.
 
-Add a case study to the Experience view with `CASE({id, t, role, period, stack[],
-context, arch[], decisions[{d,why,trade}], lessons[{what,lesson}],
-stories[{s,t,a,r}], rel[[topic-id, why]]})` in `29-data-experience.js`. Every field
-is required and non-empty, every `rel` id must resolve to a real topic, and every
-string is checked for company, product, colleague, host and credential names before
-it ships (the guide's own rule is "the technique travels, the names do not").
+Add a case study to the Experience view with `CASE({id, t, code, sub, role, period,
+stack[], context, arch[], decisions[{d,why,trade}], lessons[{what,lesson}],
+stories[{s,t,a,r}], rel[[topic-id, why]]})` in `29-data-experience.js`. `t` and
+`code` are both the project codename (for example `Project S · Backend`). `code`
+exists so search and chips can name the codename explicitly even where `t` gets
+reused for something else. `sub` is the old descriptive title and shows under the
+codename on cards and on the project page. Two cases may share a codename when they
+are two repos of one product, distinguished by the text after the middle dot. Every
+field is required and non-empty, every `rel` id must resolve to a real topic, and
+every string is checked for company, product, colleague, host and credential names
+before it ships (the guide's own rule is "the technique travels, the names do not").
 
 Turn that case into a browsable project with `SYSTEMS('case-id', [{id, t, kind, sum,
-stack[], parts[{id, t, what, how[], why, trade, rel[[topic-id, why]], links, story}]}])`,
-in its own file alongside the case (files 33-35 hold the three existing projects).
-`kind` is one of `client, server, backend, data, infra, cicd, tooling, process`, and
-picks the colour the system's node gets on the project map. A project needs 6 to 8
-systems and each system 2 to 5 parts. A part's `id` must be prefixed by its system's
-`id` (`api-routing` under system `api`) and unique across the whole project. `what`
-is 2 to 4 sentences, `how` is 3 to 6 bullets, `why` and `trade` are 1 to 3 sentences
-each, `rel` names at least one real topic id with a reason, and the optional `links`
-point at other part ids in the same project, also with a reason (a part cannot link
-to itself). `story` is optional, first person, and meant as a draft the reader
-rewrites in their own words. The validator checks all of this, plus that every
-`rel` and `links` id actually resolves. A case with no `systems` at all is only a
-warning under `PLAYABLE_STRICT=0`, but any shape error in systems that are present
-fails the build in both modes.
+stack[], iv[{q,a,follow,red}], parts[{id, t, what, how[], why, trade,
+rel[[topic-id, why]], links, story}]}])`, in its own file alongside the case (files
+33-35 hold the three existing projects). `kind` is one of `client, server, backend,
+data, infra, cicd, tooling, process`, and picks the colour the system's node gets
+on the project map. `iv` is exactly three "likely questions" shown on the system's
+page, same `{q,a,follow,red}` shape as a topic's interview. A project needs 6 to 8
+systems and each system 2 to 5 parts. A system's `id` may not be `workflows`,
+`interview`, `flow` or `overview`: those four are route words under
+`#/experience/<project>/...` and a system claiming one would shadow that page. A
+part's `id` must be prefixed by its system's `id` (`api-routing` under system `api`)
+and unique across the whole project. `what` is 2 to 4 sentences, `how` is 3 to 6
+bullets, `why` and `trade` are 1 to 3 sentences each, `rel` names at least one real
+topic id with a reason, and the optional `links` point at other part ids in the same
+project, also with a reason (a part cannot link to itself). `story` is optional,
+first person, and meant as a draft the reader rewrites in their own words. The
+validator checks all of this, plus that every `rel` and `links` id actually
+resolves. A case with no `systems` at all is only a warning under
+`PLAYABLE_STRICT=0`, but any shape error in systems that are present fails the
+build in both modes.
+
+Give a project its workflow charts with `FLOWS('case-id', [{id, t, sum,
+steps[{id, t, d, sys}], edges[[from, to, label]]}])`. Two to four flows per
+project, four to nine steps each. `sys` on a step is optional and, when present,
+must be a system id of the same project. It colours the step's card and dot to
+match that system. `edges` form a directed acyclic graph: branches are fine (a
+step can have two outgoing edges, for example a pass and a fail path), but no
+edge may point backwards or at its own step, and every step must be reachable
+from `steps[0]`, since that is where the layered layout starts counting columns.
+An edge label is optional and, when present, should stay at 12 characters or
+fewer: the renderer draws it as a small tag at the edge's midpoint and a long
+label crowds the chart. The validator checks the DAG property, reachability, and
+that every `sys` resolves.
+
+Give a project its project-level interview with `PROJECT_INTERVIEW('case-id',
+{junior[{q,a,follow,red}], mid[...], senior[...]})`. Ten to twelve questions in
+total, at least two at every level. These are the "walk me through the
+architecture" questions a CV invites, one register up from a system's three
+likely questions, and the answer outlines have to stay consistent with the
+systems and parts already written for that project.
 
 `node src/validate.js` enforces all of the above: every topic outside `management`/
 `leadership` needs `eng`, every topic needs `iv`, and every field-level shape check

@@ -116,6 +116,13 @@ non-AI action.
   branch, offsets and camera) and stay connected in both directions: a part's guide
   topics are leaves that travel onto the domain map, and a topic gains a chip back to
   every part that demonstrates it in practice.
+- Charts as data, not drawings: a project's workflow charts (life of a request, push
+  to production, and the like) are steps and a DAG of edges, same as a topic or a
+  map node, and one renderer (`src/88-flow.js`) turns any of them into the same
+  card-and-curve visual language the mind map uses. Adding a flow costs no layout
+  work and cannot drift from the rest of the guide's look, and it is checked the
+  same way the map is: `check-layout.js` renders every flow and fails the build on
+  a card overlap, the same AABB check it already runs on map labels.
 
 ## Research notes
 
