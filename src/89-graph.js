@@ -257,6 +257,38 @@ window.PlayableGraph = (function(){
     return { inner:f.inner, bbox:f.bbox, focus:null, nodes:c.nodes };
   }
 
+  /* ---- the path map: one learning path as stages and steps ---- */
+  // `state` is { stage, off }: a stage id or null, and dragged-node offsets,
+  // the same shape the project map uses for `sys`/`part`. `done` is the
+  // progress record store.get('path.'+id) returns: { steps, stages }, so a
+  // stage node's sub-label and a step node's `seen` style read the same
+  // truth the path page and the path bar do. `stepTitle` is the pure global
+  // helper from 50-data-paths-a.js; it is not passed in because it needs no
+  // per-call state, only the data files already loaded by the time any map
+  // is actually drawn.
+  const PKEY2 = n => n.kind === 'center' ? 'c' : n.kind === 'domain' ? 'stage:' + n.id : n.kind === 'topic' ? 'step:' + n.id : 'l:' + n.id;
+  function buildPath(pth, state, done){
+    state = state || {}; done = done || { steps:{}, stages:{} };
+    const stages = pth.stages || [];
+    const root = { kind:'center', id:pth.id, label:pth.t, sub:`${stages.length} stage${stages.length === 1 ? '' : 's'} · ${pth.hours}h`, w:SIZE.root.w, h:SIZE.root.h, children:[] };
+    stages.forEach(st => {
+      const steps = st.steps || [];
+      const k = steps.filter((_, i) => done.steps && done.steps[`${st.id}/${i}`]).length;
+      const status = done.stages && done.stages[st.id];
+      const color = status === 'done' ? 'var(--ok)' : status === 'skipped' ? 'var(--warn)' : 'var(--accent2)';
+      const node = { kind:'domain', id:st.id, label:st.t, sub:`${k}/${steps.length} done`, color, open:state.stage === st.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
+      if(state.stage === st.id) steps.forEach((step, i) => {
+        const sid = `${st.id}/${i}`;
+        node.children.push({ kind:'topic', id:sid, label:(typeof stepTitle === 'function' ? stepTitle(step) : step.ref || step.kind), color, seen:!!(done.steps && done.steps[sid]), w:SIZE.topic.w, h:SIZE.topic.h, children:[] });
+      });
+      root.children.push(node);
+    });
+    place(root, state.off || {}, PKEY2);
+    const c = collect(root, PKEY2);
+    const f = frame(c, PKEY2, 'path');
+    return { inner:f.inner, bbox:f.bbox, focus:null, nodes:c.nodes };
+  }
+
   /* ---- reverse index: guide topic -> the project parts that show it ---- */
   // One traversal serves three consumers: the "Seen in practice" chips on a
   // topic page (`hits`), the runtime view links the map leaves travel
@@ -276,5 +308,5 @@ window.PlayableGraph = (function(){
     return { hits, views, extra };
   }
 
-  return { build, buildProject, practiceLinks };
+  return { build, buildProject, buildPath, practiceLinks };
 })();

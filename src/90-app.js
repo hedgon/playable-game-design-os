@@ -35,17 +35,24 @@ window.__copy = copyText;
 
 /* ---------- router ---------- */
 // Keys 1-9 map to the first nine entries, so anything added here goes last.
-const VIEWS = [['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
+const VIEWS = [['paths','Paths'],['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
 const VIEW_LINKS = { 'playtest-view':['#/playtest','Playtest view: question bank and hypothesis builder'], 'ai-roles-view':['#/ai/roles','AI Workflow: interactive role cards'], 'matrix-view':['#/ai/matrix','AI Workflow: responsibility matrix'], 'loop-view':['#/ai/loop','AI Workflow: the 12-step loop'], 'ai-failures-view':['#/ai/failures','AI Workflow: when AI makes your game worse'], 'checklists-view':['#/checklists','Checklists view'], 'prompt-library':['#/prompts','Prompt library'], 'should-we-build-this':['#/build/feature','Build: Should we build this? decision tree'] };
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
 function route(){
-  const h = location.hash.replace(/^#\/?/, '') || 'map';
+  const raw = location.hash.replace(/^#\/?/, '');
+  // First-ever load (no hash, nothing in this browser yet) opens the door
+  // instead of the map. Every other route, including a later empty hash
+  // once `visited` is set, behaves as before.
+  if(!raw && !store.get('visited', false)){ store.set('visited', true); location.hash = '#/paths'; return; }
+  store.set('visited', true);
+  const h = raw || 'map';
   const parts = h.split('/').filter(Boolean);
   const view = parts[0];
   $$('#primaryNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   closeModals();
   syncMapMode(view, parts[1]);
   switch(view){
+    case 'paths': return renderPaths(parts[1], parts[2]);
     case 'map': return renderMap(parts[1], parts[2], parts[3]);
     case 'lab': return renderLab();
     case 'explore': return renderExplore(parts[1]);
@@ -68,8 +75,11 @@ function route(){
 // state (open domain, selected topic, node offsets, camera) was never touched
 // while the project map was up.
 function syncMapMode(view, id){
-  if(mapMode !== 'project') return;
-  if(view === 'experience' && id && CASE_STUDIES.some(c => c.id === id)) return;
+  if(mapMode === 'project'){
+    if(view === 'experience' && id && CASE_STUDIES.some(c => c.id === id)) return;
+  } else if(mapMode === 'path'){
+    if(view === 'paths' && id && pathMapState && pathMapState.id === id) return;
+  } else return;
   mapMode = 'domains';
   if(view !== 'map' && MAP && MAP.g) renderTree();
 }
@@ -162,6 +172,20 @@ function railProjectHTML(c, sysId, partId){
     </div>
     ${systems.length ? '' : '<div class="empty">No systems written for this project yet.</div>'}`;
 }
+// The rail in path mode: a path list header, stages as groups (like domains),
+// steps as items (like topics), ticked the same way a read topic is.
+function railPathHTML(pth, stageId){
+  const prog = pathProgress(pth.id);
+  return `<div class="railhead">
+      <a class="railgraph" href="#/paths">← All paths</a>
+      <input class="railsearch" id="railSearch" placeholder="Jump to a step…" autocomplete="off">
+    </div>
+    <div class="raillist">${pth.stages.map(st => { const status = prog.stages[st.id];
+      return `<div class="raildom ${st.id === stageId ? 'open' : ''}" data-dom="${st.id}" style="--dc:var(--accent2)">
+      <button class="raildom-btn" data-stage="${st.id}"><span class="rdot"></span><span class="rt">${status === 'done' ? '✓ ' : status === 'skipped' ? '⇥ ' : ''}${esc(st.t)}</span><span class="rn">${st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length}/${st.steps.length}</span></button>
+      <div class="railtopics">${st.steps.map((step, i) => `<button class="railtopic ${prog.steps[`${st.id}/${i}`] ? 'seen' : ''}" data-stage="${st.id}" data-step="${i}">${esc(stepTitle(step))}</button>`).join('')}</div></div>`; }).join('')}
+    </div>`;
+}
 function railActive(){
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if(parts[0]==='map'){ if(parts[1]==='t' && TOPICS[parts[2]]) return { dom: TOPICS[parts[2]].d, topic: parts[2] }; if(parts[1]==='d' && DOM[parts[2]]) return { dom: parts[2], topic: null }; }
@@ -190,12 +214,20 @@ function updateRail(){
     railFilter(r, '.railtopic');
     return;
   }
+  const pth = hash[0] === 'paths' && hash[1] ? PATHS.find(x => x.id === hash[1]) : null;
+  if(pth){
+    r.innerHTML = railPathHTML(pth, hash[2]);
+    r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${b.dataset.stage}`; }));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { const st = pth.stages.find(s => s.id === b.dataset.stage); const step = st && st.steps[+b.dataset.step]; if(step) location.hash = stepHref(step, pth.id, st.id); closeRailDrawer(r); }));
+    railFilter(r, '.railtopic');
+    return;
+  }
   const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
   r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; closeRailDrawer(r); }));
   railFilter(r, '.railtopic');
 }
-function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
+function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `${pathBarHTML()}<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button onclick="location.hash='${it[1]}'">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
@@ -331,7 +363,7 @@ function contextsPanel(t){
     ${c.smells.length ? `<div class="small" style="margin-top:8px"><b>Diagnoses smells:</b> ${c.smells.map(s => `<a href="#/smell/${s.id}">${esc(s.t)}</a>`).join(', ')}</div>` : ''}
     ${c.loops.length ? `<div class="small" style="margin-top:4px"><b>Core-loop links:</b> ${c.loops.map(p => esc(p.t)).join(', ')}</div>` : ''}
     ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(s => `<a href="#/ai/loop/${s.n}">${s.n}</a>`).join(', ')}</div>` : ''}
-    ${practiceChips(t.id)}</div>`;
+    ${practiceChips(t.id)}${pathChips(t.id)}</div>`;
 }
 function renderConcepts(){
   const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));
@@ -568,7 +600,10 @@ function wireContentTree(){
 /* =====================================================================
    BUILD (tools)
    ===================================================================== */
-const TOOLS = [
+// Global (not `const` scoped to this closure) because PlayableGraph's path
+// map (89-graph.js, a sibling closure loaded before this file) labels a
+// 'tool' step node by looking this up; see stepTitle in 50-data-paths-a.js.
+window.TOOLS = [
   ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it'],
   ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded'],
   ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check'],
@@ -1224,6 +1259,209 @@ function renderExperience(id, a, b){
 }
 
 /* =====================================================================
+   LEARNING PATHS
+   A path sequences existing content; it never duplicates it. Progress is
+   { steps:{'<stageId>/<i>':true}, stages:{'<stageId>':'done'|'skipped'},
+   started, last } under localStorage key path.<id>. `paths.active` names
+   the one path the path bar (see pathBarHTML, called from setView) tracks
+   across every route. stepTitle/stepHref are pure globals defined in
+   50-data-paths-a.js so the path map (89-graph.js) can use them too.
+   ===================================================================== */
+function pathProgress(id){ return store.get('path.' + id, { steps:{}, stages:{}, started:null, last:null }); }
+function savePathProgress(id, prog){ store.set('path.' + id, prog); }
+function trackLabel(id){ const x = TRACKS.find(t => t[0] === id); return x ? x[1] : id; }
+function levelLabel(id){ const x = LEVELS.find(l => l[0] === id); return x ? x[1] : id; }
+function pathLinkChip(id){ const p = PATHS.find(x => x.id === id); return p ? `<span class="chip" style="cursor:pointer" onclick="location.hash='#/paths/${p.id}'">${esc(p.t)}</span>` : esc(id); }
+// The stage a path page opens on when the URL does not name one: the first
+// stage that is neither done nor skipped, or the last stage once all are.
+function currentStageId(pth){
+  const prog = pathProgress(pth.id);
+  const st = pth.stages.find(s => !prog.stages[s.id]);
+  return st ? st.id : pth.stages[pth.stages.length - 1].id;
+}
+// The one visible next step: the first unticked step in the first stage not
+// done or skipped, or a 'checkpoint' result when every step in that stage is
+// ticked but the stage itself has not been marked done or skipped yet, or
+// null once every stage is done or skipped.
+function pathNextStep(id){
+  const pth = PATHS.find(p => p.id === id); if(!pth) return null;
+  const prog = pathProgress(id);
+  for(const st of pth.stages){
+    const status = prog.stages[st.id];
+    if(status === 'done' || status === 'skipped') continue;
+    for(let i = 0; i < st.steps.length; i++) if(!prog.steps[`${st.id}/${i}`]) return { type:'step', path:pth, stage:st, index:i, step:st.steps[i] };
+    return { type:'checkpoint', path:pth, stage:st };
+  }
+  return null;
+}
+function nextStepLabel(next){ return next ? (next.type === 'step' ? stepTitle(next.step) : `${next.stage.t} checkpoint`) : 'All stages complete'; }
+function nextStepHref(next){ return next ? (next.type === 'step' ? stepHref(next.step, next.path.id, next.stage.id) : `#/paths/${next.path.id}/${next.stage.id}`) : '#/paths'; }
+function pathProgressCounts(pth){
+  const prog = pathProgress(pth.id);
+  const total = pth.stages.reduce((n, s) => n + s.steps.length, 0);
+  const done = Object.values(prog.steps).filter(Boolean).length;
+  const doneStages = pth.stages.filter(s => prog.stages[s.id]).length;
+  return { prog, total, done, doneStages, pct: total ? Math.round(100 * done / total) : 0 };
+}
+function markStageStatus(pathId, stageId, status){
+  const prog = pathProgress(pathId); prog.stages[stageId] = status; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
+  savePathProgress(pathId, prog); store.set('paths.active', pathId);
+}
+function goPastStage(pathId, stageId){
+  const pth = PATHS.find(p => p.id === pathId); const idx = pth.stages.findIndex(s => s.id === stageId); const nxt = pth.stages[idx + 1];
+  go(nxt ? `#/paths/${pathId}/${nxt.id}` : `#/paths/${pathId}`);
+}
+window.__togglePathStep = (pathId, key, checked) => {
+  const prog = pathProgress(pathId); prog.steps[key] = !!checked; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
+  savePathProgress(pathId, prog); store.set('paths.active', pathId); route();
+};
+window.__markStageDone = (pathId, stageId) => { markStageStatus(pathId, stageId, 'done'); goPastStage(pathId, stageId); };
+window.__skipStage = (pathId, stageId) => { markStageStatus(pathId, stageId, 'skipped'); goPastStage(pathId, stageId); };
+window.__pathMarkAndContinue = pathId => {
+  const next = pathNextStep(pathId); if(!next) return;
+  if(next.type === 'step') window.__togglePathStep(pathId, `${next.stage.id}/${next.index}`, true);
+  else { markStageStatus(pathId, next.stage.id, 'done'); route(); }
+};
+// Leaving while sitting on that path's own page would otherwise re-activate
+// it on the very next render (renderPaths always activates the path it
+// shows), so a leave taken from a #/paths/<id>... route steps back to the
+// door instead of re-rendering the page it just left.
+window.__leavePath = () => {
+  store.set('paths.active', null);
+  if(/^#\/paths\//.test(location.hash)) go('#/paths'); else route();
+};
+
+// Slim bar at the top of the content pane, on every route, while a path is
+// active. It is the one visible next step the plan calls for: where you are
+// in the path and the one button that moves you forward.
+function pathBarHTML(){
+  const activeId = store.get('paths.active', null);
+  const pth = activeId && PATHS.find(p => p.id === activeId);
+  if(!pth) return '';
+  const next = pathNextStep(pth.id);
+  const curIdx = pth.stages.findIndex(s => s.id === currentStageId(pth)) + 1;
+  const href = nextStepHref(next);
+  const onNext = next && location.hash.replace(/^#/, '') === href.replace(/^#/, '');
+  return `<div class="pathbar">
+    <div class="pathbar-info"><b>${esc(pth.t)}</b><span class="muted"> · Stage ${curIdx} of ${pth.stages.length} · Next: ${esc(nextStepLabel(next))}</span></div>
+    <div class="pathbar-actions">
+      ${next ? (onNext ? `<button class="btn sm primary" onclick="__pathMarkAndContinue('${pth.id}')">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">Next →</a>`) : ''}
+      <button class="btn sm ghost" onclick="__leavePath()">Leave path</button>
+    </div></div>`;
+}
+
+function pathCard(p){
+  const { pct } = pathProgressCounts(p);
+  return `<div class="card clickable tint" style="--dc:var(--accent2)" onclick="location.hash='#/paths/${p.id}'">
+    <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span></div>
+    <b>${esc(p.t)}</b><div class="small dim">${esc(p.tag)}</div>
+    <div class="progress" style="margin-top:8px"><span class="small muted">${pct}%</span><span class="bar"><i style="width:${pct}%"></i></span></div></div>`;
+}
+function pathsDoorHTML(){
+  const activeId = store.get('paths.active', null);
+  const active = activeId && PATHS.find(p => p.id === activeId);
+  const continueCard = active ? (() => {
+    const next = pathNextStep(active.id);
+    return `<div class="card tint" style="--dc:var(--accent2);margin-bottom:18px"><div class="overline">Continue</div><h3 style="margin:2px 0 4px">${esc(active.t)}</h3><p class="dim small">Next: ${esc(nextStepLabel(next))}</p>
+      <div class="row"><a class="btn primary" href="${nextStepHref(next)}">Continue →</a><a class="btn ghost" href="#/paths/${active.id}">Open the path</a></div></div>`;
+  })() : '';
+  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<button class="path" onclick="location.hash='#/paths/${p.id}'"><b>${esc(p.outcome.split(/(?<=\.)\s/)[0])}</b><span>${esc(p.tag)}</span></button>`).join('')}</div>` : '';
+  const tracks = TRACKS.map(([tid, tlabel]) => {
+    const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
+    return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(pathCard).join('')}</div>`;
+  }).join('');
+  return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
+    ${continueCard}
+    ${outcomes ? `<div class="section-head"><h2>What do you want to be able to do?</h2></div>${outcomes}` : ''}
+    ${tracks || '<div class="empty">No paths written yet. They live in src/50/51-data-paths-*.js.</div>'}
+    <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
+}
+
+function stepRowHTML(pth, st, i, step, prog){
+  const key = `${st.id}/${i}`, checked = !!prog.steps[key], href = stepHref(step, pth.id, st.id);
+  return `<label class="pathstep ${checked ? 'done' : ''}">
+    <input type="checkbox" ${checked ? 'checked' : ''} onchange="__togglePathStep('${pth.id}','${key}',this.checked)">
+    <span class="chip kindchip">${esc(step.kind)}</span>
+    <span class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
+      <div class="small dim">${esc(step.why)}</div><div class="small">${esc(step.do)}</div></span>
+  </label>`;
+}
+function stageFooterHTML(pth, st, prog){
+  const review = (st.review || []).map(tid => { const t = TOPICS[tid]; return t ? `<span class="chip" style="cursor:pointer" onclick="location.hash='#/map/t/${tid}'">${esc(t.t)}</span>` : ''; }).join('');
+  const status = prog.stages[st.id];
+  return `${review ? `<div class="small" style="margin-top:10px"><b>Review:</b> ${review}</div>` : ''}
+    <details class="pathcheck" style="margin-top:10px"><summary>Checkpoint</summary><div class="body">
+      <h4>Can you answer these?</h4><ul>${(st.check.recall || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+      <h4>Build</h4><p>${esc(st.check.build)}</p>
+      <button class="btn sm primary" ${status ? 'disabled' : ''} onclick="__markStageDone('${pth.id}','${st.id}')">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
+    </div></details>
+    <details class="pathskip" style="margin-top:6px"><summary>Skip ahead: I already know this</summary><div class="body">
+      <ul>${(st.check.skip || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+      <button class="btn sm ghost" ${status ? 'disabled' : ''} onclick="__skipStage('${pth.id}','${st.id}')">${status === 'skipped' ? 'Stage skipped' : 'I can answer these, skip this stage'}</button>
+    </div></details>`;
+}
+function stageSectionHTML(pth, st, si, curStage, prog){
+  const status = prog.stages[st.id];
+  const isOpen = st.id === curStage;
+  const doneCount = st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length;
+  const tick = status === 'done' ? '✓' : status === 'skipped' ? '⇥' : String(si + 1);
+  return `<section class="pathstage ${isOpen ? 'open' : ''} ${status || ''}" data-stage="${st.id}">
+    <header onclick="location.hash='#/paths/${pth.id}/${st.id}'"><span class="letter">${tick}</span><div style="flex:1"><h3>${esc(st.t)}</h3><div class="small muted">${esc(st.goal)}</div></div><span class="chip">${doneCount}/${st.steps.length}</span><span class="car">▸</span></header>
+    <div class="body"><div class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog)).join('')}</div>${stageFooterHTML(pth, st, prog)}</div>
+  </section>`;
+}
+function pathPageHTML(pth, stageIdParam){
+  const curStage = (stageIdParam && pth.stages.some(s => s.id === stageIdParam)) ? stageIdParam : currentStageId(pth);
+  const { prog, total, done, doneStages, pct } = pathProgressCounts(pth);
+  const next = pathNextStep(pth.id);
+  const nextCallout = next
+    ? `<div class="callout"><b>Next:</b> ${esc(nextStepLabel(next))} <a class="btn sm primary" style="margin-left:8px" href="${nextStepHref(next)}">Go →</a></div>`
+    : `<div class="callout ok"><b>All stages complete.</b> Revisit any stage below, or start another path.</div>`;
+  return `${crumbs([['Paths', '#/paths'], [pth.t]])}
+    <div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
+    <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
+    <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
+    <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
+    ${pth.prereq.length ? `<p class="small muted">Prereq: ${pth.prereq.map(pathLinkChip).join(', ')}</p>` : ''}
+    <div class="progress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps</span><span class="bar"><i style="width:${pct}%"></i></span></div>
+    ${nextCallout}
+    <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog)).join('')}</div>
+    ${pth.next.length ? `<div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : ''}`;
+}
+function renderPaths(id, stageId){
+  const pth = id && PATHS.find(p => p.id === id);
+  if(pth){
+    store.set('paths.active', pth.id);
+    const openStage = (stageId && pth.stages.some(s => s.id === stageId)) ? stageId : currentStageId(pth);
+    enterPathMap(pth, openStage);
+    setView(pathPageHTML(pth, stageId));
+    return renderTree(stageId ? 'stage' : 'home');
+  }
+  setView(pathsDoorHTML());
+}
+
+// Reverse index: guide topic -> every path/stage that walks through it as a
+// 'topic' step. Built once, like practice(), and read by pathChips below for
+// a topic page's "Part of paths" chips.
+let _PATH_LINKS = null;
+function pathLinks(){
+  if(!_PATH_LINKS){
+    _PATH_LINKS = {};
+    PATHS.forEach(pth => pth.stages.forEach(st => st.steps.forEach(step => {
+      if(step.kind !== 'topic') return;
+      (_PATH_LINKS[step.ref] || (_PATH_LINKS[step.ref] = [])).push({ path:pth, stage:st });
+    })));
+  }
+  return _PATH_LINKS;
+}
+function pathChips(topicId){
+  const hits = pathLinks()[topicId] || [];
+  if(!hits.length) return '';
+  return `<div class="small" style="margin-top:8px"><b>Part of paths:</b> a guided sequence that walks through this topic.</div>
+    <div class="chips" style="margin-top:5px">${hits.map(h => `<span class="chip prac" onclick="location.hash='#/paths/${h.path.id}/${h.stage.id}'">${esc(h.path.t)} · ${esc(h.stage.t)}</span>`).join('')}</div>`;
+}
+
+/* =====================================================================
    SEARCH
    ===================================================================== */
 let _INDEX = null;
@@ -1248,6 +1486,7 @@ REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.yea
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));
+PATHS.forEach(p => INDEX.push({ type:'path', t:p.t, snip:p.tag, href:'#/paths/'+p.id, text:(p.t+' '+p.tag+' '+p.audience+' '+p.outcome+' '+p.stages.map(s=>s.t).join(' ')+' '+p.stages.flatMap(s=>s.steps).map(s=>s.do||'').join(' ')).toLowerCase() }));
 CHECKLISTS.forEach(c => INDEX.push({ type:'checklist', t:c.t, snip:c.desc, href:'#/checklists/'+c.id, text:(c.t+' '+c.desc+' '+c.groups.flatMap(g=>g[1]).join(' ')).toLowerCase() }));
 LOOP_STEPS.forEach(s => INDEX.push({ type:'loop step', t:`${s.n}. ${s.t}`, snip:s.goal, href:'#/ai/loop/'+s.n, text:(s.t+' '+s.goal+' '+s.human+' '+s.ai+' '+s.fail).toLowerCase() }));
 FUN_DIMS.forEach(d => INDEX.push({ type:'fun', t:d[0], snip:d[1], href:'#/diagnose/fun/'+d[0], text:(d[0]+' '+d[1]+' '+d[2]).toLowerCase() }));

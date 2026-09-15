@@ -31,7 +31,9 @@ const DATA = [
   '35-data-experience-systems-c.js',
   '40-data-interview-a.js',
   '41-data-interview-b.js',
-  '42-data-interview-c.js'
+  '42-data-interview-c.js',
+  '50-data-paths-a.js',
+  '51-data-paths-b.js'
 ];
 // FLOW draws the workflow charts, GRAPH the mind maps. Both are pure renderers
 // with no dependency on each other, but FLOW loads first so the order matches

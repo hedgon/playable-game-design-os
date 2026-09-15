@@ -847,6 +847,32 @@ details.comp .body{padding-top:6px}
 .symptom{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:2px;padding:6px 10px;font-size:.82rem;color:var(--fg2)}
 .symptom:hover{border-color:var(--bad);color:var(--fg)}
 .symptom.more{border-left-color:var(--accent);color:var(--accent);text-decoration:none}
+/* ---------- learning paths ---------- */
+.pathbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:var(--r2);padding:8px 12px;margin:0 0 14px}
+.pathbar-info{flex:1 1 auto;min-width:0;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pathbar-info b{font-family:var(--display);font-stretch:92%}
+.pathbar-actions{display:flex;gap:6px;flex-wrap:nowrap;flex:none}
+.pathstages{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.pathstage{border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);overflow:hidden}
+.pathstage.done{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.pathstage.skipped{border-color:color-mix(in srgb,var(--warn) 45%,var(--line))}
+.pathstage > header{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none}
+.pathstage > header:hover{background:var(--bg3)}
+.pathstage > header .letter{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:.85rem;background:color-mix(in srgb,var(--accent2) 22%,transparent);color:var(--fg);flex:none}
+.pathstage > header h3{margin:0;font-size:1rem}
+.pathstage > header .car{color:var(--fg3);transition:transform .15s;margin-left:2px}
+.pathstage.open > header .car{transform:rotate(90deg)}
+.pathstage > .body{display:none;padding:4px 16px 16px}
+.pathstage.open > .body{display:block}
+.pathsteps{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.pathstep{display:flex;gap:10px;align-items:flex-start;padding:10px 8px;border-radius:var(--r3);min-height:40px}
+.pathstep:hover{background:var(--bg3)}
+.pathstep input{width:20px;height:20px;flex:none;margin-top:3px;accent-color:var(--accent)}
+.pathstep.done .pathstep-body>a{color:var(--fg3);text-decoration:line-through}
+.pathstep-body{flex:1;min-width:0}
+.pathstep-body>a{font-weight:700}
+.kindchip{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:.66rem;flex:none;margin-top:3px}
+.pathcheck,.pathskip{border:1px dashed var(--line2);background:var(--bg2);border-radius:var(--r2)}
 @media (max-width:1100px){
   .shell{display:block}
   .splitter{display:none}
@@ -859,6 +885,10 @@ details.comp .body{padding-top:6px}
   /* every pixel the wrapper does not take is a pixel the chart renders at,
      and in the drawer the chart is already the widest thing on the page. */
   .flowwrap{padding:10px 2px}
+  .pathbar{flex-direction:column;align-items:stretch;flex-wrap:wrap}
+  .pathbar-info{white-space:normal}
+  .pathbar-actions{justify-content:flex-end}
+  .pathstep input{width:22px;height:22px}
 }
 @media (max-width:700px){ .mapbar .mapcrumbs{display:none} }
 </style>
@@ -889,7 +919,7 @@ details.comp .body{padding-top:6px}
     <table>
       <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> or <kbd>/</kbd></td><td>Search everything</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close dialogs</td></tr>
-      <tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>Switch main view (Idea Lab, Map, Explore, Diagnose, Build, AI, Playtest, Prompts, Checklists)</td></tr>
+      <tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>Switch main view (Paths, Idea Lab, Map, Explore, Diagnose, Build, AI, Playtest, Prompts)</td></tr>
       <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Previous / next topic while reading</td></tr>
       <tr><td><kbd>E</kbd></td><td>Expand or collapse all sections of a topic</td></tr>
       <tr><td><kbd>M</kbd></td><td>Fit the mind map</td></tr>

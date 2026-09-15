@@ -1,12 +1,18 @@
 // Data integrity check: run with `node src/validate.js`
 const fs = require('fs'), path = require('path');
-const { DATA } = require('./manifest.js');
+const { DATA, APP } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,CASE_STUDIES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,CASE_STUDIES,PATHS,TRACKS,LEVELS};';
 const ctx = {};
 new Function(src + RETURNS).call(ctx) && Object.assign(ctx, new Function(src + RETURNS)());
-const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES } = ctx;
+const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS } = ctx;
+// TOOLS lives in the app file, not a data file (see inventory.js for the same
+// extraction), because it is UI copy with no cross-link of its own until a
+// path references one by id.
+const appSrc = fs.readFileSync(path.join(__dirname, APP[0]), 'utf8');
+const toolsMatch = appSrc.match(/(?:const TOOLS|window\.TOOLS) = (\[[\s\S]*?\n\]);/);
+const TOOLS = toolsMatch ? new Function('return ' + toolsMatch[1])() : [];
 // Content for the engine and interview tabs lands file by file. Until it is
 // all in, `PLAYABLE_STRICT=0` (or --lenient) downgrades "missing eng/iv" from
 // an error to a warning count. Shape errors in the data that IS there always
@@ -199,6 +205,94 @@ for (const c of (CASE_STUDIES || [])) {
     if (total < 10 || total > 12) errors.push(`${where}: iv has ${total} questions, expected 10 to 12`);
   }
 }
+// ---- learning paths ----
+const TOOL_IDS = new Set(TOOLS.map(([id]) => id));
+const CHECKLIST_IDS = new Set((ctx.CHECKLISTS || []).map(c => c.id));
+const DIAGNOSTIC_IDS = new Set(['loop', 'fun', 'unfair', 'depth', 'content']);
+const PROMPT_IDS = new Set((ctx.PROMPT_TEMPLATES || []).map(p => p.id));
+const LEVEL_IDS = new Set((LEVELS || []).map(l => l[0]));
+const TRACK_IDS = new Set((TRACKS || []).map(t => t[0]));
+const TOPIC_TAB_KEYS = new Set(['overview', 'godot', 'unity', 'interview']);
+const partKey = (cs, sys, part) => `${cs}/${sys}/${part}`;
+const validPartKeys = new Set();
+const validFlowKeys = new Set();
+for (const c of (CASE_STUDIES || [])) {
+  for (const s of (c.systems || [])) for (const p of (s.parts || [])) validPartKeys.add(partKey(c.id, s.id, p.id));
+  for (const f of (c.flows || [])) validFlowKeys.add(`${c.id}/${f.id}`);
+}
+const pathIds = new Set((PATHS || []).map(p => p.id));
+let pathStepCount = 0;
+for (const pth of (PATHS || [])) {
+  const where = `path ${pth.id || '(no id)'}`;
+  for (const k of ['t', 'tag', 'track', 'level', 'audience', 'outcome']) if (!pth[k] || !String(pth[k]).trim()) errors.push(`${where}: ${k} empty`);
+  if (pth.track && !TRACK_IDS.has(pth.track)) errors.push(`${where}: unknown track ${pth.track}`);
+  if (pth.level && !LEVEL_IDS.has(pth.level)) errors.push(`${where}: unknown level ${pth.level}`);
+  if (typeof pth.hours !== 'number' || pth.hours <= 0) errors.push(`${where}: hours must be a positive number`);
+  for (const k of ['prereq', 'next']) {
+    if (!Array.isArray(pth[k])) { errors.push(`${where}: ${k} must be an array (may be empty)`); continue; }
+    for (const id of pth[k]) if (!pathIds.has(id)) errors.push(`${where}: ${k} -> unknown path ${id}`);
+  }
+  if (!Array.isArray(pth.stages) || pth.stages.length < 4 || pth.stages.length > 6) { errors.push(`${where}: has ${Array.isArray(pth.stages) ? pth.stages.length : 'no'} stages, expected 4 to 6`); continue; }
+  const stageIds = new Set();
+  let hoursSum = 0, prevLevelIdx = -1, levelDrop = false;
+  pth.stages.forEach((st, si) => {
+    const sw = `${where} stage ${st.id || '(no id)'}`;
+    for (const k of ['id', 't', 'goal', 'level']) if (!st[k] || !String(st[k]).trim()) errors.push(`${sw}: ${k} empty`);
+    if (st.id) { if (stageIds.has(st.id)) errors.push(`${sw}: duplicate stage id`); else stageIds.add(st.id); }
+    if (st.level && !LEVEL_IDS.has(st.level)) errors.push(`${sw}: unknown level ${st.level}`);
+    if (typeof st.hours !== 'number' || st.hours <= 0) errors.push(`${sw}: hours must be a positive number`);
+    if (st.level) { const idx = [...LEVEL_IDS].indexOf(st.level); const order = (LEVELS || []).map(l => l[0]); const oi = order.indexOf(st.level); if (oi < prevLevelIdx) levelDrop = true; prevLevelIdx = Math.max(prevLevelIdx, oi); }
+    if (!Array.isArray(st.steps) || st.steps.length < 3 || st.steps.length > 8) { errors.push(`${sw}: has ${Array.isArray(st.steps) ? st.steps.length : 'no'} steps, expected 3 to 8`); return; }
+    let minSum = 0, hasToolOrChecklist = false, runDomain = null, runLen = 0;
+    st.steps.forEach((step, i) => {
+      pathStepCount++;
+      const stw = `${sw} step ${i} (${step.kind || 'no kind'})`;
+      if (!step.why || !String(step.why).trim()) errors.push(`${stw}: why empty`);
+      if (!step.do || !String(step.do).trim()) errors.push(`${stw}: do empty`);
+      if (typeof step.min !== 'number' || step.min < 10 || step.min > 60) errors.push(`${stw}: min must be 10-60`);
+      else minSum += step.min;
+      if (step.kind === 'tool' || step.kind === 'checklist') hasToolOrChecklist = true;
+      switch (step.kind) {
+        case 'topic': {
+          const t = TOPICS[step.ref];
+          if (!t) errors.push(`${stw}: ref -> unknown topic ${step.ref}`);
+          if (step.tab !== undefined && !TOPIC_TAB_KEYS.has(step.tab)) errors.push(`${stw}: tab "${step.tab}" is not overview/godot/unity/interview`);
+          if (t && (step.tab === 'godot' || step.tab === 'unity') && !t.eng?.[step.tab]) errors.push(`${stw}: tab "${step.tab}" but topic ${step.ref} has no eng.${step.tab}`);
+          if (t && step.tab === 'interview' && !t.iv) errors.push(`${stw}: tab "interview" but topic ${step.ref} has no iv`);
+          if (t) { if (t.d === runDomain) runLen++; else { runDomain = t.d; runLen = 1; } if (runLen > 4) errors.push(`${sw}: more than 4 consecutive topic steps from domain ${runDomain}`); }
+          break;
+        }
+        case 'tool': if (!TOOL_IDS.has(step.ref)) errors.push(`${stw}: ref -> unknown tool ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'checklist': if (!CHECKLIST_IDS.has(step.ref)) errors.push(`${stw}: ref -> unknown checklist ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'smell': if (!SMELLS.some(s => s.id === step.ref)) errors.push(`${stw}: ref -> unknown smell ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'diagnostic': if (!DIAGNOSTIC_IDS.has(step.ref)) errors.push(`${stw}: ref -> unknown diagnostic ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'prompt': if (!PROMPT_IDS.has(step.ref)) errors.push(`${stw}: ref -> unknown prompt ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'part': if (!validPartKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown part ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'flow': if (!validFlowKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown flow ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'reflect': if (step.ref !== undefined) errors.push(`${stw}: reflect steps take no ref`); runDomain = null; runLen = 0; break;
+        default: errors.push(`${stw}: unknown kind ${step.kind}`);
+      }
+    });
+    if (!hasToolOrChecklist) errors.push(`${sw}: needs at least one tool or checklist step`);
+    const target = st.hours * 60;
+    if (target > 0 && Math.abs(minSum - target) / target > 0.1) errors.push(`${sw}: step minutes sum to ${minSum}, expected close to ${target} (hours*60, within 10%)`);
+    if (Array.isArray(st.review)) { if (st.review.length > 2) errors.push(`${sw}: review names ${st.review.length} topics, expected 0 to 2`); for (const rid of st.review) if (!TOPICS[rid]) errors.push(`${sw}: review -> unknown topic ${rid}`); } else errors.push(`${sw}: review must be an array (may be empty)`);
+    if (!st.check) errors.push(`${sw}: missing check`);
+    else {
+      const { recall, build, skip } = st.check;
+      if (!Array.isArray(recall) || recall.length < 2 || recall.length > 4) errors.push(`${sw}: check.recall has ${Array.isArray(recall) ? recall.length : 'no'} questions, expected 2 to 4`);
+      else recall.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.recall[${i}] empty`); });
+      if (!build || !String(build).trim()) errors.push(`${sw}: check.build empty`);
+      if (!Array.isArray(skip) || skip.length < 3 || skip.length > 5) errors.push(`${sw}: check.skip has ${Array.isArray(skip) ? skip.length : 'no'} questions, expected 3 to 5`);
+      else skip.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.skip[${i}] empty`); });
+    }
+    hoursSum += (typeof st.hours === 'number' ? st.hours : 0);
+  });
+  if (levelDrop) errors.push(`${where}: stage levels must be non-decreasing`);
+  if (typeof pth.hours === 'number' && hoursSum > 0 && Math.abs(hoursSum - pth.hours) / pth.hours > 0.1) errors.push(`${where}: stage hours sum to ${hoursSum}, path declares ${pth.hours} (expected within 10%)`);
+}
+console.log(`paths: ${(PATHS || []).length}, stages: ${(PATHS || []).reduce((n, p) => n + (Array.isArray(p.stages) ? p.stages.length : 0), 0)}, steps: ${pathStepCount}`);
+
 for (const d of DOMAINS) for (const [to] of d.links) if (!domIds.has(to)) errors.push(`domain ${d.id}: link -> unknown ${to}`);
 for (const s of SMELLS) { for (const c of s.causes) if (!TOPICS[c.top]) errors.push(`smell ${s.id}: cause -> unknown topic ${c.top}`); for (const d of s.dom) if (!domIds.has(d)) errors.push(`smell ${s.id}: unknown domain ${d}`); if (s.fun && !s.dims?.length) errors.push(`smell ${s.id}: fun without dims`); }
 for (const p of LOOP_PARTS) for (const t of p.top) if (!TOPICS[t]) errors.push(`loop part ${p.id}: unknown topic ${t}`);

@@ -5,6 +5,7 @@
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
    ===================================================================== */
 const START_PATHS = [
+  ['#/paths','I want to learn step by step','Pick a path and follow one visible next step at a time, with a soft checkpoint per stage.',''],
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
   ['#/build/dissect','I have an idea and want to know if it is good','Cross-reference it against games that already won the audience you want.','var(--accent2)'],
   ['#/build/ladder','I have a feature idea','Climb from the feature to the behavior, then decide whether to build it.','var(--d-core)'],
@@ -25,16 +26,20 @@ function openStart(){ closeModals(); const el = $('#startPaths'); if(el) el.inne
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
 function saveMap(){ store.set('mapState', mapState); }
 
-/* ---- two maps, one stage ----
+/* ---- three maps, one stage ----
    'domains' draws the guide. 'project' draws one case study as systems and
-   parts. The two states never touch: leaving a project restores the domain
-   map exactly as it was, and coming back to a project restores that project.
-   Each project keeps its own open system, selected part, node offsets and
-   camera under projMap.<cs>. */
+   parts. 'path' draws one learning path as stages and steps. The three
+   states never touch: leaving one restores whichever the reader had before
+   exactly as it was. Each project keeps its own open system, selected part,
+   node offsets and camera under projMap.<cs>; each path keeps the same
+   under pathMap.<id>. */
 let mapMode = 'domains';
 let projState = null;
+let pathMapState = null;
 function saveProj(){ if(projState) store.set('projMap.' + projState.cs, projState); }
 function projCase(){ return projState ? CASE_STUDIES.find(x => x.id === projState.cs) : null; }
+function savePathMap(){ if(pathMapState) store.set('pathMap.' + pathMapState.id, pathMapState); }
+function curPath(){ return pathMapState ? PATHS.find(x => x.id === pathMapState.id) : null; }
 // Called by the router before the pane renders: the route is the truth about
 // which branch is open and which child is selected, the store only supplies
 // the camera and the dragged-node offsets. `sysId` is a system id or the
@@ -46,19 +51,36 @@ function enterProject(c, sysId, partId){
   mapMode = 'project';
   saveProj();
 }
-function curState(){ return mapMode === 'project' && projState ? projState : mapState; }
-function saveCur(){ if(mapMode === 'project') saveProj(); else saveMap(); }
+// Same shape, for the path map: `stageId` is a stage id or null, matching
+// `sysId` above. Called by renderPaths before the pane renders.
+function enterPathMap(pth, stageId){
+  if(!pathMapState || pathMapState.id !== pth.id) pathMapState = Object.assign({ stage:null, off:{}, vb:null }, store.get('pathMap.' + pth.id, {}), { id:pth.id });
+  pathMapState.stage = stageId || null;
+  mapMode = 'path';
+  savePathMap();
+}
+function curState(){ return mapMode === 'project' && projState ? projState : mapMode === 'path' && pathMapState ? pathMapState : mapState; }
+function saveCur(){ if(mapMode === 'project') saveProj(); else if(mapMode === 'path') savePathMap(); else saveMap(); }
 // The domain map's fourth layer gains the project parts that demonstrate the
 // selected topic. They are runtime links, not data, so they ride along on a
 // copy of mapState instead of being stored in it.
 function buildGraph(){
   const c = projCase();
   if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, projState, TOPICS, DOMAINS);
+  const pth = curPath();
+  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, pathMapState, pathProgress(pth.id));
   const pr = practice();
   return PlayableGraph.build(Object.assign({}, mapState, { extra: (mapState.topic && pr.extra[mapState.topic]) || [] }), seen, VIEW_LINKS);
 }
 
 function mapCrumbs(){
+  if(mapMode === 'path'){
+    const pth = curPath(); if(!pth) return `<div class="mapcrumbs"></div>`;
+    const parts = [`<button onclick="location.hash='#/paths'">Paths</button>`, `<span>›</span><button onclick="location.hash='#/paths/${pth.id}'">${esc(pth.t)}</button>`];
+    const st = pth.stages.find(x => x.id === pathMapState.stage);
+    if(st) parts.push(`<span>›</span><b>${esc(st.t)}</b>`);
+    return `<div class="mapcrumbs">${parts.join('')}</div>`;
+  }
   if(mapMode === 'project'){
     const c = projCase(); if(!c) return `<div class="mapcrumbs"></div>`;
     const parts = [`<button onclick="location.hash='#/experience'">Projects</button>`, `<span>›</span><button onclick="location.hash='#/experience/${c.id}'">${esc(c.t)}</button>`];
@@ -141,8 +163,17 @@ function projTipHTML(n){
   if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${why?`<div class="why"><b>What it demonstrates:</b> ${esc(why)}</div>`:''}<div class="muted">click to read the topic on the guide map</div>`; }
   return '';
 }
+function pathTipHTML(n){
+  const kind = n.dataset.kind, id = n.dataset.id;
+  const pth = curPath(); if(!pth) return '';
+  if(kind==='center') return `<b style="color:var(--accent2)">${esc(pth.t)}</b><div>${esc(pth.tag)}</div><div class="muted">${pathMapState.stage ? 'click to collapse back to the path' : 'click to open the path page'}</div>`;
+  if(kind==='domain'){ const st = pth.stages.find(x => x.id===id); if(!st) return ''; return `<b style="color:var(--accent2)">${esc(st.t)}</b><div>${esc(st.goal)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${(st.steps||[]).length} steps`}</div>`; }
+  if(kind==='topic'){ const [stageId, i] = id.split('/'); const st = pth.stages.find(x => x.id===stageId); const step = st && st.steps[+i]; if(!step) return ''; return `<b>${esc(stepTitle(step))}</b><div>${esc(step.why)}</div><div class="muted">click to open</div>`; }
+  return '';
+}
 function mapTipHTML(n){
   if(n.dataset.scope === 'project') return projTipHTML(n);
+  if(n.dataset.scope === 'path') return pathTipHTML(n);
   const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
   if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom || mapState.topic || mapState.smell ? 'click to reset the branch' : 'click for the starting paths'}</div>`;
   if(kind==='domain'){ const d = DOM[id]; return `<b style="color:${d.color}">${esc(d.t)}</b><div>${esc(d.short)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':'click to expand and read'}</div>`; }
@@ -175,8 +206,20 @@ function projClick(n){
   if(kind==='topic') return go(`#/experience/${c.id}/${projState.sys}/${id}`);
   if(kind==='leaf') return go('#/map/t/' + id);
 }
+function pathMapClick(n){
+  const kind = n.dataset.kind, id = n.dataset.id, pth = curPath();
+  if(!pth) return;
+  if(kind==='center') return go(`#/paths/${pth.id}`);
+  if(kind==='domain') return go(n.classList.contains('open') ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${id}`);
+  if(kind==='topic'){
+    const i = id.lastIndexOf('/'), stageId = id.slice(0, i), idx = id.slice(i + 1);
+    const st = pth.stages.find(x => x.id===stageId), step = st && st.steps[+idx];
+    if(step) go(stepHref(step, pth.id, stageId));
+  }
+}
 function mapClick(n){
   if(n.dataset.scope === 'project') return projClick(n);
+  if(n.dataset.scope === 'path') return pathMapClick(n);
   const kind = n.dataset.kind, id = n.dataset.id;
   if(kind==='center'){ if(mapState.dom || mapState.topic || mapState.smell) return go('#/map/home'); return openStart(); }
   if(kind==='domain') return go(n.classList.contains('open') ? '#/map/home' : '#/map/d/'+id);
@@ -203,6 +246,13 @@ function resetMapDefault(){
     saveProj();
     if(MAP) MAP.vb = null;
     return go('#/experience/' + (c ? c.id : projState.cs));
+  }
+  if(mapMode === 'path' && pathMapState){
+    const pth = curPath();
+    pathMapState.stage = null; pathMapState.off = {}; pathMapState.vb = null;
+    savePathMap();
+    if(MAP) MAP.vb = null;
+    return go('#/paths/' + (pth ? pth.id : pathMapState.id));
   }
   mapState.dom = null; mapState.topic = null; mapState.smell = null;
   mapState.off = {}; mapState.vb = null;
@@ -270,7 +320,7 @@ function initMapStage(){
 }
 function treeFocus(g){
   if(!g.nodes) return null;
-  const openId = mapMode === 'project' ? (projState && projState.sys) : mapState.dom;
+  const openId = mapMode === 'project' ? (projState && projState.sys) : mapMode === 'path' ? (pathMapState && pathMapState.stage) : mapState.dom;
   const dom = openId ? g.nodes.find(n => n.kind==='domain' && n.id===openId) : null;
   if(!dom) return null;
   const xs = [], ys = [];
@@ -292,7 +342,7 @@ function renderTree(kind){
   MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
   const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
-  const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : 'domains';
+  const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
   if(mapStage !== stageKey){
     mapStage = stageKey; mapStopAnim();
     MAP.vb = st.vb && st.vb.w ? Object.assign({}, st.vb) : null;

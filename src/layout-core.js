@@ -58,7 +58,7 @@ function flowOverlaps(F, CASE_STUDIES, problems) {
   }
   return states;
 }
-function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F) {
+function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F, PATHS) {
   DOMAINS.forEach(d => d.topics = Object.values(TOPICS).filter(t => t.d === d.id).map(t => t.id));
   const seen = new Set();
   const pl = G.practiceLinks ? G.practiceLinks(CASE_STUDIES || []) : { views: {}, extra: {} };
@@ -94,6 +94,16 @@ function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F) {
     }
   }
   if (F) states += flowOverlaps(F, CASE_STUDIES, problems);
+  // path states: the door has no map of its own, but a path's overview (no
+  // stage open) and every stage opened are states the map has to survive,
+  // same as a project's overview and each system opened above. An empty
+  // progress record is enough: node width does not depend on which steps a
+  // reader has ticked, only on the label text, which is fixed by the data.
+  for (const pth of (PATHS || [])) {
+    if (!pth.stages || !pth.stages.length) continue;
+    scan(G.buildPath(pth, { stage: null }, { steps: {}, stages: {} }).inner, `path:${pth.id}`);
+    for (const st of pth.stages) scan(G.buildPath(pth, { stage: st.id }, { steps: {}, stages: {} }).inner, `path:${pth.id}/${st.id}`);
+  }
   return { states, problems };
 }
 module.exports = { boxes, sat, overlaps, flowOverlaps };
