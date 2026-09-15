@@ -179,6 +179,89 @@ deep dive, with the same private story textarea pattern, keyed `story.<project-i
 instead of `story.<topic-id>` so a project's draft answer never collides with a
 topic's.
 
+## Learning paths
+
+The guide's map is complete but undirected: a reader who does not already know
+what they need has 133 topics, 33 smells, eleven tools and three projects with no
+order to move through them in. A bigger map does not fix that; more nodes is more
+of the same problem. What a beginner-to-expert reader needs instead is a
+**sequence** through content that already exists, with a reason for each stop, a
+concrete exercise, and a way to tell whether they are ready for the next one. That
+is what a path is, and why it is additive rather than a rewrite: `PATH()` in
+`src/50-data-paths-a.js` and `51-data-paths-b.js` never authors new content, it
+only orders `ref`s into existing topics, tools, checklists, smells, diagnostics,
+project parts, flows and prompts, so the 133-topic map, the Experience projects
+and the tool suite stay the single source of truth.
+
+Twelve paths across four tracks (design, engineering, leadership, interview prep)
+were shaped against the research behind the plan rather than against a generic
+"course" template:
+
+- **Soft mastery gates.** A stage ends in a checkpoint, not a test: two to four
+  recall questions and one build task, both ungraded. Nothing blocks a reader from
+  opening the next stage regardless of the checkpoint; the checkpoint is a prompt
+  to self-assess, not a lock.
+- **Cognitive load.** No stage runs more than four consecutive `topic` steps from
+  one domain (the validator enforces this as an interleave rule), so a stage mixes
+  reading with a tool, a checklist, or a project part rather than piling up
+  passive reading.
+- **Worked examples fading to open problems.** Early stages point at a project
+  part ("see how a shipped team did this") before asking the reader to do the
+  equivalent themselves; later stages in the same path drop the worked example and
+  ask for the artefact directly.
+- **Retrieval and spacing.** Every stage after the first names 0 to 2 topics from
+  an *earlier* stage under `review`, surfaced as chips on the stage footer, so a
+  concept comes back once before the path assumes it is retained.
+- **Dreyfus levels.** A path's `level` is its entry level, and every stage carries
+  its own `level`, non-decreasing across the path (the validator checks this): a
+  path can start a reader at intermediate and end at advanced, but never regress
+  them to beginner content after they have passed advanced material.
+- **Competence-based progress, no streaks.** Progress is "N of M steps done" and
+  "N of M stages done", nothing else. No day-count, no badge, no guilt copy for a
+  missed day. `path.<id>` in `localStorage` only ever records what is done,
+  skipped, or not yet reached.
+- **A first-visit door.** A reader with nothing in `localStorage` yet (checked via
+  a single `visited` flag) lands on `#/paths` instead of `#/map`; every later
+  visit, including an empty hash, behaves exactly as before paths existed.
+- **One visible next step.** The path bar rendered on every route while a path is
+  active names the current stage and the next step by title, with a single button
+  to jump to it, so the reader is never asked to hold a plan in their head.
+
+`I already know this` is the escape hatch competence-based progress requires: a
+stage's footer also carries three to five self-diagnostic questions behind a
+`<details>`, and answering yes to all of them marks the stage `skipped` rather
+than `done`, tracked identically for progress purposes but visible as a distinct
+tick style so a reader can tell later which stages they actually did.
+
+| Path | Track | Entry level | Stages | Steps | Hours |
+| --- | --- | --- | --- | --- | --- |
+| Game designer foundations | Design | Beginner | 4 | 22 | 8 |
+| Idea to prototype in 30 days | Design | Beginner | 4 | 18 | 10 |
+| Systems designer | Design | Intermediate | 5 | 26 | 10 |
+| Level and UX designer | Design | Intermediate | 5 | 24 | 10 |
+| Interview prep: designer | Interview prep | Intermediate | 5 | 24 | 10 |
+| Technical lead | Leadership | Advanced | 5 | 27 | 10 |
+| Gameplay engineer, Godot | Engineering | Beginner | 5 | 27 | 12 |
+| Gameplay engineer, Unity | Engineering | Beginner | 5 | 29 | 13 |
+| Build and release engineer | Engineering | Intermediate | 5 | 26 | 12 |
+| Live-game backend engineer | Engineering | Intermediate | 5 | 32 | 14 |
+| Netcode / game-server engineer | Engineering | Advanced | 5 | 28 | 14 |
+| Interview prep, engineering | Interview prep | Intermediate | 4 | 20 | 8 |
+
+**Verification (this QA pass, 2026-09-15).** `node src/build.js` strict: 12
+paths, 57 stages, 303 steps, 351 layout states checked, 0 overlaps. The validator
+rule that a `topic` step's `tab` must resolve against that topic's `eng`/`iv`
+(added for this pass) found zero violations across all 303 steps. A page script
+walked every one of the 303 steps, computed its `stepHref`, navigated to it, and
+asserted the rendered asset (title, active tab, or active Diagnose tab) matched
+what the step names: 0 failures across topic (143), tool (37), checklist (30),
+smell (14), diagnostic (4), part (40), flow (8), prompt (2) and reflect (25)
+steps. Progress persistence (tick, "mark done and continue", "mark stage done",
+skip, leave path), the first-visit door, path map mode, search, the keyboard
+view order, and mobile layout (no horizontal overflow, a 2-line path bar, a
+tap-toggled checkbox) were all exercised directly in a browser; see the session's
+QA log for the full pass/fail list.
+
 ## Interactive tools and how they were verified
 
 All eleven tools, the six diagnostics, the matrix filter, the role cards, the loop

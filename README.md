@@ -9,6 +9,20 @@ access, no external libraries. Reference-game art lives in a small local
 you type into the tools and every checkbox you tick is saved in your browser's
 localStorage and never leaves your machine. Works on desktop, tablet and phone.
 
+The first door is **Learning paths** (`#/paths`). Twelve paths across four tracks
+(design, engineering, leadership, interview prep) walk a reader from beginner to
+expert through the guide's existing topics, tools, checklists, smells,
+diagnostics, project parts, workflow charts and prompts, in order, with a reason
+for each stop and a concrete exercise. A path never duplicates content; it
+sequences it. Every stage ends in a soft checkpoint (a few recall questions and
+one build task) instead of a hard gate, and "I already know this" lets a reader
+skip a stage on their own judgement. A slim path bar on every route names the
+current stage and the one visible next step, with a button to jump straight to
+it. Progress (which steps are ticked, which stages are done or skipped) lives in
+`localStorage`, one path at a time; there are no streaks and no badges. A
+first-time visitor with nothing in `localStorage` yet lands on the door instead
+of the map; everyone else lands where they left off.
+
 Navigation is three persistent panes: the **index** on the left (domains and topics,
 named, counted, collapsible), the **mind map** in the centre (a horizontal tidy tree
 that expands in place and is always visible), and the **content** panel on the right
@@ -47,6 +61,7 @@ that leads straight back to the part.
 
 | View | What it is for |
 | --- | --- |
+| **Paths** | The door. Twelve guided sequences across four tracks (design, engineering, leadership, interview prep), each 4 to 6 stages of existing topics, tools, checklists, smells, diagnostics, project parts, flows and prompts, with a soft checkpoint per stage, a skip-ahead self-check, and a path bar showing the one visible next step. Progress is steps done and stages done, kept in `localStorage`; no streaks. |
 | **Idea Lab** | The ideation surface, and the first door. An idea is treated as a chain of reasoning, not a filled-in form. Five entry modes (I noticed something / I want players to feel something / I like a game but / I have a constraint / I do not know what to make) feed small artifacts: Signal, Tension, Opportunity, Design question, Design space, Mechanisms, Critique, Experiment. Each artifact carries an evidence level (observed / reported / inferred / hypothesized / simulated / validated), an example, and a stage-specific AI prompt. The chain compresses into an **Idea Card** (player, promise, mechanism, core verb, fantasy, constraints, hypothesis) that opens in the Idea Shaper. Works without AI. |
 | **Map** | The always-visible mind map, drawn as a horizontal tidy tree: the goal in the middle, with the nineteen domains split into two balanced groups, one to its left and one to its right, and a domain's topics on the next layer while it is open. A selected topic grows another layer of smaller nodes: the concepts it relates to, the design smells it helps diagnose and the tools it points to. Nodes are labelled cards joined by smooth curves, so names never depend on hover. Faint dashed cross-branch links connect domains to each other, an open topic to a related concept's domain, and a leaf back to its home domain; hovering a node highlights its links. Click a domain to expand or collapse it in place, click a topic to read it in the right panel, click a leaf to travel. Drag a node to nudge its whole branch wherever you like (it persists in this browser); **drag** puts the nodes back in the tidy layout and **default** returns the map to the overview (branches collapsed, camera fit). Drag empty space to pan, wheel or pinch to zoom, **fit** to reset the camera. Every gesture works with mouse and touch. The tree stacks and pans as content grows instead of shrinking. Routes: `#/map/d/<domain>`, `#/map/t/<topic>`, `#/map/s/<smell>`, `#/map/home`. |
 | **Explore** | A list view of the same 133 topics for people who prefer lists. Every link opens the topic on the map. Every topic has the same eight parts: What is it, Why it matters, How a human should think about it, How to actually do it, What AI should and should not do, How to prompt AI, How to verify AI output, What to playtest, behind an **Overview** tab. Most topics add a **Godot** and a **Unity** tab (the engine-native term, the APIs to reach for, a short snippet, a pitfall, a same-idea-different-name mapping) and every topic adds an **Interview** tab (junior/mid/senior questions with model answers and red flags, plus a private story note). Topics with a real implementation decision also carry a **Techniques to compare** section (how each technique works, when it fits, what it costs, what to watch out for). Related concepts always say *why* they connect. |
@@ -100,7 +115,8 @@ the Core Experience Canvas and the Hypothesis Builder.
 
 ## Keyboard
 
-`Ctrl/⌘ K` or `/` search · `1`–`9` switch views · `[` `]` previous / next topic ·
+`Ctrl/⌘ K` or `/` search · `1`–`9` switch views (Paths, Idea Lab, Map, Explore,
+Diagnose, Build, AI Workflow, Playtest, Prompts) · `[` `]` previous / next topic ·
 `E` expand or collapse all sections · `M` fit the mind map · `T` theme · `?` help · `Esc` close.
 
 ## Do I need the build script?
@@ -163,8 +179,10 @@ src/                   optional: sources and maintenance scripts (see above)
   40-data-interview-a.js Interview tabs for player, experience, core, systems, content, level
   41-data-interview-b.js Interview tabs for ux, narrative, presentation, product
   42-data-interview-c.js Interview tabs for production, ai, gameai, studio
+  50-data-paths-a.js   learning paths: PATH/PATHS/TRACKS/LEVELS, stepTitle/stepHref, design paths
+  51-data-paths-b.js   learning paths, continued: engineering-track paths
   88-flow.js           workflow chart renderer: layered layout for the Workflows tab and flow routes
-  89-graph.js          horizontal tidy-tree mind-map layout (the centre map)
+  89-graph.js          horizontal tidy-tree mind-map layout (the centre map, the project map, the path map)
   90-app.js            router, views, tools, search
   91-map.js            persistent mind map: tree render, pan/zoom/pinch, reading panels
   92-ideas.js          Reference Dissection tool
@@ -175,6 +193,7 @@ src/                   optional: sources and maintenance scripts (see above)
   layout-core.js       reusable map overlap checker (no dependencies)
   check-layout.js      runs layout-core over every map state; fails on any overlap
   validate.js          node script: every cross-link resolves, every topic complete
+  inventory.js         node script: every id a learning-path step can reference, printed by kind
   research-notes.md    verified sources behind the synthesis
   serve.js             optional local static server for previewing (not needed to use the guide)
 ```
@@ -261,6 +280,20 @@ total, at least two at every level. These are the "walk me through the
 architecture" questions a CV invites, one register up from a system's three
 likely questions, and the answer outlines have to stay consistent with the
 systems and parts already written for that project.
+
+Add a learning path with `PATH('path-id', {...})` in `src/50-data-paths-a.js` or
+`51-data-paths-b.js`. A path sequences existing topics, tools, checklists, smells,
+diagnostics, project parts, workflow charts and prompts; it never duplicates their
+content. Run `node src/inventory.js` first to see every id a step can reference,
+grouped by kind. The shape (`t, tag, track, level, hours, audience, outcome,
+prereq, next, stages[{id, t, level, goal, hours, steps[{kind, ref, tab, why, do, min}],
+review, check{recall, build, skip}}]`) and its rules (4-6 stages, 3-8 steps per
+stage, one tool or checklist step per stage, a checkpoint on every stage, levels
+non-decreasing) are documented in the header comment of `50-data-paths-a.js` and
+enforced by `node src/validate.js`. A `topic` step's optional `tab` must resolve
+on that topic: `godot` or `unity` requires the topic's `eng.godot` / `eng.unity`,
+and `interview` requires the topic's `iv`; the validator fails the build if a
+step names a tab the topic does not carry.
 
 `node src/validate.js` enforces all of the above: every topic outside `management`/
 `leadership` needs `eng`, every topic needs `iv`, and every field-level shape check

@@ -91,6 +91,14 @@ non-AI action.
 
 ## Key UX changes
 
+- Paths as the new front door: a first-time visitor now lands on `#/paths`, not
+  the map, because a graph is for relationships, a path is for learning. The map
+  stays the spine for everyone who already knows what they are looking for; a path
+  is a guided sequence through the same nodes for someone who does not yet, with a
+  soft checkpoint per stage and a path bar naming the one visible next step. The
+  two never fight over content: a path only orders `ref`s into topics, tools,
+  checklists, project parts and flows that already exist, so the map, the
+  Experience projects and the tool suite remain the one place that content lives.
 - Form to chain: the Idea Shaper was fifteen fields before any thinking. It is now the
   Idea Card, produced after the Idea Lab chain.
 - Persistent rail: navigation no longer replaces the map or requires a return click.
