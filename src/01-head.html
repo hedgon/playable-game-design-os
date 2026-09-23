@@ -57,6 +57,12 @@ a:hover{text-decoration:underline}
 /* a heading that receives focus after navigation is not a control */
 h1[tabindex="-1"]:focus{outline:none}
 .keys-toggle{display:flex;gap:8px;align-items:center;margin:10px 0 4px;font-size:.9rem}
+/* the views of the current section */
+.subnav{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 14px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subnav a{padding:5px 10px;border-radius:var(--r3);color:var(--fg2);font-weight:600;font-size:.85rem}
+.subnav a:hover{background:var(--bg3);color:var(--fg);text-decoration:none}
+.subnav a.active{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
+.nav-short{display:none}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -541,6 +547,8 @@ h4{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--fg
 .brand small{font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;font-size:.6rem}
 nav.primary button{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border-radius:0;padding:9px 10px}
 nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(--accent);color:var(--accent)}
+/* phones: short group names and tighter padding so all six fit on one row (after the rule above, which sets padding) */
+@media (max-width:700px){ .nav-long{display:none} .nav-short{display:inline} nav.primary button{padding:7px 6px} }
 .searchbtn,.iconbtn{border-radius:2px}
 .tabs button{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border-radius:0}
 .pill-tabs button{border-radius:2px;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
@@ -790,12 +798,32 @@ details.comp .body{padding-top:6px}
 .shell > .mapstage{grid-column:3}
 .shell > #splitR{grid-column:4}
 .shell > .pane{grid-column:5}
+/* Work views (tools, lists, diagnostics) have nothing to show on the map:
+   on a wide screen the content takes the centre and the index stays. */
+@media (min-width:1101px){
+  .shell.work{grid-template-columns:var(--railW,300px) 6px 0 0 minmax(0,1fr)}
+  .shell.work.hide-left{grid-template-columns:0 0 0 0 minmax(0,1fr)}
+  .shell.work > .mapstage,.shell.work > #splitR{display:none}
+  .shell.work > #pane{display:block}
+  .shell.work .view{max-width:1100px}
+}
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 /* map lens: two segments, the pressed one filled */
 .lens-switch{display:flex;border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;margin-bottom:8px}
 .lens-switch button{flex:1;background:var(--bg2);border:0;color:var(--fg2);font-weight:700;font-size:.8rem;padding:7px 6px;cursor:pointer}
 .lens-switch button + button{border-left:1px solid var(--line2)}
 .lens-switch button[aria-pressed="true"]{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
+/* Idea Lab: one step at a time unless "show all" is ticked */
+.labnavbar{align-items:flex-start;gap:10px;margin-bottom:8px}
+.labnav{display:flex;flex-wrap:wrap;gap:4px}
+.labnav button{background:var(--bg2);border:1px solid var(--line);border-radius:99px;color:var(--fg2);font-size:.75rem;font-weight:600;padding:3px 9px;cursor:pointer}
+.labnav button.filled{border-color:var(--accent2);color:var(--fg)}
+.labnav button[aria-current="step"]{background:var(--bg3);color:var(--fg);border-color:var(--accent)}
+.labview{display:flex;gap:6px;align-items:center;white-space:nowrap}
+.labsteps.one > .labstep:not(.current){display:none}
+.labsteps.all + .labstepper{display:none}
+.labstepper{margin-top:10px}
+.ivq .body > .btn{margin-top:8px}
 .railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
 .railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
 .railsearch{width:100%}
@@ -947,14 +975,14 @@ details.comp .body{padding-top:6px}
     <table>
       <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> or <kbd>/</kbd></td><td>Search everything</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close dialogs</td></tr>
-      <tr><td><kbd>1</kbd> … <kbd>9</kbd></td><td>Switch main view (Paths, Idea Lab, Map, Explore, Diagnose, Build, AI, Playtest, Prompts)</td></tr>
+      <tr><td><kbd>1</kbd> … <kbd>6</kbd></td><td>Open a section: Paths, Map, Make, Diagnose, AI Workflow, Projects</td></tr>
       <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Previous / next topic while reading</td></tr>
       <tr><td><kbd>E</kbd></td><td>Expand or collapse all sections of a topic</td></tr>
       <tr><td><kbd>M</kbd></td><td>Fit the mind map</td></tr>
       <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
       <tr><td><kbd>?</kbd></td><td>This help</td></tr>
     </table>
-    <label class="keys-toggle"><input type="checkbox" id="keysToggle"> Single-key shortcuts (1 to 9, [ ], E, M, T, / and ?)</label>
+    <label class="keys-toggle"><input type="checkbox" id="keysToggle"> Single-key shortcuts (1 to 6, [ ], E, M, T, / and ?)</label>
     <p class="muted small">Shortcuts are ignored while you are typing in a field. All your tool inputs, checklist states, stories and reading progress are saved in this browser (localStorage) and never leave your machine. A browser can clear that storage, so export a copy to keep it or to move it to another browser.</p>
     <div class="row"><button class="btn" id="helpClose">Close</button><button class="btn ghost" id="exportData">Export my data</button><button class="btn ghost" id="importData">Import…</button><button class="btn ghost danger" id="resetAll">Reset all saved data</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
   </div>
@@ -962,7 +990,7 @@ details.comp .body{padding-top:6px}
 <div class="modal-bg start-modal" id="startModal" role="dialog" aria-modal="true" aria-label="Starting paths">
   <div class="modal">
     <h2>Start from where you are</h2>
-    <p class="dim small">Four doors into the guide. Each one leads somewhere different, so pick the door that matches your problem, not your mood.</p>
+    <p class="dim small">Each door leads somewhere different, so pick the one that matches your problem, not your mood.</p>
     <div class="paths" id="startPaths"></div>
     <div class="row"><button class="btn" id="startClose">Close</button><a class="btn ghost" href="#/map/home">Back to the map</a></div>
   </div>

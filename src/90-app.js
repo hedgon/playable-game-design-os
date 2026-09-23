@@ -73,7 +73,20 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 
 /* ---------- router ---------- */
 // Keys 1-9 map to the first nine entries, so anything added here goes last.
-const VIEWS = [['paths','Paths'],['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
+// Six groups in the top bar; each opens its first view, and a group with
+// several views shows them as a row of sub-tabs on those views. Keys 1-6
+// open the groups in this order.
+const NAV = [
+  { id:'paths', t:'Paths', views:[['paths','Learning paths'],['review','Review']] },
+  { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index']] },
+  { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists']] },
+  { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
+  { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
+  { id:'experience', t:'Projects', views:[['experience','Projects']] }
+];
+const VIEW_GROUP = {};
+NAV.forEach(g => g.views.forEach(([v]) => { VIEW_GROUP[v] = g; }));
+VIEW_GROUP.smell = VIEW_GROUP.diagnose; VIEW_GROUP.topic = VIEW_GROUP.map;
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
 // Below this width the index and the content are drawers over the map.
 const narrowQuery = window.matchMedia('(max-width: 1100px)');   // the same width as the drawer CSS
@@ -87,6 +100,11 @@ function mapOnly(parts){
   if(!v || v === 'map') return !a || a === 'home' || a === 'd';
   if(v === 'experience' && a && b && !c) return !['workflows', 'interview', 'flow', 'overview'].includes(b);
   return false;
+}
+// Views with nothing on the map use the work layout (see .shell.work).
+function usesMap(parts){
+  const [v, a] = parts;
+  return !v || v === "map" || v === "topic" || ((v === "paths" || v === "experience") && !!a);
 }
 function showPaneFor(parts){
   if(!isNarrow()) return;
@@ -134,10 +152,12 @@ function route(){
   const h = raw || 'map';
   const parts = h.split('/').filter(Boolean);
   const view = parts[0];
-  $$('#primaryNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  const group = VIEW_GROUP[view || 'map'];
+  $$('#primaryNav button').forEach(b => { const on = !!group && b.dataset.group === group.id; b.classList.toggle('active', on); if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   closeModals();
   syncMapMode(view, parts[1]);
   render(view, parts);
+  $("#shell").classList.toggle("work", !usesMap(parts));
   showPaneFor(parts);
   const key = routeKey(parts), samePage = key === lastRouteKey;
   lastRouteKey = key;
@@ -161,12 +181,14 @@ function render(view, parts){
     case 'prompts': return renderPrompts(parts[1]);
     case 'checklists': return renderChecklists(parts[1]);
     case 'experience': return renderExperience(parts[1], parts[2], parts[3]);
+    case 'review': return renderReview();
     case 'sources': return renderSources();
     default: return renderMap();
   }
 }
 window.addEventListener('hashchange', route);
-$('#primaryNav').innerHTML = VIEWS.map(([id, t]) => `<button data-view="${id}" data-href="#/${id}">${t}</button>`).join('');
+// On a phone a long group name shows its short form; the accessible name stays whole.
+$('#primaryNav').innerHTML = NAV.map(g => `<button data-group="${g.id}" data-href="#/${g.views[0][0]}"${g.short ? ` aria-label="${g.t}"` : ''}>${g.short ? `<span class="nav-long">${g.t}</span><span class="nav-short">${g.short}</span>` : g.t}</button>`).join('');
 $('#brandBtn').onclick = () => go('#/map');
 $('#railToggle').onclick = () => { const r = $('#rail'); if(r){ r.classList.toggle('open'); syncScrim(); } };
 
@@ -224,7 +246,7 @@ function railHTML(activeDom, activeTopic){
       <div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === lens}">${esc(t)}</button>`).join('')}</div>
       <button class="railgraph" id="railFit" data-action="fit-map">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
-      <a class="railgraph" href="#/experience">❖ Experience</a>
+      <a class="railgraph" href="#/experience">❖ Projects</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
     <div class="raillist">${DOMAINS.filter(d => d.lens === lens).map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
@@ -316,7 +338,16 @@ function updateRail(){
   r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/map/t/' + b.dataset.topic); closeRailDrawer(r); }));
   railFilter(r, '.railtopic');
 }
-function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `${pathBarHTML()}<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
+function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
+// The views of the current group, as sub-tabs. The map group shows them on
+// its landing views only, not above every domain and topic page.
+function subNavHTML(){
+  const p = currentParts(), v = p[0] || 'map', g = VIEW_GROUP[v];
+  if(!g || g.views.length < 2 || (v === 'map' && p[1] && p[1] !== 'home')) return '';
+  const cur = v === 'smell' ? 'diagnose' : v;
+  const due = g.id === 'paths' ? reviewDue().length : 0;
+  return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}</nav>`;
+}
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button data-href="${it[1]}">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
@@ -503,17 +534,22 @@ function engineBody(t, which){
 // object, `color` tints the cards, `storyKey` is the storage key of the "your
 // story" textarea (story.<topic-id> for a topic, story.<case-id> for a
 // project) and `near` is optional prev/next button HTML.
-function ivCards(arr, color){
-  return `<div class="ivlist">${arr.map(x => `<details class="ivq" style="--dc:${color}"><summary>${esc(x.q)}</summary><div class="body">
+// `key` names the question set (topic, project or system and level) so each
+// question can sit in the review queue under a stable key.
+function ivCards(arr, color, key){
+  const queued = reviewItems();
+  return `<div class="ivlist">${arr.map((x, i) => { const k = `${key}:${i}`, on = !!queued[k];
+    return `<details class="ivq" style="--dc:${color}"><summary>${esc(x.q)}</summary><div class="body">
     <h4>Answer outline</h4><p>${esc(x.a)}</p>
     <h4>Follow-up coming</h4><p>${esc(x.follow)}</p>
-    <h4 class="redflag">Red flag</h4><p>${esc(x.red)}</p></div></details>`).join('')}</div>`;
+    <h4 class="redflag">Red flag</h4><p>${esc(x.red)}</p>
+    <button type="button" class="btn sm ghost" data-action="review-toggle" data-key="${esc(k)}" aria-pressed="${on}">${on ? 'In your review queue' : 'Review later'}</button></div></details>`; }).join('')}</div>`;
 }
 function interviewBody(iv, color, storyKey, near){
   const LV = [['junior','Junior'],['mid','Mid'],['senior','Senior']];
   const groups = LV.map(([k, label]) => { const arr = (iv && iv[k]) || []; if(!arr.length) return '';
     return `<div class="section-head"><h2>${label}</h2><span class="muted">${arr.length} question${arr.length === 1 ? '' : 's'}</span></div>
-      ${ivCards(arr, color)}`; }).join('');
+      ${ivCards(arr, color, `iv:${storyKey.slice(6)}:${k}`)}`; }).join('');
   return `<div class="ivview">${groups}
     <div class="section-head"><h2>Your story</h2><span class="muted">the one you will actually tell</span></div>
     <p class="small dim">An outline is not an answer. Write the time you did this, what you changed and what happened, in your own words. Autosaved in this browser, never in the data, never sent anywhere.</p>
@@ -543,12 +579,15 @@ function topicBody(id){
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
   // Diagram and "Appears in" belong to the Overview body, so the engine and
   // interview tabs start directly under the strip instead of below the fold.
+  // "Appears in" follows the sections: the article comes first, its
+  // cross-references after it (on a phone the chips pushed "What is it?"
+  // more than a screen down).
   const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
-    ${contextsPanel(t)}
     ${secs}${techSec}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
     ${smells.length ? `<div class="section-head"><h2>Design smells this topic helps diagnose</h2></div><div class="chips">${smells.map(s => `<a class="chip lnk" style="cursor:pointer;padding:6px 10px" href="#/smell/${s.id}">${esc(s.t)}</a>`).join('')}</div>` : ''}
+    ${contextsPanel(t)}
     <div class="topic-nav">${prev ? `<button class="btn" data-href="#/map/t/${prev}">← ${esc(TOPICS[prev].t)}</button>` : `<button class="btn ghost" data-href="#/map/d/${d.id}">← ${esc(d.t)} overview</button>`}<button class="btn ghost" data-href="#/explore/${d.id}">List view</button>${next ? `<button class="btn" data-href="#/map/t/${next}">${esc(TOPICS[next].t)} →</button>` : `<button class="btn" data-href="#/map/home">All domains →</button>`}</div>`;
   const tabs = tabsFor(t);
   const tab = tabs.some(x => x[0] === topicTab) ? topicTab : 'overview';
@@ -1182,7 +1221,7 @@ function caseCard(c){ return `<a class="card clickable tint lnk blk" style="--dc
 // strip between them: the codename, its description and the chips stay put
 // while Overview, Workflows and Interview swap underneath.
 function caseHead(c){
-  return `${crumbs([['Map','#/map'],['Experience','#/experience'],[c.t]])}
+  return `${crumbs([['Map','#/map'],['Projects','#/experience'],[c.t]])}
     <div class="casehead"><h1>${esc(c.t)}</h1>${c.sub ? `<p class="casesub">${esc(c.sub)}</p>` : ''}<div class="chips">${[c.role, c.period].map(x => `<span class="chip">${esc(x)}</span>`).join('')}${c.stack.map(s => `<span class="chip api">${esc(s)}</span>`).join('')}</div></div>`;
 }
 function casePage(c){
@@ -1221,7 +1260,7 @@ function relCards(rel){
 }
 function systemPage(c, s){
   const dc = kindColor(s.kind), parts = s.parts || [];
-  return `${crumbs([['Experience','#/experience'],[c.t,'#/experience/'+c.id],[s.t]])}
+  return `${crumbs([['Projects','#/experience'],[c.t,'#/experience/'+c.id],[s.t]])}
     <div class="casehead" style="border-left-color:${dc}">
       <div class="chips" style="margin-bottom:7px">${kindChip(s.kind)}<span class="chip">${partCount(s)}</span></div>
       <h1>${esc(s.t)}</h1>
@@ -1232,14 +1271,14 @@ function systemPage(c, s){
       <b>${esc(p.t)}</b><div class="small dim" style="margin-top:6px">${esc(p.what)}</div>
       <div class="small" style="margin-top:6px"><b>Why.</b> ${esc(p.why)}</div></a>`).join('')}</div>
     ${(s.iv && s.iv.length) ? `<div class="section-head"><h2>Likely questions</h2><span class="muted">what an interviewer asks once this system is on the table</span></div>
-    ${ivCards(s.iv, dc)}` : ''}
+    ${ivCards(s.iv, dc, `iv:${c.id}/${s.id}`)}` : ''}
     <div class="topic-nav"><button class="btn ghost" data-href="#/experience/${c.id}">← ${esc(c.t)}</button></div>`;
 }
 function partPage(c, s, p){
   const dc = kindColor(s.kind), parts = s.parts || [], i = parts.indexOf(p);
   const prev = i > 0 ? parts[i-1] : null, next = i < parts.length - 1 ? parts[i+1] : null;
   const linked = (p.links || []).map(([pid, why]) => { const o = findPart(c, pid); return o ? `<div class="small partlink"><a class="chip lnk" href="#/experience/${c.id}/${o.s.id}/${o.p.id}">${esc(o.p.t)}</a> <span class="why">${esc(why)}</span></div>` : ''; }).join('');
-  return `${crumbs([['Experience','#/experience'],[c.t,'#/experience/'+c.id],[s.t,`#/experience/${c.id}/${s.id}`],[p.t]])}
+  return `${crumbs([['Projects','#/experience'],[c.t,'#/experience/'+c.id],[s.t,`#/experience/${c.id}/${s.id}`],[p.t]])}
     <div class="casehead" style="border-left-color:${dc}">
       <div class="chips" style="margin-bottom:7px">${kindChip(s.kind)}<span class="chip">${esc(s.t)}</span><span class="chip">${i+1} of ${parts.length}</span></div>
       <h1>${esc(p.t)}</h1></div>
@@ -1296,7 +1335,7 @@ function flowPage(c, f){
   steps.forEach(s => { if(s.sys && !touched.includes(s.sys)) touched.push(s.sys); });
   const sysChips = touched.map(sid => { const s = (c.systems || []).find(x => x.id === sid); if(!s) return '';
     return `<a class="chip kind lnk" style="--dc:${kindColor(s.kind)};cursor:pointer" href="#/experience/${c.id}/${s.id}">${esc(s.t)}</a>`; }).join('');
-  return `${crumbs([['Experience','#/experience'],[c.t,'#/experience/'+c.id],['Workflows',`#/experience/${c.id}/workflows`],[f.t]])}
+  return `${crumbs([['Projects','#/experience'],[c.t,'#/experience/'+c.id],['Workflows',`#/experience/${c.id}/workflows`],[f.t]])}
     <div class="casehead"><div class="chips" style="margin-bottom:7px"><span class="chip">Workflow</span><span class="chip">${steps.length} steps</span></div>
       <h1>${esc(f.t)}</h1></div>
     <p class="dim" style="max-width:820px">${esc(f.sum)}</p>
@@ -1327,8 +1366,48 @@ function renderExperience(id, a, b){
     setView(p ? partPage(c, s, p) : systemPage(c, s));
     return renderTree(p ? 'part' : 'sys');
   }
-  setView(`${crumbs([['Map','#/map'],['Experience']])}<h1>Experience</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
+  setView(`${crumbs([['Map','#/map'],['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
     ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/40-cases.js and appear here as soon as one is written.</div>'}`);
+}
+
+/* =====================================================================
+   REVIEW QUEUE
+   Retrieval practice with spacing: a question the reader marks "Review
+   later" comes back after 1 day, and each time they recall it the gap
+   doubles (1, 2, 4, 8, 16 days); a miss starts it over. The question and
+   its answer outline are copied into the queue, so an edited topic cannot
+   silently change what is being practised. Stored under playable.review.
+   ===================================================================== */
+const REVIEW_DAYS = [1, 2, 4, 8, 16];
+const today = () => Math.floor(Date.now() / 86400000);
+const reviewItems = () => store.get('review', {});
+const reviewDue = () => Object.entries(reviewItems()).filter(([, r]) => r.due <= today());
+ACTIONS['review-toggle'] = el => {
+  const items = reviewItems(), k = el.dataset.key, body = el.closest('.body'), q = el.closest('details').querySelector('summary').textContent;
+  if(items[k]) delete items[k];
+  else items[k] = { q, a: body.querySelector('p').textContent, src: location.hash, box: 0, due: today() + REVIEW_DAYS[0] };
+  store.set('review', items);
+  const on = !!items[k]; el.setAttribute('aria-pressed', on); el.textContent = on ? 'In your review queue' : 'Review later';
+  toast(on ? 'Added to your review queue' : 'Removed from your review queue');
+};
+ACTIONS['review-grade'] = el => {
+  const items = reviewItems(), r = items[el.dataset.key]; if(!r) return;
+  r.box = el.dataset.grade === 'got' ? Math.min(REVIEW_DAYS.length - 1, r.box + 1) : 0;
+  r.due = today() + REVIEW_DAYS[r.box];
+  store.set('review', items); renderReview();
+};
+ACTIONS['review-remove'] = el => { const items = reviewItems(); delete items[el.dataset.key]; store.set('review', items); renderReview(); };
+function renderReview(){
+  const all = Object.entries(reviewItems()), due = reviewDue(), later = all.length - due.length;
+  const next = all.filter(([, r]) => r.due > today()).map(([, r]) => r.due).sort((a, b) => a - b)[0];
+  const card = ([k, r]) => `<details class="ivq review-item"><summary>${esc(r.q)}</summary><div class="body">
+      <h4>Answer outline</h4><p>${esc(r.a)}</p>
+      <div class="row"><button type="button" class="btn sm" data-action="review-grade" data-key="${esc(k)}" data-grade="got">I recalled it</button><button type="button" class="btn sm ghost" data-action="review-grade" data-key="${esc(k)}" data-grade="again">Not yet</button><a class="btn sm ghost" href="${esc(r.src)}">Open the source</a><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></div></div></details>`;
+  setView(`${crumbs([['Paths','#/paths'],['Review']])}<h1>Review</h1>
+    <p class="dim" style="max-width:820px">Answer each question in your head or out loud first, then open it and compare with the outline. Recalled questions come back after a longer gap; missed ones come back tomorrow. No streaks: skip a day and the queue simply waits.</p>
+    ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next in ${next - today()} day${next - today() === 1 ? '' : 's'}` : ''}` : ''}</span></div>
+    ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due. Come back when the next one is.</div>'}`
+    : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) and press "Review later".</div>'}`);
 }
 
 /* =====================================================================
@@ -1654,7 +1733,7 @@ document.addEventListener('keydown', e => {
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ openModal('helpModal'); return; }
-  if(/^[1-9]$/.test(e.key)){ go('#/'+VIEWS[+e.key-1][0]); return; }
+  if(/^[1-6]$/.test(e.key)){ go('#/' + NAV[+e.key - 1].views[0][0]); return; }
   if(e.key.toLowerCase()==='m'){ fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
   const m = location.hash.match(/^#\/map\/t\/([\w-]+)/);

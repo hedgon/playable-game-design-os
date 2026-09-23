@@ -51,6 +51,9 @@ const LAB_STEPS = [
     p:'Evidence so far: [EVIDENCE]. Present the four options kill, iterate, prototype, commit with the tradeoffs of each and the cheapest next action. Recommend nothing. I decide.' }
 ];
 
+// The working steps in order; the chain's first and last links (observe,
+// Idea Card) are the mode chooser and the card beside the steps.
+const LAB_ORDER = ['signal', 'tension', 'opportunity', 'question', 'space', 'mech', 'critique', 'converge', 'experiment', 'decide'];
 const LAB_LENSES = ['Player value','Mechanical distinctiveness','Experience','Systemic potential','Novelty','Clarity','Prototypeability','Production viability','Defensibility','Evidence'];
 const LAB_CONF = ['high','medium','low','unknown'];
 
@@ -65,7 +68,10 @@ function renderLab(){
   const modeStep = k => (LAB_MODE_STEPS[saved.mode] && LAB_MODE_STEPS[saved.mode][k]) || {};
   const stepMeta = id => { const s = LAB_STEPS.find(x => x.id === id); const o = modeStep(id); return Object.assign({}, s, o); };
 
-  const modeBtns = LAB_MODES.map(([id,t,d]) => `<button class="labmode ${saved.mode===id?'active':''}" data-m="${id}"><b>${esc(t)}</b><span>${esc(d)}</span></button>`).join('');
+  // The market-first way in is the Idea Shaper, offered here so "I do not
+  // know what to make" has one door with two routes through it.
+  const modeBtns = LAB_MODES.map(([id,t,d]) => `<button class="labmode ${saved.mode===id?'active':''}" data-m="${id}"><b>${esc(t)}</b><span>${esc(d)}</span></button>`).join('')
+    + `<a class="labmode lnk" href="#/build/idea"><b>I watch a market</b><span>Read what players praise, complain about and work around in games you already follow, then shape one idea into the gap. Opens the Idea Shaper.</span></a>`;
 
   const evChips = id => `<div class="evrow">${LAB_EV.map(e => `<button class="evchip ${saved.ev[id]===e?'on':''}" data-step="${id}" data-ev="${e}" title="${esc(LAB_EV_HINT[e])}">${e}</button>`).join('')}</div>`;
 
@@ -80,7 +86,7 @@ function renderLab(){
     </div>`;
   };
 
-  const spaceCard = () => `<div class="labstep">
+  const spaceCard = () => `<div class="labstep" id="lab_space">
     <div class="step-num">${esc(stepMeta('space').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('space').q)}</p>
     ${[0,1,2].map(a => `<div class="labaxis"><input class="labax" data-a="${a}" placeholder="Axis ${a+1} (e.g. the object being chosen)" value="${esc(saved.spaceAxes[a]||'')}"><input class="labaxo" data-a="${a}" placeholder="options, comma separated" value="${esc((saved.spaceOpts[a]||[]).join(', '))}"></div>`).join('')}
@@ -88,7 +94,7 @@ function renderLab(){
     <div class="labex-box small dim" id="labex_space" hidden>${esc(stepMeta('space').ex)}</div>
   </div>`;
 
-  const mechCard = () => `<div class="labstep">
+  const mechCard = () => `<div class="labstep" id="lab_mech">
     <div class="step-num">${esc(stepMeta('mech').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('mech').q)}</p>
     ${[0,1,2].map(i => `<div class="labmech"><b>Mechanism ${i+1}</b>
@@ -101,13 +107,13 @@ function renderLab(){
     <div class="labex-box small dim" id="labex_mech" hidden>${esc(stepMeta('mech').ex)}</div>
   </div>`;
 
-  const convergeCard = () => `<div class="labstep">
+  const convergeCard = () => `<div class="labstep" id="lab_converge">
     <div class="step-num">${esc(stepMeta('converge').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('converge').q)} Confidence, not a score, so you can see which claim is load-bearing.</p>
     ${LAB_LENSES.map(l => `<div class="lablens"><span class="ll">${esc(l)}</span><select class="labconf" data-l="${esc(l)}">${['', ...LAB_CONF].map(c => `<option value="${c}" ${(((saved.lens[l]||{}).c)||'')===c?'selected':''}>${c||'-'}</option>`).join('')}</select><input class="labwhy" data-l="${esc(l)}" placeholder="why, one line" value="${esc((saved.lens[l]||{}).n||'')}"></div>`).join('')}
     <div class="row" style="margin-top:6px"><button class="btn sm ghost labpr" data-step="converge">copy AI prompt</button></div>
   </div>`;
-  const decideCard = () => `<div class="labstep">
+  const decideCard = () => `<div class="labstep" id="lab_decide">
     <div class="step-num">${esc(stepMeta('decide').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('decide').q)}</p>
     <div class="evrow">${['kill','iterate','prototype','commit'].map(d => `<button class="decidebtn ${saved.decision===d?'on':''}" data-d="${d}">${d}</button>`).join('')}</div>
@@ -122,7 +128,12 @@ function renderLab(){
     <div class="labchain">${['Observe','Signal','Tension','Opportunity','Design question','Design space','Mechanisms','Critique','Converge','Experiment','Decide','Idea Card'].map((x,i,a)=>`${i?'<span class="arrow">→</span>':''}<span class="cn">${x}</span>`).join('')}</div>
     <div class="labmodes">${modeBtns}</div>
     <div class="grid c2"><div>
+      <div class="row between labnavbar"><nav class="labnav" aria-label="Idea Lab steps">${LAB_ORDER.map((id, i) => `<button type="button" data-i="${i}">${i + 1}. ${esc(stepMeta(id).t)}</button>`).join('')}</nav>
+        <label class="small labview"><input type="checkbox" id="lab_all" ${saved.view === 'all' ? 'checked' : ''}> Show all steps</label></div>
+      <div id="lab_steps" class="labsteps ${saved.view === 'all' ? 'all' : 'one'}">
       ${stepCard('signal')}${stepCard('tension')}${stepCard('opportunity')}${stepCard('question')}${spaceCard()}${mechCard()}${stepCard('critique')}${convergeCard()}${stepCard('experiment')}${decideCard()}
+      </div>
+      <div class="row between labstepper"><button type="button" class="btn sm ghost" id="lab_prev">← Previous step</button><button type="button" class="btn sm" id="lab_next">Next step →</button></div>
     </div><div id="lab_out"><div class="card">
       <h4>Your reasoning chain</h4>
       <div id="lab_chain"><div class="empty">Start with a mode and one sentence. The chain builds as you go.</div></div>
@@ -146,6 +157,7 @@ function renderLab(){
       return txt ? `<div class="labchainrow"><span class="k">${esc(stepMeta(s.id).t)}</span><span>${esc(txt)}</span></div>` : ''; }).join('');
     const chainEl = $('#lab_chain'); if(chainEl) chainEl.innerHTML = chain || '<div class="empty">Start with a mode and one sentence. The chain builds as you go.</div>';
     const btn = $('#lab_tocard'); if(btn) btn.disabled = !((saved.step.signal||'').trim() && (saved.step.tension||'').trim() && (saved.step.question||'').trim());
+    $$('.labnav button').forEach((b, k) => b.classList.toggle('filled', filled(LAB_ORDER[k])));
   };
   const pushToCard = () => { const idea = store.get('ideaTool', {}); const card = saved.card; const v = id => (saved.step[id]||'').trim();
     Object.assign(idea, { player: card.player||idea.player, wish: card.promise||idea.wish, mechanism: card.mechanism||idea.mechanism, verb: card.verb||idea.verb, fantasy: card.fantasy||idea.fantasy, constraints: card.constraints||idea.constraints, complaints: v('tension')||idea.complaints, market: v('signal')||idea.market });
@@ -160,8 +172,24 @@ function renderLab(){
     return `# Idea Lab chain\n\n**Mode:** ${saved.mode||'none'}\n\n## Signal\n${v('signal')}${saved.ev.signal?`\n_evidence: ${saved.ev.signal}_`:''}\n\n## Tension\n${v('tension')}${saved.ev.tension?`\n_evidence: ${saved.ev.tension}_`:''}\n\n## Opportunity\n${v('opportunity')}${saved.ev.opportunity?`\n_evidence: ${saved.ev.opportunity}_`:''}\n\n## Design question\n${v('question')}\n\n## Design space\n${axes}\n\n## Mechanisms\n${mech}\n\n## Critique\n${v('critique')}\n\n## Converge\n${LAB_LENSES.map(l => '- '+l+': '+(((saved.lens[l]||{}).c)||'unknown')+(((saved.lens[l]||{}).n)?' ('+saved.lens[l].n+')':'')).join('\n')}\n\n## Experiment\n${v('experiment')}\n\n## Decide\n${(saved.decision||'undecided')}${v('decide')?', '+v('decide'):''}\n\n## Idea Card\n- Player: ${saved.card.player||'?'}\n- Promise: ${saved.card.promise||'?'}\n- Mechanism: ${saved.card.mechanism||'?'}\n- Core verb: ${saved.card.verb||'?'}\n- Fantasy: ${saved.card.fantasy||'?'}\n- Constraints: ${saved.card.constraints||'?'}\n`;
   };
 
+  // One step at a time by default: the chain reads as a sequence, and the
+  // step nav shows which steps already hold something.
+  const filled = id => id === 'space' ? saved.spaceAxes.some(Boolean) : id === 'mech' ? saved.mech.some(m => m.rule) : id === 'converge' ? LAB_LENSES.some(l => (saved.lens[l] || {}).c) : id === 'decide' ? !!(saved.decision || (saved.step.decide || '').trim()) : !!(saved.step[id] || '').trim();
+  const showStep = i => {
+    saved.at = Math.max(0, Math.min(LAB_ORDER.length - 1, i)); save();
+    LAB_ORDER.forEach((id, k) => { const c = $('#lab_' + id); if(c) c.classList.toggle('current', k === saved.at); });
+    $$('.labnav button').forEach((b, k) => { b.classList.toggle('filled', filled(LAB_ORDER[k])); if(k === saved.at) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    $('#lab_prev').disabled = saved.at === 0; $('#lab_next').disabled = saved.at === LAB_ORDER.length - 1;
+  };
+  const moveTo = i => { showStep(i); if(saved.view !== 'all'){ const f = $('#lab_' + LAB_ORDER[saved.at] + ' textarea, #lab_' + LAB_ORDER[saved.at] + ' input, #lab_' + LAB_ORDER[saved.at] + ' select'); if(f) f.focus({ preventScroll: true }); } };
+  $$('.labnav button').forEach(b => b.onclick = () => moveTo(+b.dataset.i));
+  $('#lab_prev').onclick = () => moveTo(saved.at - 1);
+  $('#lab_next').onclick = () => moveTo(saved.at + 1);
+  $('#lab_all').onchange = e => { saved.view = e.target.checked ? 'all' : 'one'; save(); $('#lab_steps').className = 'labsteps ' + saved.view; };
+  showStep(saved.at || 0);
+
   // wiring
-  $$('.labmode').forEach(b => b.onclick = () => { saved.mode = b.dataset.m; save(); renderLab(); });
+  $$('.labmode[data-m]').forEach(b => b.onclick = () => { saved.mode = b.dataset.m; save(); renderLab(); });
   $$('.labex').forEach(b => b.onclick = () => { const box = $('#labex_' + b.dataset.step); if(box) box.hidden = !box.hidden; });
   $$('.labpr').forEach(b => b.onclick = () => { const s = stepMeta(b.dataset.step); copyText(labPrompt(s.id)); toast('AI prompt copied'); });
   $$('.evchip').forEach(b => b.onclick = () => { saved.ev[b.dataset.step] = saved.ev[b.dataset.step]===b.dataset.ev ? '' : b.dataset.ev; save(); renderLab(); });

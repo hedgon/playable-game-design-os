@@ -30,7 +30,7 @@ const ROUTES_IN_PAGE = () => {
     '#/playtest', '#/prompts', '#/prompts/' + PROMPT_TEMPLATES[0].id, '#/checklists', '#/checklists/' + CHECKLISTS[0].id,
     '#/experience', '#/experience/' + cs.id, '#/experience/' + cs.id + '/workflows', '#/experience/' + cs.id + '/interview',
     '#/experience/' + cs.id + '/flow/' + flow.id, '#/experience/' + cs.id + '/' + sys.id, '#/experience/' + cs.id + '/' + sys.id + '/' + part.id,
-    '#/paths/' + p.id, '#/paths/' + p.id + '/' + st.id, '#/sources'
+    '#/paths/' + p.id, '#/paths/' + p.id + '/' + st.id, '#/review', '#/sources'
   ];
 };
 // Routes that only reshape the map keep it in front on a narrow screen.
