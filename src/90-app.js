@@ -122,7 +122,7 @@ function ensureShell(){
         <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
         <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
       </div></div>
-      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="img" aria-label="Knowledge mind map"></svg><div class="maptip" id="maptip" hidden></div></div>
+      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="group" aria-label="Mind map. Tab into it, move with the arrow keys, open a node with Enter."></svg><div class="maptip" id="maptip" hidden></div></div>
     </section>
     <div class="splitter" id="splitR" title="Drag to resize"></div>
     <section class="pane" id="pane"></section>

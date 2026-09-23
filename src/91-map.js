@@ -234,12 +234,50 @@ function mapClick(n){
 }
 
 function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); } }
-function redrawGraph(){
-  if(!MAP || !document.body.contains(MAP.svg)) return;
+// The node a keyboard user lands on when tabbing into the map: the one the
+// route selected, else the open branch, else the centre.
+function currentKey(){
+  if(mapMode === 'project' && projState) return projState.part ? 'part:' + projState.part : projState.sys ? 'sys:' + projState.sys : 'c';
+  if(mapMode === 'path' && pathMapState) return pathMapState.stage ? 'stage:' + pathMapState.stage : 'c';
+  return mapState.topic ? 't:' + mapState.topic : mapState.dom ? 'd:' + mapState.dom : 'c';
+}
+// Draws the graph with one node in the tab order (a roving tab stop). A
+// redraw replaces every node, so focus is handed to the node with the same
+// key and arrow-key travel or Enter never drops the reader out of the map.
+function paintGraph(){
+  const hadFocus = MAP.svg.contains(document.activeElement);
   const g = buildGraph();
   g.focus = treeFocus(g);
   MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
+  const byKey = k => k && MAP.svg.querySelector('.node[data-key="' + CSS.escape(k) + '"]');
+  const stop = byKey(MAP.focusKey) || byKey(currentKey()) || MAP.svg.querySelector('.node');
+  if(stop){ stop.setAttribute('tabindex', '0'); if(hadFocus) stop.focus({ preventScroll: true }); }
+  return g;
+}
+function nodeCentre(el){ const r = el.querySelector('.disc'); return { x: +r.getAttribute('x') + +r.getAttribute('width') / 2, y: +r.getAttribute('y') + +r.getAttribute('height') / 2 }; }
+// Arrow keys travel spatially: the nearest node in that direction, with
+// sideways distance counting double so the move follows rows and columns.
+function nearestNode(from, dx, dy){
+  const a = nodeCentre(from); let best = null, bestScore = Infinity;
+  for(const el of MAP.svg.querySelectorAll('.node')){
+    if(el === from) continue;
+    const b = nodeCentre(el), vx = b.x - a.x, vy = b.y - a.y, along = vx * dx + vy * dy;
+    if(along <= 1) continue;
+    const score = along + 2 * Math.abs(vx * dy - vy * dx);
+    if(score < bestScore){ bestScore = score; best = el; }
+  }
+  return best;
+}
+function focusNode(el){
+  MAP.svg.querySelectorAll('.node[tabindex="0"]').forEach(x => x.setAttribute('tabindex', '-1'));
+  el.setAttribute('tabindex', '0'); el.focus({ preventScroll: true }); MAP.focusKey = el.dataset.key;
+  const c = nodeCentre(el), vb = MAP.vb;
+  if(c.x < vb.x || c.x > vb.x + vb.w || c.y < vb.y || c.y > vb.y + vb.h) mapAnimateTo({ x: c.x - vb.w / 2, y: c.y - vb.h / 2, w: vb.w, h: vb.h });
+}
+function redrawGraph(){
+  if(!MAP || !document.body.contains(MAP.svg)) return;
+  paintGraph();
 }
 function resetMapDrag(){ curState().off = {}; saveCur(); redrawGraph(); }
 function resetMapDefault(){
@@ -315,6 +353,15 @@ function initMapStage(){
   svg.addEventListener('pointermove', e => { if(e.pointerType === 'touch' || nodeDrag || drag) return; const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
   svg.addEventListener('pointerleave', () => { if(!nodeDrag && !drag) mapHover(null); });
   svg.addEventListener('click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
+  svg.addEventListener('keydown', e => {
+    const n = e.target.closest && e.target.closest('.node'); if(!n) return;
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); MAP.focusKey = n.dataset.key; MAP.keyNav = true; mapClick(n); return; }
+    if(e.key === 'Home'){ e.preventDefault(); focusNode(svg.querySelector('.node[data-kind="center"]')); return; }
+    const d = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0] }[e.key];
+    if(!d) return;
+    e.preventDefault();
+    const next = nearestNode(n, d[0], d[1]); if(next) focusNode(next);
+  });
   $('#mapFit').onclick = fitMap;
   $('#mapResetDrag').onclick = resetMapDrag;
   $('#mapResetDefault').onclick = resetMapDefault;
@@ -340,10 +387,7 @@ let mapStage = null;
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
   const st = curState();
-  const g = buildGraph();
-  g.focus = treeFocus(g);
-  MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
-  MAP.svg.innerHTML = g.inner;
+  const g = paintGraph();
   const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
   const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
   if(mapStage !== stageKey){

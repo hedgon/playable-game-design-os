@@ -818,6 +818,8 @@ details.comp .body{padding-top:6px}
 .kgraph .node.topic .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 9%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 48%,var(--line2))}
 .kgraph .node.center .disc{fill:var(--panel);stroke:var(--accent2);stroke-width:2}
 .kgraph .node.hl .disc,.kgraph .node:hover .disc{stroke:var(--accent);stroke-width:2}
+.kgraph .node:focus{outline:none}
+.kgraph .node:focus-visible .disc{stroke:var(--accent);stroke-width:3.5}
 .kgraph .node .glyph{fill:var(--fg2);font-family:var(--mono);font-weight:700;pointer-events:none}
 .kgraph .node .lbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700;pointer-events:none;paint-order:normal;stroke:none}
 .kgraph .node .lbl.sub{fill:var(--fg3);font-family:var(--mono);font-weight:500}

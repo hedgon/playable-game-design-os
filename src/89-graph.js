@@ -113,7 +113,10 @@ window.PlayableGraph = (function(){
     const tx = left ? x + n.w - 14 : x + 14, ty = n.sub ? n.y - 2 : n.y + 4, anchor = left ? 'end' : 'start';
     const why = n.why ? ` data-why="${esc(n.why)}"` : '';
     const sc = scope ? ` data-scope="${scope}"` : '';
-    let g = `<g class="node ${cls}" data-key="${keyOf(n)}"${sc} data-kind="${n.kind}" data-id="${n.id}"${why}${dc}>`;
+    // The accessible name is the full label even when the card shortens it.
+    const name = n.sub ? `${n.label}, ${n.sub}` : n.label;
+    const expanded = n.kind === 'domain' ? ` aria-expanded="${!!n.open}"` : '';
+    let g = `<g class="node ${cls}" data-key="${keyOf(n)}"${sc} data-kind="${n.kind}" data-id="${n.id}"${why}${dc} tabindex="-1" role="button" aria-label="${esc(name)}"${expanded}>`;
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
     g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.w, fs)))}</text>`;
