@@ -1,7 +1,6 @@
 /* ---------- boot ---------- */
-updateProgress();
-route();
-})();
+window.PlayableApp.updateProgress();
+window.PlayableApp.route();
 </script>
 </body>
 </html>

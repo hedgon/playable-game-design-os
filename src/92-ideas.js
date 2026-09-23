@@ -1,9 +1,12 @@
-﻿/* =====================================================================
+/* =====================================================================
    REFERENCE DISSECTION - is my idea actually good?
    Cross-reference a concept against games that succeeded with a similar
    want. Library entries prefill the template; custom games get a prompt.
    Seven questions produce a verdict and the next test.
    ===================================================================== */
+(function(A){
+'use strict';
+const { $, $$, esc, store, go, promptBox, DIAGRAM_DISSECTION, field, outputBox, toolHead } = A;
 const DISSECT_FIELDS = [['want','Player want it served'],['verb','Core verb'],['first30','First 30 seconds'],['minute','Decision per minute'],['why','Why it worked (mechanism, not numbers)'],['complaints','What players complain about'],['misses','What copies of it usually miss']];
 const XREF_QS = [
   { id:'shared', q:'Which proven want from the comparables does my concept serve?', opts:[['Clearly the same want, stated in the same words their players use',3],['A neighboring want. The overlap is partial',1],['None of them serve my want',0]], hint:'A shared want is evidence the audience exists. No shared want means the idea is unproven, not bad.' },
@@ -66,3 +69,5 @@ function toolDissect(el){
   $('#ds_custom').onkeydown = e => { if(e.key==='Enter') $('#ds_add').click(); };
   renderComps(); renderQs(); out();
 }
+A.toolDissect = toolDissect;
+})(window.PlayableApp);

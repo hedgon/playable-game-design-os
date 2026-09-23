@@ -4,6 +4,10 @@
    not a circle, so it grows by stacking and panning rather than shrinking.
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
    ===================================================================== */
+(function(A){
+'use strict';
+const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, setView, crumbs, domChip, list,
+  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals } = A;
 const START_PATHS = [
   ['#/paths','I want to learn step by step','Pick a path and follow one visible next step at a time, with a soft checkpoint per stage.',''],
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
@@ -368,3 +372,19 @@ function renderMap(kind, id, tab){
   setView(drawerHTML());
   renderTree(kind);
 }
+// The centre stage shows either the guide map or one project's map. Every
+// route that is not a project page puts it back to the guide map, whose own
+// state (open domain, selected topic, node offsets, camera) was never touched
+// while the project map was up.
+function syncMapMode(view, id){
+  if(mapMode === 'project'){
+    if(view === 'experience' && id && CASE_STUDIES.some(c => c.id === id)) return;
+  } else if(mapMode === 'path'){
+    if(view === 'paths' && id && pathMapState && pathMapState.id === id) return;
+  } else return;
+  mapMode = 'domains';
+  if(view !== 'map' && MAP && MAP.g) renderTree();
+}
+
+Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap });
+})(window.PlayableApp);

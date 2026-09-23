@@ -8,6 +8,9 @@
           -> Design space -> Mechanisms -> Critique -> Converge -> Experiment
           -> Decide -> Idea Card
    ===================================================================== */
+(function(A){
+'use strict';
+const { $, $$, app, esc, store, toast, go, setView, crumbs, list, field } = A;
 
 const LAB_MODES = [
   ['observe','I noticed something','Start from one specific thing players do, complain about, work around or build tools for.','e.g. Players build spreadsheets to plan their factory before building it.'],
@@ -177,3 +180,5 @@ function renderLab(){
 
   out();
 }
+A.renderLab = renderLab;
+})(window.PlayableApp);

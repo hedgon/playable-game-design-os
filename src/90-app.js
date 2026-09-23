@@ -2,7 +2,7 @@
    APPLICATION
    Hash router -> views. All state in localStorage under "playable.*".
    ===================================================================== */
-(function(){
+(function(A){
 'use strict';
 const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
@@ -11,6 +11,12 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const DOM = Object.fromEntries(DOMAINS.map(d => [d.id, d]));
 const TOPIC_LIST = Object.values(TOPICS);
 DOMAINS.forEach(d => d.topics = TOPIC_LIST.filter(t => t.d === d.id).map(t => t.id));
+// Defined by the files that load after this one (91-map.js, 92-ideas.js,
+// 93-lab.js), so they are looked up on the shared namespace at call time.
+const late = name => (...a) => A[name](...a);
+const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
+  enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
+  toolDissect = late('toolDissect'), renderLab = late('renderLab');
 
 /* ---------- storage ---------- */
 const store = {
@@ -68,19 +74,6 @@ function route(){
     case 'sources': return renderSources();
     default: return renderMap();
   }
-}
-// The centre stage shows either the guide map or one project's map. Every
-// route that is not a project page puts it back to the guide map, whose own
-// state (open domain, selected topic, node offsets, camera) was never touched
-// while the project map was up.
-function syncMapMode(view, id){
-  if(mapMode === 'project'){
-    if(view === 'experience' && id && CASE_STUDIES.some(c => c.id === id)) return;
-  } else if(mapMode === 'path'){
-    if(view === 'paths' && id && pathMapState && pathMapState.id === id) return;
-  } else return;
-  mapMode = 'domains';
-  if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 window.addEventListener('hashchange', route);
 $('#primaryNav').innerHTML = VIEWS.map(([id, t]) => `<button data-view="${id}" onclick="location.hash='#/${id}'">${t}</button>`).join('');
@@ -1515,4 +1508,10 @@ document.addEventListener('keydown', e => {
     if(e.key==='[' && i > 0) go('#/map/t/'+list[i-1]);
     if(e.key.toLowerCase()==='e'){ const anyClosed = $$('.sec').some(s => !s.classList.contains('open')); window.__expandAll(anyClosed); } }
 });
+
+// What the later files import from this one.
+Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, go, route,
+  setView, crumbs, domChip, list, chainHTML, promptBox, field, outputBox, toolHead, practice, setTopicTab,
+  topicBody, smellsView, pathProgress, renderPaths, closeModals, DIAGRAM_DISSECTION });
+})(window.PlayableApp = {});
 

@@ -18924,7 +18924,7 @@ window.PlayableGraph = (function(){
    APPLICATION
    Hash router -> views. All state in localStorage under "playable.*".
    ===================================================================== */
-(function(){
+(function(A){
 'use strict';
 const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
@@ -18933,6 +18933,12 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const DOM = Object.fromEntries(DOMAINS.map(d => [d.id, d]));
 const TOPIC_LIST = Object.values(TOPICS);
 DOMAINS.forEach(d => d.topics = TOPIC_LIST.filter(t => t.d === d.id).map(t => t.id));
+// Defined by the files that load after this one (91-map.js, 92-ideas.js,
+// 93-lab.js), so they are looked up on the shared namespace at call time.
+const late = name => (...a) => A[name](...a);
+const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
+  enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
+  toolDissect = late('toolDissect'), renderLab = late('renderLab');
 
 /* ---------- storage ---------- */
 const store = {
@@ -18990,19 +18996,6 @@ function route(){
     case 'sources': return renderSources();
     default: return renderMap();
   }
-}
-// The centre stage shows either the guide map or one project's map. Every
-// route that is not a project page puts it back to the guide map, whose own
-// state (open domain, selected topic, node offsets, camera) was never touched
-// while the project map was up.
-function syncMapMode(view, id){
-  if(mapMode === 'project'){
-    if(view === 'experience' && id && CASE_STUDIES.some(c => c.id === id)) return;
-  } else if(mapMode === 'path'){
-    if(view === 'paths' && id && pathMapState && pathMapState.id === id) return;
-  } else return;
-  mapMode = 'domains';
-  if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 window.addEventListener('hashchange', route);
 $('#primaryNav').innerHTML = VIEWS.map(([id, t]) => `<button data-view="${id}" onclick="location.hash='#/${id}'">${t}</button>`).join('');
@@ -20438,6 +20431,12 @@ document.addEventListener('keydown', e => {
     if(e.key.toLowerCase()==='e'){ const anyClosed = $$('.sec').some(s => !s.classList.contains('open')); window.__expandAll(anyClosed); } }
 });
 
+// What the later files import from this one.
+Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, go, route,
+  setView, crumbs, domChip, list, chainHTML, promptBox, field, outputBox, toolHead, practice, setTopicTab,
+  topicBody, smellsView, pathProgress, renderPaths, closeModals, DIAGRAM_DISSECTION });
+})(window.PlayableApp = {});
+
 
 /* =====================================================================
    PERSISTENT MIND MAP (centre) + INDEX (left) + CONTENT (right)
@@ -20445,6 +20444,10 @@ document.addEventListener('keydown', e => {
    not a circle, so it grows by stacking and panning rather than shrinking.
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
    ===================================================================== */
+(function(A){
+'use strict';
+const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, setView, crumbs, domChip, list,
+  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals } = A;
 const START_PATHS = [
   ['#/paths','I want to learn step by step','Pick a path and follow one visible next step at a time, with a soft checkpoint per stage.',''],
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
@@ -20809,13 +20812,32 @@ function renderMap(kind, id, tab){
   setView(drawerHTML());
   renderTree(kind);
 }
+// The centre stage shows either the guide map or one project's map. Every
+// route that is not a project page puts it back to the guide map, whose own
+// state (open domain, selected topic, node offsets, camera) was never touched
+// while the project map was up.
+function syncMapMode(view, id){
+  if(mapMode === 'project'){
+    if(view === 'experience' && id && CASE_STUDIES.some(c => c.id === id)) return;
+  } else if(mapMode === 'path'){
+    if(view === 'paths' && id && pathMapState && pathMapState.id === id) return;
+  } else return;
+  mapMode = 'domains';
+  if(view !== 'map' && MAP && MAP.g) renderTree();
+}
 
-﻿/* =====================================================================
+Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap });
+})(window.PlayableApp);
+
+/* =====================================================================
    REFERENCE DISSECTION - is my idea actually good?
    Cross-reference a concept against games that succeeded with a similar
    want. Library entries prefill the template; custom games get a prompt.
    Seven questions produce a verdict and the next test.
    ===================================================================== */
+(function(A){
+'use strict';
+const { $, $$, esc, store, go, promptBox, DIAGRAM_DISSECTION, field, outputBox, toolHead } = A;
 const DISSECT_FIELDS = [['want','Player want it served'],['verb','Core verb'],['first30','First 30 seconds'],['minute','Decision per minute'],['why','Why it worked (mechanism, not numbers)'],['complaints','What players complain about'],['misses','What copies of it usually miss']];
 const XREF_QS = [
   { id:'shared', q:'Which proven want from the comparables does my concept serve?', opts:[['Clearly the same want, stated in the same words their players use',3],['A neighboring want. The overlap is partial',1],['None of them serve my want',0]], hint:'A shared want is evidence the audience exists. No shared want means the idea is unproven, not bad.' },
@@ -20878,6 +20900,8 @@ function toolDissect(el){
   $('#ds_custom').onkeydown = e => { if(e.key==='Enter') $('#ds_add').click(); };
   renderComps(); renderQs(); out();
 }
+A.toolDissect = toolDissect;
+})(window.PlayableApp);
 
 /* =====================================================================
    IDEA LAB
@@ -20889,6 +20913,9 @@ function toolDissect(el){
           -> Design space -> Mechanisms -> Critique -> Converge -> Experiment
           -> Decide -> Idea Card
    ===================================================================== */
+(function(A){
+'use strict';
+const { $, $$, app, esc, store, toast, go, setView, crumbs, list, field } = A;
 
 const LAB_MODES = [
   ['observe','I noticed something','Start from one specific thing players do, complain about, work around or build tools for.','e.g. Players build spreadsheets to plan their factory before building it.'],
@@ -21058,11 +21085,12 @@ function renderLab(){
 
   out();
 }
+A.renderLab = renderLab;
+})(window.PlayableApp);
 
 /* ---------- boot ---------- */
-updateProgress();
-route();
-})();
+window.PlayableApp.updateProgress();
+window.PlayableApp.route();
 </script>
 </body>
 </html>
