@@ -1009,21 +1009,67 @@ const VIEW_LINKS = {
    A domain file defines each topic with T(), then attaches that topic's
    optional techniques (TECH), engine views (ENGINE) and interview
    (INTERVIEW) right after it, so one topic reads top to bottom in one place.
+   The typedefs below are the same contract validate.js enforces; with
+   // @ts-check at the top of a data file an editor flags a missing or
+   misspelled field as you type, and `npx -p typescript tsc -p jsconfig.json`
+   checks every data file at once.
    ===================================================================== */
+/**
+ * @typedef {object} Domain
+ * @property {string} id
+ * @property {string} t
+ * @property {string} short   one line under the title
+ * @property {string} color   a --d-<id> CSS variable
+ * @property {string} sum
+ * @property {Array<[string, string]>} links   [domain id, why this connects]
+ * @property {Record<string, string>} [titles] section titles by key, overriding SECTION_META
+ * @property {string[]} [topics]               topic ids, filled in by the app
+ */
+/**
+ * @typedef {object} Topic
+ * @property {string} [id]   set by T()
+ * @property {string} d      domain id
+ * @property {string} t      title
+ * @property {string} tag    one-line pitch
+ * @property {string} what
+ * @property {string[]} why
+ * @property {{q: string[], trade: string[], traps: string[], good: string[], bad: string[]}} think
+ * @property {string[]} how
+ * @property {{yes: string[], no: string[]}} ai
+ * @property {Array<{l: string, p: string}>} prompts
+ * @property {string[]} verify
+ * @property {string[]} test
+ * @property {Array<[string, string]>} rel   [topic id or VIEW_LINKS id, why it connects]
+ * @property {Technique[]} [tech]   attached by TECH()
+ * @property {Engine} [eng]         attached by ENGINE()
+ * @property {Interview} [iv]       attached by INTERVIEW()
+ */
+/** @typedef {{n: string, how: string, fit: string, cost: string, alt: string}} Technique */
+/** @typedef {{term: string, api: string[], snippet: string, pitfall: string, map: string}} EngineView */
+/** @typedef {{godot: EngineView, unity: EngineView, note?: string}} Engine */
+/** @typedef {{q: string, a: string, follow: string, red: string}} Question */
+/** @typedef {{junior: Question[], mid: Question[], senior: Question[]}} Interview */
+
+/** @type {Domain[]} */
 const DOMAINS = [];
+/** @type {Array<[string, string, string]>} */
 const SECTION_META = [
   ['what','A','What is it?'],['why','B','Why does it matter?'],['think','C','How should a human think about it?'],
   ['how','D','How do I actually do it?'],['ai','E','What should AI do (and not do)?'],['prompts','F','How should I prompt AI?'],
   ['verify','G','How do I verify AI output?'],['test','H','What should I playtest?']
 ];
+/** @type {Record<string, Topic>} */
 const TOPICS = {};
+/** @param {string} id @param {Topic} o */
 function T(id, o){ o.id = id; TOPICS[id] = o; }
 /* Engine and interview views, attached after the topics are defined (same
    pattern as TECH). eng: how this concept is built in Godot 4 and Unity 6.
    iv: the questions an interviewer asks about it, grouped by seniority.
      eng = { godot:{term,api:[],snippet,pitfall,map}, unity:{...}, note? }
      iv  = { junior:[{q,a,follow,red}], mid:[...], senior:[...] } */
+/** @param {string} id @param {Engine} o */
 function ENGINE(id, o){ const t = TOPICS[id]; if(!t) throw new Error('ENGINE: unknown topic '+id); t.eng = o; }
+/** @param {string} id @param {Interview} o */
 function INTERVIEW(id, o){ const t = TOPICS[id]; if(!t) throw new Error('INTERVIEW: unknown topic '+id); t.iv = o; }
 
 /* =====================================================================
@@ -1033,6 +1079,7 @@ function INTERVIEW(id, o){ const t = TOPICS[id]; if(!t) throw new Error('INTERVI
    works, when it fits, what it costs. Attached after the topics are
    defined so the topic files stay focused on design intent.
    ===================================================================== */
+/** @param {string} id @param {Technique[]} arr */
 function TECH(id, arr){
   const t = TOPICS[id];
   if(!t) throw new Error('TECH: unknown topic ' + id);
@@ -1065,6 +1112,18 @@ const FUN_DIMS = [
   ['choice','Facing options that differ and reflect on you.','Do players hesitate before choosing? Do choices vary?'],
   ['experimentation','Trying things to see what happens, safely.','Do players poke at the system without being told to?']
 ];
+/**
+ * @typedef {object} Smell
+ * @property {string} id
+ * @property {string} t
+ * @property {string[]} dom    domain ids
+ * @property {string} sym      what players do or say
+ * @property {Array<{c: string, top: string, exp: string}>} causes   cause, topic id, experiment
+ * @property {string} prompt
+ * @property {boolean} [fun]   also listed under the fun diagnostic
+ * @property {string[]} [dims] fun dimensions implicated
+ */
+/** @type {Smell[]} */
 const SMELLS = [
   { id:'no-idea', t:'We do not know what game to make', dom:['player','experience','product'],
     sym:`Brainstorms produce premises nobody is excited to build. Every idea sounds like an existing game. The team argues about genre instead of about a player.`,
@@ -14255,7 +14314,53 @@ INTERVIEW('lead-saying-no',{
    product; the suffix after the middle dot is what separates them.
    ===================================================================== */
 
+/**
+ * @typedef {object} Case
+ * @property {string} id
+ * @property {string} t      the project codename
+ * @property {string} code   the same codename, named explicitly for search and chips
+ * @property {string} sub    the descriptive line under it
+ * @property {string} role
+ * @property {string} period
+ * @property {string[]} stack
+ * @property {string} context
+ * @property {string[]} arch
+ * @property {Array<{d: string, why: string, trade: string}>} decisions
+ * @property {Array<{what: string, lesson: string}>} lessons
+ * @property {Array<{s: string, t: string, a: string, r: string}>} stories
+ * @property {Array<[string, string]>} rel
+ * @property {System[]} [systems]   attached by SYSTEMS()
+ * @property {Flow[]} [flows]       attached by FLOWS()
+ * @property {Interview} [iv]       attached by PROJECT_INTERVIEW()
+ */
+/**
+ * @typedef {object} System
+ * @property {string} id
+ * @property {string} t
+ * @property {'client'|'server'|'backend'|'data'|'infra'|'cicd'|'tooling'|'process'} kind
+ * @property {string} sum
+ * @property {string[]} stack
+ * @property {Question[]} iv
+ * @property {Part[]} parts
+ */
+/**
+ * @typedef {object} Part
+ * @property {string} id
+ * @property {string} t
+ * @property {string} what
+ * @property {string[]} how
+ * @property {string} why
+ * @property {string} trade
+ * @property {Array<[string, string]>} rel
+ * @property {Array<[string, string]>} [links]
+ * @property {string} [story]
+ */
+/** @typedef {{id: string, t: string, d: string, sys?: string}} FlowStep */
+/** @typedef {{id: string, t: string, sum: string, steps: FlowStep[], edges: Array<[string, string] | [string, string, string]>}} Flow */
+
+/** @type {Case[]} */
 const CASE_STUDIES = [];
+/** @param {Case} o */
 function CASE(o){ CASE_STUDIES.push(o); }
 
 /* ---------------------------------------------------------------------
@@ -14263,7 +14368,7 @@ function CASE(o){ CASE_STUDIES.push(o); }
    A case study is also a browsable project: its systems and the parts
    inside each, drawn as a mind map under #/experience/<cs>. Attached to an
    existing case the same way ENGINE and INTERVIEW attach to a topic, so
-   the systems live in their own files (33-35) and the case stays readable.
+   the systems live in their own files (41-43) and the case stays readable.
 
    SYSTEMS('cs-id', [{
      id:'', t:'', kind:'',                  // kind is one of KIND_COLOR below
@@ -14301,6 +14406,7 @@ const KIND_LABEL = {
   client:'Client', server:'Game server', backend:'Backend', data:'Data',
   infra:'Infrastructure', cicd:'CI / CD', tooling:'Tooling', process:'Process'
 };
+/** @param {string} csId @param {System[]} arr */
 function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('SYSTEMS: unknown case ' + csId); c.systems = arr; }
 
 /* ---------------------------------------------------------------------
@@ -14330,6 +14436,7 @@ function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if
    a step in the column of its longest path from steps[0], so the chart reads
    left to right in the order the work actually happens.
    --------------------------------------------------------------------- */
+/** @param {string} csId @param {Flow[]} arr */
 function FLOWS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('FLOWS: unknown case ' + csId); c.flows = arr; }
 
 /* ---------------------------------------------------------------------
@@ -14347,6 +14454,7 @@ function FLOWS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!
    10 to 12 questions in total, at least 2 at every level. Answer outlines
    have to stay consistent with the systems and parts already written.
    --------------------------------------------------------------------- */
+/** @param {string} csId @param {Interview} iv */
 function PROJECT_INTERVIEW(csId, iv){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('PROJECT_INTERVIEW: unknown case ' + csId); c.iv = iv; }
 
 CASE({
@@ -17374,7 +17482,43 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
    levels are non-decreasing across a path; prereq and next resolve to
    other path ids; ids are unique.
    ===================================================================== */
+/**
+ * @typedef {object} PathStep
+ * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'reflect'} kind
+ * @property {string} [ref]   omitted for 'reflect'
+ * @property {'overview'|'godot'|'unity'|'interview'} [tab]   topic steps only
+ * @property {string} why
+ * @property {string} do
+ * @property {number} min
+ */
+/**
+ * @typedef {object} PathStage
+ * @property {string} id
+ * @property {string} t
+ * @property {string} level
+ * @property {string} goal
+ * @property {number} hours
+ * @property {PathStep[]} steps
+ * @property {string[]} review
+ * @property {{recall: string[], build: string, skip: string[]}} check
+ */
+/**
+ * @typedef {object} Path
+ * @property {string} [id]   set by PATH()
+ * @property {string} t
+ * @property {string} tag
+ * @property {string} track
+ * @property {string} level
+ * @property {number} hours
+ * @property {string} audience
+ * @property {string} outcome
+ * @property {string[]} prereq
+ * @property {string[]} next
+ * @property {PathStage[]} stages
+ */
+/** @type {Path[]} */
 const PATHS = [];
+/** @param {string} id @param {Path} o */
 function PATH(id, o){ o.id = id; PATHS.push(o); }
 const TRACKS = [['design','Design'],['engineering','Engineering'],['leadership','Leadership'],['interview','Interview prep']];
 const LEVELS = [['beginner','Beginner'],['intermediate','Intermediate'],['advanced','Advanced'],['expert','Expert']];

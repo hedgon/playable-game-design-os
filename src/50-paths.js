@@ -48,7 +48,43 @@
    levels are non-decreasing across a path; prereq and next resolve to
    other path ids; ids are unique.
    ===================================================================== */
+/**
+ * @typedef {object} PathStep
+ * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'reflect'} kind
+ * @property {string} [ref]   omitted for 'reflect'
+ * @property {'overview'|'godot'|'unity'|'interview'} [tab]   topic steps only
+ * @property {string} why
+ * @property {string} do
+ * @property {number} min
+ */
+/**
+ * @typedef {object} PathStage
+ * @property {string} id
+ * @property {string} t
+ * @property {string} level
+ * @property {string} goal
+ * @property {number} hours
+ * @property {PathStep[]} steps
+ * @property {string[]} review
+ * @property {{recall: string[], build: string, skip: string[]}} check
+ */
+/**
+ * @typedef {object} Path
+ * @property {string} [id]   set by PATH()
+ * @property {string} t
+ * @property {string} tag
+ * @property {string} track
+ * @property {string} level
+ * @property {number} hours
+ * @property {string} audience
+ * @property {string} outcome
+ * @property {string[]} prereq
+ * @property {string[]} next
+ * @property {PathStage[]} stages
+ */
+/** @type {Path[]} */
 const PATHS = [];
+/** @param {string} id @param {Path} o */
 function PATH(id, o){ o.id = id; PATHS.push(o); }
 const TRACKS = [['design','Design'],['engineering','Engineering'],['leadership','Leadership'],['interview','Interview prep']];
 const LEVELS = [['beginner','Beginner'],['intermediate','Intermediate'],['advanced','Advanced'],['expert','Expert']];

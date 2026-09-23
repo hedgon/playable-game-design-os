@@ -24,6 +24,18 @@ const FUN_DIMS = [
   ['choice','Facing options that differ and reflect on you.','Do players hesitate before choosing? Do choices vary?'],
   ['experimentation','Trying things to see what happens, safely.','Do players poke at the system without being told to?']
 ];
+/**
+ * @typedef {object} Smell
+ * @property {string} id
+ * @property {string} t
+ * @property {string[]} dom    domain ids
+ * @property {string} sym      what players do or say
+ * @property {Array<{c: string, top: string, exp: string}>} causes   cause, topic id, experiment
+ * @property {string} prompt
+ * @property {boolean} [fun]   also listed under the fun diagnostic
+ * @property {string[]} [dims] fun dimensions implicated
+ */
+/** @type {Smell[]} */
 const SMELLS = [
   { id:'no-idea', t:'We do not know what game to make', dom:['player','experience','product'],
     sym:`Brainstorms produce premises nobody is excited to build. Every idea sounds like an existing game. The team argues about genre instead of about a player.`,

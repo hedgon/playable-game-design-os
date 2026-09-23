@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "types": [],
+    "strict": false
+  },
+  "include": ["src/0*.js", "src/1*.js", "src/2*.js", "src/3*.js", "src/4*.js", "src/5*.js"]
+}

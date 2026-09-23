@@ -29,7 +29,53 @@
    product; the suffix after the middle dot is what separates them.
    ===================================================================== */
 
+/**
+ * @typedef {object} Case
+ * @property {string} id
+ * @property {string} t      the project codename
+ * @property {string} code   the same codename, named explicitly for search and chips
+ * @property {string} sub    the descriptive line under it
+ * @property {string} role
+ * @property {string} period
+ * @property {string[]} stack
+ * @property {string} context
+ * @property {string[]} arch
+ * @property {Array<{d: string, why: string, trade: string}>} decisions
+ * @property {Array<{what: string, lesson: string}>} lessons
+ * @property {Array<{s: string, t: string, a: string, r: string}>} stories
+ * @property {Array<[string, string]>} rel
+ * @property {System[]} [systems]   attached by SYSTEMS()
+ * @property {Flow[]} [flows]       attached by FLOWS()
+ * @property {Interview} [iv]       attached by PROJECT_INTERVIEW()
+ */
+/**
+ * @typedef {object} System
+ * @property {string} id
+ * @property {string} t
+ * @property {'client'|'server'|'backend'|'data'|'infra'|'cicd'|'tooling'|'process'} kind
+ * @property {string} sum
+ * @property {string[]} stack
+ * @property {Question[]} iv
+ * @property {Part[]} parts
+ */
+/**
+ * @typedef {object} Part
+ * @property {string} id
+ * @property {string} t
+ * @property {string} what
+ * @property {string[]} how
+ * @property {string} why
+ * @property {string} trade
+ * @property {Array<[string, string]>} rel
+ * @property {Array<[string, string]>} [links]
+ * @property {string} [story]
+ */
+/** @typedef {{id: string, t: string, d: string, sys?: string}} FlowStep */
+/** @typedef {{id: string, t: string, sum: string, steps: FlowStep[], edges: Array<[string, string] | [string, string, string]>}} Flow */
+
+/** @type {Case[]} */
 const CASE_STUDIES = [];
+/** @param {Case} o */
 function CASE(o){ CASE_STUDIES.push(o); }
 
 /* ---------------------------------------------------------------------
@@ -37,7 +83,7 @@ function CASE(o){ CASE_STUDIES.push(o); }
    A case study is also a browsable project: its systems and the parts
    inside each, drawn as a mind map under #/experience/<cs>. Attached to an
    existing case the same way ENGINE and INTERVIEW attach to a topic, so
-   the systems live in their own files (33-35) and the case stays readable.
+   the systems live in their own files (41-43) and the case stays readable.
 
    SYSTEMS('cs-id', [{
      id:'', t:'', kind:'',                  // kind is one of KIND_COLOR below
@@ -75,6 +121,7 @@ const KIND_LABEL = {
   client:'Client', server:'Game server', backend:'Backend', data:'Data',
   infra:'Infrastructure', cicd:'CI / CD', tooling:'Tooling', process:'Process'
 };
+/** @param {string} csId @param {System[]} arr */
 function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('SYSTEMS: unknown case ' + csId); c.systems = arr; }
 
 /* ---------------------------------------------------------------------
@@ -104,6 +151,7 @@ function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if
    a step in the column of its longest path from steps[0], so the chart reads
    left to right in the order the work actually happens.
    --------------------------------------------------------------------- */
+/** @param {string} csId @param {Flow[]} arr */
 function FLOWS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('FLOWS: unknown case ' + csId); c.flows = arr; }
 
 /* ---------------------------------------------------------------------
@@ -121,6 +169,7 @@ function FLOWS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!
    10 to 12 questions in total, at least 2 at every level. Answer outlines
    have to stay consistent with the systems and parts already written.
    --------------------------------------------------------------------- */
+/** @param {string} csId @param {Interview} iv */
 function PROJECT_INTERVIEW(csId, iv){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('PROJECT_INTERVIEW: unknown case ' + csId); c.iv = iv; }
 
 CASE({
