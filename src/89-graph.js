@@ -263,7 +263,7 @@ window.PlayableGraph = (function(){
   // progress record store.get('path.'+id) returns: { steps, stages }, so a
   // stage node's sub-label and a step node's `seen` style read the same
   // truth the path page and the path bar do. `stepTitle` is the pure global
-  // helper from 50-data-paths-a.js; it is not passed in because it needs no
+  // helper from 50-paths.js; it is not passed in because it needs no
   // per-call state, only the data files already loaded by the time any map
   // is actually drawn.
   const PKEY2 = n => n.kind === 'center' ? 'c' : n.kind === 'domain' ? 'stage:' + n.id : n.kind === 'topic' ? 'step:' + n.id : 'l:' + n.id;

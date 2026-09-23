@@ -24,7 +24,6 @@ const FUN_DIMS = [
   ['choice','Facing options that differ and reflect on you.','Do players hesitate before choosing? Do choices vary?'],
   ['experimentation','Trying things to see what happens, safely.','Do players poke at the system without being told to?']
 ];
-
 const SMELLS = [
   { id:'no-idea', t:'We do not know what game to make', dom:['player','experience','product'],
     sym:`Brainstorms produce premises nobody is excited to build. Every idea sounds like an existing game. The team argues about genre instead of about a player.`,
@@ -216,7 +215,6 @@ const SMELLS = [
       {c:'Barks repeat and grate', top:'allies-and-companions', exp:`Add cooldowns, priority and variety. Keep a few rare high-impact lines. Ask testers whether they muted the ally.`}],
     prompt:`Players find the companion [INEFFECTIVE / OVERPOWERED / STUCK / ANNOYING] in [SECTION]. Here is the ally's role, follow logic, contribution and barks: [DATA]. Diagnose which cause dominates, propose the smallest change that keeps the player central, and define the escort, contribution and bark playtests that would confirm it.` }
 ];
-
 const LOOP_PARTS = [
   { id:'action', t:'Action', sub:'the player does something', weak:'Controls feel sluggish or unclear. The verb is not the fantasy verb.',
     sym:[`Players fight the controls, look at their hands, or describe actions as "clunky".`,`The most frequent action is not the one the fantasy promises.`],
@@ -239,7 +237,6 @@ const LOOP_PARTS = [
     causes:[`Decision-relevant state resets each iteration.`,`Systems do not interact, so state combinations are few.`,`Content varies appearance, not decisions.`,`Skill ceiling reached.`],
     fixes:[`Carry one decision-relevant variable across iterations.`,`Connect two systems so their states combine.`,`Audit content for redundancy. Add pieces that create new decisions.`,`Raise the skill ceiling with a new demand, not a new stat.`], top:['systemic-design','content-multiplies','skill-and-mastery'] }
 ];
-
 const UNFAIR_CAUSES = [
   { id:'rules', t:'Unclear rules', signs:['Players explain the rule wrongly','Players blame randomness for deterministic outcomes','Different players describe different rules'], fix:'Isolate the rule in a safe situation. Show cause with effect. Make the signal consistent.', top:'level-structure' },
   { id:'feedback', t:'Insufficient feedback', signs:['"What killed me?"','Players repeat the same failing action','Failure cause is not shown within two seconds'], fix:'Fill the failure cell of the feedback matrix. Communicate cause, not just result.', top:'feedback-and-affordance' },
@@ -250,14 +247,12 @@ const UNFAIR_CAUSES = [
   { id:'punishment', t:'Excessive punishment', signs:['Failure cost out of proportion to the mistake','Players avoid risk entirely','Frustration language rather than determination'], fix:'Scale the cost to the mistake. Consider fail-forward instead of reset.', top:'challenge-failure-recovery' },
   { id:'mastery', t:'Insufficient mastery opportunity', signs:['The challenge appears once with no practice','Players never had a safe version','Failure teaches nothing usable next time'], fix:'Add a teach beat and a test beat before the master beat. Ensure failure carries a lesson.', top:'level-structure' }
 ];
-
 const CONTENT_TREE = [
   { q:'Is the core loop voluntarily replayed in a stripped build, with no new content?', yes:1, no:'STOP: improve the interaction. Content multiplies a loop. It does not create one. Grey-box the loop and test until players repeat it unprompted.' },
   { q:'Does the proposed piece create a situation or decision that no existing piece creates?', yes:2, no:'IMPROVE EXISTING: merge it into the piece it duplicates, or change the existing piece so it creates the new decision. Adding a look-alike teaches players that content is skippable.' },
   { q:'Do players currently exhaust the existing content before they stop playing?', yes:3, no:'IMPROVE EXISTING: players are leaving before they run out. More content will not be reached. Find the churn point and fix the interaction there.' },
   { q:'Will the piece be consumed once (an arc) or replayed (a loop)?', yes:'ADD (loop content): it multiplies the validated system. Define the distinctness criteria and let AI help generate variations under a human filter.', no:'ADD CAREFULLY (arc content): budget it against consumption rate. Consider whether a systemic source could generate the situation instead of an authored one.' }
 ];
-
 const LADDER_EXAMPLE = {
   feature:'Crafting', behavior:'Players make deliberate preparation decisions before entering dangerous areas, and feel the consequences of preparing well or badly.',
   experience:'Anticipation and tension before a challenge. Competence when preparation pays off. A lesson when it does not.',
@@ -265,3 +260,70 @@ const LADDER_EXAMPLE = {
   mechanic:'Choose a limited loadout from resources gathered. The level telegraphs its threats partially. The loadout visibly matters in the encounter.',
   refeature:'Maybe crafting. Maybe a loadout screen. Maybe a shop before the dungeon. Maybe scouting. The feature is the last decision, not the first.'
 };
+
+/* ---------- smells that connect the studio layer to the diagnostics ---------- */
+SMELLS.push(
+  { id:'pillars-are-slogans', t:'The pillars cannot decide anything', dom:['studio','experience'],
+    sym:`The values are generic, every feature can be justified, and arguments are settled by seniority rather than by the game's intent.`,
+    causes:[
+      {c:'Pillars written as values any game could claim', top:'design-pillars', exp:`Rewrite each pillar as something it forbids. A pillar with no cost is a slogan.`},
+      {c:'No non-goals, so the game grows in every direction', top:'scope-control', exp:`Write the non-goals next to the pillars and cut features that violate them.`},
+      {c:'Features that contradict the pillars survive', top:'feature-vs-experience', exp:`Run the current feature list through the pillars and flag the contradictions.`}],
+    prompt:`Here are our design pillars and our current feature list: [PILLARS, FEATURES]. For each feature, say which pillar it serves or violates. Then name the decisions our pillars cannot resolve and rewrite the weakest pillar so it forbids something concrete.` },
+  { id:'docs-nobody-reads', t:'The documents are stale or ignored', dom:['studio'],
+    sym:`Three documents disagree about the core loop, the design lives in chat, and new people keep asking what the game is.`,
+    causes:[
+      {c:'Documents written once and never updated', top:'design-documents', exp:`Keep a living decision log and retire documents that stopped being true.`},
+      {c:'A heavy specification the team stopped reading', top:'design-documents', exp:`Cut the document to the decisions the reader needs, then test it on someone new.`},
+      {c:'No single source of truth', top:'team-and-collaboration', exp:`Name one owner and one canonical document per decision area.`}],
+    prompt:`Here are our design documents and recent decisions: [DOCUMENTS]. List every contradiction between documents, every settled decision with no record, and the three documents that could be replaced by one living page.` },
+  { id:'vanity-metrics', t:'We measure what is easy, not what matters', dom:['studio','product'],
+    sym:`Dashboards show big numbers nobody acts on, no metric names the behaviour the design expects, and no baseline exists.`,
+    causes:[
+      {c:'No success criterion before the change', top:'metrics-and-success', exp:`Pre-register the signal and the kill criterion with every hypothesis.`},
+      {c:'Measuring a proxy a player can game', top:'metrics-and-success', exp:`Pair every proxy with the outcome it is meant to stand for.`},
+      {c:'Reporting a number with no decision attached', top:'iteration-and-evidence', exp:`Every report ends with the decision it did or did not change.`}],
+    prompt:`Here are the metrics we report and the decisions they supposedly inform: [LIST]. For each, say what behaviour it actually measures, how it could be gamed, and whether it is leading or lagging. Cut every metric with no decision attached.` },
+  { id:'scope-outruns-plan', t:'The plan is a feature list with dates', dom:['studio','production'],
+    sym:`Every milestone is a tally of features, the riskiest work is scheduled last, there is no buffer, and the cut list is decided in a panic.`,
+    causes:[
+      {c:'Milestones defined as feature counts', top:'planning-and-milestones', exp:`Define each milestone by the question it answers and its exit criterion.`},
+      {c:'Estimating in optimism with no buffer', top:'planning-and-milestones', exp:`Estimate in ranges and state the buffer explicitly.`},
+      {c:'No pre-agreed cut list', top:'scope-control', exp:`Agree what goes first before the schedule is tight.`}],
+    prompt:`Here is our milestone plan: [PLAN]. Identify milestones that are feature counts rather than questions, work scheduled after the risk it depends on, and the absence of a buffer. Propose a risk-first ordering and a pre-agreed cut list.` },
+  { id:'testers-cannot-play', t:'No playable build to test', dom:['studio','production'],
+    sym:`A designer cannot get a build that runs, testers cannot reach the new system, and the same bug returns after every merge.`,
+    causes:[
+      {c:'No playable build cadence', top:'quality-and-build-health', exp:`Name a build and a cadence, and protect them.`},
+      {c:'Bugs triaged by visibility rather than by blocked evidence', top:'quality-and-build-health', exp:`Triage blockers first, cosmetics last, no matter how loud each is.`},
+      {c:'Regressions not linked to their change', top:'iteration-and-evidence', exp:`Log each regression against the change that caused it.`}],
+    prompt:`Here is our open bug list and current test goal: [LIST, GOAL]. Order the bugs by whether they block the goal or the core loop, and name the cosmetic bugs that are actually blocking evidence.` },
+  { id:'invisible-launch', t:'Nobody can tell what the game is', dom:['product'],
+    sym:`The capsule and store page describe a different game, launch arrives with no audience, and the hook is a feature list.`,
+    causes:[
+      {c:'No one-sentence hook', top:'launch-and-discoverability', exp:`Write the hook as one sentence a stranger could repeat, and make the capsule show it.`},
+      {c:'The page promises what the first ten minutes do not deliver', top:'launch-and-discoverability', exp:`Test the page against the first minutes and cut every promise the build does not keep.`},
+      {c:'No audience built before launch', top:'audience-and-positioning', exp:`Pick the beats that build wishlists before release and work them early.`}],
+    prompt:`Here is our store copy, capsule description and first ten minutes: [CONTEXT]. Identify every promise the build does not keep, then rewrite the hook so it is mechanical and true to the first minute.` },
+  { id:'launch-and-abandon', t:'A live plan with no capacity', dom:['product','studio'],
+    sym:`The roadmap promises seasons the team cannot build, feedback goes unanswered, and patches contradict each other.`,
+    causes:[
+      {c:'Post-launch promised without staffing it', top:'live-operations', exp:`Set a cadence the team can keep, then promise only that.`},
+      {c:'No channel for player feedback', top:'live-operations', exp:`Give players a channel and an owner who answers it.`},
+      {c:'Monetization that funds nothing players can feel', top:'business-model', exp:`Connect each revenue stream to something the player can see and value.`}],
+    prompt:`Here is our post-launch plan and our team capacity: [CONTEXT]. Flag everything the cadence cannot sustain and rewrite the plan so every promise maps to capacity and to something the player can feel.` },
+  { id:'english-shaped-ui', t:'The interface breaks in other languages', dom:['product','ux'],
+    sym:`Text overflows its button in German, grammar assumptions break, meaning is baked into images, and translation starts last.`,
+    causes:[
+      {c:'Strings not externalized', top:'localization-and-culture', exp:`Externalize every string and test with pseudo-localization.`},
+      {c:'Layouts do not budget for expansion', top:'localization-and-culture', exp:`Design for the longest language, not the current one.`},
+      {c:'Culture-specific references treated as universal', top:'premise-and-world', exp:`Mark references that will not translate and decide their replacement.`}],
+    prompt:`Here are our screens and strings: [LIST]. For each screen, give the maximum expansion the layout allows, which strings depend on grammar or word order, and which meaning is carried by an image or voice line rather than text.` },
+  { id:'pressure-not-want', t:'Retention by pressure, not by want', dom:['product','player'],
+    sym:`Players return to avoid losing progress rather than because they want to play, and the model is hard to describe without the word trap.`,
+    causes:[
+      {c:'The loop pressures rather than informs', top:'ethics-and-responsibility', exp:`Remove the pressure and check whether the loop still retains.`},
+      {c:'A model that pays for a problem the design created', top:'ethics-and-responsibility', exp:`Fix the design problem instead of selling the skip.`},
+      {c:'Engagement measured without asking whether the player would endorse it', top:'metrics-and-success', exp:`Add a signal for regret and for voluntary return, not only for return.`}],
+    prompt:`Here is our retention loop and monetization: [CONTEXT]. Identify where the design pressures rather than informs, propose the smallest change that keeps the experience and removes the pressure, and name the signal that would show players are returning by choice.` }
+);

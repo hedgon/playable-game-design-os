@@ -1238,7 +1238,7 @@ function renderExperience(id, a, b){
     return renderTree(p ? 'part' : 'sys');
   }
   setView(`${crumbs([['Map','#/map'],['Experience']])}<h1>Experience</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
-    ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/29-data-experience.js and appear here as soon as one is written.</div>'}`);
+    ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/40-cases.js and appear here as soon as one is written.</div>'}`);
 }
 
 /* =====================================================================
@@ -1248,7 +1248,7 @@ function renderExperience(id, a, b){
    started, last } under localStorage key path.<id>. `paths.active` names
    the one path the path bar (see pathBarHTML, called from setView) tracks
    across every route. stepTitle/stepHref are pure globals defined in
-   50-data-paths-a.js so the path map (89-graph.js) can use them too.
+   50-paths.js so the path map (89-graph.js) can use them too.
    ===================================================================== */
 function pathProgress(id){ return store.get('path.' + id, { steps:{}, stages:{}, started:null, last:null }); }
 function savePathProgress(id, prog){ store.set('path.' + id, prog); }
@@ -1356,7 +1356,7 @@ function pathsDoorHTML(){
   return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
     ${continueCard}
     ${outcomes ? `<div class="section-head"><h2>What do you want to be able to do?</h2></div>${outcomes}` : ''}
-    ${tracks || '<div class="empty">No paths written yet. They live in src/50/51-data-paths-*.js.</div>'}
+    ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
     <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
 }
 

@@ -1,8 +1,8 @@
 /* =====================================================================
    PROJECT SYSTEMS - C: the Unity multiplatform port
-   Case: cs-unity-multiplatform-port (defined in 29-data-experience.js)
+   Case: cs-unity-multiplatform-port (defined in 40-cases.js)
 
-   Shape (full contract and field meanings live in 29-data-experience.js):
+   Shape (full contract and field meanings live in 40-cases.js):
 
      SYSTEMS('cs-unity-multiplatform-port', [{
        id:'', t:'', kind:'', sum:'', stack:[''],
@@ -786,7 +786,7 @@ SYSTEMS('cs-unity-multiplatform-port', [
 
 /* ---------------------------------------------------------------------
    FLOWS and PROJECT_INTERVIEW for cs-unity-multiplatform-port.
-   Contract and step/edge rules live in src/29-data-experience.js.
+   Contract and step/edge rules live in src/40-cases.js.
    Content sourced only from the multiplatform port survey and the
    systems and parts already written above.
    --------------------------------------------------------------------- */

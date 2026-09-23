@@ -1,8 +1,8 @@
 /* =====================================================================
    PROJECT SYSTEMS - B: the Unity mobile client and its CI
-   Case: cs-unity-mobile-client-ci (defined in 29-data-experience.js)
+   Case: cs-unity-mobile-client-ci (defined in 40-cases.js)
 
-   Shape (full contract and field meanings live in 29-data-experience.js):
+   Shape (full contract and field meanings live in 40-cases.js):
 
      SYSTEMS('cs-unity-mobile-client-ci', [{
        id:'', t:'', kind:'', sum:'', stack:[''],
@@ -660,7 +660,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
 ]);
 
 /* ---------------------------------------------------------------------
-   WORKFLOWS for this project (shape and rules in 29-data-experience.js).
+   WORKFLOWS for this project (shape and rules in 40-cases.js).
    3 flows: boot to the first playable scene, a player build from job
    parameters to a device-tested artefact, and a pull request from branch
    to a merged, smoke-tested main. Steps stay reachable from steps[0] and
@@ -765,9 +765,9 @@ FLOWS('cs-unity-mobile-client-ci', [
 
 /* ---------------------------------------------------------------------
    PROJECT INTERVIEW for this project (shape and rules in
-   29-data-experience.js). 11 questions total: 3 junior, 4 mid, 4 senior.
+   40-cases.js). 11 questions total: 3 junior, 4 mid, 4 senior.
    Outlines stay consistent with the systems and stories already written
-   above and in 29-data-experience.js.
+   above and in 40-cases.js.
    --------------------------------------------------------------------- */
 PROJECT_INTERVIEW('cs-unity-mobile-client-ci', {
   junior:[

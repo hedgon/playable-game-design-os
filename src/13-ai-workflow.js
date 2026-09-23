@@ -1,20 +1,3 @@
-/* ---------------- extra cross-cutting topic ---------------- */
-T('feature-vs-experience',{ d:'experience', t:'Experience thinking, not feature thinking', tag:'"We need crafting" is a feature. "Players should make meaningful preparation decisions" is a design goal. Start from the second.',
-  what:`Feature thinking starts from a thing to build and justifies it afterwards: feature, implementation, justification. Experience thinking starts from a player behavior and derives the feature last: desired player behavior, experience, system, mechanic, feature. The same word ("crafting") can be the right answer to a behavior goal or a genre reflex. The ladder tells you which.`,
-  why:[`Features are how scope inflates: each is plausible, none is necessary, and together they bury the core.`,`A behavior goal admits many solutions, some far cheaper than the feature you first imagined.`,`AI makes features cheap to propose and build. Without a behavior goal there is no way to reject them.`],
-  think:{ q:[`What do I want the player to do differently? Say it as an observable behavior.`,`What would they feel while doing it?`,`What system creates that situation? What is the smallest mechanic that implements it?`,`Only now: which feature, and could an existing one do the job?`],
-    trade:[`Behavior-first design is slower to start and far cheaper to finish.`,`Genre features carry player expectations. Omitting one may cost recognition even if it adds no behavior.`],
-    traps:[`Writing the behavior to justify the feature you already wanted.`,`Behavior goals that are not observable ("players feel immersed").`,`Skipping the system rung and jumping from behavior to feature.`],
-    good:[`Feature proposals arrive with a behavior and a signal attached.`,`Features get cut when a cheaper mechanic produces the behavior.`],
-    bad:[`The roadmap is a list of nouns.`] },
-  how:[`Use the Behavior Ladder tool: start with the feature idea, climb to the behavior, then descend again to the smallest mechanic.`,`For every feature request, demand the behavior and the observable signal.`,`Compare the original feature with the mechanic the ladder produced. Build the smaller one.`,`Test for the behavior, not for the feature's presence.`],
-  ai:{ yes:[`Climb the ladder from a feature to candidate behaviors.`,`Generate alternative mechanics for a stated behavior.`,`Flag feature requests that lack a behavior.`],
-       no:[`Choose the behavior. That is what the game is about.`] },
-  prompts:[{l:'Ladder climb',p:`Someone proposed the feature "[FEATURE]". Climb the ladder: what player behaviors could this feature exist to produce (list 3, each observable in a playtest)? For the most plausible, what experience does the behavior create? What system would produce that situation? What is the smallest mechanic that implements it? Compare that mechanic with the original feature: which is cheaper and which produces the behavior more reliably?`}],
-  verify:[`Are the behaviors observable, or feelings?`,`Did it land back on the original feature by default?`],
-  test:[`Did the behavior appear? Measure it directly. Do not measure feature usage.`],
-  rel:[['core-experience','The behavior serves the core experience.'],['scope-control','The ladder is the scope filter at feature level.'],['should-we-build-this','The decision tree is the ladder plus evidence.'],['hypothesis-driven-design','A behavior goal is a hypothesis.']] });
-
 /* ---------------- AI ROLES ---------------- */
 const ROLES = [
   { id:'brainstormer', t:'AI Brainstormer', job:'Expands the possibility space.', use:['You have a well-framed problem and need mechanically distinct options.','You suspect you are anchored on the first idea.','Early in a cycle, before critique.'],
@@ -54,7 +37,6 @@ const ROLES = [
     starter:`Act as a devil's advocate. Argue as strongly as you can that we should NOT build [FEATURE or DESIGN]: that the player does not want it, that a simpler change to [EXISTING] would produce the behavior, that it dilutes "[CORE EXPERIENCE]", and that its full cost is higher than stated. Then state what evidence would change your mind.`,
     verify:['Did it argue, or hedge?','Is the evidence it asks for observable?'] }
 ];
-
 /* ---------------- AI FAILURE MODES ---------------- */
 const FAILURES = [
   { t:'Generic design', sym:'Output could describe any game in the genre. Nothing surprises.', why:'The prompt lacked fantasy, player, constraints or evidence, so the model returned the genre average.', detect:'Read the proposal with the game name removed. Could it be any game? Ask a colleague to guess which game it is for.', fix:'Re-prompt with the full framework: player, fantasy verbs, what the game is not. Filter every proposal by the fantasy verbs.' },
@@ -72,7 +54,6 @@ const FAILURES = [
   { t:'Iteration without player evidence', sym:'Many builds, many changes, no playtests. The design drifts.', why:'AI iteration is fast enough to outrun the testing cadence. Each iteration feels like progress.', detect:'When did a player last touch the build? More than two cycles ago is a failure.', fix:'Hard rule: no more than two AI iterations without a player. Schedule tests before builds.' },
   { t:'Treating AI output as authority', sym:'"The AI said" ends design arguments. Nobody remembers deciding.', why:'Fluent, confident output from a tireless source is easy to defer to, especially under time pressure.', detect:'Ask who decided the current design and why. If the answer cites AI output, ownership drifted.', fix:'Use the responsibility matrix. Route embedded decisions to a human by name. Record decisions with the human’s reason.' }
 ];
-
 /* ---------------- RESPONSIBILITY MATRIX ---------------- */
 const MATRIX = [
   ['Define the player and fantasy','PRIMARY','Assist','Identity. AI can draft candidates for you to recognize. It cannot know who you are making this for.'],
@@ -96,7 +77,6 @@ const MATRIX = [
   ['Decide monetization ethics','PRIMARY','Assist','Values. AI can model revenue and flag friction.'],
   ['Write and maintain the iteration log','Assist','PRIMARY','Bookkeeping. Humans write the decisions and reasons.']
 ];
-
 /* ---------------- MASTER LOOP ---------------- */
 const LOOP_STEPS = [
   { n:1, t:'Define', goal:'Player, fantasy, intended experience.', human:'Write the player sketch, the fantasy sentence, the core experience statement, the not-list.', ai:'Draft candidates to react to. Dissect reference games. Flag contradictions between fantasy and mechanic list.', out:'A one-paragraph experience statement the team can recite.', exit:'Any team member can use the statement to reject an idea.', fail:'Defining in genre terms ("a roguelike deckbuilder") instead of experience terms.', top:['core-experience','fantasy','who-is-the-player'] },
@@ -112,7 +92,6 @@ const LOOP_STEPS = [
   { n:11, t:'Polish', goal:'Amplify the validated experience.', human:'Rank polish by impact on the most important actions. Judge feel with players.', ai:'Implement feel systems. Rank opportunities by impact per cost. Check readability constraints.', out:'Clearer, more satisfying feedback on validated interactions.', exit:'Feedback is clearer, not just louder. Readability survives.', fail:'Polishing before validation. Uniform juice on everything.', top:['polish-when','game-feel-and-juice'] },
   { n:12, t:'Repeat', goal:'Back to define or hypothesize.', human:'Revisit the experience statement against what players actually enjoyed. Pick the next riskiest assumption.', ai:'Summarize the cycle. Propose next hypotheses. Detect skipped steps.', out:'An updated experience statement and the next hypothesis.', exit:'The next cycle starts with a hypothesis, not a feature.', fail:'Treating polish as the end.', top:['ai-loop','core-experience'] }
 ];
-
 /* ---------------- PROMPT TEMPLATES ---------------- */
 const PROMPT_TEMPLATES = [
   { id:'brainstorm', cat:'Explore', t:'Brainstorming (distinct options, no recommendation)', vars:['PLAYER','FANTASY','LOOP','PROBLEM','CONSTRAINTS'],
@@ -150,7 +129,6 @@ const PROMPT_TEMPLATES = [
   { id:'verify', cat:'Critique', t:'Verification pass on any AI output', vars:[],
     p:`About your previous output: 1. List every assumption and mark each as given by me, inferred, or invented. 2. For each factual or "best practice" claim, give the source or say you have none. 3. What player behavior would prove the proposal wrong? 4. Is this solving the problem I stated, or a nearby one? Quote my problem. 5. Which complexity is necessary and which could be removed? 6. What is the smallest prototype that tests this and what result would kill it? 7. What alternatives did you reject and why? 8. What tradeoff are we making?` }
 ];
-
 /* ---------------- CHECKLISTS ---------------- */
 const CHECKLISTS = [
   { id:'design-review', t:'Design review: any feature', desc:'Run before committing production time to any feature. Every group must have an answer, not a shrug.',
@@ -193,7 +171,6 @@ const CHECKLISTS = [
       ['Content',['Content was added only to validated systems.','Distinctness criteria exist for every content type being generated.','Players can tell recent content pieces apart by what they make them do.']],
       ['Evidence',['A player touched the build within the last two iteration cycles.','Decisions this month cite evidence in the log.','Something was cut this month.']] ] }
 ];
-
 /* ---------------- SHOULD WE BUILD THIS? ---------------- */
 const FEATURE_TREE = [
   { id:'problem', q:'What player problem does it solve?', opts:[['A specific observed problem (from playtests)',3],['A problem we predict but have not observed',1],['No problem. It is an opportunity or a genre expectation',0]] },

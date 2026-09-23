@@ -1,13 +1,13 @@
 /* =====================================================================
    LEARNING PATHS, continued
    Second file for the same PATH()/PATHS registry defined in
-   50-data-paths-a.js (loaded first, so PATH, PATHS, TRACKS and LEVELS
+   50-paths.js (loaded first, so PATH, PATHS, TRACKS and LEVELS
    already exist here). Kept separate so two content passes can work at
    once without touching the same file: this file is for the engineering
    tracks (gameplay-engineer-godot, gameplay-engineer-unity,
    live-game-backend-engineer, netcode-server-engineer,
    build-and-release-engineer, interview-prep-engineer), written the same
-   way as the paths in 50-data-paths-a.js. Run `node src/inventory.js` for
+   way as the paths in 50-paths.js. Run `node src/inventory.js` for
    every valid ref before writing a path here. Empty until that content
    lands; an empty file is valid, since a path only has to exist once it is
    written.

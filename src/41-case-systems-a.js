@@ -1,8 +1,8 @@
 /* =====================================================================
    PROJECT SYSTEMS - A: the Go backend for a live mobile game
-   Case: cs-go-game-backend (defined in 29-data-experience.js)
+   Case: cs-go-game-backend (defined in 40-cases.js)
 
-   Shape (full contract and field meanings live in 29-data-experience.js):
+   Shape (full contract and field meanings live in 40-cases.js):
 
      SYSTEMS('cs-go-game-backend', [{
        id:'', t:'', kind:'', sum:'', stack:[''],
@@ -716,7 +716,7 @@ SYSTEMS('cs-go-game-backend', [
 ]);
 
 /* ---------------------------------------------------------------------
-   WORKFLOWS for this project (shape and rules in 29-data-experience.js).
+   WORKFLOWS for this project (shape and rules in 40-cases.js).
    Each flow is a small acyclic graph drawn as a chart by PlayableFlow:
    4 to 9 steps, `sys` naming a system of this project so the card takes
    that system's colour, edges forming a DAG with every step reachable
@@ -826,7 +826,7 @@ FLOWS('cs-go-game-backend', [
 
 /* ---------------------------------------------------------------------
    PROJECT INTERVIEW for this project (shape and rules in
-   29-data-experience.js). These are the questions asked about the project
+   40-cases.js). These are the questions asked about the project
    as a whole, the kind that follow "walk me through this" on a CV, rather
    than the system-level "likely questions" attached above.
    --------------------------------------------------------------------- */

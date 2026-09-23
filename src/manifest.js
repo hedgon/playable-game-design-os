@@ -1,40 +1,41 @@
 // Single source of truth for the build: which source files exist and in what
-// order. build.js, validate.js and check-layout.js all read this, so adding or
-// renaming a data file is a one-line change here instead of four.
+// order. build.js, validate.js, check-layout.js and inventory.js all read
+// this, so adding or renaming a data file is a one-line change here.
+// Data order matters: the registry and schema come first, then diagnostics,
+// AI workflow and references, then one file per domain in map order, then
+// case studies and learning paths, which only reference earlier data.
 const HEAD = '01-head.html';
 const DATA = [
   '05-registry.js',
-  '10-data-domains.js',
-  '11-data-topics-systems.js',
-  '12-data-topics-ux.js',
-  '13-data-topics-product-ai.js',
-  '14-data-diagnostics.js',
-  '15-data-ai.js',
-  '16-data-references.js',
-  '17-data-topics-gameai.js',
-  '18-data-tech.js',
-  '19-data-tech.js',
-  '20-data-tech.js',
-  '21-data-tech.js',
-  '22-data-practice.js',
-  '23-data-practice.js',
-  '24-data-backend.js',
-  '25-data-infra.js',
-  '26-data-server.js',
-  '27-data-management.js',
-  '28-data-leadership.js',
-  '29-data-experience.js',
-  '30-data-engine-a.js',
-  '31-data-engine-b.js',
-  '32-data-engine-c.js',
-  '33-data-experience-systems-a.js',
-  '34-data-experience-systems-b.js',
-  '35-data-experience-systems-c.js',
-  '40-data-interview-a.js',
-  '41-data-interview-b.js',
-  '42-data-interview-c.js',
-  '50-data-paths-a.js',
-  '51-data-paths-b.js'
+  '10-schema.js',
+  '12-diagnostics.js',
+  '13-ai-workflow.js',
+  '14-references.js',
+  '20-topics-player.js',
+  '21-topics-experience.js',
+  '22-topics-core.js',
+  '23-topics-systems.js',
+  '24-topics-content.js',
+  '25-topics-level.js',
+  '26-topics-ux.js',
+  '27-topics-narrative.js',
+  '28-topics-presentation.js',
+  '29-topics-product.js',
+  '30-topics-production.js',
+  '31-topics-ai.js',
+  '32-topics-gameai.js',
+  '33-topics-studio.js',
+  '34-topics-backend.js',
+  '35-topics-infra.js',
+  '36-topics-server.js',
+  '37-topics-management.js',
+  '38-topics-leadership.js',
+  '40-cases.js',
+  '41-case-systems-a.js',
+  '42-case-systems-b.js',
+  '43-case-systems-c.js',
+  '50-paths.js',
+  '51-paths-engineering.js'
 ];
 // FLOW draws the workflow charts, GRAPH the mind maps. Both are pure renderers
 // with no dependency on each other, but FLOW loads first so the order matches

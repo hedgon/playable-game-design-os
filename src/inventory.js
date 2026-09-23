@@ -1,5 +1,5 @@
 // Reference inventory: every id a learning-path step can point to, printed by
-// kind, so a content author writing a PATH() in 50/51-data-paths-*.js can
+// kind, so a content author writing a PATH() in 50-paths.js or 51-paths-engineering.js can
 // pick a real ref instead of guessing one. Loads the DATA files the same way
 // validate.js does (a bare `new Function` over the concatenated source: the
 // data files declare plain consts with no browser dependency).
