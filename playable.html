@@ -51,6 +51,15 @@ a:hover{text-decoration:underline}
 .lnk.strong{font-weight:700}
 /* A section title is a button for the keyboard but reads as the heading. */
 .sec-btn{all:unset;cursor:pointer}
+/* skip control: off screen until focused */
+.skip{position:absolute;left:8px;top:-60px;z-index:300;padding:8px 14px;background:var(--panel);color:var(--fg);border:2px solid var(--accent);border-radius:var(--r2);font-weight:700}
+.skip:focus{top:8px}
+/* a heading that receives focus after navigation is not a control */
+h1[tabindex="-1"]:focus{outline:none}
+.keys-toggle{display:flex;gap:8px;align-items:center;margin:10px 0 4px;font-size:.9rem}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
 .sec-btn:focus-visible,.sec-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
 button{font:inherit;color:inherit;cursor:pointer}
 input,textarea,select{font:inherit;color:var(--fg);background:var(--bg2);border:1px solid var(--line);border-radius:var(--r3);padding:8px 10px;width:100%}
@@ -907,6 +916,7 @@ details.comp .body{padding-top:6px}
 </style>
 </head>
 <body>
+<button class="skip" id="skipBtn">Skip to content</button>
 <header class="topbar">
   <button class="brand" id="brandBtn" title="Home map"><span class="logo"></span><span>Playable<small>game design OS · AI era</small></span></button>
   <button class="iconbtn railbtn" id="railToggle" title="Browse concepts" aria-label="Browse concepts">☰</button>
@@ -939,8 +949,9 @@ details.comp .body{padding-top:6px}
       <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
       <tr><td><kbd>?</kbd></td><td>This help</td></tr>
     </table>
-    <p class="muted small">Shortcuts are ignored while you are typing in a field. All your tool inputs, checklist states and reading progress are saved in this browser (localStorage) and never leave your machine.</p>
-    <div class="row"><button class="btn" id="helpClose">Close</button><button class="btn ghost danger" id="resetAll">Reset all saved data</button></div>
+    <label class="keys-toggle"><input type="checkbox" id="keysToggle"> Single-key shortcuts (1 to 9, [ ], E, M, T, / and ?)</label>
+    <p class="muted small">Shortcuts are ignored while you are typing in a field. All your tool inputs, checklist states, stories and reading progress are saved in this browser (localStorage) and never leave your machine. A browser can clear that storage, so export a copy to keep it or to move it to another browser.</p>
+    <div class="row"><button class="btn" id="helpClose">Close</button><button class="btn ghost" id="exportData">Export my data</button><button class="btn ghost" id="importData">Import…</button><button class="btn ghost danger" id="resetAll">Reset all saved data</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
   </div>
 </div>
 <div class="modal-bg start-modal" id="startModal" role="dialog" aria-modal="true" aria-label="Starting paths">
@@ -951,7 +962,7 @@ details.comp .body{padding-top:6px}
     <div class="row"><button class="btn" id="startClose">Close</button><a class="btn ghost" href="#/map/home">Back to the map</a></div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 
 /* =====================================================================
@@ -19098,7 +19109,8 @@ DOMAINS.forEach(d => d.topics = TOPIC_LIST.filter(t => t.d === d.id).map(t => t.
 const late = name => (...a) => A[name](...a);
 const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
   enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
-  toolDissect = late('toolDissect'), renderLab = late('renderLab'), fitMap = late('fitMap');
+  toolDissect = late('toolDissect'), renderLab = late('renderLab'), fitMap = late('fitMap'),
+  consumeMapKeyNav = late('consumeMapKeyNav');
 
 /* ---------- storage ---------- */
 const store = {
@@ -19111,9 +19123,14 @@ function markSeen(id){ if(!seen.has(id)){ seen.add(id); store.set('seen', [...se
 function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `${s} / ${n} topics`; $('#progressBar').style.width = (100*s/n)+'%'; }
 
 /* ---------- theme ---------- */
-function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); store.set('theme', t); }
-applyTheme(store.get('theme', (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark'));
-$('#themeBtn').onclick = () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+// The theme follows the system until the reader picks one with the toggle;
+// only that explicit choice is stored, and Reset returns to the system.
+const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
+const systemTheme = () => lightQuery.matches ? 'light' : 'dark';
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
+applyTheme(store.get('theme', null) || systemTheme());
+lightQuery.addEventListener('change', () => { if(!store.get('theme', null)) applyTheme(systemTheme()); });
+$('#themeBtn').onclick = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(t); store.set('theme', t); };
 
 /* ---------- toast / copy ---------- */
 let toastT;
@@ -19150,6 +19167,55 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 // Keys 1-9 map to the first nine entries, so anything added here goes last.
 const VIEWS = [['paths','Paths'],['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
+// Below this width the index and the content are drawers over the map.
+const narrowQuery = window.matchMedia('(max-width: 1100px)');   // the same width as the drawer CSS
+const isNarrow = () => narrowQuery.matches;
+const currentParts = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+// Routes that only reshape the map: home, a domain, a project's system.
+// On a narrow screen they keep the map in front; every other route is
+// something to read or use, so the content drawer opens for it.
+function mapOnly(parts){
+  const [v, a, b, c] = parts;
+  if(!v || v === 'map') return !a || a === 'home' || a === 'd';
+  if(v === 'experience' && a && b && !c) return !['workflows', 'interview', 'flow', 'overview'].includes(b);
+  return false;
+}
+function showPaneFor(parts){
+  if(!isNarrow()) return;
+  $('#pane').classList.toggle('open', !mapOnly(parts));
+  $('#rail').classList.remove('open');
+  syncScrim();
+}
+// A tab, tool or stage change inside one page is the same page for focus.
+function routeKey(p){
+  const [v, a, b, c] = p;
+  if(!v || v === 'map') return a === 't' || a === 's' ? `map/${a}/${b}` : 'map';
+  if(v === 'experience'){
+    if(!a) return 'experience';
+    if(!b || ['workflows', 'interview', 'overview'].includes(b)) return 'experience/' + a;
+    return b === 'flow' ? `experience/${a}/flow/${c}` : `experience/${a}/${b}/${c || ''}`;
+  }
+  if(['diagnose', 'smell', 'ai', 'build', 'prompts', 'checklists'].includes(v)) return v === 'smell' ? 'diagnose' : v;
+  if(v === 'paths') return a ? 'paths/' + a : 'paths';
+  return p.slice(0, 2).join('/');
+}
+// After a navigation the new content gets focus, so keyboard and screen
+// reader users land on what changed. A new page focuses its heading; a tab
+// change keeps focus on the active tab. Keyboard travel inside the map, a
+// view that placed focus itself (a search box) and map-only routes are left
+// alone.
+function placeFocus(parts, samePage){
+  if(consumeMapKeyNav() || mapOnly(parts)) return;
+  const pane = $('#pane');
+  if(isNarrow() && !pane.classList.contains('open')) return;
+  const a = document.activeElement;
+  if(a && a !== document.body && pane.contains(a)) return;
+  const t = (samePage && pane.querySelector('.tabs .active, .tool-nav .active')) || pane.querySelector('h1');
+  if(!t) return;
+  if(!t.matches('a, button, input, select, textarea')) t.setAttribute('tabindex', '-1');
+  t.focus({ preventScroll: true });
+}
+let lastRouteKey = null, booted = false;
 function route(){
   const raw = location.hash.replace(/^#\/?/, '');
   // First-ever load (no hash, nothing in this browser yet) opens the door
@@ -19163,6 +19229,15 @@ function route(){
   $$('#primaryNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   closeModals();
   syncMapMode(view, parts[1]);
+  render(view, parts);
+  showPaneFor(parts);
+  const key = routeKey(parts), samePage = key === lastRouteKey;
+  lastRouteKey = key;
+  // The first render keeps the browser's own focus; later ones move it.
+  if(booted) placeFocus(parts, samePage);
+  booted = true;
+}
+function render(view, parts){
   switch(view){
     case 'paths': return renderPaths(parts[1], parts[2]);
     case 'map': return renderMap(parts[1], parts[2], parts[3]);
@@ -19230,8 +19305,8 @@ function wireShell(){
   const closeDrawers = () => { $('#rail').classList.remove('open'); $('#pane').classList.remove('open'); syncScrim(); };
   scrim.onclick = closeDrawers;
   $('#drawerClose').onclick = closeDrawers;
-  $('#collapseLeft').onclick = () => { if(window.innerWidth <= 1100){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
-  $('#collapseRight').onclick = () => { if(window.innerWidth <= 1100){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
+  $('#collapseLeft').onclick = () => { if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
+  $('#collapseRight').onclick = () => { if(isNarrow()){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
   renderTree('home');
 }
 function railHTML(activeDom, activeTopic){
@@ -19290,8 +19365,14 @@ function railActive(){
   if(parts[0]==='explore' && DOM[parts[1]]) return { dom: parts[1], topic: null };
   return { dom: null, topic: null };
 }
-function syncScrim(){ const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && window.innerWidth <= 1100; $('#scrim').classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); }
-function closeRailDrawer(r){ if(window.innerWidth <= 1100){ r.classList.remove('open'); const p = $('#pane'); if(p) p.classList.add('open'); syncScrim(); } }
+function syncScrim(){ const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && isNarrow(); $('#scrim').classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); }
+function closeRailDrawer(r){ if(isNarrow()){ r.classList.remove('open'); syncScrim(); } }
+// Crossing the narrow width swaps drawers for panes: drop drawer state when
+// widening, and apply the route's pane rule when narrowing.
+narrowQuery.addEventListener('change', () => {
+  if(isNarrow()) showPaneFor(currentParts());
+  else { $('#rail').classList.remove('open'); $('#pane').classList.remove('open'); syncScrim(); }
+});
 function railFilter(r, sel){
   const s = $('#railSearch'); if(!s) return;
   s.addEventListener('input', () => { const q = s.value.trim().toLowerCase();
@@ -19308,7 +19389,7 @@ function updateRail(){
   if(proj){
     r.innerHTML = railProjectHTML(proj, hash[2], hash[3]);
     r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/experience/${proj.id}` : `#/experience/${proj.id}/${b.dataset.sys}`; }));
-    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = b.dataset.flow ? `#/experience/${proj.id}/flow/${b.dataset.flow}` : `#/experience/${proj.id}/${b.dataset.sys}/${b.dataset.part}`; closeRailDrawer(r); }));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go(b.dataset.flow ? `#/experience/${proj.id}/flow/${b.dataset.flow}` : `#/experience/${proj.id}/${b.dataset.sys}/${b.dataset.part}`); closeRailDrawer(r); }));
     railFilter(r, '.railtopic');
     return;
   }
@@ -19316,13 +19397,13 @@ function updateRail(){
   if(pth){
     r.innerHTML = railPathHTML(pth, hash[2]);
     r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${b.dataset.stage}`; }));
-    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { const st = pth.stages.find(s => s.id === b.dataset.stage); const step = st && st.steps[+b.dataset.step]; if(step) location.hash = stepHref(step, pth.id, st.id); closeRailDrawer(r); }));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { const st = pth.stages.find(s => s.id === b.dataset.stage); const step = st && st.steps[+b.dataset.step]; if(step) go(stepHref(step, pth.id, st.id)); closeRailDrawer(r); }));
     railFilter(r, '.railtopic');
     return;
   }
   const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
-  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; closeRailDrawer(r); }));
+  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/map/t/' + b.dataset.topic); closeRailDrawer(r); }));
   railFilter(r, '.railtopic');
 }
 function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `${pathBarHTML()}<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
@@ -20326,7 +20407,7 @@ function renderExperience(id, a, b){
     }
     const s = (c.systems || []).find(x => x.id === a) || null;
     if(!s){
-      setProjTab(c, a === 'workflows' || a === 'interview' ? a : null);
+      setProjTab(c, ['overview', 'workflows', 'interview'].includes(a) ? a : null);
       enterProject(c, projTab === 'workflows' ? 'workflows' : null, null);
       setView(projectPage(c));
       return renderTree(projTab === 'workflows' ? 'sys' : 'home');
@@ -20587,24 +20668,82 @@ function renderSearch(){ const q = $('#searchInput').value; searchResults = sear
   $('#searchCount').textContent = searchResults.length ? `${searchResults.length} results` : '';
   $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); }); }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
-function openSearch(){ $('#searchModal').classList.add('show'); const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); setTimeout(() => inp.focus(), 10); }
-function closeModals(){ $$('.modal-bg').forEach(m => m.classList.remove('show')); }
+function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); openModal('searchModal', '#searchInput'); }
+// A dialog takes focus when it opens, keeps Tab inside while open, and hands
+// focus back to whatever opened it when it closes.
+let modalOpener = null;
+const focusables = m => $$('button, [href], input:not([hidden]), select, textarea', m).filter(x => !x.disabled && x.offsetParent !== null);
+function openModal(id, focusSel){
+  closeModals();
+  modalOpener = document.activeElement;
+  const m = $('#' + id); m.classList.add('show');
+  const f = (focusSel && $(focusSel, m)) || focusables(m)[0];
+  if(f) f.focus();
+}
+function closeModals(){
+  const open = $$('.modal-bg.show'); if(!open.length) return;
+  const hadFocus = open.some(m => m.contains(document.activeElement));
+  open.forEach(m => m.classList.remove('show'));
+  if(hadFocus){ if(modalOpener && modalOpener.isConnected && modalOpener !== document.body) modalOpener.focus(); else document.activeElement.blur(); }
+  modalOpener = null;
+}
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Tab') return;
+  const m = $('.modal-bg.show'); if(!m) return;
+  const f = focusables(m); if(!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if(!m.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+  else if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
 $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
 $$('.modal-bg').forEach(m => m.addEventListener('click', e => { if(e.target === m) closeModals(); }));
-$('#helpBtn').onclick = () => $('#helpModal').classList.add('show');
+$('#helpBtn').onclick = () => openModal('helpModal');
 $('#helpClose').onclick = closeModals;
 $('#resetAll').onclick = () => { if(confirm('Reset all saved data (progress, tool inputs, checklists)?')){ store.clear(); location.reload(); } };
+// Single-letter shortcuts can fire by accident under speech input or a
+// screen reader, so they can be switched off (WCAG 2.1.4).
+const keysOn = () => store.get('keys', true);
+$('#keysToggle').checked = keysOn();
+$('#keysToggle').onchange = e => store.set('keys', e.target.checked);
+// Everything the reader writes lives in localStorage, which a browser may
+// clear; export and import move it as one JSON file.
+const OWN = k => k.startsWith('playable.');
+$('#exportData').onclick = () => {
+  const data = {}; Object.keys(localStorage).filter(OWN).forEach(k => { data[k] = localStorage.getItem(k); });
+  const blob = new Blob([JSON.stringify({ app: 'playable', v: 1, exportedAt: new Date().toISOString(), data }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'playable-data-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  if(navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  toast(`Exported ${Object.keys(data).length} saved items`);
+};
+$('#importData').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = ''; if(!file) return;
+  let obj; try { obj = JSON.parse(await file.text()); } catch(err){ return toast('That file is not a Playable export'); }
+  const entries = obj && obj.app === 'playable' && obj.data && typeof obj.data === 'object' ? Object.entries(obj.data) : null;
+  if(!entries || !entries.every(([k, v]) => OWN(k) && typeof v === 'string')) return toast('That file is not a Playable export');
+  if(!confirm(`Replace everything saved in this browser with the ${entries.length} items exported ${String(obj.exportedAt || '').slice(0, 10)}?`)) return;
+  const before = Object.keys(localStorage).filter(OWN).map(k => [k, localStorage.getItem(k)]);
+  try { before.forEach(([k]) => localStorage.removeItem(k)); entries.forEach(([k, v]) => localStorage.setItem(k, v)); }
+  catch(err){ Object.keys(localStorage).filter(OWN).forEach(k => localStorage.removeItem(k)); before.forEach(([k, v]) => localStorage.setItem(k, v)); return toast('Import failed; nothing was changed'); }
+  location.reload();
+};
+$('#skipBtn').onclick = () => {
+  const p = $('#pane'); if(isNarrow()){ p.classList.add('open'); syncScrim(); }
+  const h = p.querySelector('h1'); if(h){ h.setAttribute('tabindex', '-1'); h.focus(); }
+};
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='Escape'){ closeModals(); return; }
-  if(typing) return;
+  if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='?'){ $('#helpModal').classList.add('show'); return; }
+  if(e.key==='?'){ openModal('helpModal'); return; }
   if(/^[1-9]$/.test(e.key)){ go('#/'+VIEWS[+e.key-1][0]); return; }
   if(e.key.toLowerCase()==='m'){ fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
@@ -20616,9 +20755,9 @@ document.addEventListener('keydown', e => {
 });
 
 // What the later files import from this one.
-Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route,
+Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, field, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, closeModals, DIAGRAM_DISSECTION });
+  topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal, DIAGRAM_DISSECTION });
 })(window.PlayableApp = {});
 
 
@@ -20630,8 +20769,8 @@ Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, upda
    ===================================================================== */
 (function(A){
 'use strict';
-const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, setView, crumbs, domChip, list,
-  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals } = A;
+const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, isNarrow, setView, crumbs, domChip, list,
+  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal } = A;
 const START_PATHS = [
   ['#/paths','I want to learn step by step','Pick a path and follow one visible next step at a time, with a soft checkpoint per stage.',''],
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
@@ -20648,7 +20787,7 @@ const SYMPTOMS = [
   ['Combat feels floaty','floaty-combat'],['Players say it is unfair','unfair'],['Too many features, not better','features-not-better'],['AI keeps giving generic ideas','ai-ideas-none-right']
 ];
 function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) => `<button class="symptom" data-href="#/smell/${id}">${esc(s)}</button>`).join('')}<a class="symptom more" href="#/diagnose/smells">All ${SMELLS.length} smells →</a></div>`; }
-function openStart(){ closeModals(); const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); $('#startModal').classList.add('show'); }
+function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); openModal('startModal'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
@@ -20771,14 +20910,29 @@ function cameraTarget(g, cam, kind){
 }
 
 let MAP = null; // { wrap, svg, tip, g, vb, anim, hover }
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 function mapAnimateTo(to, ms=480){
   const M = MAP; if(!M) return; if(M.anim) cancelFrame(M.anim.h);
+  if(ms <= 0 || reducedMotion.matches){ M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); return; }
   const from = Object.assign({}, M.vb); const t0 = performance.now(); const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
   const step = now => { const k = Math.min(1, (now - t0)/ms), e = ease(k); M.vb = { x: from.x + (to.x-from.x)*e, y: from.y + (to.y-from.y)*e, w: from.w + (to.w-from.w)*e, h: from.h + (to.h-from.h)*e }; applyVB(M.svg, M.vb); if(k < 1) M.anim.h = nextFrame(step); else { M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); } };
   M.anim = { h: nextFrame(step) };
 }
 function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim = null; } }
-function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h }; saveCur(); }
+// The camera is stored with the stage size it was framed for; a camera saved
+// on a different screen is not restored, the tree is framed afresh instead.
+function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h, sw:MAP.wrap.clientWidth, sh:MAP.wrap.clientHeight }; saveCur(); }
+function savedCamera(vb){
+  if(!vb || !vb.w || !vb.sw) return null;
+  const w = MAP.wrap.clientWidth, h = MAP.wrap.clientHeight;
+  return Math.abs(vb.sw - w) <= w * 0.2 && Math.abs(vb.sh - h) <= h * 0.2 ? vb : null;
+}
+// Where the camera should be for this graph on this stage.
+function stageTarget(g, kind, cam){
+  let target = cameraTarget(g, cam, kind);
+  if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
+  return target;
+}
 
 function projTipHTML(n){
   const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
@@ -20857,7 +21011,10 @@ function mapClick(n){
   if(kind==='view'){ const v = VIEW_LINKS[id]; if(v) go(v[0]); }
 }
 
-function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); } }
+function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(fitBox(MAP.g.bbox)); } }
+// True once after Enter or Space on a map node, so the route that follows
+// leaves keyboard focus on the map instead of moving it to the content.
+function consumeMapKeyNav(){ const k = !!(MAP && MAP.keyNav); if(MAP) MAP.keyNav = false; return k; }
 // The node a keyboard user lands on when tabbing into the map: the one the
 // route selected, else the open branch, else the centre.
 function currentKey(){
@@ -20930,7 +21087,7 @@ function initMapStage(){
   const wrap = $('#mapwrap'), svg = $('#mapsvg'), tip = $('#maptip');
   MAP = { wrap, svg, tip, g:null, vb:null, anim:null, hover:null };
   const screenToVB = (cx, cy) => { const r = svg.getBoundingClientRect(); return [MAP.vb.x + (cx - r.left)/r.width*MAP.vb.w, MAP.vb.y + (cy - r.top)/r.height*MAP.vb.h]; };
-  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); mapPersistCamera(); };
+  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); MAP.userCamera = true; mapPersistCamera(); };
   let drag = null, nodeDrag = null, suppressClick = false, pinch = null, raf = 0; const touchPts = new Map();
   const nodeKeyAt = e => { const n = e.target.closest ? e.target.closest('.node') : null; return n ? n.dataset.key : null; };
   // Offsets belong to whichever map is on stage, so a nudge on the project map
@@ -20970,7 +21127,7 @@ function initMapStage(){
   const onUp = e => {
     if(nodeDrag){ if(nodeDrag.moved){ saveCur(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } nodeDrag = null; if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
     if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
-    if(drag && drag.moved){ mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
+    if(drag && drag.moved){ MAP.userCamera = true; mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
   const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; nodeDrag = null; }; window.addEventListener('blur', clearTouches);
   svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); }, {passive:false});
@@ -20987,6 +21144,13 @@ function initMapStage(){
     const next = nearestNode(n, d[0], d[1]); if(next) focusNode(next);
   });
   $('#mapFit').onclick = fitMap;
+  // When the stage changes size (window, rotation, a panel collapsed or
+  // dragged) the camera is framed again, unless the reader moved it.
+  let resizeT = 0;
+  new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
+    if(!MAP.g || MAP.userCamera || !document.body.contains(svg)) return;
+    mapStopAnim(); const t = stageTarget(MAP.g, MAP.kind, MAP.vb); MAP.vb = t; applyVB(svg, t); mapPersistCamera();
+  }, 150); }).observe(wrap);
   $('#mapResetDrag').onclick = resetMapDrag;
   $('#mapResetDefault').onclick = resetMapDefault;
   $('#mapZoomIn').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1/1.15);
@@ -21014,16 +21178,15 @@ function renderTree(kind){
   const g = paintGraph();
   const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
   const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
+  const stored = savedCamera(st.vb);
   if(mapStage !== stageKey){
     mapStage = stageKey; mapStopAnim();
-    MAP.vb = st.vb && st.vb.w ? Object.assign({}, st.vb) : null;
+    MAP.vb = stored ? Object.assign({}, stored) : null;
     if(MAP.vb) applyVB(MAP.svg, MAP.vb);
   }
-  const stored = st.vb && st.vb.w ? st.vb : null;
   if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
-  let target = cameraTarget(g, stored || MAP.vb, kind);
-  if(window.innerWidth <= 1100 && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
-  mapAnimateTo(target);
+  MAP.kind = kind; MAP.userCamera = false;
+  mapAnimateTo(stageTarget(g, kind, stored || MAP.vb));
 }
 // `tab` is the fourth route part (#/map/t/<id>/<tab>). It selects which topic
 // view the content pane shows and is deliberately kept out of mapState: the
@@ -21053,7 +21216,7 @@ function syncMapMode(view, id){
   if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 
-Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap });
+Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav });
 })(window.PlayableApp);
 
 /* =====================================================================

@@ -6,8 +6,8 @@
    ===================================================================== */
 (function(A){
 'use strict';
-const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, setView, crumbs, domChip, list,
-  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals } = A;
+const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, isNarrow, setView, crumbs, domChip, list,
+  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal } = A;
 const START_PATHS = [
   ['#/paths','I want to learn step by step','Pick a path and follow one visible next step at a time, with a soft checkpoint per stage.',''],
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
@@ -24,7 +24,7 @@ const SYMPTOMS = [
   ['Combat feels floaty','floaty-combat'],['Players say it is unfair','unfair'],['Too many features, not better','features-not-better'],['AI keeps giving generic ideas','ai-ideas-none-right']
 ];
 function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) => `<button class="symptom" data-href="#/smell/${id}">${esc(s)}</button>`).join('')}<a class="symptom more" href="#/diagnose/smells">All ${SMELLS.length} smells →</a></div>`; }
-function openStart(){ closeModals(); const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); $('#startModal').classList.add('show'); }
+function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); openModal('startModal'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
 const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
@@ -147,14 +147,29 @@ function cameraTarget(g, cam, kind){
 }
 
 let MAP = null; // { wrap, svg, tip, g, vb, anim, hover }
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 function mapAnimateTo(to, ms=480){
   const M = MAP; if(!M) return; if(M.anim) cancelFrame(M.anim.h);
+  if(ms <= 0 || reducedMotion.matches){ M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); return; }
   const from = Object.assign({}, M.vb); const t0 = performance.now(); const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
   const step = now => { const k = Math.min(1, (now - t0)/ms), e = ease(k); M.vb = { x: from.x + (to.x-from.x)*e, y: from.y + (to.y-from.y)*e, w: from.w + (to.w-from.w)*e, h: from.h + (to.h-from.h)*e }; applyVB(M.svg, M.vb); if(k < 1) M.anim.h = nextFrame(step); else { M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); } };
   M.anim = { h: nextFrame(step) };
 }
 function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim = null; } }
-function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h }; saveCur(); }
+// The camera is stored with the stage size it was framed for; a camera saved
+// on a different screen is not restored, the tree is framed afresh instead.
+function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h, sw:MAP.wrap.clientWidth, sh:MAP.wrap.clientHeight }; saveCur(); }
+function savedCamera(vb){
+  if(!vb || !vb.w || !vb.sw) return null;
+  const w = MAP.wrap.clientWidth, h = MAP.wrap.clientHeight;
+  return Math.abs(vb.sw - w) <= w * 0.2 && Math.abs(vb.sh - h) <= h * 0.2 ? vb : null;
+}
+// Where the camera should be for this graph on this stage.
+function stageTarget(g, kind, cam){
+  let target = cameraTarget(g, cam, kind);
+  if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
+  return target;
+}
 
 function projTipHTML(n){
   const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
@@ -233,7 +248,10 @@ function mapClick(n){
   if(kind==='view'){ const v = VIEW_LINKS[id]; if(v) go(v[0]); }
 }
 
-function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); } }
+function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(fitBox(MAP.g.bbox)); } }
+// True once after Enter or Space on a map node, so the route that follows
+// leaves keyboard focus on the map instead of moving it to the content.
+function consumeMapKeyNav(){ const k = !!(MAP && MAP.keyNav); if(MAP) MAP.keyNav = false; return k; }
 // The node a keyboard user lands on when tabbing into the map: the one the
 // route selected, else the open branch, else the centre.
 function currentKey(){
@@ -306,7 +324,7 @@ function initMapStage(){
   const wrap = $('#mapwrap'), svg = $('#mapsvg'), tip = $('#maptip');
   MAP = { wrap, svg, tip, g:null, vb:null, anim:null, hover:null };
   const screenToVB = (cx, cy) => { const r = svg.getBoundingClientRect(); return [MAP.vb.x + (cx - r.left)/r.width*MAP.vb.w, MAP.vb.y + (cy - r.top)/r.height*MAP.vb.h]; };
-  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); mapPersistCamera(); };
+  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); MAP.userCamera = true; mapPersistCamera(); };
   let drag = null, nodeDrag = null, suppressClick = false, pinch = null, raf = 0; const touchPts = new Map();
   const nodeKeyAt = e => { const n = e.target.closest ? e.target.closest('.node') : null; return n ? n.dataset.key : null; };
   // Offsets belong to whichever map is on stage, so a nudge on the project map
@@ -346,7 +364,7 @@ function initMapStage(){
   const onUp = e => {
     if(nodeDrag){ if(nodeDrag.moved){ saveCur(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } nodeDrag = null; if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
     if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
-    if(drag && drag.moved){ mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
+    if(drag && drag.moved){ MAP.userCamera = true; mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
   const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; nodeDrag = null; }; window.addEventListener('blur', clearTouches);
   svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); }, {passive:false});
@@ -363,6 +381,13 @@ function initMapStage(){
     const next = nearestNode(n, d[0], d[1]); if(next) focusNode(next);
   });
   $('#mapFit').onclick = fitMap;
+  // When the stage changes size (window, rotation, a panel collapsed or
+  // dragged) the camera is framed again, unless the reader moved it.
+  let resizeT = 0;
+  new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
+    if(!MAP.g || MAP.userCamera || !document.body.contains(svg)) return;
+    mapStopAnim(); const t = stageTarget(MAP.g, MAP.kind, MAP.vb); MAP.vb = t; applyVB(svg, t); mapPersistCamera();
+  }, 150); }).observe(wrap);
   $('#mapResetDrag').onclick = resetMapDrag;
   $('#mapResetDefault').onclick = resetMapDefault;
   $('#mapZoomIn').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1/1.15);
@@ -390,16 +415,15 @@ function renderTree(kind){
   const g = paintGraph();
   const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
   const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
+  const stored = savedCamera(st.vb);
   if(mapStage !== stageKey){
     mapStage = stageKey; mapStopAnim();
-    MAP.vb = st.vb && st.vb.w ? Object.assign({}, st.vb) : null;
+    MAP.vb = stored ? Object.assign({}, stored) : null;
     if(MAP.vb) applyVB(MAP.svg, MAP.vb);
   }
-  const stored = st.vb && st.vb.w ? st.vb : null;
   if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
-  let target = cameraTarget(g, stored || MAP.vb, kind);
-  if(window.innerWidth <= 1100 && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
-  mapAnimateTo(target);
+  MAP.kind = kind; MAP.userCamera = false;
+  mapAnimateTo(stageTarget(g, kind, stored || MAP.vb));
 }
 // `tab` is the fourth route part (#/map/t/<id>/<tab>). It selects which topic
 // view the content pane shows and is deliberately kept out of mapState: the
@@ -429,5 +453,5 @@ function syncMapMode(view, id){
   if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 
-Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap });
+Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav });
 })(window.PlayableApp);

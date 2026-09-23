@@ -51,6 +51,15 @@ a:hover{text-decoration:underline}
 .lnk.strong{font-weight:700}
 /* A section title is a button for the keyboard but reads as the heading. */
 .sec-btn{all:unset;cursor:pointer}
+/* skip control: off screen until focused */
+.skip{position:absolute;left:8px;top:-60px;z-index:300;padding:8px 14px;background:var(--panel);color:var(--fg);border:2px solid var(--accent);border-radius:var(--r2);font-weight:700}
+.skip:focus{top:8px}
+/* a heading that receives focus after navigation is not a control */
+h1[tabindex="-1"]:focus{outline:none}
+.keys-toggle{display:flex;gap:8px;align-items:center;margin:10px 0 4px;font-size:.9rem}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
 .sec-btn:focus-visible,.sec-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
 button{font:inherit;color:inherit;cursor:pointer}
 input,textarea,select{font:inherit;color:var(--fg);background:var(--bg2);border:1px solid var(--line);border-radius:var(--r3);padding:8px 10px;width:100%}
@@ -907,6 +916,7 @@ details.comp .body{padding-top:6px}
 </style>
 </head>
 <body>
+<button class="skip" id="skipBtn">Skip to content</button>
 <header class="topbar">
   <button class="brand" id="brandBtn" title="Home map"><span class="logo"></span><span>Playable<small>game design OS · AI era</small></span></button>
   <button class="iconbtn railbtn" id="railToggle" title="Browse concepts" aria-label="Browse concepts">☰</button>
@@ -939,8 +949,9 @@ details.comp .body{padding-top:6px}
       <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
       <tr><td><kbd>?</kbd></td><td>This help</td></tr>
     </table>
-    <p class="muted small">Shortcuts are ignored while you are typing in a field. All your tool inputs, checklist states and reading progress are saved in this browser (localStorage) and never leave your machine.</p>
-    <div class="row"><button class="btn" id="helpClose">Close</button><button class="btn ghost danger" id="resetAll">Reset all saved data</button></div>
+    <label class="keys-toggle"><input type="checkbox" id="keysToggle"> Single-key shortcuts (1 to 9, [ ], E, M, T, / and ?)</label>
+    <p class="muted small">Shortcuts are ignored while you are typing in a field. All your tool inputs, checklist states, stories and reading progress are saved in this browser (localStorage) and never leave your machine. A browser can clear that storage, so export a copy to keep it or to move it to another browser.</p>
+    <div class="row"><button class="btn" id="helpClose">Close</button><button class="btn ghost" id="exportData">Export my data</button><button class="btn ghost" id="importData">Import…</button><button class="btn ghost danger" id="resetAll">Reset all saved data</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
   </div>
 </div>
 <div class="modal-bg start-modal" id="startModal" role="dialog" aria-modal="true" aria-label="Starting paths">
@@ -951,5 +962,5 @@ details.comp .body{padding-top:6px}
     <div class="row"><button class="btn" id="startClose">Close</button><a class="btn ghost" href="#/map/home">Back to the map</a></div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>

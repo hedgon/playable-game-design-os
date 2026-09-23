@@ -16,7 +16,8 @@ DOMAINS.forEach(d => d.topics = TOPIC_LIST.filter(t => t.d === d.id).map(t => t.
 const late = name => (...a) => A[name](...a);
 const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
   enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
-  toolDissect = late('toolDissect'), renderLab = late('renderLab'), fitMap = late('fitMap');
+  toolDissect = late('toolDissect'), renderLab = late('renderLab'), fitMap = late('fitMap'),
+  consumeMapKeyNav = late('consumeMapKeyNav');
 
 /* ---------- storage ---------- */
 const store = {
@@ -29,9 +30,14 @@ function markSeen(id){ if(!seen.has(id)){ seen.add(id); store.set('seen', [...se
 function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `${s} / ${n} topics`; $('#progressBar').style.width = (100*s/n)+'%'; }
 
 /* ---------- theme ---------- */
-function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); store.set('theme', t); }
-applyTheme(store.get('theme', (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark'));
-$('#themeBtn').onclick = () => applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+// The theme follows the system until the reader picks one with the toggle;
+// only that explicit choice is stored, and Reset returns to the system.
+const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
+const systemTheme = () => lightQuery.matches ? 'light' : 'dark';
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
+applyTheme(store.get('theme', null) || systemTheme());
+lightQuery.addEventListener('change', () => { if(!store.get('theme', null)) applyTheme(systemTheme()); });
+$('#themeBtn').onclick = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(t); store.set('theme', t); };
 
 /* ---------- toast / copy ---------- */
 let toastT;
@@ -68,6 +74,55 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 // Keys 1-9 map to the first nine entries, so anything added here goes last.
 const VIEWS = [['paths','Paths'],['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
+// Below this width the index and the content are drawers over the map.
+const narrowQuery = window.matchMedia('(max-width: 1100px)');   // the same width as the drawer CSS
+const isNarrow = () => narrowQuery.matches;
+const currentParts = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+// Routes that only reshape the map: home, a domain, a project's system.
+// On a narrow screen they keep the map in front; every other route is
+// something to read or use, so the content drawer opens for it.
+function mapOnly(parts){
+  const [v, a, b, c] = parts;
+  if(!v || v === 'map') return !a || a === 'home' || a === 'd';
+  if(v === 'experience' && a && b && !c) return !['workflows', 'interview', 'flow', 'overview'].includes(b);
+  return false;
+}
+function showPaneFor(parts){
+  if(!isNarrow()) return;
+  $('#pane').classList.toggle('open', !mapOnly(parts));
+  $('#rail').classList.remove('open');
+  syncScrim();
+}
+// A tab, tool or stage change inside one page is the same page for focus.
+function routeKey(p){
+  const [v, a, b, c] = p;
+  if(!v || v === 'map') return a === 't' || a === 's' ? `map/${a}/${b}` : 'map';
+  if(v === 'experience'){
+    if(!a) return 'experience';
+    if(!b || ['workflows', 'interview', 'overview'].includes(b)) return 'experience/' + a;
+    return b === 'flow' ? `experience/${a}/flow/${c}` : `experience/${a}/${b}/${c || ''}`;
+  }
+  if(['diagnose', 'smell', 'ai', 'build', 'prompts', 'checklists'].includes(v)) return v === 'smell' ? 'diagnose' : v;
+  if(v === 'paths') return a ? 'paths/' + a : 'paths';
+  return p.slice(0, 2).join('/');
+}
+// After a navigation the new content gets focus, so keyboard and screen
+// reader users land on what changed. A new page focuses its heading; a tab
+// change keeps focus on the active tab. Keyboard travel inside the map, a
+// view that placed focus itself (a search box) and map-only routes are left
+// alone.
+function placeFocus(parts, samePage){
+  if(consumeMapKeyNav() || mapOnly(parts)) return;
+  const pane = $('#pane');
+  if(isNarrow() && !pane.classList.contains('open')) return;
+  const a = document.activeElement;
+  if(a && a !== document.body && pane.contains(a)) return;
+  const t = (samePage && pane.querySelector('.tabs .active, .tool-nav .active')) || pane.querySelector('h1');
+  if(!t) return;
+  if(!t.matches('a, button, input, select, textarea')) t.setAttribute('tabindex', '-1');
+  t.focus({ preventScroll: true });
+}
+let lastRouteKey = null, booted = false;
 function route(){
   const raw = location.hash.replace(/^#\/?/, '');
   // First-ever load (no hash, nothing in this browser yet) opens the door
@@ -81,6 +136,15 @@ function route(){
   $$('#primaryNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   closeModals();
   syncMapMode(view, parts[1]);
+  render(view, parts);
+  showPaneFor(parts);
+  const key = routeKey(parts), samePage = key === lastRouteKey;
+  lastRouteKey = key;
+  // The first render keeps the browser's own focus; later ones move it.
+  if(booted) placeFocus(parts, samePage);
+  booted = true;
+}
+function render(view, parts){
   switch(view){
     case 'paths': return renderPaths(parts[1], parts[2]);
     case 'map': return renderMap(parts[1], parts[2], parts[3]);
@@ -148,8 +212,8 @@ function wireShell(){
   const closeDrawers = () => { $('#rail').classList.remove('open'); $('#pane').classList.remove('open'); syncScrim(); };
   scrim.onclick = closeDrawers;
   $('#drawerClose').onclick = closeDrawers;
-  $('#collapseLeft').onclick = () => { if(window.innerWidth <= 1100){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
-  $('#collapseRight').onclick = () => { if(window.innerWidth <= 1100){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
+  $('#collapseLeft').onclick = () => { if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
+  $('#collapseRight').onclick = () => { if(isNarrow()){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
   renderTree('home');
 }
 function railHTML(activeDom, activeTopic){
@@ -208,8 +272,14 @@ function railActive(){
   if(parts[0]==='explore' && DOM[parts[1]]) return { dom: parts[1], topic: null };
   return { dom: null, topic: null };
 }
-function syncScrim(){ const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && window.innerWidth <= 1100; $('#scrim').classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); }
-function closeRailDrawer(r){ if(window.innerWidth <= 1100){ r.classList.remove('open'); const p = $('#pane'); if(p) p.classList.add('open'); syncScrim(); } }
+function syncScrim(){ const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && isNarrow(); $('#scrim').classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); }
+function closeRailDrawer(r){ if(isNarrow()){ r.classList.remove('open'); syncScrim(); } }
+// Crossing the narrow width swaps drawers for panes: drop drawer state when
+// widening, and apply the route's pane rule when narrowing.
+narrowQuery.addEventListener('change', () => {
+  if(isNarrow()) showPaneFor(currentParts());
+  else { $('#rail').classList.remove('open'); $('#pane').classList.remove('open'); syncScrim(); }
+});
 function railFilter(r, sel){
   const s = $('#railSearch'); if(!s) return;
   s.addEventListener('input', () => { const q = s.value.trim().toLowerCase();
@@ -226,7 +296,7 @@ function updateRail(){
   if(proj){
     r.innerHTML = railProjectHTML(proj, hash[2], hash[3]);
     r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/experience/${proj.id}` : `#/experience/${proj.id}/${b.dataset.sys}`; }));
-    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = b.dataset.flow ? `#/experience/${proj.id}/flow/${b.dataset.flow}` : `#/experience/${proj.id}/${b.dataset.sys}/${b.dataset.part}`; closeRailDrawer(r); }));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go(b.dataset.flow ? `#/experience/${proj.id}/flow/${b.dataset.flow}` : `#/experience/${proj.id}/${b.dataset.sys}/${b.dataset.part}`); closeRailDrawer(r); }));
     railFilter(r, '.railtopic');
     return;
   }
@@ -234,13 +304,13 @@ function updateRail(){
   if(pth){
     r.innerHTML = railPathHTML(pth, hash[2]);
     r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${b.dataset.stage}`; }));
-    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { const st = pth.stages.find(s => s.id === b.dataset.stage); const step = st && st.steps[+b.dataset.step]; if(step) location.hash = stepHref(step, pth.id, st.id); closeRailDrawer(r); }));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { const st = pth.stages.find(s => s.id === b.dataset.stage); const step = st && st.steps[+b.dataset.step]; if(step) go(stepHref(step, pth.id, st.id)); closeRailDrawer(r); }));
     railFilter(r, '.railtopic');
     return;
   }
   const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
-  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { location.hash = '#/map/t/' + b.dataset.topic; closeRailDrawer(r); }));
+  r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/map/t/' + b.dataset.topic); closeRailDrawer(r); }));
   railFilter(r, '.railtopic');
 }
 function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `${pathBarHTML()}<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
@@ -1244,7 +1314,7 @@ function renderExperience(id, a, b){
     }
     const s = (c.systems || []).find(x => x.id === a) || null;
     if(!s){
-      setProjTab(c, a === 'workflows' || a === 'interview' ? a : null);
+      setProjTab(c, ['overview', 'workflows', 'interview'].includes(a) ? a : null);
       enterProject(c, projTab === 'workflows' ? 'workflows' : null, null);
       setView(projectPage(c));
       return renderTree(projTab === 'workflows' ? 'sys' : 'home');
@@ -1505,24 +1575,82 @@ function renderSearch(){ const q = $('#searchInput').value; searchResults = sear
   $('#searchCount').textContent = searchResults.length ? `${searchResults.length} results` : '';
   $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); }); }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
-function openSearch(){ $('#searchModal').classList.add('show'); const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); setTimeout(() => inp.focus(), 10); }
-function closeModals(){ $$('.modal-bg').forEach(m => m.classList.remove('show')); }
+function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); openModal('searchModal', '#searchInput'); }
+// A dialog takes focus when it opens, keeps Tab inside while open, and hands
+// focus back to whatever opened it when it closes.
+let modalOpener = null;
+const focusables = m => $$('button, [href], input:not([hidden]), select, textarea', m).filter(x => !x.disabled && x.offsetParent !== null);
+function openModal(id, focusSel){
+  closeModals();
+  modalOpener = document.activeElement;
+  const m = $('#' + id); m.classList.add('show');
+  const f = (focusSel && $(focusSel, m)) || focusables(m)[0];
+  if(f) f.focus();
+}
+function closeModals(){
+  const open = $$('.modal-bg.show'); if(!open.length) return;
+  const hadFocus = open.some(m => m.contains(document.activeElement));
+  open.forEach(m => m.classList.remove('show'));
+  if(hadFocus){ if(modalOpener && modalOpener.isConnected && modalOpener !== document.body) modalOpener.focus(); else document.activeElement.blur(); }
+  modalOpener = null;
+}
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Tab') return;
+  const m = $('.modal-bg.show'); if(!m) return;
+  const f = focusables(m); if(!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if(!m.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+  else if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
 $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
 $$('.modal-bg').forEach(m => m.addEventListener('click', e => { if(e.target === m) closeModals(); }));
-$('#helpBtn').onclick = () => $('#helpModal').classList.add('show');
+$('#helpBtn').onclick = () => openModal('helpModal');
 $('#helpClose').onclick = closeModals;
 $('#resetAll').onclick = () => { if(confirm('Reset all saved data (progress, tool inputs, checklists)?')){ store.clear(); location.reload(); } };
+// Single-letter shortcuts can fire by accident under speech input or a
+// screen reader, so they can be switched off (WCAG 2.1.4).
+const keysOn = () => store.get('keys', true);
+$('#keysToggle').checked = keysOn();
+$('#keysToggle').onchange = e => store.set('keys', e.target.checked);
+// Everything the reader writes lives in localStorage, which a browser may
+// clear; export and import move it as one JSON file.
+const OWN = k => k.startsWith('playable.');
+$('#exportData').onclick = () => {
+  const data = {}; Object.keys(localStorage).filter(OWN).forEach(k => { data[k] = localStorage.getItem(k); });
+  const blob = new Blob([JSON.stringify({ app: 'playable', v: 1, exportedAt: new Date().toISOString(), data }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'playable-data-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  if(navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  toast(`Exported ${Object.keys(data).length} saved items`);
+};
+$('#importData').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = ''; if(!file) return;
+  let obj; try { obj = JSON.parse(await file.text()); } catch(err){ return toast('That file is not a Playable export'); }
+  const entries = obj && obj.app === 'playable' && obj.data && typeof obj.data === 'object' ? Object.entries(obj.data) : null;
+  if(!entries || !entries.every(([k, v]) => OWN(k) && typeof v === 'string')) return toast('That file is not a Playable export');
+  if(!confirm(`Replace everything saved in this browser with the ${entries.length} items exported ${String(obj.exportedAt || '').slice(0, 10)}?`)) return;
+  const before = Object.keys(localStorage).filter(OWN).map(k => [k, localStorage.getItem(k)]);
+  try { before.forEach(([k]) => localStorage.removeItem(k)); entries.forEach(([k, v]) => localStorage.setItem(k, v)); }
+  catch(err){ Object.keys(localStorage).filter(OWN).forEach(k => localStorage.removeItem(k)); before.forEach(([k, v]) => localStorage.setItem(k, v)); return toast('Import failed; nothing was changed'); }
+  location.reload();
+};
+$('#skipBtn').onclick = () => {
+  const p = $('#pane'); if(isNarrow()){ p.classList.add('open'); syncScrim(); }
+  const h = p.querySelector('h1'); if(h){ h.setAttribute('tabindex', '-1'); h.focus(); }
+};
 
 /* ---------- keyboard ---------- */
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='Escape'){ closeModals(); return; }
-  if(typing) return;
+  if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='?'){ $('#helpModal').classList.add('show'); return; }
+  if(e.key==='?'){ openModal('helpModal'); return; }
   if(/^[1-9]$/.test(e.key)){ go('#/'+VIEWS[+e.key-1][0]); return; }
   if(e.key.toLowerCase()==='m'){ fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
@@ -1534,8 +1662,8 @@ document.addEventListener('keydown', e => {
 });
 
 // What the later files import from this one.
-Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route,
+Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, field, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, closeModals, DIAGRAM_DISSECTION });
+  topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal, DIAGRAM_DISSECTION });
 })(window.PlayableApp = {});
 
