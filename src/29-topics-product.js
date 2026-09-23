@@ -292,7 +292,8 @@ INTERVIEW('business-model',{
       red:`Adds a shop and a currency and treats the rest of the design as unaffected.` }
   ] });
 FACTS('business-model',[
-  { claim:`On 11 December 2025 the US Ninth Circuit largely upheld the injunction in Epic v. Apple: Apple may not restrict links to outside purchases in US apps, and whether it may charge a commission on those purchases went back to the district court. Apple has asked the Supreme Court to review the case.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' }
+  { claim:`On 11 December 2025 the US Ninth Circuit upheld the finding that Apple was in contempt of the Epic v. Apple injunction. On the US App Store, Apple may not block links to outside purchases or require them to be less prominent than its own purchase buttons, though it may stop them being more prominent. A total ban on commission for those purchases went too far: Apple may charge one limited to its genuine costs of handling the links, with the details sent back to the district court.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' },
+  { claim:`On 30 June 2026 the US Supreme Court agreed to hear Apple's appeal of the contempt ruling, limited to the first question in Apple's petition; Apple filed its brief on 14 September 2026.`, asOf:'2026-09-23', src:'https://www.supremecourt.gov/docket/docketfiles/html/public/25-1311.html' }
 ]);
 
 T('scope-control',{ d:'product', t:'Scope control', tag:'Scope should follow validated value, not imagination. AI makes this harder, not easier.',
@@ -578,7 +579,7 @@ INTERVIEW('launch-and-discoverability',{
       red:`Concludes the content was too thin without checking whether anyone reached it.` }
   ] });
 FACTS('launch-and-discoverability',[
-  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships in the game or appears on the store page, split into pre-generated and live-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' }
+  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localization and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' }
 ]);
 
 T('live-operations',{ d:'product', t:'Post-launch and live operations', tag:'Release is a milestone, not a finish line. Decide what the game becomes after players arrive.',

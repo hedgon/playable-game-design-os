@@ -48,7 +48,7 @@ core-loop diagnostic, an unfairness diagnostic, a rule audit, a content-or-mecha
 decision tree, 9 AI roles, 14 AI failure modes, a 20-row responsibility matrix,
 17 prompt templates, 6 checklists, 11 tools, and a sources page. Topics whose
 advice depends on rules that change (store policy, law, court rulings) carry
-dated facts: 16 facts on 6 topics, each with the day it was checked and its
+dated facts: 17 facts on 6 topics, each with the day it was checked and its
 source, and the validator warns once one is a year old.
 
 The Studio domain carries the practice layer that surrounds a design: design documents
@@ -599,8 +599,14 @@ checked against evidence before it landed:
   Quantic Foundry's motivation model, and dated facts with sources.
 - **Checks.** JSDoc types checked by TypeScript, a Playwright smoke test at three
   widths, and CI that runs the build, a `playable.html` sync check, the type
-  check and the smoke test. The final sweep visited 1036 routes with no console
-  errors and 745 link targets with none broken.
+  check and the smoke test. The final sweep visited 1036 routes at 375, 1024 and
+  1440 px with no console errors and 745 link targets with none broken.
+- **Independent review before release.** Three separate reviews (code, facts,
+  UX and accessibility) led to fixes: the Epic v. Apple and Steam facts were
+  corrected against their primary sources, a Godot pitfall and a Unity snippet
+  were corrected, the review queue counts days in the reader's time zone and
+  lists what is coming up, drawers on narrow screens open below the header so
+  its controls stay reachable, and small controls reach 24 px.
 
 ## Assumptions and limitations
 

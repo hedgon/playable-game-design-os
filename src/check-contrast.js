@@ -52,6 +52,10 @@ for (const [theme, T] of Object.entries(themes)) {
   for (const fg of ['fg', 'fg2', 'fg3']) for (const bg of ['bg', 'bg2', 'bg3', 'panel']) pairs.push([theme, `--${fg} on --${bg}`, col(fg), col(bg)]);
   for (const fg of ['accent', 'accent2', 'ok', 'warn', 'bad']) for (const bg of ['bg', 'bg2', 'panel']) pairs.push([theme, `--${fg} on --${bg}`, col(fg), col(bg)]);
   const domains = Object.keys(T).filter(k => k.startsWith('d-'));
+  // A domain colour written in a form tokensOf skips would silently drop its
+  // pairs from the count, so every declared --d-* token has to parse.
+  const declared = new Set([...rule(':root').matchAll(/--(d-[\w-]+):/g)].map(m => m[1]));
+  if (!domains.length || domains.length !== declared.size) throw new Error(`check-contrast: ${declared.size} --d-* tokens declared in ${theme}, ${domains.length} read as #rrggbb`);
   const card = (t, dc) => mix(t.tint ? col(t.tint) : col(dc), col(t.base), t.pct);
   for (const d of domains) {
     pairs.push([theme, `map label on ${d} card`, col(MAP.label), card(MAP.domain, d)]);

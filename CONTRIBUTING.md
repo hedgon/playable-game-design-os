@@ -22,6 +22,7 @@ loudly if any check fails:
 | `check-contrast.js` | Every text colour pair in both themes, including map labels on every domain tint, reaches 4.5:1. |
 | syntax | The bundle and each source file parse. |
 | actions | Every `data-action` in the markup has a handler in `ACTIONS`. |
+| breakpoints | Every width the app tests with `matchMedia` is also a breakpoint in the stylesheet, so script and CSS agree on when the drawers apply. |
 
 Do not edit `playable.html` by hand: CI rebuilds it and fails when the committed
 file differs from the build of the committed sources.
@@ -124,9 +125,9 @@ Right after the topic, in the same file:
 - `FACTS('topic-id', [{claim, asOf, src}])` adds dated facts for anything that
   can change by next year: store rules, laws, rulings, prices. `asOf` is the day
   you checked the claim against `src` (`YYYY-MM-DD`), and `src` is an `https`
-  link to the source. The validator warns, and never fails, once a fact is a year
-  old, and prints the line to recheck. Principles stay in the eight parts; only
-  the changing details go here.
+  link to the source (the validator parses it). It warns, and never fails, once a
+  fact is a year old, and prints the line to recheck. Principles stay in the
+  eight parts; only the changing details go here.
 
 A new domain is a new file with `DOMAINS.push({ id, lens, t, short, color, sum,
 links })`, where `lens` is `design` or `eng` (see `LENSES`), plus a line in

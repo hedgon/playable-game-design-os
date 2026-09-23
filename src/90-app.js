@@ -91,6 +91,10 @@ function go(hash){ if(location.hash === hash) route(); else location.hash = hash
 // Below this width the index and the content are drawers over the map.
 const narrowQuery = window.matchMedia('(max-width: 1100px)');   // the same width as the drawer CSS
 const isNarrow = () => narrowQuery.matches;
+// The drawers open below the header so its controls stay reachable. The
+// header wraps at some widths, so the CSS reads its measured height.
+const topbar = $('.topbar');
+new ResizeObserver(() => document.documentElement.style.setProperty('--hdr', topbar.offsetHeight + 'px')).observe(topbar);
 const currentParts = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
 // Routes that only reshape the map: home, a domain, a project's system.
 // On a narrow screen they keep the map in front; every other route is
@@ -538,7 +542,9 @@ function engineBody(t, which){
 // question can sit in the review queue under a stable key.
 function ivCards(arr, color, key){
   const queued = reviewItems();
-  return `<div class="ivlist">${arr.map((x, i) => { const k = `${key}:${i}`, on = !!queued[k];
+  // Keyed by the question's text, not its position, so adding or reordering
+  // questions never marks the wrong one as queued.
+  return `<div class="ivlist">${arr.map(x => { const k = `${key}:${x.q}`, on = !!queued[k];
     return `<details class="ivq" style="--dc:${color}"><summary>${esc(x.q)}</summary><div class="body">
     <h4>Answer outline</h4><p>${esc(x.a)}</p>
     <h4>Follow-up coming</h4><p>${esc(x.follow)}</p>
@@ -646,7 +652,9 @@ function smellsView(id){
 function wireSmellSearch(){
   const inp = $('#smellSearch'); if(!inp) return; let dom = '';
   const apply = () => { const q = inp.value.trim().toLowerCase(); $('#smellList').innerHTML = SMELLS.filter(s => (!dom || s.dom.includes(dom)) && (!q || (s.t+' '+s.sym+' '+s.causes.map(c=>c.c).join(' ')).toLowerCase().includes(q))).map(smellCard).join('') || '<div class="empty">No smell matches. Try the global search (Ctrl K) for topics and prompts.</div>'; };
-  inp.oninput = apply; inp.focus();
+  // No autofocus: focus goes to the heading like every other page, and a
+  // focused field would swallow the single-key shortcuts as typed text.
+  inp.oninput = apply;
   $$('#smellDomFilter button').forEach(b => b.onclick = () => { $$('#smellDomFilter button').forEach(x => x.classList.remove('active')); b.classList.add('active'); dom = b.dataset.d; apply(); });
 }
 
@@ -1201,7 +1209,7 @@ const SOURCES = [
   ['Studio maxims, read carefully','Jaime Griesemer’s “30 seconds of fun” (Bungie) meant nested loops of roughly 3 seconds, 30 seconds and 3 minutes, not one repeated loop. “Easy to learn, hard to master” is Bushnell’s Law (Atari), adopted by Blizzard. A slogan, not a method.','Used in: Core loop, Goals at three horizons.','contested'],
   ['Hypothesis-driven design','The “We believe X will Y because Z. We will know when W” template comes from Lean Startup (Eric Ries) and Lean UX (Gothelf and Seiden), not from a game-specific source. Its game analogue is Ambinder’s and Lemarchand’s practice of testing with a written question.','Used in: Hypothesis Builder, the 12-step loop.','practice'],
   ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
-  ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation became common practice with the LLM-as-a-judge work of Zheng et al. (2023), which also documented its biases toward answer position, length and the judge’s own style. From 2025, coding agents that edit files, run commands and iterate against tests became everyday tools. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
+  ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation spread in 2023. Zheng et al. (2023) found that a strong model judge agreed with people about as often as people agree with each other, and documented its biases toward answer position, answer length and its own answers. From 2025, coding agents that edit files, run commands and iterate against tests came into regular use. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
   ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
   ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work treats motivations as continuous scales: Nick Yee’s Quantic Foundry model measures twelve motivations in six pairs (Action, Social, Mastery, Achievement, Immersion, Creativity) from player surveys. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
   ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
@@ -1384,7 +1392,9 @@ function renderExperience(id, a, b){
    silently change what is being practised. Stored under playable.review.
    ===================================================================== */
 const REVIEW_DAYS = [1, 2, 4, 8, 16];
-const today = () => Math.floor(Date.now() / 86400000);
+// Days are counted in the reader's time zone, so "tomorrow" starts at their
+// midnight, not at midnight UTC (hours away, or minutes, for most readers).
+const today = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); };
 const reviewItems = () => store.get('review', {});
 const reviewDue = () => Object.entries(reviewItems()).filter(([, r]) => r.due <= today());
 ACTIONS['review-toggle'] = el => {
@@ -1393,7 +1403,7 @@ ACTIONS['review-toggle'] = el => {
   else items[k] = { q, a: body.querySelector('p').textContent, src: location.hash, box: 0, due: today() + REVIEW_DAYS[0] };
   store.set('review', items);
   const on = !!items[k]; el.setAttribute('aria-pressed', on); el.textContent = on ? 'In your review queue' : 'Review later';
-  toast(on ? 'Added to your review queue' : 'Removed from your review queue');
+  toast(on ? 'Added to your review queue; it comes back tomorrow' : 'Removed from your review queue');
 };
 ACTIONS['review-grade'] = el => {
   const items = reviewItems(), r = items[el.dataset.key]; if(!r) return;
@@ -1404,14 +1414,17 @@ ACTIONS['review-grade'] = el => {
 ACTIONS['review-remove'] = el => { const items = reviewItems(); delete items[el.dataset.key]; store.set('review', items); renderReview(); };
 function renderReview(){
   const all = Object.entries(reviewItems()), due = reviewDue(), later = all.length - due.length;
-  const next = all.filter(([, r]) => r.due > today()).map(([, r]) => r.due).sort((a, b) => a - b)[0];
+  const upcoming = all.filter(([, r]) => r.due > today()).sort((a, b) => a[1].due - b[1].due);
+  const next = upcoming.length ? upcoming[0][1].due : undefined;
+  const inDays = n => `in ${n} day${n === 1 ? '' : 's'}`;
   const card = ([k, r]) => `<details class="ivq review-item"><summary>${esc(r.q)}</summary><div class="body">
       <h4>Answer outline</h4><p>${esc(r.a)}</p>
       <div class="row"><button type="button" class="btn sm" data-action="review-grade" data-key="${esc(k)}" data-grade="got">I recalled it</button><button type="button" class="btn sm ghost" data-action="review-grade" data-key="${esc(k)}" data-grade="again">Not yet</button><a class="btn sm ghost" href="${esc(r.src)}">Open the source</a><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></div></div></details>`;
   setView(`${crumbs([['Paths','#/paths'],['Review']])}<h1>Review</h1>
     <p class="dim" style="max-width:820px">Answer each question in your head or out loud first, then open it and compare with the outline. Recalled questions come back after a longer gap; missed ones come back tomorrow. No streaks: skip a day and the queue simply waits.</p>
-    ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next in ${next - today()} day${next - today() === 1 ? '' : 's'}` : ''}` : ''}</span></div>
-    ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due. Come back when the next one is.</div>'}`
+    ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next ${inDays(next - today())}` : ''}` : ''}</span></div>
+    ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due today. A new question comes back tomorrow, so answering it is a real test of recall.</div>'}
+    ${upcoming.length ? `<details class="review-later"><summary>Coming up (${upcoming.length})</summary><ul>${upcoming.map(([k, r]) => `<li><span>${esc(r.q)}</span><span class="small muted">${inDays(r.due - today())}</span><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></li>`).join('')}</ul></details>` : ''}`
     : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) and press "Review later".</div>'}`);
 }
 
@@ -1694,7 +1707,7 @@ $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
 $$('.modal-bg').forEach(m => m.addEventListener('click', e => { if(e.target === m) closeModals(); }));
-$('#helpBtn').onclick = () => openModal('helpModal');
+$('#helpBtn').onclick = () => openModal('helpModal', 'h2');
 $('#helpClose').onclick = closeModals;
 $('#resetAll').onclick = () => { if(confirm('Reset all saved data (progress, tool inputs, checklists)?')){ store.clear(); location.reload(); } };
 // Single-letter shortcuts can fire by accident under speech input or a
@@ -1737,7 +1750,7 @@ document.addEventListener('keydown', e => {
   if(e.key==='Escape'){ closeModals(); return; }
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='?'){ openModal('helpModal'); return; }
+  if(e.key==='?'){ openModal('helpModal', 'h2'); return; }
   if(/^[1-6]$/.test(e.key)){ go('#/' + NAV[+e.key - 1].views[0][0]); return; }
   if(e.key.toLowerCase()==='m'){ fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }

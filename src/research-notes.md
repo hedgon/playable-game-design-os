@@ -105,7 +105,7 @@ Attributions below were checked via web search on 2026-09-11; sections 20 to 22 
 ## 20. Quantic Foundry's Gamer Motivation Model
 - Nick Yee and Quantic Foundry: twelve motivations from factor analysis of player survey data, in six pairs: **Action** (destruction, excitement), **Social** (competition, community), **Mastery** (challenge, strategy), **Achievement** (completion, power), **Immersion** (fantasy, story), **Creativity** (design, discovery). The pairs group into three clusters: Action-Social, Mastery-Achievement, Immersion-Creativity.
 - Motivations are continuous scales, not exclusive types, which is why the guide places the model beside Self-Determination Theory rather than beside Bartle's types. It profiles self-reported tendencies of a player population; it does not measure a game.
-- Source: https://quanticfoundry.com/2015/12/15/handy-reference/
+- Source: https://quanticfoundry.com/2015/12/15/handy-reference/ ; https://quanticfoundry.com/2015/12/21/map-of-gaming-motivations/ ; https://quanticfoundry.com/gamer-motivation-model/
 
 ## 21. AI-era practice: agents, evals, generative characters
 - **Model judges**: Zheng et al., "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena" (2023) showed strong models can approximate human preference judgements and documented position, verbosity and self-enhancement bias. The guide's rule follows: calibrate a judge against human labels and never let a model grade its own output.
@@ -115,14 +115,14 @@ Attributions below were checked via web search on 2026-09-11; sections 20 to 22 
 
 ## 22. Dated rules (checked 2026-09-23)
 These change, so the guide keeps them as dated facts on the topics that depend on them (validate.js warns once one is a year old). Summary with sources:
-- Steam rewrote its AI content disclosure on 16 January 2026: player-facing pre-generated and live-generated content is disclosed; tools used only in development are exempt. https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/
+- Steam rewrote its AI content disclosure survey in January 2026 (first reported 16 January): player-facing pre-generated and live-generated content is disclosed, live-generated content with its guardrails; efficiency gains from AI development tools are not covered. https://partner.steamgames.com/doc/gettingstarted/contentsurvey ; https://www.gamedeveloper.com/business/valve-tweaks-and-clarifies-ai-disclosure-rules-for-steam
 - EU AI Act Article 50 transparency duties apply from 2 August 2026, with a marking grace period to 2 December 2026 for systems already on the market. https://www.goodwinlaw.com/en/insights/publications/2026/08/alerts-technology-dpc-eu-ai-act-transparency-obligations-now-in-force
 - US Copyright Office, Copyright and Artificial Intelligence Part 2 (January 2025): prompts alone are not authorship. https://copyright.gov/ai/Copyright-and-Artificial-Intelligence-Part-2-Copyrightability-Report.pdf
 - SAG-AFTRA Interactive Media Agreement (July 2025): consent and disclosure for digital replicas. https://www.sagaftra.org/sag-aftra-members-approve-2025-video-game-agreement
 - Loot box odds disclosure: Apple guideline 3.1.1 (since December 2017), Google Play (since May 2019), ESRB "In-Game Purchases (Includes Random Items)" (since April 2020). https://developer.apple.com/app-store/review/guidelines/ ; https://www.gamedeveloper.com/business/games-on-the-google-play-store-now-required-to-disclose-loot-box-odds ; https://www.esrb.org/blog/in-game-purchases-includes-random-items/
 - FTC and Cognosphere (Genshin Impact), January 2025: $20 million; no loot box sales to under-16s without parental consent. https://www.ftc.gov/news-events/news/press-releases/2025/01/genshin-impact-game-developer-will-be-banned-selling-lootboxes-teens-under-16-without-parental
 - Amended COPPA Rule: full compliance from 22 April 2026. https://www.federalregister.gov/documents/2025/04/22/2025-05904/childrens-online-privacy-protection-rule
-- Epic v. Apple, Ninth Circuit, 11 December 2025: no US restrictions on links to outside purchases; commission question remanded. https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf
+- Epic v. Apple, Ninth Circuit, 11 December 2025: contempt upheld; on the US App Store Apple may not block links to outside purchases but may stop them being more prominent than its own buttons; a total commission ban was overbroad, and a commission limited to genuine link-handling costs went back to the district court. Supreme Court review granted 30 June 2026, limited to the first question of Apple's petition (No. 25-1311). https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf ; https://www.supremecourt.gov/docket/docketfiles/html/public/25-1311.html
 
 ## Contested / heuristics, not laws
 - **Bartle's player types** (Achievers/Explorers/Socializers/Killers, 1996) came from text MUDs and were never empirically validated as exclusive types; Nick Yee's factor-analytic motivations and Quantic Foundry's model treat motivations as continuous scales. Use as vocabulary, not segmentation.

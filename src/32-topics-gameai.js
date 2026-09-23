@@ -825,13 +825,13 @@ func ask(player_line: String) -> Dictionary:
 \thttp.timeout = 4.0   # a slow reply is a broken conversation
 \tvar headers := ["Content-Type: text/plain"]
 \tif http.request(ENDPOINT, headers, HTTPClient.METHOD_POST, player_line.left(200)) != OK:
-\t\treturn fallback_line()   # busy or bad URL: no signal will come
+\t\treturn fallback_line()   # nothing was sent: fall back now
 \tvar res: Array = await http.request_completed  # result, code, headers, body
 \tvar out = JSON.parse_string(res[3].get_string_from_utf8()) if res[1] == 200 else null
 \tif typeof(out) != TYPE_DICTIONARY or out.get("action") not in ACTIONS:
 \t\treturn fallback_line()   # authored line, never silence
 \treturn out`,
-    pitfall:`Awaiting request_completed without checking what request() returned. An HTTPRequest handles one request at a time: a second call while a reply is in flight returns ERR_BUSY, no signal is ever emitted for it, and the await waits forever, so the character freezes mid-conversation. Check the return value, fall back when it is not OK, and give each character its own HTTPRequest node or queue the player's lines.`,
+    pitfall:`Awaiting request_completed without checking what request() returned. An HTTPRequest handles one request at a time: a second call while a reply is in flight returns ERR_BUSY and sends nothing, and an await after it wakes when the first reply lands, so the character answers the wrong line. If request() fails before anything starts (the node is not in the tree, for example), no signal comes and the await never returns. Check the return value, fall back when it is not OK, and give each character its own HTTPRequest node or queue the player's lines.`,
     map:`HTTPRequest with await request_completed is a UnityWebRequest awaited in an async method; JSON.parse_string is JsonUtility.FromJson, and HTTPRequest.timeout is UnityWebRequest.timeout.` },
   unity:{ term:`In Unity the call is a UnityWebRequest awaited in an async method, with the reply parsed into a small serializable class and checked against the allowed actions before the NPC does anything. Every failure path returns an authored line.`,
     api:['UnityWebRequest.Post(uri, text, contentType)','UnityWebRequest.timeout','await SendWebRequest() (Unity 2023.1+)','UnityWebRequest.Result','JsonUtility.ToJson() / FromJson<T>()','MonoBehaviour.destroyCancellationToken'],
@@ -888,8 +888,8 @@ INTERVIEW('generative-characters',{
       red:`Adds it because it demos well.` }
   ] });
 FACTS('generative-characters',[
-  { claim:`Steam's content survey asks developers to disclose live-generated AI content, made while the game runs, separately from pre-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' },
-  { claim:`The EU AI Act's Article 50 duties have applied since 2 August 2026: a system that interacts with people must tell them they are dealing with an AI unless that is obvious from the context, and generative systems must mark synthetic output in a machine-readable way.`, asOf:'2026-09-23', src:'https://www.goodwinlaw.com/en/insights/publications/2026/08/alerts-technology-dpc-eu-ai-act-transparency-obligations-now-in-force' }
+  { claim:`Steam's content survey asks developers to disclose live-generated AI content, made while the game runs, separately from pre-generated content, and to describe the guardrails that keep it from generating illegal content. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' },
+  { claim:`The EU AI Act's Article 50 duties have applied since 2 August 2026: a system that interacts with people must tell them they are dealing with an AI unless that is obvious from the context, and generative systems must mark synthetic output in a machine-readable way; systems already on the market have until 2 December 2026 for the marking.`, asOf:'2026-09-23', src:'https://www.goodwinlaw.com/en/insights/publications/2026/08/alerts-technology-dpc-eu-ai-act-transparency-obligations-now-in-force' }
 ]);
 
 T('ai-budgets-and-debugging', { d:'gameai', t:'AI budgets, performance and debugging', tag:'Tick rates, time-slicing, LOD and observability: make AI affordable and make stupid behaviour explainable.',

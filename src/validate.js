@@ -50,7 +50,11 @@ for (const t of topics) {
       if (!f.claim || !String(f.claim).trim()) errors.push(`${t.id}: facts[${i}].claim empty`);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(f.asOf || '') || isNaN(Date.parse(f.asOf))) errors.push(`${t.id}: facts[${i}].asOf must be YYYY-MM-DD`);
       else if (Date.now() - Date.parse(f.asOf) > 365 * 86400000) staleFacts.push(`${t.id}: "${String(f.claim).slice(0, 60)}..." checked ${f.asOf}`);
-      if (!/^https:\/\//.test(f.src || '')) errors.push(`${t.id}: facts[${i}].src must be an https URL`);
+      // Parsed, not prefix-matched: the topic page reads the source's host
+      // with new URL(), so "https://" alone must fail here, not in a reader's browser.
+      let host = '';
+      try { const u = new URL(f.src); if (u.protocol === 'https:') host = u.hostname; } catch (e) {}
+      if (!host) errors.push(`${t.id}: facts[${i}].src must be an https URL with a host`);
     });
   }
   if (t.tech !== undefined) {

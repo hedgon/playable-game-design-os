@@ -393,7 +393,7 @@ T('ai-evals',{ d:'ai', t:'Evals: testing the AI inside your pipeline', tag:'If a
   what:`An eval is a repeatable test of an AI step: a fixed set of inputs (the golden set), a description of good output (a rubric or reference answers), and a score you track per version. Games put models in pipelines: barks and item text, localisation drafts, level variations, playtest-note tagging, in-game character replies. Unlike code, the same step drifts when the model, the prompt or the context changes, and an eval turns "it seemed fine" into a number you can compare.`,
   why:[`Model upgrades and prompt tweaks change output silently. Without a fixed set, players find the regression first.`,`Writing a rubric forces the team to define quality for this game: tone, lore, length, safety.`,`Automated graders scale review, but only after they are checked against human judgement.`],
   think:{ q:[`What does good mean for this output, in terms two reviewers would apply the same way?`,`Which failures are unacceptable (lore breaks, slurs, spoilers, wrong item stats) and which are cosmetic?`,`Do the inputs cover the real spread, including the nasty edge cases?`,`Who labels the reference answers, and how often do they disagree?`],
-    trade:[`A bigger golden set catches more and costs more to label and run.`,`Model judges are fast and cheap but biased toward length, position and their own style; people are slow but anchor what good means.`],
+    trade:[`A bigger golden set catches more and costs more to label and run.`,`Model judges are fast and cheap but biased toward length, position and their own answers; people are slow but anchor what good means.`],
     traps:[`Evaluating on the examples the prompt was tuned on.`,`A judge model grading its own outputs.`,`One average score hiding a rare catastrophic failure.`,`Skipping the rerun after "just a small prompt change".`],
     good:[`Every prompt, model or context change reruns the set, hard fails block the release, and the judge agrees with people on a spot check.`],
     bad:[`"We read a few outputs and they looked good."`] },
@@ -407,7 +407,7 @@ T('ai-evals',{ d:'ai', t:'Evals: testing the AI inside your pipeline', tag:'If a
   rel:[['verifying-ai-output','Verification checks one output; evals check a pipeline over time.'],['ai-failure-modes','Known failure modes become eval criteria and hard fails.'],['metrics-and-success','An eval score is a metric with the same traps as any other.'],['ai-agentic-implementation','Agents that change a pipeline need the evals to catch what the tests miss.']] });
 TECH('ai-evals',[
   {n:'Deterministic checks first', how:`Schema, length, required fields, banned terms and stat ranges, run before any model grader.`, fit:`Structured output: barks with tags, item stats, localisation with placeholders.`, cost:`Catches only what you can specify exactly.`, alt:`A model judge for tone and quality.`},
-  {n:'Calibrated model judge', how:`One judge prompt per criterion with the rubric and examples; measure agreement with human labels before trusting it, and recheck when the judge model changes.`, fit:`Tone, lore consistency and readability at scale.`, cost:`Biased toward length, position and its own style; recalibration on every judge upgrade.`, alt:`Pairwise comparison with the previous version.`},
+  {n:'Calibrated model judge', how:`One judge prompt per criterion with the rubric and examples; measure agreement with human labels before trusting it, and recheck when the judge model changes.`, fit:`Tone, lore consistency and readability at scale.`, cost:`Biased toward length, position and its own answers; recalibration on every judge upgrade.`, alt:`Pairwise comparison with the previous version.`},
   {n:'Pairwise regression review', how:`Show old and new outputs for the same input side by side; a person or a judge picks better, worse or same.`, fit:`Prompt and model upgrades.`, cost:`Says whether it improved, not whether it is good enough.`, alt:`Absolute rubric scores.`}
 ]);
 ENGINE('ai-evals',{
@@ -417,7 +417,7 @@ ENGINE('ai-evals',{
 const BANNED := ["lorem", "as an ai"]
 
 func _initialize() -> void:
-\tvar cases: Array = JSON.parse_string(FileAccess.get_file_as_string("res://evals/barks_out.json"))
+\tvar cases: Array = JSON.parse_string(FileAccess.get_file_as_string("res://evals/barks.json")).cases
 \tvar fails := 0
 \tfor c in cases:
 \t\tvar line: String = c.get("output", "")
@@ -438,7 +438,7 @@ public class BarkEvals {
     [System.Serializable] public class Case { public string id, output; }
     [System.Serializable] public class Set { public Case[] cases; }
     static Case[] Load() => JsonUtility.FromJson<Set>(
-        File.ReadAllText("Assets/Evals/barks_out.json")).cases;
+        File.ReadAllText("Assets/Evals/barks.json")).cases;
 
     [TestCaseSource(nameof(Load))]
     public void HardRules(Case c) {
@@ -448,7 +448,7 @@ public class BarkEvals {
     }
 }`,
     pitfall:`Calling the live model inside the test. Results vary run to run, the suite fails on a network blip, and every CI run costs money. Record outputs once per prompt or model version with a separate batch tool, commit the recording, and let the test check it deterministically.`,
-    map:`A [TestCaseSource] over a JSON golden file is the Godot SceneTree eval looping over the same file; JsonUtility is JSON.parse_string.` } });
+    map:`A [TestCaseSource] over a JSON golden file is the Godot SceneTree eval reading the same {"cases": [...]} file (JsonUtility cannot read a top-level array, so both use that shape); JsonUtility is JSON.parse_string.` } });
 INTERVIEW('ai-evals',{
   junior:[
     { q:`What is a golden set?`,
@@ -779,7 +779,7 @@ T('ai-agentic-implementation',{ d:'ai', t:'Agents that build: tasks, checks and 
     traps:[`Accepting "all tests pass" when the agent wrote the tests to match its own code.`,`Letting the agent edit scene or prefab text and merging a diff nobody can read.`,`Several agents sharing one working tree and overwriting each other.`,`No project instructions file, so every session re-guesses the conventions.`],
     good:[`Tasks sized to a diff you can read in fifteen minutes, each with a command that fails before the change and passes after it.`],
     bad:[`A day of agent output merged because the build is green.`] },
-  how:[`Write the task: goal, files in scope, files out of scope, the acceptance command, and what done means for the player.`,`Keep a short, versioned instructions file the agent reads every session: build and test commands, naming, folders, and a do-not-touch list.`,`Make the check headless: Godot tests run with godot --headless, Unity tests with -batchmode -runTests.`,`Watch the check fail before the change. A check that never failed proves nothing.`,`Review the diff, not the transcript: read every changed line of gameplay logic, skim generated boilerplate, and look for files outside the scope.`,`Give each parallel agent its own branch or worktree, and merge through the same review and checks as people.`,`Play the change. Green checks prove the mechanism; a player proves the experience.`],
+  how:[`Write the task: goal, files in scope, files out of scope, the acceptance command, and what done means for the player.`,`Keep a short, versioned instructions file the agent reads every session: build and test commands, naming, folders, and a do-not-touch list.`,`Make the check headless: Godot tests run under godot --headless (import the project first with godot --headless --import; gdUnit4 also needs --ignoreHeadlessMode), Unity tests with -batchmode -runTests.`,`Watch the check fail before the change. A check that never failed proves nothing.`,`Review the diff, not the transcript: read every changed line of gameplay logic, skim generated boilerplate, and look for files outside the scope.`,`Give each parallel agent its own branch or worktree, and merge through the same review and checks as people.`,`Play the change. Green checks prove the mechanism; a player proves the experience.`],
   ai:{ yes:[`Implement a specified change end to end and iterate against the check.`,`Write the failing test first from your acceptance criteria, then make it pass.`,`Refactor with the existing tests pinned.`,`Build editor tools and one-off scripts, and summarise failing logs.`],
        no:[`Decide what done means for the player.`,`Approve its own work: tests it wrote, screenshots it judged.`,`Edit scene and prefab files you cannot review.`,`Run with production credentials, deploy rights or access to player data.`] },
   prompts:[{l:'Agent task brief',p:`Task: [GOAL]. In scope: [FILES OR FOLDERS]. Out of scope, do not edit: [PATHS]. Acceptance: this command must fail before your change and pass after it: [COMMAND]. Follow [INSTRUCTIONS FILE]; add no dependencies; keep the diff under [N] lines. First run the command and show me the failure. Then give a five-bullet plan and wait for my go. Implement, run the command again, and summarise the diff file by file, marking anything you are unsure of.`},
@@ -1009,8 +1009,9 @@ class ProvenanceGate : AssetPostprocessor {
         foreach (var path in imported.Where(p => p.StartsWith("Assets/Art/"))) {
             if (!string.IsNullOrEmpty(AssetImporter.GetAtPath(path).userData)) continue;
             var asset = AssetDatabase.LoadMainAssetAtPath(path);
-            if (AssetDatabase.GetLabels(asset).Contains("needs-provenance")) continue;
-            AssetDatabase.SetLabels(asset, new[] { "needs-provenance" });   // once
+            var labels = AssetDatabase.GetLabels(asset);   // SetLabels replaces them all
+            if (labels.Contains("needs-provenance")) continue;
+            AssetDatabase.SetLabels(asset, labels.Append("needs-provenance").ToArray());
             Debug.LogWarning($"No origin recorded for {path}");
         }
     }
@@ -1030,7 +1031,7 @@ INTERVIEW('ai-generative-assets',{
   ],
   mid:[
     { q:`A store asks which content is AI-generated. How do you answer accurately?`,
-      a:`From the manifest: list the shipped, player-facing content by category (art, audio, text, voice), separate pre-generated from live-generated content, leave out development tools where the store's rules exempt them, and keep the answer versioned with the build.`,
+      a:`From the manifest: list the shipped, player-facing content by category (art, audio, text, voice), separate pre-generated from live-generated content, leave out AI tools that only made development faster, which Steam's survey does not cover, and keep the answer versioned with the build.`,
       follow:`What changes in the answer if you add a live-generated feature?`,
       red:`Answers from memory the night before submission.` },
     { q:`What is the copyright position of purely generated art in the US?`,
@@ -1049,7 +1050,7 @@ INTERVIEW('ai-generative-assets',{
       red:`Each artist uses whatever tool and settings they like.` }
   ] });
 FACTS('ai-generative-assets',[
-  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships in the game or appears on the store page, split into pre-generated and live-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' },
+  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localization and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' },
   { claim:`The US Copyright Office's January 2025 report: prompts alone do not make you the author of a model's output; human selection, arrangement, modification or perceptible human-made material can be protected, case by case.`, asOf:'2026-09-23', src:'https://copyright.gov/ai/Copyright-and-Artificial-Intelligence-Part-2-Copyrightability-Report.pdf' },
   { claim:`SAG-AFTRA's Interactive Media Agreement, ratified in July 2025, requires specific written consent and disclosure before a performer's digital replica is created or used, and lets performers suspend consent for new AI material during a strike.`, asOf:'2026-09-23', src:'https://www.sagaftra.org/sag-aftra-members-approve-2025-video-game-agreement' }
 ]);
@@ -1090,7 +1091,7 @@ func player_summary() -> String:
 \tfor e in live: lines.append("- %s: generated while you play" % e.area)
 \treturn "\\n".join(lines)`,
     pitfall:`Writing the in-game AI notice by hand in a credits scene. The first time an asset is regenerated or a live feature is added, the notice and the store answers drift apart, and nobody notices until a player or a store reviewer does. Generate both from one manifest resource the build and the submission checklist read.`,
-    map:`A Godot custom Resource (.tres) is a Unity ScriptableObject asset; an EditorExportPlugin hook is Unity's IPreprocessBuildWithReport.` },
+    map:`A Godot custom Resource (.tres) is a Unity ScriptableObject asset. EditorExportPlugin._export_begin runs where Unity's IPreprocessBuildWithReport does but cannot stop an export, so in Godot the gate is a headless check in CI before exporting.` },
   unity:{ term:`In Unity the manifest is a ScriptableObject, and a build preprocessor refuses to build when a generated asset in the project has no entry, so the disclosure cannot fall behind the content.`,
     api:['ScriptableObject','IPreprocessBuildWithReport.OnPreprocessBuild()','BuildFailedException','AssetDatabase.FindAssets("l:ai-generated")','AssetDatabase.GUIDToAssetPath()','AssetDatabase.LoadAssetAtPath<T>()'],
     snippet:`using System.Linq; using UnityEditor; using UnityEditor.Build; using UnityEditor.Build.Reporting;
@@ -1108,11 +1109,11 @@ class AiManifestGate : IPreprocessBuildWithReport {
     }
 }`,
     pitfall:`Relying on the store questionnaire alone. It is answered once per submission, by one person, from memory, while generated assets arrive every week. A label on each generated asset and a preprocessor that fails the build on an unlisted one keep the answer current without anyone having to remember.`,
-    map:`Unity's IPreprocessBuildWithReport is Godot's EditorExportPlugin._export_begin; a ScriptableObject manifest is a custom Resource.` } });
+    map:`Unity's IPreprocessBuildWithReport can fail the build; Godot's EditorExportPlugin._export_begin cannot, so there the gate is a headless check in CI before export. A ScriptableObject manifest is a custom Resource.` } });
 INTERVIEW('ai-disclosure-policy',{
   junior:[
     { q:`What is the difference between pre-generated and live-generated AI content, for disclosure?`,
-      a:`Pre-generated content is made during development and shipped as assets, reviewed like any other content. Live-generated content is produced while the game runs, so players can see output nobody reviewed. Stores ask about both, and live generation needs guardrails you can describe. Tools that never produce player-facing content are exempt from Steam's disclosure under its 2026 rules.`,
+      a:`Pre-generated content is made during development and shipped as assets, reviewed like any other content. Live-generated content is produced while the game runs, so players can see output nobody reviewed. Stores ask about both, and live generation needs guardrails you can describe. Steam's survey, as rewritten in January 2026, does not cover AI tools that only make development faster.`,
       follow:`Which kind is a model-written quest summary created during development?`,
       red:`"It is all just AI, one answer covers it."` },
     { q:`Why put a date on every rule you rely on?`,
@@ -1141,7 +1142,7 @@ INTERVIEW('ai-disclosure-policy',{
       red:`Signs it and hopes.` }
   ] });
 FACTS('ai-disclosure-policy',[
-  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships in the game or appears on the store page, split into pre-generated and live-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' },
+  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localization and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' },
   { claim:`The EU AI Act's Article 50 transparency duties have applied since 2 August 2026: people must be told when they are interacting with an AI system unless it is obvious, and generative systems must mark synthetic content in a machine-readable way (systems already on the market have until 2 December 2026 for the marking).`, asOf:'2026-09-23', src:'https://www.goodwinlaw.com/en/insights/publications/2026/08/alerts-technology-dpc-eu-ai-act-transparency-obligations-now-in-force' },
   { claim:`The US Copyright Office's January 2025 report: prompts alone do not make you the author of a model's output; human selection, arrangement, modification or perceptible human-made material can be protected, case by case.`, asOf:'2026-09-23', src:'https://copyright.gov/ai/Copyright-and-Artificial-Intelligence-Part-2-Copyrightability-Report.pdf' },
   { claim:`SAG-AFTRA's Interactive Media Agreement, ratified in July 2025, requires specific written consent and disclosure before a performer's digital replica is created or used.`, asOf:'2026-09-23', src:'https://www.sagaftra.org/sag-aftra-members-approve-2025-video-game-agreement' }

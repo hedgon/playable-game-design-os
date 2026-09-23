@@ -122,7 +122,7 @@ main{flex:1;width:100%;min-width:0}
 .view{animation:fade .18s ease}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.85rem;color:var(--fg3);margin-bottom:12px}
-.crumbs button{background:none;border:0;color:var(--fg2);padding:2px 4px;border-radius:4px}
+.crumbs button{background:none;border:0;color:var(--fg2);padding:2px 4px;border-radius:4px;min-height:24px}
 .crumbs button:hover{background:var(--bg3);color:var(--fg)}
 .crumbs .sep{opacity:.5}
 .grid{display:grid;gap:14px}
@@ -156,13 +156,14 @@ main{flex:1;width:100%;min-width:0}
 /* a chip inside a chip row wraps instead of running past a narrow pane
    (the "Appears in" panel carries "Domain · long topic title" chips) */
 .chips .chip{white-space:normal;max-width:100%;min-width:0}
+a.chip,button.chip,.chip.lnk{min-height:24px}
 .btn{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r3);padding:7px 12px;font-weight:600;font-size:.9rem;color:var(--fg)}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.primary{background:var(--accent);color:#04121c;border-color:transparent}
 .btn.primary:hover{filter:brightness(1.08);color:#04121c}
 .btn.ghost{background:none;border-color:transparent;color:var(--fg2)}
 .btn.ghost:hover{background:var(--bg3);color:var(--fg)}
-.btn.sm{padding:4px 9px;font-size:.8rem}
+.btn.sm{padding:4px 9px;font-size:.8rem;min-height:24px;min-width:24px}
 .btn.danger{color:var(--bad)}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row.between{justify-content:space-between}
@@ -726,7 +727,7 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .labmode.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg2))}
 .labstep{border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);padding:12px 14px;margin-bottom:10px}
 .evrow{display:flex;flex-wrap:wrap;gap:4px}
-.evchip{background:var(--bg2);border:1px solid var(--line);border-radius:99px;padding:2px 8px;font-family:var(--mono);font-size:.64rem;letter-spacing:.04em;text-transform:uppercase;color:var(--fg3)}
+.evchip{min-height:24px;background:var(--bg2);border:1px solid var(--line);border-radius:99px;padding:2px 8px;font-family:var(--mono);font-size:.64rem;letter-spacing:.04em;text-transform:uppercase;color:var(--fg3)}
 .evchip.on{background:var(--accent);color:var(--ink);border-color:var(--accent)}
 .labex-box{margin-top:8px;padding:8px 10px;border-left:3px solid var(--accent2);background:var(--bg2)}
 .labaxis{display:grid;grid-template-columns:1fr 1.4fr;gap:6px;margin-bottom:6px}
@@ -828,6 +829,10 @@ details.comp .body{padding-top:6px}
 .card.facts ul{margin:8px 0 0;padding-left:18px}
 .card.facts li{margin-bottom:6px}
 .card.facts .when{white-space:nowrap}
+.review-later{margin-top:14px}
+.review-later ul{list-style:none;margin:8px 0 0;padding:0}
+.review-later li{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.review-later li > span:first-child{flex:1;min-width:0}
 .railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
 .railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
 .railsearch{width:100%}
@@ -839,7 +844,7 @@ details.comp .body{padding-top:6px}
 .raildom-btn .rn{font-family:var(--mono);font-size:.64rem;color:var(--fg3)}
 .railtopics{display:none;padding:2px 0 6px 18px}
 .raildom.open .railtopics{display:block}
-.railtopic{display:block;width:100%;text-align:left;background:none;border:0;border-left:2px solid var(--line);color:var(--fg2);padding:4px 8px;font-size:.84rem;line-height:1.25}
+.railtopic{display:block;width:100%;min-height:24px;text-align:left;background:none;border:0;border-left:2px solid var(--line);color:var(--fg2);padding:4px 8px;font-size:.84rem;line-height:1.25}
 .railtopic:hover{color:var(--fg);background:var(--bg3)}
 .railtopic.active{border-left-color:var(--accent);color:var(--fg);font-weight:700}
 .railtopic.seen::before{content:'✓ ';color:var(--ok);font-size:.72rem}
@@ -853,8 +858,8 @@ details.comp .body{padding-top:6px}
 .scrim{display:none}
 .drawer-close{display:none}
 @media (max-width:1100px){
-  .scrim.show{display:block;position:fixed;inset:0;z-index:79;background:rgba(0,0,0,.45)}
-  .drawer-close.show{display:grid;place-items:center;position:fixed;top:10px;right:10px;z-index:82;width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--fg);font-size:1rem;box-shadow:var(--shadow)}
+  .scrim.show{display:block;position:fixed;inset:var(--hdr,0px) 0 0 0;z-index:79;background:rgba(0,0,0,.45)}
+  .drawer-close.show{display:grid;place-items:center;position:fixed;top:calc(var(--hdr,0px) + 10px);right:10px;z-index:82;width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--fg);font-size:1rem;box-shadow:var(--shadow)}
 }
 /* horizontal mind-map nodes and edges */
 .kgraph .node{cursor:pointer}
@@ -936,10 +941,10 @@ details.comp .body{padding-top:6px}
   .shell{display:block}
   .splitter{display:none}
   .mapstage{position:sticky;top:74px;height:calc(100vh - 74px)}
-  .rail{position:fixed;top:0;left:0;bottom:0;width:min(86vw,340px);height:auto;padding:70px 12px 24px;z-index:80;transform:translateX(-101%);transition:transform .18s;border-right:1px solid var(--line2);box-shadow:10px 0 0 rgba(0,0,0,.18);display:block}
+  .rail{position:fixed;top:var(--hdr,0px);left:0;bottom:0;width:min(86vw,340px);height:auto;padding:12px 12px 24px;z-index:80;transform:translateX(-101%);transition:transform .18s;border-right:1px solid var(--line2);box-shadow:10px 0 0 rgba(0,0,0,.18);display:block}
   .rail.open{transform:none}
   .railbtn{display:inline-flex}
-  .pane{position:fixed;top:0;right:0;bottom:0;width:min(92vw,520px);height:auto;padding:70px 14px 40px;z-index:81;background:var(--panel);border-left:1px solid var(--line2);transform:translateX(101%);transition:transform .18s;overflow:auto}
+  .pane{position:fixed;top:var(--hdr,0px);right:0;bottom:0;width:min(92vw,520px);height:auto;padding:56px 14px 40px;z-index:81;background:var(--panel);border-left:1px solid var(--line2);transform:translateX(101%);transition:transform .18s;overflow:auto}
   .pane.open{transform:none}
   /* every pixel the wrapper does not take is a pixel the chart renders at,
      and in the drawer the chart is already the widest thing on the page. */
@@ -975,7 +980,7 @@ details.comp .body{padding-top:6px}
 </div>
 <div class="modal-bg help-modal" id="helpModal" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
   <div class="modal">
-    <h2>Keyboard shortcuts</h2>
+    <h2 tabindex="-1">Keyboard shortcuts</h2>
     <table>
       <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> or <kbd>/</kbd></td><td>Search everything</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close dialogs</td></tr>
@@ -1854,7 +1859,7 @@ TECH('player-motivation',[
   {n:'Need mapping', how:`Map each system to the psychological need it feeds and find gaps.`, fit:`Auditing whether the loop and meta feed competence, autonomy and relatedness.`, cost:`Heuristic. Needs behavioral validation.`, alt:`Pair with playtest language analysis.`},
   {n:'Flow and challenge calibration', how:`Keep challenge near skill and let players steer difficulty. Watch for boredom and anxiety bands.`, fit:`Pacing moment-to-moment engagement.`, cost:`Flow-channel literalism is contested. Some games live outside it on purpose.`, alt:`Use as a lens, not a law.`},
   {n:'Motivation measurement in playtests', how:`Code player language ("I figured out" vs "I got") and return behavior as evidence.`, fit:`Turning psychology claims into observable signals.`, cost:`Needs a coding scheme and enough sessions.`, alt:`Ask "why did you keep going?" at a natural stop.`},
-  {n:'Gamer Motivation Profile', how:`Quantic Foundry's model scores twelve motivations in six pairs: Action (destruction, excitement), Social (competition, community), Mastery (challenge, strategy), Achievement (completion, power), Immersion (fantasy, story) and Creativity (design, discovery). Compare the profile of the audience you want with what your loop actually rewards.`, fit:`Positioning and audience fit: does the audience you want care about what your systems reward?`, cost:`Self-reported tendencies from surveys, not a measure of your game. A person's profile shifts with mood and company.`, alt:`Need mapping plus coded playtest language.`}
+  {n:'Gamer Motivation Profile', how:`Quantic Foundry's model scores twelve motivations in six pairs: Action (destruction, excitement), Social (competition, community), Mastery (challenge, strategy), Achievement (completion, power), Immersion (fantasy, story) and Creativity (design, discovery). Compare the profile of the audience you want with what your loop actually rewards.`, fit:`Positioning and audience fit: does the audience you want care about what your systems reward?`, cost:`Self-reported tendencies from surveys, not a measure of your game. Scores hold up well on retest but change with age: interest in competition falls the most.`, alt:`Need mapping plus coded playtest language.`}
 ]);
 ENGINE('player-motivation',{
   godot:{ term:`Motivation is measured, not asserted. An autoload owns the session counters and the event buffer, because anything that lives on a scene node is destroyed the moment the player walks through a door.`,
@@ -6844,7 +6849,8 @@ INTERVIEW('business-model',{
       red:`Adds a shop and a currency and treats the rest of the design as unaffected.` }
   ] });
 FACTS('business-model',[
-  { claim:`On 11 December 2025 the US Ninth Circuit largely upheld the injunction in Epic v. Apple: Apple may not restrict links to outside purchases in US apps, and whether it may charge a commission on those purchases went back to the district court. Apple has asked the Supreme Court to review the case.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' }
+  { claim:`On 11 December 2025 the US Ninth Circuit upheld the finding that Apple was in contempt of the Epic v. Apple injunction. On the US App Store, Apple may not block links to outside purchases or require them to be less prominent than its own purchase buttons, though it may stop them being more prominent. A total ban on commission for those purchases went too far: Apple may charge one limited to its genuine costs of handling the links, with the details sent back to the district court.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' },
+  { claim:`On 30 June 2026 the US Supreme Court agreed to hear Apple's appeal of the contempt ruling, limited to the first question in Apple's petition; Apple filed its brief on 14 September 2026.`, asOf:'2026-09-23', src:'https://www.supremecourt.gov/docket/docketfiles/html/public/25-1311.html' }
 ]);
 
 T('scope-control',{ d:'product', t:'Scope control', tag:'Scope should follow validated value, not imagination. AI makes this harder, not easier.',
@@ -7130,7 +7136,7 @@ INTERVIEW('launch-and-discoverability',{
       red:`Concludes the content was too thin without checking whether anyone reached it.` }
   ] });
 FACTS('launch-and-discoverability',[
-  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships in the game or appears on the store page, split into pre-generated and live-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' }
+  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localization and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' }
 ]);
 
 T('live-operations',{ d:'product', t:'Post-launch and live operations', tag:'Release is a milestone, not a finish line. Decide what the game becomes after players arrive.',
@@ -8494,7 +8500,7 @@ T('ai-evals',{ d:'ai', t:'Evals: testing the AI inside your pipeline', tag:'If a
   what:`An eval is a repeatable test of an AI step: a fixed set of inputs (the golden set), a description of good output (a rubric or reference answers), and a score you track per version. Games put models in pipelines: barks and item text, localisation drafts, level variations, playtest-note tagging, in-game character replies. Unlike code, the same step drifts when the model, the prompt or the context changes, and an eval turns "it seemed fine" into a number you can compare.`,
   why:[`Model upgrades and prompt tweaks change output silently. Without a fixed set, players find the regression first.`,`Writing a rubric forces the team to define quality for this game: tone, lore, length, safety.`,`Automated graders scale review, but only after they are checked against human judgement.`],
   think:{ q:[`What does good mean for this output, in terms two reviewers would apply the same way?`,`Which failures are unacceptable (lore breaks, slurs, spoilers, wrong item stats) and which are cosmetic?`,`Do the inputs cover the real spread, including the nasty edge cases?`,`Who labels the reference answers, and how often do they disagree?`],
-    trade:[`A bigger golden set catches more and costs more to label and run.`,`Model judges are fast and cheap but biased toward length, position and their own style; people are slow but anchor what good means.`],
+    trade:[`A bigger golden set catches more and costs more to label and run.`,`Model judges are fast and cheap but biased toward length, position and their own answers; people are slow but anchor what good means.`],
     traps:[`Evaluating on the examples the prompt was tuned on.`,`A judge model grading its own outputs.`,`One average score hiding a rare catastrophic failure.`,`Skipping the rerun after "just a small prompt change".`],
     good:[`Every prompt, model or context change reruns the set, hard fails block the release, and the judge agrees with people on a spot check.`],
     bad:[`"We read a few outputs and they looked good."`] },
@@ -8508,7 +8514,7 @@ T('ai-evals',{ d:'ai', t:'Evals: testing the AI inside your pipeline', tag:'If a
   rel:[['verifying-ai-output','Verification checks one output; evals check a pipeline over time.'],['ai-failure-modes','Known failure modes become eval criteria and hard fails.'],['metrics-and-success','An eval score is a metric with the same traps as any other.'],['ai-agentic-implementation','Agents that change a pipeline need the evals to catch what the tests miss.']] });
 TECH('ai-evals',[
   {n:'Deterministic checks first', how:`Schema, length, required fields, banned terms and stat ranges, run before any model grader.`, fit:`Structured output: barks with tags, item stats, localisation with placeholders.`, cost:`Catches only what you can specify exactly.`, alt:`A model judge for tone and quality.`},
-  {n:'Calibrated model judge', how:`One judge prompt per criterion with the rubric and examples; measure agreement with human labels before trusting it, and recheck when the judge model changes.`, fit:`Tone, lore consistency and readability at scale.`, cost:`Biased toward length, position and its own style; recalibration on every judge upgrade.`, alt:`Pairwise comparison with the previous version.`},
+  {n:'Calibrated model judge', how:`One judge prompt per criterion with the rubric and examples; measure agreement with human labels before trusting it, and recheck when the judge model changes.`, fit:`Tone, lore consistency and readability at scale.`, cost:`Biased toward length, position and its own answers; recalibration on every judge upgrade.`, alt:`Pairwise comparison with the previous version.`},
   {n:'Pairwise regression review', how:`Show old and new outputs for the same input side by side; a person or a judge picks better, worse or same.`, fit:`Prompt and model upgrades.`, cost:`Says whether it improved, not whether it is good enough.`, alt:`Absolute rubric scores.`}
 ]);
 ENGINE('ai-evals',{
@@ -8518,7 +8524,7 @@ ENGINE('ai-evals',{
 const BANNED := ["lorem", "as an ai"]
 
 func _initialize() -> void:
-\tvar cases: Array = JSON.parse_string(FileAccess.get_file_as_string("res://evals/barks_out.json"))
+\tvar cases: Array = JSON.parse_string(FileAccess.get_file_as_string("res://evals/barks.json")).cases
 \tvar fails := 0
 \tfor c in cases:
 \t\tvar line: String = c.get("output", "")
@@ -8539,7 +8545,7 @@ public class BarkEvals {
     [System.Serializable] public class Case { public string id, output; }
     [System.Serializable] public class Set { public Case[] cases; }
     static Case[] Load() => JsonUtility.FromJson<Set>(
-        File.ReadAllText("Assets/Evals/barks_out.json")).cases;
+        File.ReadAllText("Assets/Evals/barks.json")).cases;
 
     [TestCaseSource(nameof(Load))]
     public void HardRules(Case c) {
@@ -8549,7 +8555,7 @@ public class BarkEvals {
     }
 }`,
     pitfall:`Calling the live model inside the test. Results vary run to run, the suite fails on a network blip, and every CI run costs money. Record outputs once per prompt or model version with a separate batch tool, commit the recording, and let the test check it deterministically.`,
-    map:`A [TestCaseSource] over a JSON golden file is the Godot SceneTree eval looping over the same file; JsonUtility is JSON.parse_string.` } });
+    map:`A [TestCaseSource] over a JSON golden file is the Godot SceneTree eval reading the same {"cases": [...]} file (JsonUtility cannot read a top-level array, so both use that shape); JsonUtility is JSON.parse_string.` } });
 INTERVIEW('ai-evals',{
   junior:[
     { q:`What is a golden set?`,
@@ -8880,7 +8886,7 @@ T('ai-agentic-implementation',{ d:'ai', t:'Agents that build: tasks, checks and 
     traps:[`Accepting "all tests pass" when the agent wrote the tests to match its own code.`,`Letting the agent edit scene or prefab text and merging a diff nobody can read.`,`Several agents sharing one working tree and overwriting each other.`,`No project instructions file, so every session re-guesses the conventions.`],
     good:[`Tasks sized to a diff you can read in fifteen minutes, each with a command that fails before the change and passes after it.`],
     bad:[`A day of agent output merged because the build is green.`] },
-  how:[`Write the task: goal, files in scope, files out of scope, the acceptance command, and what done means for the player.`,`Keep a short, versioned instructions file the agent reads every session: build and test commands, naming, folders, and a do-not-touch list.`,`Make the check headless: Godot tests run with godot --headless, Unity tests with -batchmode -runTests.`,`Watch the check fail before the change. A check that never failed proves nothing.`,`Review the diff, not the transcript: read every changed line of gameplay logic, skim generated boilerplate, and look for files outside the scope.`,`Give each parallel agent its own branch or worktree, and merge through the same review and checks as people.`,`Play the change. Green checks prove the mechanism; a player proves the experience.`],
+  how:[`Write the task: goal, files in scope, files out of scope, the acceptance command, and what done means for the player.`,`Keep a short, versioned instructions file the agent reads every session: build and test commands, naming, folders, and a do-not-touch list.`,`Make the check headless: Godot tests run under godot --headless (import the project first with godot --headless --import; gdUnit4 also needs --ignoreHeadlessMode), Unity tests with -batchmode -runTests.`,`Watch the check fail before the change. A check that never failed proves nothing.`,`Review the diff, not the transcript: read every changed line of gameplay logic, skim generated boilerplate, and look for files outside the scope.`,`Give each parallel agent its own branch or worktree, and merge through the same review and checks as people.`,`Play the change. Green checks prove the mechanism; a player proves the experience.`],
   ai:{ yes:[`Implement a specified change end to end and iterate against the check.`,`Write the failing test first from your acceptance criteria, then make it pass.`,`Refactor with the existing tests pinned.`,`Build editor tools and one-off scripts, and summarise failing logs.`],
        no:[`Decide what done means for the player.`,`Approve its own work: tests it wrote, screenshots it judged.`,`Edit scene and prefab files you cannot review.`,`Run with production credentials, deploy rights or access to player data.`] },
   prompts:[{l:'Agent task brief',p:`Task: [GOAL]. In scope: [FILES OR FOLDERS]. Out of scope, do not edit: [PATHS]. Acceptance: this command must fail before your change and pass after it: [COMMAND]. Follow [INSTRUCTIONS FILE]; add no dependencies; keep the diff under [N] lines. First run the command and show me the failure. Then give a five-bullet plan and wait for my go. Implement, run the command again, and summarise the diff file by file, marking anything you are unsure of.`},
@@ -9110,8 +9116,9 @@ class ProvenanceGate : AssetPostprocessor {
         foreach (var path in imported.Where(p => p.StartsWith("Assets/Art/"))) {
             if (!string.IsNullOrEmpty(AssetImporter.GetAtPath(path).userData)) continue;
             var asset = AssetDatabase.LoadMainAssetAtPath(path);
-            if (AssetDatabase.GetLabels(asset).Contains("needs-provenance")) continue;
-            AssetDatabase.SetLabels(asset, new[] { "needs-provenance" });   // once
+            var labels = AssetDatabase.GetLabels(asset);   // SetLabels replaces them all
+            if (labels.Contains("needs-provenance")) continue;
+            AssetDatabase.SetLabels(asset, labels.Append("needs-provenance").ToArray());
             Debug.LogWarning($"No origin recorded for {path}");
         }
     }
@@ -9131,7 +9138,7 @@ INTERVIEW('ai-generative-assets',{
   ],
   mid:[
     { q:`A store asks which content is AI-generated. How do you answer accurately?`,
-      a:`From the manifest: list the shipped, player-facing content by category (art, audio, text, voice), separate pre-generated from live-generated content, leave out development tools where the store's rules exempt them, and keep the answer versioned with the build.`,
+      a:`From the manifest: list the shipped, player-facing content by category (art, audio, text, voice), separate pre-generated from live-generated content, leave out AI tools that only made development faster, which Steam's survey does not cover, and keep the answer versioned with the build.`,
       follow:`What changes in the answer if you add a live-generated feature?`,
       red:`Answers from memory the night before submission.` },
     { q:`What is the copyright position of purely generated art in the US?`,
@@ -9150,7 +9157,7 @@ INTERVIEW('ai-generative-assets',{
       red:`Each artist uses whatever tool and settings they like.` }
   ] });
 FACTS('ai-generative-assets',[
-  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships in the game or appears on the store page, split into pre-generated and live-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' },
+  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localization and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' },
   { claim:`The US Copyright Office's January 2025 report: prompts alone do not make you the author of a model's output; human selection, arrangement, modification or perceptible human-made material can be protected, case by case.`, asOf:'2026-09-23', src:'https://copyright.gov/ai/Copyright-and-Artificial-Intelligence-Part-2-Copyrightability-Report.pdf' },
   { claim:`SAG-AFTRA's Interactive Media Agreement, ratified in July 2025, requires specific written consent and disclosure before a performer's digital replica is created or used, and lets performers suspend consent for new AI material during a strike.`, asOf:'2026-09-23', src:'https://www.sagaftra.org/sag-aftra-members-approve-2025-video-game-agreement' }
 ]);
@@ -9191,7 +9198,7 @@ func player_summary() -> String:
 \tfor e in live: lines.append("- %s: generated while you play" % e.area)
 \treturn "\\n".join(lines)`,
     pitfall:`Writing the in-game AI notice by hand in a credits scene. The first time an asset is regenerated or a live feature is added, the notice and the store answers drift apart, and nobody notices until a player or a store reviewer does. Generate both from one manifest resource the build and the submission checklist read.`,
-    map:`A Godot custom Resource (.tres) is a Unity ScriptableObject asset; an EditorExportPlugin hook is Unity's IPreprocessBuildWithReport.` },
+    map:`A Godot custom Resource (.tres) is a Unity ScriptableObject asset. EditorExportPlugin._export_begin runs where Unity's IPreprocessBuildWithReport does but cannot stop an export, so in Godot the gate is a headless check in CI before exporting.` },
   unity:{ term:`In Unity the manifest is a ScriptableObject, and a build preprocessor refuses to build when a generated asset in the project has no entry, so the disclosure cannot fall behind the content.`,
     api:['ScriptableObject','IPreprocessBuildWithReport.OnPreprocessBuild()','BuildFailedException','AssetDatabase.FindAssets("l:ai-generated")','AssetDatabase.GUIDToAssetPath()','AssetDatabase.LoadAssetAtPath<T>()'],
     snippet:`using System.Linq; using UnityEditor; using UnityEditor.Build; using UnityEditor.Build.Reporting;
@@ -9209,11 +9216,11 @@ class AiManifestGate : IPreprocessBuildWithReport {
     }
 }`,
     pitfall:`Relying on the store questionnaire alone. It is answered once per submission, by one person, from memory, while generated assets arrive every week. A label on each generated asset and a preprocessor that fails the build on an unlisted one keep the answer current without anyone having to remember.`,
-    map:`Unity's IPreprocessBuildWithReport is Godot's EditorExportPlugin._export_begin; a ScriptableObject manifest is a custom Resource.` } });
+    map:`Unity's IPreprocessBuildWithReport can fail the build; Godot's EditorExportPlugin._export_begin cannot, so there the gate is a headless check in CI before export. A ScriptableObject manifest is a custom Resource.` } });
 INTERVIEW('ai-disclosure-policy',{
   junior:[
     { q:`What is the difference between pre-generated and live-generated AI content, for disclosure?`,
-      a:`Pre-generated content is made during development and shipped as assets, reviewed like any other content. Live-generated content is produced while the game runs, so players can see output nobody reviewed. Stores ask about both, and live generation needs guardrails you can describe. Tools that never produce player-facing content are exempt from Steam's disclosure under its 2026 rules.`,
+      a:`Pre-generated content is made during development and shipped as assets, reviewed like any other content. Live-generated content is produced while the game runs, so players can see output nobody reviewed. Stores ask about both, and live generation needs guardrails you can describe. Steam's survey, as rewritten in January 2026, does not cover AI tools that only make development faster.`,
       follow:`Which kind is a model-written quest summary created during development?`,
       red:`"It is all just AI, one answer covers it."` },
     { q:`Why put a date on every rule you rely on?`,
@@ -9242,7 +9249,7 @@ INTERVIEW('ai-disclosure-policy',{
       red:`Signs it and hopes.` }
   ] });
 FACTS('ai-disclosure-policy',[
-  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships in the game or appears on the store page, split into pre-generated and live-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' },
+  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localization and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' },
   { claim:`The EU AI Act's Article 50 transparency duties have applied since 2 August 2026: people must be told when they are interacting with an AI system unless it is obvious, and generative systems must mark synthetic content in a machine-readable way (systems already on the market have until 2 December 2026 for the marking).`, asOf:'2026-09-23', src:'https://www.goodwinlaw.com/en/insights/publications/2026/08/alerts-technology-dpc-eu-ai-act-transparency-obligations-now-in-force' },
   { claim:`The US Copyright Office's January 2025 report: prompts alone do not make you the author of a model's output; human selection, arrangement, modification or perceptible human-made material can be protected, case by case.`, asOf:'2026-09-23', src:'https://copyright.gov/ai/Copyright-and-Artificial-Intelligence-Part-2-Copyrightability-Report.pdf' },
   { claim:`SAG-AFTRA's Interactive Media Agreement, ratified in July 2025, requires specific written consent and disclosure before a performer's digital replica is created or used.`, asOf:'2026-09-23', src:'https://www.sagaftra.org/sag-aftra-members-approve-2025-video-game-agreement' }
@@ -10168,13 +10175,13 @@ func ask(player_line: String) -> Dictionary:
 \thttp.timeout = 4.0   # a slow reply is a broken conversation
 \tvar headers := ["Content-Type: text/plain"]
 \tif http.request(ENDPOINT, headers, HTTPClient.METHOD_POST, player_line.left(200)) != OK:
-\t\treturn fallback_line()   # busy or bad URL: no signal will come
+\t\treturn fallback_line()   # nothing was sent: fall back now
 \tvar res: Array = await http.request_completed  # result, code, headers, body
 \tvar out = JSON.parse_string(res[3].get_string_from_utf8()) if res[1] == 200 else null
 \tif typeof(out) != TYPE_DICTIONARY or out.get("action") not in ACTIONS:
 \t\treturn fallback_line()   # authored line, never silence
 \treturn out`,
-    pitfall:`Awaiting request_completed without checking what request() returned. An HTTPRequest handles one request at a time: a second call while a reply is in flight returns ERR_BUSY, no signal is ever emitted for it, and the await waits forever, so the character freezes mid-conversation. Check the return value, fall back when it is not OK, and give each character its own HTTPRequest node or queue the player's lines.`,
+    pitfall:`Awaiting request_completed without checking what request() returned. An HTTPRequest handles one request at a time: a second call while a reply is in flight returns ERR_BUSY and sends nothing, and an await after it wakes when the first reply lands, so the character answers the wrong line. If request() fails before anything starts (the node is not in the tree, for example), no signal comes and the await never returns. Check the return value, fall back when it is not OK, and give each character its own HTTPRequest node or queue the player's lines.`,
     map:`HTTPRequest with await request_completed is a UnityWebRequest awaited in an async method; JSON.parse_string is JsonUtility.FromJson, and HTTPRequest.timeout is UnityWebRequest.timeout.` },
   unity:{ term:`In Unity the call is a UnityWebRequest awaited in an async method, with the reply parsed into a small serializable class and checked against the allowed actions before the NPC does anything. Every failure path returns an authored line.`,
     api:['UnityWebRequest.Post(uri, text, contentType)','UnityWebRequest.timeout','await SendWebRequest() (Unity 2023.1+)','UnityWebRequest.Result','JsonUtility.ToJson() / FromJson<T>()','MonoBehaviour.destroyCancellationToken'],
@@ -10231,8 +10238,8 @@ INTERVIEW('generative-characters',{
       red:`Adds it because it demos well.` }
   ] });
 FACTS('generative-characters',[
-  { claim:`Steam's content survey asks developers to disclose live-generated AI content, made while the game runs, separately from pre-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' },
-  { claim:`The EU AI Act's Article 50 duties have applied since 2 August 2026: a system that interacts with people must tell them they are dealing with an AI unless that is obvious from the context, and generative systems must mark synthetic output in a machine-readable way.`, asOf:'2026-09-23', src:'https://www.goodwinlaw.com/en/insights/publications/2026/08/alerts-technology-dpc-eu-ai-act-transparency-obligations-now-in-force' }
+  { claim:`Steam's content survey asks developers to disclose live-generated AI content, made while the game runs, separately from pre-generated content, and to describe the guardrails that keep it from generating illegal content. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' },
+  { claim:`The EU AI Act's Article 50 duties have applied since 2 August 2026: a system that interacts with people must tell them they are dealing with an AI unless that is obvious from the context, and generative systems must mark synthetic output in a machine-readable way; systems already on the market have until 2 December 2026 for the marking.`, asOf:'2026-09-23', src:'https://www.goodwinlaw.com/en/insights/publications/2026/08/alerts-technology-dpc-eu-ai-act-transparency-obligations-now-in-force' }
 ]);
 
 T('ai-budgets-and-debugging', { d:'gameai', t:'AI budgets, performance and debugging', tag:'Tick rates, time-slicing, LOD and observability: make AI affordable and make stupid behaviour explainable.',
@@ -19766,6 +19773,10 @@ function go(hash){ if(location.hash === hash) route(); else location.hash = hash
 // Below this width the index and the content are drawers over the map.
 const narrowQuery = window.matchMedia('(max-width: 1100px)');   // the same width as the drawer CSS
 const isNarrow = () => narrowQuery.matches;
+// The drawers open below the header so its controls stay reachable. The
+// header wraps at some widths, so the CSS reads its measured height.
+const topbar = $('.topbar');
+new ResizeObserver(() => document.documentElement.style.setProperty('--hdr', topbar.offsetHeight + 'px')).observe(topbar);
 const currentParts = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
 // Routes that only reshape the map: home, a domain, a project's system.
 // On a narrow screen they keep the map in front; every other route is
@@ -20213,7 +20224,9 @@ function engineBody(t, which){
 // question can sit in the review queue under a stable key.
 function ivCards(arr, color, key){
   const queued = reviewItems();
-  return `<div class="ivlist">${arr.map((x, i) => { const k = `${key}:${i}`, on = !!queued[k];
+  // Keyed by the question's text, not its position, so adding or reordering
+  // questions never marks the wrong one as queued.
+  return `<div class="ivlist">${arr.map(x => { const k = `${key}:${x.q}`, on = !!queued[k];
     return `<details class="ivq" style="--dc:${color}"><summary>${esc(x.q)}</summary><div class="body">
     <h4>Answer outline</h4><p>${esc(x.a)}</p>
     <h4>Follow-up coming</h4><p>${esc(x.follow)}</p>
@@ -20321,7 +20334,9 @@ function smellsView(id){
 function wireSmellSearch(){
   const inp = $('#smellSearch'); if(!inp) return; let dom = '';
   const apply = () => { const q = inp.value.trim().toLowerCase(); $('#smellList').innerHTML = SMELLS.filter(s => (!dom || s.dom.includes(dom)) && (!q || (s.t+' '+s.sym+' '+s.causes.map(c=>c.c).join(' ')).toLowerCase().includes(q))).map(smellCard).join('') || '<div class="empty">No smell matches. Try the global search (Ctrl K) for topics and prompts.</div>'; };
-  inp.oninput = apply; inp.focus();
+  // No autofocus: focus goes to the heading like every other page, and a
+  // focused field would swallow the single-key shortcuts as typed text.
+  inp.oninput = apply;
   $$('#smellDomFilter button').forEach(b => b.onclick = () => { $$('#smellDomFilter button').forEach(x => x.classList.remove('active')); b.classList.add('active'); dom = b.dataset.d; apply(); });
 }
 
@@ -20876,7 +20891,7 @@ const SOURCES = [
   ['Studio maxims, read carefully','Jaime Griesemer’s “30 seconds of fun” (Bungie) meant nested loops of roughly 3 seconds, 30 seconds and 3 minutes, not one repeated loop. “Easy to learn, hard to master” is Bushnell’s Law (Atari), adopted by Blizzard. A slogan, not a method.','Used in: Core loop, Goals at three horizons.','contested'],
   ['Hypothesis-driven design','The “We believe X will Y because Z. We will know when W” template comes from Lean Startup (Eric Ries) and Lean UX (Gothelf and Seiden), not from a game-specific source. Its game analogue is Ambinder’s and Lemarchand’s practice of testing with a written question.','Used in: Hypothesis Builder, the 12-step loop.','practice'],
   ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
-  ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation became common practice with the LLM-as-a-judge work of Zheng et al. (2023), which also documented its biases toward answer position, length and the judge’s own style. From 2025, coding agents that edit files, run commands and iterate against tests became everyday tools. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
+  ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation spread in 2023. Zheng et al. (2023) found that a strong model judge agreed with people about as often as people agree with each other, and documented its biases toward answer position, answer length and its own answers. From 2025, coding agents that edit files, run commands and iterate against tests came into regular use. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
   ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
   ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work treats motivations as continuous scales: Nick Yee’s Quantic Foundry model measures twelve motivations in six pairs (Action, Social, Mastery, Achievement, Immersion, Creativity) from player surveys. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
   ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
@@ -21059,7 +21074,9 @@ function renderExperience(id, a, b){
    silently change what is being practised. Stored under playable.review.
    ===================================================================== */
 const REVIEW_DAYS = [1, 2, 4, 8, 16];
-const today = () => Math.floor(Date.now() / 86400000);
+// Days are counted in the reader's time zone, so "tomorrow" starts at their
+// midnight, not at midnight UTC (hours away, or minutes, for most readers).
+const today = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); };
 const reviewItems = () => store.get('review', {});
 const reviewDue = () => Object.entries(reviewItems()).filter(([, r]) => r.due <= today());
 ACTIONS['review-toggle'] = el => {
@@ -21068,7 +21085,7 @@ ACTIONS['review-toggle'] = el => {
   else items[k] = { q, a: body.querySelector('p').textContent, src: location.hash, box: 0, due: today() + REVIEW_DAYS[0] };
   store.set('review', items);
   const on = !!items[k]; el.setAttribute('aria-pressed', on); el.textContent = on ? 'In your review queue' : 'Review later';
-  toast(on ? 'Added to your review queue' : 'Removed from your review queue');
+  toast(on ? 'Added to your review queue; it comes back tomorrow' : 'Removed from your review queue');
 };
 ACTIONS['review-grade'] = el => {
   const items = reviewItems(), r = items[el.dataset.key]; if(!r) return;
@@ -21079,14 +21096,17 @@ ACTIONS['review-grade'] = el => {
 ACTIONS['review-remove'] = el => { const items = reviewItems(); delete items[el.dataset.key]; store.set('review', items); renderReview(); };
 function renderReview(){
   const all = Object.entries(reviewItems()), due = reviewDue(), later = all.length - due.length;
-  const next = all.filter(([, r]) => r.due > today()).map(([, r]) => r.due).sort((a, b) => a - b)[0];
+  const upcoming = all.filter(([, r]) => r.due > today()).sort((a, b) => a[1].due - b[1].due);
+  const next = upcoming.length ? upcoming[0][1].due : undefined;
+  const inDays = n => `in ${n} day${n === 1 ? '' : 's'}`;
   const card = ([k, r]) => `<details class="ivq review-item"><summary>${esc(r.q)}</summary><div class="body">
       <h4>Answer outline</h4><p>${esc(r.a)}</p>
       <div class="row"><button type="button" class="btn sm" data-action="review-grade" data-key="${esc(k)}" data-grade="got">I recalled it</button><button type="button" class="btn sm ghost" data-action="review-grade" data-key="${esc(k)}" data-grade="again">Not yet</button><a class="btn sm ghost" href="${esc(r.src)}">Open the source</a><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></div></div></details>`;
   setView(`${crumbs([['Paths','#/paths'],['Review']])}<h1>Review</h1>
     <p class="dim" style="max-width:820px">Answer each question in your head or out loud first, then open it and compare with the outline. Recalled questions come back after a longer gap; missed ones come back tomorrow. No streaks: skip a day and the queue simply waits.</p>
-    ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next in ${next - today()} day${next - today() === 1 ? '' : 's'}` : ''}` : ''}</span></div>
-    ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due. Come back when the next one is.</div>'}`
+    ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next ${inDays(next - today())}` : ''}` : ''}</span></div>
+    ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due today. A new question comes back tomorrow, so answering it is a real test of recall.</div>'}
+    ${upcoming.length ? `<details class="review-later"><summary>Coming up (${upcoming.length})</summary><ul>${upcoming.map(([k, r]) => `<li><span>${esc(r.q)}</span><span class="small muted">${inDays(r.due - today())}</span><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></li>`).join('')}</ul></details>` : ''}`
     : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) and press "Review later".</div>'}`);
 }
 
@@ -21369,7 +21389,7 @@ $('#searchBtn').onclick = openSearch;
 $('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
 $$('.modal-bg').forEach(m => m.addEventListener('click', e => { if(e.target === m) closeModals(); }));
-$('#helpBtn').onclick = () => openModal('helpModal');
+$('#helpBtn').onclick = () => openModal('helpModal', 'h2');
 $('#helpClose').onclick = closeModals;
 $('#resetAll').onclick = () => { if(confirm('Reset all saved data (progress, tool inputs, checklists)?')){ store.clear(); location.reload(); } };
 // Single-letter shortcuts can fire by accident under speech input or a
@@ -21412,7 +21432,7 @@ document.addEventListener('keydown', e => {
   if(e.key==='Escape'){ closeModals(); return; }
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='?'){ openModal('helpModal'); return; }
+  if(e.key==='?'){ openModal('helpModal', 'h2'); return; }
   if(/^[1-6]$/.test(e.key)){ go('#/' + NAV[+e.key - 1].views[0][0]); return; }
   if(e.key.toLowerCase()==='m'){ fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
