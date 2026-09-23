@@ -371,7 +371,7 @@ PATH('netcode-server-engineer', {
 
 PATH('build-and-release-engineer', {
   t:'Build and release engineer', tag:'Make a release boring on purpose: one entry point, one provenance stamp, one rhythm.',
-  track:'engineering', level:'intermediate', hours:12,
+  track:'engineering', level:'intermediate', hours:12.5,
   audience:'Engineers responsible for CI/CD, build pipelines, and the release process for a game team, who want a release that is boring by design rather than a fire drill every time.',
   outcome:'You can define and run a release checklist, build a player from a single parameterised entry point, and identify a pipeline smell before it costs a release.',
   prereq:[], next:['technical-lead'],
@@ -392,9 +392,10 @@ PATH('build-and-release-engineer', {
         skip:['Can you name the one tool-version mismatch between your machine and CI, right now?','Have you already collapsed near-identical pipeline jobs into one table-driven job?','Do you know which of your pipeline’s external calls are missing a retry?','Can you draw your pipeline’s stage dependencies from memory?']
       } },
     { id:'s2', t:'Prove what shipped', level:'intermediate',
-      goal:'Stamp provenance into the build at build time, keep secrets out of version control, and know within minutes when a pipeline fails.', hours:2,
+      goal:'Stamp provenance into the build at build time, keep secrets out of version control, and know within minutes when a pipeline fails.', hours:2.5,
       steps:[
         { kind:'topic', ref:'infra-artifacts-provenance', why:'The first question in any incident is which build this is. Stamp the answer in at build time, because you cannot add it later.', do:'Write the exact fields (commit, branch, build number) your build artefact currently stamps, and the one it is missing.', min:25 },
+        { kind:'topic', ref:'ai-generative-assets', why:'Stores now ask which shipped content a model made. A provenance record kept at import answers that the way a build stamp answers which build this is.', do:'Pick one folder of shipped art or audio and write whether you could say, for every file, where it came from and who approved it.', min:25 },
         { kind:'topic', ref:'infra-secrets', why:'A credential in version control is public from the moment it is pushed. History is the boundary, not the commit.', do:'Check your own repository for one credential pattern in history, not just the current tree, and write what you would do if you found one.', min:25 },
         { kind:'part', ref:'cs-unity-mobile-client-ci/build/build-signing-artefacts', why:'A generated release note carrying job, repository, branch, and commit provenance is what makes “which build is this” answerable in seconds during an incident.', do:'Write whether your own build produces an equivalent artefact today, based on what the generated release note carries.', min:25 },
         { kind:'part', ref:'cs-unity-mobile-client-ci/ci/ci-failure-notify', why:'Grading a failure from two independent signals is what stops a silent hang from being mistaken for a pass.', do:'Write which single signal your own pipeline currently relies on alone, based on the two signals used to detect a graded failure.', min:25 },

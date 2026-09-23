@@ -43,6 +43,12 @@
  * @property {Technique[]} [tech]   attached by TECH()
  * @property {Engine} [eng]         attached by ENGINE()
  * @property {Interview} [iv]       attached by INTERVIEW()
+ * @property {Fact[]} [facts]       attached by FACTS()
+ */
+/**
+ * A rule, ruling or number that changes. `asOf` is the day it was last
+ * checked against `src`; the validator warns once it is a year old.
+ * @typedef {{claim: string, asOf: string, src: string}} Fact
  */
 /** @typedef {{n: string, how: string, fit: string, cost: string, alt: string}} Technique */
 /** @typedef {{term: string, api: string[], snippet: string, pitfall: string, map: string}} EngineView */
@@ -84,4 +90,14 @@ function TECH(id, arr){
   const t = TOPICS[id];
   if(!t) throw new Error('TECH: unknown topic ' + id);
   t.tech = arr;
+}
+
+/* Dated facts: store rules, laws and rulings a topic depends on. Principles
+   stay in the eight parts; anything that can change by next year goes here
+   with the date it was checked and its source. */
+/** @param {string} id @param {Fact[]} arr */
+function FACTS(id, arr){
+  const t = TOPICS[id];
+  if(!t) throw new Error('FACTS: unknown topic ' + id);
+  t.facts = arr;
 }

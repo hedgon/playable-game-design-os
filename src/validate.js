@@ -23,6 +23,9 @@ function checkIvItems(arr, where, errors) {
 }
 const VIEW_LINKS = Object.keys(ctx.VIEW_LINKS);
 const errors = [];
+// A fact older than a year is a warning, not an error: the build must not
+// break because the calendar moved, but the line tells you what to recheck.
+const staleFacts = [];
 for (const [name, list] of [['TOOLS', TOOLS], ['DIAGNOSTICS', DIAGNOSTICS]]) {
   const ids = list.map(x => x[0]);
   if (new Set(ids).size !== ids.length) errors.push(`${name}: duplicate id`);
@@ -41,6 +44,15 @@ for (const t of topics) {
   if (!t.ai.yes?.length || !t.ai.no?.length) errors.push(`${t.id}: ai.yes/no empty`);
   for (const [rid] of t.rel) if (!TOPICS[rid] && !VIEW_LINKS.includes(rid)) errors.push(`${t.id}: rel -> unknown ${rid}`);
   for (const p of t.prompts) if (!p.l || !p.p) errors.push(`${t.id}: prompt missing label/text`);
+  if (t.facts !== undefined) {
+    if (!Array.isArray(t.facts) || !t.facts.length) errors.push(`${t.id}: facts present but empty`);
+    else t.facts.forEach((f, i) => {
+      if (!f.claim || !String(f.claim).trim()) errors.push(`${t.id}: facts[${i}].claim empty`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(f.asOf || '') || isNaN(Date.parse(f.asOf))) errors.push(`${t.id}: facts[${i}].asOf must be YYYY-MM-DD`);
+      else if (Date.now() - Date.parse(f.asOf) > 365 * 86400000) staleFacts.push(`${t.id}: "${String(f.claim).slice(0, 60)}..." checked ${f.asOf}`);
+      if (!/^https:\/\//.test(f.src || '')) errors.push(`${t.id}: facts[${i}].src must be an https URL`);
+    });
+  }
   if (t.tech !== undefined) {
     if (!Array.isArray(t.tech) || !t.tech.length) errors.push(`${t.id}: tech present but empty`);
     else for (const x of t.tech) for (const k of ['n', 'how', 'fit', 'cost', 'alt']) if (!x[k]) errors.push(`${t.id}: tech entry missing ${k}`);
@@ -306,6 +318,9 @@ SMELLS.forEach(s => s.causes.forEach(c => inbound.add(c.top)));
 LOOP_PARTS.forEach(p => p.top.forEach(t => inbound.add(t)));
 LOOP_STEPS.forEach(s => s.top.forEach(t => inbound.add(t)));
 const orphans = topics.filter(t => !inbound.has(t.id)).map(t => t.id);
+const factCount = topics.reduce((n, t) => n + (t.facts || []).length, 0);
+console.log(`dated facts: ${factCount} on ${topics.filter(t => t.facts).length} topics; older than a year: ${staleFacts.length}`);
+staleFacts.forEach(s => console.log('  recheck: ' + s));
 console.log(`domains: ${DOMAINS.length}, topics: ${topics.length}, smells: ${SMELLS.length}, roles: ${ctx.ROLES.length}, failures: ${ctx.FAILURES.length}, prompts: ${ctx.PROMPT_TEMPLATES.length}, checklists: ${ctx.CHECKLISTS.length}`);
 console.log('topics per domain:', DOMAINS.map(d => `${d.id}=${topics.filter(t => t.d === d.id).length}`).join(' '));
 const sysCases = (CASE_STUDIES || []).filter(c => Array.isArray(c.systems));

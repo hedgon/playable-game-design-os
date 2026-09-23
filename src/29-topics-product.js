@@ -291,6 +291,9 @@ INTERVIEW('business-model',{
       follow:`What would you refuse to change, and why?`,
       red:`Adds a shop and a currency and treats the rest of the design as unaffected.` }
   ] });
+FACTS('business-model',[
+  { claim:`On 11 December 2025 the US Ninth Circuit largely upheld the injunction in Epic v. Apple: Apple may not restrict links to outside purchases in US apps, and whether it may charge a commission on those purchases went back to the district court. Apple has asked the Supreme Court to review the case.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' }
+]);
 
 T('scope-control',{ d:'product', t:'Scope control', tag:'Scope should follow validated value, not imagination. AI makes this harder, not easier.',
   what:`The discipline of deciding what the game contains, based on what has been shown to work rather than what could be built. The healthy sequence is idea, prototype, evidence, commit. The unhealthy one is idea, production commitment. AI makes implementation cheap enough that huge amounts of mediocre content can be produced before anyone asks whether the core is fun.`,
@@ -492,7 +495,7 @@ T('launch-and-discoverability',{ d:'product', t:'Launch and discoverability', ta
   prompts:[{l:'Hook and page',p:`Here is our game, its player and its core loop: [CONTEXT]. Write one hook sentence a stranger could repeat, a short store description that promises only what the first ten minutes deliver, and a list of the three things a trailer must show. Mark anything you were unsure of.`},{l:'Discoverability plan',p:`Our genre, platform and timeline are: [CONTEXT]. List the realistic beats that could build an audience before launch, ordered by cost and expected effect, and the one demo or festival moment that would best show our loop.`}],
   verify:[`Does the page promise match the first minutes of play?`,`Is the hook mechanical rather than a theme?`],
   test:[`Show the capsule to ten matched players. Can they say what the game is and what they would do in it?`],
-  rel:[['audience-and-positioning','Discoverability tests the positioning in public.'],['business-model','The store page states the model before players commit.'],['learning-from-success','Comparables show how similar games were framed.'],['onboarding','The first minute must deliver on the page promise.']] });
+  rel:[['audience-and-positioning','Discoverability tests the positioning in public.'],['business-model','The store page states the model before players commit.'],['learning-from-success','Comparables show how similar games were framed.'],['onboarding','The first minute must deliver on the page promise.'],['ai-disclosure-policy','The store page is where your AI disclosure lives.']] });
 TECH('launch-and-discoverability',[
   {n:'Hook sentence', how:`One mechanical sentence a stranger could repeat.`, fit:`Capsule, page and press together.`, cost:`Forces the game to have one clear idea.`, alt:`A positioning statement from the comparables.`},
   {n:'Demo beat', how:`A short playable or festival moment that shows the loop rather than the story.`, fit:`Building wishlists before launch.`, cost:`Content that must be maintained and kept current.`, alt:`A trailer built from real gameplay when no demo is possible.`},
@@ -574,6 +577,9 @@ INTERVIEW('launch-and-discoverability',{
       follow:`The team wants to patch in more content immediately. What do you say?`,
       red:`Concludes the content was too thin without checking whether anyone reached it.` }
   ] });
+FACTS('launch-and-discoverability',[
+  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships in the game or appears on the store page, split into pre-generated and live-generated content; tools used only during development are exempt (rules rewritten on 16 January 2026).`, asOf:'2026-09-23', src:'https://www.kitguru.net/desktop-pc/mustafa-mahmoud/steam-updates-its-gen-ai-disclosure-policies/' }
+]);
 
 T('live-operations',{ d:'product', t:'Post-launch and live operations', tag:'Release is a milestone, not a finish line. Decide what the game becomes after players arrive.',
   what:`What happens after launch: update cadence, balance and bug patches, seasons or events, community and support, and how ongoing content funds itself. A premium game, an update-driven game and a live-service game need different post-launch designs.`,
@@ -773,7 +779,7 @@ T('ethics-and-responsibility',{ d:'product', t:'Ethics and responsibility', tag:
   prompts:[{l:'Ethics stress test',p:`Here is our loop, monetization and data flow: [CONTEXT]. Identify where the design pressures rather than informs, where a player might feel misled or ashamed, and where the defaults exclude or stereotype. For each, propose the smallest change that keeps the experience and removes the pressure.`}],
   verify:[`Can the model be explained to a player without embarrassment?`,`Are odds and data use disclosed?`,`Were the defaults reviewed for representation?`],
   test:[`Describe the loop to a matched player without defending it. Note hesitation, discomfort or a sense of being tricked.`],
-  rel:[['business-model','The model is where most ethical pressure is designed in.'],['player-motivation','Compulsion and intrinsic motivation pull in opposite directions.'],['return-and-quit','Players eventually leave the loop they do not endorse.'],['design-pillars','Values belong beside the pillars, not in a review at the end.']] });
+  rel:[['business-model','The model is where most ethical pressure is designed in.'],['player-motivation','Compulsion and intrinsic motivation pull in opposite directions.'],['return-and-quit','Players eventually leave the loop they do not endorse.'],['design-pillars','Values belong beside the pillars, not in a review at the end.'],['ai-disclosure-policy','Telling players what AI made is an honesty duty with store and legal rules behind it.']] });
 TECH('ethics-and-responsibility',[
   {n:'Consent test', how:`Ask whether the player would endorse the design if they could see it.`, fit:`Reviewing monetization and engagement loops.`, cost:`Kills some profitable ideas.`, alt:`A written values statement beside the design pillars.`},
   {n:'Disclosure', how:`Explicit odds, data use and honest claims.`, fit:`Randomized rewards, currencies and personal data.`, cost:`Can reduce conversion in the short term.`, alt:`Plain-language summaries alongside the legal text.`},
@@ -857,3 +863,10 @@ INTERVIEW('ethics-and-responsibility',{
       follow:`The answer is no and the feature ships. What then?`,
       red:`Objects in a meeting, leaves no record, and implements it unchanged.` }
   ] });
+FACTS('ethics-and-responsibility',[
+  { claim:`Apple's App Store Review Guidelines (3.1.1) require apps that sell loot boxes or other randomised virtual items to disclose the odds of receiving each type of item before purchase, a rule in place since December 2017.`, asOf:'2026-09-23', src:'https://developer.apple.com/app-store/review/guidelines/' },
+  { claim:`Google Play has required games that sell randomised virtual items to disclose the odds before purchase since May 2019.`, asOf:'2026-09-23', src:'https://www.gamedeveloper.com/business/games-on-the-google-play-store-now-required-to-disclose-loot-box-odds' },
+  { claim:`Since April 2020 the ESRB adds the notice "In-Game Purchases (Includes Random Items)" to games that sell randomised items for real money.`, asOf:'2026-09-23', src:'https://www.esrb.org/blog/in-game-purchases-includes-random-items/' },
+  { claim:`In January 2025 Genshin Impact's developer, Cognosphere, agreed to pay $20 million to settle FTC charges; the order bans selling loot boxes to players under 16 in the US without a parent's consent.`, asOf:'2026-09-23', src:'https://www.ftc.gov/news-events/news/press-releases/2025/01/genshin-impact-game-developer-will-be-banned-selling-lootboxes-teens-under-16-without-parental' },
+  { claim:`The FTC's amended COPPA Rule, published on 22 April 2025, requires full compliance from 22 April 2026: separate parental consent before a child's data is disclosed to third parties such as advertisers, and biometric identifiers now count as personal information.`, asOf:'2026-09-23', src:'https://www.federalregister.gov/documents/2025/04/22/2025-05904/childrens-online-privacy-protection-rule' }
+]);
