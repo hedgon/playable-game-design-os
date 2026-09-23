@@ -514,7 +514,7 @@ func _process(delta: float) -> void:
 \t$Camera3D.global_position = path[int(u * (path.size() - 1))].global_position
 \tif u >= 1.0:
 \t\tget_tree().quit()`,
-    pitfall:`Driving anything in the trailer rig from real time. Movie Maker mode advances a simulated clock so every frame can be rendered slowly and still land on the timeline, so OS.get_ticks_msec and system time race ahead of the recorded frames. Timers and effects that read them play at the wrong speed in the capture and nowhere else.`,
+    pitfall:`Driving anything in the trailer rig from real time. Movie Maker mode advances a simulated clock so every frame can be rendered slowly and still land on the timeline, so Time.get_ticks_msec and system time race ahead of the recorded frames. Timers and effects that read them play at the wrong speed in the capture and nowhere else.`,
     map:`Godot export presets with feature tags and Movie Maker are Unity build profiles with defines and Unity Recorder.` },
   unity:{ term:`A build profile with its own defines produces the demo, and Unity Recorder captures the trailer from the game view at a fixed frame rate. The demo is built as its own scene list so it does not carry the full game.`,
     api:['BuildProfile + Scripting Define Symbols','Unity Recorder package','EditorBuildSettings.scenes / the profile scene list','Addressables groups per build','Application.version','Application.Quit()'],
