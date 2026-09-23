@@ -16,14 +16,14 @@ const START_PATHS = [
   ['#/diagnose','I have a design problem','Start from the symptom: likely causes, experiments and a prompt.','var(--bad)']
 ];
 function startPathsHTML(){
-  return START_PATHS.map(([href, b, s, c]) => `<button class="path" onclick="location.hash='${href}'"${c?` style="border-left-color:${c}"`:''}><b>${esc(b)}</b><span>${esc(s)}</span></button>`).join('');
+  return START_PATHS.map(([href, b, s, c]) => `<button class="path" data-href="${href}"${c?` style="border-left-color:${c}"`:''}><b>${esc(b)}</b><span>${esc(s)}</span></button>`).join('');
 }
 const SYMPTOMS = [
   ['I do not have an idea','no-idea'],['Players do not know what to do','dont-know-what-to-do'],['The game feels repetitive','repetitive'],
   ['Players use only one build','one-build'],['They enjoy it but do not return','fun-but-no-return'],['Progression is just numbers','meaningless-progression'],
   ['Combat feels floaty','floaty-combat'],['Players say it is unfair','unfair'],['Too many features, not better','features-not-better'],['AI keeps giving generic ideas','ai-ideas-none-right']
 ];
-function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) => `<button class="symptom" onclick="location.hash='#/smell/${id}'">${esc(s)}</button>`).join('')}<a class="symptom more" href="#/diagnose/smells">All ${SMELLS.length} smells →</a></div>`; }
+function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) => `<button class="symptom" data-href="#/smell/${id}">${esc(s)}</button>`).join('')}<a class="symptom more" href="#/diagnose/smells">All ${SMELLS.length} smells →</a></div>`; }
 function openStart(){ closeModals(); const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); $('#startModal').classList.add('show'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
@@ -80,29 +80,29 @@ function buildGraph(){
 function mapCrumbs(){
   if(mapMode === 'path'){
     const pth = curPath(); if(!pth) return `<div class="mapcrumbs"></div>`;
-    const parts = [`<button onclick="location.hash='#/paths'">Paths</button>`, `<span>›</span><button onclick="location.hash='#/paths/${pth.id}'">${esc(pth.t)}</button>`];
+    const parts = [`<button data-href="#/paths">Paths</button>`, `<span>›</span><button data-href="#/paths/${pth.id}">${esc(pth.t)}</button>`];
     const st = pth.stages.find(x => x.id === pathMapState.stage);
     if(st) parts.push(`<span>›</span><b>${esc(st.t)}</b>`);
     return `<div class="mapcrumbs">${parts.join('')}</div>`;
   }
   if(mapMode === 'project'){
     const c = projCase(); if(!c) return `<div class="mapcrumbs"></div>`;
-    const parts = [`<button onclick="location.hash='#/experience'">Projects</button>`, `<span>›</span><button onclick="location.hash='#/experience/${c.id}'">${esc(c.t)}</button>`];
+    const parts = [`<button data-href="#/experience">Projects</button>`, `<span>›</span><button data-href="#/experience/${c.id}">${esc(c.t)}</button>`];
     if(projState.sys === 'workflows'){
-      parts.push(`<span>›</span><button onclick="location.hash='#/experience/${c.id}/workflows'">Workflows</button>`);
+      parts.push(`<span>›</span><button data-href="#/experience/${c.id}/workflows">Workflows</button>`);
       const f = (c.flows || []).find(x => x.id === projState.part);
       if(f) parts.push(`<span>›</span><b>${esc(f.t)}</b>`);
       return `<div class="mapcrumbs">${parts.join('')}</div>`;
     }
     const s = (c.systems || []).find(x => x.id === projState.sys);
-    if(s) parts.push(`<span>›</span><button onclick="location.hash='#/experience/${c.id}/${s.id}'">${esc(s.t)}</button>`);
+    if(s) parts.push(`<span>›</span><button data-href="#/experience/${c.id}/${s.id}">${esc(s.t)}</button>`);
     const p = s ? (s.parts || []).find(x => x.id === projState.part) : null;
     if(p) parts.push(`<span>›</span><b>${esc(p.t)}</b>`);
     return `<div class="mapcrumbs">${parts.join('')}</div>`;
   }
-  const parts = [`<button onclick="location.hash='#/map/home'">All domains</button>`];
-  if(mapState.dom && DOM[mapState.dom]) parts.push(`<span>›</span><button onclick="location.hash='#/map/d/${mapState.dom}'">${esc(DOM[mapState.dom].t)}</button>`);
-  if(mapState.topic && TOPICS[mapState.topic]) parts.push(`<span>›</span><button onclick="location.hash='#/map/t/${mapState.topic}'">${esc(TOPICS[mapState.topic].t)}</button>`);
+  const parts = [`<button data-href="#/map/home">All domains</button>`];
+  if(mapState.dom && DOM[mapState.dom]) parts.push(`<span>›</span><button data-href="#/map/d/${mapState.dom}">${esc(DOM[mapState.dom].t)}</button>`);
+  if(mapState.topic && TOPICS[mapState.topic]) parts.push(`<span>›</span><button data-href="#/map/t/${mapState.topic}">${esc(TOPICS[mapState.topic].t)}</button>`);
   if(mapState.smell){ const s = SMELLS.find(x => x.id===mapState.smell); if(s) parts.push(`<span>›</span><b>${esc(s.t)}</b>`); }
   return `<div class="mapcrumbs">${parts.join('')}</div>`;
 }
@@ -120,14 +120,14 @@ function startPanel(){
     </div>`;
 }
 function domainPanel(d){
-  const links = d.links.map(([to, why]) => `<li><b style="color:${DOM[to].color};cursor:pointer" onclick="location.hash='#/map/d/${to}'">${esc(DOM[to].t)}</b> <span class="why">${esc(why)}</span></li>`).join('');
-  const inbound = DOMAINS.filter(o => o.links.some(([to]) => to===d.id) && !d.links.some(([to]) => to===o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<li><b style="color:${o.color};cursor:pointer" onclick="location.hash='#/map/d/${o.id}'">${esc(o.t)}</b> <span class="why">${esc(why)}</span></li>`; }).join('');
+  const links = d.links.map(([to, why]) => `<li><a class="lnk strong" style="color:${DOM[to].color};cursor:pointer" href="#/map/d/${to}">${esc(DOM[to].t)}</a> <span class="why">${esc(why)}</span></li>`).join('');
+  const inbound = DOMAINS.filter(o => o.links.some(([to]) => to===d.id) && !d.links.some(([to]) => to===o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<li><a class="lnk strong" style="color:${o.color};cursor:pointer" href="#/map/d/${o.id}">${esc(o.t)}</a> <span class="why">${esc(why)}</span></li>`; }).join('');
   return `<div class="chips" style="margin-bottom:6px">${domChip(d.id)}<span class="chip">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</span></div><h1 style="margin-bottom:6px">${esc(d.t)}</h1><p class="dim">${esc(d.sum)}</p>
-    <h4>Topics</h4><div class="grid auto" style="margin-bottom:14px">${d.topics.map(t => `<div class="card clickable tint" style="--dc:${d.color};padding:10px 12px" onclick="location.hash='#/map/t/${t}'"><b>${esc(TOPICS[t].t)}</b> ${seen.has(t)?'<span class="chip ok">read</span>':''}<div class="small dim">${esc(TOPICS[t].tag)}</div></div>`).join('')}</div>
+    <h4>Topics</h4><div class="grid auto" style="margin-bottom:14px">${d.topics.map(t => `<a class="card clickable tint lnk blk" style="--dc:${d.color};padding:10px 12px" href="#/map/t/${t}"><b>${esc(TOPICS[t].t)}</b> ${seen.has(t)?'<span class="chip ok">read</span>':''}<div class="small dim">${esc(TOPICS[t].tag)}</div></a>`).join('')}</div>
     <h4>Why it connects</h4><ul class="mapside-list">${links}${inbound}</ul>`;
 }
 function drawerHTML(){
-  if(mapState.smell){ const s = SMELLS.find(x => x.id===mapState.smell); if(s) return `<div class="row between" style="margin-bottom:8px"><button class="btn sm ghost" onclick="location.hash='${mapState.topic ? '#/map/t/'+mapState.topic : mapState.dom ? '#/map/d/'+mapState.dom : '#/map/home'}'">← back</button><a class="btn sm" href="#/smell/${s.id}">Open in Diagnose</a></div>${smellsView(s.id).replace(/<div class="row between">.*?<\/div>\s*<h2/s, '<h2')}`; }
+  if(mapState.smell){ const s = SMELLS.find(x => x.id===mapState.smell); if(s) return `<div class="row between" style="margin-bottom:8px"><button class="btn sm ghost" data-href="${mapState.topic ? '#/map/t/'+mapState.topic : mapState.dom ? '#/map/d/'+mapState.dom : '#/map/home'}">← back</button><a class="btn sm" href="#/smell/${s.id}">Open in Diagnose</a></div>${smellsView(s.id).replace(/<div class="row between">.*?<\/div>\s*<h2/s, '<h2')}`; }
   if(mapState.topic && TOPICS[mapState.topic]) return topicBody(mapState.topic);
   if(mapState.dom && DOM[mapState.dom]) return domainPanel(DOM[mapState.dom]);
   return startPanel();
@@ -234,7 +234,6 @@ function mapClick(n){
 }
 
 function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); mapAnimateTo(fitBox(MAP.g.bbox)); } }
-window.__fitMap = fitMap;
 function redrawGraph(){
   if(!MAP || !document.body.contains(MAP.svg)) return;
   const g = buildGraph();
@@ -386,5 +385,5 @@ function syncMapMode(view, id){
   if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 
-Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap });
+Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap });
 })(window.PlayableApp);

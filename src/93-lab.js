@@ -10,7 +10,7 @@
    ===================================================================== */
 (function(A){
 'use strict';
-const { $, $$, app, esc, store, toast, go, setView, crumbs, list, field } = A;
+const { $, $$, app, esc, store, toast, copyText, go, setView, crumbs, list, field } = A;
 
 const LAB_MODES = [
   ['observe','I noticed something','Start from one specific thing players do, complain about, work around or build tools for.','e.g. Players build spreadsheets to plan their factory before building it.'],
@@ -151,7 +151,7 @@ function renderLab(){
     Object.assign(idea, { player: card.player||idea.player, wish: card.promise||idea.wish, mechanism: card.mechanism||idea.mechanism, verb: card.verb||idea.verb, fantasy: card.fantasy||idea.fantasy, constraints: card.constraints||idea.constraints, complaints: v('tension')||idea.complaints, market: v('signal')||idea.market });
     store.set('ideaTool', idea); location.hash = '#/build/idea'; };
   $('#lab_tocard').onclick = pushToCard;
-  $('#lab_export').onclick = () => __copy(labMarkdown());
+  $('#lab_export').onclick = () => copyText(labMarkdown());
 
   const labMarkdown = () => {
     const v = id => (saved.step[id]||'').trim() || '(blank)';
@@ -163,7 +163,7 @@ function renderLab(){
   // wiring
   $$('.labmode').forEach(b => b.onclick = () => { saved.mode = b.dataset.m; save(); renderLab(); });
   $$('.labex').forEach(b => b.onclick = () => { const box = $('#labex_' + b.dataset.step); if(box) box.hidden = !box.hidden; });
-  $$('.labpr').forEach(b => b.onclick = () => { const s = stepMeta(b.dataset.step); __copy(labPrompt(s.id)); toast('AI prompt copied'); });
+  $$('.labpr').forEach(b => b.onclick = () => { const s = stepMeta(b.dataset.step); copyText(labPrompt(s.id)); toast('AI prompt copied'); });
   $$('.evchip').forEach(b => b.onclick = () => { saved.ev[b.dataset.step] = saved.ev[b.dataset.step]===b.dataset.ev ? '' : b.dataset.ev; save(); renderLab(); });
   LAB_STEPS.forEach(s => { const el = $('#labv_' + s.id); if(el) el.addEventListener('input', () => { saved.step[s.id] = el.value; save(); out(); }); });
   $$('.labax').forEach(i => i.addEventListener('input', () => { saved.spaceAxes[+i.dataset.a] = i.value; save(); }));

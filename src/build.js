@@ -18,3 +18,12 @@ new vm.Script(match[1], { filename: 'playable.html <script>' });
 // type-checked alone and no file leans on another's open brackets.
 for (const f of [...DATA, FLOW, GRAPH, ...APP]) new vm.Script(fs.readFileSync(path.join(__dirname, f), 'utf8'), { filename: f });
 console.log('JS syntax OK (bundle and each file)');
+// Markup names its click behaviour with data-action; each name needs a
+// handler in ACTIONS, or the button silently does nothing.
+const appSrc = APP.map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
+const used = new Set([...appSrc.matchAll(/data-action="([\w-]+)"/g)].map(m => m[1]));
+const defined = new Set([...appSrc.matchAll(/ACTIONS(?:\.(\w+)|\['([\w-]+)'\])\s*=/g)].map(m => m[1] || m[2]));
+const missing = [...used].filter(a => !defined.has(a)), unused = [...defined].filter(a => !used.has(a));
+if (unused.length) console.log('actions defined but never used: ' + unused.join(', '));
+if (missing.length) { console.error('data-action with no handler: ' + missing.join(', ')); process.exit(1); }
+console.log(`actions: ${used.size}, all handled`);
