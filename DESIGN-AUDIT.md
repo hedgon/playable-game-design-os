@@ -2,9 +2,14 @@
 
 Inspected as a senior game designer would, against the brief's final quality test.
 
+Sections are dated by what they describe. "What the guide covers" and
+"Assumptions and limitations" describe the guide as it is now; the verification
+records further down describe the checks run when each piece landed, under the
+names used then (the Experience view is called Projects since September 2026).
+
 ## What the guide covers
 
-Nineteen domains, 133 topics, all with the same eight-part practical structure
+Nineteen domains, 138 topics, all with the same eight-part practical structure
 (topics with a real implementation decision add a ninth, "Techniques to compare").
 The original fourteen design domains carry a Godot and a Unity tab (how a client
 built in that engine reaches for the same idea) and an Interview tab (junior / mid
@@ -13,7 +18,8 @@ Game Server, Project Management, Team Leadership) extend the guide from design i
 the engineering and people practice around a live game; the first three also carry
 engine tabs (framed as "how the client consumes this"), and the last two carry only
 an Interview tab, since there is no client-side counterpart to a project-management
-decision:
+decision. The map shows the domains through two lenses: Design (the first
+fourteen) and Engineering & Career (the last five).
 
 | Domain | Topics |
 | --- | --- |
@@ -29,8 +35,8 @@ decision:
 | Product | audience and positioning, platform and session, business model, scope control, launch and discoverability, post-launch and live operations, localization and culturalization, ethics and responsibility |
 | Studio | design documents and communication, metrics / telemetry and success criteria, team / roles and collaboration, planning / milestones and schedule, quality assurance and build health |
 | Production | prototyping, hypothesis-driven design, playtesting, iteration on evidence, vertical slice and MVP, risk and dependencies, when to polish |
-| AI Collaboration | the bottleneck shift, AI roles, prompting framework, verifying AI output, AI failure modes, responsibility matrix, AI for prototyping and implementation, AI for playtest analysis, the 12-step loop |
-| In-game AI | what in-game AI is for (and when to fake or script it), choosing a behaviour technique (FSM, behaviour tree, utility AI, GOAP/HTN), perception and memory, navigation and pathfinding, readable and fair AI, adaptive AI and directors, allies and companions, learning-based/ML AI, budgets and debugging, scripted vs simulated |
+| AI Collaboration | the bottleneck shift, AI roles, prompting framework, verifying AI output, AI failure modes, responsibility matrix, AI for prototyping and implementation, agents that build (tasks, checks and reviewed diffs), evals for AI in the pipeline, generative assets (pipeline, provenance and rights), disclosure, IP and platform rules, AI for playtest analysis, the 12-step loop |
+| In-game AI | what in-game AI is for (and when to fake or script it), choosing a behaviour technique (FSM, behaviour tree, utility AI, GOAP/HTN), perception and memory, navigation and pathfinding, readable and fair AI, adaptive AI and directors, allies and companions, learning-based/ML AI, generative characters (language models inside the game), budgets and debugging, scripted vs simulated |
 | Backend (Go-first) | clean layering and dependency direction, compile-time DI and one binary/many modes, API protocol choices (REST/JSON, protobuf over HTTP, gRPC), request context/middleware/idempotency, domain error taxonomy, transactions/query layers/delta state sync, caching tiers and Redis patterns, schema migrations/config/secrets, logging/tracing/profiling/action logs, testing tiers and test integrity, Go concurrency/lifecycle/generics/module hygiene |
 | Infrastructure | containers and compose-based dev environments, deploy models (processes on VMs, Kubernetes, serverless, cron), CI pipeline stages and graded failure, artifacts/versioning/provenance, secrets management, CDN and asset delivery, managed data stores/replicas/sharding/queues, monitoring/alerting/incidents/cost |
 | Game Server | authority models (server-authoritative, host mode, client-simulate-server-verify), deterministic simulation and parity testing, state sync (delta sync, interpolation vs prediction, tick rates), realtime protocols (WebSocket framing, op codes, channels), matchmaking/rooms/sessions/reconnection, scaling (sharding, pub/sub fan-out), anti-cheat and abuse handling, live operations (maintenance gates, force update, batches, master data) |
@@ -40,7 +46,10 @@ decision:
 Plus: 33 design smells with 120 cause → experiment pairs, 19 fun dimensions, a
 core-loop diagnostic, an unfairness diagnostic, a rule audit, a content-or-mechanic
 decision tree, 9 AI roles, 14 AI failure modes, a 20-row responsibility matrix,
-17 prompt templates, 6 checklists, 11 tools, and a sources page.
+17 prompt templates, 6 checklists, 11 tools, and a sources page. Topics whose
+advice depends on rules that change (store policy, law, court rulings) carry
+dated facts: 16 facts on 6 topics, each with the day it was checked and its
+source, and the validator warns once one is a year old.
 
 The Studio domain carries the practice layer that surrounds a design: design documents
 and communication, metrics and success criteria, team and ownership, planning and
@@ -118,7 +127,7 @@ text ever being embedded in the file. Tabs are deep-linkable
 (`#/map/t/<id>/<tab>`, `overview` omitted from the URL) and the last tab used is
 remembered per browser.
 
-The **Experience** view (`#/experience`) turns three real, shipped projects into
+The **Projects** view (`#/experience`) turns three real, shipped projects into
 the shape an interview actually asks for: context, architecture, five to eight
 decisions each with a trade-off, what went wrong and the lesson, three to five STAR
 interview stories, and links back into the relevant topics with a reason. Each
@@ -182,15 +191,15 @@ topic's.
 ## Learning paths
 
 The guide's map is complete but undirected: a reader who does not already know
-what they need has 133 topics, 33 smells, eleven tools and three projects with no
+what they need has 138 topics, 33 smells, eleven tools and three projects with no
 order to move through them in. A bigger map does not fix that; more nodes is more
 of the same problem. What a beginner-to-expert reader needs instead is a
 **sequence** through content that already exists, with a reason for each stop, a
 concrete exercise, and a way to tell whether they are ready for the next one. That
 is what a path is, and why it is additive rather than a rewrite: `PATH()` in
-`src/50-data-paths-a.js` and `51-data-paths-b.js` never authors new content, it
+`src/50-paths.js` and `51-paths-engineering.js` never authors new content, it
 only orders `ref`s into existing topics, tools, checklists, smells, diagnostics,
-project parts, flows and prompts, so the 133-topic map, the Experience projects
+project parts, flows and prompts, so the 138-topic map, the projects
 and the tool suite stay the single source of truth.
 
 Twelve paths across four tracks (design, engineering, leadership, interview prep)
@@ -564,6 +573,35 @@ confidence, not a score. `#/ai/ladder` adds the prompt ladder: twelve rungs, eac
 the human decision, the AI partner, a prompt and the failure to avoid. The home panel
 gains a "What are you trying to solve?" symptom router. See `DESIGN-SECOND-BRAIN.md`.
 
+## Improvement programme (September 2026)
+
+An audit of content, UX and code structure led to four phases of work, each
+checked against evidence before it landed:
+
+- **Structure without behaviour change.** Tools, diagnostics, lenses and view
+  links are declared once in `05-registry.js`; data files are grouped one per
+  domain; each app file has its own scope; inline handlers became delegated
+  `data-action` handlers, and the build fails on an action without one. A
+  golden-master sweep of every route (1011 at the time) proved these steps
+  changed nothing on screen, and a data snapshot proved the regrouped data
+  identical.
+- **Fixes for readers.** Narrow screens show one pane per route, back and forward
+  included; the camera refits after a resize or rotation; text meets AA contrast
+  in both themes (84 failing pairs became 0, checked in the build); the map is
+  keyboard-operable; dialogs trap and return focus; the theme follows the system;
+  reduced motion is respected; saved data can be exported and imported.
+- **Navigation.** Two lenses on the map, six navigation groups with sub-tabs,
+  one step at a time in the Idea Lab, map labels that wrap onto two lines instead
+  of being cut (221 shortened labels became 1), a one-sided tree on phones, and a
+  spaced review queue for interview questions.
+- **Content currency.** Five topics on AI-era practice (agents that build, evals,
+  generative assets, disclosure and platform rules, generative characters),
+  Quantic Foundry's motivation model, and dated facts with sources.
+- **Checks.** JSDoc types checked by TypeScript, a Playwright smoke test at three
+  widths, and CI that runs the build, a `playable.html` sync check, the type
+  check and the smoke test. The final sweep visited 1036 routes with no console
+  errors and 745 link targets with none broken.
+
 ## Assumptions and limitations
 
 - **It is a heuristic system.** Verdicts (BUILD / PROTOTYPE FIRST / …, the
@@ -576,7 +614,8 @@ gains a "What are you trying to solve?" symptom router. See `DESIGN-SECOND-BRAIN
   the full argument behind a heuristic should follow the Sources page to the
   original works.
 - **No backend.** Tool state lives in one browser's localStorage. Nothing syncs
-  between devices or teammates. Export to Markdown is the sharing mechanism.
+  between devices or teammates. The help dialog exports and imports all saved
+  data as one JSON file, and each tool exports Markdown for sharing.
 - **AI prompts assume a capable general-purpose model** and assume the designer
   fills the bracketed context. The guide repeatedly warns that unfilled brackets
   produce genre averages; it cannot enforce that.
@@ -584,9 +623,11 @@ gains a "What are you trying to solve?" symptom router. See `DESIGN-SECOND-BRAIN
   contested and moving. It is presented as a field note, not a finding.
 - **Search is substring-based** with light ranking; it has no synonyms beyond a
   keyword list on smells.
-- **Visual polish was checked at desktop (1440 px) and phone (375 px)** in
-  a Chromium browser; tablet widths rely on the same responsive
-  rules and were not separately screenshotted.
+- **Layout is checked at 375, 1024 and 1440 px** by the browser smoke test in
+  Chromium on every build in CI; other browsers are not tested automatically.
+- **Dated facts are a starting point, not legal advice.** They say what a
+  source said on the day it was checked; the validator can only flag age, not
+  a rule that changed last week.
 - **The rule-audit, sysmap and delegation tools use simple heuristics** (keyword
   matching against the matrix, pairwise unconnected nodes). They are prompts for
   thinking, not analysis engines; the real analysis is delegated to the AI prompts

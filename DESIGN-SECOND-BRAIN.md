@@ -14,11 +14,12 @@ node was to hover.
 
 **New.** Three layers that do different jobs.
 
-- **Index** (left): domains and topics, named and counted, with a search box. Expand
-  what you need.
+- **Index** (left): domains and topics, named and counted, with a search box and
+  the lens switch (Design, or Engineering & Career). Expand what you need.
 - **Mind map** (centre): the always-visible map, drawn as a horizontal collapsible tidy
-  tree. The goal sits in the middle with the fourteen domains split into two balanced
-  groups, one on each side, and a domain's topics on the next layer while it is open.
+  tree. The lens's goal sits in the middle with its domains (fourteen for Design, five
+  for Engineering & Career) split into two balanced groups, one on each side, and a
+  domain's topics on the next layer while it is open.
   Selecting a topic grows another layer of smaller nodes: the concepts it relates to, the
   smells it diagnoses and the tools it points to. Faint dashed cross-branch links connect
   domains to each other, an open topic to a related concept's domain, and a leaf back to
@@ -32,8 +33,10 @@ node was to hover.
 - **Content** (right): whatever you are reading or doing.
 
 All three are visible at once on desktop; panels are resized by dragging the dividers and
-collapsed from the toolbar. On phones the index and content are slide-over drawers with a
-tap-away scrim, and the map fills the width.
+collapsed from the toolbar. On narrow screens the index and content are slide-over
+drawers with a tap-away scrim: a reading route opens the content, a structure route
+shows the map, and back and forward follow the same rule. On phones the tree draws one
+side only, so a column of cards fits the width.
 
 This replaced a radial map whose fan could not hold names as the content grew. Expanding
 the circle and shrinking the nodes both hurt readability, so the map is a tree now. The
@@ -42,10 +45,13 @@ diagnostic is a decision tree.
 
 ## Ideation methodology (the Idea Lab)
 
-An idea is a chain of reasoning, not a filled-in form. The Idea Lab (`#/lab`) is the
-first door. Five entry modes accept almost nothing: "I noticed something", "I want
-players to feel something", "I like a game, but", "I have a constraint", "I do not
-know what to make". They feed a chain of small artifacts:
+An idea is a chain of reasoning, not a filled-in form. The Idea Lab (`#/lab`, under
+Make) is the ideation surface. Five entry modes accept almost nothing: "I noticed
+something", "I want players to feel something", "I like a game, but", "I have a
+constraint", "I do not know what to make". A sixth, "I watch a market", opens the Idea
+Shaper instead, so there is one door per job. The modes feed a chain of small
+artifacts, shown one step at a time with a step bar (a "show all steps" toggle lays
+the whole chain out):
 
     Observe -> Signal -> Tension -> Opportunity -> Design question
             -> Design space -> Mechanisms -> Critique -> Converge
@@ -98,7 +104,16 @@ non-AI action.
   soft checkpoint per stage and a path bar naming the one visible next step. The
   two never fight over content: a path only orders `ref`s into topics, tools,
   checklists, project parts and flows that already exist, so the map, the
-  Experience projects and the tool suite remain the one place that content lives.
+  projects and the tool suite remain the one place that content lives.
+- Two lenses instead of one crowded map: Design, and Engineering & Career. The two
+  share one build, one search and cross-links; only the map and the index filter by
+  lens.
+- Six navigation groups (Paths, Map, Make, Diagnose, AI Workflow, Projects) with
+  sub-tabs, instead of a long row of peer views in the header.
+- A review queue: interview questions a reader marks come back on a spaced schedule
+  (1, 2, 4, 8, then 16 days) under Paths.
+- Dated facts: rules that change carry the day they were checked and a source, and
+  the build warns when one is a year old.
 - Form to chain: the Idea Shaper was fifteen fields before any thinking. It is now the
   Idea Card, produced after the Idea Lab chain.
 - Persistent rail: navigation no longer replaces the map or requires a return click.
@@ -117,7 +132,7 @@ non-AI action.
   engine, an interviewer), not a replacement for it, and a reader who came for the
   design thinking should never have to click past code or interview questions to
   reach it.
-- A second map sharing one stage: opening a project under Experience does not open a
+- A second map sharing one stage: opening a project under Projects does not open a
   separate view, it swaps what the same centre mind map draws, systems and parts
   instead of domains and topics, with the same drag, zoom, fit and reset gestures a
   reader already knows. The two maps never fight over state (each keeps its own open
@@ -150,16 +165,16 @@ non-AI action.
 
 ## Self-audit and remaining weaknesses
 
-- The **Idea Lab is linear** in the rendered order. It is resumable and every artifact
-  is independent, but a true non-linear canvas (drag artifacts, branch, side-by-side
+- The **Idea Lab is linear**: one step at a time, in order. It is resumable, every
+  artifact is independent and the step bar jumps anywhere, but a true non-linear canvas (drag artifacts, branch, side-by-side
   concept comparison) is not built.
 - **Convergence** gives structured judgement, but does not yet compare multiple
   concepts side by side. The proposal asked for it.
 - The **tool UX pass is partial**: the Idea Lab, the Prompt Ladder and examples for
   the Loop and Canvas tools follow the new pattern; the other tools still use their
   older forms.
-- **Concept architecture** now ships in a bounded form: `#/concepts` lists all 90
-  concepts ranked by how many other concepts reference them, and every topic page has an
+- **Concept architecture** now ships in a bounded form: `#/concepts` lists every topic
+  (138) ranked by how many other topics reference it, and every topic page has an
   "Appears in" panel showing its home domain plus every concept that references it, the
   smells it diagnoses and the loops it serves. The article is not duplicated. What is not
   built is a data-level canonical model where a concept can be authored once and rendered
