@@ -15,7 +15,7 @@
      pm-liveops-cadence   Live-ops cadence and release calendars
      pm-postmortems       Post-mortems and retrospectives
    ===================================================================== */
-DOMAINS.push({ id:'management', t:'Project Management', short:'Scope, estimates, risk, process, handoffs, QA, cadence, post-mortems', color:'var(--d-management)',
+DOMAINS.push({ id:'management', lens:'eng', t:'Project Management', short:'Scope, estimates, risk, process, handoffs, QA, cadence, post-mortems', color:'var(--d-management)',
   sum:`How the work is sequenced, cut and kept honest. Management is not ceremony. It is the discipline of deciding what will not be built, knowing what is uncertain, and making sure the riskiest thing is the thing being worked on right now.`,
   links:[['production','Production is the craft of making the game. Management is the craft of making the plan survive it.'],['studio','Direction, documents and metrics are what management steers with.'],['leadership','A plan is executed by people. Leadership is the half of this that is not a schedule.'],['product','Scope and cadence answer to the promise the product made and the money behind it.'],['infra','Release trains, build health and deploy cadence are the plan expressed in pipelines.']],
   titles:{ test:'What should I measure or review?' } });

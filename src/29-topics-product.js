@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'product', t:'Product', short:'Audience, platform, model, positioning, scope', color:'var(--d-product)',
+DOMAINS.push({ id:'product', lens:'design', t:'Product', short:'Audience, platform, model, positioning, scope', color:'var(--d-product)',
     sum:`Who will actually pick this up, on what device, for how long, and why yours instead of the thousand others. Product thinking keeps design honest about scope and about what makes the game distinct.`,
     links:[['player','Audience is the player model seen through a market lens.'],['production','Scope, platform and business model set every production constraint.'],['systems','Session length and monetization shape economy and progression.'],['experience','Positioning is a promise about the experience. The game must keep it.']] });
 

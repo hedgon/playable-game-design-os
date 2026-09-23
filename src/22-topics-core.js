@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'core', t:'Core Gameplay', short:'Loop, decisions, risk, skill, agency, failure', color:'var(--d-core)',
+DOMAINS.push({ id:'core', lens:'design', t:'Core Gameplay', short:'Loop, decisions, risk, skill, agency, failure', color:'var(--d-core)',
     sum:`The thing the player does over and over. If the core interaction is not compelling on its own, no amount of progression, content or narrative rescues it. Fix the loop before you multiply it.`,
     links:[['systems','Systems give the loop its variables: what changes between one iteration and the next.'],['ux','Input, readability and feedback are the loop as the player physically meets it.'],['presentation','Game feel lives at the seam between the loop and presentation.'],['production','The loop is the first thing you prototype and the thing you playtest most.']] });
 

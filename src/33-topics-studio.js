@@ -6,7 +6,7 @@
    topic is followed by its techniques (TECH), engine views (ENGINE) and
    interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'studio', t:'Studio', short:'Direction, documents, metrics, team, planning, quality', color:'var(--d-studio)',
+DOMAINS.push({ id:'studio', lens:'design', t:'Studio', short:'Direction, documents, metrics, team, planning, quality', color:'var(--d-studio)',
   sum:`How a design survives contact with a team and a schedule: what the game must always be, who decides what, what gets written down, what gets measured, and how the work is sequenced and kept playable. Process exists to protect the experience, never the other way round.`,
   links:[['production','Studio practice is the organisation that production runs inside.'],['product','Direction and metrics answer to the market promise the product makes.'],['ai','AI changes who does what and how fast the studio can test an idea.'],['experience','Every process exists to protect the experience, not to replace it.']] });
 

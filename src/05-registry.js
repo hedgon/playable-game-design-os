@@ -32,6 +32,14 @@ const DIAGNOSTICS = [
   ['content','Content or mechanic?','Content or mechanic?']
 ];
 
+// [id, title, goal]. The map shows one lens at a time: the design operating
+// system, or the engineering and career material around it. Every domain
+// names its lens; the goal labels the centre of that lens's map.
+const LENSES = [
+  ['design','Design','Make something people want to play'],
+  ['eng','Engineering & Career','Build it, ship it, lead the team']
+];
+
 // A topic's `rel` or a loop step's `top` may name one of these instead of a
 // topic: [route, label]. The app adds project-part links at runtime.
 const VIEW_LINKS = {

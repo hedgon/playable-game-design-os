@@ -15,7 +15,7 @@
      server-anticheat          Anti-cheat and abuse handling
      server-liveops            Live operations: maintenance gates, force update, batches, master data
    ===================================================================== */
-DOMAINS.push({ id:'server', t:'Game Server', short:'Authority, determinism, sync, realtime, matchmaking, scaling, live ops', color:'var(--d-server)',
+DOMAINS.push({ id:'server', lens:'eng', t:'Game Server', short:'Authority, determinism, sync, realtime, matchmaking, scaling, live ops', color:'var(--d-server)',
   sum:`The authoritative copy of the game. Where the backend answers questions, the game server decides what is true: who hit whom, what the world looks like this tick, and whether a client is allowed to say what it just said. Every choice here is a trade between responsiveness, fairness and cost.`,
   links:[['backend','The server shares the same layering, storage and observability as the service. It adds a clock.'],['core','Latency, prediction and rollback are the core loop as the player physically meets it over a network.'],['systems','Anything the economy or progression owns must be resolved by the authority, or it is a suggestion.'],['gameai','Server-side behaviour, directors and bots run inside the authoritative simulation, not beside it.'],['infra','Rooms, shards and fan-out are deployment shapes before they are code.']],
   titles:{ test:'What should I test or measure?' } });

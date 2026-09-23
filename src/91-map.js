@@ -27,8 +27,14 @@ function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) =
 function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); openModal('startModal'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
-const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
+const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null, lens:'design' }, store.get('mapState', {}));
 function saveMap(){ store.set('mapState', mapState); }
+// The domain map shows one lens; a domain or topic route switches to its own.
+const lensOf = domId => (DOM[domId] || {}).lens || LENSES[0][0];
+function currentLens(){ return LENSES.find(l => l[0] === mapState.lens) || LENSES[0]; }
+function setLens(id){ mapState.lens = id; mapState.dom = null; mapState.topic = null; mapState.smell = null; saveMap(); go('#/map/home'); }
+// Phones get the one-sided tree, read one column at a time.
+const phoneQuery = window.matchMedia('(max-width: 700px)');
 
 /* ---- three maps, one stage ----
    'domains' draws the guide. 'project' draws one case study as systems and
@@ -69,12 +75,12 @@ function saveCur(){ if(mapMode === 'project') saveProj(); else if(mapMode === 'p
 // selected topic. They are runtime links, not data, so they ride along on a
 // copy of mapState instead of being stored in it.
 function buildGraph(){
-  const c = projCase();
-  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, projState, TOPICS, DOMAINS);
+  const oneSided = phoneQuery.matches, c = projCase();
+  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided }), TOPICS, DOMAINS);
   const pth = curPath();
-  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, pathMapState, pathProgress(pth.id));
+  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
   const pr = practice();
-  return PlayableGraph.build(Object.assign({}, mapState, { extra: (mapState.topic && pr.extra[mapState.topic]) || [] }), seen, VIEW_LINKS);
+  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, extra: (mapState.topic && pr.extra[mapState.topic]) || [] }), seen, VIEW_LINKS);
 }
 
 function mapCrumbs(){
@@ -100,14 +106,29 @@ function mapCrumbs(){
     if(p) parts.push(`<span>›</span><b>${esc(p.t)}</b>`);
     return `<div class="mapcrumbs">${parts.join('')}</div>`;
   }
-  const parts = [`<button data-href="#/map/home">All domains</button>`];
+  const parts = [`<button data-href="#/map/home">${esc(currentLens()[1])}</button>`];
   if(mapState.dom && DOM[mapState.dom]) parts.push(`<span>›</span><button data-href="#/map/d/${mapState.dom}">${esc(DOM[mapState.dom].t)}</button>`);
   if(mapState.topic && TOPICS[mapState.topic]) parts.push(`<span>›</span><button data-href="#/map/t/${mapState.topic}">${esc(TOPICS[mapState.topic].t)}</button>`);
   if(mapState.smell){ const s = SMELLS.find(x => x.id===mapState.smell); if(s) parts.push(`<span>›</span><b>${esc(s.t)}</b>`); }
   return `<div class="mapcrumbs">${parts.join('')}</div>`;
 }
+function lensSwitchHTML(){
+  const cur = currentLens()[0];
+  return `<div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === cur}">${esc(t)}</button>`).join('')}</div>`;
+}
+function engPanel(lens){
+  const doms = DOMAINS.filter(d => d.lens === lens[0]);
+  const n = doms.reduce((a, d) => a + d.topics.length, 0);
+  return `${lensSwitchHTML()}<span class="overline">${esc(lens[1])} · ${n} topics · ${CASE_STUDIES.length} projects</span>
+    <h1 style="margin:6px 0 8px">${esc(lens[2])}.</h1>
+    <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
+    <div class="grid auto">${doms.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/d/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small" style="margin:0">${esc(d.short)}</p></a>`).join('')}</div>
+    <div class="row" style="margin-top:14px"><a class="btn" href="#/experience">Projects</a><a class="btn ghost" href="#/paths">Engineering, leadership and interview paths</a></div>`;
+}
 function startPanel(){
-  return `<span class="overline">Field manual · ${TOPIC_LIST.length} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
+  const lens = currentLens();
+  if(lens[0] !== LENSES[0][0]) return engPanel(lens);
+  return `${lensSwitchHTML()}<span class="overline">Field manual · ${DOMAINS.filter(d => d.lens === lens[0]).reduce((a, d) => a + d.topics.length, 0)} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
     <h1 style="margin:6px 0 8px">Make something people want to play.</h1>
     <p class="dim">The mind map on the left is always here. Click a domain to expand it in place, click a topic to read it in this panel. The index and the map do the same work, so use whichever suits you.</p>
     <div class="paths">${startPathsHTML()}</div>
@@ -164,8 +185,23 @@ function savedCamera(vb){
   const w = MAP.wrap.clientWidth, h = MAP.wrap.clientHeight;
   return Math.abs(vb.sw - w) <= w * 0.2 && Math.abs(vb.sh - h) <= h * 0.2 ? vb : null;
 }
+// On a phone the one-sided tree is read one column at a time: the column the
+// reader is choosing from (branches, or the open branch's items) fills the
+// width at a readable scale, starting at its top or at the selected item.
+function phoneTarget(g){
+  const open = g.nodes.find(n => n.kind === 'domain' && n.open);
+  const col = g.nodes.filter(n => open ? n.kind === 'topic' : n.kind === 'domain');
+  const list = col.length ? col : g.nodes;
+  const minX = Math.min(...list.map(n => n.x)) - 16, maxX = Math.max(...list.map(n => n.x + n.w)) + 16;
+  const w = maxX - minX, h = w * Math.max(1, MAP.wrap.clientHeight) / Math.max(1, MAP.wrap.clientWidth);
+  const selId = mapMode === 'project' ? projState && projState.part : mapMode === 'path' ? null : mapState.topic;
+  const sel = selId && list.find(n => n.id === selId);
+  const top = Math.min(...list.map(n => n.y - n.h / 2)) - 16;
+  return { x: minX, y: sel ? sel.y - h / 2 : top, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
+  if(phoneQuery.matches) return phoneTarget(g);
   let target = cameraTarget(g, cam, kind);
   if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
   return target;
@@ -431,8 +467,8 @@ function renderTree(kind){
 function renderMap(kind, id, tab){
   mapMode = 'domains';
   if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
-  else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; }
-  else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; setTopicTab(TOPICS[id], tab); }
+  else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; mapState.lens = lensOf(id); }
+  else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; mapState.lens = lensOf(TOPICS[id].d); setTopicTab(TOPICS[id], tab); }
   else if(kind==='s' && SMELLS.some(s => s.id===id)){ mapState.smell = id; }
   saveMap();
   if(mapState.topic) markSeen(mapState.topic);
@@ -453,5 +489,7 @@ function syncMapMode(view, id){
   if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 
-Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav });
+// Crossing the phone width swaps the two-sided tree for the one-sided one.
+phoneQuery.addEventListener('change', () => { if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
+Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
 })(window.PlayableApp);

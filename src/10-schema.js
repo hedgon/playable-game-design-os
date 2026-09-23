@@ -16,6 +16,7 @@
 /**
  * @typedef {object} Domain
  * @property {string} id
+ * @property {'design'|'eng'} lens   which map lens shows it (LENSES)
  * @property {string} t
  * @property {string} short   one line under the title
  * @property {string} color   a --d-<id> CSS variable

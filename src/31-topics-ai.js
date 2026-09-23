@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'ai', t:'AI Collaboration', short:'Roles, prompting, verification, failure modes, delegation', color:'var(--d-ai)',
+DOMAINS.push({ id:'ai', lens:'design', t:'AI Collaboration', short:'Roles, prompting, verification, failure modes, delegation', color:'var(--d-ai)',
     sum:`AI generates possibilities cheaply. Humans decide what is worth making. This domain teaches how to frame, delegate, verify and correct AI work so it makes the game better instead of merely bigger.`,
     links:[['production','AI changes the production loop: cheaper prototypes, more iterations, same need for evidence.'],['player','Only observed players tell you whether AI output is fun. AI cannot judge that.'],['systems','Simulation, edge cases and balance sweeps are among the strongest AI contributions.'],['content','Generation without a validated system produces content spam.']] });
 

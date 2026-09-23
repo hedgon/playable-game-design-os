@@ -3,17 +3,14 @@
 // project and path state) and report any two node cards that overlap. The
 // renderer returns its placed nodes (x = left edge, y = vertical centre, w,
 // h), so the check reads that geometry directly instead of parsing the SVG.
-// Labels cannot escape their card: the renderer shortens a label to the
-// card's inner width with the same per-character estimate used here, so a
-// card-vs-card test covers label collisions too. Labels that had to be
-// shortened are counted and reported, because a clipped name is still lost
-// information even when nothing overlaps. Kept separate from check-layout.js
-// so a synthetic dataset can be exercised without the real data files.
-
-// Must match the renderer's font sizes and per-character estimate
-// (89-graph.js, `mark` and `maxFor`): 26 px of padding, 0.56 em per char.
-const FONT = { center: 15, domain: 14, topic: 13, leaf: 12, smell: 12, view: 12 };
-const fits = n => !n.label || n.label.length <= Math.max(4, Math.floor((n.w - 26) / ((FONT[n.kind] || 12) * 0.56)));
+// Labels cannot escape their card: the renderer wraps a label onto a second
+// line and makes the card taller, shortening only what two lines cannot
+// hold, so a card-vs-card test covers label collisions too. Labels that were
+// still shortened are counted and reported (from the renderer's own lines),
+// because a clipped name is lost information even when nothing overlaps.
+// Kept separate from check-layout.js so a synthetic dataset can be
+// exercised without the real data files.
+const fits = n => !n.label || (n.lines || [n.label]).join(' ') === n.label;
 
 function cardOverlaps(nodes, name, problems) {
   const r = nodes.map(n => ({ id: n.kind === 'center' ? 'center' : n.id, x: n.x, y: n.y - n.h / 2, w: n.w, h: n.h }));
@@ -62,36 +59,41 @@ function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F, PATHS) {
     cardOverlaps(g.nodes, name, problems);
     for (const n of g.nodes) if (!fits(n)) clipped.set(n.kind + ':' + n.label, name);
   };
-  const check = (state, name) => scan(G.build(state, seen, pl.views), name);
-  check({ dom: null, topic: null }, 'overview');
-  for (const d of DOMAINS) {
-    check({ dom: d.id, topic: null }, `open:${d.id}`);
-    for (const t of d.topics) check({ dom: d.id, topic: t, extra: pl.extra[t] || [] }, `sel:${t}`);
-  }
-  for (const c of (CASE_STUDIES || [])) {
-    if (!c.systems || !c.systems.length) continue;
-    scan(G.buildProject(c, { sys: null, part: null }, TOPICS, DOMAINS), `proj:${c.id}`);
-    for (const s of c.systems) {
-      scan(G.buildProject(c, { sys: s.id, part: null }, TOPICS, DOMAINS), `proj:${c.id}/${s.id}`);
-      for (const p of (s.parts || [])) scan(G.buildProject(c, { sys: s.id, part: p.id }, TOPICS, DOMAINS), `proj:${c.id}/${s.id}/${p.id}`);
+  // Every state is checked in both layouts: two-sided (wide screens) and
+  // one-sided (phones).
+  for (const oneSided of [false, true]) {
+    const tag = oneSided ? '1side ' : '';
+    const check = (state, name) => scan(G.build(Object.assign({ oneSided }, state), seen, pl.views), tag + name);
+    for (const lens of new Set(DOMAINS.map(d => d.lens))) check({ dom: null, topic: null, lens }, `overview:${lens}`);
+    for (const d of DOMAINS) {
+      check({ dom: d.id, topic: null, lens: d.lens }, `open:${d.id}`);
+      for (const t of d.topics) check({ dom: d.id, topic: t, lens: d.lens, extra: pl.extra[t] || [] }, `sel:${t}`);
     }
-    // the Workflows branch is a node on the same map, so its open state and
-    // every flow selected under it are states the map has to survive too.
-    if ((c.flows || []).length) {
-      scan(G.buildProject(c, { sys: 'workflows', part: null }, TOPICS, DOMAINS), `proj:${c.id}/workflows`);
-      for (const f of c.flows) scan(G.buildProject(c, { sys: 'workflows', part: f.id }, TOPICS, DOMAINS), `proj:${c.id}/workflows/${f.id}`);
+    for (const c of (CASE_STUDIES || [])) {
+      if (!c.systems || !c.systems.length) continue;
+      const proj = (sys, part, name) => scan(G.buildProject(c, { sys, part, oneSided }, TOPICS, DOMAINS), tag + name);
+      proj(null, null, `proj:${c.id}`);
+      for (const s of c.systems) {
+        proj(s.id, null, `proj:${c.id}/${s.id}`);
+        for (const p of (s.parts || [])) proj(s.id, p.id, `proj:${c.id}/${s.id}/${p.id}`);
+      }
+      // the Workflows branch is a node on the same map, so its open state and
+      // every flow selected under it are states the map has to survive too.
+      if ((c.flows || []).length) {
+        proj('workflows', null, `proj:${c.id}/workflows`);
+        for (const f of c.flows) proj('workflows', f.id, `proj:${c.id}/workflows/${f.id}`);
+      }
+    }
+    // path states: a path's overview (no stage open) and every stage opened.
+    // An empty progress record is enough: node width does not depend on
+    // which steps a reader has ticked, only on the label text.
+    for (const pth of (PATHS || [])) {
+      if (!pth.stages || !pth.stages.length) continue;
+      scan(G.buildPath(pth, { stage: null, oneSided }, { steps: {}, stages: {} }), `${tag}path:${pth.id}`);
+      for (const st of pth.stages) scan(G.buildPath(pth, { stage: st.id, oneSided }, { steps: {}, stages: {} }), `${tag}path:${pth.id}/${st.id}`);
     }
   }
   if (F) states += flowOverlaps(F, CASE_STUDIES, problems);
-  // path states: a path's overview (no stage open) and every stage opened
-  // are states the map has to survive, same as a project's overview and each
-  // system opened above. An empty progress record is enough: node width does
-  // not depend on which steps a reader has ticked, only on the label text.
-  for (const pth of (PATHS || [])) {
-    if (!pth.stages || !pth.stages.length) continue;
-    scan(G.buildPath(pth, { stage: null }, { steps: {}, stages: {} }), `path:${pth.id}`);
-    for (const st of pth.stages) scan(G.buildPath(pth, { stage: st.id }, { steps: {}, stages: {} }), `path:${pth.id}/${st.id}`);
-  }
   return { states, problems, clipped: [...clipped.keys()] };
 }
 module.exports = { overlaps, flowOverlaps, cardOverlaps };

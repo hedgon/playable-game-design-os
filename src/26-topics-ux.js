@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'ux', t:'UX / UI', short:'Readability, feedback, onboarding, controls, friction', color:'var(--d-ux)',
+DOMAINS.push({ id:'ux', lens:'design', t:'UX / UI', short:'Readability, feedback, onboarding, controls, friction', color:'var(--d-ux)',
     sum:`UX is not decoration on top of design. It is the channel through which every decision reaches the player. If the player cannot perceive the state, the choice or the consequence, the design does not exist for them.`,
     links:[['core','Feedback closes the loop: without it action has no consequence the player can learn from.'],['player','Cognitive load is relative to what this player already knows.'],['presentation','Visual language and audio are UI when they carry information.'],['ai','AI is good at friction audits, heuristic reviews and flow analysis when you give it the artifacts.']] });
 

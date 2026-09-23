@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'content', t:'Content', short:'Levels, enemies, items, quests, procedural generation', color:'var(--d-content)',
+DOMAINS.push({ id:'content', lens:'design', t:'Content', short:'Levels, enemies, items, quests, procedural generation', color:'var(--d-content)',
     sum:`Content multiplies a good system. It does not rescue a bad one. The question is never "how much content" but "what new decision or experience does this piece create that the existing pieces do not?"`,
     links:[['level','Level design is content that arranges every other kind of content in space and time.'],['systems','Every piece of content should exercise a system in a way the others do not.'],['narrative','Quests, characters and events carry story into the systems.'],['ai','Cheap generation makes content the most dangerous place for AI to help.']] });
 

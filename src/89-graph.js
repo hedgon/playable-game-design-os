@@ -29,6 +29,23 @@ window.PlayableGraph = (function(){
   const COL = 340, VGAP = 30, PAD = 40;
 
   const cut = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
+  const fontOf = n => n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
+  const lineGap = fs => Math.round(fs * 1.25);
+  // A label that does not fit one line wraps onto a second at a word break;
+  // only a label too long for two lines is shortened, on its second line.
+  const wrap = (s, n) => {
+    if(s.length <= n) return [s];
+    const words = s.split(' '); let a = '';
+    while(words.length && (a ? a.length + 1 : 0) + words[0].length <= n) a += (a ? ' ' : '') + words.shift();
+    if(!a) return [cut(s, n)];
+    return [a, cut(words.join(' '), n)];
+  };
+  // Lines are fixed before layout, so a two-line card is taller and the tidy
+  // tree spaces it like any other card.
+  const fitLabels = n => {
+    if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
+    n.children.forEach(fitLabels);
+  };
   // Longest label that fits the node's inner width. Derived from the same
   // per-character estimate the layout checker uses, so the text is only
   // shortened when it would actually not fit the card.
@@ -49,10 +66,13 @@ window.PlayableGraph = (function(){
   // the root, so cross links fan out instead of piling up. A dragged node
   // nudges its whole branch, so descendants inherit the offset and the
   // edges keep following the nodes.
+  // `root.oneSided` puts every branch on the right: on a phone the map reads
+  // as columns, one level per screen, instead of two halves off both edges.
   function place(root, off, keyOf){
+    fitLabels(root);
     root.side = 0;
     const half = Math.ceil(root.children.length / 2);
-    root.children.forEach((node, i) => { node.side = i < half ? 1 : -1; });
+    root.children.forEach((node, i) => { node.side = root.oneSided || i < half ? 1 : -1; });
     const xFor = (n, depth) => n.side < 0 ? -(depth * COL) - n.w : depth * COL;
     const cursors = { '1': 0, '-1': 0 };
     const assign = (n, depth) => {
@@ -109,8 +129,8 @@ window.PlayableGraph = (function(){
   function mark(n, keyOf, scope){
     const x = n.x, y = n.y - n.h / 2, left = n.side < 0, dc = n.color ? ` style="--dc:${n.color}"` : '';
     const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : n.kind === 'topic' ? (n.seen ? 'topic seen' : 'topic') : ('leaf ' + n.kind);
-    const fs = n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
-    const tx = left ? x + n.w - 14 : x + 14, ty = n.sub ? n.y - 2 : n.y + 4, anchor = left ? 'end' : 'start';
+    const fs = fontOf(n), lines = n.lines || [n.label], extra = (lines.length - 1) * lineGap(fs);
+    const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 2 : n.y + 4) - extra / 2, anchor = left ? 'end' : 'start';
     const why = n.why ? ` data-why="${esc(n.why)}"` : '';
     const sc = scope ? ` data-scope="${scope}"` : '';
     // The accessible name is the full label even when the card shortens it.
@@ -119,8 +139,8 @@ window.PlayableGraph = (function(){
     let g = `<g class="node ${cls}" data-key="${keyOf(n)}"${sc} data-kind="${n.kind}" data-id="${n.id}"${why}${dc} tabindex="-1" role="button" aria-label="${esc(name)}"${expanded}>`;
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
-    g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.w, fs)))}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(cut(n.sub, maxFor(n.w, 9.5)))}</text>`;
+    g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${lines.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(fs)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + extra / 2}" text-anchor="${anchor}" font-size="9.5">${esc(cut(n.sub, maxFor(n.w, 9.5)))}</text>`;
     g += `</g>`;
     return g;
   }
@@ -137,9 +157,12 @@ window.PlayableGraph = (function(){
     const dcolor = id => { const d = DOMAINS.find(x => x.id === id); return d ? d.color : 'var(--accent)'; };
     const dtitle = id => { const d = DOMAINS.find(x => x.id === id); return d ? d.t : id; };
 
-    const root = { kind:'center', id:'root', label:'Make something people want to play', w:SIZE.root.w, h:SIZE.root.h, children:[] };
+    // One lens at a time: its domains, its goal at the centre.
+    const lens = LENSES.find(l => l[0] === state.lens) || LENSES[0];
+    const doms = DOMAINS.filter(d => d.lens === lens[0]);
+    const root = { kind:'center', id:'root', label:lens[2], w:SIZE.root.w, h:SIZE.root.h, children:[], oneSided:!!state.oneSided };
     let sel = null;
-    DOMAINS.forEach(d => {
+    doms.forEach(d => {
       const sn = d.topics.filter(t => seen.has(t)).length;
       const node = { kind:'domain', id:d.id, label:d.t, sub:`${sn}/${d.topics.length} read`, color:d.color, open:state.dom === d.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
       if(state.dom === d.id) d.topics.forEach(t => {
@@ -170,7 +193,7 @@ window.PlayableGraph = (function(){
 
     // cross-branch links: faint dashed curves that leave the tree. Same-side
     // links bow away from the goal; cross-side links pass under it.
-    DOMAINS.forEach(d => (d.links || []).forEach(([to, why]) => {
+    doms.forEach(d => (d.links || []).forEach(([to, why]) => {
       const a = c.byKey['d:' + d.id], b = c.byKey['d:' + to];
       if(!a || !b) return;
       const path = a.side === b.side ? link(innerX(a), a.y, innerX(b), b.y, -a.side * 55) : smooth(innerX(a), a.y, innerX(b), b.y);
@@ -244,6 +267,7 @@ window.PlayableGraph = (function(){
       });
     }
 
+    root.oneSided = !!state.oneSided;
     place(root, state.off || {}, PKEY);
     const c = collect(root, PKEY);
 
@@ -286,6 +310,7 @@ window.PlayableGraph = (function(){
       });
       root.children.push(node);
     });
+    root.oneSided = !!state.oneSided;
     place(root, state.off || {}, PKEY2);
     const c = collect(root, PKEY2);
     const f = frame(c, PKEY2, 'path');

@@ -19,7 +19,7 @@
      backend-testing           Testing tiers and test-integrity rules
      backend-go-idioms         Go concurrency, lifecycle, generics, module hygiene
    ===================================================================== */
-DOMAINS.push({ id:'backend', t:'Backend', short:'Layering, APIs, data access, caching, observability, testing', color:'var(--d-backend)',
+DOMAINS.push({ id:'backend', lens:'eng', t:'Backend', short:'Layering, APIs, data access, caching, observability, testing', color:'var(--d-backend)',
   sum:`The service behind a live game. Backend work is design work: the layering decides what can be changed safely, the protocol decides what the client can ask for, and the data access decides what the game is allowed to be true about. Most live-game failures are not algorithmic. They are a boundary nobody defended.`,
   links:[['server','The game server is a backend with a tick. Everything here is the part that does not simulate.'],['product','Session length, monetization and platform decide the shape of the API and the cost of the data model.'],['production','Backend risk is schedule risk. The riskiest query and the riskiest migration belong in the first milestone.'],['studio','Conventions, code review and written decisions are what keep a service readable after the third person joins.'],['systems','Economy and progression rules eventually live on a server, because anything the client owns can be edited.']],
   titles:{ test:'What should I test or measure?' } });

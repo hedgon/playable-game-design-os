@@ -17,7 +17,7 @@ const late = name => (...a) => A[name](...a);
 const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
   enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
   toolDissect = late('toolDissect'), renderLab = late('renderLab'), fitMap = late('fitMap'),
-  consumeMapKeyNav = late('consumeMapKeyNav');
+  consumeMapKeyNav = late('consumeMapKeyNav'), currentLens = late('currentLens'), setLens = late('setLens');
 
 /* ---------- storage ---------- */
 const store = {
@@ -66,6 +66,7 @@ document.addEventListener('input', e => { const k = e.target.dataset && e.target
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
 ACTIONS.copy = el => copyText(el.closest('.promptbox').querySelector('pre').textContent);
 ACTIONS['fit-map'] = () => fitMap();
+ACTIONS.lens = el => setLens(el.dataset.lens);
 ACTIONS.focus = el => document.getElementById(el.dataset.target).focus();
 ACTIONS['toggle-parent'] = el => el.parentElement.classList.toggle('open');
 ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.removeItem('playable.' + el.dataset.key); location.reload(); } };
@@ -218,13 +219,15 @@ function wireShell(){
 }
 function railHTML(activeDom, activeTopic){
   const openSet = new Set(store.get('sideOpen', [])); if(activeDom) openSet.add(activeDom);
+  const lens = currentLens()[0];
   return `<div class="railhead">
+      <div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === lens}">${esc(t)}</button>`).join('')}</div>
       <button class="railgraph" id="railFit" data-action="fit-map">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
       <a class="railgraph" href="#/experience">❖ Experience</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
-    <div class="raillist">${DOMAINS.map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
+    <div class="raillist">${DOMAINS.filter(d => d.lens === lens).map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
       <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(d.t)}</span><span class="rn">${d.topics.filter(t=>seen.has(t)).length}/${d.topics.length}</span></button>
       <div class="railtopics">${d.topics.map(t => `<button class="railtopic ${t===activeTopic?'active':''} ${seen.has(t)?'seen':''}" data-topic="${t}">${esc(TOPICS[t].t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
@@ -392,7 +395,7 @@ function renderExplore(domainId){
       ${DOMAINS.filter(o => o.links.some(([to]) => to === d.id) && !d.links.some(([to]) => to === o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<a class="card clickable lnk blk" href="#/explore/${o.id}"><b style="color:${o.color}">${esc(o.t)} ↔ ${esc(d.t)}</b><p class="dim small" style="margin:4px 0 0">${esc(why)}</p></a>`; }).join('')}</div>`;
   } else {
     main = `${crumbs([['Map','#/map'],['Explore']])}<h1>Explore all domains</h1><p class="dim">${DOMAINS.length} domains, ${TOPIC_LIST.length} topics. Each topic has the same practical parts (some add a techniques breakdown to compare implementation approaches), so you always know where the prompt patterns, verification questions and playtest questions are.</p>
-      <div class="grid auto">${DOMAINS.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/explore/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small">${esc(d.short)}</p><div class="small muted">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</div></a>`).join('')}</div>`;
+      ${LENSES.map(([lid, lt]) => `<div class="section-head"><h2>${esc(lt)}</h2></div><div class="grid auto">${DOMAINS.filter(d => d.lens === lid).map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/explore/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small">${esc(d.short)}</p><div class="small muted">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</div></a>`).join('')}</div>`).join('')}`;
   }
   setView(main);
 }

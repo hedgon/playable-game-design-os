@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'presentation', t:'Art / Audio / Feel', short:'Visual language, animation, VFX, sound, juice', color:'var(--d-presentation)',
+DOMAINS.push({ id:'presentation', lens:'design', t:'Art / Audio / Feel', short:'Visual language, animation, VFX, sound, juice', color:'var(--d-presentation)',
     sum:`Presentation makes the game legible and felt. Polish amplifies feedback that already exists. It cannot manufacture meaning where the design has none. Clarity first, then emotion, then spectacle.`,
     links:[['ux','Every visual and audio element is potentially information. Treat it as UI.'],['core','Game feel is the loop as the body experiences it: timing, weight, response.'],['experience','Style, music and animation carry the intended emotion.'],['production','Polish is scheduled last for a reason: it should amplify validated experience.']] });
 

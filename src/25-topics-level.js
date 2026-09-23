@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'level', t:'Level Design', short:'Space, pacing, teaching, escalation, encounters', color:'var(--d-level)',
+DOMAINS.push({ id:'level', lens:'design', t:'Level Design', short:'Space, pacing, teaching, escalation, encounters', color:'var(--d-level)',
     sum:`Levels are where mechanics get taught, tested, twisted and combined. Good level design is applied pedagogy plus pacing: it controls what the player knows, what they face, and how tired they are.`,
     links:[['ux','Onboarding is level design. The first ten minutes teach more than any tutorial text.'],['experience','Pacing is how a level converts mechanics into an emotional arc.'],['content','Encounters, puzzles and rewards are the vocabulary a level speaks with.'],['systems','Difficulty curves are systems tuning expressed in space and time.']] });
 

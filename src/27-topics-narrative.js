@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'narrative', t:'Narrative', short:'Premise, world, agency, ludonarrative alignment', color:'var(--d-narrative)',
+DOMAINS.push({ id:'narrative', lens:'design', t:'Narrative', short:'Premise, world, agency, ludonarrative alignment', color:'var(--d-narrative)',
     sum:`What the player does should reinforce what the story says. Narrative is not a department. It is the meaning layer that makes mechanics feel like they matter and the world feel worth saving, exploring or ruling.`,
     links:[['experience','Story is the most direct tool for the fantasy and the long-term emotional arc.'],['content','Quests, characters and environmental detail deliver narrative through content.'],['systems','Systems can tell stories no script can: emergent narrative comes from rules colliding.'],['level','Environmental storytelling is level design with authorial intent.']] });
 

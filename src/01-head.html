@@ -791,6 +791,11 @@ details.comp .body{padding-top:6px}
 .shell > #splitR{grid-column:4}
 .shell > .pane{grid-column:5}
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+/* map lens: two segments, the pressed one filled */
+.lens-switch{display:flex;border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;margin-bottom:8px}
+.lens-switch button{flex:1;background:var(--bg2);border:0;color:var(--fg2);font-weight:700;font-size:.8rem;padding:7px 6px;cursor:pointer}
+.lens-switch button + button{border-left:1px solid var(--line2)}
+.lens-switch button[aria-pressed="true"]{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
 .railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
 .railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
 .railsearch{width:100%}

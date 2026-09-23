@@ -791,6 +791,11 @@ details.comp .body{padding-top:6px}
 .shell > #splitR{grid-column:4}
 .shell > .pane{grid-column:5}
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+/* map lens: two segments, the pressed one filled */
+.lens-switch{display:flex;border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;margin-bottom:8px}
+.lens-switch button{flex:1;background:var(--bg2);border:0;color:var(--fg2);font-weight:700;font-size:.8rem;padding:7px 6px;cursor:pointer}
+.lens-switch button + button{border-left:1px solid var(--line2)}
+.lens-switch button[aria-pressed="true"]{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
 .railgraph{display:block;width:100%;text-align:center;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:8px;color:var(--fg2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
 .railgraph:hover{border-color:var(--accent);color:var(--fg);text-decoration:none}
 .railsearch{width:100%}
@@ -999,6 +1004,14 @@ const DIAGNOSTICS = [
   ['content','Content or mechanic?','Content or mechanic?']
 ];
 
+// [id, title, goal]. The map shows one lens at a time: the design operating
+// system, or the engineering and career material around it. Every domain
+// names its lens; the goal labels the centre of that lens's map.
+const LENSES = [
+  ['design','Design','Make something people want to play'],
+  ['eng','Engineering & Career','Build it, ship it, lead the team']
+];
+
 // A topic's `rel` or a loop step's `top` may name one of these instead of a
 // topic: [route, label]. The app adds project-part links at runtime.
 const VIEW_LINKS = {
@@ -1030,6 +1043,7 @@ const VIEW_LINKS = {
 /**
  * @typedef {object} Domain
  * @property {string} id
+ * @property {'design'|'eng'} lens   which map lens shows it (LENSES)
  * @property {string} t
  * @property {string} short   one line under the title
  * @property {string} color   a --d-<id> CSS variable
@@ -1671,7 +1685,7 @@ const REFERENCE_GAMES = [
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'player', t:'Player', short:'Who plays, what they want, why they stay or quit', color:'var(--d-player)',
+DOMAINS.push({ id:'player', lens:'design', t:'Player', short:'Who plays, what they want, why they stay or quit', color:'var(--d-player)',
     sum:`Everything starts here. A game is a promise made to a specific person about how they will feel and what they will get to do. If you cannot describe that person and that promise, every later decision is a guess.`,
     links:[['experience','A player brings desires. The experience is the promise you make to satisfy them.'],['product','Audience, platform and business model are the same decision seen from the market side.'],['ux','What the player already knows decides how much the game must teach.'],['ai','AI cannot observe your players. You must bring the player model to it.']] });
 
@@ -2167,7 +2181,7 @@ INTERVIEW('finding-an-idea',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'experience', t:'Experience', short:'Fantasy, emotion, goals, tension, mastery, discovery', color:'var(--d-experience)',
+DOMAINS.push({ id:'experience', lens:'design', t:'Experience', short:'Fantasy, emotion, goals, tension, mastery, discovery', color:'var(--d-experience)',
     sum:`The experience is what the player actually has: a fantasy they inhabit, emotions they move through, goals at three horizons. It is the target. Every mechanic, system and pixel exists to produce it.`,
     links:[['core','The core loop is the machine that manufactures the experience minute by minute.'],['narrative','Story gives the emotional arc a reason and the fantasy a shape.'],['presentation','Art and audio make the intended emotion legible and believable.'],['level','Levels pace the experience: they decide when tension rises and releases.']] });
 
@@ -2917,7 +2931,7 @@ INTERVIEW('design-pillars',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'core', t:'Core Gameplay', short:'Loop, decisions, risk, skill, agency, failure', color:'var(--d-core)',
+DOMAINS.push({ id:'core', lens:'design', t:'Core Gameplay', short:'Loop, decisions, risk, skill, agency, failure', color:'var(--d-core)',
     sum:`The thing the player does over and over. If the core interaction is not compelling on its own, no amount of progression, content or narrative rescues it. Fix the loop before you multiply it.`,
     links:[['systems','Systems give the loop its variables: what changes between one iteration and the next.'],['ux','Input, readability and feedback are the loop as the player physically meets it.'],['presentation','Game feel lives at the seam between the loop and presentation.'],['production','The loop is the first thing you prototype and the thing you playtest most.']] });
 
@@ -3495,7 +3509,7 @@ INTERVIEW('skill-and-mastery',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'systems', t:'Systems', short:'Mechanics, economy, progression, difficulty, depth', color:'var(--d-systems)',
+DOMAINS.push({ id:'systems', lens:'design', t:'Systems', short:'Mechanics, economy, progression, difficulty, depth', color:'var(--d-systems)',
     sum:`Rules that interact. Systems generate the situations that make the loop worth repeating, and they are where depth comes from. They are also where complexity, balance debt and meaningless numbers hide.`,
     links:[['content','Content is systems instantiated: enemies, items and levels are parameters, not new rules.'],['core','A system is only as good as the decisions it feeds into the loop.'],['product','Economy and progression are where business model pressure meets design.'],['ai','AI is excellent at simulating, stress-testing and comparing systems.']] });
 
@@ -4161,7 +4175,7 @@ INTERVIEW('builds-and-loadouts',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'content', t:'Content', short:'Levels, enemies, items, quests, procedural generation', color:'var(--d-content)',
+DOMAINS.push({ id:'content', lens:'design', t:'Content', short:'Levels, enemies, items, quests, procedural generation', color:'var(--d-content)',
     sum:`Content multiplies a good system. It does not rescue a bad one. The question is never "how much content" but "what new decision or experience does this piece create that the existing pieces do not?"`,
     links:[['level','Level design is content that arranges every other kind of content in space and time.'],['systems','Every piece of content should exercise a system in a way the others do not.'],['narrative','Quests, characters and events carry story into the systems.'],['ai','Cheap generation makes content the most dangerous place for AI to help.']] });
 
@@ -4637,7 +4651,7 @@ INTERVIEW('procedural-content',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'level', t:'Level Design', short:'Space, pacing, teaching, escalation, encounters', color:'var(--d-level)',
+DOMAINS.push({ id:'level', lens:'design', t:'Level Design', short:'Space, pacing, teaching, escalation, encounters', color:'var(--d-level)',
     sum:`Levels are where mechanics get taught, tested, twisted and combined. Good level design is applied pedagogy plus pacing: it controls what the player knows, what they face, and how tired they are.`,
     links:[['ux','Onboarding is level design. The first ten minutes teach more than any tutorial text.'],['experience','Pacing is how a level converts mechanics into an emotional arc.'],['content','Encounters, puzzles and rewards are the vocabulary a level speaks with.'],['systems','Difficulty curves are systems tuning expressed in space and time.']] });
 
@@ -5029,7 +5043,7 @@ INTERVIEW('encounter-design',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'ux', t:'UX / UI', short:'Readability, feedback, onboarding, controls, friction', color:'var(--d-ux)',
+DOMAINS.push({ id:'ux', lens:'design', t:'UX / UI', short:'Readability, feedback, onboarding, controls, friction', color:'var(--d-ux)',
     sum:`UX is not decoration on top of design. It is the channel through which every decision reaches the player. If the player cannot perceive the state, the choice or the consequence, the design does not exist for them.`,
     links:[['core','Feedback closes the loop: without it action has no consequence the player can learn from.'],['player','Cognitive load is relative to what this player already knows.'],['presentation','Visual language and audio are UI when they carry information.'],['ai','AI is good at friction audits, heuristic reviews and flow analysis when you give it the artifacts.']] });
 
@@ -5614,7 +5628,7 @@ INTERVIEW('accessibility',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'narrative', t:'Narrative', short:'Premise, world, agency, ludonarrative alignment', color:'var(--d-narrative)',
+DOMAINS.push({ id:'narrative', lens:'design', t:'Narrative', short:'Premise, world, agency, ludonarrative alignment', color:'var(--d-narrative)',
     sum:`What the player does should reinforce what the story says. Narrative is not a department. It is the meaning layer that makes mechanics feel like they matter and the world feel worth saving, exploring or ruling.`,
     links:[['experience','Story is the most direct tool for the fantasy and the long-term emotional arc.'],['content','Quests, characters and environmental detail deliver narrative through content.'],['systems','Systems can tell stories no script can: emergent narrative comes from rules colliding.'],['level','Environmental storytelling is level design with authorial intent.']] });
 
@@ -6098,7 +6112,7 @@ INTERVIEW('narrative-pacing',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'presentation', t:'Art / Audio / Feel', short:'Visual language, animation, VFX, sound, juice', color:'var(--d-presentation)',
+DOMAINS.push({ id:'presentation', lens:'design', t:'Art / Audio / Feel', short:'Visual language, animation, VFX, sound, juice', color:'var(--d-presentation)',
     sum:`Presentation makes the game legible and felt. Polish amplifies feedback that already exists. It cannot manufacture meaning where the design has none. Clarity first, then emotion, then spectacle.`,
     links:[['ux','Every visual and audio element is potentially information. Treat it as UI.'],['core','Game feel is the loop as the body experiences it: timing, weight, response.'],['experience','Style, music and animation carry the intended emotion.'],['production','Polish is scheduled last for a reason: it should amplify validated experience.']] });
 
@@ -6492,7 +6506,7 @@ INTERVIEW('animation-and-vfx',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'product', t:'Product', short:'Audience, platform, model, positioning, scope', color:'var(--d-product)',
+DOMAINS.push({ id:'product', lens:'design', t:'Product', short:'Audience, platform, model, positioning, scope', color:'var(--d-product)',
     sum:`Who will actually pick this up, on what device, for how long, and why yours instead of the thousand others. Product thinking keeps design honest about scope and about what makes the game distinct.`,
     links:[['player','Audience is the player model seen through a market lens.'],['production','Scope, platform and business model set every production constraint.'],['systems','Session length and monetization shape economy and progression.'],['experience','Positioning is a promise about the experience. The game must keep it.']] });
 
@@ -7352,7 +7366,7 @@ INTERVIEW('ethics-and-responsibility',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'production', t:'Production', short:'Prototype, playtest, iterate, scope, risk, polish', color:'var(--d-production)',
+DOMAINS.push({ id:'production', lens:'design', t:'Production', short:'Prototype, playtest, iterate, scope, risk, polish', color:'var(--d-production)',
     sum:`How the work actually gets made: prototype the riskiest assumption first, playtest as the truth machine, iterate on evidence, control scope, and polish last. Production discipline is what turns design intent into a shipped experience.`,
     links:[['ai','AI collapses implementation cost. Production has to redirect the saved time into testing and judgment.'],['core','The core loop prototype is the first production milestone that matters.'],['product','Scope follows validated value. Product constraints define the box.'],['content','Content pipelines are where scope explodes when the system is not validated.']] });
 
@@ -8028,7 +8042,7 @@ INTERVIEW('polish-when',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'ai', t:'AI Collaboration', short:'Roles, prompting, verification, failure modes, delegation', color:'var(--d-ai)',
+DOMAINS.push({ id:'ai', lens:'design', t:'AI Collaboration', short:'Roles, prompting, verification, failure modes, delegation', color:'var(--d-ai)',
     sum:`AI generates possibilities cheaply. Humans decide what is worth making. This domain teaches how to frame, delegate, verify and correct AI work so it makes the game better instead of merely bigger.`,
     links:[['production','AI changes the production loop: cheaper prototypes, more iterations, same need for evidence.'],['player','Only observed players tell you whether AI output is fun. AI cannot judge that.'],['systems','Simulation, edge cases and balance sweeps are among the strongest AI contributions.'],['content','Generation without a validated system produces content spam.']] });
 
@@ -8894,7 +8908,7 @@ INTERVIEW('ai-loop',{
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'gameai', t:'In-game AI', short:'NPCs, enemies, navigation, perception, directors, fairness', color:'var(--d-gameai)',
+DOMAINS.push({ id:'gameai', lens:'design', t:'In-game AI', short:'NPCs, enemies, navigation, perception, directors, fairness', color:'var(--d-gameai)',
     sum:`The intelligence inside the running game: enemy and ally behaviour, perception, navigation, encounter and pacing directors, and the learned models that increasingly sit behind them. It is a different subject from AI Collaboration: that domain is about using a model to help design the game, this one is about the game thinking while it runs.`,
     links:[['core','Opponents and allies manufacture the situations the core loop has to be fun in.'],['content','Enemies, hazards and encounters are content that only becomes real once behaviour animates it.'],['level','Navigation, sightlines and encounter AI are level design and behaviour designed together.'],['systems','Behaviour reads and writes the same state your systems expose. In-game AI is itself a system.'],['ai','Collaboration AI builds the game. In-game AI runs inside it. Keeping the two apart prevents a category error.'],['production','AI is among the riskiest systems to leave late and the hardest to debug from a playtest recording.']] });
 
@@ -9887,7 +9901,7 @@ INTERVIEW('scripted-vs-simulated',{
    topic is followed by its techniques (TECH), engine views (ENGINE) and
    interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'studio', t:'Studio', short:'Direction, documents, metrics, team, planning, quality', color:'var(--d-studio)',
+DOMAINS.push({ id:'studio', lens:'design', t:'Studio', short:'Direction, documents, metrics, team, planning, quality', color:'var(--d-studio)',
   sum:`How a design survives contact with a team and a schedule: what the game must always be, who decides what, what gets written down, what gets measured, and how the work is sequenced and kept playable. Process exists to protect the experience, never the other way round.`,
   links:[['production','Studio practice is the organisation that production runs inside.'],['product','Direction and metrics answer to the market promise the product makes.'],['ai','AI changes who does what and how fast the studio can test an idea.'],['experience','Every process exists to protect the experience, not to replace it.']] });
 
@@ -10390,7 +10404,7 @@ INTERVIEW('quality-and-build-health',{
      backend-testing           Testing tiers and test-integrity rules
      backend-go-idioms         Go concurrency, lifecycle, generics, module hygiene
    ===================================================================== */
-DOMAINS.push({ id:'backend', t:'Backend', short:'Layering, APIs, data access, caching, observability, testing', color:'var(--d-backend)',
+DOMAINS.push({ id:'backend', lens:'eng', t:'Backend', short:'Layering, APIs, data access, caching, observability, testing', color:'var(--d-backend)',
   sum:`The service behind a live game. Backend work is design work: the layering decides what can be changed safely, the protocol decides what the client can ask for, and the data access decides what the game is allowed to be true about. Most live-game failures are not algorithmic. They are a boundary nobody defended.`,
   links:[['server','The game server is a backend with a tick. Everything here is the part that does not simulate.'],['product','Session length, monetization and platform decide the shape of the API and the cost of the data model.'],['production','Backend risk is schedule risk. The riskiest query and the riskiest migration belong in the first milestone.'],['studio','Conventions, code review and written decisions are what keep a service readable after the third person joins.'],['systems','Economy and progression rules eventually live on a server, because anything the client owns can be edited.']],
   titles:{ test:'What should I test or measure?' } });
@@ -11841,7 +11855,7 @@ INTERVIEW('backend-go-idioms',{
      infra-data-stores         Managed databases, replicas, sharding, queues
      infra-monitoring          Monitoring, alerting, incidents and cost
    ===================================================================== */
-DOMAINS.push({ id:'infra', t:'Infrastructure', short:'Containers, deploys, CI, artifacts, secrets, delivery, monitoring', color:'var(--d-infra)',
+DOMAINS.push({ id:'infra', lens:'eng', t:'Infrastructure', short:'Containers, deploys, CI, artifacts, secrets, delivery, monitoring', color:'var(--d-infra)',
   sum:`The machinery that turns a commit into something players can reach, and tells you when it stops working. Infrastructure is mostly about reversibility: how fast can you ship, how fast can you undo, and how quickly do you find out you needed to.`,
   links:[['backend','Infrastructure is the shape the service is deployed in. The two constrain each other constantly.'],['production','Deploy cadence and build health are production facts before they are technical ones.'],['content','Asset delivery decides how much content can ship after launch and how fast a fix reaches a player.'],['studio','Who can deploy, who is paged, and what is written down are studio decisions expressed in tooling.']],
   titles:{ test:'What should I test or measure?' } });
@@ -12657,7 +12671,7 @@ INTERVIEW('infra-monitoring',{
      server-anticheat          Anti-cheat and abuse handling
      server-liveops            Live operations: maintenance gates, force update, batches, master data
    ===================================================================== */
-DOMAINS.push({ id:'server', t:'Game Server', short:'Authority, determinism, sync, realtime, matchmaking, scaling, live ops', color:'var(--d-server)',
+DOMAINS.push({ id:'server', lens:'eng', t:'Game Server', short:'Authority, determinism, sync, realtime, matchmaking, scaling, live ops', color:'var(--d-server)',
   sum:`The authoritative copy of the game. Where the backend answers questions, the game server decides what is true: who hit whom, what the world looks like this tick, and whether a client is allowed to say what it just said. Every choice here is a trade between responsiveness, fairness and cost.`,
   links:[['backend','The server shares the same layering, storage and observability as the service. It adds a clock.'],['core','Latency, prediction and rollback are the core loop as the player physically meets it over a network.'],['systems','Anything the economy or progression owns must be resolved by the authority, or it is a suggestion.'],['gameai','Server-side behaviour, directors and bots run inside the authoritative simulation, not beside it.'],['infra','Rooms, shards and fan-out are deployment shapes before they are code.']],
   titles:{ test:'What should I test or measure?' } });
@@ -13452,7 +13466,7 @@ INTERVIEW('server-liveops',{
      pm-liveops-cadence   Live-ops cadence and release calendars
      pm-postmortems       Post-mortems and retrospectives
    ===================================================================== */
-DOMAINS.push({ id:'management', t:'Project Management', short:'Scope, estimates, risk, process, handoffs, QA, cadence, post-mortems', color:'var(--d-management)',
+DOMAINS.push({ id:'management', lens:'eng', t:'Project Management', short:'Scope, estimates, risk, process, handoffs, QA, cadence, post-mortems', color:'var(--d-management)',
   sum:`How the work is sequenced, cut and kept honest. Management is not ceremony. It is the discipline of deciding what will not be built, knowing what is uncertain, and making sure the riskiest thing is the thing being worked on right now.`,
   links:[['production','Production is the craft of making the game. Management is the craft of making the plan survive it.'],['studio','Direction, documents and metrics are what management steers with.'],['leadership','A plan is executed by people. Leadership is the half of this that is not a schedule.'],['product','Scope and cadence answer to the promise the product made and the money behind it.'],['infra','Release trains, build health and deploy cadence are the plan expressed in pipelines.']],
   titles:{ test:'What should I measure or review?' } });
@@ -13890,7 +13904,7 @@ INTERVIEW('pm-postmortems',{
      lead-incidents    Incident handling and blameless learning
      lead-saying-no    Saying no, prioritisation and stakeholders
    ===================================================================== */
-DOMAINS.push({ id:'leadership', t:'Team Leadership', short:'The lead role, 1:1s, review culture, conventions, onboarding, hiring', color:'var(--d-leadership)',
+DOMAINS.push({ id:'leadership', lens:'eng', t:'Team Leadership', short:'The lead role, 1:1s, review culture, conventions, onboarding, hiring', color:'var(--d-leadership)',
   sum:`The work that only exists because other people are doing the work. A lead converts direction into decisions other people can make without asking, notices who is stuck before they say so, and absorbs the requests that would otherwise land on the team as noise.`,
   links:[['management','Management owns the plan. Leadership owns whether the people executing it can.'],['studio','Conventions, decision records and quality bars are leadership written down.'],['production','Leads decide what gets reviewed, what gets merged and what ships tonight.'],['ai','AI changed what a junior does first, so it changed what a lead has to teach and verify.']],
   titles:{ test:'What should I measure or review?' } });
@@ -18806,6 +18820,23 @@ window.PlayableGraph = (function(){
   const COL = 340, VGAP = 30, PAD = 40;
 
   const cut = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
+  const fontOf = n => n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
+  const lineGap = fs => Math.round(fs * 1.25);
+  // A label that does not fit one line wraps onto a second at a word break;
+  // only a label too long for two lines is shortened, on its second line.
+  const wrap = (s, n) => {
+    if(s.length <= n) return [s];
+    const words = s.split(' '); let a = '';
+    while(words.length && (a ? a.length + 1 : 0) + words[0].length <= n) a += (a ? ' ' : '') + words.shift();
+    if(!a) return [cut(s, n)];
+    return [a, cut(words.join(' '), n)];
+  };
+  // Lines are fixed before layout, so a two-line card is taller and the tidy
+  // tree spaces it like any other card.
+  const fitLabels = n => {
+    if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
+    n.children.forEach(fitLabels);
+  };
   // Longest label that fits the node's inner width. Derived from the same
   // per-character estimate the layout checker uses, so the text is only
   // shortened when it would actually not fit the card.
@@ -18826,10 +18857,13 @@ window.PlayableGraph = (function(){
   // the root, so cross links fan out instead of piling up. A dragged node
   // nudges its whole branch, so descendants inherit the offset and the
   // edges keep following the nodes.
+  // `root.oneSided` puts every branch on the right: on a phone the map reads
+  // as columns, one level per screen, instead of two halves off both edges.
   function place(root, off, keyOf){
+    fitLabels(root);
     root.side = 0;
     const half = Math.ceil(root.children.length / 2);
-    root.children.forEach((node, i) => { node.side = i < half ? 1 : -1; });
+    root.children.forEach((node, i) => { node.side = root.oneSided || i < half ? 1 : -1; });
     const xFor = (n, depth) => n.side < 0 ? -(depth * COL) - n.w : depth * COL;
     const cursors = { '1': 0, '-1': 0 };
     const assign = (n, depth) => {
@@ -18886,8 +18920,8 @@ window.PlayableGraph = (function(){
   function mark(n, keyOf, scope){
     const x = n.x, y = n.y - n.h / 2, left = n.side < 0, dc = n.color ? ` style="--dc:${n.color}"` : '';
     const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : n.kind === 'topic' ? (n.seen ? 'topic seen' : 'topic') : ('leaf ' + n.kind);
-    const fs = n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
-    const tx = left ? x + n.w - 14 : x + 14, ty = n.sub ? n.y - 2 : n.y + 4, anchor = left ? 'end' : 'start';
+    const fs = fontOf(n), lines = n.lines || [n.label], extra = (lines.length - 1) * lineGap(fs);
+    const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 2 : n.y + 4) - extra / 2, anchor = left ? 'end' : 'start';
     const why = n.why ? ` data-why="${esc(n.why)}"` : '';
     const sc = scope ? ` data-scope="${scope}"` : '';
     // The accessible name is the full label even when the card shortens it.
@@ -18896,8 +18930,8 @@ window.PlayableGraph = (function(){
     let g = `<g class="node ${cls}" data-key="${keyOf(n)}"${sc} data-kind="${n.kind}" data-id="${n.id}"${why}${dc} tabindex="-1" role="button" aria-label="${esc(name)}"${expanded}>`;
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
-    g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${esc(cut(n.label, maxFor(n.w, fs)))}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14}" text-anchor="${anchor}" font-size="9.5">${esc(cut(n.sub, maxFor(n.w, 9.5)))}</text>`;
+    g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${lines.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(fs)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + extra / 2}" text-anchor="${anchor}" font-size="9.5">${esc(cut(n.sub, maxFor(n.w, 9.5)))}</text>`;
     g += `</g>`;
     return g;
   }
@@ -18914,9 +18948,12 @@ window.PlayableGraph = (function(){
     const dcolor = id => { const d = DOMAINS.find(x => x.id === id); return d ? d.color : 'var(--accent)'; };
     const dtitle = id => { const d = DOMAINS.find(x => x.id === id); return d ? d.t : id; };
 
-    const root = { kind:'center', id:'root', label:'Make something people want to play', w:SIZE.root.w, h:SIZE.root.h, children:[] };
+    // One lens at a time: its domains, its goal at the centre.
+    const lens = LENSES.find(l => l[0] === state.lens) || LENSES[0];
+    const doms = DOMAINS.filter(d => d.lens === lens[0]);
+    const root = { kind:'center', id:'root', label:lens[2], w:SIZE.root.w, h:SIZE.root.h, children:[], oneSided:!!state.oneSided };
     let sel = null;
-    DOMAINS.forEach(d => {
+    doms.forEach(d => {
       const sn = d.topics.filter(t => seen.has(t)).length;
       const node = { kind:'domain', id:d.id, label:d.t, sub:`${sn}/${d.topics.length} read`, color:d.color, open:state.dom === d.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
       if(state.dom === d.id) d.topics.forEach(t => {
@@ -18947,7 +18984,7 @@ window.PlayableGraph = (function(){
 
     // cross-branch links: faint dashed curves that leave the tree. Same-side
     // links bow away from the goal; cross-side links pass under it.
-    DOMAINS.forEach(d => (d.links || []).forEach(([to, why]) => {
+    doms.forEach(d => (d.links || []).forEach(([to, why]) => {
       const a = c.byKey['d:' + d.id], b = c.byKey['d:' + to];
       if(!a || !b) return;
       const path = a.side === b.side ? link(innerX(a), a.y, innerX(b), b.y, -a.side * 55) : smooth(innerX(a), a.y, innerX(b), b.y);
@@ -19021,6 +19058,7 @@ window.PlayableGraph = (function(){
       });
     }
 
+    root.oneSided = !!state.oneSided;
     place(root, state.off || {}, PKEY);
     const c = collect(root, PKEY);
 
@@ -19063,6 +19101,7 @@ window.PlayableGraph = (function(){
       });
       root.children.push(node);
     });
+    root.oneSided = !!state.oneSided;
     place(root, state.off || {}, PKEY2);
     const c = collect(root, PKEY2);
     const f = frame(c, PKEY2, 'path');
@@ -19110,7 +19149,7 @@ const late = name => (...a) => A[name](...a);
 const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
   enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
   toolDissect = late('toolDissect'), renderLab = late('renderLab'), fitMap = late('fitMap'),
-  consumeMapKeyNav = late('consumeMapKeyNav');
+  consumeMapKeyNav = late('consumeMapKeyNav'), currentLens = late('currentLens'), setLens = late('setLens');
 
 /* ---------- storage ---------- */
 const store = {
@@ -19159,6 +19198,7 @@ document.addEventListener('input', e => { const k = e.target.dataset && e.target
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
 ACTIONS.copy = el => copyText(el.closest('.promptbox').querySelector('pre').textContent);
 ACTIONS['fit-map'] = () => fitMap();
+ACTIONS.lens = el => setLens(el.dataset.lens);
 ACTIONS.focus = el => document.getElementById(el.dataset.target).focus();
 ACTIONS['toggle-parent'] = el => el.parentElement.classList.toggle('open');
 ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.removeItem('playable.' + el.dataset.key); location.reload(); } };
@@ -19311,13 +19351,15 @@ function wireShell(){
 }
 function railHTML(activeDom, activeTopic){
   const openSet = new Set(store.get('sideOpen', [])); if(activeDom) openSet.add(activeDom);
+  const lens = currentLens()[0];
   return `<div class="railhead">
+      <div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === lens}">${esc(t)}</button>`).join('')}</div>
       <button class="railgraph" id="railFit" data-action="fit-map">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
       <a class="railgraph" href="#/experience">❖ Experience</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
-    <div class="raillist">${DOMAINS.map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
+    <div class="raillist">${DOMAINS.filter(d => d.lens === lens).map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
       <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(d.t)}</span><span class="rn">${d.topics.filter(t=>seen.has(t)).length}/${d.topics.length}</span></button>
       <div class="railtopics">${d.topics.map(t => `<button class="railtopic ${t===activeTopic?'active':''} ${seen.has(t)?'seen':''}" data-topic="${t}">${esc(TOPICS[t].t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
@@ -19485,7 +19527,7 @@ function renderExplore(domainId){
       ${DOMAINS.filter(o => o.links.some(([to]) => to === d.id) && !d.links.some(([to]) => to === o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<a class="card clickable lnk blk" href="#/explore/${o.id}"><b style="color:${o.color}">${esc(o.t)} ↔ ${esc(d.t)}</b><p class="dim small" style="margin:4px 0 0">${esc(why)}</p></a>`; }).join('')}</div>`;
   } else {
     main = `${crumbs([['Map','#/map'],['Explore']])}<h1>Explore all domains</h1><p class="dim">${DOMAINS.length} domains, ${TOPIC_LIST.length} topics. Each topic has the same practical parts (some add a techniques breakdown to compare implementation approaches), so you always know where the prompt patterns, verification questions and playtest questions are.</p>
-      <div class="grid auto">${DOMAINS.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/explore/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small">${esc(d.short)}</p><div class="small muted">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</div></a>`).join('')}</div>`;
+      ${LENSES.map(([lid, lt]) => `<div class="section-head"><h2>${esc(lt)}</h2></div><div class="grid auto">${DOMAINS.filter(d => d.lens === lid).map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/explore/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small">${esc(d.short)}</p><div class="small muted">${d.topics.length} topics · ${d.topics.filter(t=>seen.has(t)).length} read</div></a>`).join('')}</div>`).join('')}`;
   }
   setView(main);
 }
@@ -20790,8 +20832,14 @@ function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) =
 function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); openModal('startModal'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
-const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null }, store.get('mapState', {}));
+const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null, lens:'design' }, store.get('mapState', {}));
 function saveMap(){ store.set('mapState', mapState); }
+// The domain map shows one lens; a domain or topic route switches to its own.
+const lensOf = domId => (DOM[domId] || {}).lens || LENSES[0][0];
+function currentLens(){ return LENSES.find(l => l[0] === mapState.lens) || LENSES[0]; }
+function setLens(id){ mapState.lens = id; mapState.dom = null; mapState.topic = null; mapState.smell = null; saveMap(); go('#/map/home'); }
+// Phones get the one-sided tree, read one column at a time.
+const phoneQuery = window.matchMedia('(max-width: 700px)');
 
 /* ---- three maps, one stage ----
    'domains' draws the guide. 'project' draws one case study as systems and
@@ -20832,12 +20880,12 @@ function saveCur(){ if(mapMode === 'project') saveProj(); else if(mapMode === 'p
 // selected topic. They are runtime links, not data, so they ride along on a
 // copy of mapState instead of being stored in it.
 function buildGraph(){
-  const c = projCase();
-  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, projState, TOPICS, DOMAINS);
+  const oneSided = phoneQuery.matches, c = projCase();
+  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided }), TOPICS, DOMAINS);
   const pth = curPath();
-  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, pathMapState, pathProgress(pth.id));
+  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
   const pr = practice();
-  return PlayableGraph.build(Object.assign({}, mapState, { extra: (mapState.topic && pr.extra[mapState.topic]) || [] }), seen, VIEW_LINKS);
+  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, extra: (mapState.topic && pr.extra[mapState.topic]) || [] }), seen, VIEW_LINKS);
 }
 
 function mapCrumbs(){
@@ -20863,14 +20911,29 @@ function mapCrumbs(){
     if(p) parts.push(`<span>›</span><b>${esc(p.t)}</b>`);
     return `<div class="mapcrumbs">${parts.join('')}</div>`;
   }
-  const parts = [`<button data-href="#/map/home">All domains</button>`];
+  const parts = [`<button data-href="#/map/home">${esc(currentLens()[1])}</button>`];
   if(mapState.dom && DOM[mapState.dom]) parts.push(`<span>›</span><button data-href="#/map/d/${mapState.dom}">${esc(DOM[mapState.dom].t)}</button>`);
   if(mapState.topic && TOPICS[mapState.topic]) parts.push(`<span>›</span><button data-href="#/map/t/${mapState.topic}">${esc(TOPICS[mapState.topic].t)}</button>`);
   if(mapState.smell){ const s = SMELLS.find(x => x.id===mapState.smell); if(s) parts.push(`<span>›</span><b>${esc(s.t)}</b>`); }
   return `<div class="mapcrumbs">${parts.join('')}</div>`;
 }
+function lensSwitchHTML(){
+  const cur = currentLens()[0];
+  return `<div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === cur}">${esc(t)}</button>`).join('')}</div>`;
+}
+function engPanel(lens){
+  const doms = DOMAINS.filter(d => d.lens === lens[0]);
+  const n = doms.reduce((a, d) => a + d.topics.length, 0);
+  return `${lensSwitchHTML()}<span class="overline">${esc(lens[1])} · ${n} topics · ${CASE_STUDIES.length} projects</span>
+    <h1 style="margin:6px 0 8px">${esc(lens[2])}.</h1>
+    <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
+    <div class="grid auto">${doms.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/d/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small" style="margin:0">${esc(d.short)}</p></a>`).join('')}</div>
+    <div class="row" style="margin-top:14px"><a class="btn" href="#/experience">Projects</a><a class="btn ghost" href="#/paths">Engineering, leadership and interview paths</a></div>`;
+}
 function startPanel(){
-  return `<span class="overline">Field manual · ${TOPIC_LIST.length} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
+  const lens = currentLens();
+  if(lens[0] !== LENSES[0][0]) return engPanel(lens);
+  return `${lensSwitchHTML()}<span class="overline">Field manual · ${DOMAINS.filter(d => d.lens === lens[0]).reduce((a, d) => a + d.topics.length, 0)} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
     <h1 style="margin:6px 0 8px">Make something people want to play.</h1>
     <p class="dim">The mind map on the left is always here. Click a domain to expand it in place, click a topic to read it in this panel. The index and the map do the same work, so use whichever suits you.</p>
     <div class="paths">${startPathsHTML()}</div>
@@ -20927,8 +20990,23 @@ function savedCamera(vb){
   const w = MAP.wrap.clientWidth, h = MAP.wrap.clientHeight;
   return Math.abs(vb.sw - w) <= w * 0.2 && Math.abs(vb.sh - h) <= h * 0.2 ? vb : null;
 }
+// On a phone the one-sided tree is read one column at a time: the column the
+// reader is choosing from (branches, or the open branch's items) fills the
+// width at a readable scale, starting at its top or at the selected item.
+function phoneTarget(g){
+  const open = g.nodes.find(n => n.kind === 'domain' && n.open);
+  const col = g.nodes.filter(n => open ? n.kind === 'topic' : n.kind === 'domain');
+  const list = col.length ? col : g.nodes;
+  const minX = Math.min(...list.map(n => n.x)) - 16, maxX = Math.max(...list.map(n => n.x + n.w)) + 16;
+  const w = maxX - minX, h = w * Math.max(1, MAP.wrap.clientHeight) / Math.max(1, MAP.wrap.clientWidth);
+  const selId = mapMode === 'project' ? projState && projState.part : mapMode === 'path' ? null : mapState.topic;
+  const sel = selId && list.find(n => n.id === selId);
+  const top = Math.min(...list.map(n => n.y - n.h / 2)) - 16;
+  return { x: minX, y: sel ? sel.y - h / 2 : top, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
+  if(phoneQuery.matches) return phoneTarget(g);
   let target = cameraTarget(g, cam, kind);
   if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
   return target;
@@ -21194,8 +21272,8 @@ function renderTree(kind){
 function renderMap(kind, id, tab){
   mapMode = 'domains';
   if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
-  else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; }
-  else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; setTopicTab(TOPICS[id], tab); }
+  else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; mapState.lens = lensOf(id); }
+  else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; mapState.lens = lensOf(TOPICS[id].d); setTopicTab(TOPICS[id], tab); }
   else if(kind==='s' && SMELLS.some(s => s.id===id)){ mapState.smell = id; }
   saveMap();
   if(mapState.topic) markSeen(mapState.topic);
@@ -21216,7 +21294,9 @@ function syncMapMode(view, id){
   if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 
-Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav });
+// Crossing the phone width swaps the two-sided tree for the one-sided one.
+phoneQuery.addEventListener('change', () => { if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
+Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
 })(window.PlayableApp);
 
 /* =====================================================================

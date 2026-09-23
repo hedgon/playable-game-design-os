@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'experience', t:'Experience', short:'Fantasy, emotion, goals, tension, mastery, discovery', color:'var(--d-experience)',
+DOMAINS.push({ id:'experience', lens:'design', t:'Experience', short:'Fantasy, emotion, goals, tension, mastery, discovery', color:'var(--d-experience)',
     sum:`The experience is what the player actually has: a fantasy they inhabit, emotions they move through, goals at three horizons. It is the target. Every mechanic, system and pixel exists to produce it.`,
     links:[['core','The core loop is the machine that manufactures the experience minute by minute.'],['narrative','Story gives the emotional arc a reason and the fantasy a shape.'],['presentation','Art and audio make the intended emotion legible and believable.'],['level','Levels pace the experience: they decide when tension rises and releases.']] });
 

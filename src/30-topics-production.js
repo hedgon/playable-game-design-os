@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'production', t:'Production', short:'Prototype, playtest, iterate, scope, risk, polish', color:'var(--d-production)',
+DOMAINS.push({ id:'production', lens:'design', t:'Production', short:'Prototype, playtest, iterate, scope, risk, polish', color:'var(--d-production)',
     sum:`How the work actually gets made: prototype the riskiest assumption first, playtest as the truth machine, iterate on evidence, control scope, and polish last. Production discipline is what turns design intent into a shipped experience.`,
     links:[['ai','AI collapses implementation cost. Production has to redirect the saved time into testing and judgment.'],['core','The core loop prototype is the first production milestone that matters.'],['product','Scope follows validated value. Product constraints define the box.'],['content','Content pipelines are where scope explodes when the system is not validated.']] });
 

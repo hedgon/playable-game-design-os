@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'player', t:'Player', short:'Who plays, what they want, why they stay or quit', color:'var(--d-player)',
+DOMAINS.push({ id:'player', lens:'design', t:'Player', short:'Who plays, what they want, why they stay or quit', color:'var(--d-player)',
     sum:`Everything starts here. A game is a promise made to a specific person about how they will feel and what they will get to do. If you cannot describe that person and that promise, every later decision is a guess.`,
     links:[['experience','A player brings desires. The experience is the promise you make to satisfy them.'],['product','Audience, platform and business model are the same decision seen from the market side.'],['ux','What the player already knows decides how much the game must teach.'],['ai','AI cannot observe your players. You must bring the player model to it.']] });
 

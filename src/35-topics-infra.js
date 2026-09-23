@@ -15,7 +15,7 @@
      infra-data-stores         Managed databases, replicas, sharding, queues
      infra-monitoring          Monitoring, alerting, incidents and cost
    ===================================================================== */
-DOMAINS.push({ id:'infra', t:'Infrastructure', short:'Containers, deploys, CI, artifacts, secrets, delivery, monitoring', color:'var(--d-infra)',
+DOMAINS.push({ id:'infra', lens:'eng', t:'Infrastructure', short:'Containers, deploys, CI, artifacts, secrets, delivery, monitoring', color:'var(--d-infra)',
   sum:`The machinery that turns a commit into something players can reach, and tells you when it stops working. Infrastructure is mostly about reversibility: how fast can you ship, how fast can you undo, and how quickly do you find out you needed to.`,
   links:[['backend','Infrastructure is the shape the service is deployed in. The two constrain each other constantly.'],['production','Deploy cadence and build health are production facts before they are technical ones.'],['content','Asset delivery decides how much content can ship after launch and how fast a fix reaches a player.'],['studio','Who can deploy, who is paged, and what is written down are studio decisions expressed in tooling.']],
   titles:{ test:'What should I test or measure?' } });

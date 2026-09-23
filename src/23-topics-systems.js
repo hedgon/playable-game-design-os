@@ -3,7 +3,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'systems', t:'Systems', short:'Mechanics, economy, progression, difficulty, depth', color:'var(--d-systems)',
+DOMAINS.push({ id:'systems', lens:'design', t:'Systems', short:'Mechanics, economy, progression, difficulty, depth', color:'var(--d-systems)',
     sum:`Rules that interact. Systems generate the situations that make the loop worth repeating, and they are where depth comes from. They are also where complexity, balance debt and meaningless numbers hide.`,
     links:[['content','Content is systems instantiated: enemies, items and levels are parameters, not new rules.'],['core','A system is only as good as the decisions it feeds into the loop.'],['product','Economy and progression are where business model pressure meets design.'],['ai','AI is excellent at simulating, stress-testing and comparing systems.']] });
 

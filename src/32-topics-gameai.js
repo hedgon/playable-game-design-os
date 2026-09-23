@@ -6,7 +6,7 @@
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
    and interview (INTERVIEW).
    ===================================================================== */
-DOMAINS.push({ id:'gameai', t:'In-game AI', short:'NPCs, enemies, navigation, perception, directors, fairness', color:'var(--d-gameai)',
+DOMAINS.push({ id:'gameai', lens:'design', t:'In-game AI', short:'NPCs, enemies, navigation, perception, directors, fairness', color:'var(--d-gameai)',
     sum:`The intelligence inside the running game: enemy and ally behaviour, perception, navigation, encounter and pacing directors, and the learned models that increasingly sit behind them. It is a different subject from AI Collaboration: that domain is about using a model to help design the game, this one is about the game thinking while it runs.`,
     links:[['core','Opponents and allies manufacture the situations the core loop has to be fun in.'],['content','Enemies, hazards and encounters are content that only becomes real once behaviour animates it.'],['level','Navigation, sightlines and encounter AI are level design and behaviour designed together.'],['systems','Behaviour reads and writes the same state your systems expose. In-game AI is itself a system.'],['ai','Collaboration AI builds the game. In-game AI runs inside it. Keeping the two apart prevents a category error.'],['production','AI is among the riskiest systems to leave late and the hardest to debug from a playtest recording.']] });
 
