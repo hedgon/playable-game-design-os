@@ -3,6 +3,7 @@
 // renaming a data file is a one-line change here instead of four.
 const HEAD = '01-head.html';
 const DATA = [
+  '05-registry.js',
   '10-data-domains.js',
   '11-data-topics-systems.js',
   '12-data-topics-ux.js',

@@ -29,10 +29,10 @@
 
    Ref resolution by kind:
      topic      -> TOPICS[ref]                                    #/map/t/<ref>
-     tool       -> an id in TOOLS (90-app.js)                      #/build/<ref>
+     tool       -> an id in TOOLS (05-registry.js)                 #/build/<ref>
      checklist  -> an id in CHECKLISTS                             #/checklists/<ref>
      smell      -> an id in SMELLS                                 #/smell/<ref>
-     diagnostic -> 'loop'|'fun'|'unfair'|'depth'|'content'         #/diagnose/<ref>
+     diagnostic -> an id in DIAGNOSTICS (05-registry.js)           #/diagnose/<ref>
      part       -> '<cs>/<sys>/<part>' resolving through CASE_STUDIES  #/experience/<cs>/<sys>/<part>
      flow       -> '<cs>/<flowId>' resolving through CASE_STUDIES  #/experience/<cs>/flow/<flowId>
      prompt     -> an id in PROMPT_TEMPLATES                       #/prompts/<ref>
@@ -72,13 +72,9 @@ const LEVEL_DESC = {
    than inside the app's closure, so PlayableGraph.buildPath can label a
    step node the same way the reading page does. Neither touches storage;
    the app-side pathProgress/pathNextStep (which do) live in 90-app.js.
-   `TOOLS` is set by 90-app.js as `window.TOOLS` rather than a local const
-   for exactly this reason. In the layout checker's sandbox (check-layout.js
-   loads only data+flow+graph, not the app) it is fed the same array onto
-   its own stand-in `window` object, so a tool step's label there matches
-   what the real app renders. --------------------------------------------------------------------- */
-const DIAGNOSTIC_TITLES = { loop:'Core loop diagnostic', fun:'Fun diagnostic', unfair:'Unfairness diagnostic', depth:'Depth vs complexity', content:'Content or mechanic?' };
-function toolsList(){ if(typeof TOOLS !== 'undefined' && TOOLS) return TOOLS; if(typeof window !== 'undefined' && window.TOOLS) return window.TOOLS; return []; }
+   Tool and diagnostic titles come from the registry (05-registry.js), which
+   the layout checker's sandbox loads with the rest of the data.
+   --------------------------------------------------------------------- */
 function findCasePart(ref){
   const [csId, sysId, partId] = String(ref || '').split('/');
   const cs = (typeof CASE_STUDIES !== 'undefined' ? CASE_STUDIES : []).find(c => c.id === csId);
@@ -96,10 +92,10 @@ function findCaseFlow(ref){
 function stepTitle(step){
   switch(step.kind){
     case 'topic': { const t = TOPICS[step.ref]; return t ? t.t : step.ref; }
-    case 'tool': { const x = toolsList().find(([id]) => id === step.ref); return x ? x[1] : step.ref; }
+    case 'tool': { const x = TOOLS.find(([id]) => id === step.ref); return x ? x[1] : step.ref; }
     case 'checklist': { const x = CHECKLISTS.find(c => c.id === step.ref); return x ? x.t : step.ref; }
     case 'smell': { const x = SMELLS.find(s => s.id === step.ref); return x ? x.t : step.ref; }
-    case 'diagnostic': return DIAGNOSTIC_TITLES[step.ref] || step.ref;
+    case 'diagnostic': { const x = DIAGNOSTICS.find(([id]) => id === step.ref); return x ? x[2] : step.ref; }
     case 'prompt': { const x = PROMPT_TEMPLATES.find(p => p.id === step.ref); return x ? x.t : step.ref; }
     case 'part': { const { part } = findCasePart(step.ref); return part ? part.t : step.ref; }
     case 'flow': { const { flow } = findCaseFlow(step.ref); return flow ? flow.t : step.ref; }

@@ -1,18 +1,11 @@
 // Data integrity check: run with `node src/validate.js`
 const fs = require('fs'), path = require('path');
-const { DATA, APP } = require('./manifest.js');
+const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,CASE_STUDIES,PATHS,TRACKS,LEVELS};';
-const ctx = {};
-new Function(src + RETURNS).call(ctx) && Object.assign(ctx, new Function(src + RETURNS)());
-const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS } = ctx;
-// TOOLS lives in the app file, not a data file (see inventory.js for the same
-// extraction), because it is UI copy with no cross-link of its own until a
-// path references one by id.
-const appSrc = fs.readFileSync(path.join(__dirname, APP[0]), 'utf8');
-const toolsMatch = appSrc.match(/(?:const TOOLS|window\.TOOLS) = (\[[\s\S]*?\n\]);/);
-const TOOLS = toolsMatch ? new Function('return ' + toolsMatch[1])() : [];
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS};';
+const ctx = new Function(src + RETURNS)();
+const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
 // all in, `PLAYABLE_STRICT=0` (or --lenient) downgrades "missing eng/iv" from
 // an error to a warning count. Shape errors in the data that IS there always
@@ -28,8 +21,13 @@ const RESERVED_SYSTEM_IDS = new Set(['workflows', 'interview', 'flow', 'overview
 function checkIvItems(arr, where, errors) {
   arr.forEach((x, i) => { for (const k of ['q', 'a', 'follow', 'red']) if (!x[k] || !String(x[k]).trim()) errors.push(`${where}[${i}].${k} empty`); });
 }
-const VIEW_LINKS = ['playtest-view','ai-roles-view','matrix-view','loop-view','ai-failures-view','checklists-view','prompt-library','should-we-build-this'];
+const VIEW_LINKS = Object.keys(ctx.VIEW_LINKS);
 const errors = [];
+for (const [name, list] of [['TOOLS', TOOLS], ['DIAGNOSTICS', DIAGNOSTICS]]) {
+  const ids = list.map(x => x[0]);
+  if (new Set(ids).size !== ids.length) errors.push(`${name}: duplicate id`);
+  list.forEach(x => { if (x.some(v => !String(v).trim())) errors.push(`${name}: ${x[0]} has an empty field`); });
+}
 const domIds = new Set(DOMAINS.map(d => d.id));
 const topics = Object.values(TOPICS);
 const required = ['d','t','tag','what','why','think','how','ai','prompts','verify','test','rel'];
@@ -208,7 +206,7 @@ for (const c of (CASE_STUDIES || [])) {
 // ---- learning paths ----
 const TOOL_IDS = new Set(TOOLS.map(([id]) => id));
 const CHECKLIST_IDS = new Set((ctx.CHECKLISTS || []).map(c => c.id));
-const DIAGNOSTIC_IDS = new Set(['loop', 'fun', 'unfair', 'depth', 'content']);
+const DIAGNOSTIC_IDS = new Set(DIAGNOSTICS.map(([id]) => id));
 const PROMPT_IDS = new Set((ctx.PROMPT_TEMPLATES || []).map(p => p.id));
 const LEVEL_IDS = new Set((LEVELS || []).map(l => l[0]));
 const TRACK_IDS = new Set((TRACKS || []).map(t => t[0]));

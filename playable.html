@@ -942,6 +942,53 @@ details.comp .body{padding-top:6px}
 <script>
 
 /* =====================================================================
+   REGISTRY
+   The fixed catalogue of tools, diagnostics and in-app view links. It is
+   data rather than UI code because learning paths, the validator, the
+   inventory and the layout checker all resolve ids against it, and each of
+   them used to keep its own copy.
+   ===================================================================== */
+
+// [id, title, one-line pitch]. A path's 'tool' step refs an id; the Build
+// view lists them in this order.
+const TOOLS = [
+  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it'],
+  ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded'],
+  ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check'],
+  ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not'],
+  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic'],
+  ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE'],
+  ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…'],
+  ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required'],
+  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated'],
+  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE'],
+  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view']
+];
+
+// [id, tab label, full title]. The Diagnose view's tabs after "Design
+// smells", in this order; a path's 'diagnostic' step refs an id.
+const DIAGNOSTICS = [
+  ['fun','Fun diagnostic','Fun diagnostic'],
+  ['loop','Core loop','Core loop diagnostic'],
+  ['unfair','Unfairness','Unfairness diagnostic'],
+  ['depth','Depth vs complexity','Depth vs complexity'],
+  ['content','Content or mechanic?','Content or mechanic?']
+];
+
+// A topic's `rel` or a loop step's `top` may name one of these instead of a
+// topic: [route, label]. The app adds project-part links at runtime.
+const VIEW_LINKS = {
+  'playtest-view':['#/playtest','Playtest view: question bank and hypothesis builder'],
+  'ai-roles-view':['#/ai/roles','AI Workflow: interactive role cards'],
+  'matrix-view':['#/ai/matrix','AI Workflow: responsibility matrix'],
+  'loop-view':['#/ai/loop','AI Workflow: the 12-step loop'],
+  'ai-failures-view':['#/ai/failures','AI Workflow: when AI makes your game worse'],
+  'checklists-view':['#/checklists','Checklists view'],
+  'prompt-library':['#/prompts','Prompt library'],
+  'should-we-build-this':['#/build/feature','Build: Should we build this? decision tree']
+};
+
+/* =====================================================================
    CONTENT MODEL
    DOMAINS: the 12 major areas on the map. Each connects to others with a
    one-line "why this connects" explanation that powers the map edges.
@@ -17821,10 +17868,10 @@ INTERVIEW('quality-and-build-health',{
 
    Ref resolution by kind:
      topic      -> TOPICS[ref]                                    #/map/t/<ref>
-     tool       -> an id in TOOLS (90-app.js)                      #/build/<ref>
+     tool       -> an id in TOOLS (05-registry.js)                 #/build/<ref>
      checklist  -> an id in CHECKLISTS                             #/checklists/<ref>
      smell      -> an id in SMELLS                                 #/smell/<ref>
-     diagnostic -> 'loop'|'fun'|'unfair'|'depth'|'content'         #/diagnose/<ref>
+     diagnostic -> an id in DIAGNOSTICS (05-registry.js)           #/diagnose/<ref>
      part       -> '<cs>/<sys>/<part>' resolving through CASE_STUDIES  #/experience/<cs>/<sys>/<part>
      flow       -> '<cs>/<flowId>' resolving through CASE_STUDIES  #/experience/<cs>/flow/<flowId>
      prompt     -> an id in PROMPT_TEMPLATES                       #/prompts/<ref>
@@ -17864,13 +17911,9 @@ const LEVEL_DESC = {
    than inside the app's closure, so PlayableGraph.buildPath can label a
    step node the same way the reading page does. Neither touches storage;
    the app-side pathProgress/pathNextStep (which do) live in 90-app.js.
-   `TOOLS` is set by 90-app.js as `window.TOOLS` rather than a local const
-   for exactly this reason. In the layout checker's sandbox (check-layout.js
-   loads only data+flow+graph, not the app) it is fed the same array onto
-   its own stand-in `window` object, so a tool step's label there matches
-   what the real app renders. --------------------------------------------------------------------- */
-const DIAGNOSTIC_TITLES = { loop:'Core loop diagnostic', fun:'Fun diagnostic', unfair:'Unfairness diagnostic', depth:'Depth vs complexity', content:'Content or mechanic?' };
-function toolsList(){ if(typeof TOOLS !== 'undefined' && TOOLS) return TOOLS; if(typeof window !== 'undefined' && window.TOOLS) return window.TOOLS; return []; }
+   Tool and diagnostic titles come from the registry (05-registry.js), which
+   the layout checker's sandbox loads with the rest of the data.
+   --------------------------------------------------------------------- */
 function findCasePart(ref){
   const [csId, sysId, partId] = String(ref || '').split('/');
   const cs = (typeof CASE_STUDIES !== 'undefined' ? CASE_STUDIES : []).find(c => c.id === csId);
@@ -17888,10 +17931,10 @@ function findCaseFlow(ref){
 function stepTitle(step){
   switch(step.kind){
     case 'topic': { const t = TOPICS[step.ref]; return t ? t.t : step.ref; }
-    case 'tool': { const x = toolsList().find(([id]) => id === step.ref); return x ? x[1] : step.ref; }
+    case 'tool': { const x = TOOLS.find(([id]) => id === step.ref); return x ? x[1] : step.ref; }
     case 'checklist': { const x = CHECKLISTS.find(c => c.id === step.ref); return x ? x.t : step.ref; }
     case 'smell': { const x = SMELLS.find(s => s.id === step.ref); return x ? x.t : step.ref; }
-    case 'diagnostic': return DIAGNOSTIC_TITLES[step.ref] || step.ref;
+    case 'diagnostic': { const x = DIAGNOSTICS.find(([id]) => id === step.ref); return x ? x[2] : step.ref; }
     case 'prompt': { const x = PROMPT_TEMPLATES.find(p => p.id === step.ref); return x ? x.t : step.ref; }
     case 'part': { const { part } = findCasePart(step.ref); return part ? part.t : step.ref; }
     case 'flow': { const { flow } = findCaseFlow(step.ref); return flow ? flow.t : step.ref; }
@@ -19439,7 +19482,6 @@ window.__copy = copyText;
 /* ---------- router ---------- */
 // Keys 1-9 map to the first nine entries, so anything added here goes last.
 const VIEWS = [['paths','Paths'],['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
-const VIEW_LINKS = { 'playtest-view':['#/playtest','Playtest view: question bank and hypothesis builder'], 'ai-roles-view':['#/ai/roles','AI Workflow: interactive role cards'], 'matrix-view':['#/ai/matrix','AI Workflow: responsibility matrix'], 'loop-view':['#/ai/loop','AI Workflow: the 12-step loop'], 'ai-failures-view':['#/ai/failures','AI Workflow: when AI makes your game worse'], 'checklists-view':['#/checklists','Checklists view'], 'prompt-library':['#/prompts','Prompt library'], 'should-we-build-this':['#/build/feature','Build: Should we build this? decision tree'] };
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
 function route(){
   const raw = location.hash.replace(/^#\/?/, '');
@@ -19883,7 +19925,7 @@ window.__expandAll = on => { const secs = $$('.sec'); if(!secs.length) return; s
    DIAGNOSE
    ===================================================================== */
 function renderDiagnose(sub='smells', arg){
-  const tabs = [['smells','Design smells'],['fun','Fun diagnostic'],['loop','Core loop'],['unfair','Unfairness'],['depth','Depth vs complexity'],['content','Content or mechanic?']];
+  const tabs = [['smells','Design smells'], ...DIAGNOSTICS.map(([id, tab]) => [id, tab])];
   const head = `${crumbs([['Map','#/map'],['Diagnose']])}<h1>Diagnose</h1><p class="dim">Start from what you observe in players, not from what you built. Each diagnosis ends in an experiment and a prompt.</p>
     <div class="tabs">${tabs.map(([id, t]) => `<button class="${id===sub?'active':''}" onclick="location.hash='#/diagnose/${id}'">${t}</button>`).join('')}</div>`;
   let body = '';
@@ -20003,22 +20045,6 @@ function wireContentTree(){
 /* =====================================================================
    BUILD (tools)
    ===================================================================== */
-// Global (not `const` scoped to this closure) because PlayableGraph's path
-// map (89-graph.js, a sibling closure loaded before this file) labels a
-// 'tool' step node by looking this up; see stepTitle in 50-data-paths-a.js.
-window.TOOLS = [
-  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it'],
-  ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded'],
-  ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check'],
-  ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not'],
-  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic'],
-  ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE'],
-  ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…'],
-  ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required'],
-  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated'],
-  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE'],
-  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view']
-];
 function renderBuild(tool='idea'){
   const head = `${crumbs([['Map','#/map'],['Build']])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
     <div class="tool-nav">${TOOLS.map(([id, t, s]) => `<button class="${id===tool?'active':''}" onclick="location.hash='#/build/${id}'">${t}<small>${s}</small></button>`).join('')}</div>`;

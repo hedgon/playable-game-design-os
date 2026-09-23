@@ -2,23 +2,15 @@
 // kind, so a content author writing a PATH() in 50/51-data-paths-*.js can
 // pick a real ref instead of guessing one. Loads the DATA files the same way
 // validate.js does (a bare `new Function` over the concatenated source: the
-// data files declare plain consts with no browser dependency) and pulls
-// TOOLS out of 90-app.js by regex, since TOOLS is the one referenceable list
-// that lives in the app file instead of a data file.
+// data files declare plain consts with no browser dependency).
 // Usage: node src/inventory.js
 const fs = require('fs'), path = require('path');
-const { DATA, APP } = require('./manifest.js');
+const { DATA } = require('./manifest.js');
 const src = DATA.map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SMELLS,CHECKLISTS,PROMPT_TEMPLATES,CASE_STUDIES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SMELLS,CHECKLISTS,PROMPT_TEMPLATES,CASE_STUDIES,TOOLS,DIAGNOSTICS};';
 const ctx = new Function(src + RETURNS)();
-const { TOPICS, SMELLS, CHECKLISTS, PROMPT_TEMPLATES, CASE_STUDIES } = ctx;
-
-const appSrc = fs.readFileSync(path.join(__dirname, APP[0]), 'utf8');
-const toolsMatch = appSrc.match(/(?:const TOOLS|window\.TOOLS) = (\[[\s\S]*?\n\]);/);
-if (!toolsMatch) throw new Error('inventory: could not find TOOLS in ' + APP[0]);
-const TOOLS = new Function('return ' + toolsMatch[1])();
-
-const DIAGNOSTICS = ['loop', 'fun', 'unfair', 'depth', 'content'];
+const { TOPICS, SMELLS, CHECKLISTS, PROMPT_TEMPLATES, CASE_STUDIES, TOOLS } = ctx;
+const DIAGNOSTICS = ctx.DIAGNOSTICS.map(([id]) => id);
 
 function section(title) { console.log('\n=== ' + title + ' ==='); }
 

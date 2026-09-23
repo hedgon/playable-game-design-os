@@ -36,7 +36,6 @@ window.__copy = copyText;
 /* ---------- router ---------- */
 // Keys 1-9 map to the first nine entries, so anything added here goes last.
 const VIEWS = [['paths','Paths'],['lab','Idea Lab'],['map','Map'],['explore','Explore'],['diagnose','Diagnose'],['build','Build'],['ai','AI Workflow'],['playtest','Playtest'],['prompts','Prompts'],['checklists','Checklists'],['experience','Experience']];
-const VIEW_LINKS = { 'playtest-view':['#/playtest','Playtest view: question bank and hypothesis builder'], 'ai-roles-view':['#/ai/roles','AI Workflow: interactive role cards'], 'matrix-view':['#/ai/matrix','AI Workflow: responsibility matrix'], 'loop-view':['#/ai/loop','AI Workflow: the 12-step loop'], 'ai-failures-view':['#/ai/failures','AI Workflow: when AI makes your game worse'], 'checklists-view':['#/checklists','Checklists view'], 'prompt-library':['#/prompts','Prompt library'], 'should-we-build-this':['#/build/feature','Build: Should we build this? decision tree'] };
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
 function route(){
   const raw = location.hash.replace(/^#\/?/, '');
@@ -480,7 +479,7 @@ window.__expandAll = on => { const secs = $$('.sec'); if(!secs.length) return; s
    DIAGNOSE
    ===================================================================== */
 function renderDiagnose(sub='smells', arg){
-  const tabs = [['smells','Design smells'],['fun','Fun diagnostic'],['loop','Core loop'],['unfair','Unfairness'],['depth','Depth vs complexity'],['content','Content or mechanic?']];
+  const tabs = [['smells','Design smells'], ...DIAGNOSTICS.map(([id, tab]) => [id, tab])];
   const head = `${crumbs([['Map','#/map'],['Diagnose']])}<h1>Diagnose</h1><p class="dim">Start from what you observe in players, not from what you built. Each diagnosis ends in an experiment and a prompt.</p>
     <div class="tabs">${tabs.map(([id, t]) => `<button class="${id===sub?'active':''}" onclick="location.hash='#/diagnose/${id}'">${t}</button>`).join('')}</div>`;
   let body = '';
@@ -600,22 +599,6 @@ function wireContentTree(){
 /* =====================================================================
    BUILD (tools)
    ===================================================================== */
-// Global (not `const` scoped to this closure) because PlayableGraph's path
-// map (89-graph.js, a sibling closure loaded before this file) labels a
-// 'tool' step node by looking this up; see stepTitle in 50-data-paths-a.js.
-window.TOOLS = [
-  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it'],
-  ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded'],
-  ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check'],
-  ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not'],
-  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic'],
-  ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE'],
-  ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…'],
-  ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required'],
-  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated'],
-  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE'],
-  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view']
-];
 function renderBuild(tool='idea'){
   const head = `${crumbs([['Map','#/map'],['Build']])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
     <div class="tool-nav">${TOOLS.map(([id, t, s]) => `<button class="${id===tool?'active':''}" onclick="location.hash='#/build/${id}'">${t}<small>${s}</small></button>`).join('')}</div>`;
