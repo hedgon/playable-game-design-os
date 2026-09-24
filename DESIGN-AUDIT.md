@@ -9,7 +9,7 @@ names used then (the Experience view is called Projects since September 2026).
 
 ## What the guide covers
 
-Nineteen domains, 138 topics, all with the same eight-part practical structure
+Twenty domains, 145 topics, all with the same eight-part practical structure
 (topics with a real implementation decision add a ninth, "Techniques to compare").
 The original fourteen design domains carry a Godot and a Unity tab (how a client
 built in that engine reaches for the same idea) and an Interview tab (junior / mid
@@ -18,8 +18,10 @@ Game Server, Project Management, Team Leadership) extend the guide from design i
 the engineering and people practice around a live game; the first three also carry
 engine tabs (framed as "how the client consumes this"), and the last two carry only
 an Interview tab, since there is no client-side counterpart to a project-management
-decision. The map shows the domains through two lenses: Design (the first
-fourteen) and Engineering & Career (the last five).
+decision. A sixth, Platforms and publishing, covers choosing a platform, access,
+requirements, certification, ratings, the store page and release, with engine tabs
+only where the engine changes the answer. The map shows the domains through two
+lenses: Design (the first fourteen) and Engineering & Career (the last six).
 
 | Domain | Topics |
 | --- | --- |
@@ -42,14 +44,15 @@ fourteen) and Engineering & Career (the last five).
 | Game Server | authority models (server-authoritative, host mode, client-simulate-server-verify), deterministic simulation and parity testing, state sync (delta sync, interpolation vs prediction, tick rates), realtime protocols (WebSocket framing, op codes, channels), matchmaking/rooms/sessions/reconnection, scaling (sharding, pub/sub fan-out), anti-cheat and abuse handling, live operations (maintenance gates, force update, batches, master data) |
 | Project Management | scoping and the cut list, estimation under uncertainty, risk registers and de-risking order, sprints/kanban for content-heavy teams, cross-discipline handoffs, QA planning and release trains, live-ops cadence and release calendars, post-mortems and retrospectives |
 | Team Leadership | what a lead actually does, 1:1s/feedback/growth, code review culture and merge discipline, written conventions and decision records, onboarding and knowledge transfer, hiring loops, incident handling and blameless learning, saying no and prioritisation |
+| Platforms and publishing | choosing a platform, access (programmes, NDAs, dev kits), platform requirements, certification and store review, ratings and disclosures, store pages and revenue share, release and updates |
 
 Plus: 33 design smells with 120 cause → experiment pairs, 19 fun dimensions, a
 core-loop diagnostic, an unfairness diagnostic, a rule audit, a content-or-mechanic
 decision tree, 9 AI roles, 14 AI failure modes, a 20-row responsibility matrix,
-17 prompt templates, 6 checklists, 11 tools, and a sources page. Topics whose
+17 prompt templates, 9 checklists, 11 tools, ten platform guides, and a sources page. Topics whose
 advice depends on rules that change (store policy, law, court rulings) carry
-dated facts: 17 facts on 6 topics, each with the day it was checked and its
-source, and the validator warns once one is a year old.
+dated facts: 51 facts on 13 topics and 58 in the platform guides, each with the
+day it was checked and its source, and the validator warns once one is a year old.
 Twenty-seven topics open with a diagram drawn from data (loops, stacks,
 matrices, 2×2s, curves and beat charts, economies, state machines, flows), each
 repeated as text; the fifteen reference games each have a loop schematic, six
@@ -195,7 +198,7 @@ topic's.
 ## Learning paths
 
 The guide's map is complete but undirected: a reader who does not already know
-what they need has 138 topics, 33 smells, eleven tools and three projects with no
+what they need has 145 topics, 33 smells, eleven tools and three projects with no
 order to move through them in. A bigger map does not fix that; more nodes is more
 of the same problem. What a beginner-to-expert reader needs instead is a
 **sequence** through content that already exists, with a reason for each stop, a
@@ -203,7 +206,7 @@ concrete exercise, and a way to tell whether they are ready for the next one. Th
 is what a path is, and why it is additive rather than a rewrite: `PATH()` in
 `src/50-paths.js` and `51-paths-engineering.js` never authors new content, it
 only orders `ref`s into existing topics, tools, checklists, smells, diagnostics,
-project parts, flows and prompts, so the 138-topic map, the projects
+project parts, flows and prompts, so the 145-topic map, the projects
 and the tool suite stay the single source of truth.
 
 Twelve paths across four tracks (design, engineering, leadership, interview prep)

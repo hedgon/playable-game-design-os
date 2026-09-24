@@ -73,7 +73,7 @@ the type check and the smoke test on every push and pull request.
 15-platforms.js           platform guides: PLATFORM(), PLATFORMS, the six stages, the comparison table
 20-topics-player.js       one file per domain, in map order: the domain, then each topic
   ...                     with its TECH, ENGINE, INTERVIEW and FACTS
-38-topics-leadership.js
+39-topics-platforms.js
 40-cases.js               the three anonymised projects: CASE, SYSTEMS, FLOWS, PROJECT_INTERVIEW
 41-case-systems-a.js      systems and parts of each project
 42-case-systems-b.js

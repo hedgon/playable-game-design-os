@@ -72,6 +72,13 @@ Acceptance:
    matrix of the platforms (access, cost, review gate, typical turnaround).
 5. A pre-submission checklist per store family (PC stores, consoles, mobile).
 
+6. UGC platforms (owner request, 2026-09-24): a detailed Roblox guide and a
+   Fortnite (UEFN) guide, each with seven sections: access, architecture,
+   the built-in tools and language (Roblox Studio and Luau, UEFN and Verse),
+   rules and moderation, monetization, publishing and updates, marketing and
+   discovery. An architecture diagram for Roblox (client, remotes, server,
+   data services) and a topic on designing for UGC platforms.
+
 Console guides will be thinner than PC and mobile ones: Sony's and
 Nintendo's requirements, certification and store terms are under NDA, so
 those sections give the public outline and say what the partner portal
@@ -358,6 +365,9 @@ B2. Platform content (fact-checked before commit)
 8. Research pass for Meta Quest and itch.io from official pages.
 9. Platform guides for the six platforms and the other channels.
 10. Platforms domain and its seven topics, three checklists.
+10b. UGC guides: a `ugc` kind with its own seven sections, the Roblox and
+    UEFN guides from an official-source research pass, the architecture
+    diagram, and a ugc-platforms topic; fact-checked like the rest of B2.
 
 C. Paths
 11. Checkpoint-first continue, scroll preservation, undo.

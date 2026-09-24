@@ -171,6 +171,27 @@ const CHECKLISTS = [
       ['Content',['Content was added only to validated systems.','Distinctness criteria exist for every content type being generated.','Players can tell recent content pieces apart by what they make them do.']],
       ['Evidence',['A player touched the build within the last two iteration cycles.','Decisions this month cite evidence in the log.','Something was cut this month.']] ] }
 ];
+// Pre-submission checks per store family (see the platform guides).
+CHECKLISTS.push(
+  { id:'submit-pc', t:'Pre-submission: PC stores', desc:'Run before submitting a build and store page to a PC storefront (Steam, Epic, Microsoft Store, itch.io). Every item checkable against the actual build and page, not the plan for them.',
+    groups:[
+      ['Build',['The build runs and completes on every OS version the store page claims to support.','Every advertised feature (achievements, cloud saves, controller support, Steam Input, Workshop) works in this exact build.','The build was tested on a clean machine, not just a developer machine with the SDK already configured.']],
+      ['Store page',['Capsule and screenshot assets match the exact sizes this store requires.','Screenshots and trailer show only real gameplay, not mockups or engine placeholder art.','The page describes only content available at launch, with no promised feature the build does not have yet.']],
+      ['Ratings and legal',['The rating or content questionnaire for this store is filed and matches the actual content of the build.','Any paid random item has its odds disclosed in the required place.','Regional pricing and any launch discount respect the discount-timing rules of this store.']],
+      ['Business',['The tax interview and payout details are on file, not pending.','Coming Soon or a wishlist page has been live long enough to build a real number before launch.','Someone specific has access to press release, and has rehearsed the exact steps once before launch day.']] ] },
+  { id:'submit-console', t:'Pre-submission: consoles', desc:'Run before submitting a build for console certification (Xbox, PlayStation, Nintendo). Every item checkable against the actual build, not the certification checklist alone.',
+    groups:[
+      ['Build',['The build starts and runs on every SKU or hardware variant this submission claims to support.','Save data is tied to the correct user and survives a suspend/resume or sleep cycle.','Controller removal and reconnection during play is handled without a crash or a stuck state.']],
+      ['Certification',['Every platform-specific requirement (an achievements/trophies minimum, for example) is met exactly, not approximately.','Any requested exception to a platform requirement was raised with the platform contact well before this submission, not discovered at review.','The submission includes the exact validator or pre-check pass the platform requires before human review.']],
+      ['Ratings and legal',['A digital rating (shared questionnaire or a rating specific to this platform) is filed and matches the build.','A physical SKU, if one exists, has its own long-form board rating in progress with enough lead time.','Any online or communication feature respects the privacy and reporting requirements of this platform.']],
+      ['Release plan',['The day-one patch plan is budgeted against the real certification turnaround of this platform, not zero.','The team knows whether the update process of this platform re-certifies every patch.','A rollback or hotfix path exists if certification finds a blocking issue days before the date.']] ] },
+  { id:'submit-mobile', t:'Pre-submission: mobile stores', desc:'Run before submitting a build to Google Play or the Apple App Store. Every item checkable against the actual build, not the plan for it.',
+    groups:[
+      ['Build',['The build targets the current minimum required API or SDK version for this store.','The build was tested on the oldest and newest OS version the store page claims to support.','No placeholder content, debug menu, or crashing path is reachable in the submitted build.']],
+      ['Privacy and data',['The privacy label or Data safety form lists the actual data collection of every third-party SDK, not just first-party code.','A privacy policy link is present and matches what the form declares.','Any paid random item has its odds disclosed before purchase, inside the app.']],
+      ['Ratings and legal',['The age-rating questionnaire (IARC on Google Play, a separate age-rating questionnaire on the App Store) is complete and matches the content of the build.','Any account or age-gated feature matches the age tier declared.','In-app purchase flows use the billing system required by the store, with no external payment link where that is required.']],
+      ['Store listing',['Store listing graphics match the exact sizes and formats this store requires.','Screenshots show real, current gameplay, not an outdated or placeholder build.','A closed-test or beta track requirement for new accounts, if it applies, has already been satisfied before requesting production access.']] ] }
+);
 /* ---------------- SHOULD WE BUILD THIS? ---------------- */
 const FEATURE_TREE = [
   { id:'problem', q:'What player problem does it solve?', opts:[['A specific observed problem (from playtests)',3],['A problem we predict but have not observed',1],['No problem. It is an opportunity or a genre expectation',0]] },

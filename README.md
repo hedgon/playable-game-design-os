@@ -27,7 +27,7 @@ lenses, switched in the index or on the map's home panel:
 - **Design**: fourteen domains, from the player and the core loop to production,
   AI collaboration, in-game AI and studio practice.
 - **Engineering & Career**: backend, infrastructure, game server, project
-  management and team leadership.
+  management, team leadership, and platforms and publishing.
 
 If you have a real problem in a game you are making, start in **Diagnose**: pick
 the symptom you see, read its likely causes, and run the experiment each cause
@@ -35,7 +35,7 @@ suggests.
 
 ## What is inside
 
-Nineteen domains and 138 topics. Every topic has the same eight practical parts:
+Twenty domains and 145 topics. Every topic has the same eight practical parts:
 what it is, why it matters, how to think about it, how to do it, what AI should
 and should not do, how to prompt it, how to verify its output, and what to
 playtest. Most topics add **Godot** and **Unity** tabs (the engine's own term, the
@@ -52,13 +52,13 @@ pacing curve, a comparison, a state machine, a pipeline) open with a
 | --- | --- | --- |
 | **Paths** (1) | Learning paths, Review | The guided way in, above. **Review** brings back interview questions you marked, on a spaced schedule (1, 2, 4, 8, then 16 days). |
 | **Map** (2) | Map, List, Concept index, Reference games | The mind map: the lens's goal in the middle, domains around it, a domain's topics when it opens, and related concepts, smells and tools under the topic you select. The list shows the same topics as a list; the concept index ranks topics by how often others reference them. **Reference games** takes 15 successful games apart with one template, each with a schematic of its loop and six with a schematic of their screen. |
-| **Make** (3) | Idea Lab, Build tools, Prompts, Checklists | The **Idea Lab** treats an idea as a chain of small, evidence-rated steps (signal, tension, opportunity, question, design space, mechanisms, critique, converge, experiment, decide), one step at a time, and compresses it into an Idea Card. Eleven **build tools** (reference dissection, idea shaper, loop builder, experience canvas, behaviour ladder, "should we build this?", hypothesis builder, AI delegation planner, system map, prompt generator, in-game AI technique chooser) export Markdown. 17 prompt templates and 6 checklists. |
+| **Make** (3) | Idea Lab, Build tools, Prompts, Checklists, Platforms | The **Idea Lab** treats an idea as a chain of small, evidence-rated steps (signal, tension, opportunity, question, design space, mechanisms, critique, converge, experiment, decide), one step at a time, and compresses it into an Idea Card. Eleven **build tools** (reference dissection, idea shaper, loop builder, experience canvas, behaviour ladder, "should we build this?", hypothesis builder, AI delegation planner, system map, prompt generator, in-game AI technique chooser) export Markdown. 17 prompt templates and 9 checklists, three of them for store submission. **Platforms** has a guide per store or console (Steam, Nintendo, PlayStation, Xbox, Google Play, the App Store, Epic, the web, Meta Quest, itch.io) from getting access to release, each stage with dated, sourced facts, a flowchart and a comparison table. |
 | **Diagnose** (4) | Diagnose, Playtest | 33 design smells with causes and experiments, the fun, core-loop, unfairness, depth and content diagnostics, and the playtest question bank and methods. |
 | **AI Workflow** (5) | The 12-step loop, prompt ladder, bottleneck shift, roles, responsibility matrix, prompting framework, failure modes | How to delegate to AI without handing it the decisions. |
 | **Projects** (6) | Three anonymised shipped projects | Architecture, decisions and their trade-offs, what went wrong, STAR interview stories, a project mind map of systems and parts, workflow charts, and project-level interview questions. Each project is named by a codename; the technique travels, the names do not. |
 
 **Search** (`Ctrl/⌘ K` or `/`) covers topics, smells, prompts, tools, roles,
-failure modes, loop steps, fun dimensions and sources. The footer link **Sources
+failure modes, loop steps, fun dimensions, platform guides and sources. The footer link **Sources
 and lineage** lists the frameworks the guide draws on and marks each as
 research-backed, practitioner heuristic, practice, or contested.
 

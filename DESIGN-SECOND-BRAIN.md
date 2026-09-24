@@ -174,7 +174,7 @@ non-AI action.
   the Loop and Canvas tools follow the new pattern; the other tools still use their
   older forms.
 - **Concept architecture** now ships in a bounded form: `#/concepts` lists every topic
-  (138) ranked by how many other topics reference it, and every topic page has an
+  (145) ranked by how many other topics reference it, and every topic page has an
   "Appears in" panel showing its home domain plus every concept that references it, the
   smells it diagnoses and the loops it serves. The article is not duplicated. What is not
   built is a data-level canonical model where a concept can be authored once and rendered
