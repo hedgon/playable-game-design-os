@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -167,7 +167,49 @@ for (const t of topics) {
 }
 // Reference games: every diagram has a valid shape, a screen layout names
 // real topics, and store art is credited with its developer and store page.
+// The analysis frame (see 14-references.js): family, tags and names on
+// every game; signature, lenses and screenshots checked where written.
+const FAMILY_IDS = new Set((ctx.GAME_FAMILIES || []).map(f => f[0])), TAG_IDS = new Set(ctx.GAME_TAGS || []), LENS_KEYS = (ctx.GAME_LENSES || []).map(l => l[0]);
+const wordCount = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
+let analysedGames = 0;
+function checkAnalysis(g){
+  const where = `game ${g.id}`, s = g.signature;
+  if (!s) errors.push(`${where}: an analysed game needs a signature`);
+  else {
+    for (const k of ['idea', ...ctx.SIGNATURE_PARTS.map(p => p[0])]) if (!s[k] || !String(s[k]).trim()) errors.push(`${where}: signature.${k} empty`);
+    const n = ctx.SIGNATURE_PARTS.reduce((m, [k]) => m + wordCount(s[k]), 0);
+    if (n < 250 || n > 420) errors.push(`${where}: signature is ${n} words, expected 250 to 400`);
+  }
+  const L = g.lens || {};
+  for (const k of LENS_KEYS) {
+    const l = L[k];
+    if (!l) { errors.push(`${where}: lens ${k} missing`); continue; }
+    if (l.na !== undefined) { if (!String(l.na).trim()) errors.push(`${where}: lens ${k} says na without a reason`); continue; }
+    if (l.primary) { for (const f of ['did', 'moment', 'why', 'steal', 'trap']) if (!l[f] || !String(l[f]).trim()) errors.push(`${where}: primary lens ${k} needs ${f}`); }
+    else if (!l.text || !String(l.text).trim()) errors.push(`${where}: lens ${k} needs text`);
+    else if (l.text.length > 360) errors.push(`${where}: short lens ${k} is ${l.text.length} characters; make it primary or cut it under 360`);
+    for (const t of (l.topics || [])) if (!TOPICS[t]) errors.push(`${where}: lens ${k} names unknown topic ${t}`);
+  }
+  for (const k of Object.keys(L)) if (!LENS_KEYS.includes(k)) errors.push(`${where}: unknown lens ${k}`);
+  const primaries = LENS_KEYS.filter(k => L[k] && L[k].primary).length;
+  if (primaries < 2 || primaries > 3) errors.push(`${where}: ${primaries} primary lenses, expected 2 or 3`);
+  (g.shots || []).forEach((sh, i) => {
+    const sw = `${where}: shot ${i}`;
+    if (!LENS_KEYS.includes(sh.lens) || (L[sh.lens] && L[sh.lens].na !== undefined)) errors.push(`${sw}: attached to lens ${sh.lens}, which is not a lens in use`);
+    for (const f of ['img', 'alt', 'caption']) if (!sh[f] || !String(sh[f]).trim()) errors.push(`${sw}: ${f} empty`);
+    const file = sh.img && path.join(__dirname, '..', sh.img);
+    if (file && !fs.existsSync(file)) errors.push(`${sw}: image ${sh.img} does not exist`);
+    else if (file && fs.statSync(file).size > 150 * 1024) errors.push(`${sw}: image ${sh.img} is ${Math.round(fs.statSync(file).size / 1024)} KB, limit 150 KB`);
+    (sh.callouts || []).forEach((c, j) => { if (!(c.x >= 0 && c.x <= 1 && c.y >= 0 && c.y <= 1) || !c.t || !String(c.t).trim()) errors.push(`${sw}: callout ${j} needs t and x, y in 0..1`); });
+    if (!g.dev || !g.store) errors.push(`${sw}: a screenshot needs the game's developer credit and store page`);
+  });
+  if ((g.shots || []).length > 4) errors.push(`${where}: ${g.shots.length} screenshots, keep it to four or fewer`);
+}
 for (const g of (ctx.REFERENCE_GAMES || [])) {
+  if (!FAMILY_IDS.has(g.family)) errors.push(`game ${g.id}: family must be one of ${[...FAMILY_IDS].join(', ')}`);
+  for (const t of (g.tags || [])) if (!TAG_IDS.has(t)) errors.push(`game ${g.id}: unknown tag ${t}`);
+  if (!Array.isArray(g.aka)) errors.push(`game ${g.id}: aka must be an array (may be empty)`);
+  if (g.signature || g.lens || g.shots) { analysedGames++; checkAnalysis(g); }
   (g.diagrams || []).forEach((d, i) => {
     checkDiagram(d, `game ${g.id}: diagram ${i}`, errors);
     for (const tid of (d.topics || [])) if (!TOPICS[tid]) errors.push(`game ${g.id}: diagram ${i} names unknown topic ${tid}`);
@@ -179,6 +221,12 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     if (!host) errors.push(`game ${g.id}: store art without an https store page`);
   }
 }
+// Third-party images live in one folder with a size budget, so the repo's
+// history does not grow without anyone deciding it should.
+const folderBytes = dir => fs.readdirSync(dir, { withFileTypes: true }).reduce((n, e) => n + (e.isDirectory() ? folderBytes(path.join(dir, e.name)) : fs.statSync(path.join(dir, e.name)).size), 0);
+const artBytes = folderBytes(path.join(__dirname, '..', 'assets', 'games'));
+if (artBytes > 5 * 1024 * 1024) errors.push(`assets/games is ${(artBytes / 1048576).toFixed(1)} MB, budget 5 MB`);
+console.log(`reference games: ${(ctx.REFERENCE_GAMES || []).length}, analysed: ${analysedGames}, art folder: ${Math.round(artBytes / 1024)} KB`);
 // Platform guides: every guide walks all six stages, with dated facts where
 // rules change, a zero-to-live flow, and links to real topics.
 const platIds = new Set();

@@ -37,13 +37,17 @@ function toolDissect(el){
     ${field('ds_concept','Concept','Fantasy, core verb, player. Prefilled from the Idea Shaper if you used it.', saved.concept, 2)}
     <div class="step-num">Step 2 · Comparables: what your player plays instead</div>
     <p class="small dim">Choose from the library or add your own. Choose what your player plays, not what you admire.</p>
-    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div>${g.dev ? `<small class="credit">Art: ${esc(g.dev)}</small>` : g.drawn ? '<small class="credit">Drawing: ours, not official art</small>' : ''}</div></div>`).join('')}</div>
+    <input id="ds_find" placeholder="Filter the library by name, family or tag…" autocomplete="off" style="width:100%;margin-bottom:8px">
+    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.slice().sort((a, b) => (a.family || '').localeCompare(b.family || '')).map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div>${g.dev ? `<small class="credit">Art: ${esc(g.dev)}</small>` : g.drawn ? '<small class="credit">Drawing: ours, not official art</small>' : ''}</div></div>`).join('')}</div>
     <div class="row" style="margin-bottom:10px"><input id="ds_custom" placeholder="Add a game not in the library…" style="flex:1"><button class="btn" id="ds_add">Add</button></div>
     <div id="ds_comps"></div>
     <div class="step-num">Step 3 · Cross-reference</div>
     <div id="ds_qs"></div>
   </div><div id="ds_out"></div></div>`;
   const renderLib = () => $$('#ds_lib .refcard').forEach(b => b.classList.toggle('on', saved.comps.some(c => c.id===b.dataset.g)));
+  // With thirty-odd games the picker needs a filter: name, family, tags or search names.
+  $('#ds_find').addEventListener('input', e => { const q = e.target.value.trim().toLowerCase();
+    $$('#ds_lib .refcard').forEach(b => { const g = REFERENCE_GAMES.find(x => x.id === b.dataset.g); const hay = [g.t, g.genre, g.family, ...(g.tags || []), ...(g.aka || [])].join(' ').toLowerCase(); b.style.display = !q || hay.includes(q) ? '' : 'none'; }); });
   const compCard = (c, i) => { const lib = REFERENCE_GAMES.find(g => g.id===c.id);
     return `<details class="comp" ${i===saved.comps.length-1?'open':''}><summary>${esc(c.t)} ${lib ? `<span class="chip">${lib.year} · ${esc(lib.genre)}</span>` : '<span class="chip warn">custom</span>'}<button class="btn sm ghost danger ds_del" data-i="${i}" style="margin-left:auto">✕</button></summary><div class="body">
       ${lib ? `<div class="chips" style="margin:6px 0">${lib.engines.map(e => `<span class="chip">${e}</span>`).join('')}</div><p class="small"><a href="#/games/${lib.id}">See the ${esc(lib.t)} schematics</a></p>` : ''}

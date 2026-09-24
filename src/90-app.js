@@ -387,20 +387,81 @@ function gameArt(g){
   if(g.drawn) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: an original drawing, not official art" loading="lazy"><figcaption>An original drawing for this guide, not official art: this game has no store page we can credit.</figcaption></figure>`;
   return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>`;
 }
+const familyLabel = id => (GAME_FAMILIES.find(f => f[0] === id) || [id, id])[1];
+const lensLabel = key => (GAME_LENSES.find(l => l[0] === key) || [key, key])[1];
+// The library's view and filters are a per-browser convenience.
+const libState = () => store.get('library', { view:'grid', family:'', tag:'', lens:'' });
+// From a game page: open the library showing that game's family.
+ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { family: el.dataset.v, tag: '', lens: '' }));
+ACTIONS['lib-set'] = el => { const s = libState(); s[el.dataset.k] = s[el.dataset.k] === el.dataset.v ? '' : el.dataset.v; if(el.dataset.k === 'view') s.view = el.dataset.v; store.set('library', s); keepScroll = true; renderGames(); };
+function libraryHTML(){
+  const s = libState(), analysed = REFERENCE_GAMES.filter(g => g.lens).length;
+  const pick = g => (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!(g.lens && g.lens[s.lens] && g.lens[s.lens].primary));
+  const list = REFERENCE_GAMES.filter(pick);
+  const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
+  const usedTags = GAME_TAGS.filter(t => REFERENCE_GAMES.some(g => (g.tags || []).includes(t)));
+  const deepLenses = GAME_LENSES.filter(([k]) => REFERENCE_GAMES.some(g => g.lens && g.lens[k] && g.lens[k].primary));
+  const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${x.year} · ${esc(x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
+  const grid = xs => `<div class="reflib">${xs.map(card).join('')}</div>`;
+  const body = !list.length ? '<div class="empty">No game matches these filters.</div>'
+    : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${x.year}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
+    : s.family ? grid(list)
+    : GAME_FAMILIES.map(([f, label]) => { const xs = list.filter(x => x.family === f); return xs.length ? `<div class="section-head"><h2>${esc(label)}</h2><span class="muted">${xs.length}</span></div>${grid(xs)}` : ''; }).join('');
+  return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
+    <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span><span class="chips">${GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => btn('family', f, t, s.family === f)).join('')}</span></div>
+    <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag or by a lens analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
+    <p class="small muted">${list.length} of ${REFERENCE_GAMES.length} games</p>${body}`;
+}
+// A screenshot attached to a lens: numbered callouts over the image, the
+// caption naming what to look at, and the developer's credit.
+function shotHTML(g, s){
+  const co = s.callouts || [];
+  return `<figure class="shot"><div class="shotframe"><img src="${esc(s.img)}" alt="${esc(s.alt)}" loading="lazy">${co.map((c, i) => `<span class="calloutdot" style="left:${c.x * 100}%;top:${c.y * 100}%" aria-hidden="true">${i + 1}</span>`).join('')}</div>
+    <figcaption>${esc(s.caption)}${co.length ? `<ol class="calloutlist">${co.map(c => `<li>${esc(c.t)}</li>`).join('')}</ol>` : ''}<span class="small muted"> Screenshot: ${esc(g.dev || 'the developer')}${g.store ? `, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>` : ''}.</span></figcaption></figure>`;
+}
+function lensesHTML(g){
+  if(!g.lens) return '';
+  const topicChips = (l, k) => `<span class="chips">${lensTopics(l, k).filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span>`;
+  const shots = k => (g.shots || []).filter(s => s.lens === k).map(s => shotHTML(g, s)).join('');
+  const primary = GAME_LENSES.filter(([k]) => g.lens[k] && g.lens[k].primary), rest = GAME_LENSES.filter(([k]) => g.lens[k] && !g.lens[k].primary);
+  return `<div class="section-head"><h2>Through ten lenses</h2><span class="muted">${primary.length} in depth</span></div>
+    ${primary.map(([k, label]) => { const l = g.lens[k]; return `<section class="card lenscard"><div class="overline">${esc(label)}</div>
+      <p><b>What they did.</b> ${esc(l.did)}</p><p><b>The moment.</b> ${esc(l.moment)}</p>${shots(k)}<p><b>Why it works.</b> ${esc(l.why)}</p>
+      <p class="steal"><b>Steal this.</b> ${esc(l.steal)}</p><p><b>The trap.</b> ${esc(l.trap)}</p>${topicChips(l, k)}</section>`; }).join('')}
+    <div class="card"><dl class="lenslist">${rest.map(([k, label]) => { const l = g.lens[k]; return `<dt>${esc(label)}</dt><dd>${l.na ? `<span class="muted">Does not apply: ${esc(l.na)}</span>` : `${esc(l.text)} ${topicChips(l, k)}`}${shots(k)}</dd>`; }).join('')}</dl></div>`;
+}
+function signatureHTML(g){
+  const s = g.signature; if(!s) return '';
+  return `<section class="card sigcard"><div class="overline">The idea worth stealing</div><h2>${esc(s.idea)}</h2>${SIGNATURE_PARTS.map(([k, label]) => `<h4>${esc(label)}</h4><p>${esc(s[k])}</p>`).join('')}</section>`;
+}
 function renderGames(id){
   const g = REFERENCE_GAMES.find(x => x.id === id);
-  if(!g){
-    setView(`${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">Fifteen successful games taken apart with one template, each with a schematic of its loop and six with a schematic of their screen. The schematics are our own drawings of the mechanism; store art is credited to its developer.</p>
-      <div class="reflib">${REFERENCE_GAMES.map(x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${x.year} · ${esc(x.genre)}</small><div class="want">${esc(x.want)}</div></div></a>`).join('')}</div>`);
-    return;
-  }
+  if(!g){ setView(libraryHTML()); return; }
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
   setView(`${crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${g.year} · ${esc(g.genre)}</p>
+    <div class="chips" style="margin:-4px 0 12px"><a class="chip dom lnk" href="#/games" data-action="lib-family" data-v="${esc(g.family)}">${esc(familyLabel(g.family))}</a>${(g.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>
     ${gameArt(g)}
     <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
+    ${signatureHTML(g)}
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
+    ${lensesHTML(g)}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
     <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+}
+// Reverse index: topic -> the games that show it, from screen and loop
+// schematics and from lenses that go deep or name their topics. Default
+// topics of a short lens do not count, or every game would link the loop.
+let _GAME_LINKS = null;
+function gameLinks(){
+  if(!_GAME_LINKS){
+    _GAME_LINKS = {};
+    const add = (tid, g, label) => { const l = _GAME_LINKS[tid] || (_GAME_LINKS[tid] = []); if(!l.some(x => x.g === g && x.label === label)) l.push({ g, label }); };
+    REFERENCE_GAMES.forEach(g => {
+      (g.diagrams || []).forEach(d => (d.topics || []).forEach(t => add(t, g, d.kind === 'screen' ? 'the screen' : 'the loop')));
+      if(g.lens) GAME_LENSES.forEach(([k, label]) => { const l = g.lens[k]; if(l && !l.na && (l.primary || (l.topics && l.topics.length))) lensTopics(l, k).forEach(t => add(t, g, label)); });
+    });
+  }
+  return _GAME_LINKS;
 }
 /* ---------- All pages: every section, view and collection ---------- */
 // Also where an unknown route lands, with a line saying so.
@@ -660,8 +721,8 @@ function topicBody(id){
   // more than a screen down).
   // Rules and rulings that change, each with the day it was checked.
   const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h4>Dated facts</h4><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
-  const inGames = REFERENCE_GAMES.filter(g => (g.diagrams || []).some(x => (x.topics || []).includes(id)));
-  const gameFoot = inGames.length ? `<div class="dgm-foot"><span class="overline">See it in a real game</span><span class="chips">${inGames.map(g => `<a class="chip lnk" href="#/games/${g.id}">${esc(g.t)} screen</a>`).join('')}</span></div>` : '';
+  const inGames = gameLinks()[id] || [];
+  const gameFoot = inGames.length ? `<div class="dgm-foot"><span class="overline">In real games</span><span class="chips">${inGames.map(x => `<a class="chip lnk" href="#/games/${x.g.id}">${esc(x.g.t)}: ${esc(x.label.charAt(0).toLowerCase() + x.label.slice(1))}</a>`).join('')}</span></div>` : '';
   const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}
     ${secs}${techSec}${facts}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
@@ -1288,7 +1349,7 @@ const SOURCES = [
   ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
   ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation spread in 2023. Zheng et al. (2023) found that a strong model judge agreed with people about as often as people agree with each other, and documented its biases toward answer position, answer length and its own answers. From 2025, coding agents that edit files, run commands and iterate against tests came into regular use. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
   ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
-  ['Game art and images','The reference games are shown with our own schematics of their loops and screens: drawings of the mechanism, not screenshots. Eleven also show their store art, small, credited to the developer and linked to the official store page, for teaching only and with no claim of endorsement. New game art is added only after the publisher’s current press or fan-content terms are checked for that game. Any generated image would be marked as generated beside it.','Used in: Reference games, Reference Dissection.','practice'],
+  ['Game art and images','The reference games are shown with our own schematics of their loops and screens. Store art and a few official screenshots appear small, credited to the developer and linked to the official store page, each screenshot attached to the point it teaches, with no claim of endorsement. Games with no store page we can credit show an original drawing of ours, labelled as such. Any generated image would be marked as generated beside it. If you hold the rights to an image here and want it removed, open an issue on the guide’s repository (github.com/hedgon/playable-game-design-os) and it will be taken down.','Used in: Reference games, Reference Dissection.','practice'],
   ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work treats motivations as continuous scales: Nick Yee’s Quantic Foundry model measures twelve motivations in six pairs (Action, Social, Mastery, Achievement, Immersion, Creativity) from player surveys. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
   ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
   ['Utility AI and goal-oriented planners','Dave Mark’s GDC work on utility/infinite-axis utility, and Jeff Orkin’s F.E.A.R. talk (GDC 2006) on a goal-oriented action planner, are the standard practitioner references for scoring competing actions and for long-horizon, emergent plans. Both are heuristics tuned per game, not general algorithms.','Used in: Choosing a behaviour technique, Adaptive AI and directors.','practice'],
@@ -1785,7 +1846,8 @@ SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/
 PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
-REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${g.lesson.slice(0,90)}…`, href:'#/games/'+g.id, text:(g.t+' '+g.genre+' '+g.want+' '+g.verb+' '+g.why+' '+g.lesson+' '+g.misses).toLowerCase() }));
+const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.did, l.moment, l.why, l.steal, l.trap, l.text]) : [])].filter(Boolean).join(' ').toLowerCase();
+REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${(g.signature ? g.signature.idea : g.lesson).slice(0,90)}…`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family)] }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));

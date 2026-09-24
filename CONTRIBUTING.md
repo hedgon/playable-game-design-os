@@ -175,7 +175,18 @@ credit and an https store link (`GAME_ART_CREDITS`). A game with no store
 page we can credit gets an original drawn tile instead (`drawn:true`, a file in
 `assets/games/drawn/`), captioned as our drawing, never passed off as official
 art. The validator checks that every image file exists. Schematics are our own
-drawings; never add a screenshot.
+drawings.
+
+Each game can carry a full analysis (`ANALYSIS()` in `16-games-analysis.js` for the
+games above, `GAME()` with the analysis inline for new games): a `signature` (the
+one idea worth stealing, 250 to 400 words in six parts), all ten `lens` entries
+(two or three `primary` and deep, the rest one or two lines, `na` only when a lens
+truly does not apply), and up to four `shots`. A shot is an official screenshot
+from the game's store page, saved as WebP under 150 KB in `assets/games/shots/`,
+attached to the lens it illustrates, with alt text, a caption naming what to look
+at, and optional numbered callouts (x, y as fractions of the image). The folder
+has a 5 MB budget. Lenses link topics; the frame and the lens-to-topic defaults
+are in `14-references.js`, and the validator enforces all of it.
 
 ### Platform guides
 

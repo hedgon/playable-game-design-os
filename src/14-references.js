@@ -114,3 +114,45 @@ REFERENCE_GAMES.forEach(g => {
   g.diagrams = GAME_DIAGRAMS[g.id] || [];
   if (GAME_ART_CREDITS[g.id]) [g.dev, g.store] = GAME_ART_CREDITS[g.id];
 });
+
+/* ---------------------------------------------------------------------
+   The analysis frame. Games are grouped by one family and filtered by any
+   number of tags; every game is read through the same ten lenses. The
+   analyses themselves live in 16-games-analysis.js (the games above) and
+   in the files that add new games with GAME(). validate.js checks:
+     family     one id from GAME_FAMILIES
+     tags       ids from GAME_TAGS
+     aka        other names people search for
+     signature  { idea, mechanism, teach, fair, escalate, copies, prototype }:
+                the one idea worth stealing, 250 to 400 words in all
+     lens       every key of GAME_LENSES. Two or three are primary and go
+                deep { primary:true, did, moment, why, steal, trap, topics };
+                the rest are short { text, topics }; a lens that genuinely
+                does not apply is { na:'why not' }
+     shots      [{ img, lens, alt, caption, callouts?:[{ x, y, t }] }]:
+                official screenshots, credited to the developer, each one
+                attached to the lens it illustrates, callouts in 0..1
+   --------------------------------------------------------------------- */
+const GAME_FAMILIES = [['rpg','RPG'],['strategy','Strategy and tactics'],['action','Action'],['roguelike','Roguelike'],['puzzle','Puzzle'],['narrative','Narrative and adventure'],['sim','Sim and sandbox'],['social','Social']];
+const GAME_TAGS = ['japanese','turn-based','real-time','time-blend','deduction','knowledge','systems','rules-as-objects','procedural','daily','multiplayer','asynchronous','cozy','precision','diegetic-ui','minimal-hud','narrative-choice','moral-choice','solo-developer','early-access','live-service','premium','free-to-play'];
+// [key, label, default topics]: a lens links these unless it names its own.
+const GAME_LENSES = [
+  ['gameplay','Gameplay and systems',['core-loop','mechanics-and-rules']],
+  ['ui','UI and HUD',['ux-as-design','readability-and-hierarchy']],
+  ['art','Art direction',['visual-language']],
+  ['sound','Sound direction',['audio-and-music']],
+  ['lore','Lore and narrative',['premise-and-world','narrative-agency']],
+  ['world','World building',['premise-and-world','spatial-composition']],
+  ['env','Environmental storytelling',['environmental-storytelling']],
+  ['business','Business and release',['business-model','live-operations']],
+  ['replay','Replayability and difficulty',['difficulty','mastery-discovery-expression']],
+  ['lineage','Lineage',['learning-from-success']]
+];
+const SIGNATURE_PARTS = [['mechanism','The mechanism'],['teach','How the game teaches it'],['fair','How it stays fair'],['escalate','How it escalates'],['copies','What breaks when it is copied'],['prototype','Prototype it in a day']];
+/** @param {any} g */
+function GAME(g){ g.diagrams = g.diagrams || []; REFERENCE_GAMES.push(g); }
+/** @param {string} id @param {any} a */
+function ANALYSIS(id, a){ const g = REFERENCE_GAMES.find(x => x.id === id); if (!g) throw new Error('ANALYSIS: unknown game ' + id); Object.assign(g, a); }
+// The lens's own topics, or the lens's defaults.
+/** @param {any} l @param {string} key */
+const lensTopics = (l, key) => (l && l.topics && l.topics.length) ? l.topics : (GAME_LENSES.find(x => x[0] === key) || [])[2] || [];
