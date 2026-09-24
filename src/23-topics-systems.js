@@ -185,6 +185,10 @@ INTERVIEW('depth-vs-complexity',{
       follow:`Veterans want more and newcomers are drowning. How do you serve both?`,
       red:`Sets the level from what the development team personally enjoys.` }
   ] });
+DIAGRAM('depth-vs-complexity', { kind:'quad', title:'Buy depth, not complexity',
+  x:'Complexity (rules to learn)', y:'Depth (decisions it creates)',
+  points:[{t:'Go', x:0.12, y:0.9},{t:'Chess', x:0.42, y:0.82},{t:'300-stat spreadsheet', x:0.86, y:0.26},{t:'Tic-tac-toe', x:0.1, y:0.1}],
+  q:['Elegant: aim here','Deep but costly to learn','Simple and shallow','Complexity without depth'] });
 
 T('systemic-design',{ d:'systems', t:'Systemic design', tag:'Rules should collide. Ask "what happens when these two systems meet?" before adding a third.',
   what:`Designing mechanics so they read and write shared state and therefore interact: fire spreads on grass, which enemies fear, which players can exploit to herd them. Systemic games produce situations the designer never authored. Tynan Sylvester frames this as designing for emergence. The opposite is a set of sealed mini-games sharing a menu.`,
@@ -373,6 +377,10 @@ INTERVIEW('economy-and-resources',{
       follow:`Both look plausible. What do you measure this week?`,
       red:`Retunes numbers every time players report boredom.` }
   ] });
+DIAGRAM('economy-and-resources', { kind:'economy', title:'Sources, pools, converters and sinks',
+  nodes:[{id:'quests', t:'Quest rewards', type:'source'},{id:'loot', t:'Enemy drops', type:'source'},{id:'gold', t:'Gold', type:'pool'},{id:'gear', t:'Gear', type:'pool'},{id:'repair', t:'Repairs', type:'sink', row:2},{id:'shop', t:'Shop', type:'converter'}],
+  edges:[['quests','gold','per quest'],['loot','gold','per kill'],['gold','shop','spend'],['shop','gear','buy'],['gold','repair','upkeep']],
+  note:'Every flow in needs a way out that forces a choice. A pool with no sink inflates until the numbers mean nothing.' });
 
 T('progression',{ d:'systems', t:'Progression', tag:'Not "number goes up". Ask what new capability, decision, expression or experience each step unlocks.',
   what:`How the player's situation changes over the long horizon: power (stronger), horizontal (different options), mastery (better at the same thing), unlocks (access), narrative (the story advances). Progression schedules anticipation and gates content. The failure mode is progression that only changes numbers while the decisions stay the same.`,
@@ -563,6 +571,10 @@ INTERVIEW('difficulty',{
       follow:`Your testers all sit above the median player. How do you correct for that?`,
       red:`Plots an intended curve and never overlays a single observed failure rate.` }
   ] });
+DIAGRAM('difficulty', { kind:'curve', title:'Challenge in waves around a rising skill',
+  x:'Time', y:'Level',
+  series:[{t:'Challenge', pts:[[0,0.15],[0.12,0.3],[0.2,0.22],[0.35,0.45],[0.43,0.36],[0.58,0.62],[0.66,0.5],[0.82,0.82],[0.9,0.66],[1,0.8]]},{t:'Player skill', pts:[[0,0.1],[0.25,0.28],[0.5,0.46],[0.75,0.64],[1,0.8]]}],
+  alt:'Challenge rises in waves around the player\'s growing skill: spikes test what was learned, rests let it settle. Far above skill is anxiety, far below is boredom.' });
 
 T('builds-and-loadouts',{ d:'systems', t:'Builds, loadouts and constraints', tag:'Build diversity comes from constraints that force different players to solve the same problem differently.',
   what:`Systems where the player composes a set of capabilities before or during play: classes, decks, loadouts, skill trees, party composition. Their value is expression and horizontal progression. Their failure is convergence, where one build dominates and the others are traps.`,

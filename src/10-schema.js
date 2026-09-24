@@ -44,6 +44,15 @@
  * @property {Engine} [eng]         attached by ENGINE()
  * @property {Interview} [iv]       attached by INTERVIEW()
  * @property {Fact[]} [facts]       attached by FACTS()
+ * @property {Diagram} [diagram]    attached by DIAGRAM()
+ */
+/**
+ * A diagram drawn from data by 87-diagrams.js. `kind` picks the shape:
+ * loop {steps}, stack {layers, taper?, arrow?}, matrix {rows, cols, cells},
+ * quad {x, y, points, q?}, curve {x, y, series, band?, beats?, alt},
+ * economy {nodes, edges}, state {states, edges, start}, screen {aspect,
+ * regions}, flow {steps, edges}. `note` is an optional caption (a source).
+ * @typedef {{kind: string, title: string, note?: string, [k: string]: any}} Diagram
  */
 /**
  * A rule, ruling or number that changes. `asOf` is the day it was last
@@ -100,4 +109,13 @@ function FACTS(id, arr){
   const t = TOPICS[id];
   if(!t) throw new Error('FACTS: unknown topic ' + id);
   t.facts = arr;
+}
+
+/* A topic's diagram, shown at the top of its Overview. Shape rules are in
+   validate.js; whether it fits a phone is checked by check-layout.js. */
+/** @param {string} id @param {Diagram} spec */
+function DIAGRAM(id, spec){
+  const t = TOPICS[id];
+  if(!t) throw new Error('DIAGRAM: unknown topic ' + id);
+  t.diagram = spec;
 }

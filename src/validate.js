@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -22,6 +22,74 @@ function checkIvItems(arr, where, errors) {
   arr.forEach((x, i) => { for (const k of ['q', 'a', 'follow', 'red']) if (!x[k] || !String(x[k]).trim()) errors.push(`${where}[${i}].${k} empty`); });
 }
 const VIEW_LINKS = Object.keys(ctx.VIEW_LINKS);
+// Topics with a hand-drawn diagram, read from the DIAGRAMS map in 90-app.js.
+const HAND_DRAWN = new Set([...(fs.readFileSync(path.join(__dirname, '90-app.js'), 'utf8').match(/const DIAGRAMS = \{([^}]*)\}/) || ['', ''])[1].matchAll(/'([\w-]+)':/g)].map(m => m[1]));
+// Shape of a diagram spec (87-diagrams.js draws it). Layout and fit are the
+// layout checker's job; this checks what the renderer needs to exist.
+function checkDiagram(g, where, errors) {
+  const str = v => typeof v === 'string' && v.trim().length > 0;
+  const unit = v => typeof v === 'number' && v >= 0 && v <= 1;
+  const count = (arr, lo, hi, name) => { if (!Array.isArray(arr) || arr.length < lo || arr.length > hi) { errors.push(`${where}: ${name} needs ${lo} to ${hi} entries`); return false; } return true; };
+  const ids = (arr, name) => { const s = new Set(); arr.forEach((x, i) => { if (!str(x.id)) errors.push(`${where}: ${name}[${i}].id empty`); else if (s.has(x.id)) errors.push(`${where}: duplicate ${name} id ${x.id}`); s.add(x.id); }); return s; };
+  const edges = (list, known) => (list || []).forEach(e => { if (!Array.isArray(e) || !known.has(e[0]) || !known.has(e[1])) errors.push(`${where}: edge ${JSON.stringify(e)} names an unknown node`); else if (e[2] !== undefined && !str(e[2])) errors.push(`${where}: edge ${e[0]} -> ${e[1]} has an empty label`); });
+  const KINDS = ['loop', 'stack', 'matrix', 'quad', 'curve', 'economy', 'state', 'screen', 'flow'];
+  if (!g || !KINDS.includes(g.kind)) return errors.push(`${where}: kind must be one of ${KINDS.join(', ')}`);
+  if (!str(g.title) || g.title.length > 90) errors.push(`${where}: title must be 1 to 90 characters`);
+  if (g.note !== undefined && !str(g.note)) errors.push(`${where}: note is empty`);
+  switch (g.kind) {
+    case 'loop': if (count(g.steps, 3, 7, 'steps')) g.steps.forEach((s, i) => { if (!str(s.t)) errors.push(`${where}: steps[${i}].t empty`); }); break;
+    case 'stack': if (count(g.layers, 2, 6, 'layers')) g.layers.forEach((s, i) => { if (!str(s.t)) errors.push(`${where}: layers[${i}].t empty`); }); break;
+    case 'matrix':
+      if (count(g.rows, 1, 7, 'rows') && count(g.cols, 2, 3, 'cols')) {
+        if (![...g.rows, ...g.cols].every(str)) errors.push(`${where}: every row and column needs a name`);
+        if (!Array.isArray(g.cells) || g.cells.length !== g.rows.length || g.cells.some(r => !Array.isArray(r) || r.length !== g.cols.length || r.some(c => typeof c !== 'string'))) errors.push(`${where}: cells must be rows x cols strings`);
+      } break;
+    case 'quad':
+      if (!str(g.x) || !str(g.y)) errors.push(`${where}: x and y axis names needed`);
+      if (count(g.points, 2, 8, 'points')) g.points.forEach((p, i) => { if (!str(p.t) || !unit(p.x) || !unit(p.y)) errors.push(`${where}: points[${i}] needs t and x, y in 0..1`); });
+      if (g.q !== undefined && (!Array.isArray(g.q) || g.q.length !== 4)) errors.push(`${where}: q must name the four quadrants (top left, top right, bottom left, bottom right)`);
+      break;
+    case 'curve':
+      if (!str(g.x) || !str(g.y)) errors.push(`${where}: x and y axis names needed`);
+      if (!str(g.alt)) errors.push(`${where}: a curve needs alt, a sentence saying what the shape shows`);
+      if (count(g.series, 1, 2, 'series')) g.series.forEach((s, i) => { if (!str(s.t) || !Array.isArray(s.pts) || s.pts.length < 2 || s.pts.some(p => !unit(p[0]) || !unit(p[1])) || s.pts.some((p, k) => k && p[0] <= s.pts[k - 1][0])) errors.push(`${where}: series[${i}] needs t and 2+ points in 0..1 with rising x`); });
+      if (g.band !== undefined && (!str(g.band.t) || !unit(g.band.from) || !unit(g.band.to) || g.band.from >= g.band.to)) errors.push(`${where}: band needs t and 0 <= from < to <= 1`);
+      (g.beats || []).forEach((b, i) => { if (!str(b.t) || !unit(b.at)) errors.push(`${where}: beats[${i}] needs t and at in 0..1`); });
+      break;
+    case 'economy':
+      if (count(g.nodes, 2, 10, 'nodes')) {
+        g.nodes.forEach((n, i) => { if (!str(n.t) || !['source', 'pool', 'converter', 'sink'].includes(n.type)) errors.push(`${where}: nodes[${i}] needs t and type source, pool, converter or sink`); });
+        edges(g.edges, ids(g.nodes, 'node'));
+        if (!Array.isArray(g.edges) || !g.edges.length) errors.push(`${where}: an economy needs flows (edges)`);
+      } break;
+    case 'state':
+      if (count(g.states, 2, 7, 'states')) {
+        const known = ids(g.states, 'state');
+        g.states.forEach((s, i) => { if (!str(s.t)) errors.push(`${where}: states[${i}].t empty`); });
+        edges(g.edges, known);
+        if (!known.has(g.start)) errors.push(`${where}: start must be a state id`);
+      } break;
+    case 'screen':
+      if (!['16:9', '4:3', '9:16'].includes(g.aspect)) errors.push(`${where}: aspect must be 16:9, 4:3 or 9:16`);
+      if (count(g.regions, 1, 9, 'regions')) g.regions.forEach((r, i) => { if (!str(r.t) || ![r.x, r.y, r.w, r.h].every(unit) || r.x + r.w > 1.0001 || r.y + r.h > 1.0001) errors.push(`${where}: regions[${i}] needs t and x, y, w, h in 0..1 inside the frame`); });
+      break;
+    case 'flow':
+      if (count(g.steps, 2, 9, 'steps')) {
+        const known = ids(g.steps, 'step');
+        g.steps.forEach((s, i) => { if (!str(s.t)) errors.push(`${where}: steps[${i}].t empty`); });
+        edges(g.edges, known);
+        // the layered layout needs an acyclic graph reachable from the first step
+        const out = {}; g.steps.forEach(s => { out[s.id] = []; }); (g.edges || []).forEach(([a, b]) => { if (out[a] && known.has(b)) out[a].push(b); });
+        const state = {}; let cycle = false;
+        const visit = id => { if (state[id] === 2) return; if (state[id] === 1) { cycle = true; return; } state[id] = 1; out[id].forEach(visit); state[id] = 2; };
+        g.steps.forEach(s => visit(s.id));
+        if (cycle) errors.push(`${where}: a flow cannot have a cycle (use a loop or state diagram)`);
+        const seen = new Set(), walk = id => { if (seen.has(id)) return; seen.add(id); out[id].forEach(walk); };
+        walk(g.steps[0].id);
+        if (seen.size !== g.steps.length) errors.push(`${where}: every step must be reachable from the first`);
+      } break;
+  }
+}
 const errors = [];
 // A fact older than a year is a warning, not an error: the build must not
 // break because the calendar moved, but the line tells you what to recheck.
@@ -57,6 +125,10 @@ for (const t of topics) {
       if (!host) errors.push(`${t.id}: facts[${i}].src must be an https URL with a host`);
     });
   }
+  if (t.diagram !== undefined) {
+    checkDiagram(t.diagram, `${t.id}: diagram`, errors);
+    if (HAND_DRAWN.has(t.id)) errors.push(`${t.id}: has both a hand-drawn diagram (DIAGRAMS in 90-app.js) and a DIAGRAM() spec`);
+  }
   if (t.tech !== undefined) {
     if (!Array.isArray(t.tech) || !t.tech.length) errors.push(`${t.id}: tech present but empty`);
     else for (const x of t.tech) for (const k of ['n', 'how', 'fit', 'cost', 'alt']) if (!x[k]) errors.push(`${t.id}: tech entry missing ${k}`);
@@ -86,6 +158,19 @@ for (const t of topics) {
       arr.forEach((x, i) => { for (const k of ['q', 'a', 'follow', 'red']) if (!x[k] || !String(x[k]).trim()) errors.push(`${t.id}: iv.${lvl}[${i}].${k} empty`); });
     }
     if (total < 6 || total > 10) errors.push(`${t.id}: iv has ${total} questions, expected 6 to 10`);
+  }
+}
+// Reference games: every diagram has a valid shape, a screen layout names
+// real topics, and store art is credited with its developer and store page.
+for (const g of (ctx.REFERENCE_GAMES || [])) {
+  (g.diagrams || []).forEach((d, i) => {
+    checkDiagram(d, `game ${g.id}: diagram ${i}`, errors);
+    for (const tid of (d.topics || [])) if (!TOPICS[tid]) errors.push(`game ${g.id}: diagram ${i} names unknown topic ${tid}`);
+  });
+  if (g.img) {
+    if (!g.dev || !String(g.dev).trim()) errors.push(`game ${g.id}: store art without a developer credit`);
+    let host = ''; try { const u = new URL(g.store); if (u.protocol === 'https:') host = u.hostname; } catch (e) {}
+    if (!host) errors.push(`game ${g.id}: store art without an https store page`);
   }
 }
 const SECTION_KEYS = new Set(SECTION_META.map(m => m[0]));

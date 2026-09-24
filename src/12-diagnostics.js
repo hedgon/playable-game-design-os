@@ -260,11 +260,27 @@ const UNFAIR_CAUSES = [
   { id:'mastery', t:'Insufficient mastery opportunity', signs:['The challenge appears once with no practice','Players never had a safe version','Failure teaches nothing usable next time'], fix:'Add a teach beat and a test beat before the master beat. Ensure failure carries a lesson.', top:'level-structure' }
 ];
 const CONTENT_TREE = [
-  { q:'Is the core loop voluntarily replayed in a stripped build, with no new content?', yes:1, no:'STOP: improve the interaction. Content multiplies a loop. It does not create one. Grey-box the loop and test until players repeat it unprompted.' },
-  { q:'Does the proposed piece create a situation or decision that no existing piece creates?', yes:2, no:'IMPROVE EXISTING: merge it into the piece it duplicates, or change the existing piece so it creates the new decision. Adding a look-alike teaches players that content is skippable.' },
-  { q:'Do players currently exhaust the existing content before they stop playing?', yes:3, no:'IMPROVE EXISTING: players are leaving before they run out. More content will not be reached. Find the churn point and fix the interaction there.' },
-  { q:'Will the piece be consumed once (an arc) or replayed (a loop)?', yes:'ADD (loop content): it multiplies the validated system. Define the distinctness criteria and let AI help generate variations under a human filter.', no:'ADD CAREFULLY (arc content): budget it against consumption rate. Consider whether a systemic source could generate the situation instead of an authored one.' }
+  { s:'Loop replayed with no new content?', q:'Is the core loop voluntarily replayed in a stripped build, with no new content?', yes:1, no:'STOP: improve the interaction. Content multiplies a loop. It does not create one. Grey-box the loop and test until players repeat it unprompted.' },
+  { s:'Creates a new situation or decision?', q:'Does the proposed piece create a situation or decision that no existing piece creates?', yes:2, no:'IMPROVE EXISTING: merge it into the piece it duplicates, or change the existing piece so it creates the new decision. Adding a look-alike teaches players that content is skippable.' },
+  { s:'Players exhaust existing content?', q:'Do players currently exhaust the existing content before they stop playing?', yes:3, no:'IMPROVE EXISTING: players are leaving before they run out. More content will not be reached. Find the churn point and fix the interaction there.' },
+  { s:'Replayed (loop) or once (arc)?', yesLabel:'loop', noLabel:'arc', q:'Will the piece be consumed once (an arc) or replayed (a loop)?', yes:'ADD (loop content): it multiplies the validated system. Define the distinctness criteria and let AI help generate variations under a human filter.', no:'ADD CAREFULLY (arc content): budget it against consumption rate. Consider whether a systemic source could generate the situation instead of an authored one.' }
 ];
+// The whole tree as a flow chart (drawn by 87-diagrams.js through
+// PlayableFlow): question i is step "q<i>", and each verdict string becomes a
+// step named by the words before its colon.
+function contentTreeFlow(){
+  const steps = [], edges = [];
+  const cap = s => s.charAt(0) + s.slice(1).toLowerCase();
+  CONTENT_TREE.forEach((n, i) => {
+    steps.push({ id: 'q' + i, t: n.s, d: n.q });
+    for (const a of ['yes', 'no']) {
+      const to = n[a], label = n[a + 'Label'] || a;
+      if (typeof to === 'number') edges.push(['q' + i, 'q' + to, label]);
+      else { const id = 'v' + i + a; steps.push({ id, t: cap(to.split(':')[0]), d: to.slice(to.indexOf(':') + 1).trim() }); edges.push(['q' + i, id, label]); }
+    }
+  });
+  return { kind: 'flow', title: 'Content or mechanic: the whole decision', steps, edges };
+}
 const LADDER_EXAMPLE = {
   feature:'Crafting', behavior:'Players make deliberate preparation decisions before entering dangerous areas, and feel the consequences of preparing well or badly.',
   experience:'Anticipation and tension before a challenge. Competence when preparation pays off. A lesson when it does not.',

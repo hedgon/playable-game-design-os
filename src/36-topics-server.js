@@ -118,6 +118,9 @@ INTERVIEW('server-authority',{
       follow:`Someone on the team wants to make the table looser "just for the prototype." What's your answer?`,
       red:`Signs off on a table with rows marked "both" or left blank, treating it as documentation rather than a design contract.` }
   ] });
+DIAGRAM('server-authority', { kind:'matrix', title:'Who decides what is true, and what the player feels',
+  rows:['Server authority','Host authority','Predict + verify','Lockstep'], cols:['Who decides','Cheat risk','Felt latency'],
+  cells:[['The server simulates','Low','Needs prediction to hide it'],['One player\'s machine','High for the host','None for the host'],['Client first, server confirms','Low if verified','Low, with corrections'],['Every peer, same inputs','Desyncs show it','Slowest peer sets the pace']] });
 
 T('server-determinism',{ d:'server', t:'Deterministic simulation and parity', tag:'Two machines, one answer, bit for bit. Everything else is a guess wearing a checksum.',
   what:`Making a simulation produce exactly the same output from the same input on every machine that runs it, and proving it continuously. That means a seeded random source both sides implement identically, arithmetic that cannot drift, a fixed step that does not depend on frame rate, and a parity test that runs recorded inputs through both implementations and diffs the traces bit for bit.`,
@@ -414,6 +417,8 @@ INTERVIEW('server-realtime-protocol',{
       follow:`Splitting into two connections doubles the reconnection logic you have to maintain. Is it still worth it here?`,
       red:`Proposes raising priority on chat messages without addressing the shared channel's fan-out cost.` }
   ] });
+DIAGRAM('server-realtime-protocol', { kind:'stack', title:'One message frame on the wire',
+  layers:[{t:'Length', d:'first and fixed size, so the reader knows how much to take'},{t:'Op code', d:'which message this is'},{t:'Message id', d:'pairs a reply with its request'},{t:'Payload', d:'the body, in the encoding both sides agreed'}] });
 
 T('server-matchmaking',{ d:'server', t:'Matchmaking, rooms and sessions', tag:'A ticket, a rule set, a room, and an explicit answer to what happens when someone disappears.',
   what:`Getting the right players into the same session and keeping that session coherent. A ticket carries who is waiting, what capacity the match needs, and the predicates a candidate set must satisfy. A matcher scans open tickets for a satisfying group and hands them to something that creates the session. Around that sit private rooms with join codes, the lifetime rules for a session, and a deliberate policy for disconnection and reconnection.`,
@@ -510,6 +515,9 @@ INTERVIEW('server-matchmaking',{
       follow:`Load testing shows the matcher is fine under load but session creation is the bottleneck. Does that change your rollout plan?`,
       red:`Assumes the existing matcher scales linearly without load testing session creation and placement separately.` }
   ] });
+DIAGRAM('server-matchmaking', { kind:'state', title:'A match ticket from queue to result', start:'queued',
+  states:[{id:'queued', t:'Queued', d:'ticket waiting'},{id:'matched', t:'Matched', d:'rules satisfied'},{id:'room', t:'In room', d:'server allocated'},{id:'playing', t:'Playing', d:'match running'},{id:'reconnect', t:'Reconnecting', d:'grace window'},{id:'ended', t:'Ended', d:'result recorded'}],
+  edges:[['queued','matched','rules met'],['matched','room','allocate'],['room','playing','all ready'],['playing','reconnect','drop'],['reconnect','playing','back in time'],['reconnect','ended','timeout'],['playing','ended','match over']] });
 
 T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts scale by adding copies. The stateful parts are the whole problem.',
   what:`Making the server hold more concurrent players than one process can. The request-serving layer is stateless and scales by adding instances behind a load balancer. Rooms, sessions and live connections are stateful and must be placed somewhere findable, with a directory that maps a room to the instance holding it. Messages that must reach players spread across instances go through a pub/sub layer, usually sharded, and player data itself can be partitioned into independent worlds when a single database stops keeping up.`,
@@ -608,6 +616,9 @@ INTERVIEW('server-scaling',{
       follow:`Product wants cross-partition friends lists after all. What does that actually require, on top of the partitioning you already built?`,
       red:`Agrees to partition immediately as a purely technical task with no product conversation.` }
   ] });
+DIAGRAM('server-scaling', { kind:'matrix', title:'Stateless parts add copies; stateful parts are the problem',
+  rows:['Gateways and APIs','Matchmaking','Game rooms','Chat and presence'], cols:['State held','How it scales'],
+  cells:[['None','Add copies behind a load balancer'],['Queues of tickets','Partition by region or mode'],['Live match state in memory','A directory maps each room to a server'],['Open connections','Pub/sub fan-out across servers']] });
 
 T('server-anticheat',{ d:'server', t:'Anti-cheat and abuse handling', tag:'The client is the attacker. Detect, keep the evidence, and decide the response separately from the detection.',
   what:`Everything that stops a player from gaining an unfair advantage or making the game worse for others. It splits into prevention, which is the authority model refusing to accept an assertion, detection, which is re-simulating or bounding what the client claims, evidence, which is the replay and aggregate data that lets a human judge, and response, which is the ladder from a rejected request through rate limits to a shadow ban. Abuse of other players sits in the same system with different signals.`,

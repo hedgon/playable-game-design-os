@@ -102,6 +102,12 @@ INTERVIEW('level-structure',{
       follow:`A designer wants to skip straight to master because "players already know this." What do you push back on?`,
       red:`Treats a known mechanic as needing no structure at all past its first appearance in the game.` }
   ] });
+DIAGRAM('level-structure', { kind:'curve', title:'One idea per level: teach, test, twist, combine, master, rest',
+  x:'Level progress', y:'Challenge',
+  series:[{t:'Challenge', pts:[[0,0.15],[0.1,0.2],[0.24,0.42],[0.34,0.3],[0.47,0.6],[0.57,0.45],[0.67,0.7],[0.78,0.62],[0.87,0.9],[0.94,0.45],[1,0.2]]}],
+  beats:[{at:0.08, t:'Teach'},{at:0.26, t:'Test'},{at:0.47, t:'Twist'},{at:0.66, t:'Combine'},{at:0.86, t:'Master'},{at:0.97, t:'Rest'}],
+  alt:'Challenge rises through teach, test, twist, combine and master, dipping after each new idea, and ends on a rest.',
+  note:'After Koichi Hayashida on Super Mario 3D Land and the kishōtenketsu structure.' });
 
 T('pacing',{ d:'level', t:'Pacing: intensity and cognition', tag:'Two curves, not one: how hard the hands work and how hard the head works.',
   what:`The rhythm of demands over a level or session. Encounter pacing is about intensity: how much pressure, how fast. Cognitive pacing is about thinking: how much new information, how many decisions per minute. Good pacing alternates both and rarely peaks both at once.`,
@@ -195,6 +201,10 @@ INTERVIEW('pacing',{
       follow:`Two levels both claim to be the campaign's peak. How do you resolve it?`,
       red:`Reviews each level only on its own merits and discovers the sequencing problem at the first full playthrough.` }
   ] });
+DIAGRAM('pacing', { kind:'curve', title:'Two curves: how hard the hands work and how hard the head works',
+  x:'Time in level', y:'Load',
+  series:[{t:'Hands (execution)', pts:[[0,0.2],[0.15,0.72],[0.3,0.3],[0.45,0.8],[0.6,0.25],[0.75,0.85],[0.9,0.3],[1,0.2]]},{t:'Head (thinking)', pts:[[0,0.3],[0.15,0.25],[0.3,0.7],[0.45,0.3],[0.6,0.75],[0.75,0.35],[0.9,0.62],[1,0.3]]}],
+  alt:'Execution and thinking peak at different moments. When both peak together the player is overloaded; when both are low they are bored.' });
 
 T('spatial-composition',{ d:'level', t:'Spatial composition and exploration', tag:'Space communicates. Sightlines, landmarks and paths are sentences the player reads with their feet.',
   what:`The arrangement of space to guide, inform and reward: sightlines that show goals, landmarks that orient, paths that offer choice, hidden pockets that reward attention, and recontextualization where a known space is seen anew. Exploration is the player choosing where to look. Composition is the designer deciding what they will find.`,
@@ -389,3 +399,8 @@ INTERVIEW('encounter-design',{
       follow:`The audit shows the arena is quietly doing all the work and the enemy composition barely matters. What does that mean for how the team should be spending its time?`,
       red:`Treats enemy composition and arena design as independent variables that can be tuned separately without checking their interaction.` }
   ] });
+DIAGRAM('encounter-design', { kind:'curve', title:'An encounter is a question with a shape',
+  x:'Encounter time', y:'Tension',
+  series:[{t:'Tension', pts:[[0,0.2],[0.2,0.35],[0.42,0.6],[0.54,0.55],[0.7,0.9],[0.85,0.6],[1,0.18]]}],
+  beats:[{at:0.12, t:'Read'},{at:0.4, t:'Engage'},{at:0.7, t:'Shift'},{at:0.93, t:'Resolve'}],
+  alt:'Tension climbs while the player reads the space and engages, peaks at the tactical shift, and falls at the resolution.' });

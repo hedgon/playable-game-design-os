@@ -44,12 +44,14 @@ onto each other) and every topic has an **Interview** tab (junior, mid and senio
 questions with model answers, follow-ups and red flags, plus a private note for
 your own story). Topics that depend on rules which change, such as store policy,
 law or court rulings, list **dated facts**: each says when it was last checked
-and links its source.
+and links its source. Topics about something visual (a loop, an economy, a
+pacing curve, a comparison, a state machine, a pipeline) open with a
+**diagram**, drawn from data and repeated as text underneath.
 
 | Section (key) | Views | What it is for |
 | --- | --- | --- |
 | **Paths** (1) | Learning paths, Review | The guided way in, above. **Review** brings back interview questions you marked, on a spaced schedule (1, 2, 4, 8, then 16 days). |
-| **Map** (2) | Map, List, Concept index | The mind map: the lens's goal in the middle, domains around it, a domain's topics when it opens, and related concepts, smells and tools under the topic you select. The list shows the same topics as a list; the concept index ranks topics by how often others reference them. |
+| **Map** (2) | Map, List, Concept index, Reference games | The mind map: the lens's goal in the middle, domains around it, a domain's topics when it opens, and related concepts, smells and tools under the topic you select. The list shows the same topics as a list; the concept index ranks topics by how often others reference them. **Reference games** takes 15 successful games apart with one template, each with a schematic of its loop and six with a schematic of their screen. |
 | **Make** (3) | Idea Lab, Build tools, Prompts, Checklists | The **Idea Lab** treats an idea as a chain of small, evidence-rated steps (signal, tension, opportunity, question, design space, mechanisms, critique, converge, experiment, decide), one step at a time, and compresses it into an Idea Card. Eleven **build tools** (reference dissection, idea shaper, loop builder, experience canvas, behaviour ladder, "should we build this?", hypothesis builder, AI delegation planner, system map, prompt generator, in-game AI technique chooser) export Markdown. 17 prompt templates and 6 checklists. |
 | **Diagnose** (4) | Diagnose, Playtest | 33 design smells with causes and experiments, the fun, core-loop, unfairness, depth and content diagnostics, and the playtest question bank and methods. |
 | **AI Workflow** (5) | The 12-step loop, prompt ladder, bottleneck shift, roles, responsibility matrix, prompting framework, failure modes | How to delegate to AI without handing it the decisions. |

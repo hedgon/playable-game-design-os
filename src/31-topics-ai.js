@@ -670,6 +670,9 @@ INTERVIEW('responsibility-matrix',{
       follow:`You find that a third of them trace to nobody. What is your first move?`,
       red:`Proposes a tracking tool instead of an actual trace of real decisions.` }
   ] });
+DIAGRAM('responsibility-matrix', { kind:'matrix', title:'Who owns the task: human or AI',
+  rows:['Define player and fantasy','Generate options','Analyze complexity vs depth','Find dominant strategies','Build prototypes','Judge fun'], cols:['Human','AI'],
+  cells:[['Primary: only you know who it is for','Assist: drafts to react to'],['Assist: frames and filters','Primary: volume and variety'],['Shared: which decisions matter','Shared: audits the rules'],['Assist: decides what to keep','Primary: exhaustive search'],['Assist: owns the hypothesis','Primary: speed'],['Primary: reads real players','Assist: codes observations']] });
 
 T('ai-for-implementation',{ d:'ai', t:'AI for prototyping and implementation', tag:'The strongest use of AI: build the experiment fast, expose the knobs, log everything, throw it away.',
   what:`Using AI to write prototype and production code, tools, simulations and generators. The best results come from precise briefs (what to build, what to expose, what to log, what not to include), from insisting on instrumentation, and from treating prototypes as disposable. Production code needs the same review discipline as any code plus attention to the design decisions embedded in defaults.`,
@@ -1240,3 +1243,6 @@ INTERVIEW('ai-loop',{
       follow:`Which decisions on a current project would you exempt entirely?`,
       red:`Applies the full loop uniformly and then reports that the process does not scale.` }
   ] });
+DIAGRAM('ai-loop', { kind:'loop', title:'The AI-era loop, in six moves',
+  steps:[{t:'Define and hypothesize', d:'the question and the bet'},{t:'Explore and critique', d:'widen options, then attack them'},{t:'Prototype', d:'the cheapest real test'},{t:'Play and measure', d:'watch players, log the data'},{t:'Interpret and decide', d:'what it means; keep or kill'},{t:'Implement and polish', d:'build it properly, then repeat'}],
+  note:'The guide lists twelve steps; here they are grouped into six moves.' });

@@ -50,6 +50,10 @@ decision tree, 9 AI roles, 14 AI failure modes, a 20-row responsibility matrix,
 advice depends on rules that change (store policy, law, court rulings) carry
 dated facts: 17 facts on 6 topics, each with the day it was checked and its
 source, and the validator warns once one is a year old.
+Twenty-seven topics open with a diagram drawn from data (loops, stacks,
+matrices, 2×2s, curves and beat charts, economies, state machines, flows), each
+repeated as text; the fifteen reference games each have a loop schematic, six
+have an annotated screen layout, and the content-or-mechanic tree is drawn whole.
 
 The Studio domain carries the practice layer that surrounds a design: design documents
 and communication, metrics and success criteria, team and ownership, planning and

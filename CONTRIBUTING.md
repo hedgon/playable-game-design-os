@@ -18,7 +18,7 @@ loudly if any check fails:
 | Check | What it guards |
 | --- | --- |
 | `validate.js` | Every cross-link resolves; every topic has all eight parts, Godot and Unity views where required, and 6 to 10 interview questions; cases, systems, flows, paths and dated facts have the right shape. Prints the inventory counts. |
-| `check-layout.js` | Every map state (both lenses, desktop and one-sided phone layouts, open topics, projects, paths, workflow charts) is laid out and checked for overlapping cards. `--list` prints any label that had to be shortened. |
+| `check-layout.js` | Every map state (both lenses, desktop and one-sided phone layouts, open topics, projects, paths, workflow charts) is laid out and checked for overlapping cards. Every diagram (topics, reference games, the content-or-mechanic tree) is laid out as the page draws it and fails on touching boxes, a box outside the canvas, a label that does not fit, or a canvas too wide for a phone. `--list` prints any map label that had to be shortened. |
 | `check-contrast.js` | Every text colour pair in both themes, including map labels on every domain tint, reaches 4.5:1. |
 | syntax | The bundle and each source file parse. |
 | actions | Every `data-action` in the markup has a handler in `ACTIONS`. |
@@ -79,7 +79,8 @@ the type check and the smoke test on every push and pull request.
 43-case-systems-c.js
 50-paths.js               PATH, PATHS, TRACKS, LEVELS, step titles and links; design, leadership and interview paths
 51-paths-engineering.js   engineering-track paths
-88-flow.js                workflow chart renderer
+87-diagrams.js            data diagrams: loop, stack, matrix, quad, curve, economy, state, screen
+88-flow.js                workflow chart renderer (also the diagrams' flow kind)
 89-graph.js               tidy-tree mind-map layout and rendering (topic map, project map, path map)
 90-app.js                 router, views, tools, search, review queue, dialogs, saved data
 91-map.js                 the map view: lenses, camera, pan, zoom, keyboard, reading panels
@@ -133,6 +134,37 @@ A new domain is a new file with `DOMAINS.push({ id, lens, t, short, color, sum,
 links })`, where `lens` is `design` or `eng` (see `LENSES`), plus a line in
 `manifest.js` and a `--d-<id>` colour token in `01-head.html`. The contrast check
 covers the new tint automatically.
+
+### Diagrams
+
+`DIAGRAM('topic-id', spec)`, beside the topic, draws a diagram at the top of
+its Overview, with the same content as a "Diagram as text" list under it.
+Every spec has `kind`, `title` (under 90 characters) and an optional
+`note` (a caption or source). The kinds:
+
+| Kind | Data | Use it for |
+| --- | --- | --- |
+| `loop` | `steps:[{t, d}]`, 3 to 7 | a cycle: a core loop, a director |
+| `stack` | `layers:[{t, d}]`, `taper?`, `arrow?` | ladders, layers, tiers, a message frame |
+| `matrix` | `rows`, `cols` (2 or 3), `cells[row][col]` | comparing options on a few axes |
+| `quad` | `x`, `y`, `points:[{t, x, y}]` in 0..1, `q?` (four quadrant names) | a 2×2 |
+| `curve` | `x`, `y`, `series:[{t, pts:[[x, y]]}]` (1 or 2), `band?`, `beats?`, `alt` | pacing, difficulty, beat charts |
+| `economy` | `nodes:[{id, t, type, row?}]` (source, pool, converter, sink), `edges` | sources and sinks |
+| `state` | `states:[{id, t, d}]`, `edges:[[from, to, label]]`, `start` | states and transitions |
+| `screen` | `aspect`, `regions:[{t, d, x, y, w, h}]` in 0..1, `topics?` | an annotated screen layout |
+| `flow` | `steps:[{id, t, d}]`, `edges` (acyclic, all reachable) | a pipeline or decision tree |
+
+Labels are short by design. When one does not fit, `node src/check-layout.js`
+names it; reword it rather than widening anything. Order state-machine
+states so transitions join neighbours (two columns, reading order), and use
+an economy node's `row` to keep a flow from skipping over a row. A topic
+with a hand-drawn diagram in `DIAGRAMS` (90-app.js) cannot also have a
+`DIAGRAM()`.
+
+Reference games carry their own `diagrams` (a loop for every game, a screen
+layout for some) in `14-references.js`, and store art needs a developer
+credit and an https store link (`GAME_ART_CREDITS`). Schematics are our own
+drawings; never add a screenshot.
 
 ### Smells, tools and diagnostics
 

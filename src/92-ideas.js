@@ -37,7 +37,7 @@ function toolDissect(el){
     ${field('ds_concept','Concept','Fantasy, core verb, player. Prefilled from the Idea Shaper if you used it.', saved.concept, 2)}
     <div class="step-num">Step 2 · Comparables: what your player plays instead</div>
     <p class="small dim">Choose from the library or add your own. Choose what your player plays, not what you admire.</p>
-    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div></div></div>`).join('')}</div>
+    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div>${g.dev ? `<small class="credit">Art: ${esc(g.dev)}</small>` : ''}</div></div>`).join('')}</div>
     <div class="row" style="margin-bottom:10px"><input id="ds_custom" placeholder="Add a game not in the library…" style="flex:1"><button class="btn" id="ds_add">Add</button></div>
     <div id="ds_comps"></div>
     <div class="step-num">Step 3 · Cross-reference</div>
@@ -46,7 +46,7 @@ function toolDissect(el){
   const renderLib = () => $$('#ds_lib .refcard').forEach(b => b.classList.toggle('on', saved.comps.some(c => c.id===b.dataset.g)));
   const compCard = (c, i) => { const lib = REFERENCE_GAMES.find(g => g.id===c.id);
     return `<details class="comp" ${i===saved.comps.length-1?'open':''}><summary>${esc(c.t)} ${lib ? `<span class="chip">${lib.year} · ${esc(lib.genre)}</span>` : '<span class="chip warn">custom</span>'}<button class="btn sm ghost danger ds_del" data-i="${i}" style="margin-left:auto">✕</button></summary><div class="body">
-      ${lib ? `<div class="chips" style="margin:6px 0">${lib.engines.map(e => `<span class="chip">${e}</span>`).join('')}</div>` : ''}
+      ${lib ? `<div class="chips" style="margin:6px 0">${lib.engines.map(e => `<span class="chip">${e}</span>`).join('')}</div><p class="small"><a href="#/games/${lib.id}">See the ${esc(lib.t)} schematics</a></p>` : ''}
       ${DISSECT_FIELDS.map(([k,l]) => `<div class="field"><label>${l}</label><textarea rows="2" data-i="${i}" data-k="${k}">${esc(c[k]||'')}</textarea></div>`).join('')}
       ${lib ? `<div class="callout" style="padding:8px 10px"><b>Lesson:</b> ${esc(lib.lesson)}</div>` : promptBox('Ask AI to dissect this game (verify the sources)', `Dissect ${c.t} as a designer, using public postmortems, GDC talks, developer interviews and critical consensus. For each: the player want it served, the core verb. The first 30 seconds. The decision the player faces every minute. The engines it runs on. Why it worked as developers and critics explain it. What players most often complain about. The transferable lesson. What copies usually miss. One to three sentences each. Cite a source for every claim about why it worked or write "unknown". Do not cite sales figures.`)}
     </div></details>`; };

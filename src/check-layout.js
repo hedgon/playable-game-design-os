@@ -5,14 +5,22 @@
 // (listed with --list) but do not fail the build. The checker itself lives in
 // layout-core.js so a synthetic dataset can be exercised too.
 const fs = require('fs'), path = require('path');
-const { DATA, FLOW, GRAPH } = require('./manifest.js');
-const { overlaps } = require('./layout-core.js');
-const src = [...DATA, FLOW, GRAPH].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
+const { DATA, DIAGRAM, FLOW, GRAPH } = require('./manifest.js');
+const { overlaps, diagramProblems } = require('./layout-core.js');
+const src = [...DATA, DIAGRAM, FLOW, GRAPH].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const window = {};
-const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,PATHS};')(window);
+const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,PATHS,REFERENCE_GAMES,contentTreeFlow};')(window);
 const G = window.PlayableGraph;
 const { states, problems, clipped } = overlaps(G, ctx.DOMAINS, ctx.TOPICS, ctx.CASE_STUDIES, window.PlayableFlow, ctx.PATHS);
-console.log(`states checked: ${states}; overlaps: ${problems.length}; shortened labels: ${clipped.length}`);
+// Diagrams: every spec on a topic or a reference game, laid out as the app
+// draws it. A shortened text is a failure here, not a count: diagram labels
+// are short by design, so a cut one means the data needs rewording.
+const specs = [];
+Object.values(ctx.TOPICS).forEach(t => { if (t.diagram) specs.push(['topic:' + t.id, t.diagram]); });
+specs.push(['diagnose:content-tree', ctx.contentTreeFlow()]);
+(ctx.REFERENCE_GAMES || []).forEach(g => (g.diagrams || []).forEach((d, i) => specs.push([`game:${g.id}/${i}`, d])));
+problems.push(...diagramProblems(window.PlayableDiagram, window.PlayableFlow, specs));
+console.log(`states checked: ${states}; diagrams: ${specs.length}; overlaps: ${problems.length}; shortened labels: ${clipped.length}`);
 problems.slice(0, 40).forEach(p => console.log('  ' + p));
 if (process.argv.includes('--list')) clipped.forEach(c => console.log('  shortened: ' + c));
 if (problems.length) process.exit(1);

@@ -30,7 +30,9 @@ const ROUTES_IN_PAGE = () => {
     '#/playtest', '#/prompts', '#/prompts/' + PROMPT_TEMPLATES[0].id, '#/checklists', '#/checklists/' + CHECKLISTS[0].id,
     '#/experience', '#/experience/' + cs.id, '#/experience/' + cs.id + '/workflows', '#/experience/' + cs.id + '/interview',
     '#/experience/' + cs.id + '/flow/' + flow.id, '#/experience/' + cs.id + '/' + sys.id, '#/experience/' + cs.id + '/' + sys.id + '/' + part.id,
-    '#/paths/' + p.id, '#/paths/' + p.id + '/' + st.id, '#/review', '#/sources'
+    '#/paths/' + p.id, '#/paths/' + p.id + '/' + st.id, '#/review', '#/sources', '#/games', '#/games/' + REFERENCE_GAMES[0].id,
+    // one topic per diagram kind
+    ...['core-loop', 'feature-vs-experience', 'choosing-ai-technique', 'depth-vs-complexity', 'pacing', 'economy-and-resources', 'perception-and-awareness', 'infra-ci-pipelines'].map(id => '#/map/t/' + id + '/overview')
   ];
 };
 // Routes that only reshape the map keep it in front on a narrow screen.
@@ -59,6 +61,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       const s = await page.evaluate(() => { const p = document.getElementById('pane'), rect = p.getBoundingClientRect(); return { text: (p.querySelector('.view') || p).innerText.trim().length, onScreen: rect.width > 0 && rect.left >= -1 && rect.right <= innerWidth + 1 }; });
       if (errors.length) failures.push(`${w}px ${r}: ${errors[0]}`);
       if (s.text < 40) failures.push(`${w}px ${r}: content pane nearly empty (${s.text} chars)`);
+      if (r.startsWith('#/map/t/') && r.endsWith('/overview') && await page.evaluate(id => !!(TOPICS[id] && TOPICS[id].diagram) && !document.querySelector('#pane .dgm-card svg'), r.split('/')[3])) failures.push(`${w}px ${r}: topic has a diagram but none is drawn`);
       if (w <= 1100 && !mapOnly(r) && !s.onScreen) failures.push(`${w}px ${r}: content pane off screen`);
       if (w <= 1100 && mapOnly(r) && s.onScreen) failures.push(`${w}px ${r}: map-only route covered the map`);
     }

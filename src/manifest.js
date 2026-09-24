@@ -37,12 +37,14 @@ const DATA = [
   '50-paths.js',
   '51-paths-engineering.js'
 ];
-// FLOW draws the workflow charts, GRAPH the mind maps. Both are pure renderers
-// with no dependency on each other, but FLOW loads first so the order matches
-// the file numbering the browser and the checkers share.
+// DIAGRAM draws the topic diagrams, FLOW the workflow charts, GRAPH the mind
+// maps. All are pure renderers; DIAGRAM hands flow-shaped specs to FLOW at
+// render time, and the load order matches the file numbering the browser and
+// the checkers share.
+const DIAGRAM = '87-diagrams.js';
 const FLOW = '88-flow.js';
 const GRAPH = '89-graph.js';
 const APP = ['90-app.js', '91-map.js', '92-ideas.js', '93-lab.js'];
 const TAIL = '99-tail.js';
-const ORDER = [HEAD, ...DATA, FLOW, GRAPH, ...APP, TAIL];
-module.exports = { HEAD, DATA, FLOW, GRAPH, APP, TAIL, ORDER };
+const ORDER = [HEAD, ...DATA, DIAGRAM, FLOW, GRAPH, ...APP, TAIL];
+module.exports = { HEAD, DATA, DIAGRAM, FLOW, GRAPH, APP, TAIL, ORDER };

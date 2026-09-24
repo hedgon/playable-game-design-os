@@ -369,6 +369,11 @@ INTERVIEW('tension-release',{
       follow:`Two levels both claim to be the peak. How do you decide?`,
       red:`Reviews levels only in isolation and finds the problem at the first full playthrough.` }
   ] });
+DIAGRAM('tension-release', { kind:'curve', title:'Emotion is a rhythm: build, peak, release',
+  x:'Session time', y:'Tension',
+  series:[{t:'Tension', pts:[[0,0.2],[0.12,0.45],[0.2,0.75],[0.28,0.3],[0.44,0.55],[0.54,0.85],[0.62,0.28],[0.8,0.6],[0.9,0.95],[1,0.3]]}],
+  beats:[{at:0.2, t:'Peak'},{at:0.29, t:'Release'},{at:0.54, t:'Peak'},{at:0.63, t:'Release'},{at:0.9, t:'Climax'}],
+  alt:'Tension rises and falls in waves that build toward a climax. Flat tension is boredom; constant tension is exhaustion.' });
 
 T('mastery-discovery-expression',{ d:'experience', t:'Mastery, discovery, expression', tag:'Three engines of long-term engagement. Most great games run on at least two.',
   what:`Mastery: getting better at something with perceivable progress. Discovery: finding what you did not know was there, in the world or in the system. Expression: shaping the game to reflect yourself through builds, style, creations or choices. They are distinct engines with distinct fuel: skill ceiling, hidden content or emergent interactions, and meaningful variability.`,
@@ -466,6 +471,9 @@ INTERVIEW('mastery-discovery-expression',{
       follow:`The ceiling is too low. What raises it without punishing novices?`,
       red:`Raises difficulty numbers and calls that a higher ceiling.` }
   ] });
+DIAGRAM('mastery-discovery-expression', { kind:'matrix', title:'Three engines of long-term engagement',
+  rows:['Mastery','Discovery','Expression'], cols:['Player feels','Fed by','Example'],
+  cells:[['I am getting better','Clear feedback, rising challenge','Celeste'],['There is more to find','Hidden depth, secrets, systems','Hollow Knight'],['This is mine','Tools that combine freely','Minecraft']] });
 
 T('social-experience',{ d:'experience', t:'Social experience', tag:'Who does the player matter to? Even single-player games answer this.',
   what:`The ways a game makes players matter to others and others matter to them: cooperation, competition, spectatorship, sharing, teaching, community. In single-player, relatedness comes from characters, companions and a world that responds. Socially shaped games change how content is consumed and how long they live.`,
@@ -654,6 +662,8 @@ INTERVIEW('feature-vs-experience',{
       follow:`Usage is high and the behaviour is absent. What do you conclude?`,
       red:`Reports engagement numbers as proof of success and moves to the next item.` }
   ] });
+DIAGRAM('feature-vs-experience', { kind:'stack', title:'Start from the behaviour, end at the feature', taper:true, arrow:'design in this order',
+  layers:[{t:'Behaviour', d:'players scout, plan and commit before a fight'},{t:'Experience', d:'anticipation, then competence when the plan works'},{t:'System', d:'limited slots and visible threats reward planning'},{t:'Mechanic', d:'choose three items before the gate closes'},{t:'Feature', d:'crafting, only if it serves the mechanic'}] });
 
 T('design-pillars',{ d:'experience', t:'Design pillars and creative direction', tag:'Two to four non-negotiable statements that let anyone on the team settle a design argument without asking the director.',
   what:`Design pillars are a short set of statements describing what the game must always do and what it must never do, so that decisions stay consistent when made by different people at different times. They are not a theme and not a feature list. They are creative direction made checkable. Goals and non-goals apply the same idea to the project: what this game is for and what it deliberately refuses.`,

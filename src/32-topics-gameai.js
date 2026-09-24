@@ -210,6 +210,9 @@ INTERVIEW('choosing-ai-technique',{
       follow:`Mid-migration you now have two systems. How do you keep that from being permanent?`,
       red:`Proposes a full rewrite, or refuses to change because of sunk cost.` }
   ] });
+DIAGRAM('choosing-ai-technique', { kind:'matrix', title:'Pick by decision shape, authoring cost and debuggability',
+  rows:['State machine','Behaviour tree','Utility AI','Planner (GOAP, HTN)'], cols:['Decision shape','Authoring cost','Debugging'],
+  cells:[['A few clear modes','Low','Easy: one state at a time'],['Priorities with fallbacks','Medium','Good: trace the tick'],['Many competing options','Tuning curves','Hard: scores shift'],['Multi-step goals','High','Hard: plans emerge']] });
 
 T('perception-and-awareness',{ d:'gameai', t:'Perception, memory and what the agent knows', tag:'The AI must not read the world directly. Give it senses, memory and a model of what it knows.',
   what:`How an agent gathers and stores information: sight (view cones, line of sight, field of view), hearing and other stimuli, memory of where the player was, and a shared knowledge store (blackboard) or spatial layer (influence map). Perception is where fairness is decided: an agent that "knows" too much feels omniscient and unfair, one that knows too little feels deaf and lifeless.`,
@@ -304,6 +307,9 @@ INTERVIEW('perception-and-awareness',{
       follow:`The disagreement rate is high but only for one agent type. What does that suggest?`,
       red:`Asks whether the stealth felt fair as a general question at the end of the session.` }
   ] });
+DIAGRAM('perception-and-awareness', { kind:'state', title:'What the guard knows: awareness states', start:'unaware',
+  states:[{id:'unaware', t:'Unaware', d:'patrolling'},{id:'suspicious', t:'Suspicious', d:'heard something'},{id:'searching', t:'Searching', d:'last known spot'},{id:'alert', t:'Alert', d:'sees the player'}],
+  edges:[['unaware','suspicious','noise'],['suspicious','alert','sight'],['suspicious','unaware','nothing'],['alert','searching','lost sight'],['searching','alert','found'],['searching','suspicious','gives up']] });
 
 T('navigation-and-pathfinding',{ d:'gameai', t:'Navigation and pathfinding', tag:'Getting an agent from A to B: grids, navmesh, path following, steering and avoidance, at a cost the frame can afford.',
   what:`How agents move through the space: representing the walkable world (grid, navmesh, waypoints), finding a route (A* and its variants, flow fields), following it with movement (path following, steering), and not colliding (local avoidance, crowd simulation). Good navigation is invisible. Bad navigation is the most visible AI failure there is, because players see it directly.`,
@@ -598,6 +604,8 @@ INTERVIEW('adaptive-and-director-ai',{
       follow:`The same content ships in both casual and competitive modes. How do you handle that?`,
       red:`Keeps the director on and assumes it is subtle enough not to matter.` }
   ] });
+DIAGRAM('adaptive-and-director-ai', { kind:'loop', title:'The director\'s loop',
+  steps:[{t:'Read the session', d:'deaths, health, idle time'},{t:'Estimate intensity', d:'how stressed is the player'},{t:'Choose a response', d:'spawn, supply or rest'},{t:'Apply within limits', d:'never visibly unfair'},{t:'Next stretch of play', d:'what the player feels'}] });
 
 T('allies-and-companions', { d:'gameai', t:'Allies and companions', tag:'An ally that helps without playing the game for the player, and does not get stuck or steal the win.',
   what:`AI that fights alongside or supports the player: squadmates, pets, escorts, NPCs that path with you and act in combat or conversation. The hard part is not competence. It is restraint. An ally must be useful, legible, never stuck, and must not take the agency or the moment that belongs to the player.`,

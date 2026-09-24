@@ -96,6 +96,10 @@ INTERVIEW('content-multiplies',{
       follow:`The director agrees in principle but the milestone is content-shaped and due in six weeks. What do you actually deliver?`,
       red:`Argues the philosophical point and leaves without a plan the room can act on this milestone.` }
   ] });
+DIAGRAM('content-multiplies', { kind:'quad', title:'Content multiplies the system you already have',
+  x:'Content volume', y:'System quality',
+  points:[{t:'Rich, varied play', x:0.82, y:0.9},{t:'More of the same', x:0.8, y:0.18},{t:'Thin but promising', x:0.18, y:0.7},{t:'Nothing to multiply', x:0.16, y:0.16}],
+  q:['Add content now','Content multiplies','Fix the system first','Content hides the problem'] });
 
 T('encounters-and-enemies',{ d:'content', t:'Encounters and enemies', tag:'An enemy is a question the game asks. Design the question before the monster.',
   what:`Enemies, hazards and opponents are the most common content in action and strategy games. Each should pose a distinct question to the player (how do I get behind this? what do I prioritize? when do I commit?) that requires a distinct answer from the player's verb set. An encounter is a composition of these questions in space and time.`,

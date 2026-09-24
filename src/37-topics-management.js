@@ -177,6 +177,10 @@ INTERVIEW('pm-risk',{
       follow:`The contingency degrades the experience. Who decides to use it, and when do you tell the players?`,
       red:`Plans only the fix and has no fallback that fits in six weeks.` }
   ] });
+DIAGRAM('pm-risk', { kind:'quad', title:'Likelihood by impact: where each risk sits',
+  x:'Likelihood', y:'Impact',
+  points:[{t:'Core loop is not fun', x:0.45, y:0.86},{t:'Certification slips', x:0.72, y:0.62},{t:'Key engineer leaves', x:0.25, y:0.72},{t:'Art style changes', x:0.3, y:0.3},{t:'Server costs spike', x:0.78, y:0.36}],
+  q:['Plan a contingency','Act now','Accept and watch','Reduce the odds'] });
 
 T('pm-agile-gamedev',{ d:'management', t:'Sprints, kanban and content-heavy teams', tag:'Process is overhead you choose on purpose. Pick the smallest one that answers what ships this week and who is blocked.',
   what:`Which working rhythm fits which kind of work. Sprints suit work that can be committed to two weeks ahead. A flow with explicit limits suits arriving work, content production and live-ops. Most game teams are both at once, plus a director who changes their mind after playing the build, which is not a process failure but the reason the build exists.`,

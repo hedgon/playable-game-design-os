@@ -295,6 +295,10 @@ FACTS('business-model',[
   { claim:`On 11 December 2025 the US Ninth Circuit upheld the finding that Apple was in contempt of the Epic v. Apple injunction. On the US App Store, Apple may not block links to outside purchases or require them to be less prominent than its own purchase buttons, though it may stop them being more prominent. A total ban on commission for those purchases went too far: Apple may charge one limited to its genuine costs of handling the links, with the details sent back to the district court.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' },
   { claim:`On 30 June 2026 the US Supreme Court agreed to hear Apple's appeal of the contempt ruling, limited to the first question in Apple's petition; Apple filed its brief on 14 September 2026.`, asOf:'2026-09-23', src:'https://www.supremecourt.gov/docket/docketfiles/html/public/25-1311.html' }
 ]);
+DIAGRAM('business-model', { kind:'economy', title:'Where the store meets the play economy',
+  nodes:[{id:'play', t:'Play rewards', type:'source'},{id:'buy', t:'Real-money purchase', type:'source'},{id:'soft', t:'Soft currency', type:'pool'},{id:'premium', t:'Premium currency', type:'pool'},{id:'items', t:'Items', type:'pool'},{id:'store', t:'Store', type:'converter'},{id:'use', t:'Upgrades used up', type:'sink', row:2}],
+  edges:[['play','soft','earned'],['buy','premium','bought'],['soft','store','spend'],['premium','store','spend'],['store','items','grant'],['items','use','consume']],
+  note:'Each extra currency is another pool to balance. Where money buys what play earns, players notice first.' });
 
 T('scope-control',{ d:'product', t:'Scope control', tag:'Scope should follow validated value, not imagination. AI makes this harder, not easier.',
   what:`The discipline of deciding what the game contains, based on what has been shown to work rather than what could be built. The healthy sequence is idea, prototype, evidence, commit. The unhealthy one is idea, production commitment. AI makes implementation cheap enough that huge amounts of mediocre content can be produced before anyone asks whether the core is fun.`,

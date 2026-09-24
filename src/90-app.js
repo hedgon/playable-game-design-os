@@ -78,7 +78,7 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 // open the groups in this order.
 const NAV = [
   { id:'paths', t:'Paths', views:[['paths','Learning paths'],['review','Review']] },
-  { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index']] },
+  { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index'],['games','Reference games']] },
   { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
   { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
@@ -187,6 +187,7 @@ function render(view, parts){
     case 'experience': return renderExperience(parts[1], parts[2], parts[3]);
     case 'review': return renderReview();
     case 'sources': return renderSources();
+    case 'games': return renderGames(parts[1]);
     default: return renderMap();
   }
 }
@@ -354,6 +355,25 @@ function subNavHTML(){
 }
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button data-href="${it[1]}">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
+/* ---------- reference games: dissections, schematics, credited art ---------- */
+function gameArt(g){
+  return g.img ? `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>` : '';
+}
+function renderGames(id){
+  const g = REFERENCE_GAMES.find(x => x.id === id);
+  if(!g){
+    setView(`${crumbs([['Map','#/map'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">Fifteen successful games taken apart with one template, each with a schematic of its loop and six with a schematic of their screen. The schematics are our own drawings of the mechanism; store art is credited to its developer.</p>
+      <div class="reflib">${REFERENCE_GAMES.map(x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${x.year} · ${esc(x.genre)}</small><div class="want">${esc(x.want)}</div></div></a>`).join('')}</div>`);
+    return;
+  }
+  const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
+  setView(`${crumbs([['Map','#/map'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${g.year} · ${esc(g.genre)}</p>
+    ${gameArt(g)}
+    <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
+    ${(g.diagrams || []).map(d => diagramCard(d) + (d.topics ? `<p class="small">Illustrates: ${d.topics.map(t => topicLink(t)).join(', ')}</p>` : '')).join('')}
+    <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
+    <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+}
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
 function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
 function list(arr){ return `<ul>${(arr||[]).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
@@ -404,6 +424,13 @@ const DIAGRAM_DISSECTION = `<svg class="diagram" viewBox="0 0 704 258" role="img
 </svg>`;
 const DIAGRAMS = { 'ux-as-design': DIAGRAM_HIERARCHY, 'readability-and-hierarchy': DIAGRAM_HIERARCHY, 'feedback-and-affordance': DIAGRAM_FEEDBACK, 'learning-from-success': DIAGRAM_DISSECTION };
 const DOMAIN_DIAGRAMS = { ux: DIAGRAM_HIERARCHY };
+// A diagram drawn from data (DIAGRAM() in the topic files, 87-diagrams.js),
+// with the same content as a list for screen readers and for anyone who
+// prefers text.
+function diagramCard(spec, color){
+  const D = window.PlayableDiagram;
+  return `<figure class="card dgm-card" style="--dc:${color || 'var(--accent2)'}"><figcaption class="dgm-title">${esc(spec.title)}</figcaption>${D.render(spec)}${spec.note ? `<p class="dgm-note">${esc(spec.note)}</p>` : ''}<details class="dgm-text"><summary>Diagram as text</summary>${D.describe(spec)}</details></figure>`;
+}
 
 /* =====================================================================
    MAP
@@ -590,7 +617,8 @@ function topicBody(id){
   // more than a screen down).
   // Rules and rulings that change, each with the day it was checked.
   const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h4>Dated facts</h4><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
-  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
+  const inGames = REFERENCE_GAMES.filter(g => (g.diagrams || []).some(x => (x.topics || []).includes(id)));
+  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : t.diagram ? diagramCard(t.diagram, d.color) : ''}${inGames.length ? `<p class="small ingames">See it in a real game: ${inGames.map(g => `<a class="chip lnk" href="#/games/${g.id}">${esc(g.t)} screen</a>`).join(' ')}</p>` : ''}
     ${secs}${techSec}${facts}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
@@ -718,7 +746,7 @@ function wireDepth(){
 }
 
 function contentTreeView(){
-  return `<div class="callout"><b>Content multiplies a good system. It does not rescue a bad one.</b> Before authoring another enemy, level, weapon or quest, answer these in order.</div><div id="ctree"></div>`;
+  return `<div class="callout"><b>Content multiplies a good system. It does not rescue a bad one.</b> Before authoring another enemy, level, weapon or quest, answer these in order.</div><div class="grid c2"><div id="ctree"></div><div id="ctreeChart">${diagramCard(contentTreeFlow())}</div></div>`;
 }
 function wireContentTree(){
   const el = $('#ctree'); if(!el) return; const answers = [];
@@ -730,6 +758,11 @@ function wireContentTree(){
       if(typeof nxt === 'string'){ const verdict = nxt.split(':')[0]; html += `<div class="verdict ${verdict.startsWith('ADD')?'BUILD':verdict.startsWith('STOP')?'REMOVE':'SIMPLIFY'}"><h2>${esc(verdict)}</h2><p>${esc(nxt.slice(verdict.length+1).trim())}</p><div class="row"><a class="btn sm" href="#/map/t/content-multiplies">Content multiplies systems</a><a class="btn sm" href="#/map/t/core-loop">The core loop</a></div></div>`; break; }
       i = nxt; }
     el.innerHTML = html + (answers.length ? `<button class="btn ghost sm" id="ctreeReset" style="margin-top:8px">Start over</button>` : '');
+    // Mark the reader's path on the chart: each answered question and where it led.
+    const on = new Set(); let k = 0;
+    while(answers[k] !== undefined){ on.add('q' + k); const nx = CONTENT_TREE[k][answers[k]]; if(typeof nx === 'number') k = nx; else { on.add('v' + k + answers[k]); break; } }
+    if(answers[k] === undefined) on.add('q' + k);
+    $$('#ctreeChart .flownode').forEach(n => n.classList.toggle('on', on.has(n.dataset.step)));
     $$('.opts button', el).forEach(b => b.onclick = () => { const i = +b.dataset.i; answers.length = i; answers[i] = b.dataset.a; render(); });
     const r = $('#ctreeReset'); if(r) r.onclick = () => { answers.length = 0; render(); }; };
   render();
@@ -1211,6 +1244,7 @@ const SOURCES = [
   ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
   ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation spread in 2023. Zheng et al. (2023) found that a strong model judge agreed with people about as often as people agree with each other, and documented its biases toward answer position, answer length and its own answers. From 2025, coding agents that edit files, run commands and iterate against tests came into regular use. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
   ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
+  ['Game art and images','The reference games are shown with our own schematics of their loops and screens: drawings of the mechanism, not screenshots. Eleven also show their store art, small, credited to the developer and linked to the official store page, for teaching only and with no claim of endorsement. New game art is added only after the publisher’s current press or fan-content terms are checked for that game. Any generated image would be marked as generated beside it.','Used in: Reference games, Reference Dissection.','practice'],
   ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work treats motivations as continuous scales: Nick Yee’s Quantic Foundry model measures twelve motivations in six pairs (Action, Social, Mastery, Achievement, Immersion, Creativity) from player surveys. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
   ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
   ['Utility AI and goal-oriented planners','Dave Mark’s GDC work on utility/infinite-axis utility, and Jeff Orkin’s F.E.A.R. talk (GDC 2006) on a goal-oriented action planner, are the standard practitioner references for scoring competing actions and for long-horizon, emergent plans. Both are heuristics tuned per game, not general algorithms.','Used in: Choosing a behaviour technique, Adaptive AI and directors.','practice'],
@@ -1763,7 +1797,7 @@ document.addEventListener('keydown', e => {
 
 // What the later files import from this one.
 Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
-  setView, crumbs, domChip, list, chainHTML, promptBox, field, outputBox, toolHead, practice, setTopicTab,
+  setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, outputBox, toolHead, practice, setTopicTab,
   topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal, DIAGRAM_DISSECTION });
 })(window.PlayableApp = {});
 

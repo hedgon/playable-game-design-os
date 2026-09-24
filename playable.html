@@ -716,6 +716,12 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .refcard .meta b{display:block;font-size:.9rem;line-height:1.2}
 .refcard .meta small{display:block;color:var(--fg3);font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;margin:3px 0 4px}
 .refcard .meta .want{font-size:.78rem;color:var(--fg2)}
+.refcard .meta .credit{margin:4px 0 0;text-transform:none;letter-spacing:0}
+.gameart{margin:0 0 14px}
+.gameart img{display:block;width:100%;max-width:460px;height:auto;border:1px solid var(--line)}
+.gameart figcaption{font-size:.8rem;color:var(--fg2);margin-top:4px}
+.ingames{margin:-6px 0 14px}
+#ctreeChart .flownode.on .fdisc{stroke-width:3;fill:color-mix(in srgb,var(--dc,var(--accent2)) 30%,var(--bg2))}
 /* idea lab */
 .labchain{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:10px 0 14px}
 .labchain .cn{background:var(--bg2);border:1px solid var(--line2);border-radius:2px;padding:4px 9px;font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--fg2)}
@@ -755,6 +761,41 @@ details.comp .body{padding-top:6px}
 .diagram .muted{fill:var(--fg3)}
 .diagram-card{padding:12px 14px;display:flex;justify-content:center}
 .diagram-cap{font-size:.8rem;color:var(--fg3);margin:0}
+/* data diagrams (87-diagrams.js): tokens only, so both themes and every
+   domain colour are covered by the contrast check */
+.dgm-card{padding:12px 14px;margin:0 0 14px}
+@media (max-width:700px){.dgm-card{padding:10px 6px}}
+.dgm-title{font-family:var(--display);font-weight:700;font-size:1rem;margin:0 0 8px}
+.dgm{display:block;width:100%;height:auto;margin:0 auto}
+.dgm-note{font-size:.8rem;color:var(--fg2);margin:8px 0 0}
+.dgm-text{margin-top:8px;font-size:.88rem}
+.dgm-text summary{cursor:pointer;color:var(--fg2);font-size:.82rem}
+.dgm-text ol{margin:6px 0 0;padding-left:20px}
+.dgm-table{border-collapse:collapse;margin-top:6px;font-size:.85rem}
+.dgm-table th,.dgm-table td{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.dgm .dcard{fill:color-mix(in srgb,var(--dc,var(--accent2)) 14%,var(--bg2));stroke:var(--dc,var(--accent2));stroke-width:1.5}
+.dgm .dcard.pool{stroke-width:2.8}
+.dgm .dcard.converter{stroke-dasharray:6 3}
+.dgm .dcard.sink{stroke-dasharray:2 3}
+.dgm .dlbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700}
+.dgm .dsub{fill:var(--fg2);font-family:var(--mono)}
+.dgm .dnum{fill:var(--fg2);font-family:var(--mono);font-weight:600}
+.dgm .dtag{fill:var(--fg2);font-family:var(--mono);letter-spacing:.06em}
+.dgm .dedge{fill:none;stroke:var(--fg3);stroke-width:1.6}
+.dgm .darrow{fill:var(--fg3)}
+.dgm .dlabel rect{fill:var(--panel);stroke:var(--line2);stroke-width:1}
+.dgm .dlabel text{fill:var(--fg2);font-family:var(--mono)}
+.dgm .dgrid{fill:var(--panel);stroke:var(--line2);stroke-width:1}
+.dgm .dline{stroke:var(--line2);stroke-width:1}
+.dgm .dhead{fill:color-mix(in srgb,var(--dc,var(--accent2)) 22%,var(--panel))}
+.dgm .ddot{fill:var(--dc,var(--accent2));stroke:var(--fg);stroke-width:1}
+.dgm .daxis{stroke:var(--fg3);stroke-width:1.2}
+.dgm .dbeat{stroke:var(--line2);stroke-width:1;stroke-dasharray:3 3}
+.dgm .dline1{fill:none;stroke:var(--dc,var(--accent2));stroke-width:2.6}
+.dgm .dline2{fill:none;stroke:var(--fg2);stroke-width:2;stroke-dasharray:7 4}
+.dgm .dband{fill:color-mix(in srgb,var(--dc,var(--accent2)) 12%,transparent)}
+.dgm .dframe{fill:var(--bg3);stroke:var(--fg3);stroke-width:1.5}
+.dgm .dregion{fill:color-mix(in srgb,var(--dc,var(--accent2)) 18%,var(--bg3));stroke:var(--dc,var(--accent2));stroke-width:1.2}
 /* workflow charts: the mind map's visual language, laid out top to bottom so
    a two-way branch fits the content pane at phone width. The svg's inline
    max-width is its own layout width, so a wide pane shows it at 1:1 and a
@@ -1108,6 +1149,15 @@ const VIEW_LINKS = {
  * @property {Engine} [eng]         attached by ENGINE()
  * @property {Interview} [iv]       attached by INTERVIEW()
  * @property {Fact[]} [facts]       attached by FACTS()
+ * @property {Diagram} [diagram]    attached by DIAGRAM()
+ */
+/**
+ * A diagram drawn from data by 87-diagrams.js. `kind` picks the shape:
+ * loop {steps}, stack {layers, taper?, arrow?}, matrix {rows, cols, cells},
+ * quad {x, y, points, q?}, curve {x, y, series, band?, beats?, alt},
+ * economy {nodes, edges}, state {states, edges, start}, screen {aspect,
+ * regions}, flow {steps, edges}. `note` is an optional caption (a source).
+ * @typedef {{kind: string, title: string, note?: string, [k: string]: any}} Diagram
  */
 /**
  * A rule, ruling or number that changes. `asOf` is the day it was last
@@ -1164,6 +1214,15 @@ function FACTS(id, arr){
   const t = TOPICS[id];
   if(!t) throw new Error('FACTS: unknown topic ' + id);
   t.facts = arr;
+}
+
+/* A topic's diagram, shown at the top of its Overview. Shape rules are in
+   validate.js; whether it fits a phone is checked by check-layout.js. */
+/** @param {string} id @param {Diagram} spec */
+function DIAGRAM(id, spec){
+  const t = TOPICS[id];
+  if(!t) throw new Error('DIAGRAM: unknown topic ' + id);
+  t.diagram = spec;
 }
 
 /* =====================================================================
@@ -1428,11 +1487,27 @@ const UNFAIR_CAUSES = [
   { id:'mastery', t:'Insufficient mastery opportunity', signs:['The challenge appears once with no practice','Players never had a safe version','Failure teaches nothing usable next time'], fix:'Add a teach beat and a test beat before the master beat. Ensure failure carries a lesson.', top:'level-structure' }
 ];
 const CONTENT_TREE = [
-  { q:'Is the core loop voluntarily replayed in a stripped build, with no new content?', yes:1, no:'STOP: improve the interaction. Content multiplies a loop. It does not create one. Grey-box the loop and test until players repeat it unprompted.' },
-  { q:'Does the proposed piece create a situation or decision that no existing piece creates?', yes:2, no:'IMPROVE EXISTING: merge it into the piece it duplicates, or change the existing piece so it creates the new decision. Adding a look-alike teaches players that content is skippable.' },
-  { q:'Do players currently exhaust the existing content before they stop playing?', yes:3, no:'IMPROVE EXISTING: players are leaving before they run out. More content will not be reached. Find the churn point and fix the interaction there.' },
-  { q:'Will the piece be consumed once (an arc) or replayed (a loop)?', yes:'ADD (loop content): it multiplies the validated system. Define the distinctness criteria and let AI help generate variations under a human filter.', no:'ADD CAREFULLY (arc content): budget it against consumption rate. Consider whether a systemic source could generate the situation instead of an authored one.' }
+  { s:'Loop replayed with no new content?', q:'Is the core loop voluntarily replayed in a stripped build, with no new content?', yes:1, no:'STOP: improve the interaction. Content multiplies a loop. It does not create one. Grey-box the loop and test until players repeat it unprompted.' },
+  { s:'Creates a new situation or decision?', q:'Does the proposed piece create a situation or decision that no existing piece creates?', yes:2, no:'IMPROVE EXISTING: merge it into the piece it duplicates, or change the existing piece so it creates the new decision. Adding a look-alike teaches players that content is skippable.' },
+  { s:'Players exhaust existing content?', q:'Do players currently exhaust the existing content before they stop playing?', yes:3, no:'IMPROVE EXISTING: players are leaving before they run out. More content will not be reached. Find the churn point and fix the interaction there.' },
+  { s:'Replayed (loop) or once (arc)?', yesLabel:'loop', noLabel:'arc', q:'Will the piece be consumed once (an arc) or replayed (a loop)?', yes:'ADD (loop content): it multiplies the validated system. Define the distinctness criteria and let AI help generate variations under a human filter.', no:'ADD CAREFULLY (arc content): budget it against consumption rate. Consider whether a systemic source could generate the situation instead of an authored one.' }
 ];
+// The whole tree as a flow chart (drawn by 87-diagrams.js through
+// PlayableFlow): question i is step "q<i>", and each verdict string becomes a
+// step named by the words before its colon.
+function contentTreeFlow(){
+  const steps = [], edges = [];
+  const cap = s => s.charAt(0) + s.slice(1).toLowerCase();
+  CONTENT_TREE.forEach((n, i) => {
+    steps.push({ id: 'q' + i, t: n.s, d: n.q });
+    for (const a of ['yes', 'no']) {
+      const to = n[a], label = n[a + 'Label'] || a;
+      if (typeof to === 'number') edges.push(['q' + i, 'q' + to, label]);
+      else { const id = 'v' + i + a; steps.push({ id, t: cap(to.split(':')[0]), d: to.slice(to.indexOf(':') + 1).trim() }); edges.push(['q' + i, id, label]); }
+    }
+  });
+  return { kind: 'flow', title: 'Content or mechanic: the whole decision', steps, edges };
+}
 const LADDER_EXAMPLE = {
   feature:'Crafting', behavior:'Players make deliberate preparation decisions before entering dangerous areas, and feel the consequences of preparing well or badly.',
   experience:'Anticipation and tension before a challenge. Competence when preparation pays off. A lesson when it does not.',
@@ -1732,6 +1807,96 @@ const REFERENCE_GAMES = [
   { id:'portal', img:'assets/games/portal.jpg', t:'Portal', year:2007, genre:'first-person puzzle', want:'Feel clever, constantly, with one tool, and be told a story while doing it.', verb:'place two portals. Walk through', first30:'You wake in a glass cell. A portal opens. You step through it and see yourself. The rule is understood in one step.', minute:'Where do I need to be, and where can I place the exit? How does momentum carry me?', engines:['discovery','mastery','storytelling','surprise'], why:'A single mechanic taught by level design alone, with each chamber isolating one idea, then combining. The narrator turned a test sequence into a story with a twist. It was short and complete, which was celebrated rather than criticized.', complaints:'Short, puzzles become routine once the vocabulary is learned. Little replay.', lesson:'One deep mechanic taught entirely by space. Every level a lesson about one idea. Length is not value.', misses:'Copies add a second and third mechanic before the first is exhausted, and explain rules with text instead of geometry.' },
   { id:'tetris', t:'Tetris', year:1984, genre:'falling-block puzzle', want:'Impose order on a stream of chaos, faster and faster, until I fail.', verb:'rotate and place a falling piece', first30:'A piece falls. You move and rotate it. A line clears. You understand everything.', minute:'Where does this piece go? Hold for the long piece? Build for a tetris or clear now?', engines:['flow','mastery','tension','optimization'], why:'Rules fit in a sentence. The decision arrives every second and is never the same. Difficulty rises with success. The failure is always your own. It has survived every platform for four decades.', complaints:'Randomness can starve you of the piece you need. Modern variants argue about hold and preview rules.', lesson:'A decision per second with perfect readability and self-caused failure is a complete game. Depth from a handful of rules.', misses:'Copies change the pieces or add power-ups, which breaks the readability that makes every placement a reasoned decision.' }
 ];
+
+// Credits for the store art in assets/games/: the developer named on the
+// game's official store page, and that page. Checked 2026-09-24. The images
+// are used small, for teaching, with no claim of endorsement (see Sources).
+const GAME_ART_CREDITS = {
+  'slay-the-spire': ['Mega Crit', 'https://store.steampowered.com/app/646570/'],
+  'stardew-valley': ['ConcernedApe', 'https://store.steampowered.com/app/413150/'],
+  'vampire-survivors': ['poncle', 'https://store.steampowered.com/app/1794680/'],
+  'balatro': ['LocalThunk', 'https://store.steampowered.com/app/2379780/'],
+  'celeste': ['Maddy Makes Games', 'https://store.steampowered.com/app/504230/'],
+  'hades': ['Supergiant Games', 'https://store.steampowered.com/app/1145360/'],
+  'into-the-breach': ['Subset Games', 'https://store.steampowered.com/app/590380/'],
+  'among-us': ['Innersloth', 'https://store.steampowered.com/app/945360/'],
+  'hollow-knight': ['Team Cherry', 'https://store.steampowered.com/app/367520/'],
+  'factorio': ['Wube Software', 'https://store.steampowered.com/app/427520/'],
+  'portal': ['Valve', 'https://store.steampowered.com/app/400/']
+};
+
+// Our own schematics of each game: its loop and, for six games, its screen
+// layout. They are drawings of the mechanism, not screenshots, and a screen
+// layout names the topics it illustrates.
+const GAME_DIAGRAMS = {
+  'slay-the-spire': [
+    { kind:'loop', title:'Slay the Spire: every reward is a decision', steps:[{t:'Fight', d:'play the hand you drew'},{t:'Reward', d:'take a card, or skip it'},{t:'Map', d:'pick the next node'},{t:'Rest or shop', d:'heal, upgrade or buy'}] },
+    { kind:'screen', title:'Slay the Spire: the combat screen', aspect:'16:9', topics:['feedback-and-affordance','readability-and-hierarchy'],
+      regions:[{t:'Top bar: HP, gold, potions, map, deck', x:0, y:0, w:1, h:0.09},{t:'Player', x:0.1, y:0.3, w:0.2, h:0.35},{t:'Enemies with intents', d:'each shows its next attack before you commit', x:0.58, y:0.28, w:0.34, h:0.32},{t:'Energy', x:0.01, y:0.68, w:0.17, h:0.14},{t:'Hand of cards', x:0.25, y:0.75, w:0.5, h:0.25},{t:'End turn', x:0.8, y:0.62, w:0.2, h:0.1},{t:'Draw', x:0.01, y:0.86, w:0.14, h:0.13},{t:'Discard', x:0.81, y:0.86, w:0.19, h:0.13}],
+      note:'Schematic, not to scale. The enemy intents are why every card choice can be reasoned rather than guessed.' }
+  ],
+  'stardew-valley': [
+    { kind:'loop', title:'Stardew Valley: a daily budget that compounds', steps:[{t:'Plan the day', d:'energy and daylight to spend'},{t:'Tend', d:'plant, water, gather'},{t:'Sell or gift', d:'money, or a friend'},{t:'Invest', d:'tools, buildings, seeds'},{t:'Sleep', d:'the farm grows overnight'}] },
+    { kind:'screen', title:'Stardew Valley: the farm screen', aspect:'16:9', topics:['readability-and-hierarchy'],
+      regions:[{t:'Day, time, gold', d:'with the weather and season', x:0.76, y:0.02, w:0.22, h:0.16},{t:'Your farm: the play space', x:0.3, y:0.3, w:0.4, h:0.45},{t:'Energy', d:'and health, when hurt', x:0.82, y:0.5, w:0.17, h:0.35},{t:'Toolbar: tools and seeds', x:0.2, y:0.88, w:0.6, h:0.1}],
+      note:'Schematic, not to scale. What you check between actions sits at the edges; the middle is left for play.' }
+  ],
+  'vampire-survivors': [
+    { kind:'loop', title:'Vampire Survivors: decisions without aiming', steps:[{t:'Move', d:'dodge the swarm'},{t:'Collect gems', d:'risk the crowd for XP'},{t:'Level up', d:'pick one of three upgrades'},{t:'Power grows', d:'the screen fills with attacks'}] },
+    { kind:'screen', title:'Vampire Survivors: the run screen', aspect:'16:9', topics:['readability-and-hierarchy'],
+      regions:[{t:'Experience bar', x:0, y:0, w:1, h:0.09},{t:'Weapons and passives', x:0.01, y:0.11, w:0.3, h:0.17},{t:'Timer', x:0.4, y:0.11, w:0.2, h:0.1},{t:'Kills, gold', x:0.73, y:0.11, w:0.26, h:0.1},{t:'The swarm', x:0.05, y:0.35, w:0.3, h:0.5},{t:'You', d:'with your health bar underneath', x:0.43, y:0.45, w:0.14, h:0.2}],
+      note:'Schematic, not to scale. Late in a run the effects crowd the middle, the readability cost players complain about.' }
+  ],
+  'balatro': [
+    { kind:'loop', title:'Balatro: break a system you already know', steps:[{t:'Play or discard', d:'chase a scoring hand'},{t:'Score', d:'chips times mult, vs the blind'},{t:'Shop', d:'jokers that bend the rules'},{t:'Next blind', d:'the target climbs'}] },
+    { kind:'screen', title:'Balatro: the round screen', aspect:'16:9', topics:['feedback-and-affordance'],
+      regions:[{t:'Blind, score, hands, money', d:'hands and discards left, ante and round', x:0, y:0, w:0.24, h:1},{t:'Jokers: rule changers', x:0.28, y:0.03, w:0.46, h:0.2},{t:'Tarots', d:'tarot, planet and spectral cards', x:0.77, y:0.03, w:0.21, h:0.2},{t:'Played hand and its score', x:0.3, y:0.35, w:0.5, h:0.25},{t:'Your hand', x:0.28, y:0.7, w:0.52, h:0.27},{t:'Deck', x:0.84, y:0.7, w:0.14, h:0.27}],
+      note:'Schematic, not to scale. The score counts up in the middle of the screen, so a good decision is visibly rewarded.' }
+  ],
+  'celeste': [
+    { kind:'loop', title:'Celeste: failure made cheap', steps:[{t:'Read the room', d:'one movement idea per screen'},{t:'Attempt', d:'jump, dash, climb'},{t:'Die and respawn', d:'back in under a second'},{t:'Adjust', d:'a new timing or route'}] }
+  ],
+  'hades': [
+    { kind:'loop', title:'Hades: a run, a death, a home', steps:[{t:'Clear a chamber', d:'attack, dash, special, cast'},{t:'Choose a door', d:'the reward you need next'},{t:'Take a boon', d:'build this run\'s style'},{t:'Die or escape', d:'back to the House'},{t:'Upgrade', d:'spend what you carried out'}] }
+  ],
+  'into-the-breach': [
+    { kind:'loop', title:'Into the Breach: every attack shown in advance', steps:[{t:'Read intents', d:'see every enemy attack'},{t:'Position mechs', d:'push, block, redirect'},{t:'Enemies resolve', d:'attacks hit what you left'},{t:'Protect the grid', d:'buildings are your health'}] }
+  ],
+  'minecraft': [
+    { kind:'loop', title:'Minecraft: gather, make, survive', steps:[{t:'Gather', d:'mine and chop'},{t:'Craft', d:'turn blocks into tools'},{t:'Build', d:'shelter and projects'},{t:'Explore', d:'find new materials'},{t:'Survive the night', d:'monsters come out'}] }
+  ],
+  'among-us': [
+    { kind:'loop', title:'Among Us: tasks, then trust', steps:[{t:'Do tasks', d:'or fake them, as impostor'},{t:'Something happens', d:'a body or a sabotage'},{t:'Discuss', d:'alibis and accusations'},{t:'Vote', d:'eject someone, or skip'}] },
+    { kind:'screen', title:'Among Us: the ship screen', aspect:'16:9', topics:['controls-and-friction'],
+      regions:[{t:'Task list', x:0.01, y:0.03, w:0.28, h:0.35},{t:'Map and settings', x:0.78, y:0.03, w:0.2, h:0.17},{t:'The ship', x:0.3, y:0.3, w:0.4, h:0.4},{t:'Use, report, kill', d:'one context button per action', x:0.72, y:0.62, w:0.26, h:0.34}],
+      note:'Schematic, not to scale. A button changes meaning with where you stand, so the controls stay few.' }
+  ],
+  'wordle': [
+    { kind:'loop', title:'Wordle: one guess, one clue', steps:[{t:'Guess', d:'a five-letter word'},{t:'Read the colours', d:'right, misplaced or absent'},{t:'Narrow down', d:'rule letters in and out'}] }
+  ],
+  'hollow-knight': [
+    { kind:'loop', title:'Hollow Knight: explore, fight, rest', steps:[{t:'Explore', d:'push into the unknown'},{t:'Fight', d:'strike, dash, heal with soul'},{t:'Find', d:'a map, a charm, a shortcut'},{t:'Rest at a bench', d:'save and change charms'}] },
+    { kind:'screen', title:'Hollow Knight: the exploration screen', aspect:'16:9', topics:['ux-as-design'],
+      regions:[{t:'Soul vessel and masks', d:'soul to heal, masks for health', x:0.02, y:0.03, w:0.3, h:0.17},{t:'Geo', x:0.1, y:0.22, w:0.18, h:0.09},{t:'The world: no other HUD', x:0.1, y:0.36, w:0.8, h:0.55}],
+      note:'Schematic, not to scale. Health and currency are the only permanent HUD; the map is a separate screen you open.' }
+  ],
+  'animal-crossing-nh': [
+    { kind:'loop', title:'Animal Crossing: an island that is yours', steps:[{t:'Gather', d:'fish, dig, shake trees'},{t:'Craft', d:'recipes into furniture'},{t:'Decorate', d:'place it on your island'},{t:'Visit', d:'neighbours and friends notice'}] }
+  ],
+  'factorio': [
+    { kind:'loop', title:'Factorio: fix the worst bottleneck', steps:[{t:'Spot the bottleneck', d:'what is starved'},{t:'Build', d:'place and connect machines'},{t:'Automate', d:'belts and inserters take over'},{t:'Expand', d:'new resources, new bottleneck'}] }
+  ],
+  'portal': [
+    { kind:'loop', title:'Portal: think with two holes', steps:[{t:'Read the chamber', d:'where is the exit'},{t:'Place portals', d:'an entry and an exit'},{t:'Move through', d:'momentum carries over'},{t:'Next chamber', d:'one new twist'}] }
+  ],
+  'tetris': [
+    { kind:'loop', title:'Tetris: a decision every second', steps:[{t:'Piece falls', d:'read it and the next one'},{t:'Rotate and place', d:'where does it fit'},{t:'Clear lines', d:'or build for a tetris'},{t:'Speed rises', d:'the stack gets riskier'}] }
+  ]
+};
+REFERENCE_GAMES.forEach(g => {
+  g.diagrams = GAME_DIAGRAMS[g.id] || [];
+  if (GAME_ART_CREDITS[g.id]) [g.dev, g.store] = GAME_ART_CREDITS[g.id];
+});
 
 /* =====================================================================
    PLAYER
@@ -2601,6 +2766,11 @@ INTERVIEW('tension-release',{
       follow:`Two levels both claim to be the peak. How do you decide?`,
       red:`Reviews levels only in isolation and finds the problem at the first full playthrough.` }
   ] });
+DIAGRAM('tension-release', { kind:'curve', title:'Emotion is a rhythm: build, peak, release',
+  x:'Session time', y:'Tension',
+  series:[{t:'Tension', pts:[[0,0.2],[0.12,0.45],[0.2,0.75],[0.28,0.3],[0.44,0.55],[0.54,0.85],[0.62,0.28],[0.8,0.6],[0.9,0.95],[1,0.3]]}],
+  beats:[{at:0.2, t:'Peak'},{at:0.29, t:'Release'},{at:0.54, t:'Peak'},{at:0.63, t:'Release'},{at:0.9, t:'Climax'}],
+  alt:'Tension rises and falls in waves that build toward a climax. Flat tension is boredom; constant tension is exhaustion.' });
 
 T('mastery-discovery-expression',{ d:'experience', t:'Mastery, discovery, expression', tag:'Three engines of long-term engagement. Most great games run on at least two.',
   what:`Mastery: getting better at something with perceivable progress. Discovery: finding what you did not know was there, in the world or in the system. Expression: shaping the game to reflect yourself through builds, style, creations or choices. They are distinct engines with distinct fuel: skill ceiling, hidden content or emergent interactions, and meaningful variability.`,
@@ -2698,6 +2868,9 @@ INTERVIEW('mastery-discovery-expression',{
       follow:`The ceiling is too low. What raises it without punishing novices?`,
       red:`Raises difficulty numbers and calls that a higher ceiling.` }
   ] });
+DIAGRAM('mastery-discovery-expression', { kind:'matrix', title:'Three engines of long-term engagement',
+  rows:['Mastery','Discovery','Expression'], cols:['Player feels','Fed by','Example'],
+  cells:[['I am getting better','Clear feedback, rising challenge','Celeste'],['There is more to find','Hidden depth, secrets, systems','Hollow Knight'],['This is mine','Tools that combine freely','Minecraft']] });
 
 T('social-experience',{ d:'experience', t:'Social experience', tag:'Who does the player matter to? Even single-player games answer this.',
   what:`The ways a game makes players matter to others and others matter to them: cooperation, competition, spectatorship, sharing, teaching, community. In single-player, relatedness comes from characters, companions and a world that responds. Socially shaped games change how content is consumed and how long they live.`,
@@ -2886,6 +3059,8 @@ INTERVIEW('feature-vs-experience',{
       follow:`Usage is high and the behaviour is absent. What do you conclude?`,
       red:`Reports engagement numbers as proof of success and moves to the next item.` }
   ] });
+DIAGRAM('feature-vs-experience', { kind:'stack', title:'Start from the behaviour, end at the feature', taper:true, arrow:'design in this order',
+  layers:[{t:'Behaviour', d:'players scout, plan and commit before a fight'},{t:'Experience', d:'anticipation, then competence when the plan works'},{t:'System', d:'limited slots and visible threats reward planning'},{t:'Mechanic', d:'choose three items before the gate closes'},{t:'Feature', d:'crafting, only if it serves the mechanic'}] });
 
 T('design-pillars',{ d:'experience', t:'Design pillars and creative direction', tag:'Two to four non-negotiable statements that let anyone on the team settle a design argument without asking the director.',
   what:`Design pillars are a short set of statements describing what the game must always do and what it must never do, so that decisions stay consistent when made by different people at different times. They are not a theme and not a feature list. They are creative direction made checkable. Goals and non-goals apply the same idea to the project: what this game is for and what it deliberately refuses.`,
@@ -3087,6 +3262,9 @@ INTERVIEW('core-loop',{
       follow:`What would have made you cancel it, and who had the authority to make that call?`,
       red:`Cannot name a criterion, or says the team knew it was fun. Enthusiasm is not a signal.` }
   ] });
+DIAGRAM('core-loop', { kind:'loop', title:'The core loop: every link must hold',
+  steps:[{t:'Action', d:'the player commits to a move'},{t:'Feedback', d:'the game shows what happened'},{t:'Decision', d:'the player picks what next'},{t:'Consequence', d:'the state changes, and it matters'},{t:'New situation', d:'a fresh problem to read'}],
+  note:'Break any link and the loop stops teaching or rewarding: no feedback, no learning; no consequence, no decision.' });
 
 T('decisions',{ d:'core', t:'Meaningful decisions', tag:'A decision is meaningful when the options are different, the outcome is uncertain, and the player cares.',
   what:`Sid Meier described a game as a series of interesting decisions. An interesting decision has a real tradeoff (no dominant option), depends on the situation (the right answer changes), and reflects the player (different players choose differently). Decision density is how often the player faces one. Decision weight is how much rides on it.`,
@@ -3273,6 +3451,10 @@ INTERVIEW('risk-reward',{
       follow:`The business wants a revive item. How do you protect the risk?`,
       red:`Accepts the item and rebalances the encounter to be harder for everyone who does not buy it.` }
   ] });
+DIAGRAM('risk-reward', { kind:'quad', title:'The decision lives on the rising diagonal',
+  x:'Risk (chance of loss)', y:'Reward',
+  points:[{t:'Safe route', x:0.16, y:0.24},{t:'Gamble for the chest', x:0.78, y:0.8},{t:'Free win', x:0.16, y:0.84},{t:'Pointless danger', x:0.82, y:0.2}],
+  q:['Dominant: no decision','Interesting bet','Safe default','Never worth it'] });
 
 T('agency-and-emergence',{ d:'core', t:'Agency and emergence', tag:'Agency is when the player causes things. Emergence is when the game surprises its own designers.',
   what:`Agency: the player perceives that their choices cause outcomes, and that different choices would have caused different outcomes. Emergence: behaviors and strategies arising from rule interactions that were not individually authored. Together they produce stories players tell as their own.`,
@@ -3745,6 +3927,10 @@ INTERVIEW('depth-vs-complexity',{
       follow:`Veterans want more and newcomers are drowning. How do you serve both?`,
       red:`Sets the level from what the development team personally enjoys.` }
   ] });
+DIAGRAM('depth-vs-complexity', { kind:'quad', title:'Buy depth, not complexity',
+  x:'Complexity (rules to learn)', y:'Depth (decisions it creates)',
+  points:[{t:'Go', x:0.12, y:0.9},{t:'Chess', x:0.42, y:0.82},{t:'300-stat spreadsheet', x:0.86, y:0.26},{t:'Tic-tac-toe', x:0.1, y:0.1}],
+  q:['Elegant: aim here','Deep but costly to learn','Simple and shallow','Complexity without depth'] });
 
 T('systemic-design',{ d:'systems', t:'Systemic design', tag:'Rules should collide. Ask "what happens when these two systems meet?" before adding a third.',
   what:`Designing mechanics so they read and write shared state and therefore interact: fire spreads on grass, which enemies fear, which players can exploit to herd them. Systemic games produce situations the designer never authored. Tynan Sylvester frames this as designing for emergence. The opposite is a set of sealed mini-games sharing a menu.`,
@@ -3933,6 +4119,10 @@ INTERVIEW('economy-and-resources',{
       follow:`Both look plausible. What do you measure this week?`,
       red:`Retunes numbers every time players report boredom.` }
   ] });
+DIAGRAM('economy-and-resources', { kind:'economy', title:'Sources, pools, converters and sinks',
+  nodes:[{id:'quests', t:'Quest rewards', type:'source'},{id:'loot', t:'Enemy drops', type:'source'},{id:'gold', t:'Gold', type:'pool'},{id:'gear', t:'Gear', type:'pool'},{id:'repair', t:'Repairs', type:'sink', row:2},{id:'shop', t:'Shop', type:'converter'}],
+  edges:[['quests','gold','per quest'],['loot','gold','per kill'],['gold','shop','spend'],['shop','gear','buy'],['gold','repair','upkeep']],
+  note:'Every flow in needs a way out that forces a choice. A pool with no sink inflates until the numbers mean nothing.' });
 
 T('progression',{ d:'systems', t:'Progression', tag:'Not "number goes up". Ask what new capability, decision, expression or experience each step unlocks.',
   what:`How the player's situation changes over the long horizon: power (stronger), horizontal (different options), mastery (better at the same thing), unlocks (access), narrative (the story advances). Progression schedules anticipation and gates content. The failure mode is progression that only changes numbers while the decisions stay the same.`,
@@ -4123,6 +4313,10 @@ INTERVIEW('difficulty',{
       follow:`Your testers all sit above the median player. How do you correct for that?`,
       red:`Plots an intended curve and never overlays a single observed failure rate.` }
   ] });
+DIAGRAM('difficulty', { kind:'curve', title:'Challenge in waves around a rising skill',
+  x:'Time', y:'Level',
+  series:[{t:'Challenge', pts:[[0,0.15],[0.12,0.3],[0.2,0.22],[0.35,0.45],[0.43,0.36],[0.58,0.62],[0.66,0.5],[0.82,0.82],[0.9,0.66],[1,0.8]]},{t:'Player skill', pts:[[0,0.1],[0.25,0.28],[0.5,0.46],[0.75,0.64],[1,0.8]]}],
+  alt:'Challenge rises in waves around the player\'s growing skill: spikes test what was learned, rests let it settle. Far above skill is anxiety, far below is boredom.' });
 
 T('builds-and-loadouts',{ d:'systems', t:'Builds, loadouts and constraints', tag:'Build diversity comes from constraints that force different players to solve the same problem differently.',
   what:`Systems where the player composes a set of capabilities before or during play: classes, decks, loadouts, skill trees, party composition. Their value is expression and horizontal progression. Their failure is convergence, where one build dominates and the others are traps.`,
@@ -4322,6 +4516,10 @@ INTERVIEW('content-multiplies',{
       follow:`The director agrees in principle but the milestone is content-shaped and due in six weeks. What do you actually deliver?`,
       red:`Argues the philosophical point and leaves without a plan the room can act on this milestone.` }
   ] });
+DIAGRAM('content-multiplies', { kind:'quad', title:'Content multiplies the system you already have',
+  x:'Content volume', y:'System quality',
+  points:[{t:'Rich, varied play', x:0.82, y:0.9},{t:'More of the same', x:0.8, y:0.18},{t:'Thin but promising', x:0.18, y:0.7},{t:'Nothing to multiply', x:0.16, y:0.16}],
+  q:['Add content now','Content multiplies','Fix the system first','Content hides the problem'] });
 
 T('encounters-and-enemies',{ d:'content', t:'Encounters and enemies', tag:'An enemy is a question the game asks. Design the question before the monster.',
   what:`Enemies, hazards and opponents are the most common content in action and strategy games. Each should pose a distinct question to the player (how do I get behind this? what do I prioritize? when do I commit?) that requires a distinct answer from the player's verb set. An encounter is a composition of these questions in space and time.`,
@@ -4804,6 +5002,12 @@ INTERVIEW('level-structure',{
       follow:`A designer wants to skip straight to master because "players already know this." What do you push back on?`,
       red:`Treats a known mechanic as needing no structure at all past its first appearance in the game.` }
   ] });
+DIAGRAM('level-structure', { kind:'curve', title:'One idea per level: teach, test, twist, combine, master, rest',
+  x:'Level progress', y:'Challenge',
+  series:[{t:'Challenge', pts:[[0,0.15],[0.1,0.2],[0.24,0.42],[0.34,0.3],[0.47,0.6],[0.57,0.45],[0.67,0.7],[0.78,0.62],[0.87,0.9],[0.94,0.45],[1,0.2]]}],
+  beats:[{at:0.08, t:'Teach'},{at:0.26, t:'Test'},{at:0.47, t:'Twist'},{at:0.66, t:'Combine'},{at:0.86, t:'Master'},{at:0.97, t:'Rest'}],
+  alt:'Challenge rises through teach, test, twist, combine and master, dipping after each new idea, and ends on a rest.',
+  note:'After Koichi Hayashida on Super Mario 3D Land and the kishōtenketsu structure.' });
 
 T('pacing',{ d:'level', t:'Pacing: intensity and cognition', tag:'Two curves, not one: how hard the hands work and how hard the head works.',
   what:`The rhythm of demands over a level or session. Encounter pacing is about intensity: how much pressure, how fast. Cognitive pacing is about thinking: how much new information, how many decisions per minute. Good pacing alternates both and rarely peaks both at once.`,
@@ -4897,6 +5101,10 @@ INTERVIEW('pacing',{
       follow:`Two levels both claim to be the campaign's peak. How do you resolve it?`,
       red:`Reviews each level only on its own merits and discovers the sequencing problem at the first full playthrough.` }
   ] });
+DIAGRAM('pacing', { kind:'curve', title:'Two curves: how hard the hands work and how hard the head works',
+  x:'Time in level', y:'Load',
+  series:[{t:'Hands (execution)', pts:[[0,0.2],[0.15,0.72],[0.3,0.3],[0.45,0.8],[0.6,0.25],[0.75,0.85],[0.9,0.3],[1,0.2]]},{t:'Head (thinking)', pts:[[0,0.3],[0.15,0.25],[0.3,0.7],[0.45,0.3],[0.6,0.75],[0.75,0.35],[0.9,0.62],[1,0.3]]}],
+  alt:'Execution and thinking peak at different moments. When both peak together the player is overloaded; when both are low they are bored.' });
 
 T('spatial-composition',{ d:'level', t:'Spatial composition and exploration', tag:'Space communicates. Sightlines, landmarks and paths are sentences the player reads with their feet.',
   what:`The arrangement of space to guide, inform and reward: sightlines that show goals, landmarks that orient, paths that offer choice, hidden pockets that reward attention, and recontextualization where a known space is seen anew. Exploration is the player choosing where to look. Composition is the designer deciding what they will find.`,
@@ -5091,6 +5299,11 @@ INTERVIEW('encounter-design',{
       follow:`The audit shows the arena is quietly doing all the work and the enemy composition barely matters. What does that mean for how the team should be spending its time?`,
       red:`Treats enemy composition and arena design as independent variables that can be tuned separately without checking their interaction.` }
   ] });
+DIAGRAM('encounter-design', { kind:'curve', title:'An encounter is a question with a shape',
+  x:'Encounter time', y:'Tension',
+  series:[{t:'Tension', pts:[[0,0.2],[0.2,0.35],[0.42,0.6],[0.54,0.55],[0.7,0.9],[0.85,0.6],[1,0.18]]}],
+  beats:[{at:0.12, t:'Read'},{at:0.4, t:'Engage'},{at:0.7, t:'Shift'},{at:0.93, t:'Resolve'}],
+  alt:'Tension climbs while the player reads the space and engages, peaks at the tactical shift, and falls at the resolution.' });
 
 /* =====================================================================
    UX / UI
@@ -6852,6 +7065,10 @@ FACTS('business-model',[
   { claim:`On 11 December 2025 the US Ninth Circuit upheld the finding that Apple was in contempt of the Epic v. Apple injunction. On the US App Store, Apple may not block links to outside purchases or require them to be less prominent than its own purchase buttons, though it may stop them being more prominent. A total ban on commission for those purchases went too far: Apple may charge one limited to its genuine costs of handling the links, with the details sent back to the district court.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' },
   { claim:`On 30 June 2026 the US Supreme Court agreed to hear Apple's appeal of the contempt ruling, limited to the first question in Apple's petition; Apple filed its brief on 14 September 2026.`, asOf:'2026-09-23', src:'https://www.supremecourt.gov/docket/docketfiles/html/public/25-1311.html' }
 ]);
+DIAGRAM('business-model', { kind:'economy', title:'Where the store meets the play economy',
+  nodes:[{id:'play', t:'Play rewards', type:'source'},{id:'buy', t:'Real-money purchase', type:'source'},{id:'soft', t:'Soft currency', type:'pool'},{id:'premium', t:'Premium currency', type:'pool'},{id:'items', t:'Items', type:'pool'},{id:'store', t:'Store', type:'converter'},{id:'use', t:'Upgrades used up', type:'sink', row:2}],
+  edges:[['play','soft','earned'],['buy','premium','bought'],['soft','store','spend'],['premium','store','spend'],['store','items','grant'],['items','use','consume']],
+  note:'Each extra currency is another pool to balance. Where money buys what play earns, players notice first.' });
 
 T('scope-control',{ d:'product', t:'Scope control', tag:'Scope should follow validated value, not imagination. AI makes this harder, not easier.',
   what:`The discipline of deciding what the game contains, based on what has been shown to work rather than what could be built. The healthy sequence is idea, prototype, evidence, commit. The unhealthy one is idea, production commitment. AI makes implementation cheap enough that huge amounts of mediocre content can be produced before anyone asks whether the core is fun.`,
@@ -8777,6 +8994,9 @@ INTERVIEW('responsibility-matrix',{
       follow:`You find that a third of them trace to nobody. What is your first move?`,
       red:`Proposes a tracking tool instead of an actual trace of real decisions.` }
   ] });
+DIAGRAM('responsibility-matrix', { kind:'matrix', title:'Who owns the task: human or AI',
+  rows:['Define player and fantasy','Generate options','Analyze complexity vs depth','Find dominant strategies','Build prototypes','Judge fun'], cols:['Human','AI'],
+  cells:[['Primary: only you know who it is for','Assist: drafts to react to'],['Assist: frames and filters','Primary: volume and variety'],['Shared: which decisions matter','Shared: audits the rules'],['Assist: decides what to keep','Primary: exhaustive search'],['Assist: owns the hypothesis','Primary: speed'],['Primary: reads real players','Assist: codes observations']] });
 
 T('ai-for-implementation',{ d:'ai', t:'AI for prototyping and implementation', tag:'The strongest use of AI: build the experiment fast, expose the knobs, log everything, throw it away.',
   what:`Using AI to write prototype and production code, tools, simulations and generators. The best results come from precise briefs (what to build, what to expose, what to log, what not to include), from insisting on instrumentation, and from treating prototypes as disposable. Production code needs the same review discipline as any code plus attention to the design decisions embedded in defaults.`,
@@ -9347,6 +9567,9 @@ INTERVIEW('ai-loop',{
       follow:`Which decisions on a current project would you exempt entirely?`,
       red:`Applies the full loop uniformly and then reports that the process does not scale.` }
   ] });
+DIAGRAM('ai-loop', { kind:'loop', title:'The AI-era loop, in six moves',
+  steps:[{t:'Define and hypothesize', d:'the question and the bet'},{t:'Explore and critique', d:'widen options, then attack them'},{t:'Prototype', d:'the cheapest real test'},{t:'Play and measure', d:'watch players, log the data'},{t:'Interpret and decide', d:'what it means; keep or kill'},{t:'Implement and polish', d:'build it properly, then repeat'}],
+  note:'The guide lists twelve steps; here they are grouped into six moves.' });
 
 /* =====================================================================
    IN-GAME AI
@@ -9560,6 +9783,9 @@ INTERVIEW('choosing-ai-technique',{
       follow:`Mid-migration you now have two systems. How do you keep that from being permanent?`,
       red:`Proposes a full rewrite, or refuses to change because of sunk cost.` }
   ] });
+DIAGRAM('choosing-ai-technique', { kind:'matrix', title:'Pick by decision shape, authoring cost and debuggability',
+  rows:['State machine','Behaviour tree','Utility AI','Planner (GOAP, HTN)'], cols:['Decision shape','Authoring cost','Debugging'],
+  cells:[['A few clear modes','Low','Easy: one state at a time'],['Priorities with fallbacks','Medium','Good: trace the tick'],['Many competing options','Tuning curves','Hard: scores shift'],['Multi-step goals','High','Hard: plans emerge']] });
 
 T('perception-and-awareness',{ d:'gameai', t:'Perception, memory and what the agent knows', tag:'The AI must not read the world directly. Give it senses, memory and a model of what it knows.',
   what:`How an agent gathers and stores information: sight (view cones, line of sight, field of view), hearing and other stimuli, memory of where the player was, and a shared knowledge store (blackboard) or spatial layer (influence map). Perception is where fairness is decided: an agent that "knows" too much feels omniscient and unfair, one that knows too little feels deaf and lifeless.`,
@@ -9654,6 +9880,9 @@ INTERVIEW('perception-and-awareness',{
       follow:`The disagreement rate is high but only for one agent type. What does that suggest?`,
       red:`Asks whether the stealth felt fair as a general question at the end of the session.` }
   ] });
+DIAGRAM('perception-and-awareness', { kind:'state', title:'What the guard knows: awareness states', start:'unaware',
+  states:[{id:'unaware', t:'Unaware', d:'patrolling'},{id:'suspicious', t:'Suspicious', d:'heard something'},{id:'searching', t:'Searching', d:'last known spot'},{id:'alert', t:'Alert', d:'sees the player'}],
+  edges:[['unaware','suspicious','noise'],['suspicious','alert','sight'],['suspicious','unaware','nothing'],['alert','searching','lost sight'],['searching','alert','found'],['searching','suspicious','gives up']] });
 
 T('navigation-and-pathfinding',{ d:'gameai', t:'Navigation and pathfinding', tag:'Getting an agent from A to B: grids, navmesh, path following, steering and avoidance, at a cost the frame can afford.',
   what:`How agents move through the space: representing the walkable world (grid, navmesh, waypoints), finding a route (A* and its variants, flow fields), following it with movement (path following, steering), and not colliding (local avoidance, crowd simulation). Good navigation is invisible. Bad navigation is the most visible AI failure there is, because players see it directly.`,
@@ -9948,6 +10177,8 @@ INTERVIEW('adaptive-and-director-ai',{
       follow:`The same content ships in both casual and competitive modes. How do you handle that?`,
       red:`Keeps the director on and assumes it is subtle enough not to matter.` }
   ] });
+DIAGRAM('adaptive-and-director-ai', { kind:'loop', title:'The director\'s loop',
+  steps:[{t:'Read the session', d:'deaths, health, idle time'},{t:'Estimate intensity', d:'how stressed is the player'},{t:'Choose a response', d:'spawn, supply or rest'},{t:'Apply within limits', d:'never visibly unfair'},{t:'Next stretch of play', d:'what the player feels'}] });
 
 T('allies-and-companions', { d:'gameai', t:'Allies and companions', tag:'An ally that helps without playing the game for the player, and does not get stuck or steal the win.',
   what:`AI that fights alongside or supports the player: squadmates, pets, escorts, NPCs that path with you and act in combat or conversation. The hard part is not competence. It is restraint. An ally must be useful, legible, never stuck, and must not take the agency or the moment that belongs to the player.`,
@@ -11085,6 +11316,8 @@ INTERVIEW('backend-layering',{
       follow:`What would you do differently at the start of that project?`,
       red:`Talks about maintainability in the abstract with no change they can point at.` }
   ] });
+DIAGRAM('backend-layering', { kind:'stack', title:'Dependencies point inward', taper:true, arrow:'imports point inward',
+  layers:[{t:'Transport', d:'HTTP, WebSocket and gRPC handlers'},{t:'Adapters', d:'database, cache and queue clients'},{t:'Use cases', d:'one operation each: claim, buy, match'},{t:'Domain', d:'entities and game rules, no I/O'}] });
 
 T('backend-di-modes',{ d:'backend', t:'Compile-time DI and one binary, many modes', tag:'Assemble the object graph at build time, and let one binary boot as any of its process roles.',
   what:`Two decisions that travel together. How dependencies get assembled: google/wire generates the constructor graph at build time, so a missing binding is a compile error instead of a nil pointer during an event. And how one codebase serves several process roles: main reads a mode flag and calls a different injector per role, so the API server, the admin tool, the realtime server and twenty batch binaries share entities and interactors while each builds only the graph it needs.`,
@@ -11866,6 +12099,8 @@ INTERVIEW('backend-caching-redis',{
       follow:`What would have stopped you adding it in the first place?`,
       red:`Has only ever added caches.` }
   ] });
+DIAGRAM('backend-caching-redis', { kind:'stack', title:'Three cache tiers answer three questions',
+  layers:[{t:'Per-request memo', d:'the same lookup twice in one request'},{t:'In-process cache', d:'hot, rarely changing data, per instance'},{t:'Redis', d:'state shared across instances: sessions, rate limits, leaderboards'},{t:'Database', d:'the source of truth'}] });
 
 T('backend-migrations-config',{ d:'backend', t:'Schema migrations, configuration and secrets', tag:'Schema changes ship separately from code, and secrets never ship at all.',
   what:`How the shape of the database changes over time, and how the service learns its settings. Migrations are versioned files applied by a tool such as goose, one directory per schema, run as an explicit deploy step with a named environment. Configuration is embedded in the binary, read from the environment, or fetched from a config service. Secrets are the part that must never be in version control, and the part that most often is.`,
@@ -12607,6 +12842,9 @@ INTERVIEW('infra-deploy-models',{
       follow:`What would have to be true in six months for you to regret this choice, and what are you doing now to keep the option open?`,
       red:`Gives a single answer for every workload, or picks the platform before describing the workloads.` }
   ] });
+DIAGRAM('infra-deploy-models', { kind:'matrix', title:'Pick the deploy model by what the workload holds',
+  rows:['Process on a VM','Container on a scheduler','Function per request','Job on a clock'], cols:['Fits','Rollout','Watch out'],
+  cells:[['Long-lived stateful servers','Drain and restart one by one','Hand-tuned snowflakes'],['Many small services','Rolling, health checked','Scheduler complexity'],['Spiky, short requests','A new version per call','Cold starts, no sockets'],['Batches and reports','The next run picks it up','Overlaps and missed runs']] });
 
 T('infra-ci-pipelines',{ d:'infra', t:'CI pipelines and gating', tag:'The pipeline turns a push into a verdict. Gate stages on the event, retry only the network, and check the verdict two ways.',
   what:`The automation that turns a push into a pass or a fail. Stages run in order: lint, unit tests, an integration stage that creates the databases from scratch and runs every migration, a build, and on some events an end-to-end suite against the running binary. Each stage is gated on the event (a pull request behaves differently from a push to the integration branch), each has a timeout, each network-touching step has a retry policy, and each has an explicit rule for what counts as failure.`,
@@ -12704,6 +12942,9 @@ INTERVIEW('infra-ci-pipelines',{
       follow:`Someone changes the pipeline and the tests still pass. How confident are you, and what are those tests not covering?`,
       red:`Says the pipeline is tested by using it, which only tests the paths that already run.` }
   ] });
+DIAGRAM('infra-ci-pipelines', { kind:'flow', title:'From a push to a verdict',
+  steps:[{id:'push', t:'Push or pull request', d:'the event decides which stages run'},{id:'lint', t:'Lint and format', d:'cheap checks first'},{id:'unit', t:'Unit tests', d:'rules in isolation'},{id:'build', t:'Build artefact', d:'stamped with commit and build number'},{id:'integ', t:'Integration tests', d:'fresh database, real migrations'},{id:'e2e', t:'End-to-end', d:'the built artefact, as players get it'},{id:'verdict', t:'Verdict', d:'pass, fail, or infrastructure error'}],
+  edges:[['push','lint'],['lint','unit'],['lint','build'],['unit','integ'],['build','e2e'],['integ','verdict'],['e2e','verdict']] });
 
 T('infra-artifacts-provenance',{ d:'infra', t:'Artifacts, versioning and provenance', tag:'The first question in any incident is which build this is. Stamp the answer in at build time, because you cannot add it later.',
   what:`An artefact is what the pipeline produces: a server binary, a player build, a container image, a set of asset bundles. Provenance is the record of where it came from: the version, the commit hash, the build date, the toolchain version, the job that made it, and the commits since the last successful build. On a compiled server that is injected at link time. In a game client it is a generated file inside the build plus a release note next to the artefact.`,
@@ -13322,6 +13563,9 @@ INTERVIEW('server-authority',{
       follow:`Someone on the team wants to make the table looser "just for the prototype." What's your answer?`,
       red:`Signs off on a table with rows marked "both" or left blank, treating it as documentation rather than a design contract.` }
   ] });
+DIAGRAM('server-authority', { kind:'matrix', title:'Who decides what is true, and what the player feels',
+  rows:['Server authority','Host authority','Predict + verify','Lockstep'], cols:['Who decides','Cheat risk','Felt latency'],
+  cells:[['The server simulates','Low','Needs prediction to hide it'],['One player\'s machine','High for the host','None for the host'],['Client first, server confirms','Low if verified','Low, with corrections'],['Every peer, same inputs','Desyncs show it','Slowest peer sets the pace']] });
 
 T('server-determinism',{ d:'server', t:'Deterministic simulation and parity', tag:'Two machines, one answer, bit for bit. Everything else is a guess wearing a checksum.',
   what:`Making a simulation produce exactly the same output from the same input on every machine that runs it, and proving it continuously. That means a seeded random source both sides implement identically, arithmetic that cannot drift, a fixed step that does not depend on frame rate, and a parity test that runs recorded inputs through both implementations and diffs the traces bit for bit.`,
@@ -13618,6 +13862,8 @@ INTERVIEW('server-realtime-protocol',{
       follow:`Splitting into two connections doubles the reconnection logic you have to maintain. Is it still worth it here?`,
       red:`Proposes raising priority on chat messages without addressing the shared channel's fan-out cost.` }
   ] });
+DIAGRAM('server-realtime-protocol', { kind:'stack', title:'One message frame on the wire',
+  layers:[{t:'Length', d:'first and fixed size, so the reader knows how much to take'},{t:'Op code', d:'which message this is'},{t:'Message id', d:'pairs a reply with its request'},{t:'Payload', d:'the body, in the encoding both sides agreed'}] });
 
 T('server-matchmaking',{ d:'server', t:'Matchmaking, rooms and sessions', tag:'A ticket, a rule set, a room, and an explicit answer to what happens when someone disappears.',
   what:`Getting the right players into the same session and keeping that session coherent. A ticket carries who is waiting, what capacity the match needs, and the predicates a candidate set must satisfy. A matcher scans open tickets for a satisfying group and hands them to something that creates the session. Around that sit private rooms with join codes, the lifetime rules for a session, and a deliberate policy for disconnection and reconnection.`,
@@ -13714,6 +13960,9 @@ INTERVIEW('server-matchmaking',{
       follow:`Load testing shows the matcher is fine under load but session creation is the bottleneck. Does that change your rollout plan?`,
       red:`Assumes the existing matcher scales linearly without load testing session creation and placement separately.` }
   ] });
+DIAGRAM('server-matchmaking', { kind:'state', title:'A match ticket from queue to result', start:'queued',
+  states:[{id:'queued', t:'Queued', d:'ticket waiting'},{id:'matched', t:'Matched', d:'rules satisfied'},{id:'room', t:'In room', d:'server allocated'},{id:'playing', t:'Playing', d:'match running'},{id:'reconnect', t:'Reconnecting', d:'grace window'},{id:'ended', t:'Ended', d:'result recorded'}],
+  edges:[['queued','matched','rules met'],['matched','room','allocate'],['room','playing','all ready'],['playing','reconnect','drop'],['reconnect','playing','back in time'],['reconnect','ended','timeout'],['playing','ended','match over']] });
 
 T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts scale by adding copies. The stateful parts are the whole problem.',
   what:`Making the server hold more concurrent players than one process can. The request-serving layer is stateless and scales by adding instances behind a load balancer. Rooms, sessions and live connections are stateful and must be placed somewhere findable, with a directory that maps a room to the instance holding it. Messages that must reach players spread across instances go through a pub/sub layer, usually sharded, and player data itself can be partitioned into independent worlds when a single database stops keeping up.`,
@@ -13812,6 +14061,9 @@ INTERVIEW('server-scaling',{
       follow:`Product wants cross-partition friends lists after all. What does that actually require, on top of the partitioning you already built?`,
       red:`Agrees to partition immediately as a purely technical task with no product conversation.` }
   ] });
+DIAGRAM('server-scaling', { kind:'matrix', title:'Stateless parts add copies; stateful parts are the problem',
+  rows:['Gateways and APIs','Matchmaking','Game rooms','Chat and presence'], cols:['State held','How it scales'],
+  cells:[['None','Add copies behind a load balancer'],['Queues of tickets','Partition by region or mode'],['Live match state in memory','A directory maps each room to a server'],['Open connections','Pub/sub fan-out across servers']] });
 
 T('server-anticheat',{ d:'server', t:'Anti-cheat and abuse handling', tag:'The client is the attacker. Detect, keep the evidence, and decide the response separately from the detection.',
   what:`Everything that stops a player from gaining an unfair advantage or making the game worse for others. It splits into prevention, which is the authority model refusing to accept an assertion, detection, which is re-simulating or bounding what the client claims, evidence, which is the replay and aggregate data that lets a human judge, and response, which is the ladder from a rejected request through rate limits to a shadow ban. Abuse of other players sits in the same system with different signals.`,
@@ -14176,6 +14428,10 @@ INTERVIEW('pm-risk',{
       follow:`The contingency degrades the experience. Who decides to use it, and when do you tell the players?`,
       red:`Plans only the fix and has no fallback that fits in six weeks.` }
   ] });
+DIAGRAM('pm-risk', { kind:'quad', title:'Likelihood by impact: where each risk sits',
+  x:'Likelihood', y:'Impact',
+  points:[{t:'Core loop is not fun', x:0.45, y:0.86},{t:'Certification slips', x:0.72, y:0.62},{t:'Key engineer leaves', x:0.25, y:0.72},{t:'Art style changes', x:0.3, y:0.3},{t:'Server costs spike', x:0.78, y:0.36}],
+  q:['Plan a contingency','Act now','Accept and watch','Reduce the odds'] });
 
 T('pm-agile-gamedev',{ d:'management', t:'Sprints, kanban and content-heavy teams', tag:'Process is overhead you choose on purpose. Pick the smallest one that answers what ships this week and who is blocked.',
   what:`Which working rhythm fits which kind of work. Sprints suit work that can be committed to two weeks ahead. A flow with explicit limits suits arriving work, content production and live-ops. Most game teams are both at once, plus a director who changes their mind after playing the build, which is not a process failure but the reason the build exists.`,
@@ -19180,6 +19436,409 @@ PATH('interview-prep-engineer', {
 });
 
 /* =====================================================================
+   DIAGRAMS
+   One renderer for the topic and reference-game diagrams declared as data
+   with DIAGRAM(). Same contract as the workflow charts (88-flow.js): pure
+   functions, no DOM, no randomness, CSS variables only, so the same spec
+   always gives the same boxes and the layout checker can test them in node.
+
+   Kinds: loop (a cycle of steps), stack (bands, optionally tapering), matrix
+   (rows by columns), quad (a 2x2 with plotted points), curve (one or two
+   lines over time, with an optional band and beat markers), economy
+   (sources, pools, converters and sinks joined by flows), state (states in
+   a two-column grid with labelled transitions) and screen (an annotated screen
+   layout). `flow` specs are handed to PlayableFlow unchanged.
+
+   Size. Every kind is laid out on a 380 unit wide canvas, so on a 375px
+   phone the chart scales to about 0.8 and its 13px labels stay legible; the
+   "diagram as text" list under each chart carries the same content.
+   A text that does not fit its box is not silently cut: `layout` reports
+   it in `cut`, and the layout checker fails the build on it.
+
+   `layout(spec)` returns { w, h, boxes, cut } and is what the checker
+   calls; `render(spec)` returns the SVG string; `describe(spec)` returns
+   the "diagram as text" HTML shown under it.
+   ===================================================================== */
+window.PlayableDiagram = (function(){
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const W = 380, PAD = 12, FS = 13, SFS = 10.5, LH = 15, SLH = 13;
+  // Display labels use the map's estimate; the mono sub-labels are 0.6em a character.
+  const perChar = fs => fs === FS ? FS * 0.56 : fs * 0.6;
+  const hash = s => { let x = 5381; for (let i = 0; i < s.length; i++) x = ((x << 5) + x + s.charCodeAt(i)) | 0; return (x >>> 0).toString(36); };
+
+  // Greedy word wrap into at most `max` lines of `width` units. A text that
+  // needs more lines keeps an ellipsis and is reported in `cut`.
+  function wrap(text, width, fs, max, cut){
+    const chars = Math.max(3, Math.floor(width / perChar(fs)));
+    const words = String(text || '').split(/\s+/).filter(Boolean), out = [];
+    let line = '';
+    for (const w of words) {
+      const next = line ? line + ' ' + w : w;
+      if (next.length <= chars) line = next;
+      else { if (line) out.push(line); line = w; }
+    }
+    if (line) out.push(line);
+    let shortened = out.length > max || out.some(l => l.length > chars);
+    const res = out.slice(0, max).map(l => l.length > chars ? l.slice(0, chars - 1) + '…' : l);
+    if (out.length > max) res[max - 1] = res[max - 1].slice(0, Math.max(1, chars - 1)).trimEnd() + '…';
+    if (shortened && cut) cut.push(String(text));
+    return res;
+  }
+
+  // A card: number, title lines, sub lines. Height follows the text.
+  function card(w, t, d, cut, opt = {}){
+    const tl = wrap(t, w - 20, FS, opt.tLines || 2, cut);
+    const dl = d ? wrap(d, w - 20, SFS, opt.dLines || 2, cut) : [];
+    const tag = opt.tag ? 1 : 0;
+    const h = 12 + tag * SLH + tl.length * LH + dl.length * SLH + 6;
+    return { w, h, tl, dl, tag: opt.tag || '' };
+  }
+  function cardSVG(n, num){
+    let y = n.y + 10;
+    let s = `<g class="dnode"><rect class="dcard${n.shape ? ' ' + n.shape : ''}" x="${f(n.x)}" y="${f(n.y)}" width="${f(n.w)}" height="${f(n.h)}" rx="${n.shape === 'pool' ? 16 : 3}"/>`;
+    if (num) s += `<text class="dnum" x="${f(n.x + n.w - 8)}" y="${f(n.y + 12)}" text-anchor="end" font-size="9.5">${num}</text>`;
+    if (n.tag) { y += SLH - 2; s += `<text class="dtag" x="${f(n.x + 10)}" y="${f(y)}" font-size="9">${esc(n.tag.toUpperCase())}</text>`; }
+    n.tl.forEach(l => { y += LH; s += `<text class="dlbl" x="${f(n.x + 10)}" y="${f(y - 3)}" font-size="${FS}">${esc(l)}</text>`; });
+    n.dl.forEach(l => { y += SLH; s += `<text class="dsub" x="${f(n.x + 10)}" y="${f(y - 2)}" font-size="${SFS}">${esc(l)}</text>`; });
+    return s + '</g>';
+  }
+  const f = v => (Math.round(v * 10) / 10).toString();
+  const box = (id, x, y, w, h) => ({ id, x, y, w, h });
+  // Where a line from a card's centre toward (tx, ty) leaves the card.
+  function exitPoint(n, tx, ty, grow = 3){
+    const cx = n.x + n.w / 2, cy = n.y + n.h / 2, dx = tx - cx, dy = ty - cy;
+    if (!dx && !dy) return [cx, cy];
+    const hw = n.w / 2 + grow, hh = n.h / 2 + grow;
+    const k = Math.min(dx ? hw / Math.abs(dx) : Infinity, dy ? hh / Math.abs(dy) : Infinity);
+    return [cx + dx * k, cy + dy * k];
+  }
+
+  // A quadratic curve from card A to card B bent through (qx, qy), ending on
+  // the card edges; (lx, ly) is its midpoint, where a label sits.
+  function curveTo(A, B, qx, qy){
+    const [x1, y1] = exitPoint(A, qx, qy), [x2, y2] = exitPoint(B, qx, qy);
+    return { d: `M${f(x1)},${f(y1)} Q${f(qx)},${f(qy)} ${f(x2)},${f(y2)}`, lx: 0.25 * x1 + 0.5 * qx + 0.25 * x2, ly: 0.25 * y1 + 0.5 * qy + 0.25 * y2 };
+  }
+  const mid = n => [n.x + n.w / 2, n.y + n.h / 2];
+
+  // A cycle drawn as a racetrack of two columns, clockwise: with an odd
+  // count the first card sits centred on top, then the right column runs
+  // down and the left column back up, so the last step lands beside the
+  // first. Two 152-wide columns always fit the canvas, whatever the count.
+  function track(items, cw, gapY, top){
+    const n = items.length, ch = Math.max(...items.map(c => c.h));
+    const lx = PAD + 6, rx = W - PAD - 6 - cw, odd = n % 2, k = Math.floor(n / 2);
+    const at = (c, x, r) => Object.assign({}, c, { h: ch, x, y: top + r * (ch + gapY) });
+    const nodes = odd ? [at(items[0], (W - cw) / 2, 0)] : [];
+    for (let i = 0; i < k; i++) nodes.push(at(items[odd + i], rx, odd + i));
+    for (let i = 0; i < k; i++) nodes.push(at(items[odd + k + i], lx, odd + k - 1 - i));
+    const rows = odd + k;
+    return { nodes, h: top + rows * ch + (rows - 1) * gapY + PAD };
+  }
+  // Between neighbours on the track: straight within a row or column, an
+  // L-shaped curve from the top card into a column and back.
+  function link(A, B){
+    const [ax, ay] = mid(A), [bx, by] = mid(B);
+    if (Math.abs(ax - bx) < 1 || Math.abs(ay - by) < 1) return curveTo(A, B, (ax + bx) / 2, (ay + by) / 2);
+    return ay < by ? curveTo(A, B, bx, ay) : curveTo(A, B, ax, by);
+  }
+
+  const L = {};
+  L.loop = spec => {
+    const cut = [], cw = 152;
+    const items = spec.steps.map(s => card(cw, s.t, s.d, cut));
+    const r = track(items, cw, 30, PAD);
+    const edges = r.nodes.map((n, i) => link(n, r.nodes[(i + 1) % r.nodes.length]));
+    return { w: W, h: r.h, nodes: r.nodes, edges, cut, boxes: r.nodes.map((n, i) => box('step ' + (i + 1), n.x, n.y, n.w, n.h)) };
+  };
+
+  // States in a grid of two columns, in data order (order the states so most
+  // transitions join neighbours). The gaps between columns and rows hold the
+  // transition labels; the top margin holds the start marker and any
+  // self-transition.
+  L.state = spec => {
+    const cut = [], cw = 128, top = 30, gapY = 46;
+    const items = spec.states.map(s => card(cw, s.t, s.d, cut, { dLines: 1 }));
+    const ch = Math.max(...items.map(c => c.h)), lx = PAD, rx = W - PAD - cw;
+    const nodes = items.map((c, i) => Object.assign({}, c, { h: ch, x: i % 2 ? rx : lx, y: top + Math.floor(i / 2) * (ch + gapY) }));
+    const rows = Math.ceil(nodes.length / 2);
+    const idx = {}; spec.states.forEach((s, i) => { idx[s.id] = i; });
+    const pairs = new Set(spec.edges.map(e => e[0] + '>' + e[1]));
+    const edges = spec.edges.map(([a, b, label]) => {
+      const A = nodes[idx[a]], B = nodes[idx[b]];
+      if (a === b) {
+        const x = A.x + A.w - 26, y = A.y;
+        return { d: `M${f(x)},${f(y)} C${f(x - 4)},${f(y - 28)} ${f(x + 30)},${f(y - 28)} ${f(x + 18)},${f(y - 2)}`, lx: x + 12, ly: y - 22, label };
+      }
+      const [ax, ay] = mid(A), [bx, by] = mid(B);
+      const len = Math.hypot(bx - ax, by - ay) || 1, px = -(by - ay) / len, py = (bx - ax) / len;
+      // A pair of opposite transitions bows apart, one to each side.
+      const off = pairs.has(b + '>' + a) ? 22 : 0;
+      let qx = (ax + bx) / 2 + px * off, qy = (ay + by) / 2 + py * off;
+      // Two states in one column with a state between them: bend into the middle gap.
+      if (Math.abs(ax - bx) < 1 && Math.abs(ay - by) > ch + gapY + 1) qx = W / 2;
+      const e = curveTo(A, B, qx, qy);
+      e.vertical = Math.abs(by - ay) > Math.abs(bx - ax) * 1.5;
+      e.side = off ? Math.sign(px * off || 1) : 0;
+      return Object.assign(e, { label });
+    });
+    const labels = edges.filter(e => e.label).map(e => {
+      const l = labelBox(e);
+      // On a vertical pair the labels sit beside their lines, not on them.
+      if (e.vertical && e.side) l.x += e.side * (l.w / 2 + 6);
+      return l;
+    });
+    return { w: W, h: top + rows * ch + (rows - 1) * gapY + PAD, nodes, edges, labels, start: nodes[idx[spec.start]], cut,
+      boxes: nodes.map((n, i) => box('state ' + spec.states[i].id, n.x, n.y, n.w, n.h)).concat(labels.map(l => box('label ' + l.text, l.x, l.y, l.w, l.h)))
+        .concat(spec.start ? [box('start marker', nodes[idx[spec.start]].x + 14, nodes[idx[spec.start]].y - 24, 48, 20)] : []) };
+  };
+  const LFS = 9.5;
+  function labelBox(e){ const w = e.label.length * LFS * 0.62 + 10; return { text: e.label, x: e.lx - w / 2, y: e.ly - 8, w, h: 16 }; }
+
+  L.stack = spec => {
+    const cut = [], gutter = spec.arrow ? 24 : 0, full = W - 2 * PAD - gutter, n = spec.layers.length;
+    let y = PAD + (spec.arrow ? 16 : 0);
+    const nodes = spec.layers.map((l, i) => {
+      const w = spec.taper ? full * (1 - 0.34 * (n > 1 ? i / (n - 1) : 0)) : full;
+      const c = card(w, l.t, l.d, cut, { dLines: 3 });
+      const node = Object.assign(c, { x: PAD + gutter, y });
+      y += c.h + 10;
+      return node;
+    });
+    return { w: W, h: y - 10 + PAD, nodes, cut, gutter, boxes: nodes.map((b, i) => box('layer ' + (i + 1), b.x, b.y, b.w, b.h)) };
+  };
+
+  L.matrix = spec => {
+    const cut = [], rh = 96, cols = spec.cols.length, cw = (W - 2 * PAD - rh) / cols;
+    const head = spec.cols.map(c => wrap(c, cw - 10, SFS, 2, cut));
+    const hh = 10 + Math.max(...head.map(h => h.length)) * SLH;
+    let y = PAD + hh;
+    const rows = spec.rows.map((r, i) => {
+      const rl = wrap(r, rh - 12, FS, 3, cut);
+      const cells = spec.cols.map((_, j) => wrap((spec.cells[i] || [])[j] || '', cw - 10, SFS, 4, cut));
+      const h = Math.max(rl.length * LH, ...cells.map(c => c.length * SLH)) + 12;
+      const row = { y, h, rl, cells }; y += h; return row;
+    });
+    // Rows are stacked by construction; registering them still checks that
+    // the table stays inside its canvas.
+    return { w: W, h: y + PAD, rh, cw, hh, head, rows, cut,
+      boxes: [box('header', PAD, PAD, W - 2 * PAD, hh)].concat(rows.map((r, i) => box('row ' + (i + 1), PAD, r.y, W - 2 * PAD, r.h))) };
+  };
+
+  L.quad = spec => {
+    const cut = [], gx = PAD + 18, S = W - gx - PAD, top = PAD;
+    const pts = spec.points.map(p => {
+      const px = gx + p.x * S, py = top + (1 - p.y) * S;
+      const lines = wrap(p.t, 118, SFS, 2, cut), lw = Math.max(...lines.map(l => l.length)) * SFS * 0.6 + 4;
+      const right = p.x < 0.62, lx = right ? px + 8 : px - 8 - lw;
+      return { px, py, lines, lx, ly: py - 7, lw, lh: lines.length * SLH + 2, right };
+    });
+    const qs = (spec.q || []).map(q => wrap(q, S / 2 - 16, 9.5, 2, cut));
+    // Quadrant names sit in the four corners; they are boxes too, so a point
+    // label cannot land on one unnoticed. So are the two axis names.
+    const mid = S / 2, corner = [[gx + 6, top + 14], [gx + mid + 6, top + 14], [gx + 6, top + mid + 14], [gx + mid + 6, top + mid + 14]];
+    const qBoxes = qs.map((q, i) => box('quadrant ' + spec.q[i], corner[i][0], corner[i][1] - 9, Math.max(...q.map(l => l.length)) * 9.5 * 0.6, q.length * 11 + 2));
+    const xw = (spec.x.length + 2) * SFS * 0.6, yw = (spec.y.length + 2) * SFS * 0.6;
+    const axes = [box('x axis name', gx + S / 2 - xw / 2, top + S + 8, xw, 13), box('y axis name', PAD + 1, top + S / 2 - yw / 2, 13, yw)];
+    return { w: W, h: top + S + 30, gx, S, top, pts, qs, corner, cut,
+      boxes: pts.map((p, i) => box('point ' + spec.points[i].t, p.lx, p.ly, p.lw, p.lh)).concat(pts.map((p, i) => box('dot ' + spec.points[i].t, p.px - 4, p.py - 4, 8, 8)), qBoxes, axes) };
+  };
+
+  L.curve = spec => {
+    const cut = [], gx = PAD + 18, PW = W - gx - PAD, PH = 170, top = PAD;
+    const X = v => gx + v * PW, Y = v => top + (1 - v) * PH;
+    const beats = (spec.beats || []).map((b, i) => {
+      const lines = wrap(b.t, 70, 9.5, 2, cut), lw = Math.max(...lines.map(l => l.length)) * 9.5 * 0.6 + 4;
+      return { x: X(b.at), lines, lw, row: 0, t: b.t };
+    });
+    // Beat labels that would touch drop to a second row.
+    beats.forEach((b, i) => { const prev = beats[i - 1]; if (prev && prev.row === 0 && b.x - b.lw / 2 < prev.x + prev.lw / 2 + 4) b.row = 1; });
+    const beatTop = top + PH + 8;
+    beats.forEach(b => { b.y = beatTop + b.row * 28; });
+    const legendY = beatTop + (beats.length ? (beats.some(b => b.row) ? 60 : 32) : 4) + 14;
+    const legend = spec.series.map((s, i) => ({ t: s.t, x: gx + i * (PW / 2), y: legendY }));
+    spec.series.forEach(s => wrap(s.t, PW / 2 - 34, SFS, 1, cut));
+    const xw = (spec.x.length + 2) * SFS * 0.6, yw = (spec.y.length + 2) * SFS * 0.6;
+    const extra = [box('x axis name', gx + PW - xw, top + PH - 16, xw, 13), box('y axis name', PAD + 1, top + PH / 2 - yw / 2, 13, yw)]
+      .concat(legend.map(l => box('legend ' + l.t, l.x, l.y - 10, 30 + l.t.length * SFS * 0.6, 14)));
+    if (spec.band) { const bw = spec.band.t.length * 9.5 * 0.6; extra.push(box('band ' + spec.band.t, gx + PW - 6 - bw, Y(spec.band.to) + 3, bw, 11)); }
+    return { w: W, h: legendY + 12 + PAD, gx, PW, PH, top, X, Y, beats, legend, cut,
+      boxes: beats.map(b => box('beat ' + b.t, b.x - b.lw / 2, b.y, b.lw, b.lines.length * 12 + 2)).concat(extra) };
+  };
+
+  L.economy = spec => {
+    const cut = [], cw = 104, gap = 14, vgap = 42;
+    const defRow = { source: 0, pool: 1, converter: 2, sink: 3 };
+    const nodes = spec.nodes.map(n => Object.assign(card(cw, n.t, n.d, cut, { tag: n.type, dLines: 1 }), { id: n.id, type: n.type, row: n.row ?? defRow[n.type], shape: n.type }));
+    const rows = [...new Set(nodes.map(n => n.row))].sort((a, b) => a - b);
+    let y = PAD;
+    rows.forEach(r => {
+      const list = nodes.filter(n => n.row === r), h = Math.max(...list.map(n => n.h));
+      const span = list.length * cw + (list.length - 1) * gap, x0 = (W - span) / 2;
+      list.forEach((n, i) => { n.x = x0 + i * (cw + gap); n.y = y; n.h = h; });
+      y += h + vgap;
+    });
+    const by = {}; nodes.forEach(n => { by[n.id] = n; });
+    // A flow between rows leaves one card's bottom (or top, going up) and
+    // enters the other's top (or bottom). Every flow on the same side of a
+    // card gets its own point along that side, in the order of the cards at
+    // the other end, so converging flows and their labels do not stack.
+    const sides = spec.edges.map(([a, b]) => by[b].row > by[a].row ? ['bottom', 'top'] : by[b].row < by[a].row ? ['top', 'bottom'] : null);
+    const slot = (k, end) => {
+      const self = spec.edges[k][end], side = sides[k][end];
+      const list = spec.edges.map((e, i) => i).filter(i => sides[i] && [0, 1].some(e => spec.edges[i][e] === self && sides[i][e] === side));
+      const other = i => { const o = by[spec.edges[i][spec.edges[i][0] === self ? 1 : 0]]; return o.x + o.w / 2; };
+      list.sort((p, q) => other(p) - other(q));
+      const n = by[self];
+      return n.x + n.w * (list.indexOf(k) + 1) / (list.length + 1);
+    };
+    const edges = spec.edges.map(([a, b, label], k) => {
+      const A = by[a], B = by[b];
+      let x1, y1, x2, y2, c1x, c1y, c2x, c2y, t = 0.5;
+      if (B.row !== A.row) {
+        const dn = B.row > A.row;
+        x1 = slot(k, 0); y1 = dn ? A.y + A.h : A.y; x2 = slot(k, 1); y2 = dn ? B.y - 3 : B.y + B.h + 3;
+        c1x = x1; c1y = (y1 + y2) / 2; c2x = x2; c2y = (y1 + y2) / 2;
+        if (Math.abs(B.row - A.row) > 1) t = 0.25;
+      }
+      else { const right = B.x > A.x; x1 = right ? A.x + A.w : A.x; y1 = A.y + A.h / 2; x2 = right ? B.x - 3 : B.x + B.w + 3; y2 = B.y + B.h / 2; c1x = (x1 + x2) / 2; c1y = y1; c2x = (x1 + x2) / 2; c2y = y2; }
+      // A flow that skips a row puts its label in the first gap, not on the skipped row.
+      const u = 1 - t, bz = (p0, p1, p2, p3) => u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
+      const lx = bz(x1, c1x, c2x, x2), ly = bz(y1, c1y, c2y, y2);
+      return { d: `M${f(x1)},${f(y1)} C${f(c1x)},${f(c1y)} ${f(c2x)},${f(c2y)} ${f(x2)},${f(y2)}`, lx, ly, label };
+    });
+    const labels = edges.filter(e => e.label).map(labelBox);
+    return { w: W, h: y - vgap + PAD, nodes, edges, labels, cut,
+      boxes: nodes.map(n => box('node ' + n.id, n.x, n.y, n.w, n.h)).concat(labels.map(l => box('label ' + l.text, l.x, l.y, l.w, l.h))) };
+  };
+
+  L.screen = spec => {
+    const cut = [], tall = spec.aspect === '9:16';
+    const FW = tall ? 236 : W - 2 * PAD, FH = tall ? 420 : Math.round((W - 2 * PAD) * (spec.aspect === '4:3' ? 3 / 4 : 9 / 16));
+    const fx = (W - FW) / 2, fy = PAD;
+    const regions = spec.regions.map((r, i) => {
+      const x = fx + r.x * FW, y = fy + r.y * FH, w = r.w * FW, h = r.h * FH;
+      const l = wrap((i + 1) + ' ' + r.t, w - 8, SFS, Math.max(1, Math.min(4, Math.floor((h - 6) / SLH))), cut);
+      if (h < 18) cut.push(r.t);
+      return { x, y, w, h, l };
+    });
+    return { w: W, h: fy + FH + PAD, fx, fy, FW, FH, regions, cut, boxes: regions.map((r, i) => box('region ' + spec.regions[i].t, r.x, r.y, r.w, r.h)) };
+  };
+
+  // Flow specs are laid out by PlayableFlow; the checker handles them there.
+  function layout(spec){ return spec.kind === 'flow' ? null : L[spec.kind](spec); }
+
+  // --- rendering ---------------------------------------------------------
+  const marker = id => `<defs><marker id="${id}" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path class="darrow" d="M0,0 L7,3 L0,6 Z"/></marker></defs>`;
+  const open = (g, spec) => `<svg class="dgm" viewBox="0 0 ${Math.ceil(g.w)} ${Math.ceil(g.h)}" style="max-width:${Math.ceil(g.w * 1.25)}px" role="img" aria-label="${esc(spec.title)}">`;
+  const R = {};
+  R.loop = (spec, g, id) => marker(id) + g.edges.map(e => `<path class="dedge" d="${e.d}" marker-end="url(#${id})"/>`).join('') + g.nodes.map((n, i) => cardSVG(n, i + 1)).join('');
+  R.state = (spec, g, id) => {
+    let s = marker(id) + g.edges.map(e => `<path class="dedge" d="${e.d}" marker-end="url(#${id})"/>`).join('');
+    s += g.labels.map(l => `<g class="dlabel"><rect x="${f(l.x)}" y="${f(l.y)}" width="${f(l.w)}" height="${f(l.h)}" rx="2"/><text x="${f(l.x + l.w / 2)}" y="${f(l.y + 11.5)}" text-anchor="middle" font-size="${LFS}">${esc(l.text)}</text></g>`).join('');
+    const st = g.start; if (st) s += `<path class="dedge" d="M${f(st.x + 18)},${f(st.y - 24)} L${f(st.x + 18)},${f(st.y - 4)}" marker-end="url(#${id})"/><text class="dtag" x="${f(st.x + 26)}" y="${f(st.y - 13)}" font-size="9">START</text>`;
+    return s + g.nodes.map(n => cardSVG(n, 0)).join('');
+  };
+  R.stack = (spec, g, id) => {
+    let s = '';
+    if (spec.arrow) {
+      const x = PAD + 9, y1 = g.nodes[0].y, y2 = g.nodes[g.nodes.length - 1].y + g.nodes[g.nodes.length - 1].h;
+      s += marker(id) + `<text class="dtag" x="${PAD}" y="${PAD + 8}" font-size="9">${esc(spec.arrow.toUpperCase())}</text><path class="dedge" d="M${x},${f(y1)} L${x},${f(y2 - 4)}" marker-end="url(#${id})"/>`;
+    }
+    return s + g.nodes.map((n, i) => cardSVG(n, i + 1)).join('');
+  };
+  R.matrix = (spec, g) => {
+    const x0 = PAD, cols = spec.cols.length;
+    let s = `<rect class="dgrid" x="${x0}" y="${PAD}" width="${W - 2 * PAD}" height="${f(g.h - 2 * PAD)}"/>`;
+    g.head.forEach((h, j) => {
+      const x = x0 + g.rh + j * g.cw;
+      s += `<rect class="dhead" x="${f(x)}" y="${PAD}" width="${f(g.cw)}" height="${f(g.hh)}"/>`;
+      h.forEach((l, k) => { s += `<text class="dlbl dsmall" x="${f(x + 5)}" y="${f(PAD + 14 + k * SLH)}" font-size="${SFS}">${esc(l)}</text>`; });
+    });
+    g.rows.forEach((r, i) => {
+      s += `<line class="dline" x1="${x0}" y1="${f(r.y)}" x2="${W - PAD}" y2="${f(r.y)}"/>`;
+      r.rl.forEach((l, k) => { s += `<text class="dlbl" x="${x0 + 6}" y="${f(r.y + 17 + k * LH)}" font-size="${FS}">${esc(l)}</text>`; });
+      r.cells.forEach((c, j) => { const x = x0 + g.rh + j * g.cw; c.forEach((l, k) => { s += `<text class="dsub" x="${f(x + 5)}" y="${f(r.y + 16 + k * SLH)}" font-size="${SFS}">${esc(l)}</text>`; }); });
+    });
+    for (let j = 0; j < cols; j++) { const x = x0 + g.rh + j * g.cw; s += `<line class="dline" x1="${f(x)}" y1="${PAD}" x2="${f(x)}" y2="${f(g.h - PAD)}"/>`; }
+    return s;
+  };
+  R.quad = (spec, g) => {
+    const { gx, S, top } = g, mid = S / 2;
+    let s = `<rect class="dgrid" x="${f(gx)}" y="${top}" width="${f(S)}" height="${f(S)}"/><line class="dline" x1="${f(gx + mid)}" y1="${top}" x2="${f(gx + mid)}" y2="${f(top + S)}"/><line class="dline" x1="${f(gx)}" y1="${f(top + mid)}" x2="${f(gx + S)}" y2="${f(top + mid)}"/>`;
+    const corner = g.corner;
+    g.qs.forEach((q, i) => q.forEach((l, k) => { s += `<text class="dtag" x="${f(corner[i][0])}" y="${f(corner[i][1] + k * 11)}" font-size="9.5">${esc(l)}</text>`; }));
+    s += `<text class="dsub" x="${f(gx + S / 2)}" y="${f(top + S + 18)}" text-anchor="middle" font-size="${SFS}">${esc(spec.x)} →</text>`;
+    s += `<text class="dsub" transform="translate(${PAD + 8},${f(top + S / 2)}) rotate(-90)" text-anchor="middle" font-size="${SFS}">${esc(spec.y)} →</text>`;
+    g.pts.forEach(p => {
+      s += `<circle class="ddot" cx="${f(p.px)}" cy="${f(p.py)}" r="4"/>`;
+      p.lines.forEach((l, k) => { s += `<text class="dlbl dsmall" x="${f(p.right ? p.lx : p.lx + p.lw)}" y="${f(p.py + 4 + k * SLH)}" text-anchor="${p.right ? 'start' : 'end'}" font-size="${SFS}">${esc(l)}</text>`; });
+    });
+    return s;
+  };
+  function smooth(pts, X, Y){
+    const P = pts.map(([x, y]) => [X(x), Y(y)]);
+    if (P.length < 3) return 'M' + P.map(p => f(p[0]) + ',' + f(p[1])).join(' L');
+    let d = `M${f(P[0][0])},${f(P[0][1])}`;
+    for (let i = 0; i < P.length - 1; i++) {
+      const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+      d += ` C${f(p1[0] + (p2[0] - p0[0]) / 6)},${f(p1[1] + (p2[1] - p0[1]) / 6)} ${f(p2[0] - (p3[0] - p1[0]) / 6)},${f(p2[1] - (p3[1] - p1[1]) / 6)} ${f(p2[0])},${f(p2[1])}`;
+    }
+    return d;
+  }
+  R.curve = (spec, g) => {
+    const { gx, PW, PH, top, X, Y } = g;
+    let s = '';
+    if (spec.band) s += `<rect class="dband" x="${f(gx)}" y="${f(Y(spec.band.to))}" width="${f(PW)}" height="${f(Y(spec.band.from) - Y(spec.band.to))}"/><text class="dtag" x="${f(gx + PW - 6)}" y="${f(Y(spec.band.to) + 12)}" text-anchor="end" font-size="9.5">${esc(spec.band.t)}</text>`;
+    s += `<line class="daxis" x1="${f(gx)}" y1="${top}" x2="${f(gx)}" y2="${f(top + PH)}"/><line class="daxis" x1="${f(gx)}" y1="${f(top + PH)}" x2="${f(gx + PW)}" y2="${f(top + PH)}"/>`;
+    s += `<text class="dsub" x="${f(gx + PW)}" y="${f(top + PH - 6)}" text-anchor="end" font-size="${SFS}">${esc(spec.x)} →</text>`;
+    s += `<text class="dsub" transform="translate(${PAD + 8},${f(top + PH / 2)}) rotate(-90)" text-anchor="middle" font-size="${SFS}">${esc(spec.y)} →</text>`;
+    g.beats.forEach(b => { s += `<line class="dbeat" x1="${f(b.x)}" y1="${top}" x2="${f(b.x)}" y2="${f(top + PH)}"/>`; b.lines.forEach((l, k) => { s += `<text class="dtag" x="${f(b.x)}" y="${f(b.y + 10 + k * 12)}" text-anchor="middle" font-size="9.5">${esc(l)}</text>`; }); });
+    spec.series.forEach((sr, i) => { s += `<path class="dline${i + 1}" d="${smooth(sr.pts, X, Y)}"/>`; });
+    g.legend.forEach((l, i) => { s += `<line class="dline${i + 1}" x1="${f(l.x)}" y1="${f(l.y - 4)}" x2="${f(l.x + 24)}" y2="${f(l.y - 4)}"/><text class="dsub" x="${f(l.x + 30)}" y="${f(l.y)}" font-size="${SFS}">${esc(l.t)}</text>`; });
+    return s;
+  };
+  R.economy = (spec, g, id) => marker(id) + g.edges.map(e => `<path class="dedge" d="${e.d}" marker-end="url(#${id})"/>`).join('')
+    + g.labels.map(l => `<g class="dlabel"><rect x="${f(l.x)}" y="${f(l.y)}" width="${f(l.w)}" height="${f(l.h)}" rx="2"/><text x="${f(l.x + l.w / 2)}" y="${f(l.y + 11.5)}" text-anchor="middle" font-size="${LFS}">${esc(l.text)}</text></g>`).join('')
+    + g.nodes.map(n => cardSVG(n, 0)).join('');
+  R.screen = (spec, g) => {
+    let s = `<rect class="dframe" x="${f(g.fx)}" y="${f(g.fy)}" width="${f(g.FW)}" height="${f(g.FH)}" rx="6"/>`;
+    g.regions.forEach(r => { s += `<rect class="dregion" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="2"/>`; r.l.forEach((l, k) => { s += `<text class="dlbl dsmall" x="${f(r.x + 4)}" y="${f(r.y + 12 + k * SLH)}" font-size="${SFS}">${esc(l)}</text>`; }); });
+    return s;
+  };
+
+  function render(spec){
+    if (spec.kind === 'flow') return window.PlayableFlow.render(Object.assign({ id: 'dg' + hash(JSON.stringify(spec)) }, spec), () => 'var(--dc,var(--accent2))', 'v');
+    const g = layout(spec), id = 'dg-' + hash(JSON.stringify(spec));
+    return open(g, spec) + R[spec.kind](spec, g, id) + '</svg>';
+  }
+
+  // --- the same content as text -----------------------------------------
+  const pos = r => (r.y + r.h / 2 < 0.34 ? 'top' : r.y + r.h / 2 > 0.66 ? 'bottom' : 'middle') + ' ' + (r.x + r.w / 2 < 0.34 ? 'left' : r.x + r.w / 2 > 0.66 ? 'right' : 'centre');
+  function describe(spec){
+    const li = xs => `<ol>${xs.map(x => `<li>${x}</li>`).join('')}</ol>`;
+    const td = (t, d) => `<b>${esc(t)}</b>${d ? ': ' + esc(d) : ''}`;
+    const name = {}; (spec.nodes || spec.states || spec.steps || []).forEach(n => { name[n.id] = n.t; });
+    const flows = es => es.map(([a, b, l]) => `${esc(name[a] || a)} → ${esc(name[b] || b)}${l ? ` (${esc(l)})` : ''}`);
+    switch (spec.kind) {
+      case 'loop': return li(spec.steps.map(s => td(s.t, s.d))) + '<p class="small muted">The last step leads back to the first.</p>';
+      case 'stack': return (spec.arrow ? `<p class="small muted">${esc(spec.arrow)}.</p>` : '') + li(spec.layers.map(l => td(l.t, l.d)));
+      case 'matrix': return `<table class="dgm-table"><thead><tr><th></th>${spec.cols.map(c => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead><tbody>${spec.rows.map((r, i) => `<tr><th scope="row">${esc(r)}</th>${spec.cols.map((_, j) => `<td>${esc((spec.cells[i] || [])[j] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      case 'quad': return `<p class="small muted">Across: ${esc(spec.x)}. Up: ${esc(spec.y)}.${spec.q ? ` Quadrants: top left ${esc(spec.q[0])}; top right ${esc(spec.q[1])}; bottom left ${esc(spec.q[2])}; bottom right ${esc(spec.q[3])}.` : ''}</p>` + li(spec.points.map(p => `${esc(p.t)}: ${p.x >= 0.5 ? 'more' : 'less'} ${esc(spec.x.toLowerCase())}, ${p.y >= 0.5 ? 'more' : 'less'} ${esc(spec.y.toLowerCase())}`));
+      case 'curve': return `<p>${esc(spec.alt)}</p>${spec.band ? `<p class="small muted">Shaded band: ${esc(spec.band.t)}.</p>` : ''}` + (spec.beats && spec.beats.length ? li(spec.beats.map(b => esc(b.t))) : '');
+      case 'economy': return li(spec.nodes.map(n => `<b>${esc(n.t)}</b> (${esc(n.type)})${n.d ? ': ' + esc(n.d) : ''}`)) + `<p class="small muted">Flows:</p>` + li(flows(spec.edges));
+      case 'state': return li(spec.states.map(s => td(s.t, s.d) + (s.id === spec.start ? ' (start)' : ''))) + `<p class="small muted">Transitions:</p>` + li(flows(spec.edges));
+      case 'screen': return li(spec.regions.map(r => `${td(r.t, r.d)} <span class="muted">(${pos(r)})</span>`));
+      case 'flow': return li(spec.steps.map(s => td(s.t, s.d)));
+    }
+    return '';
+  }
+
+  // MAX_W: the widest canvas the layout checker accepts (a two-way flow is 412).
+  return { layout, render, describe, MAX_W: 420 };
+})();
+
+/* =====================================================================
    WORKFLOW CHARTS
    One generic renderer for the flows attached to a project by FLOWS(). A
    flow is a small directed acyclic graph of steps; this draws it as a
@@ -19760,7 +20419,7 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 // open the groups in this order.
 const NAV = [
   { id:'paths', t:'Paths', views:[['paths','Learning paths'],['review','Review']] },
-  { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index']] },
+  { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index'],['games','Reference games']] },
   { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
   { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
@@ -19869,6 +20528,7 @@ function render(view, parts){
     case 'experience': return renderExperience(parts[1], parts[2], parts[3]);
     case 'review': return renderReview();
     case 'sources': return renderSources();
+    case 'games': return renderGames(parts[1]);
     default: return renderMap();
   }
 }
@@ -20036,6 +20696,25 @@ function subNavHTML(){
 }
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button data-href="${it[1]}">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
+/* ---------- reference games: dissections, schematics, credited art ---------- */
+function gameArt(g){
+  return g.img ? `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>` : '';
+}
+function renderGames(id){
+  const g = REFERENCE_GAMES.find(x => x.id === id);
+  if(!g){
+    setView(`${crumbs([['Map','#/map'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">Fifteen successful games taken apart with one template, each with a schematic of its loop and six with a schematic of their screen. The schematics are our own drawings of the mechanism; store art is credited to its developer.</p>
+      <div class="reflib">${REFERENCE_GAMES.map(x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${x.year} · ${esc(x.genre)}</small><div class="want">${esc(x.want)}</div></div></a>`).join('')}</div>`);
+    return;
+  }
+  const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
+  setView(`${crumbs([['Map','#/map'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${g.year} · ${esc(g.genre)}</p>
+    ${gameArt(g)}
+    <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
+    ${(g.diagrams || []).map(d => diagramCard(d) + (d.topics ? `<p class="small">Illustrates: ${d.topics.map(t => topicLink(t)).join(', ')}</p>` : '')).join('')}
+    <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
+    <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+}
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
 function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
 function list(arr){ return `<ul>${(arr||[]).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
@@ -20086,6 +20765,13 @@ const DIAGRAM_DISSECTION = `<svg class="diagram" viewBox="0 0 704 258" role="img
 </svg>`;
 const DIAGRAMS = { 'ux-as-design': DIAGRAM_HIERARCHY, 'readability-and-hierarchy': DIAGRAM_HIERARCHY, 'feedback-and-affordance': DIAGRAM_FEEDBACK, 'learning-from-success': DIAGRAM_DISSECTION };
 const DOMAIN_DIAGRAMS = { ux: DIAGRAM_HIERARCHY };
+// A diagram drawn from data (DIAGRAM() in the topic files, 87-diagrams.js),
+// with the same content as a list for screen readers and for anyone who
+// prefers text.
+function diagramCard(spec, color){
+  const D = window.PlayableDiagram;
+  return `<figure class="card dgm-card" style="--dc:${color || 'var(--accent2)'}"><figcaption class="dgm-title">${esc(spec.title)}</figcaption>${D.render(spec)}${spec.note ? `<p class="dgm-note">${esc(spec.note)}</p>` : ''}<details class="dgm-text"><summary>Diagram as text</summary>${D.describe(spec)}</details></figure>`;
+}
 
 /* =====================================================================
    MAP
@@ -20272,7 +20958,8 @@ function topicBody(id){
   // more than a screen down).
   // Rules and rulings that change, each with the day it was checked.
   const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h4>Dated facts</h4><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
-  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : ''}
+  const inGames = REFERENCE_GAMES.filter(g => (g.diagrams || []).some(x => (x.topics || []).includes(id)));
+  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : t.diagram ? diagramCard(t.diagram, d.color) : ''}${inGames.length ? `<p class="small ingames">See it in a real game: ${inGames.map(g => `<a class="chip lnk" href="#/games/${g.id}">${esc(g.t)} screen</a>`).join(' ')}</p>` : ''}
     ${secs}${techSec}${facts}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
@@ -20400,7 +21087,7 @@ function wireDepth(){
 }
 
 function contentTreeView(){
-  return `<div class="callout"><b>Content multiplies a good system. It does not rescue a bad one.</b> Before authoring another enemy, level, weapon or quest, answer these in order.</div><div id="ctree"></div>`;
+  return `<div class="callout"><b>Content multiplies a good system. It does not rescue a bad one.</b> Before authoring another enemy, level, weapon or quest, answer these in order.</div><div class="grid c2"><div id="ctree"></div><div id="ctreeChart">${diagramCard(contentTreeFlow())}</div></div>`;
 }
 function wireContentTree(){
   const el = $('#ctree'); if(!el) return; const answers = [];
@@ -20412,6 +21099,11 @@ function wireContentTree(){
       if(typeof nxt === 'string'){ const verdict = nxt.split(':')[0]; html += `<div class="verdict ${verdict.startsWith('ADD')?'BUILD':verdict.startsWith('STOP')?'REMOVE':'SIMPLIFY'}"><h2>${esc(verdict)}</h2><p>${esc(nxt.slice(verdict.length+1).trim())}</p><div class="row"><a class="btn sm" href="#/map/t/content-multiplies">Content multiplies systems</a><a class="btn sm" href="#/map/t/core-loop">The core loop</a></div></div>`; break; }
       i = nxt; }
     el.innerHTML = html + (answers.length ? `<button class="btn ghost sm" id="ctreeReset" style="margin-top:8px">Start over</button>` : '');
+    // Mark the reader's path on the chart: each answered question and where it led.
+    const on = new Set(); let k = 0;
+    while(answers[k] !== undefined){ on.add('q' + k); const nx = CONTENT_TREE[k][answers[k]]; if(typeof nx === 'number') k = nx; else { on.add('v' + k + answers[k]); break; } }
+    if(answers[k] === undefined) on.add('q' + k);
+    $$('#ctreeChart .flownode').forEach(n => n.classList.toggle('on', on.has(n.dataset.step)));
     $$('.opts button', el).forEach(b => b.onclick = () => { const i = +b.dataset.i; answers.length = i; answers[i] = b.dataset.a; render(); });
     const r = $('#ctreeReset'); if(r) r.onclick = () => { answers.length = 0; render(); }; };
   render();
@@ -20893,6 +21585,7 @@ const SOURCES = [
   ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
   ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation spread in 2023. Zheng et al. (2023) found that a strong model judge agreed with people about as often as people agree with each other, and documented its biases toward answer position, answer length and its own answers. From 2025, coding agents that edit files, run commands and iterate against tests came into regular use. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
   ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
+  ['Game art and images','The reference games are shown with our own schematics of their loops and screens: drawings of the mechanism, not screenshots. Eleven also show their store art, small, credited to the developer and linked to the official store page, for teaching only and with no claim of endorsement. New game art is added only after the publisher’s current press or fan-content terms are checked for that game. Any generated image would be marked as generated beside it.','Used in: Reference games, Reference Dissection.','practice'],
   ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work treats motivations as continuous scales: Nick Yee’s Quantic Foundry model measures twelve motivations in six pairs (Action, Social, Mastery, Achievement, Immersion, Creativity) from player surveys. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
   ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
   ['Utility AI and goal-oriented planners','Dave Mark’s GDC work on utility/infinite-axis utility, and Jeff Orkin’s F.E.A.R. talk (GDC 2006) on a goal-oriented action planner, are the standard practitioner references for scoring competing actions and for long-horizon, emergent plans. Both are heuristics tuned per game, not general algorithms.','Used in: Choosing a behaviour technique, Adaptive AI and directors.','practice'],
@@ -21445,7 +22138,7 @@ document.addEventListener('keydown', e => {
 
 // What the later files import from this one.
 Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
-  setView, crumbs, domChip, list, chainHTML, promptBox, field, outputBox, toolHead, practice, setTopicTab,
+  setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, outputBox, toolHead, practice, setTopicTab,
   topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal, DIAGRAM_DISSECTION });
 })(window.PlayableApp = {});
 
@@ -21985,7 +22678,7 @@ function toolDissect(el){
     ${field('ds_concept','Concept','Fantasy, core verb, player. Prefilled from the Idea Shaper if you used it.', saved.concept, 2)}
     <div class="step-num">Step 2 · Comparables: what your player plays instead</div>
     <p class="small dim">Choose from the library or add your own. Choose what your player plays, not what you admire.</p>
-    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div></div></div>`).join('')}</div>
+    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div>${g.dev ? `<small class="credit">Art: ${esc(g.dev)}</small>` : ''}</div></div>`).join('')}</div>
     <div class="row" style="margin-bottom:10px"><input id="ds_custom" placeholder="Add a game not in the library…" style="flex:1"><button class="btn" id="ds_add">Add</button></div>
     <div id="ds_comps"></div>
     <div class="step-num">Step 3 · Cross-reference</div>
@@ -21994,7 +22687,7 @@ function toolDissect(el){
   const renderLib = () => $$('#ds_lib .refcard').forEach(b => b.classList.toggle('on', saved.comps.some(c => c.id===b.dataset.g)));
   const compCard = (c, i) => { const lib = REFERENCE_GAMES.find(g => g.id===c.id);
     return `<details class="comp" ${i===saved.comps.length-1?'open':''}><summary>${esc(c.t)} ${lib ? `<span class="chip">${lib.year} · ${esc(lib.genre)}</span>` : '<span class="chip warn">custom</span>'}<button class="btn sm ghost danger ds_del" data-i="${i}" style="margin-left:auto">✕</button></summary><div class="body">
-      ${lib ? `<div class="chips" style="margin:6px 0">${lib.engines.map(e => `<span class="chip">${e}</span>`).join('')}</div>` : ''}
+      ${lib ? `<div class="chips" style="margin:6px 0">${lib.engines.map(e => `<span class="chip">${e}</span>`).join('')}</div><p class="small"><a href="#/games/${lib.id}">See the ${esc(lib.t)} schematics</a></p>` : ''}
       ${DISSECT_FIELDS.map(([k,l]) => `<div class="field"><label>${l}</label><textarea rows="2" data-i="${i}" data-k="${k}">${esc(c[k]||'')}</textarea></div>`).join('')}
       ${lib ? `<div class="callout" style="padding:8px 10px"><b>Lesson:</b> ${esc(lib.lesson)}</div>` : promptBox('Ask AI to dissect this game (verify the sources)', `Dissect ${c.t} as a designer, using public postmortems, GDC talks, developer interviews and critical consensus. For each: the player want it served, the core verb. The first 30 seconds. The decision the player faces every minute. The engines it runs on. Why it worked as developers and critics explain it. What players most often complain about. The transferable lesson. What copies usually miss. One to three sentences each. Cite a source for every claim about why it worked or write "unknown". Do not cite sales figures.`)}
     </div></details>`; };

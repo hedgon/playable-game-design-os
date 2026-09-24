@@ -46,6 +46,11 @@ const MAP = {
   view: tintOf('.kgraph .node.view .disc')
 };
 
+// Data diagrams (87-diagrams.js): the same tint rule shape as the map.
+const DGM = {
+  card: tintOf('.dgm .dcard'), head: tintOf('.dgm .dhead'), region: tintOf('.dgm .dregion'),
+  lbl: fillOf('.dgm .dlbl'), sub: fillOf('.dgm .dsub'), tag: fillOf('.dgm .dtag'), num: fillOf('.dgm .dnum')
+};
 const pairs = [];
 for (const [theme, T] of Object.entries(themes)) {
   const col = n => { if (!T[n]) throw new Error(`check-contrast: --${n} missing in ${theme}`); return rgb(T[n]); };
@@ -64,6 +69,14 @@ for (const [theme, T] of Object.entries(themes)) {
     pairs.push([theme, `map sub-label on open ${d} card`, col(MAP.subOpen), card(MAP.domainOpen, d)]);
     pairs.push([theme, `map topic label on ${d} card`, col(MAP.label), card(MAP.topic, d)]);
     pairs.push([theme, `map leaf label on ${d} card`, col(MAP.leafLabel), card(MAP.leaf, d)]);
+  }
+  for (const d of [...domains, 'accent2']) {
+    pairs.push([theme, `diagram label on ${d} card`, col(DGM.lbl), card(DGM.card, d)]);
+    pairs.push([theme, `diagram sub-label on ${d} card`, col(DGM.sub), card(DGM.card, d)]);
+    pairs.push([theme, `diagram tag on ${d} card`, col(DGM.tag), card(DGM.card, d)]);
+    pairs.push([theme, `diagram number on ${d} card`, col(DGM.num), card(DGM.card, d)]);
+    pairs.push([theme, `diagram header on ${d} tint`, col(DGM.lbl), card(DGM.head, d)]);
+    pairs.push([theme, `diagram region label on ${d} tint`, col(DGM.lbl), card(DGM.region, d)]);
   }
   pairs.push([theme, 'map leaf label on smell card', col(MAP.leafLabel), card(MAP.smell)]);
   pairs.push([theme, 'map leaf label on view card', col(MAP.leafLabel), card(MAP.view)]);

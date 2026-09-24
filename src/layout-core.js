@@ -96,4 +96,27 @@ function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F, PATHS) {
   if (F) states += flowOverlaps(F, CASE_STUDIES, problems);
   return { states, problems, clipped: [...clipped.keys()] };
 }
-module.exports = { overlaps, flowOverlaps, cardOverlaps };
+// Diagrams (87-diagrams.js). Each spec is laid out exactly as the app draws
+// it. A problem is two boxes (cards, labels, points, regions) that touch, a
+// box outside the canvas, a text the renderer had to shorten, or a canvas
+// wider than a phone shows at a readable scale. Flow-kind specs get the same
+// card test as the project workflows.
+function diagramProblems(D, F, specs) {
+  const problems = [];
+  const clash = (bs, name) => {
+    for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) {
+      const a = bs[i], b = bs[j];
+      if (a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h) problems.push(`${name}: ${a.id} overlaps ${b.id}`);
+    }
+  };
+  for (const [name, spec] of specs) {
+    const g = spec.kind === 'flow' ? F.layout(spec, FLOW_DIR) : D.layout(spec);
+    if (g.w > D.MAX_W) problems.push(`${name}: canvas is ${Math.round(g.w)} wide, limit ${D.MAX_W}`);
+    const boxes = spec.kind === 'flow' ? g.nodes.map(n => ({ id: 'step ' + n.id, x: n.x, y: n.y, w: n.w, h: n.h })) : g.boxes;
+    for (const t of (g.cut || [])) problems.push(`${name}: text does not fit: "${t}"`);
+    for (const b of boxes) if (b.x < -0.5 || b.y < -0.5 || b.x + b.w > g.w + 0.5 || b.y + b.h > g.h + 0.5) problems.push(`${name}: ${b.id} falls outside the canvas`);
+    clash(boxes, name);
+  }
+  return problems;
+}
+module.exports = { overlaps, flowOverlaps, cardOverlaps, diagramProblems };

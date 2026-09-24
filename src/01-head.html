@@ -716,6 +716,12 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .refcard .meta b{display:block;font-size:.9rem;line-height:1.2}
 .refcard .meta small{display:block;color:var(--fg3);font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;margin:3px 0 4px}
 .refcard .meta .want{font-size:.78rem;color:var(--fg2)}
+.refcard .meta .credit{margin:4px 0 0;text-transform:none;letter-spacing:0}
+.gameart{margin:0 0 14px}
+.gameart img{display:block;width:100%;max-width:460px;height:auto;border:1px solid var(--line)}
+.gameart figcaption{font-size:.8rem;color:var(--fg2);margin-top:4px}
+.ingames{margin:-6px 0 14px}
+#ctreeChart .flownode.on .fdisc{stroke-width:3;fill:color-mix(in srgb,var(--dc,var(--accent2)) 30%,var(--bg2))}
 /* idea lab */
 .labchain{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:10px 0 14px}
 .labchain .cn{background:var(--bg2);border:1px solid var(--line2);border-radius:2px;padding:4px 9px;font-family:var(--mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--fg2)}
@@ -755,6 +761,41 @@ details.comp .body{padding-top:6px}
 .diagram .muted{fill:var(--fg3)}
 .diagram-card{padding:12px 14px;display:flex;justify-content:center}
 .diagram-cap{font-size:.8rem;color:var(--fg3);margin:0}
+/* data diagrams (87-diagrams.js): tokens only, so both themes and every
+   domain colour are covered by the contrast check */
+.dgm-card{padding:12px 14px;margin:0 0 14px}
+@media (max-width:700px){.dgm-card{padding:10px 6px}}
+.dgm-title{font-family:var(--display);font-weight:700;font-size:1rem;margin:0 0 8px}
+.dgm{display:block;width:100%;height:auto;margin:0 auto}
+.dgm-note{font-size:.8rem;color:var(--fg2);margin:8px 0 0}
+.dgm-text{margin-top:8px;font-size:.88rem}
+.dgm-text summary{cursor:pointer;color:var(--fg2);font-size:.82rem}
+.dgm-text ol{margin:6px 0 0;padding-left:20px}
+.dgm-table{border-collapse:collapse;margin-top:6px;font-size:.85rem}
+.dgm-table th,.dgm-table td{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.dgm .dcard{fill:color-mix(in srgb,var(--dc,var(--accent2)) 14%,var(--bg2));stroke:var(--dc,var(--accent2));stroke-width:1.5}
+.dgm .dcard.pool{stroke-width:2.8}
+.dgm .dcard.converter{stroke-dasharray:6 3}
+.dgm .dcard.sink{stroke-dasharray:2 3}
+.dgm .dlbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700}
+.dgm .dsub{fill:var(--fg2);font-family:var(--mono)}
+.dgm .dnum{fill:var(--fg2);font-family:var(--mono);font-weight:600}
+.dgm .dtag{fill:var(--fg2);font-family:var(--mono);letter-spacing:.06em}
+.dgm .dedge{fill:none;stroke:var(--fg3);stroke-width:1.6}
+.dgm .darrow{fill:var(--fg3)}
+.dgm .dlabel rect{fill:var(--panel);stroke:var(--line2);stroke-width:1}
+.dgm .dlabel text{fill:var(--fg2);font-family:var(--mono)}
+.dgm .dgrid{fill:var(--panel);stroke:var(--line2);stroke-width:1}
+.dgm .dline{stroke:var(--line2);stroke-width:1}
+.dgm .dhead{fill:color-mix(in srgb,var(--dc,var(--accent2)) 22%,var(--panel))}
+.dgm .ddot{fill:var(--dc,var(--accent2));stroke:var(--fg);stroke-width:1}
+.dgm .daxis{stroke:var(--fg3);stroke-width:1.2}
+.dgm .dbeat{stroke:var(--line2);stroke-width:1;stroke-dasharray:3 3}
+.dgm .dline1{fill:none;stroke:var(--dc,var(--accent2));stroke-width:2.6}
+.dgm .dline2{fill:none;stroke:var(--fg2);stroke-width:2;stroke-dasharray:7 4}
+.dgm .dband{fill:color-mix(in srgb,var(--dc,var(--accent2)) 12%,transparent)}
+.dgm .dframe{fill:var(--bg3);stroke:var(--fg3);stroke-width:1.5}
+.dgm .dregion{fill:color-mix(in srgb,var(--dc,var(--accent2)) 18%,var(--bg3));stroke:var(--dc,var(--accent2));stroke-width:1.2}
 /* workflow charts: the mind map's visual language, laid out top to bottom so
    a two-way branch fits the content pane at phone width. The svg's inline
    max-width is its own layout width, so a wide pane shows it at 1:1 and a

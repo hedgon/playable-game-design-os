@@ -219,6 +219,9 @@ INTERVIEW('infra-deploy-models',{
       follow:`What would have to be true in six months for you to regret this choice, and what are you doing now to keep the option open?`,
       red:`Gives a single answer for every workload, or picks the platform before describing the workloads.` }
   ] });
+DIAGRAM('infra-deploy-models', { kind:'matrix', title:'Pick the deploy model by what the workload holds',
+  rows:['Process on a VM','Container on a scheduler','Function per request','Job on a clock'], cols:['Fits','Rollout','Watch out'],
+  cells:[['Long-lived stateful servers','Drain and restart one by one','Hand-tuned snowflakes'],['Many small services','Rolling, health checked','Scheduler complexity'],['Spiky, short requests','A new version per call','Cold starts, no sockets'],['Batches and reports','The next run picks it up','Overlaps and missed runs']] });
 
 T('infra-ci-pipelines',{ d:'infra', t:'CI pipelines and gating', tag:'The pipeline turns a push into a verdict. Gate stages on the event, retry only the network, and check the verdict two ways.',
   what:`The automation that turns a push into a pass or a fail. Stages run in order: lint, unit tests, an integration stage that creates the databases from scratch and runs every migration, a build, and on some events an end-to-end suite against the running binary. Each stage is gated on the event (a pull request behaves differently from a push to the integration branch), each has a timeout, each network-touching step has a retry policy, and each has an explicit rule for what counts as failure.`,
@@ -316,6 +319,9 @@ INTERVIEW('infra-ci-pipelines',{
       follow:`Someone changes the pipeline and the tests still pass. How confident are you, and what are those tests not covering?`,
       red:`Says the pipeline is tested by using it, which only tests the paths that already run.` }
   ] });
+DIAGRAM('infra-ci-pipelines', { kind:'flow', title:'From a push to a verdict',
+  steps:[{id:'push', t:'Push or pull request', d:'the event decides which stages run'},{id:'lint', t:'Lint and format', d:'cheap checks first'},{id:'unit', t:'Unit tests', d:'rules in isolation'},{id:'build', t:'Build artefact', d:'stamped with commit and build number'},{id:'integ', t:'Integration tests', d:'fresh database, real migrations'},{id:'e2e', t:'End-to-end', d:'the built artefact, as players get it'},{id:'verdict', t:'Verdict', d:'pass, fail, or infrastructure error'}],
+  edges:[['push','lint'],['lint','unit'],['lint','build'],['unit','integ'],['build','e2e'],['integ','verdict'],['e2e','verdict']] });
 
 T('infra-artifacts-provenance',{ d:'infra', t:'Artifacts, versioning and provenance', tag:'The first question in any incident is which build this is. Stamp the answer in at build time, because you cannot add it later.',
   what:`An artefact is what the pipeline produces: a server binary, a player build, a container image, a set of asset bundles. Provenance is the record of where it came from: the version, the commit hash, the build date, the toolchain version, the job that made it, and the commits since the last successful build. On a compiled server that is injected at link time. In a game client it is a generated file inside the build plus a release note next to the artefact.`,

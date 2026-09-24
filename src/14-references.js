@@ -24,3 +24,93 @@ const REFERENCE_GAMES = [
   { id:'portal', img:'assets/games/portal.jpg', t:'Portal', year:2007, genre:'first-person puzzle', want:'Feel clever, constantly, with one tool, and be told a story while doing it.', verb:'place two portals. Walk through', first30:'You wake in a glass cell. A portal opens. You step through it and see yourself. The rule is understood in one step.', minute:'Where do I need to be, and where can I place the exit? How does momentum carry me?', engines:['discovery','mastery','storytelling','surprise'], why:'A single mechanic taught by level design alone, with each chamber isolating one idea, then combining. The narrator turned a test sequence into a story with a twist. It was short and complete, which was celebrated rather than criticized.', complaints:'Short, puzzles become routine once the vocabulary is learned. Little replay.', lesson:'One deep mechanic taught entirely by space. Every level a lesson about one idea. Length is not value.', misses:'Copies add a second and third mechanic before the first is exhausted, and explain rules with text instead of geometry.' },
   { id:'tetris', t:'Tetris', year:1984, genre:'falling-block puzzle', want:'Impose order on a stream of chaos, faster and faster, until I fail.', verb:'rotate and place a falling piece', first30:'A piece falls. You move and rotate it. A line clears. You understand everything.', minute:'Where does this piece go? Hold for the long piece? Build for a tetris or clear now?', engines:['flow','mastery','tension','optimization'], why:'Rules fit in a sentence. The decision arrives every second and is never the same. Difficulty rises with success. The failure is always your own. It has survived every platform for four decades.', complaints:'Randomness can starve you of the piece you need. Modern variants argue about hold and preview rules.', lesson:'A decision per second with perfect readability and self-caused failure is a complete game. Depth from a handful of rules.', misses:'Copies change the pieces or add power-ups, which breaks the readability that makes every placement a reasoned decision.' }
 ];
+
+// Credits for the store art in assets/games/: the developer named on the
+// game's official store page, and that page. Checked 2026-09-24. The images
+// are used small, for teaching, with no claim of endorsement (see Sources).
+const GAME_ART_CREDITS = {
+  'slay-the-spire': ['Mega Crit', 'https://store.steampowered.com/app/646570/'],
+  'stardew-valley': ['ConcernedApe', 'https://store.steampowered.com/app/413150/'],
+  'vampire-survivors': ['poncle', 'https://store.steampowered.com/app/1794680/'],
+  'balatro': ['LocalThunk', 'https://store.steampowered.com/app/2379780/'],
+  'celeste': ['Maddy Makes Games', 'https://store.steampowered.com/app/504230/'],
+  'hades': ['Supergiant Games', 'https://store.steampowered.com/app/1145360/'],
+  'into-the-breach': ['Subset Games', 'https://store.steampowered.com/app/590380/'],
+  'among-us': ['Innersloth', 'https://store.steampowered.com/app/945360/'],
+  'hollow-knight': ['Team Cherry', 'https://store.steampowered.com/app/367520/'],
+  'factorio': ['Wube Software', 'https://store.steampowered.com/app/427520/'],
+  'portal': ['Valve', 'https://store.steampowered.com/app/400/']
+};
+
+// Our own schematics of each game: its loop and, for six games, its screen
+// layout. They are drawings of the mechanism, not screenshots, and a screen
+// layout names the topics it illustrates.
+const GAME_DIAGRAMS = {
+  'slay-the-spire': [
+    { kind:'loop', title:'Slay the Spire: every reward is a decision', steps:[{t:'Fight', d:'play the hand you drew'},{t:'Reward', d:'take a card, or skip it'},{t:'Map', d:'pick the next node'},{t:'Rest or shop', d:'heal, upgrade or buy'}] },
+    { kind:'screen', title:'Slay the Spire: the combat screen', aspect:'16:9', topics:['feedback-and-affordance','readability-and-hierarchy'],
+      regions:[{t:'Top bar: HP, gold, potions, map, deck', x:0, y:0, w:1, h:0.09},{t:'Player', x:0.1, y:0.3, w:0.2, h:0.35},{t:'Enemies with intents', d:'each shows its next attack before you commit', x:0.58, y:0.28, w:0.34, h:0.32},{t:'Energy', x:0.01, y:0.68, w:0.17, h:0.14},{t:'Hand of cards', x:0.25, y:0.75, w:0.5, h:0.25},{t:'End turn', x:0.8, y:0.62, w:0.2, h:0.1},{t:'Draw', x:0.01, y:0.86, w:0.14, h:0.13},{t:'Discard', x:0.81, y:0.86, w:0.19, h:0.13}],
+      note:'Schematic, not to scale. The enemy intents are why every card choice can be reasoned rather than guessed.' }
+  ],
+  'stardew-valley': [
+    { kind:'loop', title:'Stardew Valley: a daily budget that compounds', steps:[{t:'Plan the day', d:'energy and daylight to spend'},{t:'Tend', d:'plant, water, gather'},{t:'Sell or gift', d:'money, or a friend'},{t:'Invest', d:'tools, buildings, seeds'},{t:'Sleep', d:'the farm grows overnight'}] },
+    { kind:'screen', title:'Stardew Valley: the farm screen', aspect:'16:9', topics:['readability-and-hierarchy'],
+      regions:[{t:'Day, time, gold', d:'with the weather and season', x:0.76, y:0.02, w:0.22, h:0.16},{t:'Your farm: the play space', x:0.3, y:0.3, w:0.4, h:0.45},{t:'Energy', d:'and health, when hurt', x:0.82, y:0.5, w:0.17, h:0.35},{t:'Toolbar: tools and seeds', x:0.2, y:0.88, w:0.6, h:0.1}],
+      note:'Schematic, not to scale. What you check between actions sits at the edges; the middle is left for play.' }
+  ],
+  'vampire-survivors': [
+    { kind:'loop', title:'Vampire Survivors: decisions without aiming', steps:[{t:'Move', d:'dodge the swarm'},{t:'Collect gems', d:'risk the crowd for XP'},{t:'Level up', d:'pick one of three upgrades'},{t:'Power grows', d:'the screen fills with attacks'}] },
+    { kind:'screen', title:'Vampire Survivors: the run screen', aspect:'16:9', topics:['readability-and-hierarchy'],
+      regions:[{t:'Experience bar', x:0, y:0, w:1, h:0.09},{t:'Weapons and passives', x:0.01, y:0.11, w:0.3, h:0.17},{t:'Timer', x:0.4, y:0.11, w:0.2, h:0.1},{t:'Kills, gold', x:0.73, y:0.11, w:0.26, h:0.1},{t:'The swarm', x:0.05, y:0.35, w:0.3, h:0.5},{t:'You', d:'with your health bar underneath', x:0.43, y:0.45, w:0.14, h:0.2}],
+      note:'Schematic, not to scale. Late in a run the effects crowd the middle, the readability cost players complain about.' }
+  ],
+  'balatro': [
+    { kind:'loop', title:'Balatro: break a system you already know', steps:[{t:'Play or discard', d:'chase a scoring hand'},{t:'Score', d:'chips times mult, vs the blind'},{t:'Shop', d:'jokers that bend the rules'},{t:'Next blind', d:'the target climbs'}] },
+    { kind:'screen', title:'Balatro: the round screen', aspect:'16:9', topics:['feedback-and-affordance'],
+      regions:[{t:'Blind, score, hands, money', d:'hands and discards left, ante and round', x:0, y:0, w:0.24, h:1},{t:'Jokers: rule changers', x:0.28, y:0.03, w:0.46, h:0.2},{t:'Tarots', d:'tarot, planet and spectral cards', x:0.77, y:0.03, w:0.21, h:0.2},{t:'Played hand and its score', x:0.3, y:0.35, w:0.5, h:0.25},{t:'Your hand', x:0.28, y:0.7, w:0.52, h:0.27},{t:'Deck', x:0.84, y:0.7, w:0.14, h:0.27}],
+      note:'Schematic, not to scale. The score counts up in the middle of the screen, so a good decision is visibly rewarded.' }
+  ],
+  'celeste': [
+    { kind:'loop', title:'Celeste: failure made cheap', steps:[{t:'Read the room', d:'one movement idea per screen'},{t:'Attempt', d:'jump, dash, climb'},{t:'Die and respawn', d:'back in under a second'},{t:'Adjust', d:'a new timing or route'}] }
+  ],
+  'hades': [
+    { kind:'loop', title:'Hades: a run, a death, a home', steps:[{t:'Clear a chamber', d:'attack, dash, special, cast'},{t:'Choose a door', d:'the reward you need next'},{t:'Take a boon', d:'build this run\'s style'},{t:'Die or escape', d:'back to the House'},{t:'Upgrade', d:'spend what you carried out'}] }
+  ],
+  'into-the-breach': [
+    { kind:'loop', title:'Into the Breach: every attack shown in advance', steps:[{t:'Read intents', d:'see every enemy attack'},{t:'Position mechs', d:'push, block, redirect'},{t:'Enemies resolve', d:'attacks hit what you left'},{t:'Protect the grid', d:'buildings are your health'}] }
+  ],
+  'minecraft': [
+    { kind:'loop', title:'Minecraft: gather, make, survive', steps:[{t:'Gather', d:'mine and chop'},{t:'Craft', d:'turn blocks into tools'},{t:'Build', d:'shelter and projects'},{t:'Explore', d:'find new materials'},{t:'Survive the night', d:'monsters come out'}] }
+  ],
+  'among-us': [
+    { kind:'loop', title:'Among Us: tasks, then trust', steps:[{t:'Do tasks', d:'or fake them, as impostor'},{t:'Something happens', d:'a body or a sabotage'},{t:'Discuss', d:'alibis and accusations'},{t:'Vote', d:'eject someone, or skip'}] },
+    { kind:'screen', title:'Among Us: the ship screen', aspect:'16:9', topics:['controls-and-friction'],
+      regions:[{t:'Task list', x:0.01, y:0.03, w:0.28, h:0.35},{t:'Map and settings', x:0.78, y:0.03, w:0.2, h:0.17},{t:'The ship', x:0.3, y:0.3, w:0.4, h:0.4},{t:'Use, report, kill', d:'one context button per action', x:0.72, y:0.62, w:0.26, h:0.34}],
+      note:'Schematic, not to scale. A button changes meaning with where you stand, so the controls stay few.' }
+  ],
+  'wordle': [
+    { kind:'loop', title:'Wordle: one guess, one clue', steps:[{t:'Guess', d:'a five-letter word'},{t:'Read the colours', d:'right, misplaced or absent'},{t:'Narrow down', d:'rule letters in and out'}] }
+  ],
+  'hollow-knight': [
+    { kind:'loop', title:'Hollow Knight: explore, fight, rest', steps:[{t:'Explore', d:'push into the unknown'},{t:'Fight', d:'strike, dash, heal with soul'},{t:'Find', d:'a map, a charm, a shortcut'},{t:'Rest at a bench', d:'save and change charms'}] },
+    { kind:'screen', title:'Hollow Knight: the exploration screen', aspect:'16:9', topics:['ux-as-design'],
+      regions:[{t:'Soul vessel and masks', d:'soul to heal, masks for health', x:0.02, y:0.03, w:0.3, h:0.17},{t:'Geo', x:0.1, y:0.22, w:0.18, h:0.09},{t:'The world: no other HUD', x:0.1, y:0.36, w:0.8, h:0.55}],
+      note:'Schematic, not to scale. Health and currency are the only permanent HUD; the map is a separate screen you open.' }
+  ],
+  'animal-crossing-nh': [
+    { kind:'loop', title:'Animal Crossing: an island that is yours', steps:[{t:'Gather', d:'fish, dig, shake trees'},{t:'Craft', d:'recipes into furniture'},{t:'Decorate', d:'place it on your island'},{t:'Visit', d:'neighbours and friends notice'}] }
+  ],
+  'factorio': [
+    { kind:'loop', title:'Factorio: fix the worst bottleneck', steps:[{t:'Spot the bottleneck', d:'what is starved'},{t:'Build', d:'place and connect machines'},{t:'Automate', d:'belts and inserters take over'},{t:'Expand', d:'new resources, new bottleneck'}] }
+  ],
+  'portal': [
+    { kind:'loop', title:'Portal: think with two holes', steps:[{t:'Read the chamber', d:'where is the exit'},{t:'Place portals', d:'an entry and an exit'},{t:'Move through', d:'momentum carries over'},{t:'Next chamber', d:'one new twist'}] }
+  ],
+  'tetris': [
+    { kind:'loop', title:'Tetris: a decision every second', steps:[{t:'Piece falls', d:'read it and the next one'},{t:'Rotate and place', d:'where does it fit'},{t:'Clear lines', d:'or build for a tetris'},{t:'Speed rises', d:'the stack gets riskier'}] }
+  ]
+};
+REFERENCE_GAMES.forEach(g => {
+  g.diagrams = GAME_DIAGRAMS[g.id] || [];
+  if (GAME_ART_CREDITS[g.id]) [g.dev, g.store] = GAME_ART_CREDITS[g.id];
+});

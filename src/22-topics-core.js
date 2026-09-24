@@ -105,6 +105,9 @@ INTERVIEW('core-loop',{
       follow:`What would have made you cancel it, and who had the authority to make that call?`,
       red:`Cannot name a criterion, or says the team knew it was fun. Enthusiasm is not a signal.` }
   ] });
+DIAGRAM('core-loop', { kind:'loop', title:'The core loop: every link must hold',
+  steps:[{t:'Action', d:'the player commits to a move'},{t:'Feedback', d:'the game shows what happened'},{t:'Decision', d:'the player picks what next'},{t:'Consequence', d:'the state changes, and it matters'},{t:'New situation', d:'a fresh problem to read'}],
+  note:'Break any link and the loop stops teaching or rewarding: no feedback, no learning; no consequence, no decision.' });
 
 T('decisions',{ d:'core', t:'Meaningful decisions', tag:'A decision is meaningful when the options are different, the outcome is uncertain, and the player cares.',
   what:`Sid Meier described a game as a series of interesting decisions. An interesting decision has a real tradeoff (no dominant option), depends on the situation (the right answer changes), and reflects the player (different players choose differently). Decision density is how often the player faces one. Decision weight is how much rides on it.`,
@@ -291,6 +294,10 @@ INTERVIEW('risk-reward',{
       follow:`The business wants a revive item. How do you protect the risk?`,
       red:`Accepts the item and rebalances the encounter to be harder for everyone who does not buy it.` }
   ] });
+DIAGRAM('risk-reward', { kind:'quad', title:'The decision lives on the rising diagonal',
+  x:'Risk (chance of loss)', y:'Reward',
+  points:[{t:'Safe route', x:0.16, y:0.24},{t:'Gamble for the chest', x:0.78, y:0.8},{t:'Free win', x:0.16, y:0.84},{t:'Pointless danger', x:0.82, y:0.2}],
+  q:['Dominant: no decision','Interesting bet','Safe default','Never worth it'] });
 
 T('agency-and-emergence',{ d:'core', t:'Agency and emergence', tag:'Agency is when the player causes things. Emergence is when the game surprises its own designers.',
   what:`Agency: the player perceives that their choices cause outcomes, and that different choices would have caused different outcomes. Emergence: behaviors and strategies arising from rule interactions that were not individually authored. Together they produce stories players tell as their own.`,

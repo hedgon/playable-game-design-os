@@ -152,6 +152,8 @@ INTERVIEW('backend-layering',{
       follow:`What would you do differently at the start of that project?`,
       red:`Talks about maintainability in the abstract with no change they can point at.` }
   ] });
+DIAGRAM('backend-layering', { kind:'stack', title:'Dependencies point inward', taper:true, arrow:'imports point inward',
+  layers:[{t:'Transport', d:'HTTP, WebSocket and gRPC handlers'},{t:'Adapters', d:'database, cache and queue clients'},{t:'Use cases', d:'one operation each: claim, buy, match'},{t:'Domain', d:'entities and game rules, no I/O'}] });
 
 T('backend-di-modes',{ d:'backend', t:'Compile-time DI and one binary, many modes', tag:'Assemble the object graph at build time, and let one binary boot as any of its process roles.',
   what:`Two decisions that travel together. How dependencies get assembled: google/wire generates the constructor graph at build time, so a missing binding is a compile error instead of a nil pointer during an event. And how one codebase serves several process roles: main reads a mode flag and calls a different injector per role, so the API server, the admin tool, the realtime server and twenty batch binaries share entities and interactors while each builds only the graph it needs.`,
@@ -933,6 +935,8 @@ INTERVIEW('backend-caching-redis',{
       follow:`What would have stopped you adding it in the first place?`,
       red:`Has only ever added caches.` }
   ] });
+DIAGRAM('backend-caching-redis', { kind:'stack', title:'Three cache tiers answer three questions',
+  layers:[{t:'Per-request memo', d:'the same lookup twice in one request'},{t:'In-process cache', d:'hot, rarely changing data, per instance'},{t:'Redis', d:'state shared across instances: sessions, rate limits, leaderboards'},{t:'Database', d:'the source of truth'}] });
 
 T('backend-migrations-config',{ d:'backend', t:'Schema migrations, configuration and secrets', tag:'Schema changes ship separately from code, and secrets never ship at all.',
   what:`How the shape of the database changes over time, and how the service learns its settings. Migrations are versioned files applied by a tool such as goose, one directory per schema, run as an explicit deploy step with a named environment. Configuration is embedded in the binary, read from the environment, or fetched from a config service. Secrets are the part that must never be in version control, and the part that most often is.`,
