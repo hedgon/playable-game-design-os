@@ -12,7 +12,7 @@ DOMAINS.push({ id:'studio', lens:'design', t:'Studio', short:'Direction, documen
 
 T('design-documents',{ d:'studio', t:'Design documents and communication', tag:'A document exists to make a decision stick. Match it to the reader and the decision, or write nothing.',
   what:`The written artifacts a design lives in: the one-pager, the pitch, the design document, the technical plan, and the living decision log. They are communication tools rather than deliverables. Their value is the shared decisions they force and the memory they keep, not the page count.`,
-  why:[`A design that lives only in one person's head cannot be built by a team or reviewed by anyone.`,`The right document at the right size prevents both documentation theater and undocumented decisions.`,`Documents are how a proposal survives a room you are not in.`,`A decision log stops the same argument from returning every month.`],
+  why:[`A design that lives only in one person’s head cannot be built by a team or reviewed by anyone.`,`The right document at the right size prevents both documentation theater and undocumented decisions.`,`Documents are how a proposal survives a room you are not in.`,`A decision log stops the same argument from returning every month.`],
   think:{ q:[`Who reads this, and what decision does it help them make?`,`Is it recording a decision, posing a question, or making an argument?`,`Where is the single source of truth, and who keeps it current?`,`What would break if this document did not exist?`],
     trade:[`Heavier documents align a bigger team and go stale faster. Lighter documents stay current and communicate less.`,`Writing forces clarity and slows momentum.`],
     traps:[`Documentation theater: a beautiful design document nobody reads or updates.`,`Three documents that disagree about the core loop.`,`Writing implementation detail the team would learn faster by prototyping.`,`No decision log, so settled questions reopen.`],
@@ -28,10 +28,10 @@ T('design-documents',{ d:'studio', t:'Design documents and communication', tag:'
 TECH('design-documents',[
   {n:'One-pager', how:`A single page: player, fantasy, pillars, hook, comparables, biggest open question.`, fit:`Pitches, alignment, and any new collaborator.`, cost:`Forces every claim to be short enough to be testable.`, alt:`A pitch deck when a live audience is expected.`},
   {n:'Living design doc', how:`The current rules and intent, updated when a decision changes, never a write-once bible.`, fit:`An active team that needs one truth.`, cost:`Needs an owner or it goes stale.`, alt:`A decision log plus the prototype for small teams.`},
-  {n:'Decision log', how:`Date, decision, reason, and what would reverse it.`, fit:`Any project longer than a month.`, cost:`Discipline to write it after each call.`, alt:`Meeting summaries with owners, if they are actually kept.`}
+  {n:'Decision log', how:`Date, decision, reason, and what would reverse it.`, fit:`Any project longer than a month.`, cost:`Discipline to write it after each call.`, alt:`Meeting summaries with owners, if they are kept.`}
 ]);
 ENGINE('design-documents',{
-  godot:{ term:`The document that stays true is the one the editor shows. A tuning Resource with ## doc comments and @export_group puts the intent next to the value it governs, and a script with a class_name gets a page in the editor's own help.`,
+  godot:{ term:`The document that stays true is the one the editor shows. A tuning Resource with ## doc comments and @export_group puts the intent next to the value it governs, and a script with a class_name gets a page in the editor’s own help.`,
     api:['class_name + extends Resource','## doc comments above a member','@export_group() / @export_subgroup()','@export_range(min, max, step) for hard bounds','ResourceSaver.save() / ResourceLoader.load() for a .tres','Editor Help (F1), generated from the script'],
     snippet:`class_name EncounterTuning extends Resource
 ## Pressure knobs for one encounter.
@@ -45,7 +45,7 @@ ENGINE('design-documents',{
 
 @export_group("Pressure")
 @export_range(1, 400) var enemy_hp := 60`,
-    pitfall:`Changing an @export default and believing the team now runs the new number. A .tscn or a .tres stores whatever was set when it was saved, so every existing instance keeps the old value and only new ones pick up the default. The document and the script agree, the level does not, and the only sign is a small revert arrow in the inspector. When a default moves, sweep the saved resources, or read the value from one shared .tres instead of from per-instance exports.`,
+    pitfall:`Changing an @export default and believing the team now runs the new number. A .tscn or a .tres stores a value only when it differs from the script default, so untouched instances follow the new number while every instance someone once edited keeps its old one. The document and the script agree, the level does not, and the only sign is a small revert arrow in the inspector. When a default moves, sweep the saved resources, or read the value from one shared .tres instead of from per-instance exports.`,
     map:`A Godot Resource with ## doc comments is a ScriptableObject with Tooltip and Header attributes.` },
   unity:{ term:`A ScriptableObject is the document the build reads. CreateAssetMenu makes it an asset a designer can open, Tooltip and Header carry the intent, and HelpURL puts the long form one click from the component.`,
     api:['[CreateAssetMenu(menuName = "...")]','[Tooltip("")] / [Header("")]','[Range(min, max)]','[HelpURL("...")] on the class','[FormerlySerializedAs("old")] when a field is renamed','AssetDatabase.LoadAssetAtPath<T>() for an editor check'],
@@ -64,7 +64,7 @@ public class EncounterTuning : ScriptableObject {
     [Range(1, 400)] public int enemyHp = 60;
 }`,
     pitfall:`Renaming a serialized field while tidying the code to match the document. Unity matches serialized data by field name, so the rename silently drops every value on every prefab, scene object and asset back to the type default and nothing errors anywhere. The spec becomes accurate and the build becomes wrong in the same commit. Add FormerlySerializedAs in the same change and open one existing asset before committing.`,
-    map:`Unity's ScriptableObject asset is a Godot Resource, Tooltip is a ## doc comment, and Range is @export_range.` } });
+    map:`Unity’s ScriptableObject asset is a Godot Resource, Tooltip is a ## doc comment, and Range is @export_range.` } });
 INTERVIEW('design-documents',{
   junior:[
     { q:`What goes in a one-pager?`,
@@ -82,7 +82,7 @@ INTERVIEW('design-documents',{
   ],
   mid:[
     { q:`Three documents disagree about the core loop. What do you do?`,
-      a:`Establish which one the build actually implements, because that is the real design. Then hold one short session to decide the loop, record it in a single source of truth with an owner, and retire or mark the others as superseded. Do not reconcile by merging the text, because that hides the decision nobody has made.`,
+      a:`Establish which one the build implements, because that is the real design. Then hold one short session to decide the loop, record it in a single source of truth with an owner, and retire or mark the others as superseded. Do not reconcile by merging the text, because that hides the decision nobody has made.`,
       follow:`Nobody will own the decision. How do you unblock it?`,
       red:`Rewrites all three to agree without anyone deciding anything.` },
     { q:`How do you keep a document from going stale?`,
@@ -118,12 +118,12 @@ T('metrics-and-success',{ d:'studio', t:'Metrics, telemetry and success criteria
        no:[`Decide what success means.`,`Infer causes from numbers alone.`] },
   prompts:[{l:'Instrumentation plan',p:`Our hypothesis is: [HYPOTHESIS]. Our game states and actions are: [LIST]. Propose the smallest set of events and properties that would let us measure the expected behaviour and its alternatives. For each event, give the trigger, the properties, and the decision it informs. Include the confounds the data cannot separate.`},{l:'Result read',p:`Here are the results before and after a change: [DATA]. Baseline: [BASELINE]. For each metric, state whether the change is within noise, what behaviour it suggests, and what would make that reading false. Do not tell me the cause. Give me the two experiments that would separate the candidate explanations.`}],
   verify:[`Does each metric connect to a stated decision?`,`Is a baseline present for every claimed change?`,`Has the proxy-versus-goal risk been named?`],
-  test:[`Name the one behaviour that would prove the design works and check whether the build can actually measure it.`,`Report one number and the decision it changed. If there is no decision, the number was a vanity metric.`],
+  test:[`Name the one behaviour that would prove the design works and check whether the build can measure it.`,`Report one number and the decision it changed. If there is no decision, the number was a vanity metric.`],
   rel:[['hypothesis-driven-design','A hypothesis is only testable if its signal is captured.'],['iteration-and-evidence','Metrics are one evidence channel beside observation.'],['playtesting','Behaviour metrics and observed playtest behaviour should agree.'],['return-and-quit','Retention is the lagging signal of the whole loop.']] });
 TECH('metrics-and-success',[
   {n:'Leading indicators', how:`Behaviour inside a session, such as completion, retries, and time to first decision.`, fit:`Changes you need to read within a week.`, cost:`Do not directly show retention.`, alt:`Pair each leading signal with the lagging outcome it predicts.`},
   {n:'Cohort analysis', how:`Compare groups by when they joined rather than one blended average.`, fit:`Retention and any change that ships to everyone over time.`, cost:`Needs enough players per cohort to read.`, alt:`Use matched test groups for small samples.`},
-  {n:'Pre-registered hypothesis', how:`Write the signal and the kill criterion before the change ships.`, fit:`Every design change with a measurable claim.`, cost:`Removes the freedom to reinterpret results afterward.`, alt:`Log the decision and its expected signal in the decision log.`}
+  {n:'Pre-registered hypothesis', how:`Write the signal and the kill criterion before the change ships.`, fit:`Every design change with a measurable claim.`, cost:`Removes the freedom to reinterpret results afterwards.`, alt:`Log the decision and its expected signal in the decision log.`}
 ]);
 ENGINE('metrics-and-success',{
   godot:{ term:`One autoload owns the event buffer. Gameplay calls into it, it batches to JSON and flushes on a Timer and once more at quit, and that last flush is what decides whether you ever see a session end.`,
@@ -143,9 +143,9 @@ func _notification(what: int) -> void:
 \tif what == NOTIFICATION_WM_CLOSE_REQUEST:
 \t\tflush()                   # session_end, the event everyone forgets
 \t\tget_tree().quit()`,
-    pitfall:`Leaving auto_accept_quit at its default while buffering events. The engine accepts the window close request itself, the tree is torn down, and the buffer goes with it, so every clean exit loses its session end and a crash becomes indistinguishable from a quit. The metric the whole funnel rests on is the one that never arrives. Turn auto_accept_quit off, handle NOTIFICATION_WM_CLOSE_REQUEST, and keep a Timer flush so a kill still leaves most of the session on disk.`,
-    map:`Godot's NOTIFICATION_WM_CLOSE_REQUEST is Unity's Application.wantsToQuit, and an autoload is a DontDestroyOnLoad component.` },
-  unity:{ term:`One DontDestroyOnLoad component owns the queue, serializes flat structs with JsonUtility and posts with UnityWebRequest. On mobile the flush that matters is the one in OnApplicationPause, because that is where sessions actually end.`,
+    pitfall:`Flushing over the network on close while auto_accept_quit is at its default. Every node still receives NOTIFICATION_WM_CLOSE_REQUEST, but the engine quits at the end of that frame, so an HTTPRequest started in the handler never completes, every clean exit loses its session end and a crash becomes indistinguishable from a quit. The metric the whole funnel rests on is the one that never arrives. Turn auto_accept_quit off, handle NOTIFICATION_WM_CLOSE_REQUEST, and keep a Timer flush so a kill still leaves most of the session on disk.`,
+    map:`Godot’s NOTIFICATION_WM_CLOSE_REQUEST is Unity’s Application.wantsToQuit, and an autoload is a DontDestroyOnLoad component.` },
+  unity:{ term:`One DontDestroyOnLoad component owns the queue, serializes flat structs with JsonUtility and posts with UnityWebRequest. On mobile the flush that matters is the one in OnApplicationPause, because that is where sessions end.`,
     api:['OnApplicationPause(bool) / OnApplicationFocus(bool)','Application.wantsToQuit / Application.quitting','UnityWebRequest.Post() with a JSON body','JsonUtility.ToJson() on a [Serializable] struct','Application.persistentDataPath for the spill file','DontDestroyOnLoad()'],
     snippet:`void OnApplicationPause(bool paused) {
     if (paused) Flush();            // on Android and iOS this IS the quit
@@ -160,8 +160,8 @@ void Flush() {
     queue.Clear();
     StartCoroutine(Post(body));
 }`,
-    pitfall:`Relying on OnApplicationQuit. Android and iOS suspend an app and kill it later without telling it, so OnApplicationQuit never runs on the platforms where most sessions end, and every mobile session arrives with its tail missing. Flush in OnApplicationPause(true), write to persistentDataPath before attempting the network, and send the previous run's spill file on the next launch.`,
-    map:`Unity's OnApplicationPause is Godot's NOTIFICATION_APPLICATION_PAUSED, and persistentDataPath is user://.` } });
+    pitfall:`Relying on OnApplicationQuit. Android and iOS suspend an app and kill it later without telling it, so OnApplicationQuit never runs on the platforms where most sessions end, and every mobile session arrives with its tail missing. Flush in OnApplicationPause(true), write to persistentDataPath before attempting the network, and send the previous run’s spill file on the next launch.`,
+    map:`Unity’s OnApplicationPause is Godot’s NOTIFICATION_APPLICATION_PAUSED, and persistentDataPath is user://.` } });
 INTERVIEW('metrics-and-success',{
   junior:[
     { q:`Leading versus lagging indicator, with a game example.`,
@@ -193,17 +193,17 @@ INTERVIEW('metrics-and-success',{
   ],
   senior:[
     { q:`Define success criteria for a feature before it ships.`,
-      a:`Name the behaviour change that would mean the design works, the leading signal that captures it, the baseline, the window, and the result that would make you pull or rework the feature. Check the build can actually measure it before the feature is built. Agree it with whoever will judge the outcome, in advance.`,
+      a:`Name the behaviour change that would mean the design works, the leading signal that captures it, the baseline, the window, and the result that would make you pull or rework the feature. Check the build can measure it before the feature is built. Agree it with whoever will judge the outcome, in advance.`,
       follow:`The signal lands in the middle: not a clear yes, not a kill. What do you do?`,
       red:`Defines success as positive sentiment or as shipping on time.` },
     { q:`How do you stop a team from optimising a proxy?`,
       a:`Attach every metric to the decision it informs and to a statement of what it does not mean. Never make a proxy a target with an incentive behind it. Review metrics alongside playtest observation so the number always arrives with context. When a proxy and the experience diverge, say so publicly and change the metric rather than the game.`,
-      follow:`A target on a proxy is already in someone's objectives. What do you do?`,
+      follow:`A target on a proxy is already in someone’s objectives. What do you do?`,
       red:`Adds more metrics to balance the first one.` }
   ] });
 
 T('team-and-collaboration',{ d:'studio', t:'Team, roles and collaboration', tag:'Small teams ship by giving every decision an owner and keeping one shared target.',
-  what:`How work is divided and decisions owned: generalist versus specialist on a small team, who owns the design, how disciplines review each other, and how a shared target keeps local optimization from pulling the game apart. A role is a set of decisions, not a title.`,
+  what:`How work is divided and decisions owned: generalist versus specialist on a small team, who owns the design, how disciplines review each other, and how a shared target keeps local optimisation from pulling the game apart. A role is a set of decisions, not a title.`,
   why:[`Games are made by teams, and a design only exists if others can build it.`,`Unclear ownership produces either paralysis or conflicting decisions.`,`Review across disciplines catches what one discipline cannot see alone.`,`A single shared target is the cheapest alignment tool a team has.`],
   think:{ q:[`Who owns this decision, and who must be consulted before it changes?`,`Does every discipline know the shared target and how their work serves it?`,`What does this role hand to the next, and in what form?`,`Where do two disciplines have conflicting goals, and who resolves that?`],
     trade:[`Generalists keep a small team fast and can lack depth. Specialists raise quality and add coordination cost.`,`Autonomy motivates and drifts. Alignment corrects and can slow.`],
@@ -219,11 +219,11 @@ T('team-and-collaboration',{ d:'studio', t:'Team, roles and collaboration', tag:
   rel:[['responsibility-matrix','The same ownership question applied to human and AI work.'],['design-documents','Handoffs depend on documents that state the decision.'],['design-pillars','The shared target is the pillars.'],['scope-control','Every task needs an owner before it enters scope.']] });
 TECH('team-and-collaboration',[
   {n:'Responsibility map', how:`For each task, who decides, who builds, who reviews, and the handoff artifact.`, fit:`Teams where decisions stall or duplicate.`, cost:`Exposes ownership gaps people avoided.`, alt:`A one-page team charter for very small teams.`},
-  {n:'Cross-discipline review', how:`Each discipline asks the same question of the work: does it serve the shared target?`, fit:`Preventing local optimization.`, cost:`Meeting time and some friction.`, alt:`Asynchronous review notes against the pillars.`},
+  {n:'Cross-discipline review', how:`Each discipline asks the same question of the work: does it serve the shared target?`, fit:`Preventing local optimisation.`, cost:`Meeting time and some friction.`, alt:`Asynchronous review notes against the pillars.`},
   {n:'Handoff artifact', how:`The document or spec that travels with the work between roles.`, fit:`Any handoff where intent is lost.`, cost:`Writing it takes time the author would rather spend building.`, alt:`A recorded walkthrough for one-off cases.`}
 ]);
 ENGINE('team-and-collaboration',{
-  godot:{ term:`Ownership follows the file. A .tscn is text, which invites hand merges, but its references resolve by index into the resource lists, so two people work on one level by splitting it into instanced sub scenes that each have one owner.`,
+  godot:{ term:`Ownership follows the file. A .tscn is text, which invites hand merges, but its ids, node paths and connections all refer to each other across the file, so two people work on one level by splitting it into instanced sub scenes that each have one owner.`,
     api:['PackedScene instances and scene inheritance','Editable Children on an instanced scene','uid:// identifiers inside .tscn and .tres','*.import sidecar files, which belong in the repository','.godot/ , which does not','Project Settings > Version Control plugin'],
     snippet:`extends Node3D                     # res://level/atrium/atrium.tscn
 ## Each instanced child is one file with one owner. Merge at the file level.
@@ -237,7 +237,7 @@ func _ready() -> void:
 \tfor s in [encounter, set_dressing, audio_zones]:
 \t\tif s:
 \t\t\tadd_child(s.instantiate())`,
-    pitfall:`Hand resolving a merge conflict inside a .tscn. The format is text, which makes it look mergeable, but nodes point at resources by index into the ExtResource and SubResource lists, so a conflict resolved by taking both sides renumbers those lists and the scene opens with scripts and meshes attached to the wrong nodes, or refuses to open. Take one side whole and redo the other edit in the editor, and split scenes so that choice costs an hour rather than a day. Commit the .import files and ignore .godot/.`,
+    pitfall:`Hand resolving a merge conflict inside a .tscn. The format is text, which makes it look mergeable, but a scene is a web of cross-references (resource ids, parent paths, signal connection lines), so a conflict resolved by taking both sides can leave a reference pointing at a resource or node the other side removed or duplicated, and the scene opens with scripts and meshes attached to the wrong nodes, or refuses to open. Take one side whole and redo the other edit in the editor, and split scenes so that choice costs an hour rather than a day. Commit the .import files and ignore .godot/.`,
     map:`A Godot instanced sub scene is a nested prefab, and uid:// is the GUID inside a .meta file.` },
   unity:{ term:`Ownership follows the prefab, and identity lives in the .meta file beside every asset. Force Text serialization plus the UnityYAMLMerge tool makes scene and prefab conflicts survivable, and prefab variants give each discipline a file of its own.`,
     api:['Prefab variants and nested prefabs','.meta files, committed with every asset','Editor Settings > Asset Serialization: Force Text','Tools/UnityYAMLMerge registered as the git mergetool','Assembly Definition files for compile ownership','AssetPostprocessor.OnPostprocessAllAssets()'],
@@ -253,11 +253,11 @@ func _ready() -> void:
         }
     }
 }`,
-    pitfall:`Not committing the .meta files, or deleting one while tidying. The .meta holds the asset's GUID, which is the only thing every prefab, scene and asset reference points at. Lose it and Unity mints a new GUID on the next import, so on the next person's machine the references become Missing (Mono Script) and a day of prefab wiring is gone with no error at commit time. Commit every .meta with its asset, set Asset Serialization to Force Text, and register UnityYAMLMerge before the first scene conflict rather than after it.`,
-    map:`A Unity .meta GUID is Godot's uid:// plus the .import sidecar, and a prefab variant is an inherited scene.` } });
+    pitfall:`Not committing the .meta files, or deleting one while tidying. The .meta holds the asset’s GUID, which is the only thing every prefab, scene and asset reference points at. Lose it and Unity mints a new GUID on the next import, so on the next person’s machine the references become Missing (Mono Script) and a day of prefab wiring is gone with no error at commit time. Commit every .meta with its asset, set Asset Serialization to Force Text, and register UnityYAMLMerge before the first scene conflict rather than after it.`,
+    map:`A Unity .meta GUID is Godot’s uid:// plus the .import sidecar, and a prefab variant is an inherited scene.` } });
 INTERVIEW('team-and-collaboration',{
   junior:[
-    { q:`What does "a role is a set of decisions" mean?`,
+    { q:`What does “a role is a set of decisions” mean?`,
       a:`A title tells you what someone is called. A role tells you which decisions they own and which they must be consulted on. Teams break when titles exist and decision ownership does not, because then either nobody decides or two people decide differently. Say who owns the core loop on a project you worked on.`,
       follow:`Who owned the core loop on your last project, and how did you know?`,
       red:`Describes roles as job descriptions and task lists.` },
@@ -272,7 +272,7 @@ INTERVIEW('team-and-collaboration',{
       follow:`The resolution keeps getting relitigated. What is missing?`,
       red:`Proposes compromise as the default, which usually serves neither goal.` },
     { q:`Design by committee: symptom and fix.`,
-      a:`The symptom is decisions that satisfy everyone's objection and nobody's intent, plus the same debate every month. The fix is a named decision owner with a tiebreaker, consultation that is genuinely consultation, and a written decision with a reason. Input from many, decision from one.`,
+      a:`The symptom is decisions that satisfy everyone’s objection and nobody’s intent, plus the same debate every month. The fix is a named decision owner with a tiebreaker, consultation that is consultation, and a written decision with a reason. Input from many, decision from one.`,
       follow:`The owner keeps deferring to the group. How do you help them?`,
       red:`Solves it with a vote, or with more alignment meetings.` },
     { q:`How do you review work from a discipline you do not practise?`,
@@ -287,10 +287,10 @@ INTERVIEW('team-and-collaboration',{
       red:`Creates a working group, or assigns ownership to a role rather than a person.` },
     { q:`The same debate recurs every month. What is missing?`,
       a:`Either the decision was never made, or it was made and never recorded with its reason. Both look identical from the outside. Find out which, then either decide it once with an owner and a record, or point at the record and at what would reverse it. If the reason is no longer true, reopen it deliberately rather than by attrition.`,
-      follow:`The recurring debate is genuinely unresolved because the evidence is missing. Now what?`,
+      follow:`The recurring debate is unresolved because the evidence is missing. Now what?`,
       red:`Bans the topic, or holds another alignment meeting.` },
     { q:`Generalists or specialists on a team of ten?`,
-      a:`At ten you need generalists who can cover gaps, with one deep specialist where quality is the differentiator or the risk is technical. Specialists raise quality and add coordination cost, which a small team pays in handoffs and waiting. Decide by which disciplines sit on the critical path and where the product's distinctiveness comes from.`,
+      a:`At ten you need generalists who can cover gaps, with one deep specialist where quality is the differentiator or the risk is technical. Specialists raise quality and add coordination cost, which a small team pays in handoffs and waiting. Decide by which disciplines sit on the critical path and where the product’s distinctiveness comes from.`,
       follow:`The team grows to thirty. What changes about that answer?`,
       red:`Answers by preference rather than by critical path and differentiation.` }
   ] });
@@ -316,7 +316,7 @@ TECH('planning-and-milestones',[
   {n:'Pre-agreed cut list', how:`Decide, in calm conditions, what is removed first if time runs short.`, fit:`Protecting the core when the schedule tightens.`, cost:`Requires saying no to features people love.`, alt:`Scope tiers, with the outer tier explicitly optional.`}
 ]);
 ENGINE('planning-and-milestones',{
-  godot:{ term:`A milestone exit criterion is a command a runner can execute. godot --headless runs a SceneTree script that loads every level and exits with a code, and the same headless binary produces the export the milestone is actually judged on.`,
+  godot:{ term:`A milestone exit criterion is a command a runner can execute. godot --headless runs a SceneTree script that loads every level and exits with a code, and the same headless binary produces the export the milestone is judged on.`,
     api:['godot --headless -s res://ci/gate.gd --path .','godot --headless --export-release "<preset>" <out>','SceneTree.quit(exit_code)','DirAccess.get_files_at() / ResourceLoader.exists()','PackedScene.instantiate() as the real load check','export_presets.cfg and the matching export templates'],
     snippet:`extends SceneTree                  # godot --headless -s res://ci/gate.gd
 
@@ -332,9 +332,9 @@ func _initialize() -> void:
 \t\telse:
 \t\t\tnode.free()
 \tquit(bad)                      # the milestone is green only at exit code 0`,
-    pitfall:`Assuming the runner can export because a developer machine can. Export templates are a separate download pinned to the exact engine version, and export_presets.cfg carries per-platform paths and signing settings that are usually local to one machine, so the milestone build exists on one laptop and nothing else can reproduce it. Install the matching templates on the runner and export every target once in the first week, because "we have not tried that platform yet" is a milestone question rather than a task.`,
+    pitfall:`Assuming the runner can export because a developer machine can. Export templates are a separate download pinned to the exact engine version, and export_presets.cfg carries per-platform paths and signing settings that are usually local to one machine, so the milestone build exists on one laptop and nothing else can reproduce it. Install the matching templates on the runner and export every target once in the first week, because “we have not tried that platform yet” is a milestone question rather than a task.`,
     map:`godot --headless -s is unity -batchmode -executeMethod, and SceneTree.quit(code) is EditorApplication.Exit(code).` },
-  unity:{ term:`The exit criterion is a static method a runner calls. unity -batchmode -nographics -executeMethod runs it, BuildPipeline produces the player, and the BuildReport is the only thing that knows whether the milestone actually passed.`,
+  unity:{ term:`The exit criterion is a static method a runner calls. unity -batchmode -nographics -executeMethod runs it, BuildPipeline produces the player, and the BuildReport is the only thing that knows whether the milestone passed.`,
     api:['unity -batchmode -nographics -executeMethod Build.Player','BuildPipeline.BuildPlayer(BuildPlayerOptions)','BuildReport.summary.result / totalErrors','EditorApplication.Exit(code)','EditorBuildSettings.scenes','-logFile - to stream the editor log'],
     snippet:`static class Build {                      // Editor/Build.cs
     // unity -batchmode -nographics -executeMethod Build.Player -logFile -
@@ -350,7 +350,7 @@ func _initialize() -> void:
         EditorApplication.Exit(ok ? 0 : 1);   // batchmode exits 0 without this
     }
 }`,
-    pitfall:`Trusting the process exit code of a batchmode run. Unity exits 0 once -executeMethod returns, whether the build succeeded, threw, or never ran because an editor script failed to compile, so a runner that checks only the exit code reports a green milestone over a player that does not exist. Read BuildReport.summary.result and call EditorApplication.Exit yourself, and remember that -quit kills anything asynchronous the moment the method returns, so a build step that yields is cut off half way.`,
+    pitfall:`Trusting the process exit code of a batchmode run. BuildPipeline.BuildPlayer reports a failed build in its BuildReport rather than by throwing, so a method that ignores the report returns normally, Unity exits 0, and a runner that checks only the exit code reports a green milestone over a player that does not exist. Read BuildReport.summary.result and call EditorApplication.Exit yourself, and remember that -quit kills anything asynchronous the moment the method returns, so a build step that yields is cut off half way.`,
     map:`unity -batchmode -executeMethod is godot --headless -s, and EditorApplication.Exit is SceneTree.quit.` } });
 INTERVIEW('planning-and-milestones',{
   junior:[
@@ -365,7 +365,7 @@ INTERVIEW('planning-and-milestones',{
   ],
   mid:[
     { q:`Estimate a feature you have never built. How?`,
-      a:`Break it until the pieces resemble work the team has done, estimate those as ranges rather than points, and add the unknowns as explicit risk items with their own test. Name what would make the high end happen. Then check the estimate against the last comparable feature's actual cost, because teams estimate optimistically by default.`,
+      a:`Break it until the pieces resemble work the team has done, estimate those as ranges rather than points, and add the unknowns as explicit risk items with their own test. Name what would make the high end happen. Then check the estimate against the last comparable feature’s actual cost, because teams estimate optimistically by default.`,
       follow:`Your range is one week to six. How do you communicate that usefully?`,
       red:`Gives a single number and a confident tone.` },
     { q:`Where does the buffer go and who is allowed to spend it?`,
@@ -379,11 +379,11 @@ INTERVIEW('planning-and-milestones',{
   ],
   senior:[
     { q:`The date is fixed and the scope will not fit. Walk me through the conversation.`,
-      a:`Bring the number, not the worry: measured cost per unit, remaining capacity, the gap. Then bring the pre-agreed cut list in risk order and ask for a decision between cutting scope, moving the date and lowering quality, naming which of the three the organisation has actually fixed. Do it early, because the options shrink every week.`,
+      a:`Bring the number, not the worry: measured cost per unit, remaining capacity, the gap. Then bring the pre-agreed cut list in risk order and ask for a decision between cutting scope, moving the date and lowering quality, naming which of the three the organisation has fixed. Do it early, because the options shrink every week.`,
       follow:`They refuse all three and ask for more hours. How do you respond?`,
       red:`Commits to the date and plans to make it up with overtime.` },
     { q:`The riskiest system is scheduled last. What do you do?`,
-      a:`Pull a testable version of it forward even in crude form, so the assumption gets settled while direction changes are still affordable. If the full system genuinely cannot move, build a proxy that answers the same question. Then reorder the dependent work so it is not all bet on an untested result.`,
+      a:`Pull a testable version of it forward even in crude form, so the assumption gets settled while direction changes are still affordable. If the full system cannot move, build a proxy that answers the same question. Then reorder the dependent work so it is not all bet on an untested result.`,
       follow:`Pulling it forward costs three weeks now. How do you justify that?`,
       red:`Leaves the order alone because the dependencies say it must be last.` },
     { q:`A milestone misses. How do you replan?`,
@@ -394,7 +394,7 @@ INTERVIEW('planning-and-milestones',{
 
 T('quality-and-build-health',{ d:'studio', t:'Quality assurance and build health', tag:'A game that cannot be played cannot be tested. Keep a build that runs, and triage bugs by whether they block evidence.',
   what:`Keeping the game playable enough to learn from: a regular playable build, bug triage by severity and by whether a bug blocks testing, regression tracking back to the change that caused it, and technical debt measured against how fast the team can still iterate.`,
-  why:[`A broken build stops the evidence loop, and the evidence loop is the design process.`,`Bugs that block the core loop matter more than cosmetic bugs, yet the opposite is often prioritized.`,`Regressions quietly erase work that was already validated.`],
+  why:[`A broken build stops the evidence loop, and the evidence loop is the design process.`,`Bugs that block the core loop matter more than cosmetic bugs, yet the opposite is often prioritised.`,`Regressions quietly erase work that was already validated.`],
   think:{ q:[`Can a designer get a playable build today?`,`Which bugs block the core loop or a specific test?`,`What regressed since the last known-good build, and which change caused it?`,`What technical debt is slowing iteration right now?`],
     trade:[`Cleaning everything is slow. Ignoring debt is slower.`,`Fixing and adding at once increases risk. A short freeze protects the next test.`],
     traps:[`Prioritizing cosmetic bugs over blocking ones.`,`No build cadence, so testing waits on a lucky merge.`,`No regression check, so the same bug returns.`,`It works on my machine.`],
@@ -403,7 +403,7 @@ T('quality-and-build-health',{ d:'studio', t:'Quality assurance and build health
   how:[`Keep a named playable build and a cadence for producing it.`,`Triage bugs as blocker, loop, or cosmetic, and fix blockers first.`,`Log regressions with the change that caused them.`,`Budget debt paydown against iteration speed, not against taste.`],
   ai:{ yes:[`Cluster crash and error logs and draft a triage list.`,`Summarize a regression report and link symptoms to likely causes.`,`Write test cases for a specific rule or system.`],
        no:[`Decide what ships with a known defect.`] },
-  prompts:[{l:'Triage pass',p:`Here are our open bugs with severity and area: [LIST]. Our current test goal is: [GOAL]. Order the list by whether each bug blocks the goal or the core loop, then by severity. Name any bug marked cosmetic that actually blocks evidence.`},{l:'Regression hunt',p:`Between build [A] and build [B], these changes landed: [CHANGES]. These symptoms appeared: [SYMPTOMS]. Propose the most likely causes in order, and the smallest check for each to confirm or rule it out.`}],
+  prompts:[{l:'Triage pass',p:`Here are our open bugs with severity and area: [LIST]. Our current test goal is: [GOAL]. Order the list by whether each bug blocks the goal or the core loop, then by severity. Name any bug marked cosmetic that blocks evidence.`},{l:'Regression hunt',p:`Between build [A] and build [B], these changes landed: [CHANGES]. These symptoms appeared: [SYMPTOMS]. Propose the most likely causes in order, and the smallest check for each to confirm or rule it out.`}],
   verify:[`Is there a playable build right now?`,`Is every blocker assigned and tracked?`,`Is the latest regression linked to a change?`],
   test:[`Ask a designer to reach the newest system in a build. If they cannot, the build has failed before any player sees it.`],
   rel:[['playtesting','A test needs a build that reaches the thing being tested.'],['iteration-and-evidence','Build health is what keeps iteration possible.'],['risk-and-dependencies','Unstable foundations are a risk you must retire early.'],['ai-for-playtest-analysis','Clean builds make AI analysis of logs and replays meaningful.']] });
@@ -413,7 +413,7 @@ TECH('quality-and-build-health',[
   {n:'Regression log', how:`Every reappearing bug recorded against the change that caused it.`, fit:`Projects with frequent merges.`, cost:`Overhead on every fix.`, alt:`A smoke test that exercises the core loop before testers see a build.`}
 ]);
 ENGINE('quality-and-build-health',{
-  godot:{ term:`Godot ships no test framework, so build health is a headless run plus an addon. GdUnit4 suites run from the command line beside the level gate, and the engine's own leaked-instance report at exit is the cheapest regression signal the project has.`,
+  godot:{ term:`Godot ships no test framework, so build health is a headless run plus an addon. GdUnit4 suites run from the command line beside the level gate, and the engine’s own leaked-instance report at exit is the cheapest regression signal the project has.`,
     api:['extends GdUnitTestSuite','assert_int() / assert_that() / assert_array()','auto_free() for nodes a test creates','godot --headless running the GdUnit4 command line runner','ObjectDB instances leaked at exit, printed on a debug build','push_error() and SceneTree.quit(exit_code)'],
     snippet:`extends GdUnitTestSuite            # res://test/test_wave_budget.gd
 
@@ -428,7 +428,7 @@ func test_wave_never_exceeds_budget() -> void:
 \tassert_that(wave).is_not_empty()
 \tassert_int(cost).is_less_equal(120)`,
     pitfall:`Letting tests create nodes and never free them. A Node that is not in the tree and not freed stays in the ObjectDB, and the run ends with a leaked instances warning that nobody reads because it is not a failure. The suite stays green while the thing it guards drifts, and the same leak in gameplay code is the memory climb someone chases a month later. Wrap every node a test creates in auto_free, and treat the leak report at exit as a failing check in the runner.`,
-    map:`GdUnit4's assert_that is NUnit's Assert.That under the Unity Test Framework, and auto_free is a teardown Object.DestroyImmediate.` },
+    map:`GdUnit4's assert_that is NUnit’s Assert.That under the Unity Test Framework, and auto_free is a teardown Object.DestroyImmediate.` },
   unity:{ term:`The Unity Test Framework runs from the same batchmode entry point as the build. EditMode tests are fast and prove logic, PlayMode tests prove the scene, and only a development build on the device proves the thing a tester will open.`,
     api:['unity -batchmode -runTests -testPlatform EditMode -testResults results.xml','[Test] / [UnityTest] in an asmdef with Test Assemblies ticked','UnityEngine.TestTools: LogAssert, yield return null','SceneManager.LoadSceneAsync() inside a [UnityTest]','LogAssert.NoUnexpectedReceived()','BuildOptions.Development for the device smoke run'],
     snippet:`public class WaveBudgetTests {          // Tests/Editor asmdef, tests-only
@@ -446,13 +446,13 @@ func test_wave_never_exceeds_budget() -> void:
         LogAssert.NoUnexpectedReceived();   // an error log fails this test
     }
 }`,
-    pitfall:`Reading a green EditMode suite as a healthy build. EditMode tests run inside the editor's domain, where every UNITY_EDITOR block compiles, nothing is stripped and no scene has to load, so the suite stays green while the player build fails to link, a scene is missing from Build Settings, or a serialized reference is empty. Keep a PlayMode test that loads the real scene and asserts on the log, and put a development build on the target inside the same gate.`,
+    pitfall:`Reading a green EditMode suite as a healthy build. EditMode tests run inside the editor’s domain, where every UNITY_EDITOR block compiles, nothing is stripped and no scene has to load, so the suite stays green while the player build fails to link, a scene is missing from Build Settings, or a serialized reference is empty. Keep a PlayMode test that loads the real scene and asserts on the log, and put a development build on the target inside the same gate.`,
     map:`The Unity Test Framework in batchmode is godot --headless running a GdUnit4 suite, and LogAssert is scanning the headless log for push_error output.` } });
 INTERVIEW('quality-and-build-health',{
   junior:[
     { q:`How do you order a bug list?`,
       a:`By whether the bug blocks the evidence you need, then by severity. Blockers that stop the build or the core loop first, then bugs that block a specific test, then everything else. Cosmetic bugs look tempting because they are cheap, and fixing them ahead of blockers is the most common triage failure there is.`,
-      follow:`A cosmetic bug is actually blocking evidence. Give me an example.`,
+      follow:`A cosmetic bug is blocking evidence. Give me an example.`,
       red:`Orders purely by severity label, or by which bugs are quickest to close.` },
     { q:`Why does a broken build stop design work?`,
       a:`Because the evidence loop is the design process. No playable build means no playtest, which means no evidence, which means the next decision is made on opinion. It also hides regressions, because nobody can tell what still works. Build health is a design dependency, not an engineering convenience.`,
@@ -465,25 +465,25 @@ INTERVIEW('quality-and-build-health',{
   ],
   mid:[
     { q:`Designers cannot reach the new system in the build. Whose problem is it?`,
-      a:`Everyone's, and it is urgent, because the system cannot be tested and therefore cannot be validated. Fix reachability first with a debug shortcut, a cheat command or a test scene, before any polish on the system itself. A system that testers cannot reach has failed before a player ever sees it.`,
+      a:`Everyone’s, and it is urgent, because the system cannot be tested and therefore cannot be validated. Fix reachability first with a debug shortcut, a cheat command or a test scene, before any polish on the system itself. A system that testers cannot reach has failed before a player ever sees it.`,
       follow:`Debug shortcuts change the state the player would arrive in. How do you keep the test honest?`,
       red:`Waits for the progression work to be finished before testing the system.` },
     { q:`Who decides what ships with a known defect, and on what basis?`,
-      a:`A named human, usually the product or discipline lead, not a tool and not the bug count. The basis is impact on the player's experience and on the evidence loop, plus the risk of the fix so late. Record the decision, the reasoning and the mitigation. Known-broken lists must reach testers so they do not file it again.`,
+      a:`A named human, usually the product or discipline lead, not a tool and not the bug count. The basis is impact on the player’s experience and on the evidence loop, plus the risk of the fix so late. Record the decision, the reasoning and the mitigation. Known-broken lists must reach testers so they do not file it again.`,
       follow:`The defect only affects two percent of sessions but corrupts saves. How does that change the call?`,
-      red:`Defers to a severity threshold with no human judgment attached.` },
-    { q:`Give me a cosmetic-looking bug that actually blocks evidence.`,
+      red:`Defers to a severity threshold with no human judgement attached.` },
+    { q:`Give me a cosmetic-looking bug that blocks evidence.`,
       a:`A missing or wrong tell on an enemy attack, a UI element rendering behind another so the resource is unreadable, audio not firing on a hit. Each is filed as cosmetic and each destroys the readability the test depends on. The triage question is whether the bug changes what the player can perceive or decide.`,
       follow:`How would you get that reclassified without fighting the triage process?`,
       red:`Accepts the cosmetic label because it does not affect functionality.` }
   ],
   senior:[
     { q:`The build is red three days a week. What do you change first?`,
-      a:`Make breakage visible and cheap to fix: a fast pre-merge check that runs the things that actually break, a named owner for a red build, and a rule that the fix comes before new work. Then look at what breaks repeatedly, because it is usually one integration point or one area with no test coverage. Cadence follows reliability.`,
+      a:`Make breakage visible and cheap to fix: a fast pre-merge check that runs the things that break, a named owner for a red build, and a rule that the fix comes before new work. Then look at what breaks repeatedly, because it is usually one integration point or one area with no test coverage. Cadence follows reliability.`,
       follow:`The pre-merge check now takes forty minutes and people route around it. What do you do?`,
       red:`Adds a build policy document, or blames individuals for breaking it.` },
     { q:`How do you budget technical debt paydown?`,
-      a:`Against iteration speed rather than taste. Measure what is actually slowing the team: build times, how long a tuning change takes to see in play, how often a change breaks something unrelated. Pay down the debt that sits on that path, in a standing share of each milestone, and leave ugly code that costs nobody anything.`,
+      a:`Against iteration speed rather than taste. Measure what is slowing the team: build times, how long a tuning change takes to see in play, how often a change breaks something unrelated. Pay down the debt that sits on that path, in a standing share of each milestone, and leave ugly code that costs nobody anything.`,
       follow:`An engineer wants to rewrite a system that is ugly but not slowing anyone down. How do you respond?`,
       red:`Schedules a refactoring milestone with no measure of what it buys.` }
   ] });

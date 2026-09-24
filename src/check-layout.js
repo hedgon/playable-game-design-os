@@ -11,7 +11,7 @@ const src = [...DATA, DIAGRAM, FLOW, GRAPH].map(f => fs.readFileSync(path.join(_
 const window = {};
 const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,PATHS,REFERENCE_GAMES,contentTreeFlow,PLATFORMS,platformMatrix,stagesOf};')(window);
 const G = window.PlayableGraph;
-const { states, problems, clipped } = overlaps(G, ctx.DOMAINS, ctx.TOPICS, ctx.CASE_STUDIES, window.PlayableFlow, ctx.PATHS);
+const { states, problems, clipped } = overlaps(G, ctx.DOMAINS, ctx.TOPICS, ctx.CASE_STUDIES, window.PlayableFlow, ctx.PATHS, ctx.REFERENCE_GAMES);
 // Diagrams: every spec on a topic or a reference game, laid out as the app
 // draws it. A shortened text is a failure here, not a count: diagram labels
 // are short by design, so a cut one means the data needs rewording.

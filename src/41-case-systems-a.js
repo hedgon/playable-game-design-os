@@ -41,8 +41,8 @@ SYSTEMS('cs-go-game-backend', [
     iv:[
       {
         q:`Why protobuf over plain HTTP instead of gRPC?`,
-        a:`Because of what sits between a phone and the server. A request passes a carrier proxy, a content delivery network, a load balancer and sometimes a corporate firewall, and all of those understand ordinary HTTP while some of them do not understand streaming. Protobuf bodies keep the payload small and typed on a bad network, and every middleware, every load balancer rule and every cache header we already had kept working. What we gave up was streaming and generated client stubs, so the client hand writes thin wrappers and the header contract is agreed by documentation rather than by a tool.`,
-        follow:`So what does the header contract actually carry, and what happens when the two sides disagree?`,
+        a:`Because of what sits between a phone and the server. A request passes a carrier proxy, a content delivery network, a load balancer and sometimes a corporate firewall, and all of those understand ordinary HTTP, while gRPC needs HTTP/2 end to end and response trailers, which some of them downgrade or strip. Protobuf bodies keep the payload small and typed on a bad network, and every middleware, every load balancer rule and every cache header we already had kept working. What we gave up was streaming and generated client stubs, so the client hand writes thin wrappers and the header contract is agreed by documentation rather than by a tool.`,
+        follow:`So what does the header contract carry, and what happens when the two sides disagree?`,
         red:`Answering with a benchmark. Speed was not the deciding factor and a candidate who reaches for it has not thought about the path a mobile request travels.`
       },
       {
@@ -78,7 +78,7 @@ SYSTEMS('cs-go-game-backend', [
       },
       {
         id:'api-protocol', t:'Protobuf over HTTP and the header contract',
-        what:`Requests are form encoded and bound to an input struct through a declarative field map. Responses are marshalled protobuf. The part that actually carries the protocol is the header set: session, platform, language, client version, master data version and a counter describing the player state the client already holds.`,
+        what:`Requests are form encoded and bound to an input struct through a declarative field map. Responses are marshalled protobuf. The part that carries the protocol is the header set: session, platform, language, client version, master data version and a counter describing the player state the client already holds.`,
         how:[
           `A field map per input struct names each form key once, so binding is data instead of a hand written parse inside every handler.`,
           `Responses marshal generated protobuf messages. A JSON path exists, and only the web and admin surfaces use it.`,
@@ -91,7 +91,7 @@ SYSTEMS('cs-go-game-backend', [
         rel:[
           ['backend-api-protocol',`It is the middle option between REST with JSON and gRPC, chosen for a mobile client and paid for in tooling.`]
         ],
-        story:`We argued about gRPC for a week. The thing that settled it was not performance, it was the list of places a request passes through before it reaches us: a carrier proxy, a content delivery network, a load balancer and a corporate firewall on the office network. Every one of those understands ordinary HTTP and some of them did not understand streaming. So I proposed protobuf bodies over plain HTTP and we wrote the header contract down as a document instead of letting a tool generate it. The cost showed up six months later, when a header added for a new platform was missing on one client build and nothing failed until a player on that platform logged in.`
+        story:`We argued about gRPC for a week. The thing that settled it was not performance, it was the list of places a request passes through before it reaches us: a carrier proxy, a content delivery network, a load balancer and a corporate firewall on the office network. Every one of those understands ordinary HTTP, and some of them would not carry HTTP/2 with trailers, which gRPC needs. So I proposed protobuf bodies over plain HTTP and we wrote the header contract down as a document instead of letting a tool generate it. The cost showed up six months later, when a header added for a new platform was missing on one client build and nothing failed until a player on that platform logged in.`
       },
       {
         id:'api-errors', t:'Domain errors and idempotency',
@@ -129,7 +129,7 @@ SYSTEMS('cs-go-game-backend', [
       {
         q:`Chat and presence run on more than one instance. How does a publish on one instance reach a subscriber connected to another?`,
         a:`A channel name is hashed and taken modulo the instance count, so each instance subscribes to only the shards it owns in Redis pub/sub, and a reconnect and retry loop keeps that subscription alive without dropping the local WebSocket clients. A stat repository tracks the subscriber set per channel, so presence counts do not need asking every instance directly.`,
-        follow:`What happens to a channel's subscribers during a rolling deploy that crosses a shard boundary?`,
+        follow:`What happens to a channel’s subscribers during a rolling deploy that crosses a shard boundary?`,
         red:`Describing this as a message queue. It is pub/sub with no persistence and no delivery guarantee, and treating it like a queue would hide the fact that a dropped connection loses whatever was published while it was down.`
       },
       {
@@ -152,7 +152,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`A hand rolled envelope keeps both realtime servers on the same wire format and the same protobuf tooling already used for the HTTP API, instead of adopting a second serialization format for one feature.`,
         trade:`The framing and the op-code switch are not covered by any library, so every new op code is a manual addition to the switch and to whatever client decodes it, and a malformed frame is a decode bug rather than something a library catches for you.`,
         rel:[
-          ['server-realtime-protocol',`The framed envelope, the op-code switch and auth-before-anything-else are exactly this topic's worked example.`]
+          ['server-realtime-protocol',`The framed envelope, the op-code switch and auth-before-anything-else are exactly this topic’s worked example.`]
         ]
       },
       {
@@ -165,7 +165,7 @@ SYSTEMS('cs-go-game-backend', [
           `Room capacity itself is loaded from master data at boot rather than computed at runtime, so it cannot disagree with the number the client was already told.`
         ],
         why:`Sharding channels by hash spreads pub/sub load across instances without any one instance seeing every message in the system.`,
-        trade:`A channel that changes name changes shard, so a rolling deploy that crosses a shard boundary can briefly split subscribers across two shards before every instance has restarted.`,
+        trade:`Hashing modulo the instance count means adding or removing an instance remaps almost every channel, so a scale change briefly splits subscribers across old and new shards until every instance has restarted. Consistent hashing would move only a fraction of channels.`,
         rel:[
           ['server-scaling',`Sharded pub/sub fan-out across stateful instances is exactly the scaling question this topic asks.`],
           ['backend-caching-redis',`This is one of the three unrelated jobs the same Redis deployment does, worked through in the data layer.`]
@@ -186,7 +186,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`Predicate matching lets the rules that define a good match evolve without redesigning the queue, and a mutex guarded scan is simple enough that its correctness can be reasoned about directly.`,
         trade:`A single mutex around the whole ticket list caps how many candidate matches can be evaluated at once, so the approach is sized for the volume it was built for and becomes the first thing a future scaling pass has to replace.`,
         rel:[
-          ['server-matchmaking',`Capacity plus predicate tickets, a scanning matchmaker and session handoff are this topic's core mechanics.`]
+          ['server-matchmaking',`Capacity plus predicate tickets, a scanning matchmaker and session handoff are this topic’s core mechanics.`]
         ],
         links:[
           ['realtime-framing',`A matched session hands its peers into the same peer interface the chat and presence server already dispatches through.`]
@@ -196,13 +196,13 @@ SYSTEMS('cs-go-game-backend', [
   },
   {
     id:'simparity', t:'Simulation parity package', kind:'server',
-    sum:`A deterministic reimplementation of the client's simulation, run again on the server so the result that counts is never only the one the client reported.`,
+    sum:`A deterministic reimplementation of the client’s simulation, run again on the server so the result that counts is never only the one the client reported.`,
     stack:['Go','C#'],
     iv:[
       {
         q:`Why port the random generator bit for bit instead of reimplementing it from its documented behaviour?`,
         a:`Two generators that only agree on distribution will still diverge step by step once real match data runs through them, and the contract here needs the client and the server to reach the identical last bit, not an equivalent answer. A behavioural port could pass every statistical test and still disagree with the client on move one thousand of a specific match. Porting bit for bit removes that whole class of failure at the cost of both sides being frozen against a specific compiler and runtime behaviour.`,
-        follow:`What broke the first time the two implementations disagreed, and how was the divergence actually found?`,
+        follow:`What broke the first time the two implementations disagreed, and how was the divergence found?`,
         red:`Answering that a large enough test suite would have caught it eventually. Bit exactness is a property of the toolchain, and a statistical test cannot see a single bit difference that only shows up on one input shape.`
       },
       {
@@ -223,7 +223,7 @@ SYSTEMS('cs-go-game-backend', [
         id:'simparity-determinism', t:'Bit exact RNG port and FMA free math',
         what:`The client plays a match out for responsiveness and the server re-runs the same simulation to decide the real outcome, so both sides have to reach the identical last bit, not merely an equivalent answer. That requirement drove a hand ported random generator and hand written math helpers.`,
         how:[
-          `The platform's own random generator is ported bit for bit rather than reimplemented from its documented behaviour, because two generators that only agree on distribution will still diverge step by step.`,
+          `The platform’s own random generator is ported bit for bit rather than reimplemented from its documented behaviour, because two generators that only agree on distribution will still diverge step by step.`,
           `Shared math helpers for functions like power, exponent and logarithm are written by hand and marked to forbid the compiler from folding a multiply and an add into one fused instruction.`,
           `A command line tool on the client side exports a frozen trace fixture that the server engine consumes, so both runtimes start from exactly the same recorded input.`,
           `Every change to the simulation runs against the frozen traces before merge, comparing intermediate state rather than only the final result.`
@@ -231,7 +231,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`Bit exactness is a property of the whole toolchain, not of the algorithm as written, so the only way to trust it is to compare every step, not the final score two implementations happen to agree on.`,
         trade:`Both implementations are now frozen against a specific compiler and runtime behaviour, so upgrading either toolchain is a re-verification project rather than a routine version bump, and the math helpers stay hand written instead of using the optimised standard library versions.`,
         rel:[
-          ['server-determinism',`Bit-exact parity between a client simulation and a server re-simulation is this topic's central worked example.`]
+          ['server-determinism',`Bit-exact parity between a client simulation and a server re-simulation is this topic’s central worked example.`]
         ],
         story:`The client and the server disagreed about who had won a match, rarely and only on some devices. I built a trace exporter on both sides that dumped every step of the simulation instead of only the final result, then diffed the traces step by step to find the first point where they split. It was one floating point expression the compiler was allowed to fold into a fused multiply add, so identical inputs produced different last bits depending on the build. I rewrote the shared math helpers to forbid that fold, ported the random generator bit for bit instead of matching its described behaviour, and froze a set of traces as a test that fails on any byte difference. Disagreements went to zero and the habit I kept from it is to compare traces, never final results, whenever two implementations are required to agree.`
       },
@@ -241,7 +241,7 @@ SYSTEMS('cs-go-game-backend', [
         how:[
           `Fixtures cover a spread of match shapes rather than one canonical case, so a regression narrow to one input pattern is still caught.`,
           `The diff fails on the first differing step, so a single divergent instruction fails the whole test instead of being averaged away by a similar final score.`,
-          `A command line tool regenerates the frozen traces only when the client's own reference implementation changes, keeping the two artefacts explicitly linked instead of silently drifting apart.`,
+          `A command line tool regenerates the frozen traces only when the client’s own reference implementation changes, keeping the two artefacts explicitly linked instead of silently drifting apart.`,
           `The test runs in the same push pipeline as every other integration check, so a regression is caught on the commit that introduced it rather than on a schedule.`
         ],
         why:`Comparing only final results would have let the exact bug through, because two different simulations can land on the same score while disagreeing about every step that produced it.`,
@@ -256,9 +256,9 @@ SYSTEMS('cs-go-game-backend', [
       },
       {
         id:'simparity-anticheat', t:'Re-simulation as anti-cheat',
-        what:`Because the server re-runs the same simulation independent of what the client reports, that re-run doubles as an anti-cheat surface. A mismatch between a client's submitted result and the server's own re-simulation is the primary signal, backed by aggregation across matches, replay retention and batch sweeps for submissions that time out.`,
+        what:`Because the server re-runs the same simulation independent of what the client reports, that re-run doubles as an anti-cheat surface. A mismatch between a client’s submitted result and the server’s own re-simulation is the primary signal, backed by aggregation across matches, replay retention and batch sweeps for submissions that time out.`,
         how:[
-          `An inspector step compares the client-submitted result against the server's own re-simulation and treats a mismatch as the primary cheat signal.`,
+          `An inspector step compares the client-submitted result against the server’s own re-simulation and treats a mismatch as the primary cheat signal.`,
           `Suspicious patterns aggregate across matches rather than acting on one flagged submission, so an account is shadow-banned on a pattern rather than on a single noisy result.`,
           `Replays are retained past the match itself, so a flagged account can be reviewed against real gameplay and not only against the trace numbers.`,
           `Batch jobs sweep on a timeout for submissions that never arrived and for win streaks that are statistically implausible, both off the request path rather than inline with it.`
@@ -266,7 +266,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`A cheat detector built on the same code path the parity test already trusts costs nothing extra to reimplement, and it catches manipulation the client could otherwise get away with by simply lying about the result.`,
         trade:`Aggregating before acting delays a ban past the first flagged match, which is deliberate to avoid punishing a false positive on one anomalous result, but it means a confirmed cheater keeps playing until the pattern is established.`,
         rel:[
-          ['server-anticheat',`Server re-simulation as the anti-cheat mechanism, backed by aggregation and replay review, is this topic's central case.`]
+          ['server-anticheat',`Server re-simulation as the anti-cheat mechanism, backed by aggregation and replay review, is this topic’s central case.`]
         ],
         links:[
           ['simparity-trace-gate',`The same diff logic that gates a merge is repurposed at runtime to flag a mismatched submission.`]
@@ -287,7 +287,7 @@ SYSTEMS('cs-go-game-backend', [
       },
       {
         q:`Why open every transaction a handler needs up front and commit or roll back all of them at the end, instead of committing schema by schema as the handler goes?`,
-        a:`Deciding commit or roll back once, at the top of the handler, means a request touching three schemas cannot commit two and roll back the third by accident at some early return nobody remembered to guard. A deferred function keyed off the handler's own named return error runs that decision exactly once no matter which path the handler took to get there. The trade is that the pattern reads as magic until someone explains the deferred function and the named return together.`,
+        a:`Deciding commit or roll back once, at the top of the handler, means a request touching three schemas cannot commit two and roll back the third by accident at some early return nobody remembered to guard. A deferred function keyed off the handler’s own named return error runs that decision exactly once no matter which path the handler took to get there. The trade is that the pattern reads as magic until someone explains the deferred function and the named return together.`,
         follow:`What stops a write repository from writing outside a transaction when nothing at the type level distinguishes a session from a transaction?`,
         red:`Suggesting a two phase commit across the schemas as a stronger guarantee. That solves a distributed consistency problem this system does not have, since every schema lives behind one host and one process.`
       },
@@ -311,7 +311,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`Deciding commit or rollback once, at the top of the handler, means a request touching three schemas cannot commit two of them and roll back the third by accident at some early return nobody remembered to guard.`,
         trade:`The pattern reads as magic until someone explains the deferred function and the named return error together, and the runtime assertion that catches a plain session where a transaction was required stands in for something the type system cannot express.`,
         rel:[
-          ['backend-data-access',`Controller-scoped multi-schema transactions via a deferred commit or rollback are exactly this topic's worked idiom.`]
+          ['backend-data-access',`Controller-scoped multi-schema transactions via a deferred commit or rollback are exactly this topic’s worked idiom.`]
         ],
         links:[
           ['api-errors',`A rollback surfaces to the client through the same domain error type the boundary already knows how to render.`]
@@ -319,20 +319,20 @@ SYSTEMS('cs-go-game-backend', [
       },
       {
         id:'data-delta-sync', t:'Dirty-table delta sync',
-        what:`Every write repository call registers the name of the table it touched into a set carried on the request context. After a handler succeeds, one step reloads exactly those tables, checks them against the client's own generation counter, and returns only the slice that actually changed.`,
+        what:`Every write repository call registers the name of the table it touched into a set carried on the request context. After a handler succeeds, one step reloads exactly those tables, checks them against the client’s own generation counter, and returns only the slice that changed.`,
         how:[
           `The dirty set lives on the same request-scoped context the rest of the middleware chain already reads and writes.`,
           `A post-dispatch step runs after the handler returns success, reads the dirty set, and issues one reload per distinct table rather than one reload per write call.`,
-          `The client's generation counter, sent as a header, is compared so a client already ahead on a given table is not sent data it already has.`,
+          `The client’s generation counter, sent as a header, is compared so a client already ahead on a given table is not sent data it already has.`,
           `The convention is enforced by review rather than by the compiler: a repository that writes without registering its table produces a client that silently believes the wrong thing about that table.`
         ],
-        why:`A response that carries only what changed keeps mobile payloads small and lets the client's local state stay authoritative for everything it was not just told about.`,
+        why:`A response that carries only what changed keeps mobile payloads small and lets the client’s local state stay authoritative for everything it was not just told about.`,
         trade:`The rule is invisible at the call site. A new or copy-pasted repository that forgets to register its table does not fail loudly, it desyncs the client, so the convention survives only as a written rule and a review item.`,
         rel:[
           ['backend-data-access',`Dirty-table tracking with a post-dispatch reload is the delta-sync mechanism this topic covers.`],
           ['server-state-sync',`Sending only what changed, gated by a client-held generation counter, is a state-sync strategy in its own right.`]
         ],
-        story:`A repository that had been copy-pasted from an older one kept the old table's write calls but never registered its own table in the dirty set. Nothing failed. The handler returned success, the response looked normal, and the only symptom was a slow trickle of support reports from players whose local state disagreed with what the server actually held for one specific screen. Once we knew to look for it, tracing which tables a handler wrote against which tables it registered was a few minutes of reading. The fix was one missing line. What stayed with me is that a convention enforced only by review has exactly the failure mode you would expect: it holds until the one time a reviewer is looking at something else.`,
+        story:`A repository that had been copy-pasted from an older one kept the old table’s write calls but never registered its own table in the dirty set. Nothing failed. The handler returned success, the response looked normal, and the only symptom was a slow trickle of support reports from players whose local state disagreed with what the server held for one specific screen. Once we knew to look for it, tracing which tables a handler wrote against which tables it registered was a few minutes of reading. The fix was one missing line. What stayed with me is that a convention enforced only by review has exactly the failure mode you would expect: it holds until the one time a reviewer is looking at something else.`,
         links:[
           ['api-routing',`The dirty set this part reads is only meaningful because the middleware chain seeded a clean request context first.`]
         ]
@@ -344,12 +344,12 @@ SYSTEMS('cs-go-game-backend', [
           `The process-local tier holds config-like master data that is read constantly and only ever written by a deploy, never by a player action.`,
           `The distributed tier fronts anything mutable that more than one instance needs to agree on, with the database as the source of truth behind it.`,
           `The per-request tier is a plain in-memory cache scoped to the request context, created at the top of the middleware chain and discarded at the end, purely to collapse duplicate reads inside one handler.`,
-          `Cache misses and writes go through the same repository interfaces as the database, so a handler does not know or care which tier actually answered it.`
+          `Cache misses and writes go through the same repository interfaces as the database, so a handler does not know or care which tier answered it.`
         ],
         why:`Three tiers answer three different questions, whether this ever changes, whether instances need to agree, and whether this one request is reading the same thing twice, instead of asking one cache to serve all three at once.`,
         trade:`Three tiers are three places a stale read can hide, and a bug that looks like bad data can just as easily be an invalidation that only cleared one of them.`,
         rel:[
-          ['backend-caching-redis',`Process-local, distributed and per-request tiers, each solving a different caching question, is exactly this topic's taxonomy.`]
+          ['backend-caching-redis',`Process-local, distributed and per-request tiers, each solving a different caching question, is exactly this topic’s taxonomy.`]
         ]
       },
       {
@@ -364,7 +364,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`Reusing one deployment for three jobs was a real cost saving early on, and each job maps cleanly onto a Redis data structure that already does most of the work.`,
         trade:`The three jobs share fate. An operational incident on the Redis instance is a leaderboard incident, a locking incident and a chat incident simultaneously, and nothing at the infrastructure level isolates them from each other.`,
         rel:[
-          ['backend-caching-redis',`Sorted-set leaderboards, a distributed lock and pub/sub on one Redis deployment are this topic's three Redis patterns.`],
+          ['backend-caching-redis',`Sorted-set leaderboards, a distributed lock and pub/sub on one Redis deployment are this topic’s three Redis patterns.`],
           ['server-scaling',`Sharing one instance across unrelated jobs is a scaling and blast-radius trade-off in its own right.`]
         ],
         links:[
@@ -383,7 +383,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`Splitting migrations by schema keeps a change to one domain from taking a lock on tables it has nothing to do with, and separating migration pull requests from code pull requests makes a bad migration cheap to revert on its own.`,
         trade:`A feature that needs a new column and the code that reads it now needs two pull requests in the right order, and a reviewer has to track that ordering by convention rather than by any automated check.`,
         rel:[
-          ['backend-migrations-config',`Per-schema migration directories and shard selection from the environment are this topic's data-partitioning example.`],
+          ['backend-migrations-config',`Per-schema migration directories and shard selection from the environment are this topic’s data-partitioning example.`],
           ['infra-data-stores',`Sharding player data by a shard id while keeping one code path is a managed-data-store question at its core.`]
         ]
       }
@@ -397,12 +397,12 @@ SYSTEMS('cs-go-game-backend', [
       {
         q:`Configuration is compiled into the binary. What does that buy you, and what did it end up costing?`,
         a:`A build that carries its own configuration cannot be pointed at the wrong environment by a stray file left on a host, and the diff between two environments is visible as plain YAML in one file instead of scattered across servers. It also made that file feel like the natural home for anything configurable, which is exactly how database credentials and a chat webhook ended up compiled into a binary and committed to version control.`,
-        follow:`Once you found credentials in that file, what was the actual fix, and why wasn't deleting them from the file enough?`,
+        follow:`Once you found credentials in that file, what was the actual fix, and why wasn’t deleting them from the file enough?`,
         red:`Saying the fix was deleting the values from the file. A pushed secret is compromised the moment it is pushed, so the fix is rotation, and deletion alone leaves the old value reachable in history.`
       },
       {
         q:`You found live secrets committed in the repository. How did you raise it, and why not just flag it immediately in a team channel?`,
-        a:`I wrote the exposure as facts instead of a complaint: who could read those values today, what an old clone or a departed teammate's checkout still holds, and how long a full rotation would take given the current layout. Then I proposed the smallest first step rather than a platform rewrite, moving one environment's values to a secret store injected at deploy time and rotating them. An outraged message would have achieved nothing against a problem that predated everyone and competed with feature deadlines.`,
+        a:`I wrote the exposure as facts instead of a complaint: who could read those values today, what an old clone or a departed teammate’s checkout still holds, and how long a full rotation would take given the current layout. Then I proposed the smallest first step rather than a platform rewrite, moving one environment’s values to a secret store injected at deploy time and rotating them. An outraged message would have achieved nothing against a problem that predated everyone and competed with feature deadlines.`,
         follow:`What made rotation time the number worth tracking instead of, say, counting how many places the secret appeared?`,
         red:`Describing this as reporting it and moving on. Stopping at deletion or rotation for a single environment without naming what was still unfixed is not the same as owning the exposure.`
       },
@@ -426,7 +426,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`A build that carries its own configuration cannot be pointed at the wrong environment by a stray file left on a host, and the diff between two environments is visible as plain YAML in one file instead of scattered across servers.`,
         trade:`Changing a single value means a rebuild and a redeploy, and a file this central becomes the place everyone reaches for when something needs to be configurable, including values that should never have been compiled into a binary at all.`,
         rel:[
-          ['backend-migrations-config',`Config compiled into the binary with environment variables as the only knob is this topic's configuration half.`],
+          ['backend-migrations-config',`Config compiled into the binary with environment variables as the only knob is this topic’s configuration half.`],
           ['infra-deploy-models',`A self-describing build artefact is a deploy-model decision, not only a configuration one.`]
         ],
         links:[
@@ -437,17 +437,17 @@ SYSTEMS('cs-go-game-backend', [
         id:'platform-secrets-lesson', t:'Secrets ended up in version control',
         what:`Database credentials sat inside the committed migration configuration and the embedded YAML, and a separate CI file carried a plaintext API token and a chat webhook URL. All three were reachable to anyone with read access to the repository, forever, not just to whoever could see the current production values.`,
         how:[
-          `The exposure was written up as facts rather than as a complaint: exactly who could read the values today, what an old clone or a departed teammate's checkout still holds, and how long a full rotation would take given the current layout.`,
-          `The fix proposed was the smallest first step rather than a platform rewrite: move one environment's values to a secret store injected at deploy time, remove the committed copies, and rotate them.`,
-          `Rotation time became the number worth tracking, because a secret that takes most of a day to rotate across every environment is a secret nobody actually rotates until forced to.`,
+          `The exposure was written up as facts rather than as a complaint: exactly who could read the values today, what an old clone or a departed teammate’s checkout still holds, and how long a full rotation would take given the current layout.`,
+          `The fix proposed was the smallest first step rather than a platform rewrite: move one environment’s values to a secret store injected at deploy time, remove the committed copies, and rotate them.`,
+          `Rotation time became the number worth tracking, because a secret that takes most of a day to rotate across every environment is a secret nobody rotates until forced to.`,
           `The lesson generalises past credentials: convenience for a build agent needing a file at a path is never a reason for version control to hold that file.`
         ],
-        why:`A private repository is not a secret store. Everyone who ever had read access, every CI cache and every old clone keeps a plaintext credential indefinitely, so the only real fix is a store that injects the value at deploy time and never writes it into the repository's history.`,
+        why:`A private repository is not a secret store. Everyone who ever had read access, every CI cache and every old clone keeps a plaintext credential indefinitely, so the only real fix is a store that injects the value at deploy time and never writes it into the repository’s history.`,
         trade:`Moving one environment was the smallest possible ask and it worked, but the full history was never rewritten, so the old values stay reachable in git history even after rotation makes them useless as credentials.`,
         rel:[
-          ['infra-secrets',`Committed credentials, the framing as facts rather than complaint, and rotation time as the metric are this topic's central case.`]
+          ['infra-secrets',`Committed credentials, the framing as facts rather than complaint, and rotation time as the metric are this topic’s central case.`]
         ],
-        story:`I found database passwords in migration configuration and a token and a webhook in the CI file. It predated me, everyone already knew, and the cleanup competed with feature deadlines, so an outraged message would have achieved nothing. I wrote the exposure as facts instead: who can read those values today, what an old clone gives someone who has left, and how long a full rotation takes with the current layout, which was most of a day across environments. Then I proposed the smallest first step rather than a platform project, moving one environment to values injected at deploy time from a secret store, with the committed copies removed and rotated. That environment's rotation time went from most of a day to one deploy. I did not get the history rewritten, and that is the part I quote in interviews: a pushed secret is compromised, the remedy is rotation, and the only real prevention is a check before the commit.`
+        story:`I found database passwords in migration configuration and a token and a webhook in the CI file. It predated me, everyone already knew, and the cleanup competed with feature deadlines, so an outraged message would have achieved nothing. I wrote the exposure as facts instead: who can read those values today, what an old clone gives someone who has left, and how long a full rotation takes with the current layout, which was most of a day across environments. Then I proposed the smallest first step rather than a platform project, moving one environment to values injected at deploy time from a secret store, with the committed copies removed and rotated. That environment’s rotation time went from most of a day to one deploy. I did not get the history rewritten, and that is the part I quote in interviews: a pushed secret is compromised, the remedy is rotation, and the only real prevention is a check before the commit.`
       },
       {
         id:'platform-observability', t:'Multi-stream logging and an APM abstraction',
@@ -461,7 +461,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`Splitting logs by concern turns a question like whether the database is slow into one file to open instead of a full text search across everything, and naming a tracing transaction at the same place a route is declared means tracing coverage cannot silently fall behind routing coverage.`,
         trade:`A dozen or more log files is more than one operator, so the split earns its keep only once someone has the muscle memory of which file answers which question, and it is a poor fit for search tooling that expects one stream.`,
         rel:[
-          ['backend-observability',`Multi-stream logging, signal-driven rotation and a tracing abstraction named at routing time are this topic's core practices.`]
+          ['backend-observability',`Multi-stream logging, signal-driven rotation and a tracing abstraction named at routing time are this topic’s core practices.`]
         ],
         links:[
           ['api-routing',`The transaction naming this part relies on happens at the same tracing wrapper that api-routing registers every endpoint through.`]
@@ -471,12 +471,12 @@ SYSTEMS('cs-go-game-backend', [
   },
   {
     id:'cicd', t:'Build, CI and deploy', kind:'cicd',
-    sum:`A pull request gate cheap enough to run on every review, a heavier push gate that proves the schema and every server mode actually boot, a build that stamps its own provenance, and a docker-compose stack for local development.`,
+    sum:`A pull request gate cheap enough to run on every review, a heavier push gate that proves the schema and every server mode boot, a build that stamps its own provenance, and a docker-compose stack for local development.`,
     stack:['Drone','Docker','MySQL','Redis','memcached'],
     iv:[
       {
-        q:`A pull request only runs lint and unit tests, while schema provisioning and end to end happen after merge. Isn't that backwards?`,
-        a:`The heavy stage takes tens of minutes, too slow for how often a reviewer wants feedback during review, so splitting by cost buys fast per review feedback without pretending lint and unit tests prove the schema and the full binary actually boot together. The real cost is honest: a pull request can show green while the check that would catch a schema or wiring problem has not run yet, so a branch is not fully verified until after it merges.`,
+        q:`A pull request only runs lint and unit tests, while schema provisioning and end to end happen after merge. Isn’t that backwards?`,
+        a:`The heavy stage takes tens of minutes, too slow for how often a reviewer wants feedback during review, so splitting by cost buys fast per review feedback without pretending lint and unit tests prove the schema and the full binary boot together. The real cost is honest: a pull request can show green while the check that would catch a schema or wiring problem has not run yet, so a branch is not fully verified until after it merges.`,
         follow:`What would it take to move that verification earlier without making every review wait tens of minutes?`,
         red:`Claiming a green pull request means the branch is fully verified. The whole point of naming this trade-off out loud is that it does not, and pretending otherwise is the failure mode this practice exists to avoid.`
       },
@@ -484,11 +484,11 @@ SYSTEMS('cs-go-game-backend', [
         q:`Why does the build stamp its own version, commit hash and build date instead of relying on a deployment manifest?`,
         a:`A binary that can name its own build is a debugging shortcut when a live incident starts with figuring out which version is even running, since the answer travels with the artefact instead of living in a separate system that could be out of sync. The client-facing version is read from master data rather than baked in, so a version bump the client needs to see does not by itself require a server redeploy.`,
         follow:`What happens if the linker flags are missing for one build, and how would you notice?`,
-        red:`Saying a deployment manifest makes this redundant. A manifest can drift from what is actually running, and the binary reporting its own provenance is exactly the check that catches that drift.`
+        red:`Saying a deployment manifest makes this redundant. A manifest can drift from what is running, and the binary reporting its own provenance is exactly the check that catches that drift.`
       },
       {
         q:`Deploy is a shell supervisor running processes on fixed ports rather than a container orchestrator. What are you giving up?`,
-        a:`There is no orchestrator managing process placement, restart policy or scaling, so all of that lives in shell scripts and in whoever operates them. It is a real capability gap against a platform that handles it natively, accepted because migrations run as their own explicit step scoped per schema and per environment, kept separate from the application deploy, which was the property that mattered most at the time.`,
+        a:`There is no orchestrator managing process placement, restart policy or scaling, so all of that lives in shell scripts and in whoever operates them. It is a real capability gap against a platform that handles it natively, accepted because the property that mattered most was keeping migrations as their own explicit step, per schema and per environment, so a bad migration and a bad deploy were never the same rollback, and that separation did not need an orchestrator.`,
         follow:`What is the first failure mode you would expect from a shell supervisor that an orchestrator would have caught automatically?`,
         red:`Dismissing container orchestration as unnecessary complexity in general. The honest answer names what was given up, not that nothing was.`
       }
@@ -501,17 +501,17 @@ SYSTEMS('cs-go-game-backend', [
           `The lighter pull-request stage exists specifically because the heavy stage takes tens of minutes, too slow for how often a reviewer wants feedback during one review.`,
           `The heavy stage provisions every schema from nothing rather than reusing a persisted database, because migration order and seed drift are exactly the failures a pre-existing database would hide.`,
           `Ephemeral service containers back both stages, so the database, cache and Redis a test hits are the same version as production rather than whatever happens to be on a shared box.`,
-          `A chat notification closes the push pipeline, so a broken push stage is visible immediately rather than discovered at the next person's pull request.`
+          `A chat notification closes the push pipeline, so a broken push stage is visible immediately rather than discovered at the next person’s pull request.`
         ],
-        why:`Splitting the gate by cost buys fast per-review feedback without pretending that lint and unit tests are the same thing as proving the schema and the full binary actually boot together.`,
-        trade:`The split has a real cost: a pull request can show green while the check that would actually catch a schema or wiring problem has not run yet, so a branch is not fully verified until after it merges.`,
+        why:`Splitting the gate by cost buys fast per-review feedback without pretending that lint and unit tests are the same thing as proving the schema and the full binary boot together.`,
+        trade:`The split has a real cost: a pull request can show green while the check that would catch a schema or wiring problem has not run yet, so a branch is not fully verified until after it merges.`,
         rel:[
-          ['infra-ci-pipelines',`Gating differently on a pull request than on a push, and grading what each stage actually proves, is this topic's central trade-off.`],
+          ['infra-ci-pipelines',`Gating differently on a pull request than on a push, and grading what each stage proves, is this topic’s central trade-off.`],
           ['quality-and-build-health',`Naming out loud what a green tick did not cover, instead of letting it imply more than it proved, is build health as a practice.`]
         ],
-        story:`As the person who owned the backend conventions, I had a main branch that went red on schema changes and a team that had learned to expect it. The pull request gate only ran lint and unit tests, so a branch was never actually proven until it merged. I moved the expensive verification into the push pipeline: create every schema from zero, run every migration in order, seed master data, build, start each server mode and run the end to end suite. Schema breakage moved out of the release window after that. I also said the part I had not fixed out loud in review, that pull request checks still only covered lint and unit tests, rather than letting a green tick on a pull request imply more than it actually proved.`,
+        story:`As the person who owned the backend conventions, I had a main branch that went red on schema changes and a team that had learned to expect it. The pull request gate only ran lint and unit tests, so a branch was never proven until it merged. I moved the expensive verification into the push pipeline: create every schema from zero, run every migration in order, seed master data, build, start each server mode and run the end to end suite. Schema breakage moved out of the release window after that. I also said the part I had not fixed out loud in review, that pull request checks still only covered lint and unit tests, rather than letting a green tick on a pull request imply more than it proved.`,
         links:[
-          ['data-migrations-sharding',`The full provisioning this stage runs is what actually exercises every schema and every migration directory.`]
+          ['data-migrations-sharding',`The full provisioning this stage runs is what exercises every schema and every migration directory.`]
         ]
       },
       {
@@ -526,7 +526,7 @@ SYSTEMS('cs-go-game-backend', [
         why:`A binary that can name its own build is a debugging shortcut when a live incident starts with figuring out which version is running, and keeping migrations as their own step means a bad migration and a bad deploy are never the same rollback.`,
         trade:`There is no orchestrator managing process placement, restart policy or scaling, so all of that lives in shell scripts and in whoever operates them, a real capability gap against a platform that handles it natively.`,
         rel:[
-          ['infra-artifacts-provenance',`Stamping a binary with its own version, commit and build date is exactly this topic's provenance practice.`],
+          ['infra-artifacts-provenance',`Stamping a binary with its own version, commit and build date is exactly this topic’s provenance practice.`],
           ['infra-deploy-models',`A shell supervisor running named processes on fixed ports is one deploy model among several this topic compares.`]
         ],
         links:[
@@ -537,15 +537,15 @@ SYSTEMS('cs-go-game-backend', [
         id:'cicd-dev-environment', t:'Docker-compose development stack',
         what:`A local development environment brings up the same shape of dependencies the pipeline uses, MySQL, Redis and memcached, plus an application container holding the toolchain, on a user-defined bridge network, with source bind-mounted so editing happens on the host and building happens in the container.`,
         how:[
-          `The application container's image is templated per host CPU architecture by a setup script, rather than committed as several fixed Dockerfiles.`,
+          `The application container’s image is templated per host CPU architecture by a setup script, rather than committed as several fixed Dockerfiles.`,
           `MySQL gets an init script directory for seed data and bind-mounted data, log and configuration paths, so a fresh checkout can seed a working database without a manual step.`,
           `Redis persists to a volume so restarting the stack does not silently discard leaderboard or lock state a developer was relying on.`,
           `The setup script also collects developer identity and an SSH key as part of bringing the stack up, wiring source control access into the same one-command setup.`
         ],
-        why:`Matching the pipeline's dependency versions locally means a bug that only reproduces against a specific MySQL or Redis version shows up on a laptop instead of only in CI.`,
-        trade:`The compose file and the pipeline's service container definitions are two places describing similar dependencies, so a version bump in one has to be remembered in the other, and nothing enforces that they stay in sync.`,
+        why:`Matching the pipeline’s dependency versions locally means a bug that only reproduces against a specific MySQL or Redis version shows up on a laptop instead of only in CI.`,
+        trade:`The compose file and the pipeline’s service container definitions are two places describing similar dependencies, so a version bump in one has to be remembered in the other, and nothing enforces that they stay in sync.`,
         rel:[
-          ['infra-containers',`A compose-based local stack matching the pipeline's own dependency versions is this topic's development-environment case.`]
+          ['infra-containers',`A compose-based local stack matching the pipeline’s own dependency versions is this topic’s development-environment case.`]
         ]
       }
     ]
@@ -557,14 +557,14 @@ SYSTEMS('cs-go-game-backend', [
     iv:[
       {
         q:`Roughly twenty batch binaries build from the same module as the server. How do you know which ones are safe to run right now?`,
-        a:`Each batch binary carries a header comment documenting its own cron schedule, or stating plainly that it is manual-recovery-only and must never be put on a schedule, so the answer travels with the code instead of living in someone's memory. The trade is that nothing forces the header comment to stay honest once someone changes the schedule and not the file, and twenty small binaries from one module is twenty things that can silently stop being scheduled if a cron entry is lost.`,
+        a:`Each batch binary carries a header comment documenting its own cron schedule, or stating plainly that it is manual-recovery-only and must never be put on a schedule, so the answer travels with the code instead of living in someone’s memory. The trade is that nothing forces the header comment to stay honest once someone changes the schedule and not the file, and twenty small binaries from one module is twenty things that can silently stop being scheduled if a cron entry is lost.`,
         follow:`How would you catch a batch binary whose header comment no longer matches its actual cron entry?`,
         red:`Claiming the header comment is a sufficient guarantee on its own. The system already admits it can go stale, and a senior answer treats it as documentation to verify, not a control to trust blindly.`
       },
       {
         q:`Why is the admin and debug surface a separate mode of the binary instead of a set of privileged routes on the player-facing router?`,
         a:`Keeping admin and debug entirely out of the player-facing router means a bug in the route table cannot accidentally expose an administrative action to a player, because the code paths never share a listener. Basic authentication in front of the whole mode is judged sufficient specifically because the mode listens on its own port, not the one a public load balancer forwards.`,
-        follow:`What has to be true in every environment, including a developer's laptop, for that port-based isolation to actually hold?`,
+        follow:`What has to be true in every environment, including a developer’s laptop, for that port-based isolation to hold?`,
         red:`Saying basic auth alone is fine on any port. The reasoning depends entirely on the port not being reachable from outside, and skipping that assumption misses the actual argument.`
       },
       {
@@ -584,10 +584,10 @@ SYSTEMS('cs-go-game-backend', [
           `Aggregation jobs and timeout sweeps run here specifically because they need to scan across many rows, a bad shape for an inline request handler.`,
           `Deploy for a batch binary is the same build artefact as the server, just invoked differently, as a cron job or as a manual recovery command, never as a long-running mode.`
         ],
-        why:`Pulling scan-and-aggregate work out of the request path keeps player-facing latency independent of maintenance work, and documenting schedule versus manual-only in the binary itself means the answer to whether it is safe to run right now travels with the code instead of living in someone's memory.`,
+        why:`Pulling scan-and-aggregate work out of the request path keeps player-facing latency independent of maintenance work, and documenting schedule versus manual-only in the binary itself means the answer to whether it is safe to run right now travels with the code instead of living in someone’s memory.`,
         trade:`Twenty small binaries from one module is twenty things that can silently stop being scheduled if a cron entry is lost, and nothing forces the header comment to stay honest once someone changes the schedule and not the file.`,
         rel:[
-          ['server-liveops',`Cron-scheduled batches for aggregation and cleanup, separate from the request path, are this topic's live-operations mechanics.`],
+          ['server-liveops',`Cron-scheduled batches for aggregation and cleanup, separate from the request path, are this topic’s live-operations mechanics.`],
           ['infra-deploy-models',`Reusing one build artefact for a server mode and for a scheduled batch job is a deploy-model decision.`]
         ],
         links:[
@@ -604,7 +604,7 @@ SYSTEMS('cs-go-game-backend', [
           `The debug endpoints exist specifically to let the end to end suite and QA set up data states that would otherwise need many real requests to reach.`
         ],
         why:`Keeping admin and debug entirely out of the player-facing router means a bug in the route table cannot accidentally expose an administrative action to a player, because the code paths never share a listener.`,
-        trade:`A second mode is a second thing to build, deploy and keep patched, and listening on a different port is a network-policy assumption that has to actually hold in every environment, including a developer's own laptop where ports are rarely firewalled.`,
+        trade:`A second mode is a second thing to build, deploy and keep patched, and listening on a different port is a network-policy assumption that has to hold in every environment, including a developer’s own laptop where ports are rarely firewalled.`,
         rel:[
           ['server-liveops',`Admin tooling as a separate mode behind basic auth, used for maintenance gates and data setup, sits inside this topic.`],
           ['infra-secrets',`Basic auth as the only barrier in front of an administrative mode is a secrets-and-access trade-off worth naming.`]
@@ -615,7 +615,7 @@ SYSTEMS('cs-go-game-backend', [
         what:`A dedicated scripts directory holds the day-to-day operational tools that do not belong in the application itself: comparing schema definitions between branches, syncing schema, master data or user data across environments with a cache flush, and wrapping the code and mock generation steps developers run by hand.`,
         how:[
           `A DDL diff tool compares the schema two branches would produce, catching a migration that silently reorders or drops a column before it reaches an environment that matters.`,
-          `Cross-environment sync scripts move schema, master data or full user data snapshots between environments, always paired with a cache flush so a synced environment does not keep serving stale cached values afterward.`,
+          `Cross-environment sync scripts move schema, master data or full user data snapshots between environments, always paired with a cache flush so a synced environment does not keep serving stale cached values afterwards.`,
           `The same toolbox wraps proto generation, the entity and repository generator that reads database descriptors, and a selective mock generator invoked by interface name, so those generators have one documented entry point instead of being remembered as raw commands.`,
           `A stress-test harness and an error-report aggregator live alongside the sync scripts, treated as the same category of tool: operational, not shipped, but load-bearing.`
         ],
@@ -623,10 +623,10 @@ SYSTEMS('cs-go-game-backend', [
         trade:`The toolbox grows in step with the operational needs of the project and nobody owns pruning it, so a script needed once during a migration tends to outlive the migration and sit there unused but undeleted.`,
         rel:[
           ['infra-data-stores',`Cross-environment sync with a cache flush, and diffing schema between branches, are operational data-store practices this topic covers.`],
-          ['backend-migrations-config',`A DDL diff tool exists to catch exactly the migration drift this topic's schema conventions are meant to prevent.`]
+          ['backend-migrations-config',`A DDL diff tool exists to catch exactly the migration drift this topic’s schema conventions are meant to prevent.`]
         ],
         links:[
-          ['data-migrations-sharding',`The DDL diff tool exists specifically to catch drift between what the migration directories there should produce and what a branch actually produces.`]
+          ['data-migrations-sharding',`The DDL diff tool exists specifically to catch drift between what the migration directories there should produce and what a branch produces.`]
         ]
       }
     ]
@@ -644,25 +644,25 @@ SYSTEMS('cs-go-game-backend', [
       },
       {
         q:`Why is deriving an end to end expectation from observed output forbidden, even when the output looks correct?`,
-        a:`A test built from observed output proves the code did something, not that it did the right thing, and it stops failing the moment a bug becomes consistent instead of getting fixed. Expectations have to come from master data or from the specification's own math instead, and a setup failure has to fail the test outright rather than call skip, because a silently skipped setup makes every assertion after it vacuously true.`,
+        a:`A test built from observed output proves the code did something, not that it did the right thing, and it stops failing the moment a bug becomes consistent instead of getting fixed. Expectations have to come from master data or from the specification’s own math instead, and a setup failure has to fail the test outright rather than call skip, because a silently skipped setup makes every assertion after it vacuously true.`,
         follow:`A previously green case just turned red. Walk through how you would decide whether the change or the test is wrong.`,
         red:`Treating a green-to-red flip as proof the test is outdated by default. The rule here is the opposite, guilty until proven innocent, and getting that backwards defeats the whole practice.`
       },
       {
         q:`Why require a migration to land in its own pull request separate from the code that will use the new column?`,
         a:`Keeping migration pull requests and code pull requests apart means a migration failure or a bad migration rollback is never entangled with a logic change in the same diff, so either piece can be reverted on its own. The trade is that a feature needing a new column now needs two pull requests in the right order, tracked by convention rather than by any automated check.`,
-        follow:`What actually enforces the ordering between the migration pull request and the code pull request that depends on it?`,
+        follow:`What enforces the ordering between the migration pull request and the code pull request that depends on it?`,
         red:`Suggesting the two pull requests could just be combined for convenience when a change is small. That is the exact shortcut the rule exists to prevent, and proposing it back as an improvement misses why the separation exists.`
       }
     ],
     parts:[
       {
         id:'process-red-first', t:'Red-first discipline as a written rule',
-        what:`A bug fix or a feature is required to land its failing test first, shown red, before the change that makes it pass. The pull request body carries both the red pre-fix log tail and the green post-fix one, so a reviewer sees the failure the change actually addresses.`,
+        what:`A bug fix or a feature is required to land its failing test first, shown red, before the change that makes it pass. The pull request body carries both the red pre-fix log tail and the green post-fix one, so a reviewer sees the failure the change addresses.`,
         how:[
           `The red log tail has to exist and be shown, not just claimed, so a reviewer can tell a real regression test from a test written to match whatever the fix happened to do.`,
           `The pull request template has a dedicated slot for pasting red and green evidence, making the discipline something the process asks for by default rather than something a reviewer has to remember to request.`,
-          `The rule applies to bug fixes and features equally: a new feature's acceptance test is expected to fail against the code as it stood before the feature existed.`,
+          `The rule applies to bug fixes and features equally: a new feature’s acceptance test is expected to fail against the code as it stood before the feature existed.`,
           `Golden-trace and other characterisation-style tests follow the same shape, a known-bad case has to be shown failing the check before the check is trusted to gate anything.`
         ],
         why:`A test written after the fix tends to test what the fix does, not what the bug was, and the difference only shows up the next time someone touches that code. Seeing the test fail first is the only proof it would have caught the original bug.`,
@@ -679,10 +679,10 @@ SYSTEMS('cs-go-game-backend', [
         id:'process-e2e-integrity', t:'End to end integrity rules',
         what:`The end to end suite is a separate TypeScript test project hitting the running binaries over real HTTP with generated protobuf clients. A short set of rules governs what an expected value in that suite is allowed to be, because an end to end test is the easiest place in the whole project to accidentally test nothing.`,
         how:[
-          `An expected value has to be derived independently, from master data or from the specification's own math, never pasted from what the code under test printed while the test was being written.`,
+          `An expected value has to be derived independently, from master data or from the specification’s own math, never pasted from what the code under test printed while the test was being written.`,
           `A setup step that fails must fail the test outright, never call skip, because a silently skipped setup makes every assertion after it vacuously true.`,
           `Weakening an assertion to make a test pass is forbidden outright, because the assertion existed to check something specific and a weaker one checks less than the thing it was named for.`,
-          `A previously green case turning red is treated as the change being wrong by default, not as the test being outdated, until someone actively argues and shows why the test's assumption is what changed.`
+          `A previously green case turning red is treated as the change being wrong by default, not as the test being outdated, until someone actively argues and shows why the test’s assumption is what changed.`
         ],
         why:`An end to end suite this large is easy to keep green by accident, either by pasting observed output as the expectation or by quietly skipping a flaky setup, and both failure modes look identical to a passing suite from the outside.`,
         trade:`Deriving every expectation independently is slower to write than reading the output and pasting it, and treating a green-to-red flip as guilty until proven innocent means a legitimate intentional behaviour change has to argue its case in review rather than just updating the number.`,
@@ -690,25 +690,25 @@ SYSTEMS('cs-go-game-backend', [
           ['quality-and-build-health',`Rules that stop a large end to end suite from being green by accident are a direct build-health practice.`],
           ['pm-qa-release',`What an end to end suite is allowed to assert, and what makes its green tick trustworthy, is QA planning made concrete.`]
         ],
-        story:`I found expected values in end to end tests that had been pasted from what the code printed when the test was written. That kind of test proves the code did something, not that it did the right thing, and it stops failing the moment a bug becomes consistent instead of getting fixed. I rewrote the rule as policy rather than as a one-time cleanup: expectations get derived from master data or from the specification's own math, a failing setup is red and never skipped, and a previously green case turning red means the change is wrong until someone shows otherwise. The habit I carry from it is to ask, of any end to end assertion, where the expected number actually came from before trusting that it ever tested anything.`
+        story:`I found expected values in end to end tests that had been pasted from what the code printed when the test was written. That kind of test proves the code did something, not that it did the right thing, and it stops failing the moment a bug becomes consistent instead of getting fixed. I rewrote the rule as policy rather than as a one-time cleanup: expectations get derived from master data or from the specification’s own math, a failing setup is red and never skipped, and a previously green case turning red means the change is wrong until someone shows otherwise. The habit I carry from it is to ask, of any end to end assertion, where the expected number came from before trusting that it ever tested anything.`
       },
       {
         id:'process-conventions', t:'Migration PR separation and rule files as memory',
-        what:`A migration that changes a schema is required to land in its own pull request, separate from any code that reads the new column, and the project's conventions live as versioned rule files next to the code they govern rather than in one document nobody opens.`,
+        what:`A migration that changes a schema is required to land in its own pull request, separate from any code that reads the new column, and the project’s conventions live as versioned rule files next to the code they govern rather than in one document nobody opens.`,
         how:[
           `Migration pull requests and code pull requests are kept apart so a migration failure or a bad migration rollback is never entangled with a logic change in the same diff.`,
-          `Rule files sit next to what they govern, for example a controller-skeleton rule inside the controllers directory and the end to end conventions inside the end to end suite's own directory, so the rule is discovered by being in the way rather than by being remembered.`,
+          `Rule files sit next to what they govern, for example a controller-skeleton rule inside the controllers directory and the end to end conventions inside the end to end suite’s own directory, so the rule is discovered by being in the way rather than by being remembered.`,
           `An index file names the rules that always apply across the whole project, with an explicit statement that a written project rule outranks whatever an individual contributor happens to remember from before.`,
           `The pull request template itself encodes policy: a purpose, a cause, a solution, a verification checklist expecting pasted red and green evidence, and references, written for readers in more than one language.`
         ],
         why:`A team that grows past the size where everyone remembers every decision needs the decision written down next to the code, or the same argument gets relitigated every time a new person touches that code.`,
         trade:`Rule files need someone to keep them current, and a stale rule file nobody prunes is worse than no rule file, because it is still read as authoritative after the practice it describes has changed.`,
         rel:[
-          ['lead-conventions',`Written rule files next to the code they govern, with explicit precedence over memory, are this topic's central practice.`],
+          ['lead-conventions',`Written rule files next to the code they govern, with explicit precedence over memory, are this topic’s central practice.`],
           ['team-and-collaboration',`Migration PR separation and a shared PR template are handoff artefacts that make collaboration on a live schema possible.`]
         ],
         links:[
-          ['process-red-first',`The pull request template that carries red and green evidence is the same template this part's policy fields live in.`]
+          ['process-red-first',`The pull request template that carries red and green evidence is the same template this part’s policy fields live in.`]
         ]
       }
     ]
@@ -744,7 +744,7 @@ FLOWS('cs-go-game-backend', [
       { id:'delta', t:'Delta response is built', sys:'data',
         d:`One post dispatch step reloads exactly the tables in the dirty set, compares against the generation counter the client sent, and marshals the result as protobuf, so the response carries what changed instead of the whole player.` },
       { id:'recorded', t:'Recorded and traced', sys:'platform',
-        d:`Both endings land in the same place. The route's monitoring transaction closes, the execution time line is written to its own stream, and a game event goes to the append only action log with the identifiers hashed.` }
+        d:`Both endings land in the same place. The route’s monitoring transaction closes, the execution time line is written to its own stream, and a game event goes to the append only action log with the identifiers hashed.` }
     ],
     edges:[
       ['arrive','chain'],
@@ -760,7 +760,7 @@ FLOWS('cs-go-game-backend', [
   {
     id:'push',
     t:'Push to production',
-    sum:`What happens between a merged pull request and a running deploy. Migration order and seed drift only ever show up when a database is built from nothing, so this chart is where that proof actually runs.`,
+    sum:`What happens between a merged pull request and a running deploy. Migration order and seed drift only ever show up when a database is built from nothing, so this chart is where that proof runs.`,
     steps:[
       { id:'pr-gate', t:'PR lint and tests', sys:'cicd',
         d:`A pull request runs lint and unit tests only, fast enough to give feedback inside a review cycle, before anything heavier starts.` },
@@ -793,7 +793,7 @@ FLOWS('cs-go-game-backend', [
   {
     id:'match-verification',
     t:'Match result verification',
-    sum:`Why the result a player sees is never the result that counts on its own. The client's simulation buys responsiveness, and everything after compare exists because that simulation is not trusted by itself.`,
+    sum:`Why the result a player sees is never the result that counts on its own. The client’s simulation buys responsiveness, and everything after compare exists because that simulation is not trusted by itself.`,
     steps:[
       { id:'simulate', t:'Client simulates match',
         d:`The client plays the match out locally so the player sees a result immediately, with no round trip to the server.` },
@@ -834,7 +834,7 @@ PROJECT_INTERVIEW('cs-go-game-backend', {
   junior:[
     {
       q:`Walk me through the architecture of this backend in two minutes.`,
-      a:`One Go module produced every server process behind a live mobile game: the public API, an admin tool server, two WebSocket servers, and about twenty scheduled batch binaries, all one deploy artefact selected by a mode flag. Controllers call interactors, interactors call repository interfaces they own, and concrete adapters for database, cache, queue and tracing are injected inward by a compile-time dependency injection generator. The client plays a simulation locally for responsiveness, and the server re-runs the identical simulation to decide the result that actually counts.`,
+      a:`One Go module produced every server process behind a live mobile game: the public API, an admin tool server, two WebSocket servers, and about twenty scheduled batch binaries, all one deploy artefact selected by a mode flag. Controllers call interactors, interactors call repository interfaces they own, and concrete adapters for database, cache, queue and tracing are injected inward by a compile-time dependency injection generator. The client plays a simulation locally for responsiveness, and the server re-runs the identical simulation to decide the result that counts.`,
       follow:`Which of those processes did you personally work on the most, and why that one?`,
       red:`Naming a framework or a language feature as the architecture. The architecture is the shape of the dependencies and the process boundaries, not the tools used to build it.`
     },
@@ -846,7 +846,7 @@ PROJECT_INTERVIEW('cs-go-game-backend', {
     },
     {
       q:`What is protobuf over HTTP, and why did this project use it instead of plain JSON or gRPC?`,
-      a:`Requests are form encoded and bound through a declarative field map, and responses are marshalled as protobuf messages, with custom headers carrying session, platform, client version and a state generation counter. It sits between REST with JSON and gRPC. It keeps ordinary HTTP semantics through proxies and load balancers that a phone's request has to pass, while keeping payloads small and typed compared to JSON.`,
+      a:`Requests are form encoded and bound through a declarative field map, and responses are marshalled as protobuf messages, with custom headers carrying session, platform, client version and a state generation counter. It sits between REST with JSON and gRPC. It keeps ordinary HTTP semantics through proxies and load balancers that a phone’s request has to pass, while keeping payloads small and typed compared to JSON.`,
       follow:`What would have broken if the client had used gRPC directly against a mobile network?`,
       red:`Answering only that it is faster than JSON, with no mention of the mobile network path or the header contract.`
     }
@@ -860,7 +860,7 @@ PROJECT_INTERVIEW('cs-go-game-backend', {
     },
     {
       q:`How did dirty-table delta sync work, and what is the failure mode when someone gets it wrong?`,
-      a:`Every write repository call registers the table it touched into a set carried on the request context. After the handler succeeds, one step reloads exactly those tables against the client's generation counter and returns only what changed. If a repository writes without registering its table, nothing fails loudly. The handler still returns success and the client silently keeps stale state for that one table, which surfaces later as a trickle of support reports rather than an error anyone sees immediately.`,
+      a:`Every write repository call registers the table it touched into a set carried on the request context. After the handler succeeds, one step reloads exactly those tables against the client’s generation counter and returns only what changed. If a repository writes without registering its table, nothing fails loudly. The handler still returns success and the client silently keeps stale state for that one table, which surfaces later as a trickle of support reports rather than an error anyone sees immediately.`,
       follow:`The convention is enforced by review, not the compiler. How would you make that mistake harder to make in the first place?`,
       red:`Saying the convention basically never fails because reviewers catch it. The whole point of the story is that it did fail exactly once and looked like nothing until traced.`
     },
@@ -868,11 +868,11 @@ PROJECT_INTERVIEW('cs-go-game-backend', {
       q:`How did the team work day to day, given the client shipped every two weeks and the server shipped continuously?`,
       a:`Server engineers worked against a shared set of conventions written as rule files next to the code they governed, so a decision did not need to be relitigated every time someone touched that area. Migrations were required in their own pull request separate from code, and a bug fix or feature had to show a failing test before the fix, with both the red and green log tails pasted into the pull request.`,
       follow:`What happened when someone skipped one of those conventions? Walk me through a real instance.`,
-      red:`Describing team process purely in terms of meetings or communication tools, with no mention of a convention that actually changed what a pull request had to contain.`
+      red:`Describing team process purely in terms of meetings or communication tools, with no mention of a convention that changed what a pull request had to contain.`
     },
     {
       q:`Describe a decision on this project you would make differently if you started over.`,
-      a:`Provisioning every schema from zero on every push and running the full end to end suite there instead of at pull request time. It caught real migration and seed drift, but it also meant a pull request could show green on lint and unit tests alone, so a branch was never actually proven until after it merged. I would look harder for a way to make at least a lighter version of that provisioning check run before merge, even if it meant a slower review cycle.`,
+      a:`Provisioning every schema from zero on every push and running the full end to end suite there instead of at pull request time. It caught real migration and seed drift, but it also meant a pull request could show green on lint and unit tests alone, so a branch was never proven until after it merged. I would look harder for a way to make at least a lighter version of that provisioning check run before merge, even if it meant a slower review cycle.`,
       follow:`What made that expensive check hard to move earlier at the time?`,
       red:`Naming a decision with no real cost, like a stack choice everyone already agreed with, instead of a genuine trade-off that had a downside worth naming.`
     }
@@ -880,9 +880,9 @@ PROJECT_INTERVIEW('cs-go-game-backend', {
   senior:[
     {
       q:`You found live credentials committed in the repository. Walk me through exactly what you did.`,
-      a:`I wrote the exposure as facts rather than a complaint: who could read those values today, what an old clone or a departed teammate's checkout still held, and how long a full rotation would take given the current layout, which was most of a day across environments. I proposed the smallest first step rather than a platform rewrite, moving one environment's values to a secret store injected at deploy time and rotating them. That environment's rotation time went from most of a day to one deploy. I did not get the full history rewritten, and I say that plainly rather than implying the problem was fully solved.`,
+      a:`I wrote the exposure as facts rather than a complaint: who could read those values today, what an old clone or a departed teammate’s checkout still held, and how long a full rotation would take given the current layout, which was most of a day across environments. I proposed the smallest first step rather than a platform rewrite, moving one environment’s values to a secret store injected at deploy time and rotating them. That environment’s rotation time went from most of a day to one deploy. I did not get the full history rewritten, and I say that plainly rather than implying the problem was fully solved.`,
       follow:`Why frame it as facts instead of raising it as an incident immediately? What was the risk of waiting?`,
-      red:`A story that ends at telling someone with no description of what actually changed afterward, or one that claims the whole history was rewritten when it was not.`
+      red:`A story that ends at telling someone with no description of what changed afterwards, or one that claims the whole history was rewritten when it was not.`
     },
     {
       q:`How did you decide to move heavy verification into the post-merge pipeline instead of pushing for it on every pull request?`,

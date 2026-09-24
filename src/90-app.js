@@ -256,9 +256,18 @@ function wireShell(){
   });
   dragSplit($('#splitL'), 'L'); dragSplit($('#splitR'), 'R');
   const scrim = $('#scrim');
-  const closeDrawers = () => { $('#rail').classList.remove('open'); $('#pane').classList.remove('open'); syncScrim(); };
-  scrim.onclick = closeDrawers;
-  $('#drawerClose').onclick = closeDrawers;
+  // The drawers are layers: whichever opened last sits on top, and the close
+  // button (or a tap on the scrim) closes only that one, like going back.
+  const drawerOrder = [];
+  const trackDrawer = el => new MutationObserver(() => {
+    const i = drawerOrder.indexOf(el); if(i >= 0) drawerOrder.splice(i, 1);
+    if(el.classList.contains('open')) drawerOrder.push(el);
+    drawerOrder.forEach((d, k) => { d.style.zIndex = isNarrow() ? String(80 + k) : ''; });
+  }).observe(el, { attributes: true, attributeFilter: ['class'] });
+  trackDrawer($('#rail')); trackDrawer($('#pane'));
+  const closeTopDrawer = () => { const top = drawerOrder[drawerOrder.length - 1]; if(top) top.classList.remove('open'); syncScrim(); };
+  scrim.onclick = closeTopDrawer;
+  $('#drawerClose').onclick = closeTopDrawer;
   $('#collapseLeft').onclick = () => { if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
   $('#collapseRight').onclick = () => { if(isNarrow()){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
   renderTree('home');
@@ -367,7 +376,8 @@ let keepScroll = false;
 function setView(html){
   ensureShell(); const pane = $('#pane'), keep = keepScroll, y = window.scrollY, py = pane.scrollTop; keepScroll = false;
   pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail();
-  if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else window.scrollTo({ top: 0 });
+  // A new page starts at its top, in the window and in the pane's own scroll.
+  if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else { window.scrollTo({ top: 0 }); pane.scrollTop = 0; }
 }
 // The views of the current group, as sub-tabs. The map group shows them on
 // its landing views only, not above every domain and topic page.
@@ -385,6 +395,8 @@ function gameArt(g){
   if(!g.img) return '';
   // A game with no store art has an original drawing of ours, and says so.
   if(g.drawn) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: an original drawing, not official art" loading="lazy"><figcaption>An original drawing for this guide, not official art: this game has no store page we can credit.</figcaption></figure>`;
+  // A free-licensed image names its licence and where it came from.
+  if(g.artLicence) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: a screenshot" loading="lazy"><figcaption>Image: ${esc(g.dev)}, ${esc(g.artLicence)}, via <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">${esc(g.artSource)}</a>.</figcaption></figure>`;
   return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>`;
 }
 const familyLabel = id => (GAME_FAMILIES.find(f => f[0] === id) || [id, id])[1];
@@ -396,11 +408,11 @@ ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { f
 ACTIONS['lib-set'] = el => { const s = libState(); s[el.dataset.k] = s[el.dataset.k] === el.dataset.v ? '' : el.dataset.v; if(el.dataset.k === 'view') s.view = el.dataset.v; store.set('library', s); keepScroll = true; renderGames(); };
 function libraryHTML(){
   const s = libState(), analysed = REFERENCE_GAMES.filter(g => g.lens).length;
-  const pick = g => (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!(g.lens && g.lens[s.lens] && g.lens[s.lens].primary));
+  const pick = g => (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!g.lens);
   const list = REFERENCE_GAMES.filter(pick);
   const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
   const usedTags = GAME_TAGS.filter(t => REFERENCE_GAMES.some(g => (g.tags || []).includes(t)));
-  const deepLenses = GAME_LENSES.filter(([k]) => REFERENCE_GAMES.some(g => g.lens && g.lens[k] && g.lens[k].primary));
+  const deepLenses = REFERENCE_GAMES.some(g => g.lens) ? [['analysed', 'Analysed through ten lenses']] : [];
   const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${x.year} · ${esc(x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
   const grid = xs => `<div class="reflib">${xs.map(card).join('')}</div>`;
   const body = !list.length ? '<div class="empty">No game matches these filters.</div>'
@@ -409,7 +421,7 @@ function libraryHTML(){
     : GAME_FAMILIES.map(([f, label]) => { const xs = list.filter(x => x.family === f); return xs.length ? `<div class="section-head"><h2>${esc(label)}</h2><span class="muted">${xs.length}</span></div>${grid(xs)}` : ''; }).join('');
   return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
     <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span><span class="chips">${GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => btn('family', f, t, s.family === f)).join('')}</span></div>
-    <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag or by a lens analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
+    <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag, or show only games analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
     <p class="small muted">${list.length} of ${REFERENCE_GAMES.length} games</p>${body}`;
 }
 // A screenshot attached to a lens: numbered callouts over the image, the
@@ -423,13 +435,20 @@ function lensesHTML(g){
   if(!g.lens) return '';
   const topicChips = (l, k) => `<span class="chips">${lensTopics(l, k).filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span>`;
   const shots = k => (g.shots || []).filter(s => s.lens === k).map(s => shotHTML(g, s)).join('');
-  const primary = GAME_LENSES.filter(([k]) => g.lens[k] && g.lens[k].primary), rest = GAME_LENSES.filter(([k]) => g.lens[k] && !g.lens[k].primary);
-  return `<div class="section-head"><h2>Through ten lenses</h2><span class="muted">${primary.length} in depth</span></div>
-    ${primary.map(([k, label]) => { const l = g.lens[k]; return `<section class="card lenscard"><div class="overline">${esc(label)}</div>
-      <p><b>What they did.</b> ${esc(l.did)}</p><p><b>The moment.</b> ${esc(l.moment)}</p>${shots(k)}<p><b>Why it works.</b> ${esc(l.why)}</p>
-      <p class="steal"><b>Steal this.</b> ${esc(l.steal)}</p><p><b>The trap.</b> ${esc(l.trap)}</p>${topicChips(l, k)}</section>`; }).join('')}
-    <div class="card"><dl class="lenslist">${rest.map(([k, label]) => { const l = g.lens[k]; return `<dt>${esc(label)}</dt><dd>${l.na ? `<span class="muted">Does not apply: ${esc(l.na)}</span>` : `${esc(l.text)} ${topicChips(l, k)}`}${shots(k)}</dd>`; }).join('')}</dl></div>`;
+  // Each lens is an argument: the claim leads, then the evidence (with any
+  // screenshot), how it works, what it does to the player, how it compares,
+  // what it costs, and the lesson that travels.
+  const src = l => (l.sources || []).length ? `<div class="small muted lenssrc">Sources: ${l.sources.map(u => { let h = u; try { h = new URL(u).hostname.replace(/^www\./, ''); } catch (e) {} return `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(h)}</a>`; }).join(' · ')}</div>` : '';
+  const row = (label, v, cls) => v ? `<p class="${cls || ''}"><b>${label}</b> ${esc(v)}</p>` : '';
+  const keys = GAME_LENSES.filter(([k]) => g.lens[k]);
+  return `<div class="section-head"><h2>Through ten lenses</h2><span class="muted">claim, evidence, mechanism, effect, comparison, cost, principle</span></div>
+    <nav class="lensnav chips" aria-label="Lenses">${keys.map(([k, label]) => `<button type="button" class="chip lnk" data-action="lens-jump" data-lens="${k}">${esc(label)}</button>`).join('')}</nav>
+    ${keys.map(([k, label]) => { const l = g.lens[k]; return `<section class="card lenscard" id="lens-${k}"><div class="overline">${esc(label)}</div>
+      ${l.na ? `<p class="muted">${esc(l.na)}</p>` : `<h3 class="lensclaim">${esc(l.claim)}</h3>
+      ${row('Evidence.', l.evidence)}${shots(k)}${row('How it works.', l.mechanism)}${row('What it does to the player.', l.effect)}${row('Compared with.', l.compare)}${row('The cost.', l.cost)}${row('Context.', l.context)}${row('Principle.', l.principle, 'steal')}`}
+      ${topicChips(l, k)}${src(l)}</section>`; }).join('')}`;
 }
+ACTIONS['lens-jump'] = el => { const c = document.getElementById('lens-' + el.dataset.lens); if(c) c.scrollIntoView({ block: 'start' }); };
 function signatureHTML(g){
   const s = g.signature; if(!s) return '';
   return `<section class="card sigcard"><div class="overline">The idea worth stealing</div><h2>${esc(s.idea)}</h2>${SIGNATURE_PARTS.map(([k, label]) => `<h4>${esc(label)}</h4><p>${esc(s[k])}</p>`).join('')}</section>`;
@@ -445,7 +464,7 @@ function renderGames(id){
     ${signatureHTML(g)}
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
     ${lensesHTML(g)}
-    <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
+    <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}${pathChips('game:' + g.id, 'game')}</div>
     <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
 }
 // Reverse index: topic -> the games that show it, from screen and loop
@@ -458,7 +477,7 @@ function gameLinks(){
     const add = (tid, g, label) => { const l = _GAME_LINKS[tid] || (_GAME_LINKS[tid] = []); if(!l.some(x => x.g === g && x.label === label)) l.push({ g, label }); };
     REFERENCE_GAMES.forEach(g => {
       (g.diagrams || []).forEach(d => (d.topics || []).forEach(t => add(t, g, d.kind === 'screen' ? 'the screen' : 'the loop')));
-      if(g.lens) GAME_LENSES.forEach(([k, label]) => { const l = g.lens[k]; if(l && !l.na && (l.primary || (l.topics && l.topics.length))) lensTopics(l, k).forEach(t => add(t, g, label)); });
+      if(g.lens) GAME_LENSES.forEach(([k, label]) => { const l = g.lens[k]; if(l && !l.na && l.topics && l.topics.length) l.topics.forEach(t => add(t, g, label)); });
     });
   }
   return _GAME_LINKS;
@@ -591,7 +610,7 @@ function sectionBody(key, t){
 // leaves travel through, and the map itself.
 let _PRACTICE = null;
 function practice(){
-  if(!_PRACTICE){ _PRACTICE = PlayableGraph.practiceLinks(CASE_STUDIES, 2); Object.assign(VIEW_LINKS, _PRACTICE.views); }
+  if(!_PRACTICE){ _PRACTICE = PlayableGraph.practiceLinks(CASE_STUDIES, 2, REFERENCE_GAMES); Object.assign(VIEW_LINKS, _PRACTICE.views); }
   return _PRACTICE;
 }
 function practiceChips(topicId){
@@ -1809,17 +1828,19 @@ let _PATH_LINKS = null;
 function pathLinks(){
   if(!_PATH_LINKS){
     _PATH_LINKS = {};
+    // Topics key by id, reference games by 'game:' + id.
     PATHS.forEach(pth => pth.stages.forEach(st => st.steps.forEach(step => {
-      if(step.kind !== 'topic') return;
-      (_PATH_LINKS[step.ref] || (_PATH_LINKS[step.ref] = [])).push({ path:pth, stage:st });
+      if(step.kind !== 'topic' && step.kind !== 'game') return;
+      const key = step.kind === 'game' ? 'game:' + step.ref : step.ref;
+      (_PATH_LINKS[key] || (_PATH_LINKS[key] = [])).push({ path:pth, stage:st });
     })));
   }
   return _PATH_LINKS;
 }
-function pathChips(topicId){
+function pathChips(topicId, what){
   const hits = pathLinks()[topicId] || [];
   if(!hits.length) return '';
-  return `<div class="small" style="margin-top:8px"><b>Part of paths:</b> a guided sequence that walks through this topic.</div>
+  return `<div class="small" style="margin-top:8px"><b>Part of paths:</b> a guided sequence that walks through this ${what || 'topic'}.</div>
     <div class="chips" style="margin-top:5px">${hits.map(h => `<a class="chip prac lnk" href="#/paths/${h.path.id}/${h.stage.id}">${esc(h.path.t)} · ${esc(h.stage.t)}</a>`).join('')}</div>`;
 }
 
@@ -1846,7 +1867,7 @@ SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/
 PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
-const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.did, l.moment, l.why, l.steal, l.trap, l.text]) : [])].filter(Boolean).join(' ').toLowerCase();
+const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
 REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${(g.signature ? g.signature.idea : g.lesson).slice(0,90)}…`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family)] }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));

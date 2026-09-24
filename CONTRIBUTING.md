@@ -77,6 +77,9 @@ the type check and the smoke test on every push and pull request.
 13-ai-workflow.js         AI roles, failure modes, responsibility matrix, loop steps, prompt templates, checklists, feature tree
 14-references.js          the reference library of dissected games, their schematics and art credits
 15-platforms.js           platform guides: PLATFORM(), PLATFORMS, the six stages, the comparison table
+16-games-analysis.js      family, tags and aka for the first fifteen games, and their ANALYSIS()
+17-games-japan.js         whole GAME() entries: Japanese games and games that bend time and turns
+18-games-innovative.js    whole GAME() entries: innovative designs (Obra Dinn, Outer Wilds, Baba Is You...)
 20-topics-player.js       one file per domain, in map order: the domain, then each topic
   ...                     with its TECH, ENGINE, INTERVIEW and FACTS
 39-topics-platforms.js
@@ -171,17 +174,25 @@ with a hand-drawn diagram in `DIAGRAMS` (90-app.js) cannot also have a
 
 Reference games carry their own `diagrams` (a loop for every game, a screen
 layout for some) in `14-references.js`, and store art needs a developer
-credit and an https store link (`GAME_ART_CREDITS`). A game with no store
-page we can credit gets an original drawn tile instead (`drawn:true`, a file in
-`assets/games/drawn/`), captioned as our drawing, never passed off as official
-art. The validator checks that every image file exists. Schematics are our own
+credit and an https store link (`GAME_ART_CREDITS`). A game with no Steam
+page uses its publisher’s own store page, or a free-licensed image from
+Wikimedia Commons, whose credit entry adds the licence and the source name
+(`[author, url, licence, 'Wikimedia Commons']`) so the caption says both. Only
+when neither exists does a game get an original drawn tile (`drawn:true`, a
+file in `assets/games/drawn/`), captioned as our drawing, never passed off as
+official art. The validator checks that every image file exists. Schematics are our own
 drawings.
 
-Each game can carry a full analysis (`ANALYSIS()` in `16-games-analysis.js` for the
-games above, `GAME()` with the analysis inline for new games): a `signature` (the
-one idea worth stealing, 250 to 400 words in six parts), all ten `lens` entries
-(two or three `primary` and deep, the rest one or two lines, `na` only when a lens
-truly does not apply), and up to four `shots`. A shot is an official screenshot
+Every game carries a full analysis (`ANALYSIS()` in `16-games-analysis.js` for the
+games above, `GAME()` with the analysis inline in `17-games-japan.js` and
+`18-games-innovative.js` for the rest): a `signature` (the
+one idea worth stealing, 380 to 700 words in six parts), all ten `lens` entries,
+and up to four `shots`. Each lens is an analysis, not a description, written to
+[docs/references/analysis-method.md](docs/references/analysis-method.md): a
+`claim` someone could dispute, then `evidence`, `mechanism`, `effect`, `compare`,
+`cost` and `principle`, an optional `context`, `topics`, and https `sources`;
+150 to 380 words in all. A lens that truly does not apply is `na`, with a
+paragraph arguing why. A shot is an official screenshot
 from the game's store page, saved as WebP under 150 KB in `assets/games/shots/`,
 attached to the lens it illustrates, with alt text, a caption naming what to look
 at, and optional numbered callouts (x, y as fractions of the image). The folder
@@ -246,7 +257,7 @@ enforced by the validator: 4 to 6 stages, 3 to 8 steps per stage, at least one
 tool or checklist step per stage, a checkpoint on every stage, stage levels that
 never go down, step minutes within 10% of the stage hours, and stage hours within
 10% of the path hours. A topic step's optional `tab` (`godot`, `unity` or
-`interview`) must exist on that topic. A `platform` step names a platform guide.
+`interview`) must exist on that topic. A `platform` step names a platform guide, and a `game` step names a reference game (`#/games/<id>`); a game step also shows on that game’s page under “Part of paths”.
 Every path has a `pick` line under 60 characters for the door; every recall
 question is `{q, a}` with a short answer outline; and every path in a `prereq`
 must list this path in its own `next`. If you add a path, place it in the

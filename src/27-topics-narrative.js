@@ -10,20 +10,20 @@ DOMAINS.push({ id:'narrative', lens:'design', t:'Narrative', short:'Premise, wor
 T('premise-and-world',{ d:'narrative', t:'Premise, world and characters', tag:'The premise is why the fantasy matters. The world is where the systems live. Characters are who cares.',
   what:`The narrative foundation: a premise (the situation and the stakes), a world (rules, places, factions, history that the systems inhabit), and characters (people whose wants create conflict and give the player someone to be and someone to care about). In games these exist to make the fantasy legible and the mechanics meaningful.`,
   why:[`Premise supplies stakes: why should the player care whether they win?`,`World rules and system rules should be the same rules. When they diverge players stop believing either.`,`Characters are the fastest route to relatedness and to memorable moments.`],
-  think:{ q:[`Can the premise be said in one sentence that includes the player's role and the stakes?`,`Does the world explain the mechanics? Why can the player do what they can do?`,`Which character wants something the player must decide about?`,`What does the player do in this world that no other world would let them do?`],
+  think:{ q:[`Can the premise be said in one sentence that includes the player’s role and the stakes?`,`Does the world explain the mechanics? Why can the player do what they can do?`,`Which character wants something the player must decide about?`,`What does the player do in this world that no other world would let them do?`],
     trade:[`Deep lore rewards invested players and costs more than most will read.`,`Original settings differentiate and require more teaching.`],
-    traps:[`Lore as a substitute for premise: pages of history, no stakes.`,`Characters who only deliver quests.`,`World rules that contradict the system rules ("magic is rare" in a world where the player casts constantly).`],
+    traps:[`Lore as a substitute for premise: pages of history, no stakes.`,`Characters who only deliver quests.`,`World rules that contradict the system rules (“magic is rare” in a world where the player casts constantly).`],
     good:[`Players describe the situation, not the setting.`,`Players have opinions about characters.`],
     bad:[`Players skip every line and could not name the antagonist.`] },
   how:[`Write the premise sentence with the player role and stakes. Test it on someone who has not seen the game.`,`Map world rules to system rules. Fix contradictions on whichever side is cheaper.`,`Give each major character a want that intersects a player decision.`,`Cut lore that no system or decision touches, or move it to optional discovery.`],
   ai:{ yes:[`Generate premise candidates from a fantasy and mechanic list.`,`Audit world rules against system rules for contradictions.`,`Draft character wants that intersect existing decisions.`,`Write optional lore once the load-bearing narrative is set.`],
        no:[`Choose the premise. It is the identity of the game.`,`Decide how much story the player wants.`] },
-  prompts:[{l:'Premise from mechanics',p:`Our fantasy is "[FANTASY]" and our core mechanics are [LIST]. Generate 8 premise sentences, each including the player role and the stakes, that would make these mechanics feel inevitable in the world. For each, state one world rule that explains a mechanic and one character whose want intersects a player decision. Flag premises that would require mechanics we do not have.`}],
+  prompts:[{l:'Premise from mechanics',p:`Our fantasy is “[FANTASY]” and our core mechanics are [LIST]. Generate 8 premise sentences, each including the player role and the stakes, that would make these mechanics feel inevitable in the world. For each, state one world rule that explains a mechanic and one character whose want intersects a player decision. Flag premises that would require mechanics we do not have.`}],
   verify:[`Does the premise explain the mechanics, or merely decorate them?`],
   test:[`Ask players to describe the situation they are in. Stakes and role pass. Setting adjectives fail.`,`Can players name a character and what they want?`,`Where do players skip text? What did they miss that mattered?`],
   rel:[['fantasy','Premise is fantasy with stakes.'],['ludonarrative-alignment','World rules and system rules must agree.'],['quests-and-events','Characters deliver goals.'],['environmental-storytelling','The world tells its own story when composed to.']] });
 TECH('premise-and-world',[
-  {n:'Premise worksheet', how:`One paragraph: the world's rule, the player's place, the conflict, the tone.`, fit:`Giving every discipline a shared touchstone.`, cost:`Easy to over-specify. Leaves room for discovery.`, alt:`Test the premise against the fantasy and the loop.`},
+  {n:'Premise worksheet', how:`One paragraph: the world’s rule, the player’s place, the conflict, the tone.`, fit:`Giving every discipline a shared touchstone.`, cost:`Easy to over-specify. Leaves room for discovery.`, alt:`Test the premise against the fantasy and the loop.`},
   {n:'World rules and consistency', how:`Define what is possible and impossible. The rules become design and story constraints.`, fit:`Making the world feel real and coherent.`, cost:`Rules can lock out later ideas. Keep them few and load-bearing.`, alt:`Document them. Break them only deliberately.`},
   {n:'Tone bible', how:`Reference art, sound and writing that define the target tone for all disciplines.`, fit:`Cohesion across a large team.`, cost:`Upkeep. Can be ignored if not used in reviews.`, alt:`Use in every critique.`}
 ]);
@@ -41,7 +41,7 @@ func hostile(other: StringName) -> bool:
 
 static func runtime_copy(r: FactionRule) -> FactionRule:
 \treturn r.duplicate()                       # never mutate the shared .tres at runtime`,
-    pitfall:`Writing runtime state onto an exported Resource. Every node that exports the same .tres holds the same instance, so one faction turning hostile turns it hostile everywhere, and in the editor the change is written back into the asset the next time you save the scene. Duplicate it for runtime, or set resource_local_to_scene.`,
+    pitfall:`Writing runtime state onto an exported Resource. Every node that exports the same .tres holds the same instance, so one faction turning hostile turns it hostile everywhere, and because the game runs in a separate process from the editor, nothing reaches the .tres, so the bug looks like faulty dialogue logic rather than shared state. Duplicate it for runtime, or set resource_local_to_scene.`,
     map:`A Godot .tres Resource with class_name is a Unity ScriptableObject with CreateAssetMenu.` },
   unity:{ term:`ScriptableObject assets for factions, places and world rules, created from the asset menu and referenced by both the dialogue database and the combat code. OnValidate catches an incomplete rule in the editor.`,
     api:['ScriptableObject + [CreateAssetMenu]','[SerializeField] references from scenes and prefabs','OnValidate()','ScriptableObject.CreateInstance() for runtime copies','Addressables for late-loaded world data','Debug.LogError(message, context)'],
@@ -57,11 +57,11 @@ public class FactionRule : ScriptableObject {
         if (string.IsNullOrEmpty(id)) Debug.LogError(name + ": faction id is empty", this);
     }
 }`,
-    pitfall:`Tuning a ScriptableObject during play mode. Unlike scene objects it is not reverted when play stops, so the value looks like it persisted and gets treated as the authored one. In a player build the asset is read-only and resets every launch, so the balance you thought you saved exists only on your machine.`,
+    pitfall:`Tuning a ScriptableObject during play mode. Unlike scene objects it is not reverted when play stops, so the value looks like it persisted and gets treated as the authored one. In a player build the change lives only in memory and is gone at the next launch, so the balance you thought you saved exists only on your machine.`,
     map:`A Unity ScriptableObject is a Godot Resource saved as .tres.` }});
 INTERVIEW('premise-and-world',{
   junior:[
-    { q:`State the premise of a game you admire in one sentence, including the player's role and the stakes.`,
+    { q:`State the premise of a game you admire in one sentence, including the player’s role and the stakes.`,
       a:`Premise is the situation and what is at risk, not the setting. Say who the player is in it and what happens if they fail. Then name one mechanic the world explains: why can the player do this thing here. If the sentence works, someone who has never seen the game can repeat it.`,
       follow:`Which mechanic does that world explain, and which one does it fail to explain?`,
       red:`Recites setting adjectives and factions and never names a stake.` },
@@ -70,7 +70,7 @@ INTERVIEW('premise-and-world',{
       follow:`Which of the three would you cut first under a content cut, and why?`,
       red:`Uses the three words interchangeably.` },
     { q:`What makes a game character work, as opposed to a film character?`,
-      a:`They want something that intersects a decision the player makes, so the player's choice has a person attached to it. A character who only hands out objectives is a menu with a face. The fastest route to relatedness is a want the player can help or refuse.`,
+      a:`They want something that intersects a decision the player makes, so the player’s choice has a person attached to it. A character who only hands out objectives is a menu with a face. The fastest route to relatedness is a want the player can help or refuse.`,
       follow:`Name a character whose want changed a choice you made.`,
       red:`Describes a backstory and a personality with no connection to any player decision.` }
   ],
@@ -91,7 +91,7 @@ INTERVIEW('premise-and-world',{
   senior:[
     { q:`You join a project with a two hundred page world bible and a loop nobody can describe. What do you do?`,
       a:`Find or write the premise sentence with the team and check that it explains the mechanics that exist. Map world rules against system rules and list the contradictions in cost order. Keep the bible as source material and reframe most of it as optional discovery instead of deleting it. The unit of work is the intersection between what the player does and what the world claims.`,
-      follow:`The bible's author is the creative director. How do you run that conversation?`,
+      follow:`The bible’s author is the creative director. How do you run that conversation?`,
       red:`Proposes deleting the bible, or accepts it untouched and writes systems around it.` },
     { q:`How do you keep narrative and systems from becoming two departments that hand documents to each other?`,
       a:`Put story beats and play beats on one timeline both sides sign. Give each major character a want that lands on a designed decision, so the writer and the designer are working on the same object. Review together on the build rather than on documents, and make the contradiction list a standing item.`,
@@ -107,19 +107,19 @@ T('ludonarrative-alignment',{ d:'narrative', t:'Ludonarrative alignment', tag:'W
     traps:[`Story written first, mechanics bolted on, or the reverse, with integration deferred.`,`Themes stated in dialog and contradicted by rewards.`,`Cutscenes that take away agency at the moment the theme is about agency.`],
     good:[`Players describe the theme in terms of what they did.`,`A mechanic makes players feel something without a line of dialog.`],
     bad:[`Players say the story and the game feel like different products.`] },
-  how:[`Write the loop's implicit statement. Write the story's explicit theme. Compare.`,`For each major dissonance, decide: change the mechanic, change the story, or make the dissonance deliberate and perceived.`,`Find one theme-carrying mechanic: a player action that means the theme.`,`Test whether players describe the theme from their own actions.`],
+  how:[`Write the loop’s implicit statement. Write the story’s explicit theme. Compare.`,`For each major dissonance, decide: change the mechanic, change the story, or make the dissonance deliberate and perceived.`,`Find one theme-carrying mechanic: a player action that means the theme.`,`Test whether players describe the theme from their own actions.`],
   ai:{ yes:[`Read the loop and progression as statements and compare with the script.`,`Enumerate reward and punishment structures that contradict stated themes.`,`Propose theme-carrying mechanics.`],
        no:[`Decide the theme.`,`Decide whether a dissonance is expressive or a defect.`] },
   prompts:[{l:'Ludonarrative audit',p:`Read our mechanics, rewards and punishments as a statement about the world: [SYSTEMS]. Then compare with our story themes and key scenes: [STORY]. List every place the mechanics reward what the story condemns or punish what it praises. For each, propose (a) a mechanic change, (b) a story change, and (c) how to make the dissonance deliberate and perceived, and state which option is cheapest. Then propose one mechanic that would enact the central theme directly.`}],
-  verify:[`Did it analyze rewards and punishments, or only surface content?`],
+  verify:[`Did it analyse rewards and punishments, or only surface content?`],
   test:[`Ask players what the game is about. Do they answer with actions?`,`Where do players laugh at a scene that was meant seriously? That is often dissonance.`,`Does a theme-carrying mechanic produce an emotional reaction without dialog?`],
   rel:[['fantasy','The fantasy is who the player is. The story must agree.'],['premise-and-world','World rules and system rules are one set.'],['narrative-agency','Agency is the most common site of dissonance.'],['core-loop','The loop is the loudest narrator.']] });
 TECH('ludonarrative-alignment',[
-  {n:'Mechanic-story audit', how:`List what the mechanics reward and what the story says is good. Flag contradictions.`, fit:`Finding dissonance early.`, cost:`Some dissonance is intentional. Judge, do not just flag.`, alt:`Check the player's verbs against the theme.`},
+  {n:'Mechanic-story audit', how:`List what the mechanics reward and what the story says is good. Flag contradictions.`, fit:`Finding dissonance early.`, cost:`Some dissonance is intentional. Judge, do not just flag.`, alt:`Check the player’s verbs against the theme.`},
   {n:'Thematic verbs', how:`Make the core verb express the theme (protecting, freeing, hoarding, connecting).`, fit:`Aligning moment-to-moment play with meaning.`, cost:`Constrains mechanics. May fight fun.`, alt:`Choose mechanics whose natural play matches the theme.`}
 ]);
 ENGINE('ludonarrative-alignment',{
-  godot:{ term:`The audit is a tool script. An EditorScript walks the reward resources, compares what each one rewards against the chapter's stated theme, and prints every contradiction as a warning you can run before a review.`,
+  godot:{ term:`The audit is a tool script. An EditorScript walks the reward resources, compares what each one rewards against the chapter’s stated theme, and prints every contradiction as a warning you can run before a review.`,
     api:['@tool + EditorScript._run()','DirAccess.get_files_at()','ResourceLoader.load()','push_warning() / push_error()','EditorInterface for opening the offending resource','Resource subclasses for reward and chapter data'],
     snippet:`@tool
 extends EditorScript                           # Script editor: File > Run
@@ -131,8 +131,8 @@ func _run() -> void:
 \t\tvar theme: String = THEME.get(r.chapter, r.expresses)
 \t\tif r.expresses != theme:
 \t\t\tpush_warning("%s rewards %s in a chapter about %s" % [f, r.expresses, theme])`,
-    pitfall:`Writing the audit as runtime code. DirAccess cannot list res:// in an exported build the way it does in the editor, because only imported and included files exist there and .tres source files may be stripped entirely. The tool works on your machine and returns an empty list in CI, which reads as "no contradictions found".`,
-    map:`Godot's @tool and EditorScript are Unity's Editor-folder script with a MenuItem.` },
+    pitfall:`Writing the audit as runtime code. DirAccess cannot list res:// in an exported build the way it does in the editor, because only imported and included files exist there and .tres source files may be stripped entirely. The tool works on your machine and returns an empty list in CI, which reads as “no contradictions found”.`,
+    map:`Godot’s @tool and EditorScript are Unity’s Editor-folder script with a MenuItem.` },
   unity:{ term:`An editor menu item that queries the asset database for every reward asset and compares it against the chapter theme. It lives in an Editor assembly so it never reaches a build.`,
     api:['[MenuItem("…")]','AssetDatabase.FindAssets("t:RewardData")','AssetDatabase.GUIDToAssetPath() / LoadAssetAtPath<T>()','Debug.LogWarning(message, context)','Assets/Editor folder or an asmdef with Editor platform only','EditorUtility.DisplayDialog()'],
     snippet:`public class AlignmentAudit {                  // Assets/Editor/AlignmentAudit.cs only
@@ -152,7 +152,7 @@ func _run() -> void:
 INTERVIEW('ludonarrative-alignment',{
   junior:[
     { q:`What is ludonarrative dissonance? Give an example.`,
-      a:`The mechanics say one thing and the story says another. The term came from a critique of a game whose systems rewarded acquisitive violence while the script asked the player to believe in a reluctant, principled hero. Players spend more time doing than watching, so when the two disagree they believe the doing.`,
+      a:`The mechanics say one thing and the story says another. The term came from Clint Hocking’s 2007 critique of BioShock: its systems told the player to act in their own interest, while its story made them help another character with no choice in the matter. Players spend more time doing than watching, so when the two disagree they believe the doing.`,
       follow:`Is it always a defect?`,
       red:`Names the term and cannot produce a concrete case, or calls every cutscene dissonance.` },
     { q:`The story says the hero is reluctant. What should the mechanics do?`,
@@ -166,7 +166,7 @@ INTERVIEW('ludonarrative-alignment',{
   ],
   mid:[
     { q:`How do you audit a game for dissonance?`,
-      a:`Write the implicit statement of the loop and progression: what does the game reward, what does it punish, what does it make trivial. Write the story's explicit theme next to it. Compare the two and list every place a reward contradicts a stated value. Surface content is not the audit, the reward structure is.`,
+      a:`Write the implicit statement of the loop and progression: what does the game reward, what does it punish, what does it make trivial. Write the story’s explicit theme next to it. Compare the two and list every place a reward contradicts a stated value. Surface content is not the audit, the reward structure is.`,
       follow:`The audit turns up five. Which do you fix?`,
       red:`Audits the dialog and the cutscenes and never opens the reward tables.` },
     { q:`You find dissonance and the story cannot change. What are your options?`,
@@ -190,11 +190,11 @@ INTERVIEW('ludonarrative-alignment',{
   ] });
 
 T('environmental-storytelling',{ d:'narrative', t:'Environmental storytelling', tag:'Let the space tell it. Players trust what they discover more than what they are told.',
-  what:`Story delivered through the arrangement of the world: a room that shows what happened, a path that implies who walked it, a landmark that promises a place. It respects the player's attention and pace, and rewards observation with meaning. It overlaps level design and art direction.`,
+  what:`Story delivered through the arrangement of the world: a room that shows what happened, a path that implies who walked it, a landmark that promises a place. It respects the player’s attention and pace, and rewards observation with meaning. It overlaps level design and art direction.`,
   why:[`Discovered story feels owned. Told story feels imposed.`,`It costs no player time: the story is read while playing.`,`It makes the world feel authored and lived in, which supports both fantasy and immersion.`],
   think:{ q:[`What happened here, and what would the evidence of it look like?`,`Can the player read it in passing, or must they stop? Both are valid. Know which you want.`,`Does the environment promise something the systems deliver?`,`Is the story readable at the intended camera distance and pace?`],
     trade:[`Subtle storytelling rewards attentive players and is missed by most.`,`Explicit set dressing is legible and can feel staged.`],
-    traps:[`Corpses with notes as the only vocabulary.`,`Environmental detail that contradicts the systems (a kitchen in a world with no food mechanic is fine. A locked armory the player can never open is a broken promise).`],
+    traps:[`Corpses with notes as the only vocabulary.`,`Environmental detail that contradicts the systems (a kitchen in a world with no food mechanic is fine, a locked armoury the player can never open is a broken promise).`],
     good:[`Players narrate what they think happened.`,`Players stop to look without being prompted.`],
     bad:[`Players walk through set dressing without a glance.`] },
   how:[`For each key space, write the event that happened there and three pieces of evidence.`,`Place evidence along the primary sightline for the must-read version, off it for the optional.`,`Check every promise the environment makes against what the systems can deliver.`,`Test: ask players what they think happened in a space.`],
@@ -207,10 +207,10 @@ T('environmental-storytelling',{ d:'narrative', t:'Environmental storytelling', 
 TECH('environmental-storytelling',[
   {n:'Set dressing and visual narrative', how:`Objects, damage and arrangement imply history and events without text.`, fit:`Worlds where the environment carries meaning and rewards attention.`, cost:`Art cost. Players may miss it entirely (that is often acceptable).`, alt:`Reinforce plot-critical beats with other channels.`},
   {n:'Gating and traversal as story', how:`The path and its obstacles tell the story through what the player must do.`, fit:`Making space a narrative agent, not just a backdrop.`, cost:`Can conflict with clean level flow if overdone.`, alt:`Let environment and level design be one workflow.`},
-  {n:'Diegetic audio and documents', how:`Audio logs, graffiti, signs and ambient sound convey history in-world.`, fit:`Deepening a world for players who seek detail.`, cost:`Recording/writing and localization. Can slow pacing if foregrounded.`, alt:`Keep optional and out of the critical path.`}
+  {n:'Diegetic audio and documents', how:`Audio logs, graffiti, signs and ambient sound convey history in-world.`, fit:`Deepening a world for players who seek detail.`, cost:`Recording/writing and localisation. Can slow pacing if foregrounded.`, alt:`Keep optional and out of the critical path.`}
 ]);
 ENGINE('environmental-storytelling',{
-  godot:{ term:`A vignette is a small PackedScene placed in the world. A VisibleOnScreenNotifier3D plus a ray to the camera tells you whether it was actually seen, so "did anyone read this room" becomes a measurement.`,
+  godot:{ term:`A vignette is a small PackedScene placed in the world. A VisibleOnScreenNotifier3D plus a ray to the camera tells you whether it was seen, so “did anyone read this room” becomes a measurement.`,
     api:['VisibleOnScreenNotifier3D.screen_entered / screen_exited','PackedScene vignettes instanced along the route','PhysicsRayQueryParameters3D.create() / intersect_ray()','Viewport.get_camera_3d()','MultiMeshInstance3D for scattered dressing','Time.get_ticks_msec()'],
     snippet:`extends Node3D                                 # one vignette: what happened here
 @export var caption := "looted, then barricaded"
@@ -227,7 +227,7 @@ func _enter() -> void:
 func _exit() -> void:
 \tif _seen_ms:
 \t\tprint("%s seen for %d ms" % [caption, Time.get_ticks_msec() - _seen_ms])`,
-    pitfall:`Treating VisibleOnScreenNotifier3D as proof the player saw it. It tests the node's box against the camera frustum and knows nothing about occlusion, so a vignette behind a wall reports visible for the whole corridor. Every number you collect is inflated, and the room nobody read looks like the room everybody read.`,
+    pitfall:`Treating VisibleOnScreenNotifier3D as proof the player saw it. It tests the node’s box against the camera frustum and ignores walls unless occlusion culling is set up, so a vignette behind a wall reports visible for the whole corridor. Every number you collect is inflated, and the room nobody read looks like the room everybody read.`,
     map:`Godot PackedScene vignettes plus VisibleOnScreenNotifier3D are Unity prefab variants plus OnBecameVisible.` },
   unity:{ term:`Vignettes are prefab variants of a base dressing prefab. Renderer visibility callbacks plus a linecast to the camera record whether the story got read, at what distance, for how long.`,
     api:['OnBecameVisible() / OnBecameInvisible()','Physics.Linecast()','Prefab Variants','GPU instancing / Graphics.DrawMeshInstanced for scatter','Application.isPlaying','Debug.Log with a context object'],
@@ -247,12 +247,12 @@ public class Vignette : MonoBehaviour {
     }
 }`,
     pitfall:`Collecting visibility telemetry in the editor. OnBecameVisible fires for any camera that renders the object, including the Scene view, so every vignette the designer looked at while dressing the room is logged as a player read. It also never fires when the renderer is disabled or on a culled layer, so real reads go missing in the other direction.`,
-    map:`Unity renderer visibility callbacks are Godot's VisibleOnScreenNotifier3D signals.` }});
+    map:`Unity renderer visibility callbacks are Godot’s VisibleOnScreenNotifier3D signals.` }});
 INTERVIEW('environmental-storytelling',{
   junior:[
     { q:`What is environmental storytelling and why do players trust it more than a cutscene?`,
       a:`Story delivered by how the world is arranged: what is broken, what is missing, what was left mid-task. It is discovered rather than told, so players feel they own the conclusion. It also costs the player no time, because they read it while playing.`,
-      follow:`How do you know a player actually read it?`,
+      follow:`How do you know a player read it?`,
       red:`Answers with notes and audio logs, which is the vocabulary the topic warns about.` },
     { q:`Pick a space where something happened. Give me three pieces of evidence.`,
       a:`Choose the event first, then the traces: a barricade built from the wrong side, a meal interrupted, a single set of tracks leading out. Arrange them so the sequence can be inferred. One should be readable in passing, the others should reward stopping.`,
@@ -273,7 +273,7 @@ INTERVIEW('environmental-storytelling',{
       follow:`Half the testers invent a different story that is also coherent. Is that a failure?`,
       red:`Asks testers whether the environment looked good.` },
     { q:`Your only vocabulary is corpses and notes. Expand it.`,
-      a:`Use arrangement, wear, absence and trajectory: furniture moved to block something, a path worn into the floor, a shelf emptied of one category, tools dropped in a line. Add contradiction, where two traces disagree and the player resolves it. Notes stay for the cases where language is genuinely the artefact.`,
+      a:`Use arrangement, wear, absence and trajectory: furniture moved to block something, a path worn into the floor, a shelf emptied of one category, tools dropped in a line. Add contradiction, where two traces disagree and the player resolves it. Notes stay for the cases where language is the artefact.`,
       follow:`How many unique props can you afford before it stops scaling?`,
       red:`Adds more note variants with better writing.` }
   ],
@@ -283,7 +283,7 @@ INTERVIEW('environmental-storytelling',{
       follow:`How do you stop the vocabulary flattening into wallpaper?`,
       red:`Writes a style guide, distributes it, and treats the problem as solved.` },
     { q:`How do you budget this against level throughput?`,
-      a:`Tier the spaces. Critical-path spaces get authored evidence and a stop-rate target. Connective spaces get kit dressing that stays consistent with the grammar. Measure with playtest stop rate and with what players narrate back, then move budget toward the tiers that actually produce recall.`,
+      a:`Tier the spaces. Critical-path spaces get authored evidence and a stop-rate target. Connective spaces get kit dressing that stays consistent with the grammar. Measure with playtest stop rate and with what players narrate back, then move budget towards the tiers that produce recall.`,
       follow:`What is the first thing you cut when the level count rises?`,
       red:`Spreads the same detail density everywhere and runs out of schedule.` }
   ] });
@@ -292,20 +292,20 @@ T('narrative-agency',{ d:'narrative', t:'Player agency in story', tag:'Agency in
   what:`The degree to which players shape the story and, more importantly, perceive that they did. Includes authored branches, systemic consequences, expressive choices without plot impact, and emergent narrative from systems. Branch count is expensive and rarely perceived. Visible consequence is cheap and always perceived.`,
   why:[`Perceived agency is what players feel. A single visible consequence outperforms ten invisible branches.`,`Emergent stories from systems are the ones players retell, because they are theirs.`,`Fake choice is detected within an hour and poisons trust in every later choice.`],
   think:{ q:[`For each choice: when and how does the player see it mattered?`,`Is the consequence cosmetic, situational or structural? All three are fine if the player knows which.`,`Which systems could generate story without a script?`,`Are there moments where the story takes control at exactly the point the mechanics were about control?`],
-    trade:[`Branching multiplies content cost and delivers agency only if perceived.`,`Linear stories deliver authored peaks and must earn the player's acceptance of the rails.`],
-    traps:[`Dialog wheels that converge.`,`Consequences delivered hours later with no reminder of the cause.`,`Cutscenes that undo player choices.`],
+    trade:[`Branching multiplies content cost and delivers agency only if perceived.`,`Linear stories deliver authored peaks and must earn the player’s acceptance of the rails.`],
+    traps:[`Dialogue wheels that converge.`,`Consequences delivered hours later with no reminder of the cause.`,`Cutscenes that undo player choices.`],
     good:[`Players tell stories in first person with choices in them.`,`Players replay to see what would have happened.`],
-    bad:[`Players say "it did not matter what I picked".`] },
+    bad:[`Players say “it did not matter what I picked”.`] },
   how:[`List choices. For each, write the consequence, when it is seen, and how the player will connect it to the cause.`,`Replace invisible branches with visible acknowledgments (a line, a changed space, a reputation).`,`Identify systems that could generate story and surface their outputs as narrative (a journal, characters reacting).`,`Test whether players can recall a consequence and its cause.`],
-  ai:{ yes:[`Audit choice lists for consequence visibility and delay.`,`Draft acknowledgments for choices with no visible consequence.`,`Design systemic narrative surfacing (how a system's state becomes a story beat).`],
+  ai:{ yes:[`Audit choice lists for consequence visibility and delay.`,`Draft acknowledgments for choices with no visible consequence.`,`Design systemic narrative surfacing (how a system’s state becomes a story beat).`],
        no:[`Decide how much authorship to give the player.`] },
-  prompts:[{l:'Consequence visibility audit',p:`Here are our player choices with their consequences and timing: [LIST]. For each, state when the player first perceives the consequence, how they would connect it to their choice, and whether it is cosmetic, situational or structural. Flag choices with no perceivable consequence within [TIME]. For each flag, propose the cheapest visible acknowledgment, not a new branch.`}],
+  prompts:[{l:'Consequence visibility audit',p:`Here are our player choices with their consequences and timing: [LIST]. For each, state when the player first perceives the consequence, how they would connect it to their choice, and whether it is cosmetic, situational or structural. Flag choices with no perceivable consequence within [TIME]. For each flag, propose the cheapest visible acknowledgement, not a new branch.`}],
   verify:[`Did it propose branches when acknowledgments would do?`],
-  test:[`Ask players about a choice they made and what happened because of it.`,`Do players replay to see alternatives?`,`Where do players say "that did not matter"?`],
+  test:[`Ask players about a choice they made and what happened because of it.`,`Do players replay to see alternatives?`,`Where do players say “that did not matter”?`],
   rel:[['agency-and-emergence','Narrative agency is agency applied to story.'],['ludonarrative-alignment','Agency is the most common dissonance site.'],['systemic-design','Systems generate emergent stories.'],['decisions','Story choices are decisions with the same criteria.']] });
 TECH('narrative-agency',[
   {n:'Branching and state tracking', how:`Track choices in state (flags, variables) and let later content and dialogue read them.`, fit:`Choice-and-consequence storytelling.`, cost:`Combinatorial content cost. Branches must reconverge or content explodes.`, alt:`Track state and use it for variation in delivery and consequence, not fully separate plots.`},
-  {n:'Dialogue and quest systems', how:`Data-driven dialogue graphs and quest state machines with conditions and effects.`, fit:`Authoring large narrative content without code per line.`, cost:`Tooling and localization cost. Brittle conditions.`, alt:`Invest in an authoring tool. Writers must own the data.`},
+  {n:'Dialogue and quest systems', how:`Data-driven dialogue graphs and quest state machines with conditions and effects.`, fit:`Authoring large narrative content without code per line.`, cost:`Tooling and localisation cost. Brittle conditions.`, alt:`Invest in an authoring tool. Writers must own the data.`},
   {n:'Emergent and systemic narrative', how:`Story emerges from systems (AI, simulation, reputation) rather than script.`, fit:`Sandboxes, sims and games where player stories are the product.`, cost:`Unreliable. You cannot guarantee a meaningful arc.`, alt:`Systemic for texture and player stories. Scripted for the beats that must land.`}
 ]);
 ENGINE('narrative-agency',{
@@ -327,9 +327,9 @@ func allows(condition: String) -> bool:        # "spared_guard and reputation > 
 func save() -> void:
 \tFileAccess.open("user://story.json", FileAccess.WRITE).store_string(JSON.stringify(_flags))`,
     pitfall:`Saving the ledger with ResourceSaver and reading it back with load(). A .tres names the script it should instantiate, so loading a file the player can edit runs whatever script that file names, and ResourceLoader also hands back a shared cached instance unless you ask for a fresh one. Save player data as JSON and keep load() for content you shipped.`,
-    map:`Godot's Expression over an autoload flag dictionary is Unity's condition check over a serialised save object.` },
-  unity:{ term:`A serialisable save class holding the flags, written with JsonUtility to persistentDataPath. Consequences subscribe to a change event so an acknowledgment can be surfaced the moment a flag is set.`,
-    api:['[System.Serializable] save class','JsonUtility.ToJson() / FromJson<T>()','Application.persistentDataPath','File.WriteAllText() / ReadAllText()','UnityEvent for consequence hooks','PlayableDirector for the acknowledgment beat'],
+    map:`Godot’s Expression over an autoload flag dictionary is Unity’s condition check over a serialised save object.` },
+  unity:{ term:`A serialisable save class holding the flags, written with JsonUtility to persistentDataPath. Consequences subscribe to a change event so an acknowledgement can be surfaced the moment a flag is set.`,
+    api:['[System.Serializable] save class','JsonUtility.ToJson() / FromJson<T>()','Application.persistentDataPath','File.WriteAllText() / ReadAllText()','UnityEvent for consequence hooks','PlayableDirector for the acknowledgement beat'],
     snippet:`[System.Serializable] public class StoryState {
     public List<string> flags = new();      // a List survives JsonUtility, a Dictionary does not
     public int reputation;
@@ -346,29 +346,29 @@ func save() -> void:
     }
 }`,
     pitfall:`Storing the ledger as a Dictionary and serialising it with JsonUtility. Dictionaries, properties and polymorphic fields are skipped silently, so the file writes as an empty object, no error is logged, and every choice the player made disappears on reload. Use serialisable lists and plain fields, or a serialiser that reports what it dropped.`,
-    map:`Unity's JsonUtility save object is Godot's JSON-serialised flag dictionary in user://.` }});
+    map:`Unity’s JsonUtility save object is Godot’s JSON-serialised flag dictionary in user://.` }});
 INTERVIEW('narrative-agency',{
   junior:[
     { q:`What is player agency in story, and is more branching always better?`,
       a:`Agency is the perception that the player shaped events. Branch count is expensive and mostly invisible, so one consequence the player sees and connects to their choice beats ten they never meet. Start with visibility, then spend on branches where replay is expected.`,
-      follow:`What is the cheapest acknowledgment you can give a choice?`,
+      follow:`What is the cheapest acknowledgement you can give a choice?`,
       red:`Counts endings as the measure of agency.` },
     { q:`Name the kinds of consequence a choice can have.`,
       a:`Cosmetic, situational and structural. All three are legitimate, and the problem is only when the player expects one kind and gets another. Signal the scale honestly, because a choice that presents as structural and lands as cosmetic costs trust.`,
       follow:`How do you signal which kind a choice is without spoiling it?`,
       red:`Promises every choice is structural.` },
     { q:`Why is fake choice dangerous?`,
-      a:`Players detect convergence within an hour, and once they do they stop treating any later choice as real. That poisons the choices that genuinely matter, which are usually the expensive ones. A visible small consequence is worth more than an invisible large one.`,
+      a:`Players detect convergence within an hour, and once they do they stop treating any later choice as real. That poisons the choices that matter, which are usually the expensive ones. A visible small consequence is worth more than an invisible large one.`,
       follow:`How would you detect it in a playtest?`,
       red:`Assumes players will not notice if the convergence is well written.` }
   ],
   mid:[
     { q:`Your consequences land six hours after the choice. What do you do?`,
-      a:`Add an acknowledgment near the choice so the player knows it was recorded, then restate the cause when the consequence arrives, through a character, a changed space or a reputation. The player has to connect the two without being told a sentence they no longer remember. If the link cannot be made, the branch is not buying agency.`,
+      a:`Add an acknowledgement near the choice so the player knows it was recorded, then restate the cause when the consequence arrives, through a character, a changed space or a reputation. The player has to connect the two without being told a sentence they no longer remember. If the link cannot be made, the branch is not buying agency.`,
       follow:`How long a gap is too long?`,
       red:`Adds a journal entry and assumes players read it.` },
     { q:`How do you surface emergent narrative from systems?`,
-      a:`Give the systems a voice: characters that react to state, a log that names what happened in the player's terms, a summary at a rest beat. Emergent stories are the ones players retell because they are theirs, but only if the game notices them. Pick a small number of state changes worth commenting on.`,
+      a:`Give the systems a voice: characters that react to state, a log that names what happened in the player’s terms, a summary at a rest beat. Emergent stories are the ones players retell because they are theirs, but only if the game notices them. Pick a small number of state changes worth commenting on.`,
       follow:`What happens when the systemic beat contradicts the authored one?`,
       red:`Assumes emergence is automatic because the systems interact.` },
     { q:`A dialog wheel where all four options converge. Defend it or fix it.`,
@@ -383,7 +383,7 @@ INTERVIEW('narrative-agency',{
       red:`Distributes them evenly across the chapters so every act has one.` },
     { q:`A cutscene undoes a choice the player made. You are the lead. What now?`,
       a:`Treat it as a trust problem rather than a scene problem. Either the choice was not real and should be reframed as expressive, or the scene needs to respect it, usually with a variant that is cheaper than it sounds. Whatever you decide, make sure the player is not shown their agency being deleted.`,
-      follow:`The writer's draft depends on that scene. How do you run the conversation?`,
+      follow:`The writer’s draft depends on that scene. How do you run the conversation?`,
       red:`Keeps both and hopes the player forgets what they chose.` }
   ] });
 
@@ -397,14 +397,14 @@ T('narrative-pacing',{ d:'narrative', t:'Narrative pacing and integration', tag:
     bad:[`Players skip, or forget the plot between sessions.`] },
   how:[`Put story beats on the same timeline as level and intensity beats.`,`Move exposition after the first meaningful play and deliver it as answers to questions the play raised.`,`Convert the longest cutscenes to in-play delivery where possible.`,`Never place unskippable story at a retry point.`],
   ai:{ yes:[`Merge a story outline and a level plan into one timeline and flag collisions.`,`Propose in-play delivery for cutscene beats.`,`Estimate non-interactive time per hour.`],
-       no:[`Decide the story's shape.`] },
+       no:[`Decide the story’s shape.`] },
   prompts:[{l:'Integrated timeline',p:`Here is our story outline with beats and estimated durations: [STORY] and our level and intensity plan: [LEVELS]. Merge them into one timeline. Flag story beats that land on intensity peaks, exposition before the first meaningful play, non-interactive stretches over [N] minutes, and story at retry points. For each flag propose a relocation or an in-play delivery method.`}],
   verify:[`Did it respect which beats must be authored versus which can be systemic?`],
   test:[`Skip rate per scene.`,`Ask players to recount the plot after a week.`,`Do players mention story moments when describing what they did?`],
   rel:[['pacing','Story beats are pacing beats.'],['tension-release','Story is the best rest content.'],['quests-and-events','Quests carry story pacing.'],['onboarding','Exposition before play is an onboarding failure.']] });
 TECH('narrative-pacing',[
   {n:'Integration points', how:`Place story beats where the player naturally pauses (between levels, after bosses), not mid-action.`, fit:`Story that does not fight play.`, cost:`Limits narrative placement. Needs level awareness.`, alt:`Let the environment carry story during play.`},
-  {n:'Player-paced vs authored pace', how:`Decide what the player controls (exploration, dialogue speed) and what the game controls (cutscenes, set pieces).`, fit:`Respecting agency while landing beats.`, cost:`Mismatch causes tone whiplash.`, alt:`Match narrative control to the game's agency.`}
+  {n:'Player-paced vs authored pace', how:`Decide what the player controls (exploration, dialogue speed) and what the game controls (cutscenes, set pieces).`, fit:`Respecting agency while landing beats.`, cost:`Mismatch causes tone whiplash.`, alt:`Match narrative control to the game’s agency.`}
 ]);
 ENGINE('narrative-pacing',{
   godot:{ term:`Cutscenes are AnimationPlayer animations with method call tracks for the state changes. The node processes while the tree is paused so the skip action always works, and skipping advances the animation instead of stopping it.`,
@@ -450,7 +450,7 @@ INTERVIEW('narrative-pacing',{
       red:`Keeps a separate story schedule and calls integration a handoff.` },
     { q:`Why is front-loaded exposition a problem?`,
       a:`It arrives before the player has done anything, so they have no questions for it to answer and no reason to care. Move it after the first meaningful play and deliver it as the answer to something the play raised. What they do first is what they remember.`,
-      follow:`Your premise genuinely needs setup. How do you deliver it?`,
+      follow:`Your premise needs setup. How do you deliver it?`,
       red:`Argues players need the setup before they can enjoy the game.` },
     { q:`What is wrong with an unskippable scene at a retry point?`,
       a:`The player is going to see it many times in a row at the moment they are most frustrated, and it converts a fair challenge into a punishment. Put nothing unskippable between a death and the next attempt. If the beat matters, play it once and let the retry start after it.`,

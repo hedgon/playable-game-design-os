@@ -14,15 +14,15 @@ T('core-loop',{ d:'core', t:'The core loop', tag:'Action → Feedback → Decisi
     trade:[`Fast loops (seconds) reward feel and reflex. Slow loops (minutes) reward planning. Each attracts different players.`,`More decision density increases engagement and cognitive load.`],
     traps:[`Describing the loop as a flowchart of systems (gather, craft, fight, upgrade) rather than as what the player experiences.`,`Assuming a loop is fun because it is genre standard.`],
     good:[`A stripped prototype (grey boxes, no progression) is voluntarily replayed.`],
-    bad:[`Players say "I will keep going to unlock X" rather than "I want to do that again".`] },
-  how:[`Write the loop in five sentences from the player's point of view, one per link.`,`Build the loop alone: no progression, no content variety, no story. Grey boxes.`,`Playtest it. If players do not voluntarily repeat it, diagnose which link is weak using the Core Loop Diagnostic.`,`Fix one link, test again. Only when the bare loop is replayed do you start multiplying it.`],
+    bad:[`Players say “I will keep going to unlock X” rather than “I want to do that again”.`] },
+  how:[`Write the loop in five sentences from the player’s point of view, one per link.`,`Build the loop alone: no progression, no content variety, no story. Grey boxes.`,`Playtest it. If players do not voluntarily repeat it, diagnose which link is weak using the Core Loop Diagnostic.`,`Fix one link, test again. Only when the bare loop is replayed do you start multiplying it.`],
   ai:{ yes:[`Rewrite your loop description from the player perspective and flag missing links.`,`Generate variations of one link (e.g., five alternative decision structures) to test.`,`Build the grey-box prototype quickly.`,`Analyze playtest notes for symptoms of each weak link.`],
        no:[`Decide the loop is fun. Only repetition by players shows that.`,`Add systems to compensate for a weak link before the link is fixed.`] },
-  prompts:[{l:'Loop link audit',p:`Act as a skeptical systems designer. Here is our core loop as the player experiences it: [FIVE SENTENCES]. For each link (action, feedback, decision, consequence, new situation), rate its strength, state the evidence you are using from my description, and name the symptom a playtest would show if it were weak. Then propose 3 variations for the weakest link, each with the player decision it creates, the emotion intended, the likely failure mode, and the observable signal that would validate it. Do not recommend one yet.`},
-    {l:'Prototype build',p:`Build a minimal playable prototype of this loop in [ENGINE/HTML]: [LOOP]. Grey boxes only, no menus, no progression, no audio beyond a single feedback tone. Expose these tuning values as on-screen sliders: [VALUES]. Log every player action with a timestamp to a downloadable text file so I can analyze repetition and decision variety.`}],
-  verify:[`Did it rate links based on my description or on genre assumptions?`,`Are the proposed variations mechanically distinct, or the same idea reskinned?`,`Does the prototype actually isolate the loop, or did it sneak in progression?`],
+  prompts:[{l:'Loop link audit',p:`Act as a sceptical systems designer. Here is our core loop as the player experiences it: [FIVE SENTENCES]. For each link (action, feedback, decision, consequence, new situation), rate its strength, state the evidence you are using from my description, and name the symptom a playtest would show if it were weak. Then propose 3 variations for the weakest link, each with the player decision it creates, the emotion intended, the likely failure mode, and the observable signal that would validate it. Do not recommend one yet.`},
+    {l:'Prototype build',p:`Build a minimal playable prototype of this loop in [ENGINE/HTML]: [LOOP]. Grey boxes only, no menus, no progression, no audio beyond a single feedback tone. Expose these tuning values as on-screen sliders: [VALUES]. Log every player action with a timestamp to a downloadable text file so I can analyse repetition and decision variety.`}],
+  verify:[`Did it rate links based on my description or on genre assumptions?`,`Are the proposed variations mechanically distinct, or the same idea reskinned?`,`Does the prototype isolate the loop, or did it sneak in progression?`],
   test:[`Do players repeat the loop voluntarily when nothing rewards them for it?`,`Can they explain what happened after an action?`,`Do different players make different choices at the decision point?`,`Do they notice the situation changed?`],
-  rel:[['decisions','The decision link is where most loops fail.'],['feedback-and-affordance','Feedback is the link UX owns.'],['game-feel-and-juice','Action feel is the loop as the body experiences it.'],['prototyping','The loop is the first prototype.'],['systemic-design','Systems supply the new situation.']] });
+  rel:[['genre-hybrids','Two loops can share a game only when each one feeds the other.'],['decisions','The decision link is where most loops fail.'],['feedback-and-affordance','Feedback is the link UX owns.'],['game-feel-and-juice','Action feel is the loop as the body experiences it.'],['prototyping','The loop is the first prototype.'],['systemic-design','Systems supply the new situation.']] });
 TECH('core-loop',[
   {n:'Loop mapping', how:`Write the loop as action → feedback → decision → consequence → new situation and mark the weak link.`, fit:`Diagnosing why repetition bores or why actions feel weightless.`, cost:`None worth mentioning. It is the cheapest diagnostic you have.`, alt:`Pair with the Core Loop diagnostic view.`},
   {n:'Grey-box minimal prototype', how:`Build only the core interaction with placeholder art and test voluntary repetition.`, fit:`Before investing in content, art or meta systems.`, cost:`Discipline to not add scope. A boring grey box may kill an idea you love.`, alt:`If the bare loop is not replayable, no production value will save it.`},
@@ -63,7 +63,7 @@ func _attack() -> void:
     void FixedUpdate() =>                        // fixed step: the rules resolve here
         cc.Move(new Vector3(input.x, 0, input.y) * speed * Time.fixedDeltaTime);
 }`,
-    pitfall:`Reading WasPressedThisFrame() inside FixedUpdate. FixedUpdate can run zero or twice in a rendered frame, so single-frame presses are dropped or double-counted and the loop feels unreliable in exactly the way players call unresponsive. Sample input in Update, buffer it, consume it in FixedUpdate.`,
+    pitfall:`Reading WasPressedThisFrame() inside FixedUpdate. FixedUpdate can run zero, one or several times in a rendered frame, so single-frame presses are dropped or double-counted and the loop feels unreliable in exactly the way players call unresponsive. Sample input in Update, buffer it, consume it in FixedUpdate.`,
     map:`Unity FixedUpdate() is Godot _physics_process(delta), Update() is _process(delta), and a UnityEvent is a signal.` },
   note:`The design point survives both engines: the loop is only a loop when the consequence is legible before the next input. In both snippets the feedback is an explicit event, not a line buried in the movement code, because that is the part you will want to test, delay, juice and eventually move to a server.` });
 INTERVIEW('core-loop',{
@@ -71,12 +71,12 @@ INTERVIEW('core-loop',{
     { q:`What is a core loop, and what is the core loop of the last game you shipped or studied?`,
       a:`Name the repeated unit: action, feedback, decision, consequence, new situation. Then walk one concrete iteration of a real game in those five beats. Say how long one iteration takes. Say what changes between iteration one and iteration two, because a loop with nothing changing is a chore.`,
       follow:`Now name the loop one layer out. What is the three-minute loop that the three-second loop feeds?`,
-      red:`Describes the game's feature list, or answers with a genre label ("it's a roguelike") instead of a repeated unit of play.` },
+      red:`Describes the game’s feature list, or answers with a genre label (“it’s a roguelike”) instead of a repeated unit of play.` },
     { q:`Where does feedback belong in the loop, and how late is too late?`,
       a:`Feedback closes the loop: without it the player cannot learn what their action did. Immediate confirmation should land inside roughly 100 ms so the action feels connected. The consequence can resolve later, but the acknowledgement cannot. Give an example of a game where the acknowledgement and the outcome are deliberately split.`,
       follow:`What do you do when the real outcome takes two seconds to compute or has to come back from a server?`,
       red:`Treats feedback as visual polish added at the end, or cannot distinguish acknowledging the input from resolving the outcome.` },
-    { q:`In an engine of your choice, where would you actually put the loop code?`,
+    { q:`In an engine of your choice, where would you put the loop code?`,
       a:`Input sampled every frame so no press is dropped, rules resolved on the fixed step so the same action resolves the same way on any machine, and the consequence raised as an event rather than called inline. In Unity that is Update plus FixedUpdate plus a UnityEvent. In Godot that is _process, _physics_process and a signal.`,
       follow:`What breaks if you sample the attack button in FixedUpdate?`,
       red:`Puts everything in Update or _process and does not know why frame-rate independence matters.` }
@@ -85,19 +85,19 @@ INTERVIEW('core-loop',{
     { q:`A playtest says the game is repetitive. How do you find out which part of the loop is at fault?`,
       a:`Do not add content. Instrument one iteration: is the action varied, is the feedback readable, is there a decision with a real trade-off, does the consequence change the next situation. Watch six players and count decisions per minute. Repetitiveness is almost always a missing decision or an unchanging situation, not a missing feature.`,
       follow:`You find the decision exists but players always pick the same option. Now what?`,
-      red:`Jumps straight to "add more enemy types" or blames the art.` },
-    { q:`How do you prototype a core loop so the test is actually cheap?`,
+      red:`Jumps straight to “add more enemy types” or blames the art.` },
+    { q:`How do you prototype a core loop so the test is cheap?`,
       a:`Strip to the single verb and the single consequence. Grey boxes, placeholder audio, no progression, no menu. Test the one question that would kill the idea. Say what your kill criterion was on a real prototype, and whether you honoured it.`,
       follow:`What was the smallest prototype you have built that changed a decision?`,
       red:`Describes a vertical slice and calls it a prototype, or has never killed one.` },
     { q:`How does the loop change when the game is online and the server is authoritative?`,
       a:`The acknowledgement stays local and immediate, the resolution moves to the authority. That means prediction, reconciliation and a visible rule for what happens when the two disagree. Name the correction you chose and what it looks like to the player when it fires.`,
       follow:`What does your loop feel like at 200 ms of latency, and what did you change to keep it honest?`,
-      red:`Says "we just send the input to the server" with no account of the wait the player experiences.` }
+      red:`Says “we just send the input to the server” with no account of the wait the player experiences.` }
   ],
   senior:[
     { q:`You inherit a game whose loop is fine for an hour and dead by hour three. Where do you look?`,
-      a:`The three-second loop is working and the longer loops are not. Check whether the situation actually changes across sessions, whether the decision space widens with mastery, and whether the systems feeding the loop generate new combinations or only bigger numbers. Separate a content problem from a system problem before spending a single sprint.`,
+      a:`The three-second loop is working and the longer loops are not. Check whether the situation changes across sessions, whether the decision space widens with mastery, and whether the systems feeding the loop generate new combinations or only bigger numbers. Separate a content problem from a system problem before spending a single sprint.`,
       follow:`How would you tell a content problem from a system problem with data you can gather this week?`,
       red:`Proposes a progression pass or a battle pass without first showing which loop went flat.` },
     { q:`How do you decide the loop is good enough to build the rest of the game on?`,
@@ -114,23 +114,23 @@ T('decisions',{ d:'core', t:'Meaningful decisions', tag:'A decision is meaningfu
   why:[`Decisions are where agency lives. Remove them and the player is watching, not playing.`,`A dominant option turns a decision into a puzzle with one answer, then into a chore.`,`Depth is measured in meaningful decisions, not in rules.`],
   think:{ q:[`For this choice, what does the player give up by picking each option?`,`Would an expert always pick the same option? Then it is not a decision.`,`Does the player have enough information to reason, and enough uncertainty to feel risk?`,`Does the choice reveal something about the player?`],
     trade:[`More information makes decisions more reasoned and less tense.`,`Frequent decisions raise engagement and fatigue.`],
-    traps:[`Offering options that differ in flavor but not consequence.`,`Hiding the tradeoff so the player cannot reason about it (a decision they cannot understand is a guess).`,`Balancing by making everything equal, which erases situational preference.`],
+    traps:[`Offering options that differ in flavour but not consequence.`,`Hiding the tradeoff so the player cannot reason about it (a decision they cannot understand is a guess).`,`Balancing by making everything equal, which erases situational preference.`],
     good:[`Players hesitate, then commit, then look to see if it worked.`,`Players argue about the right choice.`],
     bad:[`Players pick the same option every time, or pick without looking.`] },
-  how:[`List the decisions in one loop iteration. For each, write the tradeoff in one sentence. If you cannot, it is not a decision.`,`Check for situational variance: describe two situations where the best choice differs.`,`Check information: what does the player know when choosing? Is it enough to reason, and not enough to be certain?`,`Playtest and log choices. Low variance across players or situations flags a dominant option.`],
-  ai:{ yes:[`Enumerate decisions in a rules description and articulate each tradeoff.`,`Search for dominant strategies by simulation or reasoning.`,`Generate situations in which each option would be best.`],
-       no:[`Judge whether a decision "feels" meaningful. Hesitation and variance in play show that.`] },
-  prompts:[{l:'Dominant option hunt',p:`Here are the rules and numbers for [SYSTEM]: [RULES]. For each decision the player faces, state the tradeoff in one sentence. Then try to break it: find the option an expert would always choose, and the situations, if any, where another option wins. Rank decisions by how likely they are to collapse into a single answer after 10 hours. For the top one, propose the smallest rule change that restores situational variance.`}],
-  verify:[`Are tradeoffs stated as real costs, or as flavor differences?`,`Did it actually try to break the system, or affirm that it is balanced?`],
-  test:[`Log choices per player per situation. Compute variance.`,`Do players hesitate before choosing? Hesitation is a sign of a real tradeoff.`,`Ask players why they chose. Can they state the tradeoff?`],
-  rel:[['core-loop','The decision is one link of the loop.'],['depth-vs-complexity','Depth is decision count, not rule count.'],['risk-reward','Risk/reward is the most common decision shape.'],['builds-and-loadouts','Build choices are slow-horizon decisions.']] });
+  how:[`List the decisions in one loop iteration. For each, write the trade-off in one sentence. If you cannot, it is not a decision.`,`Check for situational variance: describe two situations where the best choice differs.`,`Check information: what does the player know when choosing? Is it enough to reason, and not enough to be certain?`,`Playtest and log choices. Low variance across players or situations flags a dominant option.`],
+  ai:{ yes:[`Enumerate decisions in a rules description and articulate each trade-off.`,`Search for dominant strategies by simulation or reasoning.`,`Generate situations in which each option would be best.`],
+       no:[`Judge whether a decision “feels” meaningful. Hesitation and variance in play show that.`] },
+  prompts:[{l:'Dominant option hunt',p:`Here are the rules and numbers for [SYSTEM]: [RULES]. For each decision the player faces, state the trade-off in one sentence. Then try to break it: find the option an expert would always choose, and the situations, if any, where another option wins. Rank decisions by how likely they are to collapse into a single answer after 10 hours. For the top one, propose the smallest rule change that restores situational variance.`}],
+  verify:[`Are trade-offs stated as real costs, or as flavour differences?`,`Did it try to break the system, or affirm that it is balanced?`],
+  test:[`Log choices per player per situation. Compute variance.`,`Do players hesitate before choosing? Hesitation is a sign of a real trade-off.`,`Ask players why they chose. Can they state the trade-off?`],
+  rel:[['time-and-turns','How time passes decides how long the player gets to make each decision.'],['core-loop','The decision is one link of the loop.'],['depth-vs-complexity','Depth is decision count, not rule count.'],['risk-reward','Risk/reward is the most common decision shape.'],['builds-and-loadouts','Build choices are slow-horizon decisions.']] });
 TECH('decisions',[
-  {n:'Tradeoff mapping', how:`For each option, write what the player gives up. Options with no tradeoff are not decisions.`, fit:`Auditing whether your "choices" are real.`, cost:`Design time. Can reveal that your variety is cosmetic.`, alt:`Start here. Cut or merge options with no tradeoff sentence.`},
+  {n:'Tradeoff mapping', how:`For each option, write what the player gives up. Options with no trade-off are not decisions.`, fit:`Auditing whether your “choices” are real.`, cost:`Design time. Can reveal that your variety is cosmetic.`, alt:`Start here. Cut or merge options with no trade-off sentence.`},
   {n:'Information design (fog, telegraph, partial knowledge)', how:`Control what the player knows when they choose: hidden values, revealed odds, telegraphed enemy intent.`, fit:`Creating interesting decisions under uncertainty.`, cost:`Opacity feels unfair. Full information removes tension.`, alt:`Reveal enough to reason. Hide enough to matter.`},
   {n:'Dominance analysis', how:`Check whether any option is at least as good as another in every situation. If so, fix, cost or remove it.`, fit:`Balance and depth audits.`, cost:`Only catches strict dominance, not situational imbalance.`, alt:`Follow with pick-rate/win-rate data.`}
 ]);
 ENGINE('decisions',{
-  godot:{ term:`A decision in the engine is two things: the options as data, and a path that actually delivers the answer. The second one is where prototypes lose the decision, because a Control higher in the tree eats the click before it arrives.`,
+  godot:{ term:`A decision in the engine is two things: the options as data, and a path that delivers the answer. The second one is where prototypes lose the decision, because a Control higher in the tree eats the click before it arrives.`,
     api:['Control.mouse_filter (STOP / PASS / IGNORE)','Button.pressed signal / ButtonGroup','Callable.bind()','Control.grab_focus() / focus_neighbor','Resource option definitions','Input.is_action_just_pressed("ui_accept")'],
     snippet:`@export var options: Array[OptionDef] = []   # label, cost and effect live in data
 
@@ -144,7 +144,7 @@ func present() -> void:
 \t\t%Options.add_child(b)
 \t%Options.get_child(0).grab_focus()       # a pad must be able to answer too`,
     pitfall:`A full screen Control sitting above the options with mouse_filter left at the default STOP. It is invisible and it swallows every click, so the decision is unreachable and the playtest records a player who never chose. Set decorative overlays to IGNORE, and give the first option focus so a pad or keyboard can answer at all.`,
-    map:`Godot mouse_filter is Unity's Raycast Target checkbox, and grab_focus() is EventSystem.SetSelectedGameObject().` },
+    map:`Godot mouse_filter is Unity’s Raycast Target checkbox, and grab_focus() is EventSystem.SetSelectedGameObject().` },
   unity:{ term:`Options are ScriptableObject definitions and the buttons are generated from them, so the cost printed on the button comes from the same field the rules read and a balance change cannot leave the UI lying.`,
     api:['ScriptableObject option assets','Button.onClick.AddListener()','EventSystem.SetSelectedGameObject()','Graphic.raycastTarget','CanvasGroup.blocksRaycasts','TMP_Text.SetText()'],
     snippet:`public class ChoicePanel : MonoBehaviour {
@@ -162,11 +162,11 @@ func present() -> void:
     }
 }`,
     pitfall:`A full screen Image left with Raycast Target ticked. It blocks the buttons underneath and the only symptom is that nothing happens, which testers report as the game freezing. Untick Raycast Target on anything decorative, and use CanvasGroup.blocksRaycasts when a panel is meant to block on purpose.`,
-    map:`Unity CanvasGroup.blocksRaycasts is a parent Control's mouse_filter, and onClick is the pressed signal.` } });
+    map:`Unity CanvasGroup.blocksRaycasts is a parent Control’s mouse_filter, and onClick is the pressed signal.` } });
 INTERVIEW('decisions',{
   junior:[
     { q:`What makes a decision meaningful?`,
-      a:`The options have to be genuinely different, the outcome uncertain, and the player has to care. Sid Meier's framing is a game as a series of interesting decisions. Add two working tests: the right answer changes with the situation, and different players choose differently.`,
+      a:`The options have to be different, the outcome uncertain, and the player has to care. Sid Meier’s framing is a game as a series of interesting decisions. Add two working tests: the right answer changes with the situation, and different players choose differently.`,
       follow:`Take a decision from a game you know and state its trade-off in one sentence.`,
       red:`Calls any choice a decision, including options that differ only in flavour.` },
     { q:`You balance a set of options so they are all equally strong. Why is that a problem?`,
@@ -180,11 +180,11 @@ INTERVIEW('decisions',{
   ],
   mid:[
     { q:`Players always pick the same option. Walk me through the investigation.`,
-      a:`Log choices per player and per situation and compute the variance. Then separate three causes: one option dominates numerically, the information needed to prefer another is missing, or the situations never actually differ. Each has a different smallest fix, so identify which before touching numbers.`,
+      a:`Log choices per player and per situation and compute the variance. Then separate three causes: one option dominates numerically, the information needed to prefer another is missing, or the situations never differ. Each has a different smallest fix, so identify which before touching numbers.`,
       follow:`Variance is high across players and zero within each player. What does that mean?`,
       red:`Buffs the unpopular options by a flat percentage and re-ships.` },
     { q:`How do you measure decision density, and what do you do with the number?`,
-      a:`Count decisions per minute from observation, not from the design document. Compare against the intended pace and against what the player's attention can carry. Density raises engagement and fatigue at the same time, so the target depends on the session shape.`,
+      a:`Count decisions per minute from observation, not from the design document. Compare against the intended pace and against what the player’s attention can carry. Density raises engagement and fatigue at the same time, so the target depends on the session shape.`,
       follow:`Density is right and players still describe the game as passive. What now?`,
       red:`Counts button presses as decisions and reports a large number.` },
     { q:`What does hesitation tell you in a playtest?`,
@@ -208,23 +208,23 @@ T('risk-reward',{ d:'core', t:'Risk and reward', tag:'The most reliable decision
   why:[`Risk/reward manufactures tension without needing content. The same encounter becomes different depending on what the player wagers.`,`It personalizes play: cautious and bold players experience different games.`,`It is also where balance goes wrong most visibly: if the risky option is always right, it is not a risk.`],
   think:{ q:[`Can the player estimate the risk before committing? Can they learn to estimate it better?`,`Is the safe option ever right? If never, remove it or fix the numbers.`,`What does failure cost, and does the player know that cost when choosing?`,`Does the reward create a new situation, or just a bigger number?`],
     trade:[`Legible risk lets players reason and reduces surprise. Hidden risk surprises and frustrates.`,`Large punishments make risk exciting and drive away loss-averse players.`],
-    traps:[`Rewarding risk with more resources, which snowballs and removes future decisions.`,`Making the "risk" pure randomness with no skill component to reading or mitigating it.`],
-    good:[`Different players take different risks in the same spot.`,`Players talk about "going for it".`],
+    traps:[`Rewarding risk with more resources, which snowballs and removes future decisions.`,`Making the “risk” pure randomness with no skill component to reading or mitigating it.`],
+    good:[`Different players take different risks in the same spot.`,`Players talk about “going for it”.`],
     bad:[`Everyone takes the risky option, or nobody does.`] },
   how:[`For each risk/reward point, write the safe payoff, the risky payoff, the probability or skill check, and the cost of failure.`,`Check legibility: how does the player learn the odds? Through telegraphing, prior experience, or a number?`,`Check both options are situationally right. Write the situation where each wins.`,`Watch risk appetite in playtests. If it is uniform, the numbers or the information are wrong.`],
   ai:{ yes:[`Compute expected values and identify options that are never right.`,`Simulate risk points across skill levels to see when the risky option dominates.`,`Propose ways to make the risk legible without a number.`],
        no:[`Decide how punishing the game should be.`] },
   prompts:[{l:'Risk point analysis',p:`Here is a risk/reward point: safe option [A], risky option [B], probability or skill factor [P], failure cost [C]. Compute expected values for a novice and an expert. State when each option is correct. If one dominates, propose the smallest change to P, C or the payoffs that creates a real choice, and explain how the player would perceive the odds without reading a number.`}],
-  verify:[`Did it account for downstream consequences (snowballing) or only immediate values?`,`Is its notion of "legible" grounded in what the player can see?`],
+  verify:[`Did it account for downstream consequences (snowballing) or only immediate values?`,`Is its notion of “legible” grounded in what the player can see?`],
   test:[`Log choices at the risk point across players. Is there variance?`,`Ask players what they thought the odds were. Compare with reality.`,`Do players change their risk appetite as they improve?`],
   rel:[['decisions','Risk/reward is a decision shape.'],['tension-release','Risk is the engine of tension.'],['challenge-failure-recovery','Failure cost is half of risk.'],['economy-and-resources','Rewards that snowball break economies.']] });
 TECH('risk-reward',[
   {n:'Risk pricing', how:`Make each risk cost something real and legible, so the reward is a decision not a formality.`, fit:`Combat, betting, exploration, push-your-luck.`, cost:`Punitive risk drives players to the safe option always.`, alt:`Tune the ratio per context. Test whether players take risks.`},
   {n:'Push-your-luck curves', how:`Let players choose when to bank. Make the marginal risk grow with the pile.`, fit:`Tension and memorable gambles.`, cost:`Can feel random without readable odds.`, alt:`Reveal enough odds to reason.`},
-  {n:'Loss aversion management', how:`Decide what is lost, how much, and whether it can be recovered.`, fit:`Making stakes meaningful without rage-quit.`, cost:`Losing progress is the most-cited quit cause. Needs recovery design.`, alt:`Prefer losing progress in a run, not in the account.`}
+  {n:'Loss aversion management', how:`Decide what is lost, how much, and whether it can be recovered.`, fit:`Making stakes meaningful without rage-quit.`, cost:`Losing progress the player valued is a common quit trigger, because a loss weighs more than an equal gain. Needs recovery design.`, alt:`Prefer losing progress in a run, not in the account.`}
 ]);
 ENGINE('risk-reward',{
-  godot:{ term:`The odds live in code and the player's estimate of them is a separate design artefact. Give the roll its own RandomNumberGenerator so an outcome is reproducible from a bug report, and telegraph the risk with something readable before the commit.`,
+  godot:{ term:`The odds live in code and the player’s estimate of them is a separate design artefact. Give the roll its own RandomNumberGenerator so an outcome is reproducible from a bug report, and telegraph the risk with something readable before the commit.`,
     api:['RandomNumberGenerator.new() / .seed / .randf()','randf_range() / randi_range()','signal roll_resolved(success, margin)','Curve for pricing the risk','create_tween() for the telegraph','hash() for a per-system seed'],
     snippet:`var rng := RandomNumberGenerator.new()
 signal roll_resolved(success: bool, margin: float)
@@ -237,7 +237,7 @@ func attempt(chance: float, payoff: int, fail_cost: int) -> void:
 \tvar success := roll < chance
 \troll_resolved.emit(success, absf(roll - chance))
 \tWallet.apply(&"gold", payoff if success else -fail_cost, "risk point")`,
-    pitfall:`Calling the global randf() for gameplay rolls. Every system shares that one stream, so adding an ambient effect that rolls once a second changes every combat outcome, and "it happened at 3:12 on seed 41" stops being reproducible. One generator per system that has to be replayable.`,
+    pitfall:`Calling the global randf() for gameplay rolls. Every system shares that one stream, so adding an ambient effect that rolls once a second changes every combat outcome, and “it happened at 3:12 on seed 41” stops being reproducible. One generator per system that has to be replayable.`,
     map:`A Godot RandomNumberGenerator instance is a System.Random in Unity, and randi_range is Random.Range with an inclusive maximum.` },
   unity:{ term:`Same split between the roll and the telegraph. The Unity detail that costs a day is the range convention: the integer overload excludes its maximum and the float overload includes it.`,
     api:['System.Random per system','UnityEngine.Random.Range(int,int) exclusive max','UnityEngine.Random.Range(float,float) inclusive max','UnityEngine.Random.InitState()','AnimationCurve for pricing the risk','UnityEvent<bool,float>'],
@@ -253,7 +253,7 @@ func attempt(chance: float, payoff: int, fail_cost: int) -> void:
     }
     // Random.Range(0, 100) never returns 100. Random.Range(0f, 100f) can.
 }`,
-    pitfall:`Reading Random.Range(0, 100) as a percentile that includes 100. The integer overload excludes its maximum and the float overload includes it, so a one in a hundred event is either impossible or twice as likely as intended depending on which overload you happened to type. It is the most common silently wrong line in tuning code.`,
+    pitfall:`Reading Random.Range(0, 100) as a percentile that includes 100. The integer overload excludes its maximum and the float overload includes it, so a check for 100 never fires on the integer overload, and a drop table written for rolls of 1 to 100 is one point off at every threshold, depending on which overload you happened to type. It is the most common silently wrong line in tuning code.`,
     map:`A Unity System.Random per system is a Godot RandomNumberGenerator instance, and Random.value is randf().` } });
 INTERVIEW('risk-reward',{
   junior:[
@@ -263,10 +263,10 @@ INTERVIEW('risk-reward',{
       red:`Describes a random chance with no judgement or mitigation available to the player.` },
     { q:`How does a player learn the odds without a percentage on screen?`,
       a:`Telegraphs they can read, prior experience with the same enemy or situation, the visible state of their own resources, and consequences that stay consistent. Making risk legible without a number is the actual design work, and a number is usually the lazy version of it.`,
-      follow:`What happens when the odds are genuinely unknowable to the player?`,
+      follow:`What happens when the odds are unknowable to the player?`,
       red:`Puts a percentage on the screen as the only way to make risk readable.` },
     { q:`Everyone takes the risky option. What does that tell you?`,
-      a:`It is not a risk. Either the expected value favours it outright or the failure cost is too small to matter. Check both, then check whether the safe option is ever correct in any situation you actually ship.`,
+      a:`It is not a risk. Either the expected value favours it outright or the failure cost is too small to matter. Check both, then check whether the safe option is ever correct in any situation you ship.`,
       follow:`Nobody takes it. Same question.`,
       red:`Says the players are simply being aggressive and leaves the numbers alone.` }
   ],
@@ -288,7 +288,7 @@ INTERVIEW('risk-reward',{
     { q:`Balance a risk point for a novice and an expert at the same time.`,
       a:`Their expected values differ, so a point tuned for one is broken for the other. Prefer risk whose demand scales with skill over risk whose probability is fixed, or let the player choose the stake. Then verify with logs from both groups rather than with one curve.`,
       follow:`You only have expert data. What do you refuse to conclude from it?`,
-      red:`Tunes on the team's own play, which is expert play with hidden knowledge attached.` },
+      red:`Tunes on the team’s own play, which is expert play with hidden knowledge attached.` },
     { q:`How do risk structures interact with monetisation?`,
       a:`When a purchase removes the risk, the decision disappears and the tension goes with it. If failure costs can be bought away, the store is running the design economy. That is a policy decision and it should be taken openly rather than discovered in the balance data.`,
       follow:`The business wants a revive item. How do you protect the risk?`,
@@ -300,18 +300,18 @@ DIAGRAM('risk-reward', { kind:'quad', title:'The decision lives on the rising di
   q:['Dominant: no decision','Interesting bet','Safe default','Never worth it'] });
 
 T('agency-and-emergence',{ d:'core', t:'Agency and emergence', tag:'Agency is when the player causes things. Emergence is when the game surprises its own designers.',
-  what:`Agency: the player perceives that their choices cause outcomes, and that different choices would have caused different outcomes. Emergence: behaviors and strategies arising from rule interactions that were not individually authored. Together they produce stories players tell as their own.`,
+  what:`Agency: the player perceives that their choices cause outcomes, and that different choices would have caused different outcomes. Emergence: behaviours and strategies arising from rule interactions that were not individually authored. Together they produce stories players tell as their own.`,
   why:[`Perceived agency, not actual agency, drives the feeling of playing. A game can have real branches nobody notices, or a linear path that feels authored by the player.`,`Emergence makes a finite ruleset produce unbounded situations. It is the only scalable source of surprise.`,`Emergence is also where exploits and degenerate strategies come from. It needs stewardship, not suppression.`],
   think:{ q:[`Where does the player see that their choice mattered? How soon?`,`Which systems can affect which other systems? Where are the walls between them?`,`What is the strangest thing a player could do with these rules? Is it delightful or degenerate?`,`Am I preventing emergence by scripting outcomes I could have let the system produce?`],
     trade:[`More systemic openness yields more emergence and more balance and QA risk.`,`Authored set pieces deliver reliable peaks and reduce agency.`],
     traps:[`Fake choices (dialogue options that converge) that players detect within an hour.`,`Sealing systems from each other to make them easier to balance, which kills emergence.`],
     good:[`Players tell stories nobody on the team scripted.`,`Players find valid strategies you did not plan.`],
-    bad:[`Players say "it did not matter what I picked".`] },
+    bad:[`Players say “it did not matter what I picked”.`] },
   how:[`Draw the system interaction map: which systems read or write which state? Look for isolated islands.`,`For each major choice, identify when and how the player sees the consequence. If it is never or much later, add a nearer signal.`,`Deliberately connect two isolated systems and prototype. Watch for surprising strategies.`,`Classify each emergent strategy: celebrate, tune, or remove. Default to celebrate.`],
   ai:{ yes:[`Map system interactions from a design document and find isolated systems.`,`Brainstorm cross-system interactions and predict emergent strategies.`,`Stress-test rules for degenerate combinations.`],
        no:[`Decide which emergent strategies to keep. That is taste and identity.`] },
   prompts:[{l:'Collision search',p:`Here are our systems and the state each reads and writes: [MAP]. Identify pairs that never interact. For the 5 most promising pairs, describe a concrete interaction rule, the emergent strategy it might produce, whether that strategy would be delightful or degenerate for our fantasy ([FANTASY]), and the smallest prototype that would show it. Then list the 3 most dangerous existing interactions that could produce exploits.`}],
-  verify:[`Are the predicted emergent strategies actually derivable from the rules, or wishful?`,`Did it distinguish delightful from degenerate using the fantasy, or its own taste?`],
+  verify:[`Are the predicted emergent strategies derivable from the rules, or wishful?`,`Did it distinguish delightful from degenerate using the fantasy, or its own taste?`],
   test:[`Do players describe outcomes as their doing?`,`Do players discover strategies that are not in the design document?`,`Ask players what would have happened if they had chosen differently. Can they say?`],
   rel:[['systemic-design','Systemic design is how emergence is engineered.'],['decisions','Agency requires decisions with consequences.'],['narrative-agency','Narrative agency is this topic applied to story.'],['procedural-content','Procedural systems are emergence applied to content.']] });
 TECH('agency-and-emergence',[
@@ -320,7 +320,7 @@ TECH('agency-and-emergence',[
   {n:'Emergence classification', how:`Classify surprising strategies as celebrate, tune or remove.`, fit:`Deciding what to do with the unexpected.`, cost:`Over-tuning kills the joy of discovery.`, alt:`Default to celebrate. Tune only degenerate cases.`}
 ]);
 ENGINE('agency-and-emergence',{
-  godot:{ term:`Emergence needs systems that can affect each other without knowing each other. Groups and signals are Godot's answer: a fire announces that it is burning, and whoever cares reacts, including systems written months later.`,
+  godot:{ term:`Emergence needs systems that can affect each other without knowing each other. Groups and signals are Godot’s answer: a fire announces that it is burning, and whoever cares reacts, including systems written months later.`,
     api:['Node.add_to_group() / is_in_group()','SceneTree.call_group_flags(SceneTree.GROUP_CALL_DEFERRED, ...)','signal / Callable / connect()','Object.has_method()','Area2D.body_entered / area_entered','Node.call_deferred()'],
     snippet:`func ignite(at: Vector2, heat: float) -> void:
 \t# deferred: never mutate bodies in the middle of the physics step
@@ -333,7 +333,7 @@ func on_heat(at: Vector2, heat: float) -> void:   # on every flammable node
 \tif has_method("panic"):                  # the AI reacts to the same event
 \t\tcall("panic", at)
 \t_burn()`,
-    pitfall:`Calling a group directly from inside a physics callback. call_group runs immediately, so nodes are freed and bodies are moved while the physics server is mid step, and the crash arrives three frames later somewhere unrelated. GROUP_CALL_DEFERRED costs one frame and buys a game you can debug.`,
+    pitfall:`Calling a group directly from inside a physics callback. call_group runs immediately, so a handler that adds a body, disables a shape or toggles monitoring does it while the physics server is flushing queries, and Godot refuses with “Can’t change this state while flushing queries”, leaving the fire half applied. GROUP_CALL_DEFERRED costs one frame and buys a game you can debug.`,
     map:`Godot groups are Unity tags plus a registry, and a deferred group call is an event queued and drained next frame.` },
   unity:{ term:`The same decoupling is usually a ScriptableObject event channel: the emitter raises the asset, listeners subscribe in OnEnable. Systems added later hear the event without anyone editing the emitter.`,
     api:['ScriptableObject event channel + Action<T>','OnEnable / OnDisable subscription','Physics.OverlapSphere() / LayerMask','GetComponents<IHeatable>()','Enter Play Mode Options (domain reload)','MissingReferenceException'],
@@ -358,13 +358,13 @@ INTERVIEW('agency-and-emergence',{
     { q:`Define agency and emergence, and say how they differ.`,
       a:`Agency is the player perceiving that their choice caused the outcome and that another choice would have caused something else. Emergence is behaviour arising from rules interacting, which nobody authored individually. Perceived agency is what counts, because real branches nobody notices produce no feeling at all.`,
       follow:`Give an example of a game with real branches and no felt agency.`,
-      red:`Uses the two words interchangeably and treats both as "player freedom".` },
+      red:`Uses the two words interchangeably and treats both as “player freedom”.` },
     { q:`Why is perceived agency the thing you design for?`,
       a:`The player only has what they perceive. A linear path with a visible consequence feels authored by them. A branching one whose consequences land off screen does not. The lever is usually feedback timing rather than structure.`,
       follow:`How soon does the consequence have to become visible?`,
       red:`Counts endings or branch points as a measure of agency.` },
     { q:`Players say it did not matter what they picked. What do you check first?`,
-      a:`Whether the consequence is visible at all, whether it arrives so late the choice has been forgotten, and whether the options actually diverge in play. Add a nearer signal before adding another branch, because the branch is the expensive fix.`,
+      a:`Whether the consequence is visible at all, whether it arrives so late the choice has been forgotten, and whether the options diverge in play. Add a nearer signal before adding another branch, because the branch is the expensive fix.`,
       follow:`The consequence is real and lands an hour later. What do you add?`,
       red:`Adds more dialogue options to the same converging conversation.` }
   ],
@@ -394,19 +394,19 @@ INTERVIEW('agency-and-emergence',{
   ] });
 
 T('challenge-failure-recovery',{ d:'core', t:'Challenge, failure and recovery', tag:'Failure is a teaching event. Design the lesson, the cost, and the way back.',
-  what:`Challenge is a task with uncertain success that demands skill or judgment. Failure is the outcome when it is not met. Recovery is how the player gets back to trying again: how fast, at what cost, with what new information. The triad decides whether struggle feels productive or punishing.`,
+  what:`Challenge is a task with uncertain success that demands skill or judgement. Failure is the outcome when it is not met. Recovery is how the player gets back to trying again: how fast, at what cost, with what new information. The triad decides whether struggle feels productive or punishing.`,
   why:[`Without the possibility of failure, success has no meaning and tension is impossible.`,`How a game handles failure decides who keeps playing. Long recovery with no lesson is where mid-skill players quit.`,`The best failures teach: the player knows what went wrong and wants to try again immediately.`],
   think:{ q:[`When the player fails, do they know why? Could they say it in one sentence?`,`How many seconds from failure to the next attempt at the same challenge?`,`What does failure cost: time, resources, progress, pride? Is that cost proportional?`,`Does failure ever produce something interesting (a new situation, a story), or only a reset?`],
-    trade:[`High failure cost raises tension and lowers experimentation.`,`Instant retry maximizes learning and can trivialize stakes.`],
-    traps:[`Punishing the player for the game's own unclarity (unreadable telegraphs, hidden rules).`,`Difficulty settings as the only tool, instead of fixing the challenge design.`],
-    good:[`Players retry immediately after failure, often with a different approach.`,`Players say "I see what I did wrong."`],
+    trade:[`High failure cost raises tension and lowers experimentation.`,`Instant retry maximises learning and can trivialize stakes.`],
+    traps:[`Punishing the player for the game’s own unclarity (unreadable telegraphs, hidden rules).`,`Difficulty settings as the only tool, instead of fixing the challenge design.`],
+    good:[`Players retry immediately after failure, often with a different approach.`,`Players say “I see what I did wrong.”`],
     bad:[`Players stare, then quit. Or retry identically many times.`] },
-  how:[`For each major challenge, write the intended lesson of failing it.`,`Ensure the game communicates the cause of failure within two seconds of it.`,`Measure recovery time to the retry. Cut anything in between that does not add information or meaning.`,`Consider "fail forward": failures that create a new situation instead of a reset.`,`Test with players across skill levels. Track retry rate and approach change.`],
+  how:[`For each major challenge, write the intended lesson of failing it.`,`Ensure the game communicates the cause of failure within two seconds of it.`,`Measure recovery time to the retry. Cut anything in between that does not add information or meaning.`,`Consider “fail forward”: failures that create a new situation instead of a reset.`,`Test with players across skill levels. Track retry rate and approach change.`],
   ai:{ yes:[`Audit challenges for legibility of failure cause.`,`Propose fail-forward alternatives to resets.`,`Analyze retry logs for identical repetition (a sign the lesson is not landing).`],
        no:[`Decide how punishing the game should be.`] },
   prompts:[{l:'Failure lesson audit',p:`Here are our major challenges and what happens on failure: [LIST]. For each, state the lesson a player should learn from failing, how the game currently communicates the cause of failure and how quickly, the recovery time to retry, and the cost. Flag challenges where the cause is not communicated within 2 seconds or recovery exceeds 20 seconds. Propose, per flag, the smallest change and a fail-forward alternative.`}],
   verify:[`Does the audit assume players understand systems the game never explained?`],
-  test:[`After a failure, ask "what happened?" Note whether the answer is accurate.`,`Time failure to retry.`,`Do players change approach after failure, or repeat?`,`Where do players quit after failing? How many failures preceded it?`],
+  test:[`After a failure, ask “what happened?” Note whether the answer is accurate.`,`Time failure to retry.`,`Do players change approach after failure, or repeat?`,`Where do players quit after failing? How many failures preceded it?`],
   rel:[['difficulty','Difficulty is challenge calibrated across the game.'],['skill-and-mastery','Failure is how skill is acquired.'],['risk-reward','Failure cost defines risk.'],['feedback-and-affordance','Communicating the cause of failure is feedback.']] });
 TECH('challenge-failure-recovery',[
   {n:'Failure cost tuning', how:`Decide how much time/progress a failure costs, and the length of the retry loop.`, fit:`Making failure instructive, not punishing.`, cost:`Too cheap removes weight. Too costly causes churn.`, alt:`Keep failure cheap and learning fast in action games.`},
@@ -469,7 +469,7 @@ INTERVIEW('challenge-failure-recovery',{
       a:`Failure produces a new situation instead of a reset, so the attempt still counts for something. It stops working when failing is as good as succeeding, because then the stakes are gone and the tension goes with them.`,
       follow:`How do you keep the cost real while still failing forward?`,
       red:`Makes failure costless and describes it as player friendly.` },
-    { q:`Testers call a section unfair. How do you find out what they actually mean?`,
+    { q:`Testers call a section unfair. How do you find out what they mean?`,
       a:`Classify before touching numbers: unclear rules, insufficient feedback, execution demand, information overload, randomness, poor checkpointing, excessive punishment. Each one has a different fix and most of them are not difficulty at all.`,
       follow:`It turns out to be unreadable telegraphs. What is the fix, and what is the wrong fix?`,
       red:`Makes the section easier, which leaves the unreadable telegraph in place for everyone.` }
@@ -486,18 +486,18 @@ INTERVIEW('challenge-failure-recovery',{
   ] });
 
 T('skill-and-mastery',{ d:'core', t:'Skill acquisition and mastery', tag:'What does the player get better at, and how does the game show them?',
-  what:`The skills a game asks for (execution, timing, reading, planning, resource judgment, spatial reasoning, memory) and the arc by which a player acquires them. Mastery is the state where the player performs the skill fluidly and can express style within it. Dan Cook describes this as chains of skill atoms: each atom taught, exercised and then combined.`,
-  why:[`Competence is a primary motivator. A game with no skill to grow leaves only content to consume.`,`A skill ceiling below the player's reach means boredom. A skill floor above it means churn.`,`Mastery must be perceivable. A player who improves without knowing it gets no reward from it.`],
+  what:`The skills a game asks for (execution, timing, reading, planning, resource judgement, spatial reasoning, memory) and the arc by which a player acquires them. Mastery is the state where the player performs the skill fluidly and can express style within it. Dan Cook models this as skill atoms, each a loop of action, simulation, feedback and the player updating their mental model, linked into skill chains in which an atom can only be learned once the atoms it depends on are mastered.`,
+  why:[`Competence is a primary motivator. A game with no skill to grow leaves only content to consume.`,`A skill ceiling below the player’s reach means boredom. A skill floor above it means churn.`,`Mastery must be perceivable. A player who improves without knowing it gets no reward from it.`],
   think:{ q:[`List the skills the game demands. Which one does the fantasy imply should be central?`,`How does a player know they have improved? Faster clears, new options, visible style?`,`What does the expert do that the novice does not? Can the novice see it?`,`Are there skills the game requires but never teaches?`],
-    trade:[`Execution skill is legible and excludes players with lower reflexes. Judgment skill includes more players and is harder to feel.`,`High ceilings reward dedication and can intimidate.`],
+    trade:[`Execution skill is legible and excludes players with lower reflexes. Judgement skill includes more players and is harder to feel.`,`High ceilings reward dedication and can intimidate.`],
     traps:[`Confusing stat growth with skill growth.`,`Demanding a skill the game never isolated for teaching.`],
     good:[`Veterans can explain what they do differently.`,`Novices can watch veterans and see it.`],
-    bad:[`Players plateau early and describe the game as "just grinding".`] },
-  how:[`List skills. Mark each as taught, exercised, combined with others, and shown back to the player.`,`Find the gaps: skills required but never isolated, skills taught but never combined.`,`Design a mastery display: a place where the player's improvement is visible (time, style, options).`,`Test with veterans and novices. Compare their play. The difference is your actual skill ceiling.`],
-  ai:{ yes:[`Extract skill atoms from a mechanic list and map where each is taught and combined.`,`Propose mastery signals that do not rely on numbers.`,`Analyze play logs for the differences between novice and veteran behavior.`],
+    bad:[`Players plateau early and describe the game as “just grinding”.`] },
+  how:[`List skills. Mark each as taught, exercised, combined with others, and shown back to the player.`,`Find the gaps: skills required but never isolated, skills taught but never combined.`,`Design a mastery display: a place where the player’s improvement is visible (time, style, options).`,`Test with veterans and novices. Compare their play. The difference is your actual skill ceiling.`],
+  ai:{ yes:[`Extract skill atoms from a mechanic list and map where each is taught and combined.`,`Propose mastery signals that do not rely on numbers.`,`Analyze play logs for the differences between novice and veteran behaviour.`],
        no:[`Decide which skill the game is about.`] },
-  prompts:[{l:'Skill atom map',p:`Here are our mechanics and level order: [DESCRIPTION]. Extract the skills the player must acquire (execution, timing, reading, planning, resource judgment, spatial, memory). For each, identify where it is first isolated, first exercised under pressure, first combined with another skill, and how the player would perceive their own improvement. Flag skills that are required before they are isolated, and skills that never combine. Propose one mastery display for the central skill.`}],
-  verify:[`Did it distinguish skill from stats?`,`Are the "where taught" claims grounded in the level order I gave?`],
+  prompts:[{l:'Skill atom map',p:`Here are our mechanics and level order: [DESCRIPTION]. Extract the skills the player must acquire (execution, timing, reading, planning, resource judgement, spatial, memory). For each, identify where it is first isolated, first exercised under pressure, first combined with another skill, and how the player would perceive their own improvement. Flag skills that are required before they are isolated, and skills that never combine. Propose one mastery display for the central skill.`}],
+  verify:[`Did it distinguish skill from stats?`,`Are the “where taught” claims grounded in the level order I gave?`],
   test:[`Record novice and veteran runs of the same challenge. What differs?`,`Ask veterans what they do differently. Ask novices what they are working on.`,`Do players notice their own improvement? Ask.`],
   rel:[['mastery-discovery-expression','Mastery is one of the three long-term engines.'],['level-structure','Levels are where skills are taught and combined.'],['challenge-failure-recovery','Failure is the mechanism of learning.'],['game-feel-and-juice','Execution skill lives in game feel.']] });
 TECH('skill-and-mastery',[
@@ -545,12 +545,12 @@ func _physics_process(delta: float) -> void:
     map:`Unity CharacterController.isGrounded is Godot is_on_floor(), and WasPressedThisFrame is is_action_just_pressed().` } });
 INTERVIEW('skill-and-mastery',{
   junior:[
-    { q:`What skills does your game actually demand? Name them.`,
-      a:`Decompose rather than saying "getting better at the game". Execution, timing, reading, planning, resource judgement, spatial reasoning, memory. Then say which one the fantasy implies should be central, and whether the game ever isolates it for teaching.`,
+    { q:`What skills does your game demand? Name them.`,
+      a:`Decompose rather than saying “getting better at the game”. Execution, timing, reading, planning, resource judgement, spatial reasoning, memory. Then say which one the fantasy implies should be central, and whether the game ever isolates it for teaching.`,
       follow:`Which skill does your game demand but never teach?`,
       red:`Answers that players just get better with practice, with no decomposition at all.` },
     { q:`What is a skill atom, and why chain them?`,
-      a:`Dan Cook's framing: each atom gets taught, exercised, then combined with another. Chaining is how a game builds fluency instead of dumping demands at once. A skill required before it has been isolated is a design bug, and it shows up as deaths in the introduction.`,
+      a:`Dan Cook’s framing: each atom gets taught, exercised, then combined with another. Chaining is how a game builds fluency instead of dumping demands at once. A skill required before it has been isolated is a design bug, and it shows up as deaths in the introduction.`,
       follow:`Where in a game you know is an atom skipped?`,
       red:`Equates skill atoms with tutorial popups.` },
     { q:`How is stat growth different from skill growth?`,
@@ -582,3 +582,199 @@ INTERVIEW('skill-and-mastery',{
       follow:`You have no external testers this milestone. What do you do instead?`,
       red:`Tunes on team playthroughs and ships a first hour that nobody outside the studio survives.` }
   ] });
+
+T('time-and-turns',{ d:'core', t:'Time and turns', tag:'Real time asks for reflexes. Turns ask for judgement. Every structure is a trade between the two.',
+  what:`How a game lets time pass decides what kind of thinking it rewards. Pure real time never stops: every action competes with the clock. Pure turn-based time only moves when a player commits: there is no clock to beat, only a decision to make well. Between these poles sit hybrids that borrow from both: ATB (Active Time Battle, introduced in Final Fantasy IV in 1991 by Hiroyuki Ito, reportedly inspired by Formula One cars lapping each other at different rates) fills a gauge per character so faster units act more often inside an otherwise turn-based menu. CTB (Conditional Turn-Based, Final Fantasy X) removes the clock entirely but keeps the same idea of variable turn frequency: agility and the rank of the chosen action shift a visible turn-order queue, so the player reasons about tempo without ever racing it. Shin Megami Tensei III: Nocturne’s Press Turn system turns weakness itself into time: a hit on an elemental weakness or a critical spends only half a turn icon, so exploiting the matchup earns extra actions as well as extra damage. Valkyria Chronicles' BLiTZ system splits every unit’s go into a turn-based Command Mode (spend Command Points to select a unit) and a real-time Action Mode (move and aim until an Action Point gauge drains), so tactical planning and physical aim sit inside the same turn. Baldur’s Gate and FTL run real time by default and let the player pause it to issue commands without penalty, so thinking time is free but only while the clock is stopped. Superhot inverts that: time crawls by default and runs at full speed only when the player moves, turning every twitch decision into a nearly untimed one. Simultaneous-turn systems (each side commits an action blind, then both resolve at once) keep the no-clock fairness of turns while adding the risk of a real-time exchange: you cannot react to what the opponent is doing, only predict it. Clair Obscur: Expedition 33 (Sandfall Interactive, 2025) layers a third axis onto a turn-based JRPG structure: while it is technically the enemy’s turn, the player must dodge, jump or parry in real time or take the full hit.`,
+  why:[`The time structure decides which skill the game is testing: reflex, prediction, or judgement under no time pressure at all. Picking one without meaning to is picking the wrong game for your fantasy.`,`Every hybrid is solving the same problem: reflex time structures are exciting but punish thinking, and pure turns are fair but can feel inert. The named systems above are all attempts to buy a bit of both.`,`Readability depends on the structure. A turn-order queue only works if the player can see it change before they commit; a real-time gauge only works if its fill rate is legible at a glance.`,`Changing the time structure changes who can play well. A twitch-heavy real-time combat system excludes players a turn-based version would welcome, and the reverse is true for players who find pure turns slow.`],
+  think:{ q:[`Does the player need reflexes, prediction, or calm judgement to succeed here? Which one did you intend?`,`Can the player see, before committing, how their choice will change the order or timing of what happens next?`,`What happens to a player who freezes? Does the game punish hesitation (real time), tax it lightly (a fill gauge), or not touch it at all (pure turns)?`,`If you added a pause, would the game still be interesting, or was the pressure the whole design?`,`Is the time pressure coming from the same source as the skill you want to test, or is it fighting a different system (a UI you cannot read fast enough)?`],
+    trade:[`Faster time structures create excitement and tension but shrink the amount of the game an anxious or slower player can access.`,`Every layer of hybrid (a gauge on top of a turn, a real-time dodge on top of a menu) adds a second skill the player must learn, on top of the first.`],
+    traps:[`Adding a real-time element (a quick-time dodge, a reflex parry) to a turn-based game without asking whether it tests the same skill as the rest of the combat, or a completely different one bolted on.`,`Calling a gauge-fill system “real time” when, in Wait mode, decisions are still made from a paused menu. The structure is turn-based with variable turn order, not real time.`,`Hiding the turn-order queue or the gauge fill rate to reduce UI clutter, which removes the exact information the structure needs to feel fair rather than arbitrary.`],
+    good:[`Players narrate their plan out loud before it resolves (“if I go now I beat her turn”), which means they can see the structure well enough to predict it.`],
+    bad:[`Players describe the timing as luck rather than a call they made, which means the structure is not showing them enough to reason with.`] },
+  how:[`Name the skill you want the loop to test: reflex, prediction under partial information, or judgement with no clock. Pick a time structure that tests that skill, not the one your genre defaults to.`,`If you are hybridising two structures, write down which one is fixed and which one flexes. ATB fixes the menu-command flow and flexes the tempo; BLiTZ fixes each phase’s Command Point budget and flexes the movement inside a go.`,`Make the structure visible: a turn-order strip, a gauge, a ghost of the last commit. If players cannot see the mechanism, they cannot plan against it and will call it unfair.`,`Playtest for hesitation and for the words players use afterwards. “I panicked” points at real time doing its job or misfiring; “I didn’t understand why that went first” points at an unreadable structure.`],
+  ai:{ yes:[`List existing games by time structure and summarise what skill each is testing, to check your assumptions against precedent.`,`Draft the readability layer (what a turn-order strip or gauge needs to show) for a described combat system.`,`Simulate turn order across a batch of stat spreads to check that agility or speed differences produce the intended pacing, not degenerate double-turns.`],
+       no:[`Decide which time structure will feel best. That is a playtest question, not a reasoning one, because it depends on what your specific players find tense versus stressful.`] },
+  prompts:[{l:'Time-structure fit check',p:`Here is our combat loop: [DESCRIPTION]. State which time structure it currently uses (real time, turn-based, a named hybrid such as ATB, CTB, Press Turn, BLiTZ or pausable real time) and which skill that structure rewards: reflex, prediction, or untimed judgement. Compare that to the skill described in our design pillar: [PILLAR]. Flag any mismatch, and for each mismatch propose the smallest structural change (not a difficulty slider) that would close the gap. Then list what a player would need to see on screen, at a glance, for the chosen structure to feel fair rather than arbitrary.`}],
+  verify:[`Did it name the actual skill being tested, or just repeat genre labels (“it’s turn-based so it’s strategic”)?`,`Are the proposed UI elements things a player can read mid-decision, or details only visible on a replay?`],
+  test:[`Do players hesitate, and does the structure treat that hesitation the way you intended (punish it, tax it a little, or ignore it)?`,`Can a player explain, right after a match, why the order of events went the way it did?`,`Does a slower or more anxious playtester still reach the decision layer you care about, or do they get filtered out by the clock before they can think?`],
+  rel:[['core-loop','The time structure is how the loop itself is paced.'],['decisions','Turn-based structures buy the player time to make a real decision; real time compresses it.'],['risk-reward','A gauge or a queue is usually where risk and reward get timed against each other.'],['skill-and-mastery','Reflex, prediction and judgement are three different skills a time structure can train.'],['game-feel-and-juice','Real-time feedback timing is where the time structure meets the body.']] });
+TECH('time-and-turns',[
+  {n:'Turn-order queue (CTB-style)', how:`Show the upcoming order of actors as a strip, and update it live as the player previews a command, since different actions change how soon a unit acts again.`, fit:`Any system with variable action speed where the player should reason about tempo, not just power.`, cost:`Extra screen space and a second UI system that must update in step with every previewed choice.`, alt:`Hide it on purpose in a game where guessing the order is itself the tension (a bluffing or ambush design).`},
+  {n:'ATB gauge tuning (Active vs Wait mode)', how:`Give each unit a fill rate separate from a shared global tick, and choose whether the gauge keeps filling while a menu is open (Active) or freezes for it (Wait).`, fit:`Real-time pressure layered on top of menu-driven commands.`, cost:`Active mode punishes indecision and needs a stagger or interrupt window or it just feels like being ganged up on by the UI.`, alt:`Ship both modes as a difficulty or accessibility option, as later entries in the Final Fantasy series did.`},
+  {n:'Pausable real time (RTwP) command layer', how:`Separate the world clock, which can freeze, from the input layer, which must stay responsive, so the player can issue several units their orders inside one stopped instant.`, fit:`Party-based tactics where you want real-time chaos between decisions (Baldur’s Gate, FTL).`, cost:`Players must trust that the moment they paused on was legible; pausing mid-animation can hide the information they paused to read.`, alt:`Add auto-pause triggers (enemy sighted, ally down, a cooldown ready) so the game catches the decision points a player would otherwise miss.`}
+]);
+ENGINE('time-and-turns',{
+  godot:{ term:`A pausable or gauge-driven time structure needs two clocks: a world clock that a turn system can stop, and an input or UI clock that must keep responding even while the world is frozen. Godot gives you this split through process_mode.`,
+    api:['Node.process_mode (PROCESS_MODE_INHERIT / PAUSABLE / WHEN_PAUSED / ALWAYS / DISABLED)','SceneTree.paused','Engine.time_scale','Timer.timeout','signal turn_ready(unit)','Curve / _process(delta) accumulation'],
+    snippet:`extends Node
+@export var combatants: Array[Combatant] = []
+signal turn_ready(unit: Combatant)
+const ATB_MAX := 1000.0
+
+func _process(delta: float) -> void:
+\tfor c in combatants:
+\t\tif c.atb >= ATB_MAX: continue    # already waiting for its command
+\t\tc.atb += c.speed * delta * 100.0
+\t\tif c.atb >= ATB_MAX:
+\t\t\tc.atb = ATB_MAX
+\t\t\tturn_ready.emit(c)          # menu opens; gauge can wait or keep filling
+
+func set_paused_for_menu(is_open: bool) -> void:
+\tget_tree().paused = is_open        # world clock stops
+\t# UI nodes need process_mode = WHEN_PAUSED to still take input here`,
+    pitfall:`Setting get_tree().paused = true to open a command menu and assuming the menu still works. Every node defaults to PROCESS_MODE_INHERIT, which resolves to PAUSABLE from the root, so the menu’s own buttons stop receiving _process and input the instant the world pauses. A pausable-real-time or Wait-mode ATB design needs the UI subtree’s process_mode set to WHEN_PAUSED or ALWAYS, or the pause menu silently cannot be interacted with.`,
+    map:`Godot’s Engine.time_scale is Unity’s Time.timeScale, and SceneTree.paused plus process_mode is how Godot pauses the world, where Unity sets timeScale to 0 and runs menus on unscaled time.` },
+  unity:{ term:`The same two-clock split applies: Time.timeScale drives the simulated world, while UI and menu logic need to keep running at real time so a pause menu or a Wait-mode command menu stays interactive.`,
+    api:['Time.timeScale','Time.unscaledDeltaTime','WaitForSecondsRealtime()','MonoBehaviour.Update()','event Action<Unit> TurnReady','AnimationCurve for speed-to-fill tuning'],
+    snippet:`public class AtbClock : MonoBehaviour {
+    [SerializeField] Unit[] units;
+    const float AtbMax = 1000f;
+    public event Action<Unit> TurnReady;
+
+    void Update() {
+        float dt = Time.deltaTime;   // world clock: stops when timeScale = 0 (pause, Wait mode)
+        foreach (var u in units) {
+            if (u.atb >= AtbMax) continue;   // already waiting for its command
+            u.atb += u.speed * dt * 100f;
+            if (u.atb >= AtbMax) { u.atb = AtbMax; TurnReady?.Invoke(u); }
+        }
+    }
+}`,
+    pitfall:`Reading Time.deltaTime inside a coroutine driven by WaitForSeconds to pace a turn queue. WaitForSeconds and deltaTime both scale with Time.timeScale, so setting timeScale to 0 for a pause menu silently stalls the whole turn clock, including the countdown that was supposed to keep the menu’s own animations moving. Use unscaledDeltaTime and WaitForSecondsRealtime for anything that must keep running while the world is paused.`,
+    map:`Unity’s Time.timeScale is Godot’s Engine.time_scale, and unscaledDeltaTime is what Godot gives a Timer or SceneTreeTimer with ignore_time_scale set to true.` },
+  note:`Both engines separate a clock the design wants to stop from a clock the interface needs to keep running. Whichever named system you build (ATB, BLiTZ, pausable real time), that split is the actual implementation problem, not the visual gauge on top of it.` });
+INTERVIEW('time-and-turns',{
+  junior:[
+    { q:`What is the actual difference between turn-based and real-time, once you strip away the art?`,
+      a:`In turn-based play, time only advances when a player commits to a decision, so there is no clock to beat, only a choice to make well. In real time, time advances regardless of what the player does, so acting late has a cost the game enforces on its own. Name a game for each and say what skill each one is testing.`,
+      follow:`Where would you place a gauge-fill system like ATB on that line?`,
+      red:`Treats “turn-based” and “slow” as synonyms, or cannot separate the time structure from the genre it usually appears in.` },
+    { q:`What problem was ATB solving when Final Fantasy IV introduced it in 1991?`,
+      a:`Pure turn-based play gives every unit an equal, static claim on the timeline regardless of how fast they are meant to be. Active Time Battle gives each unit its own fill rate, so a fast unit can act more often than a slow one without leaving the underlying structure a menu-driven turn system. Hiroyuki Ito is credited with the idea, reportedly inspired by cars lapping each other at different speeds in Formula One.`,
+      follow:`What would go wrong if every unit filled its gauge at exactly the same rate?`,
+      red:`Cannot explain what ATB changes about turn order, or describes it purely as a visual bar with no mechanical consequence.` },
+    { q:`Why does Superhot’s “time moves only when you move” count as a time structure at all?`,
+      a:`It is real time with the clock’s default state set to a crawl instead of full speed, so the pressure a player feels comes entirely from their own decision to act, not from an external timer. That makes every action effectively untimed for the mind while still real time for the body. Explain how that changes what “hesitation” means in that game compared with a game with a running clock.`,
+      follow:`The world crawls rather than stops when you stand still. Why not freeze it completely?`,
+      red:`Calls it “just slow motion” without noticing that the clock’s default state, crawling versus running, is the actual design choice.` }
+  ],
+  mid:[
+    { q:`A playtester says your gauge-based combat “feels unfair.” How do you find out whether the structure or the readability is at fault?`,
+      a:`Check first whether the player could see the information that decided the outcome before committing: the gauge fill rate, the turn-order queue, the cost of the action they picked. If that information was visible and legible, the structure itself may be the problem (too much variance, a dominant fast strategy). If it was not visible, the fix is a UI change, not a rebalance. Separating these keeps you from rebalancing numbers to fix a display problem.`,
+      follow:`Your fix candidate is a turn-order strip. What do you have to update every time the player previews a command?`,
+      red:`Jumps to rebalancing numeric speed stats without first asking whether the player could see the mechanism.` },
+    { q:`Design a hybrid that borrows from both BLiTZ and pausable real time. What is the one thing you must decide first?`,
+      a:`Which clock is fixed and which one flexes. BLiTZ fixes the budget of goes (Command Points decide how many goes, the player decides whose) and lets movement inside that go run in real time. Pausable real time leaves the whole world running and lets the player freeze it on demand. Combining them means deciding whether the “go” itself is ever real-time-interruptible by another unit, which is the actual design question, not the art direction.`,
+      follow:`What breaks if you let the player pause during another unit’s real-time movement phase?`,
+      red:`Describes a hybrid purely in terms of presentation (a countdown bar plus a 3D camera) with no account of which clock governs what.` },
+    { q:`How would you playtest whether a time structure is testing the skill you intended?`,
+      a:`Watch for the words players use afterwards: “I panicked” or “I didn’t see it coming” points at reflex; “I predicted she’d go there” points at prediction under partial information; silence and careful narration points at untimed judgement. Compare that against the skill named in your design pillar, and treat a mismatch as a structural problem, not a tuning one.`,
+      follow:`Two different playtester groups report two different skills being tested by the same system. What does that usually mean?`,
+      red:`Equates “players found it hard” with “the structure is testing the right skill.”` }
+  ],
+  senior:[
+    { q:`You inherit a turn-based game where players describe outcomes as luck rather than a call they made. Where do you look first?`,
+      a:`Before touching the numbers, check whether the mechanism that decides order or outcome is visible at the moment the player commits. A perfectly deterministic turn-order system that is hidden behind an unreadable UI produces the same complaint as genuine randomness. Fix visibility first, then re-test for the luck complaint before assuming the maths needs to change.`,
+      follow:`The visibility fix does not remove the complaint. What do you check next?`,
+      red:`Adds a random-seed display or a “why did that happen” tooltip without first confirming the underlying system is even deterministic.` },
+    { q:`You are asked to add a real-time dodge or parry layer to an otherwise turn-based JRPG, in the manner of Clair Obscur: Expedition 33. What is the design risk specific to that decision?`,
+      a:`You are now testing two different skills in one combat encounter: judgement, from the turn-based decision layer, and reflex, from the real-time dodge or parry. If the reflex layer is demanding enough, it can dominate the experience and make the careful turn-based planning feel irrelevant, or the reverse, where the dodge window is so generous it is decoration. State how you would tune the two layers to matter roughly in proportion to the fantasy you are selling.`,
+      follow:`A significant slice of your audience has slower reaction times. How do you keep the turn-based layer meaningful for them without removing the reflex layer for everyone else?`,
+      red:`Bolts on a quick-time event without considering whether it competes with, rather than complements, the existing decision layer.` }
+  ] });
+DIAGRAM('time-and-turns', { kind:'quad', title:'Time structures: pressure against planning time', x:'Pressure to react fast', y:'Time to plan before acting',
+  points:[{t:'Real-time', x:0.92, y:0.06},{t:'Turn-based', x:0.05, y:0.95},{t:'ATB', x:0.6, y:0.4},{t:'CTB', x:0.15, y:0.85},{t:'Press Turn', x:0.2, y:0.78},{t:'BLiTZ', x:0.65, y:0.45},{t:'Pausable RT', x:0.4, y:0.68},{t:'Superhot', x:0.3, y:0.92}],
+  note:'Most named hybrids exist to sit somewhere off the two extremes, buying a little planning time without giving up all the pressure.' });
+
+T('genre-hybrids',{ d:'core', t:'Genre hybrids', tag:'A hybrid is not two games glued together. Each loop must need the other, or one of them is decoration.',
+  what:`A genre hybrid composes two core loops so that progress or currency in one changes what is possible in the other. Persona’s social-sim calendar loop (spend a limited number of afternoons and evenings on relationships, study or a job) feeds directly into the strength of the Personas fused for the dungeon-crawling loop; the dungeon loop, in turn, produces the time pressure that gives the calendar its stakes. Valkyria Chronicles binds a turn-based Command Mode to real-time Action Mode movement, so the tactics loop and the shooting loop are the same loop viewed at two zoom levels, not two separate games. Into the Breach pairs a puzzle loop (every enemy telegraphs its exact next move, so each turn is a solvable arrangement problem) with a light roguelike meta-loop (permanent pilot unlocks and squad choices carried between short runs). Slay the Spire fuses deckbuilding (choosing and synergising cards) with a roguelike run structure (a generated, branching map of escalating fights where a single death ends the run), so the deckbuilding decisions matter because the run loop makes them permanent for that attempt and the run loop has stakes because the deck is what you are risking. Stardew Valley pairs a farming and social-calendar loop with a combat-and-mining loop in its caves, and the two feed each other directly: ore and gems from the mines upgrade farm tools and buildings, and farm income buys the equipment that makes deeper mining survivable. A hybrid fails when the two loops do not need each other: one becomes the “real game” and the other becomes an unskippable chore that exists only to unlock it, which is two half-games rather than one whole one.`,
+  why:[`Two loops that feed each other create variety without diluting focus: the player is never doing “filler,” because everything they do in one loop changes the other.`,`Hybrids are a common way to extend how long a single core loop stays interesting, since a second loop can supply new situations the first loop cannot generate on its own.`,`A failed hybrid is a specific and diagnosable failure: not “boring,” but “the two halves don’t need each other,” which points straight at the fix.`],
+  think:{ q:[`What exactly crosses from Loop A into Loop B, and does it also cross back? A one-way bridge means only one loop is feeding the other.`,`If you deleted Loop B entirely, would Loop A still be worth playing on its own? If yes, Loop B may be optional content, not a hybrid.`,`Do the two loops ask for the same kind of attention (both calm and planned, both fast and reactive), or do they force an awkward context-switch every time?`,`Would a player who is only good at one of the two loops still be able to finish the game, or does the hybrid gate one skill behind mastering an unrelated one?`],
+    trade:[`A tight bridge (one clear currency crossing both ways) is easy to read but can make the connection feel mechanical; a loose, thematic bridge feels richer but is harder for players to reason about.`,`Two loops with very different pacing (a slow calendar, a fast dungeon) create welcome variety but double the tutorial and balancing work.`],
+    traps:[`Building the bridge currency so it only flows one direction, so one loop is secretly just a shop for the other.`,`Assuming a hybrid is validated because each loop is fun in isolation. A great puzzle loop and a great deckbuilding loop stitched together with no real connection are still two separate games.`,`Copying a hybrid pairing that worked for another game’s fantasy without checking whether your two loops share the fiction that made the original pairing feel natural.`],
+    good:[`Players talk about the two loops in the same sentence, unprompted (“I skipped hanging out with her so I could level up for tomorrow’s dungeon”).`],
+    bad:[`Players openly describe one loop as a chore they endure to get back to the other.`] },
+  how:[`Name the one resource, stat or piece of information that is meant to cross from each loop into the other, in both directions if the hybrid is meant to be mutual.`,`Prototype each loop alone first and confirm it holds up without the other, using the same grey-box discipline as any core loop test.`,`Combine them and specifically test the bridge: remove it for a session and see whether players still choose to do both loops, or whether one collapses into a chore without the currency forcing them into it.`,`Watch session shape in playtests: do players context-switch cleanly between the two loops, or does the transition itself feel like friction?`],
+  ai:{ yes:[`List existing genre hybrids and map exactly what crosses between their loops, to build a reference set before designing your own.`,`Draft several candidate bridge currencies for a described pair of loops and flag which ones are one-way.`,`Simulate a player who only engages with one loop and report how far they could get, to test whether the hybrid secretly gates on both skills.`],
+       no:[`Decide whether a hybrid pairing will feel thematically coherent. That depends on the specific fiction and needs a human read, then a playtest.`] },
+  prompts:[{l:'Bridge audit',p:`Here are our two loops: Loop A: [DESCRIPTION]. Loop B: [DESCRIPTION]. State exactly what currency, stat or information crosses from A to B, and from B to A if anything does. Flag if the bridge is one-way. Then argue, from the loops alone, what happens to each loop if the other were deleted: does it remain worth playing, or does it collapse into a hollow, unskippable requirement? Propose one change that would make a one-way bridge mutual, and one alternate bridge currency entirely, so I can compare.`}],
+  verify:[`Did it trace the bridge currency through both loops, or just describe each loop separately and call that an analysis?`,`Is the “collapses without the other” argument grounded in the loops' own mechanics, or an assumption about what players enjoy?`],
+  test:[`Take the bridge currency away for one test session. Do players still choose to engage with both loops?`,`Ask players to describe the game in one sentence. Do they mention both loops, or only one?`,`Time how long the average context-switch between loops takes, and whether players describe it as a break or as friction.`],
+  rel:[['core-loop','A hybrid is still judged by whether each loop it contains holds up alone.'],['systemic-design','Two loops feeding each other is systemic design at the scale of the whole game.'],['economy-and-resources','The bridge between two loops is almost always a resource, with its own sources and sinks.'],['mechanics-and-rules','Each loop is built from mechanics that must still create real decisions on their own.'],['prototyping','Test each loop in isolation before testing the hybrid, the same discipline as any core loop.']] });
+TECH('genre-hybrids',[
+  {n:'Currency bridge', how:`Define one explicit resource that visibly crosses both loops (a bond bonus feeding fusion strength, ore feeding tool tiers) so the connection is legible, not just numeric.`, fit:`Any two-loop pairing that needs the player to feel the link, not infer it.`, cost:`If the bridge currency is the only reason to touch the “other” loop, that loop risks becoming a chore for unlocking it.`, alt:`Make the bridge run both ways so each loop needs the other, not just supplies it.`},
+  {n:'Session-shape separation', how:`Give each loop a distinct pacing and input mode (a calm menu-driven calendar versus a fast spatial dungeon) so players context-switch cleanly instead of the two blurring into one mushy interaction.`, fit:`Hybrids where the two loops are meant to feel like different modes of play.`, cost:`Two distinct skill sets to teach, tune and playtest, roughly doubling the onboarding surface.`, alt:`A shared home-base screen that transitions between modes without hiding that a seam exists.`},
+  {n:'Kill-one-loop test', how:`Build and playtest each loop in isolation, stripped of the other, and ask whether it survives on its own before ever testing them together.`, fit:`Diagnosing whether a hybrid is two strong halves or one loop propping up a weak one.`, cost:`Costs two separate prototypes' worth of production time before hybrid testing can even begin.`, alt:`If a loop fails alone, do not just wire in the bridge currency to paper over it; the other loop will inherit the same weakness.`}
+]);
+ENGINE('genre-hybrids',{
+  godot:{ term:`Two loops that must not know about each other’s internals still need one shared place to read and write the bridge currency. An autoload singleton, kept deliberately thin, is that place; the loops only ever touch it through named methods and signals, never each other directly.`,
+    api:['Autoload / Project Settings > Autoload','signal bond_changed(amount)','Resource-based save data','Node groups for cross-scene lookup','get_tree().change_scene_to_file()','ResourceSaver.save() / ResourceLoader.load()'],
+    snippet:`# res://autoload/bridge.gd, added once as an Autoload named Bridge
+extends Node
+signal bond_changed(new_total: int)
+var bond_points := 0
+
+func add_bond(amount: int) -> void:
+\tbond_points += amount
+\tbond_changed.emit(bond_points)     # dungeon loop reacts without knowing the calendar exists
+
+func fusion_power_bonus() -> int:
+\treturn bond_points / 10            # the one number that crosses the bridge`,
+    pitfall:`Reading another autoload from inside _ready() before Godot has finished loading autoloads in project order. Autoloads initialise in the exact order listed in Project Settings, so a dungeon-loop autoload that reads Bridge.bond_points in its _ready() gets 0, not the saved total, if Bridge loads its save in _ready() and is listed later. Read shared state lazily, on the signal or the frame it is needed, not at startup.`,
+    map:`A Godot autoload singleton is Unity’s persistent ScriptableObject or a lightweight service locator, and a Godot signal is a UnityEvent or a C# event.` },
+  unity:{ term:`The same shared-but-decoupled bridge is commonly built as a ScriptableObject asset that both loops reference by inspector slot: neither scene needs a hard reference to the other, only to the shared asset.`,
+    api:['ScriptableObject shared-data asset','UnityEvent / event Action<int>','[CreateAssetMenu]','SceneManager.LoadScene()','OnEnable() / OnDisable() for event subscription','JsonUtility for save data'],
+    snippet:`[CreateAssetMenu(menuName = "Bridge/BondPoints")]
+public class BondPoints : ScriptableObject {
+    public int total;
+    public event Action<int> Changed;
+    public void Add(int amount) {
+        total += amount;
+        Changed?.Invoke(total);       // dungeon loop reacts without a scene reference
+    }
+    public int FusionBonus() => total / 10;
+}`,
+    pitfall:`Treating the ScriptableObject asset’s field values as reset on play. They are serialised on disk, so a value changed during one Play Mode session in the editor persists into the next one unless you explicitly reset it when a new game or session starts, which reads as “stale progress from last time I tested this.”`,
+    map:`A Unity ScriptableObject shared-data asset is Godot’s autoload singleton for the same purpose, and Changed is the signal both loops listen to instead of referencing each other.` },
+  note:`The engine-level lesson is the same as the design one: the bridge should be the only thing the two loops share. Reach for the smallest shared object that carries the currency, not a shared parent scene or a chain of direct references between the two systems.` });
+INTERVIEW('genre-hybrids',{
+  junior:[
+    { q:`What makes a genre hybrid different from a game that just has two features?`,
+      a:`In a hybrid, something earned or built in one loop changes what is possible in the other, in both directions, or one loop becomes a shop for the other. A game that merely bundles two unrelated modes (a minigame that does not affect anything else) is not a hybrid, it is two features sharing a menu. Give an example of a currency that crosses between two loops in a game you know.`,
+      follow:`Is the crossing in your example one-way or two-way?`,
+      red:`Describes two systems existing in the same game with no mention of anything crossing between them.` },
+    { q:`Persona’s dungeon-crawling gets harder if you never build relationships. Why is that a hybrid decision and not a difficulty setting?`,
+      a:`The calendar loop is the source of the resource (bonds) that boosts how strong the fusion loop’s output turns out, so skipping one loop has a direct, designed effect on the other, not an optional side quest’s worth of bonus loot. That is what makes them one hybrid system instead of a main game plus a side game.`,
+      follow:`What would change if bonds only affected cosmetic rewards instead of fusion power?`,
+      red:`Treats the social sim as flavour content unrelated to the “real” dungeon game.` },
+    { q:`Why can a hybrid fail even when both of its loops are individually well designed?`,
+      a:`Because a hybrid is a claim about the connection between the loops, not about either loop alone. Two well-built loops with no real bridge, or a one-way bridge, are still two half-games bolted together; the individual quality of each does not fix the missing or broken connection.`,
+      follow:`How would you test for a missing connection specifically, rather than testing each loop on its own?`,
+      red:`Argues a hybrid must be good because each half tested well in isolation.` }
+  ],
+  mid:[
+    { q:`You are handed a prototype where players skip one of the two loops entirely once they find an efficient path. Diagnose it.`,
+      a:`Check whether the bridge is one-way and whether the skipped loop is the source or the destination of the currency. If it is the source and there is another, faster way to get the same currency, that loop has been made optional by an unintended shortcut, not by design. Trace the actual resource flow before assuming the loop itself is unfun.`,
+      follow:`The shortcut turns out to be intended, a reward for mastery. Does that change your answer?`,
+      red:`Proposes making the skipped loop more fun without first tracing why it stopped being necessary.` },
+    { q:`How would you prototype a brand-new hybrid pairing cheaply, before committing to full production of both loops?`,
+      a:`Build the two loops as separate, minimal grey-box prototypes first and confirm each holds up alone. Only then wire in the smallest possible bridge (a single number crossing over) and test whether players choose to move between the two loops without being forced. That order avoids sinking full production budget into a hybrid whose halves were never independently sound.`,
+      follow:`One of your two grey-box loops does not hold up alone. What are your options?`,
+      red:`Jumps straight to building the full hybrid because the pitch sounded exciting.` },
+    { q:`What is the risk of a “session-shape mismatch” between two hybridised loops, and how do you spot it in a playtest?`,
+      a:`If one loop is slow and planned (a calendar) and the other is fast and reactive (real-time combat), players may resent the context switch itself, independent of either loop’s quality. Watch for hesitation or complaints at the transition point specifically, not during either loop, since that pinpoints the seam rather than either half.`,
+      follow:`Playtesters enjoy both loops but dread the transition screen between them. What do you change first?`,
+      red:`Rebalances one of the loops in response to a complaint that is about the transition between them.` }
+  ],
+  senior:[
+    { q:`A live hybrid game is losing players between its two loops: engagement in Loop A is healthy, but players stop touching Loop B after a few sessions. How do you decide whether to fix the bridge or cut Loop B?`,
+      a:`Check whether the bridge still gives Loop B a reason to exist once players have enough of the crossing currency banked; a bridge that only matters early creates exactly this drop-off. If the currency’s value decays or scales with continued play, the fix is rebalancing the bridge. If Loop B has nothing left to offer once its currency is banked, cutting or reworking it is the more honest answer than propping it up.`,
+      follow:`Cutting Loop B is politically difficult because a team built it. How do you present the recommendation?`,
+      red:`Recommends adding more content to Loop B without first checking whether the bridge itself still has a reason to pull players there.` },
+    { q:`You are asked to hybridise two loops from two different existing games in your portfolio, on a tight schedule that does not allow separate prototyping. What do you insist on anyway?`,
+      a:`At minimum, a fast paper or numbers-only pass that traces the intended bridge currency through both loops and checks it flows both ways, since that is the one thing a schedule cut cannot safely skip: an untested one-way bridge is a common, costly hybrid failure. Everything else (art, full grey-box prototypes) can be sequenced around the schedule; the bridge cannot be discovered broken after both loops are built.`,
+      follow:`The bridge check reveals the connection is currently one-way. What is the minimal fix given the schedule?`,
+      red:`Accepts the schedule cut as covering the bridge check too, and finds out the connection is broken only after both loops ship.` }
+  ] });
+DIAGRAM('genre-hybrids', { kind:'loop', title:'One hybrid, seen as a single cycle', steps:[{t:'Loop A plays out', d:'the planning loop plays out'},{t:'Bridge currency', d:'a resource crosses over'},{t:'Loop B spends it', d:'a cost or test happens'},{t:'Loop B returns', d:'loot or cost flows back'},{t:'Both loops renew', d:'both loops continue, changed'}],
+  note:'Drawn as one cycle rather than two separate loops, because that is what a working hybrid is: Persona’s bonds feeding fusion power, Stardew’s ore feeding farm tools, are the same shape.' });

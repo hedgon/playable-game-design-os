@@ -322,10 +322,12 @@ window.PlayableGraph = (function(){
   // topic page (`hits`), the runtime view links the map leaves travel
   // through (`views`), and the capped leaf list the domain map and the
   // layout checker both render (`extra`). The cap keeps the fourth layer
-  // from growing past what the overlap checker allows.
-  function practiceLinks(cases, cap){
+  // from growing past what the overlap checker allows. `games` adds at most
+  // one reference-game leaf per topic, on its own cap: the first game whose
+  // loop or screen schematic, or a lens, names the topic.
+  function practiceLinks(cases, cap, games){
     cap = cap || 2;
-    const hits = {}, views = {}, extra = {};
+    const hits = {}, views = {}, extra = {}, gameLeaf = {};
     (cases || []).forEach(c => (c.systems || []).forEach(s => (s.parts || []).forEach(p => (p.rel || []).forEach(([tid, why]) => {
       const vid = `exp:${c.id}/${s.id}/${p.id}`;
       views[vid] = [`#/experience/${c.id}/${s.id}/${p.id}`, `◆ ${p.t}`, c.t];
@@ -333,6 +335,14 @@ window.PlayableGraph = (function(){
       const list = extra[tid] || (extra[tid] = []);
       if(list.length < cap) list.push([vid, why]);
     }))));
+    const lensLabel = k => { const l = (typeof GAME_LENSES !== 'undefined' ? GAME_LENSES : []).find(x => x[0] === k); return l ? l[1] : k; };
+    (games || []).forEach(g => {
+      const vid = `game:${g.id}`;
+      const pick = (tid, why) => { if(gameLeaf[tid]) return; gameLeaf[tid] = [vid, why]; views[vid] = [`#/games/${g.id}`, `◇ ${g.t}`, 'Reference game']; };
+      (g.diagrams || []).forEach(d => (d.topics || []).forEach(t => pick(t, `${g.t}: its ${d.kind === 'screen' ? 'screen' : 'loop'} shows this idea`)));
+      Object.entries(g.lens || {}).forEach(([k, l]) => { if(l && !l.na) (l.topics || []).forEach(t => pick(t, `${g.t}, through its ${lensLabel(k).toLowerCase()} lens`)); });
+    });
+    Object.entries(gameLeaf).forEach(([tid, leaf]) => (extra[tid] || (extra[tid] = [])).push(leaf));
     return { hits, views, extra };
   }
 

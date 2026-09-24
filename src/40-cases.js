@@ -4,7 +4,7 @@
    no product, codename, employer, host, schema, internal path, colleague or
    business figure. Public library and vendor names are fine. Each case is a
    page under #/experience and its STAR stories are what an interview
-   actually asks for.
+   asks for.
 
    CASE({
      id:'',                                  // url slug, unique
@@ -94,7 +94,7 @@ function CASE(o){ CASE_STUDIES.push(o); }
        id:'',                               // prefixed by the system id: "api-routing"
        t:'',
        what:'',                             // 2-4 sentences: what it is and how it fits
-       how:[''],                            // 3-6 bullets: how it actually worked
+       how:[''],                            // 3-6 bullets: how it worked
        why:'',                              // the decision behind it, 1-3 sentences
        trade:'',                            // what it cost, 1-3 sentences
        rel:[['topic-id','why this part demonstrates that topic']],   // at least one
@@ -149,7 +149,7 @@ function SYSTEMS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if
    for example refused and handled), every step has to be reachable from
    steps[0], and no edge may point backwards or at itself. The renderer puts
    a step in the column of its longest path from steps[0], so the chart reads
-   left to right in the order the work actually happens.
+   left to right in the order the work happens.
    --------------------------------------------------------------------- */
 /** @param {string} csId @param {Flow[]} arr */
 function FLOWS(csId, arr){ const c = CASE_STUDIES.find(x => x.id === csId); if(!c) throw new Error('FLOWS: unknown case ' + csId); c.flows = arr; }
@@ -214,7 +214,7 @@ CASE({
       trade:`Changing one value needs a rebuild and a redeploy. It also made the committed config file feel like the natural home for credentials, which is exactly the wrong lesson to draw.` },
     { d:`Idempotency enforced in middleware with an add if absent cache key scoped to player, method and path.`,
       why:`Mobile networks retry whether or not the API was designed for it, and a duplicated state change is indistinguishable from a bug to the player who paid for it twice.`,
-      trade:`A short expiry window is a guess. Too long blocks legitimate rapid actions, too short lets a slow retry through, and genuinely repeatable endpoints have to be exempted by hand.` },
+      trade:`A short expiry window is a guess. Too long blocks legitimate rapid actions, too short lets a slow retry through, and repeatable endpoints have to be exempted by hand.` },
     { d:`Every push provisions all schemas from zero, migrates, seeds master data, boots every mode and runs the end to end suite.`,
       why:`Migration order and seed drift are the failures that hurt during a release window, and they only appear when a database is built from nothing.`,
       trade:`The pipeline takes tens of minutes, so the per pull request check was cut down to lint and unit tests. The real verification arrives after merge, which means the branch was never the thing that was proven.` }
@@ -236,7 +236,7 @@ CASE({
       r:`Disagreements went to zero and stayed there through two years of balance changes, because that test ran on every push and caught three later regressions inside branches. The habit I kept is to compare traces rather than results whenever two implementations have to agree.` },
     { s:`Players on unstable connections were having the same state change applied twice.`,
       t:`Duplicate requests from client retries were committing twice. I had to stop it without blocking players who legitimately tap quickly, and without rewriting every handler.`,
-      a:`I put an add if absent lock in the distributed cache, keyed on player, method and path with a short expiry, taken in middleware before the handler ran. A second copy arriving inside the window got the stored response instead of a second commit. I went through the endpoint list and exempted the ones that are genuinely repeatable, because a blanket gate would have made rapid legitimate actions feel broken.`,
+      a:`I put an add if absent lock in the distributed cache, keyed on player, method and path with a short expiry, taken in middleware before the handler ran. A second copy arriving inside the window got the stored response instead of a second commit. I went through the endpoint list and exempted the ones that are repeatable, because a blanket gate would have made rapid legitimate actions feel broken.`,
       r:`The duplicate reports stopped and the change was one middleware plus a table of exemptions. What I carry from it is that a mobile client retries whether or not you planned for it, so every state changing endpoint needs an answer to what happens when this arrives twice.` },
     { s:`Migrations kept breaking after the merge and never before it.`,
       t:`As the person who owned the backend conventions, I had a main branch that went red on schema changes and a team that had learned to expect it. The fix had to change where the truth ran, not just add more review.`,
@@ -281,7 +281,7 @@ CASE({
   decisions:[
     { d:`A one way assembly dependency chain, refused rather than negotiated when a feature wanted to invert it.`,
       why:`It is the only property that keeps a large client compiling in pieces and keeps core code reusable. Once one exception exists the direction stops being a fact and becomes a preference.`,
-      trade:`It costs interfaces and events where a direct call would have been shorter, and it makes some features genuinely harder to place. You pay in ceremony to keep the graph acyclic.` },
+      trade:`It costs interfaces and events where a direct call would have been shorter, and it makes some features harder to place. You pay in ceremony to keep the graph acyclic.` },
     { d:`Fold new feature folders into an existing assembly with a reference file instead of adding assemblies.`,
       why:`Each new assembly is another compile unit, another set of references to maintain and another chance to reference the wrong way.`,
       trade:`The biggest assembly keeps growing, so its compile time is the one everybody waits on and nothing inside it is structurally prevented from touching anything else.` },
@@ -324,7 +324,7 @@ CASE({
       a:`I put asset handles behind a scope enum tied to the scene layers we already had, so a transition promotes the next scene scope and releases the current overlay. Then I added release diagnostics and pool double release detection under the debug define, warning rather than throwing so a pooling bug degrades instead of taking the session down, and compared memory snapshots before and after a fixed walk through the same screens.`,
       r:`The climb flattened and stayed flat, and the scope became the thing reviewers ask about when a new load call appears. The general lesson is to attach asset lifetime to an event the code already raises, because a release call that a human has to remember is a leak with a delay on it.` },
     { s:`A teammate asked me to let a lower layer reference the screen layer so a feature could ship on time.`,
-      t:`The direction of dependencies was the one architectural rule we actually enforced, and it was one day before a milestone. Saying only no would have made me the obstacle, and saying yes once would have ended the rule.`,
+      t:`The direction of dependencies was the one architectural rule we enforced, and it was one day before a milestone. Saying only no would have made me the obstacle, and saying yes once would have ended the rule.`,
       a:`I said no to the inversion and spent the next hour on the alternative rather than the argument. We declared the contract as an interface in the lower layer, implemented it in the screen layer and injected it at boot, which was about the same amount of code and took under a day. I wrote the reasoning into the rule file as a worked example so the next person meets the answer before they meet me.`,
       r:`The feature shipped on the milestone and the direction held. What I learned is that a boundary survives on the quality of the alternative you offer within the hour, not on the authority of the person defending it.` },
     { s:`A store upload failed at the end of a two hour build and took the whole run down with it.`,
@@ -365,7 +365,7 @@ CASE({
   ],
   decisions:[
     { d:`Keep gameplay in the default assembly instead of splitting it into layered assemblies.`,
-      why:`The obfuscator protects one assembly by name. A tidy split would have left most of the game outside the protected set without any error, which for an offline shippable binary is the threat we were paid to care about.`,
+      why:`The obfuscator protects one assembly by name. A tidy split would have left most of the game outside the protected set without any error, which for a binary that carries all its own game logic is the threat we were paid to care about.`,
       trade:`No compile-time layering and no incremental compile win, and test assemblies cannot reference the game, so the test harness resolves types by name through reflection. We centralised that reflection in one file and accepted it.` },
     { d:`Two independent obfuscation layers, asset name hashing and code renaming, each switchable per pipeline.`,
       why:`They defend against two different threats, datamining of shipped assets and reverse engineering of the binary, and being able to turn one off is what makes a failure diagnosable.`,
@@ -384,7 +384,7 @@ CASE({
       trade:`The tier table needs maintaining, and a legitimate new dependency turns into an argument about the table rather than a five minute change.` },
     { d:`Write down a build rationing ladder and make plans declare their build cost.`,
       why:`A protected player build takes hours. Static inspection, compile only, editor play mode, then one batched device build, with a second only if the first falsifies the hypothesis, keeps the expensive step for questions that only a device can answer.`,
-      trade:`It slows down the cases that genuinely needed a device build first, and it can become a licence to guess. We required plans to record builds expected against builds used so the ladder stays honest.` },
+      trade:`It slows down the cases that needed a device build first, and it can become a licence to guess. We required plans to record builds expected against builds used so the ladder stays honest.` },
     { d:`Concentrate every platform conditional for a module into one file and say so in its header.`,
       why:`Touch support landed as twelve files with exactly one branch point, so gameplay never learns which input device exists and a reviewer can see every platform decision in one place.`,
       trade:`That file becomes a hot spot everyone edits, and keeping the rule true occasionally costs an extra indirection where a local conditional would have been two lines.` }
@@ -402,7 +402,7 @@ CASE({
   stories:[
     { s:`Remote players stopped appearing on device the week we turned obfuscation on.`,
       t:`The protected build was the one we ship and the editor build was healthy, so every normal debugging loop was unavailable. I had a milestone build due and a multiplayer feature that worked everywhere except in the artefact that mattered.`,
-      a:`I bisected by build configuration rather than by code, turning each protection layer off separately, which pointed at code renaming rather than at asset hashing. The networking SDK resolves its weaved members by name at runtime, so renaming them broke remote player registration silently. I exempted the whole weaved class instead of chasing individual members, because a partial exemption would fail again on the next generated member, and left a short post mortem in a comment at the attribute.`,
+      a:`I bisected by build configuration rather than by code, turning each protection layer off separately, which pointed at code renaming rather than at asset hashing. The networking SDK resolves its weaved members by name at runtime, so renaming them broke remote player registration silently. I exempted the whole weaved class instead of chasing individual members, because a member-level exemption had already failed once, on the next generated member, and left a short post mortem in a comment at the attribute.`,
       r:`We shipped with both protection layers enabled and no further surprises from the netcode. The rule I now apply before enabling any renaming tool is to list everything in the project that resolves a name at runtime, because those are exactly the things that will fail in a build nobody runs in the editor.` },
     { s:`The port had to fit a memory budget a fraction of the original platform.`,
       t:`The inherited content assumed a console amount of memory. My job was to make the game fit on low end phones without cutting the content, and to make sure it stayed fitting after other people kept adding to it.`,

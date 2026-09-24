@@ -44,18 +44,18 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         q:`The one way assembly dependency direction is enforced by review, not by a build step. What happens the first time someone gets it past review, and would you add a compile time check?`,
         a:`It has happened. A feature folder ends up referencing something one layer up because the fastest fix that day was a direct call instead of an interface, and it survives until a later reviewer notices the import list looks wrong. The rule holds mostly because it is written down and everyone defends it the same way, not because a tool stops it. I looked at a script that walks assembly definition references and fails the build on a forward reference, and the reason it never shipped is that assembly definitions already state their references explicitly, so the same information a linter would compute is visible in the inspector. The cost of building the check never beat the cost of a reviewer reading one file.`,
         follow:`If you had shipped that check, what is the first false positive you would have expected from it?`,
-        red:`Saying the rule never gets violated. A convention enforced by humans gets violated sometimes, and pretending otherwise means the candidate has not actually maintained one.`
+        red:`Saying the rule never gets violated. A convention enforced by humans gets violated sometimes, and pretending otherwise means the candidate has not maintained one.`
       },
       {
         q:`Walk me through what happens at boot when one registration needs a value that is not registered yet.`,
-        a:`The bootstrap method registers services in a fixed order, so a later registration can always read an earlier one directly. The problem is the other direction, when an earlier registration would want something that only exists later in the same method. Instead of reordering the whole method around one dependency, that registration takes a resolver function, a small closure that looks the value up when it is actually called rather than when it is registered. It reads as a wart because it is one, and every place it appears carries a comment saying why, because the alternative was rewriting boot around one exception.`,
+        a:`The bootstrap method registers services in a fixed order, so a later registration can always read an earlier one directly. The problem is the other direction, when an earlier registration would want something that only exists later in the same method. Instead of reordering the whole method around one dependency, that registration takes a resolver function, a small closure that looks the value up when it is called rather than when it is registered. It reads as a wart because it is one, and every place it appears carries a comment saying why, because the alternative was rewriting boot around one exception.`,
         follow:`Why not just move the earlier registration later instead of adding a resolver function?`,
         red:`Proposing a full dependency graph resolver as the fix. That is a real answer for a bigger project, but it replaces a five line workaround with a subsystem for a boot sequence that runs once and rarely changes.`
       },
       {
-        q:`A soft reset skips one system's cleanup. What does that actually look like to a player, and how would you catch it before they do?`,
-        a:`It does not throw. The system's state just carries into the next session looking like normal data, so the first symptom is usually a support report describing behaviour that only makes sense if some earlier session never really ended. That is why soft reset is its own item on the pull request checklist rather than something assumed to work because the router fires the right events. Catching it earlier means a test that runs a soft reset and asserts specific state was cleared, not just that the screen changed, because the screen changing is the part that was never actually broken.`,
-        follow:`What would that assertion actually check, given the state lives across several unrelated systems?`,
+        q:`A soft reset skips one system’s cleanup. What does that look like to a player, and how would you catch it before they do?`,
+        a:`It does not throw. The system’s state just carries into the next session looking like normal data, so the first symptom is usually a support report describing behaviour that only makes sense if some earlier session never really ended. That is why soft reset is its own item on the pull request checklist rather than something assumed to work because the router fires the right events. Catching it earlier means a test that runs a soft reset and asserts specific state was cleared, not just that the screen changed, because the screen changing is the part that was never broken.`,
+        follow:`What would that assertion check, given the state lives across several unrelated systems?`,
         red:`Treating a soft reset as equivalent to a full app restart. The whole reason it is a distinct path is that it deliberately keeps some state alive, so the checklist item is about which state, not whether any state survives.`
       }
     ],
@@ -85,7 +85,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `The choice is made once at feature creation, not revisited as the feature grows.`
         ],
         why:`A new assembly is another compile unit, another set of references to keep straight, and another chance to reference the wrong direction. Folding in avoids all three at the cost of one large assembly.`,
-        trade:`The client assembly is the one everyone's editor waits on to recompile, and nothing inside it is structurally stopped from reaching anything else inside it.`,
+        trade:`The client assembly is the one everyone’s editor waits on to recompile, and nothing inside it is structurally stopped from reaching anything else inside it.`,
         rel:[
           ['systemic-design',`A convention with no enforcement is a system with implicit rules about what may touch what, and it decays the same way an unenforced game system does.`]
         ]
@@ -111,7 +111,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
       },
       {
         id:'arch-scenes', t:'Scene routing and layered transitions',
-        what:`A router addresses two persistent layers, a base scene and an overlay scene, by virtual scene names distinct from Unity's own scene names. Boot runs a fixed sequence: boot scene, serializer setup, an async bootstrap that registers services in order, an additive persistent manager scene, the first transition, then the boot scene unloads itself. A soft reset back to the first screen is a first class path, not a special case added later.`,
+        what:`A router addresses two persistent layers, a base scene and an overlay scene, by virtual scene names distinct from Unity’s own scene names. Boot runs a fixed sequence: boot scene, serializer setup, an async bootstrap that registers services in order, an additive persistent manager scene, the first transition, then the boot scene unloads itself. A soft reset back to the first screen is a first class path, not a special case added later.`,
         how:[
           `The router raises events for scene changed, Unity scene activated and virtual scene activated, so other systems react without polling it.`,
           `Base and overlay are separate layers, so a modal can sit above the current screen without unloading it.`,
@@ -119,7 +119,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `Soft reset is a named item on the pull request checklist, because a partial reset is worse than a full one.`
         ],
         why:`Two layers cover almost every screen shape a mobile game needs, a modal over content, without a general purpose window stack solving stacking problems the game never has.`,
-        trade:`A virtual scene name is one more name to keep in sync with the Unity scene it points at, and a soft reset that skips one system's cleanup is invisible until that system's state carries into the next session.`,
+        trade:`A virtual scene name is one more name to keep in sync with the Unity scene it points at, and a soft reset that skips one system’s cleanup is invisible until that system’s state carries into the next session.`,
         rel:[
           ['ux-as-design',`How the client moves between full screens and overlays is UX architecture before it is a code decision.`]
         ]
@@ -138,15 +138,15 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         red:`Saying more scopes are always better. A finer grained scope model is a bigger surface to get wrong at the call site, and four was chosen because it matched the transitions that already exist, not because more granularity is free.`
       },
       {
-        q:`The pool's double release detection warns instead of throwing. Walk me through why you picked that.`,
-        a:`A double release is a real bug, but it is a bug in one object's lifecycle, not proof the whole session is unsafe to continue. Throwing turns that local bug into a crashed session for the player holding the phone, which is a worse outcome than the bug itself in almost every case I saw. Warning under a debug define means the bug is loud to whoever is testing with diagnostics on, and costs nothing in a released build, since the check compiles out entirely outside that define. The trade is that a shipped build with the define off could theoretically hit the same bug silently, so the warning only protects the people actually looking.`,
+        q:`The pool’s double release detection warns instead of throwing. Walk me through why you picked that.`,
+        a:`A double release is a real bug, but it is a bug in one object’s lifecycle, not proof the whole session is unsafe to continue. Throwing turns that local bug into a crashed session for the player holding the phone, which is a worse outcome than the bug itself in almost every case I saw. Warning under a debug define means the bug is loud to whoever is testing with diagnostics on, and costs nothing in a released build, since the check compiles out entirely outside that define. The trade is that a shipped build with the define off could theoretically hit the same bug silently, so the warning only protects the people looking.`,
         follow:`What would make you flip that to a hard throw instead?`,
         red:`Arguing every bug should throw in every build to surface it as early as possible. That is true for a build breaking bug, not for one that degrades a pool and would otherwise take the whole session down over something recoverable.`
       },
       {
-        q:`Walk me through exactly when the graphics tier decision gets made and what it actually changes.`,
+        q:`Walk me through exactly when the graphics tier decision gets made and what it changes.`,
         a:`Tier is decided once, from a device classification read at start up, and it drives two things off the same value: which quality settings the game runs at and which resource list suffix the asset fetch uses. Because both come from one decision made at one point in time, a session never ends up running high quality settings against a low tier manifest or the other way around. The resource list itself is just a suffixed path on the same CDN location, so supporting a new tier costs a new list, not a new delivery pipeline.`,
-        follow:`What happens if a device's classification would change mid session, say thermal throttling kicks in?`,
+        follow:`What happens if a device’s classification would change mid session, say thermal throttling kicks in?`,
         red:`Assuming tier is re-evaluated per frame or per scene. It is a start up decision on purpose, because re-evaluating it mid session would mean re-fetching assets against a different manifest while the game is running.`
       }
     ],
@@ -166,18 +166,18 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         rel:[
           ['infra-cdn-assets',`Scope and release policy is the client half of the same asset delivery problem infra solves with CDN paths and manifests.`]
         ],
-        story:`Memory climbed slowly across sessions that moved through several screens, and it only showed on real devices after a long run, which made the usual profiler loop too slow to iterate on. I tied every asset handle to the scope enum built from the transition events we already had, so a transition promotes the next scope and releases the one before it. Then I made the object pool's double release detection a warning instead of an exception. Throwing would have ended a session over a pooling bug that a warning could just log, and a session ending is a worse outcome than the bug it was meant to catch. The climb flattened, and the scope is now the thing reviewers ask about whenever a new load call appears.`
+        story:`Memory climbed slowly across sessions that moved through several screens, and it only showed on real devices after a long run, which made the usual profiler loop too slow to iterate on. I tied every asset handle to the scope enum built from the transition events we already had, so a transition promotes the next scope and releases the one before it. Then I made the object pool’s double release detection a warning instead of an exception. Throwing would have ended a session over a pooling bug that a warning could just log, and a session ending is a worse outcome than the bug it was meant to catch. The climb flattened, and the scope is now the thing reviewers ask about whenever a new load call appears.`
       },
       {
         id:'assets-channels-tiers', t:'Two delivery channels and a graphics tier fallback',
         what:`Assets reach the player two ways, downloaded from a CDN or shipped inside the build, with a generated manifest for whatever ships inline. A graphics tier system picks a lower quality resource list for weaker devices, fetched from the same CDN path with a tier suffix, so tiering costs no extra storage.`,
         how:[
-          `Per platform resource lists resolve from a low tier suffix to the plain platform name, depending on the device's assigned tier.`,
+          `Per platform resource lists resolve from a low tier suffix to the plain platform name, depending on the device’s assigned tier.`,
           `The in-build manifest is generated at build time, so nothing has to hand maintain which assets shipped inline against which stream from the CDN.`,
           `Runtime quality tier and manifest tier are the same decision, made once from a device classification taken at start up.`
         ],
         why:`One CDN path serving several tiers keeps the storage and publishing cost of supporting a low end device close to zero, instead of a parallel asset set for every tier.`,
-        trade:`A tier boundary that later needs one more value means retagging every asset's resource list, and a mistagged asset only surfaces as an unexpectedly large download on a device nobody profiled that day.`,
+        trade:`A tier boundary that later needs one more value means retagging every asset’s resource list, and a mistagged asset only surfaces as an unexpectedly large download on a device nobody profiled that day.`,
         rel:[
           ['infra-cdn-assets',`One CDN path with a tier suffix is a direct instance of designing asset delivery around bandwidth as a constraint.`]
         ],
@@ -187,13 +187,13 @@ SYSTEMS('cs-unity-mobile-client-ci', [
       },
       {
         id:'assets-providers', t:'Custom resource providers',
-        what:`Addressables' default providers are replaced by a small set of custom ones, a bundle provider, a bundled asset provider, a web request queue and a provider that tolerates a missing location instead of failing. Replacing the defaults is the point where diagnostics and request shaping actually attach.`,
+        what:`Addressables' default providers are replaced by a small set of custom ones, a bundle provider, a bundled asset provider, a web request queue and a provider that tolerates a missing location instead of failing. Replacing the defaults is the point where diagnostics and request shaping attach.`,
         how:[
           `The web request queue caps concurrent downloads so a scene transition does not open dozens of connections at once on a mobile network.`,
           `The allow-not-found provider returns a typed miss instead of an exception, for content that is legitimately optional per platform or region.`,
           `Each custom provider is the attachment point for the release diagnostics used to find scope leaks.`
         ],
-        why:`The engine's defaults have no hook for a concurrency limit or for a soft miss, and rewriting them once is cheaper than working around their absence at every call site.`,
+        why:`The engine’s defaults have no hook for a concurrency limit or for a soft miss, and rewriting them once is cheaper than working around their absence at every call site.`,
         trade:`A custom provider is code that has to track every Addressables upgrade by hand, since nothing guarantees the base API it wraps stays compatible.`,
         rel:[
           ['infra-cdn-assets',`Concurrency limits on a download queue are a bandwidth and reliability decision, the same one any CDN client has to make.`]
@@ -209,18 +209,18 @@ SYSTEMS('cs-unity-mobile-client-ci', [
       {
         q:`Why two separate network stacks, request and response over HTTP and a hand framed socket for realtime, instead of putting everything on one WebSocket?`,
         a:`They serve traffic with different shapes. Game API calls are one request, one response, need to survive being replayed by a flaky mobile connection, and benefit from every piece of HTTP infrastructure already in place, proxies, load balancers, caching headers. Chat, presence and matched sessions are long lived and server initiated, which HTTP was never built for. Forcing both onto one socket would mean either giving up the HTTP guarantees the API traffic depends on, or building request and response semantics on top of a socket for traffic that never needed them. Keeping them separate means a socket disconnect never breaks an ordinary API call, and an API outage never drops a live match.`,
-        follow:`What would actually break first if you merged them onto one channel?`,
+        follow:`What would break first if you merged them onto one channel?`,
         red:`Claiming a single channel is simpler with no real cost named. Simplicity on paper here trades away the HTTP semantics the request and response side depends on, and that cost has to be named to make the trade honestly.`
       },
       {
-        q:`There is no built in request and response pairing on a WebSocket. Walk me through how a reply actually finds its request.`,
+        q:`There is no built in request and response pairing on a WebSocket. Walk me through how a reply finds its request.`,
         a:`Every frame carries a message id alongside its type and op code. Sending a request stores a pending entry keyed by that id before the frame goes out, and when a frame comes back with the same id, the dispatch loop resolves whichever caller is waiting on it. A timeout clears the entry if nothing ever comes back, so a caller does not wait forever on a dropped reply. It is a small table, not a protocol, and it only works because both sides agree on the id being unique for as long as the pending entry lives.`,
         follow:`What happens if two different requests are accidentally sent with the same message id?`,
-        red:`Assuming the socket itself guarantees ordering or delivery. It does neither on its own, which is exactly why the correlation table and its timeout exist instead of just trusting replies to arrive in order.`
+        red:`Assuming the socket pairs a reply with its request or survives a disconnect. A WebSocket runs over TCP, so frames arrive in order while the connection lasts, but nothing ties a reply to its request and anything in flight when it drops is lost. That is why the correlation table and its timeout exist.`
       },
       {
         q:`WebGL has no raw socket access. Walk me through the compile-time swap and what changes for that platform.`,
-        a:`The relay transport sits behind one interface, and which concrete implementation satisfies it is chosen by platform define at compile time, the same pattern the platform facade uses elsewhere. On WebGL, the implementation goes through the browser's own socket support instead of a native one, but everything above that interface, framing, correlation, the relay clients on top, stays identical because it only ever talks to the interface. The gameplay and chat code that uses the relay never has a WebGL branch of its own.`,
+        a:`The relay transport sits behind one interface, and which concrete implementation satisfies it is chosen by platform define at compile time, the same pattern the platform facade uses elsewhere. On WebGL, the implementation goes through the browser’s own socket support instead of a native one, but everything above that interface, framing, correlation, the relay clients on top, stays identical because it only ever talks to the interface. The gameplay and chat code that uses the relay never has a WebGL branch of its own.`,
         follow:`What is the actual behavioural difference a player on WebGL would notice, if any?`,
         red:`Saying WebGL just works the same as native with no adaptation needed. The transport swap exists specifically because it does not, and pretending otherwise skips the actual engineering decision.`
       }
@@ -249,7 +249,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `Keepalive settings are explicit rather than left at a default tuned for a different kind of traffic.`,
           `The channel is additive to the request and response API, not a replacement for it, so a push failure does not affect ordinary calls.`
         ],
-        why:`Push needs a long-lived connection the request and response API was never built for, and a separate channel keeps that concern from leaking into every ordinary call's error handling.`,
+        why:`Push needs a long-lived connection the request and response API was never built for, and a separate channel keeps that concern from leaking into every ordinary call’s error handling.`,
         trade:`Two network stacks means two things that can be half broken at once, and a keepalive value tuned for one network can be wrong for another.`,
         rel:[
           ['server-realtime-protocol',`Push and realtime delivery share the same question, how a server reaches a client without the client asking first.`]
@@ -288,26 +288,26 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         red:`Arguing a sensible runtime default is always friendlier to developers. Friendlier to a developer building locally is not the same as safe for an identity value the server trusts, and the two get confused easily.`
       },
       {
-        q:`Walk me through adding support for a new store. What actually has to change, and where?`,
-        a:`The platform facade gets a new branch inside its existing conditional chain, nested the same way the alternative Android store or the disabled desktop path already are, returning the platform string and store identifier for the new case. Everything else in the codebase reads the facade's values rather than testing a define itself, so nothing outside that one file needs to know a new store exists. The actual risk is in that one file getting dense enough that adding a branch means understanding several existing ones first, since every platform's logic lives together there.`,
+        q:`Walk me through adding support for a new store. What has to change, and where?`,
+        a:`The platform facade gets a new branch inside its existing conditional chain, nested the same way the alternative Android store or the disabled desktop path already are, returning the platform string and store identifier for the new case. Everything else in the codebase reads the facade’s values rather than testing a define itself, so nothing outside that one file needs to know a new store exists. The actual risk is in that one file getting dense enough that adding a branch means understanding several existing ones first, since every platform’s logic lives together there.`,
         follow:`At what point would you split that facade into more than one file, and what would the split be along?`,
         red:`Describing the change as touching many files across the codebase. If it does, the abstraction has already leaked, because the whole point of the facade is that only it knows about the new define.`
       },
       {
-        q:`Why put a purchase bridge behind an interface shaped for the game instead of wrapping the native SDK's own API directly?`,
-        a:`A native SDK's API is written for every game that might integrate it, so it carries configuration and callback shapes this game never uses. An interface declared in core states only the handful of calls the game actually makes, purchase, restore, price lookup, and the app layer implementation is the only place that has to know the SDK's real shape. That keeps an SDK migration or a version bump contained to one implementation file instead of every call site across the client.`,
-        follow:`What happens when the SDK's next version changes a callback shape the interface assumed?`,
-        red:`Saying the interface should just mirror the SDK one to one for completeness. That defeats the purpose, since a one to one mirror carries the SDK's whole surface into the game instead of narrowing it to what is actually used.`
+        q:`Why put a purchase bridge behind an interface shaped for the game instead of wrapping the native SDK’s own API directly?`,
+        a:`A native SDK’s API is written for every game that might integrate it, so it carries configuration and callback shapes this game never uses. An interface declared in core states only the handful of calls the game makes, purchase, restore, price lookup, and the app layer implementation is the only place that has to know the SDK’s real shape. That keeps an SDK migration or a version bump contained to one implementation file instead of every call site across the client.`,
+        follow:`What happens when the SDK’s next version changes a callback shape the interface assumed?`,
+        red:`Saying the interface should just mirror the SDK one to one for completeness. That defeats the purpose, since a one to one mirror carries the SDK’s whole surface into the game instead of narrowing it to what is used.`
       }
     ],
     parts:[
       {
         id:'platform-facade', t:'A compile-time platform facade with no silent fallback',
-        what:`One static facade resolves every platform branch a client needs, mapping the build's platform defines to a platform string and a store identifier. The final branch is a compile error rather than a default, so an unsupported platform fails at compile time instead of shipping with a guessed identity.`,
+        what:`One static facade resolves every platform branch a client needs, mapping the build’s platform defines to a platform string and a store identifier. The final branch is a compile error rather than a default, so an unsupported platform fails at compile time instead of shipping with a guessed identity.`,
         how:[
           `A single conditional chain across iOS, Android, server, standalone and WebGL defines, each branch returning the values the rest of the codebase reads.`,
           `The store identifier is a further compile-time choice nested inside the platform branch, an alternative store defined separately on Android and a disabled path on desktop.`,
-          `Every other system reads the facade's values instead of testing a platform define itself.`
+          `Every other system reads the facade’s values instead of testing a platform define itself.`
         ],
         why:`The store identifier has to match a claim the server checks, so guessing it at runtime is not worth the risk, and a compile error is cheaper to fix than a silent wrong identity shipped to a store.`,
         trade:`Adding a platform means editing the one file that already knows about every other platform, and that file is dense with defines nobody wants to touch without testing all of them.`,
@@ -320,10 +320,10 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         what:`Anything backed by a native SDK, a web view, ads, purchases, sits behind an interface declared in the core layer with its implementation in the app layer, injected at boot like any other service. A hand maintained vendor inventory records what was imported, when and from where.`,
         how:[
           `A web view bridge, an ads bridge and a purchase bridge each declare the shape the game needs, not the shape the SDK happens to expose.`,
-          `Implementations live in the app layer, so a native SDK's assembly never has to be visible to core.`,
+          `Implementations live in the app layer, so a native SDK’s assembly never has to be visible to core.`,
           `A vendor record keeps name, import date, version, source and any manual post-import step, since these are the imports a package manager cannot fully automate.`
         ],
-        why:`A native SDK's own API is written for every game that might use it, not this one, and an interface narrows that to the handful of calls the game actually makes.`,
+        why:`A native SDK’s own API is written for every game that might use it, not this one, and an interface narrows that to the handful of calls the game makes.`,
         trade:`Every SDK update is a manual comparison against the bridge interface, and a hand maintained vendor log is only as good as the last person who remembered to update it.`,
         rel:[
           ['risk-and-dependencies',`A native SDK is exactly the kind of dependency that can quietly change behaviour under an update nobody scheduled time to test.`]
@@ -346,8 +346,8 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         red:`Defending a GUI assertion as fine because relayouts do not happen often. That confidence is exactly what a relayout later punishes, and the rule exists so nobody has to guess how often is often enough.`
       },
       {
-        q:`What does the on device smoke walk actually catch that a PlayMode test running in the editor would not?`,
-        a:`PlayMode runs in the editor's own memory and thermal conditions, which never resemble a mid tier phone five minutes into a session. The smoke walk measures transition time, memory, CPU and frame rate on a real device after walking every non debug scene, so it catches the failure mode that only exists after sustained real use, a leak that shows up as a slow climb, a scene that is fine alone but expensive after several transitions. Numbered cases get cited directly in commits, so a fix references the exact case it addressed instead of a vague description.`,
+        q:`What does the on device smoke walk catch that a PlayMode test running in the editor would not?`,
+        a:`PlayMode runs in the editor’s own memory and thermal conditions, which never resemble a mid tier phone five minutes into a session. The smoke walk measures transition time, memory, CPU and frame rate on a real device after walking every non debug scene, so it catches the failure mode that only exists after sustained real use, a leak that shows up as a slow climb, a scene that is fine alone but expensive after several transitions. Numbered cases get cited directly in commits, so a fix references the exact case it addressed instead of a vague description.`,
         follow:`Random taps exercise the app during the walk. What is a real failure that found, and how would a scripted walk have missed it?`,
         red:`Claiming the smoke walk replaces PlayMode tests. It is slower and noisier by design, useful for exactly the failures a fast deterministic test cannot reach, not a substitute for one.`
       },
@@ -355,7 +355,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         q:`Why gate the device farm behind its own define instead of running it as part of every normal build?`,
         a:`Every device farm type compiles only under that define specifically so a normal build has zero chance of shipping test scaffolding by accident, which matters more than convenience for the person running the farm. Running the farm itself is expensive and slow enough that it cannot ride along with every commit either, so it is triggered deliberately with scenario numbers, a device preset and a timeout, and CI compares boot time, lap time and system info across runs rather than reading through logs.`,
         follow:`Given it only runs when triggered, how long could a regression sit before the farm catches it, and is that acceptable?`,
-        red:`Suggesting the farm run on every push regardless of cost. That ignores exactly the trade the gating exists to manage, cost and turnaround against how often a device only regression actually happens.`
+        red:`Suggesting the farm run on every push regardless of cost. That ignores exactly the trade the gating exists to manage, cost and turnaround against how often a device only regression happens.`
       }
     ],
     parts:[
@@ -371,7 +371,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         why:`A test assembly that could theoretically ship is a build configuration mistake waiting to happen, and asserting on a logged value survives a UI relayout that would break an assertion aimed at the screen.`,
         trade:`Two attributes and two ways of writing a test is a small tax on every new test author, who has to know which situation they are in before writing the first line.`,
         rel:[
-          ['backend-testing',`Same tiering instinct, pure logic gets a fast test and anything with real dependencies gets a slower one that actually exercises them.`]
+          ['backend-testing',`Same tiering instinct, pure logic gets a fast test and anything with real dependencies gets a slower one that exercises them.`]
         ]
       },
       {
@@ -380,7 +380,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         how:[
           `The walk enumerates every non-debug scene rather than a hand picked subset, so a forgotten scene cannot hide from it.`,
           `Random taps exercise input paths a scripted walk would never try.`,
-          `The harness is restricted to public APIs and component lookup, no reflection and no edits to production code, so what it measures is what a player's device would actually do.`,
+          `The harness is restricted to public APIs and component lookup, no reflection and no edits to production code, so what it measures is what a player’s device would do.`,
           `A report posts automatically with the numbers and screenshots attached.`
         ],
         why:`A profiler session on a desk misses failures that only appear after the memory and thermal state a real device reaches after several minutes of play.`,
@@ -411,12 +411,12 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         id:'testing-spec-gen', t:'A human test-spec generator',
         what:`A generator turns structured input into markdown test plans per screen, pushed to a spreadsheet so non-engineers can read and run them. Test design becomes a versioned artefact instead of tribal knowledge someone has to ask for.`,
         how:[
-          `Test plans are generated per screen from the same source that describes the screen's behaviour.`,
-          `Output lands in a spreadsheet, the format the people who actually execute manual tests already use.`,
+          `Test plans are generated per screen from the same source that describes the screen’s behaviour.`,
+          `Output lands in a spreadsheet, the format the people who execute manual tests already use.`,
           `Because it is generated, a plan does not silently drift from the feature it describes the way a hand written one would.`
         ],
-        why:`Manual test coverage only holds up if the people testing can find the current plan, and generating it keeps that plan attached to the thing it tests instead of living in someone's memory.`,
-        trade:`The generator is one more thing that has to be kept in sync with whatever changed about how a screen's behaviour is described, or its output quietly goes stale.`,
+        why:`Manual test coverage only holds up if the people testing can find the current plan, and generating it keeps that plan attached to the thing it tests instead of living in someone’s memory.`,
+        trade:`The generator is one more thing that has to be kept in sync with whatever changed about how a screen’s behaviour is described, or its output quietly goes stale.`,
         rel:[
           ['pm-qa-release',`Turning test design into a generated artefact is a QA planning decision as much as a tooling one.`]
         ]
@@ -430,19 +430,19 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     iv:[
       {
         q:`Walk me through the two-pass build. Why does that workaround exist and why not fix the underlying timing bug instead?`,
-        a:`The asset database did not reliably finish reacting to a bulk deletion before a build read it in the same editor session, so a build would sometimes still include a file the exclusion step had just deleted. The fix runs the entry point once with a build skip flag purely to let the deletion and its refresh settle, swallowing whatever that pass throws since it never produces a player, then runs the real build as a second, separate invocation. Fixing the underlying timing would mean patching how the asset database itself schedules its refresh, which is engine internals, not something the pipeline owns. A second isolated invocation was the workaround that was actually reliable, at the cost of a second editor startup on every build.`,
+        a:`The asset database did not reliably finish reacting to a bulk deletion before a build read it in the same editor session, so a build would sometimes still include a file the exclusion step had just deleted. The fix runs the entry point once with a build skip flag purely to let the deletion and its refresh settle, swallowing whatever that pass throws since it never produces a player, then runs the real build as a second, separate invocation. Fixing the underlying timing would mean patching how the asset database itself schedules its refresh, which is engine internals, not something the pipeline owns. A second isolated invocation was the workaround that was reliable, at the cost of a second editor startup on every build.`,
         follow:`What would you check first if you suspected this workaround itself had started masking a different bug?`,
         red:`Calling the two-pass build an obvious design flaw without asking why it exists. It reads that way until you learn about the timing bug, which is exactly why the comment at the call site exists.`
       },
       {
         q:`The exclusion XML and the CI sparse checkout excludes are two lists that have to describe the same paths. What happens when they drift?`,
-        a:`A folder renamed in one list and not the other either breaks the build, because the builder expects a path that sparse checkout never brought down, or it ships something meant to stay internal, because sparse checkout brought a path down that the builder no longer excludes. Nothing today enforces that the two lists agree, so it is caught by review or by a build failure, not by a check that runs before either. The two lists exist as two systems because sparse checkout has to act before the agent even has the files, while the builder's deletion acts on what is already checked out.`,
+        a:`A folder renamed in one list and not the other either breaks the build, because the builder expects a path that sparse checkout never brought down, or it ships something meant to stay internal, because sparse checkout brought a path down that the builder no longer excludes. Nothing today enforces that the two lists agree, so it is caught by review or by a build failure, not by a check that runs before either. The two lists exist as two systems because sparse checkout has to act before the agent even has the files, while the builder’s deletion acts on what is already checked out.`,
         follow:`How would you make the two lists provably the same instead of trusting them to stay in sync?`,
-        red:`Saying this has never actually caused a problem so it is not worth worrying about. Two lists with no enforced agreement is a live risk regardless of whether it has bitten yet.`
+        red:`Saying this has never caused a problem so it is not worth worrying about. Two lists with no enforced agreement is a live risk regardless of whether it has bitten yet.`
       },
       {
         q:`How do you decide what belongs in the CLI flag list versus what goes into the layered config file?`,
-        a:`A flag is for something that changes per invocation, per target, per job, the build number, whether it is a development build, which XML exclusion file applies. Config layering, default then region and environment then a free text override, is for values that are mostly stable per environment but occasionally need a one off exception without a new committed file. The dividing line is whether a human is likely to type it fresh for this specific run or whether it describes a place the build is going, and getting that wrong in either direction either bloats the flag list past what a manual invocation can hold in their head or forces a config file edit for a genuinely one off run.`,
+        a:`A flag is for something that changes per invocation, per target, per job, the build number, whether it is a development build, which XML exclusion file applies. Config layering, default then region and environment then a free text override, is for values that are mostly stable per environment but occasionally need a one off exception without a new committed file. The dividing line is whether a human is likely to type it fresh for this specific run or whether it describes a place the build is going, and getting that wrong in either direction either bloats the flag list past what a manual invocation can hold in their head or forces a config file edit for a one off run.`,
         follow:`Give me an example of a value you moved from one side to the other, and what made you move it.`,
         red:`Treating flags and config as interchangeable with no principle for which goes where. That is exactly how a flag list grows past what anyone can invoke by hand.`
       }
@@ -458,7 +458,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `IL2CPP codegen, scripting backend fallback, managed stripping level and web build compression are all set from the same switch statement keyed on target.`
         ],
         why:`One entry point parameterised by flags means the difference between many targets is data, not many copies of a build script.`,
-        trade:`The flag list is now the build's real interface, and a required flag missing from a manual invocation fails in a way that only makes sense if you already know the flag exists.`,
+        trade:`The flag list is now the build’s real interface, and a required flag missing from a manual invocation fails in a way that only makes sense if you already know the flag exists.`,
         rel:[
           ['infra-ci-pipelines',`A CLI entry point that a pipeline calls with different flags per target is exactly the shape a CI system wants to drive.`]
         ]
@@ -490,10 +490,10 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `The second invocation runs the actual build against a now stable asset database.`,
           `A comment at the call site explains why the pass exists, so nobody removes it thinking it is a duplicate.`
         ],
-        why:`The asset database did not reliably finish reacting to a bulk deletion before a build read it in the same editor session, and a second, isolated editor invocation was the workaround that was actually reliable.`,
+        why:`The asset database did not reliably finish reacting to a bulk deletion before a build read it in the same editor session, and a second, isolated editor invocation was the workaround that was reliable.`,
         trade:`Doubling the entry point call doubles a chunk of setup time on every build, on top of confusion for anyone who reads the pipeline before they read the comment.`,
         rel:[
-          ['infra-ci-pipelines',`It is the kind of pipeline-level workaround that exists because a tool's timing does not match what the pipeline needs, and it earns a place in the pipeline itself rather than upstream.`]
+          ['infra-ci-pipelines',`It is the kind of pipeline-level workaround that exists because a tool’s timing does not match what the pipeline needs, and it earns a place in the pipeline itself rather than upstream.`]
         ],
         story:`A build would occasionally include a file the exclusion list had just deleted, and it only happened on the platforms with the largest exclusion lists, which pointed at timing rather than at the list itself. Deleting from the asset database and then immediately reading it in the same editor session did not reliably finish before the build step ran. The fix was blunt rather than clever: run the entry point once with a build-skip flag purely to let the deletion and its asset database refresh settle, swallow whatever that pass throws since it never produces a player anyway, then run the real build as a second, separate invocation. It costs a second editor startup on every build. I left a comment at the call site because a two-pass build looks exactly like a mistake to whoever reads the pipeline next, right up until they hit the timing bug it was written to avoid.`
       },
@@ -506,7 +506,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `The release note is generated, not written by hand, from the job, repo, branch and the commit range since the last green build.`,
           `A resources-size list is scraped from the editor log and kept alongside the binary and the log itself, so a size regression has a paper trail.`
         ],
-        why:`A signing or hardening step that appears to succeed but did not is a failure that only surfaces at store submission, far from where it actually went wrong, so checking the real exit code at each step is the cheapest place to catch it.`,
+        why:`A signing or hardening step that appears to succeed but did not is a failure that only surfaces at store submission, far from where it went wrong, so checking the real exit code at each step is the cheapest place to catch it.`,
         trade:`Signing material has to exist somewhere the pipeline can reach it at build time, and where that lives is exactly the decision that goes wrong when convenience wins over a credential store.`,
         rel:[
           ['infra-secrets',`Signing keys and passwords are exactly the credentials a secrets store exists to hold instead of a repository or a build script.`]
@@ -514,7 +514,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         links:[
           ['build-cli-entry',`Signing is one more per-target branch inside the same switch that already decides the rest of the platform-specific build behaviour.`]
         ],
-        story:`Live secrets were sitting in plaintext across the CI configuration, the build scripts and the client repository, a bot token, a service account key file, a signing password typed into a build script and the signing key itself. None of it was malicious, a pipeline needed each value at a path and committing it was the fastest way to get there at the time. I treated every one of those values as already compromised the moment I found them, because a pushed secret cannot be un-pushed, only rotated. The real fix was injecting each value from a credential store at build time instead of reading it from a checked-out file, and the number worth tracking afterward was how long a full rotation took, not whether the files were removed.`
+        story:`Live secrets were sitting in plaintext across the CI configuration, the build scripts and the client repository, a bot token, a service account key file, a signing password typed into a build script and the signing key itself. None of it was malicious, a pipeline needed each value at a path and committing it was the fastest way to get there at the time. I treated every one of those values as already compromised the moment I found them, because a pushed secret cannot be un-pushed, only rotated. The real fix was injecting each value from a credential store at build time instead of reading it from a checked-out file, and the number worth tracking afterwards was how long a full rotation took, not whether the files were removed.`
       }
     ]
   },
@@ -525,9 +525,9 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     iv:[
       {
         q:`Walk me through the negative control in the job table test. Why did the test need a case that proves it can fail?`,
-        a:`The test asserted my table matched the values measured off the live CI server, and it passed immediately, which should have worried me more than it did, because at that point it was only comparing the table to itself. It had never been observed failing, so it had not actually proven the migration was faithful, only that I had not made an obvious typo. I added a final case that corrupts one field on purpose and requires the check to fail, and only once that case failed correctly did the earlier passing cases mean the table really matched the eight jobs I was about to delete.`,
+        a:`The test asserted my table matched the values measured off the live CI server, and it passed immediately, which should have worried me more than it did, because at that point it was only comparing the table to itself. It had never been observed failing, so it had not proven the migration was faithful, only that I had not made an obvious typo. I added a final case that corrupts one field on purpose and requires the check to fail, and only once that case failed correctly did the earlier passing cases mean the table really matched the eight jobs I was about to delete.`,
         follow:`What is a plausible way that test could still pass while the migration was wrong?`,
-        red:`Treating a passing migration test as sufficient proof with no negative control mentioned. A test that has never been shown capable of failing has not actually tested anything yet.`
+        red:`Treating a passing migration test as sufficient proof with no negative control mentioned. A test that has never been shown capable of failing has not tested anything yet.`
       },
       {
         q:`Why detect a Unity build failure two ways, a log pattern list and the exit code, instead of trusting one signal?`,
@@ -545,19 +545,19 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     parts:[
       {
         id:'ci-pipeline-table', t:'One pipeline driven by a job-name table',
-        what:`A single declarative pipeline replaces eight near identical trigger jobs, with stages per target guarded by a condition on the job name, and a table keyed on job name supplying the handful of values that used to differ between the eight. A test asserts that table against the values actually configured on the CI server, ending with a case that feeds the test a deliberately corrupted table to prove the check can fail.`,
+        what:`A single declarative pipeline replaces eight near identical trigger jobs, with stages per target guarded by a condition on the job name, and a table keyed on job name supplying the handful of values that used to differ between the eight. A test asserts that table against the values configured on the CI server, ending with a case that feeds the test a deliberately corrupted table to prove the check can fail.`,
         how:[
           `Stages guard themselves with a condition reading an environment value that names the target.`,
           `A job-name-keyed map holds the small set of values that differ per job, so the difference between targets is data in one file, not eight separate job definitions.`,
           `Before deleting the old jobs, the values driving the new table were read from the live configuration of all eight and captured in the table under test.`,
-          `The test's last case corrupts one field on purpose and asserts the check fails, since a test with no failing case has never been observed to work.`
+          `The test’s last case corrupts one field on purpose and asserts the check fails, since a test with no failing case has never been observed to work.`
         ],
-        why:`Eight jobs drifting apart is a maintenance problem that scales with headcount, and collapsing them into one file readable top to bottom fixes the drift, but only if the migration is provably faithful to what was actually running.`,
+        why:`Eight jobs drifting apart is a maintenance problem that scales with headcount, and collapsing them into one file readable top to bottom fixes the drift, but only if the migration is provably faithful to what was running.`,
         trade:`One pipeline is now a single point of failure for every target, so a change intended for one job has to be reasoned about against all of them before it merges.`,
         rel:[
           ['infra-ci-pipelines',`Collapsing near identical jobs into one table-driven pipeline is the concrete version of treating CI configuration as code with its own tests.`]
         ],
-        story:`Before deleting eight jobs that had drifted apart under years of manual edits, I wrote a table meant to reproduce their live configuration and a test asserting my table matched the values actually measured off the CI server. The test passed immediately, which should have worried me more than it did, because it was passing by comparing the table to itself, not because it proved anything about the migration. I added a final case that feeds the test a deliberately corrupted table and requires the check to fail, and only once that case failed correctly did the earlier passing cases mean anything. Any test written to authorise a deletion needs a case that proves it can fail, or it has never actually been observed working.`
+        story:`Before deleting eight jobs that had drifted apart under years of manual edits, I wrote a table meant to reproduce their live configuration and a test asserting my table matched the values measured off the CI server. The test passed immediately, which should have worried me more than it did, because it was passing by comparing the table to itself, not because it proved anything about the migration. I added a final case that feeds the test a deliberately corrupted table and requires the check to fail, and only once that case failed correctly did the earlier passing cases mean anything. Any test written to authorise a deletion needs a case that proves it can fail, or it has never been observed working.`
       },
       {
         id:'ci-agents-retries', t:'Label-driven agents, caching and retry discipline',
@@ -566,7 +566,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `A label picks a machine class, keeping a pipeline portable across whichever physical agent currently holds that label.`,
           `A shallow clone with a fixed depth, sparse checkout and shallow submodules keeps checkout fast on a persistent workspace that already holds most of the history.`,
           `Checkout retries a fixed number of times, and a CDN upload wraps its own retry with backoff separately, since the two have different failure shapes.`,
-          `A native command wrapper checks the real exit code, so a native tool's failure fails the stage instead of continuing on a shell that swallowed it.`,
+          `A native command wrapper checks the real exit code, so a native tool’s failure fails the stage instead of continuing on a shell that swallowed it.`,
           `Whole-pipeline timeouts differ by job kind, several hours for a player build and longer for asset bundles.`
         ],
         why:`Network flakiness during checkout and upload is common enough on a CI network to plan for by default, and an unchecked exit code from a native tool is exactly the failure that looks like success until someone tries to use the artefact.`,
@@ -586,14 +586,14 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `An unsuccessful notification fires on every pipeline, plus a distinct success notice for store uploads and a chat upload of the generated release note.`
         ],
         why:`A single signal for build success had already been wrong in both directions, reporting success on a failure and failure on a success, so trusting either alone is a decision that has already cost a broken artefact once.`,
-        trade:`The fatal-pattern list needs review after every engine upgrade, since it is a list of known failure text rather than a structural check, and it is silently wrong by default the moment the engine's own messages change.`,
+        trade:`The fatal-pattern list needs review after every engine upgrade, since it is a list of known failure text rather than a structural check, and it is silently wrong by default the moment the engine’s own messages change.`,
         rel:[
-          ['quality-and-build-health',`Two independent failure signals and a graded outcome are what a trustworthy pass or fail signal actually costs, instead of a single green tick that got lucky.`]
+          ['quality-and-build-health',`Two independent failure signals and a graded outcome are what a trustworthy pass or fail signal costs, instead of a single green tick that got lucky.`]
         ],
         links:[
           ['build-signing-artefacts',`A failed signing or upload step is exactly the kind of failure this grading is built to keep from discarding a good build.`]
         ],
-        story:`A build had failed and the pipeline reported it as a success, and the artefact it produced could not be installed. The process exit code alone was the signal we trusted, and the editor had exited zero after a failure that mattered. I added a second, independent signal, a curated list of fatal patterns in the build log, and made the pipeline distrust an exit code that disagreed with what the log actually said happened. What that incident taught me is to verify the verifier: a signal a pipeline trusts has to be checked against a build you already know is broken, or it has never actually been observed catching anything.`
+        story:`A build had failed and the pipeline reported it as a success, and the artefact it produced could not be installed. The process exit code alone was the signal we trusted, and the editor had exited zero after a failure that mattered. I added a second, independent signal, a curated list of fatal patterns in the build log, and made the pipeline distrust an exit code that disagreed with what the log said happened. What that incident taught me is to verify the verifier: a signal a pipeline trusts has to be checked against a build you already know is broken, or it has never been observed catching anything.`
       }
     ]
   },
@@ -604,21 +604,21 @@ SYSTEMS('cs-unity-mobile-client-ci', [
     iv:[
       {
         q:`Why do the rule files have to state explicitly that project rules outrank accumulated session memory? What made that necessary instead of assumed?`,
-        a:`Without it, the default is a person or an agent falling back on whatever pattern feels most familiar from other projects or from an earlier point in the same working session, which quietly overrides a decision the team already made and wrote down for a reason. Stating precedence explicitly, with the incident that made it necessary recorded next to it, means the fallback is not needed because the rule is genuinely easy to find and easy to trust as current. It is a small sentence that exists because relying on memory to defer to documentation had already failed at least once.`,
+        a:`Without it, the default is a person or an agent falling back on whatever pattern feels most familiar from other projects or from an earlier point in the same working session, which quietly overrides a decision the team already made and wrote down for a reason. Stating precedence explicitly, with the incident that made it necessary recorded next to it, means the fallback is not needed because the rule is easy to find and easy to trust as current. It is a small sentence that exists because relying on memory to defer to documentation had already failed at least once.`,
         follow:`Tell me about a time you saw memory win over a written rule, and what happened.`,
         red:`Treating this as obvious and not worth writing down. It is obvious in hindsight, which is exactly the kind of rule that gets skipped until the incident that forces someone to write it.`
       },
       {
-        q:`Twenty rule files is a lot to keep alive. How do you stop them decaying into ritual nobody actually reads?`,
+        q:`Twenty rule files is a lot to keep alive. How do you stop them decaying into ritual nobody reads?`,
         a:`Each one is narrow enough to read in under a minute and carries the incident that justified it, so reading a rule also tells you why it exists, not just what to do. That does not fully solve staleness on its own, a rule stated too narrowly for its origin incident can miss a situation that is almost but not quite the same shape, and nobody was formally assigned to prune them. What kept them alive in practice was that they sat next to the code they governed, so they were in the way of the next change rather than in a folder nobody opened.`,
         follow:`What would an actual pruning process for these files look like, if you built one?`,
         red:`Claiming the files maintain themselves once written. Every one of them needs someone to notice when the practice it describes has moved on, and that upkeep does not happen automatically.`
       },
       {
-        q:`What does the PR template's fixed checklist protect against that a general approval from a reviewer would not catch?`,
-        a:`A general approval depends entirely on what the specific reviewer happens to remember to ask that day, and soft reset verification is the clearest example of an item that used to fail exactly that way, a reviewer approving a change because everything they thought to check looked fine. Naming the evidence explicitly, does this run clean with zero warnings, does a soft reset still work, means the checklist does not depend on any one reviewer's memory, and a new reviewer asks for the same evidence a senior one would.`,
+        q:`What does the PR template’s fixed checklist protect against that a general approval from a reviewer would not catch?`,
+        a:`A general approval depends entirely on what the specific reviewer happens to remember to ask that day, and soft reset verification is the clearest example of an item that used to fail exactly that way, a reviewer approving a change because everything they thought to check looked fine. Naming the evidence explicitly, does this run clean with zero warnings, does a soft reset still work, means the checklist does not depend on any one reviewer’s memory, and a new reviewer asks for the same evidence a senior one would.`,
         follow:`What is a category of regression this checklist still would not catch, because nobody put it on the list?`,
-        red:`Saying a good enough reviewer makes the checklist unnecessary. The whole point is that the checklist does not depend on how good today's reviewer happens to be.`
+        red:`Saying a good enough reviewer makes the checklist unnecessary. The whole point is that the checklist does not depend on how good today’s reviewer happens to be.`
       }
     ],
     parts:[
@@ -631,7 +631,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
           `Commit hygiene follows a fixed module-and-summary shape rather than a generic convention borrowed from another ecosystem.`,
           `A living per-feature overview document sits under a docs folder per feature, with numbered phase documents for design decisions, specification, code design, file structure and known issues.`
         ],
-        why:`A rule remembered only in one person's head does not survive that person's absence, and a rule with its origin incident attached is easier to trust than one stated as an unexplained preference.`,
+        why:`A rule remembered only in one person’s head does not survive that person’s absence, and a rule with its origin incident attached is easier to trust than one stated as an unexplained preference.`,
         trade:`Twenty files is enough that finding the relevant one takes a search, and a rule stated too narrowly for its origin incident can miss the next situation that is almost, but not quite, the same shape.`,
         rel:[
           ['lead-conventions',`This is exactly what a written convention looks like at the scale where review memory alone stops being enough.`]
@@ -641,7 +641,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
         id:'conv-pr-review', t:'A bilingual PR template and a fixed review checklist',
         what:`A pull request template asks explicitly what data the reviewer needs to verify a change, whether the run produced zero warnings or errors, and whether a soft reset still runs clean. Automated review findings get a written triage step rather than being applied or dismissed on sight.`,
         how:[
-          `The template's checklist items are the same for every pull request, so a reviewer is never guessing what evidence to ask for.`,
+          `The template’s checklist items are the same for every pull request, so a reviewer is never guessing what evidence to ask for.`,
           `Soft reset verification is a named checklist item because a partial reset had been a real failure before it became a checklist item.`,
           `Automated review comments are triaged, fixed, declined with a stated reason, or escalated, rather than always applied or always ignored.`,
           `The checklist is bilingual, so it reads the same for every reviewer regardless of which language they think in day to day.`
@@ -664,7 +664,7 @@ SYSTEMS('cs-unity-mobile-client-ci', [
    3 flows: boot to the first playable scene, a player build from job
    parameters to a device-tested artefact, and a pull request from branch
    to a merged, smoke-tested main. Steps stay reachable from steps[0] and
-   the edges form a DAG, branches allowed where the project actually has
+   the edges form a DAG, branches allowed where the project has
    a pass/fail or approve/request-changes fork.
    --------------------------------------------------------------------- */
 FLOWS('cs-unity-mobile-client-ci', [
@@ -676,7 +676,7 @@ FLOWS('cs-unity-mobile-client-ci', [
       { id:'boot-scene', t:'Boot scene loads', sys:'arch',
         d:`The boot scene is the entry point, the leanest assembly in the stack, holding no gameplay code of its own.` },
       { id:'serializer-init', t:'Serializer set up', sys:'arch',
-        d:`Boot's own startup step initializes the serializer resolver and shows a caution graphic held for a minimum display floor.` },
+        d:`Boot’s own startup step initializes the serializer resolver and shows a caution graphic held for a minimum display floor.` },
       { id:'bootstrap', t:'Async bootstrap runs', sys:'arch',
         d:`One long async method registers services in a fixed order, so what exists at each point in boot is a fact readable top to bottom.` },
       { id:'di-chain', t:'DI chain resolves', sys:'arch',
@@ -684,7 +684,7 @@ FLOWS('cs-unity-mobile-client-ci', [
       { id:'manager-scene', t:'Manager scene loads', sys:'arch',
         d:`An additive persistent manager scene loads on top of boot, carrying the systems every later scene depends on.` },
       { id:'resource-list', t:'Resource list fetched', sys:'assets',
-        d:`A per platform resource list resolves against the device's graphics tier, so a low end device fetches a smaller manifest from the same CDN path.` },
+        d:`A per platform resource list resolves against the device’s graphics tier, so a low end device fetches a smaller manifest from the same CDN path.` },
       { id:'scopes-resolved', t:'Addressables scopes resolved', sys:'assets',
         d:`The four value scope wrapper primes resident content and stages next scene, ready for the first transition to promote it.` },
       { id:'first-transition', t:'First transition fires', sys:'arch',
@@ -708,7 +708,7 @@ FLOWS('cs-unity-mobile-client-ci', [
       { id:'job-params', t:'Job parameters read', sys:'build',
         d:`The CLI entry point reads product name, bundle id, environment, region and every other flag the job passed in.` },
       { id:'sparse-checkout', t:'Sparse checkout excludes', sys:'ci',
-        d:`CI reads the same exclusion lists the build XML declares and checks the repository out with the excluded paths never touching the agent's disk.` },
+        d:`CI reads the same exclusion lists the build XML declares and checks the repository out with the excluded paths never touching the agent’s disk.` },
       { id:'two-pass', t:'Two-pass build settles', sys:'build',
         d:`A skip pass lets the exclusion deletions and their asset database refresh settle, then the real build runs against a stable database.` },
       { id:'harden', t:'Obfuscate and re-sign', sys:'build',
@@ -735,7 +735,7 @@ FLOWS('cs-unity-mobile-client-ci', [
   {
     id:'pull-request',
     t:'A pull request',
-    sum:`How one change actually reaches main. The checklist and the two CI gates exist because a general approval had already let a partial soft reset and an under-tested change through before.`,
+    sum:`How one change reaches main. The checklist and the two CI gates exist because a general approval had already let a partial soft reset and an under-tested change through before.`,
     steps:[
       { id:'branch', t:'Feature branch cut', sys:'conv',
         d:`Work starts on a branch named for the change, following the same commit hygiene the rule files already state.` },
@@ -779,13 +779,13 @@ PROJECT_INTERVIEW('cs-unity-mobile-client-ci', {
     },
     {
       q:`What did you personally own on this project?`,
-      a:`I started on client systems, screens and feature work inside the layered assemblies, and moved into owning the build and pipeline side, which is where most of the interesting failures actually lived. That meant the CLI-parameterised build entry point, the content exclusion lists and their CI mirror, the two-pass build workaround, signing and hardening per platform, and the CI repository itself, the table-driven pipeline that replaced eight near identical jobs and the failure detection and grading around it.`,
+      a:`I started on client systems, screens and feature work inside the layered assemblies, and moved into owning the build and pipeline side, which is where most of the interesting failures lived. That meant the CLI-parameterised build entry point, the content exclusion lists and their CI mirror, the two-pass build workaround, signing and hardening per platform, and the CI repository itself, the table-driven pipeline that replaced eight near identical jobs and the failure detection and grading around it.`,
       follow:`Of everything on that list, what is the piece you would want to be quizzed on in more depth?`,
-      red:`A vague answer like "I worked on the client" with no specific system named. Ownership on a CV should map to something a follow-up question can actually probe.`
+      red:`A vague answer like “I worked on the client” with no specific system named. Ownership on a CV should map to something a follow-up question can probe.`
     },
     {
       q:`How is testing structured on a project like this, and where does your work show up in it?`,
-      a:`There are three tiers. Editor-only test assemblies gated by a test define hold EditMode tests for pure logic and PlayMode tests for anything needing a frame or a GameObject, both asserting on logged values rather than reading the GUI. Above that sits an on-device smoke walk that tours every non-debug scene, taps randomly, and measures transition time, memory and frame rate on real hardware, with numbered cases cited in commits. A separate device farm harness runs actual game loop scenarios across many devices, gated behind its own compile define so it never reaches a normal build.`,
+      a:`There are three automated tiers, plus generated manual test plans. Editor-only test assemblies gated by a test define hold EditMode tests for pure logic and PlayMode tests for anything needing a frame or a GameObject, both asserting on logged values rather than reading the GUI. Above that sits an on-device smoke walk that tours every non-debug scene, taps randomly, and measures transition time, memory and frame rate on real hardware, with numbered cases cited in commits. A separate device farm harness runs actual game loop scenarios across many devices, gated behind its own compile define so it never reaches a normal build.`,
       follow:`Why does the smoke walk need to run on a real device instead of just in the editor with a simulated frame budget?`,
       red:`Only mentioning unit tests and nothing about device-level verification. On a mobile client, most of the interesting failures only show up on hardware.`
     }
@@ -795,25 +795,25 @@ PROJECT_INTERVIEW('cs-unity-mobile-client-ci', {
       q:`What is the hardest bug you debugged on this project?`,
       a:`Memory climbed steadily across sessions that moved through several screens, and it only reproduced on real devices after a long run, which made the normal profiler loop too slow to iterate on. I tied every asset handle to the scope enum built from the scene transition events we already had, so a transition promotes the next scope and releases the one before it, then added release diagnostics and a warning level double release check under a debug define instead of a throw, since ending the session over a pooling bug was worse than logging it. The climb flattened and stayed flat, and the scope is now the thing reviewers ask about whenever a new load call appears.`,
       follow:`Why did the profiler loop being too slow matter so much here, and what would have made it faster?`,
-      red:`Jumping straight to "we added logging" with no account of how the leak was actually isolated to scope, or no mention of why a throw was the wrong choice for the double release check.`
+      red:`Jumping straight to “we added logging” with no account of how the leak was isolated to scope, or no mention of why a throw was the wrong choice for the double release check.`
     },
     {
-      q:`Walk me through a build or release incident you were close to, and what changed afterward.`,
+      q:`Walk me through a build or release incident you were close to, and what changed afterwards.`,
       a:`A store upload failing at the end of a two hour build used to discard the whole run and force a restart from checkout, so any last stage network flake cost the entire build. I graded failures instead of treating them as one outcome, a compile failure still fails the stage hard because the output is worthless, but a failed symbol or store upload marks the run unstable and keeps the artefact for a manual upload. I also wrapped every network touching step in retry with backoff and moved parameter validation into a cheap early stage, so an invalid upload target fails in a minute instead of after two hours.`,
       follow:`How did you decide which failures deserved a hard stop versus which deserved the unstable grading?`,
-      red:`Treating "add retries everywhere" as the whole fix. Retrying blindly would have hidden the cases that genuinely needed to fail hard, like a compile failure.`
+      red:`Treating “add retries everywhere” as the whole fix. Retrying blindly would have hidden the cases that needed to fail hard, like a compile failure.`
     },
     {
-      q:`How did the review process actually work day to day, and what did the checklist catch that a general approval would not?`,
+      q:`How did the review process work day to day, and what did the checklist catch that a general approval would not?`,
       a:`Every pull request went through a bilingual template with a fixed checklist, what data the reviewer needs to verify the change, whether the run produced zero warnings or errors, and whether a soft reset still runs clean. Soft reset was on there specifically because a partial reset had already been a real failure before it became a checklist item, and a reviewer who was not specifically prompted to check it would approve on the strength of everything else looking fine. Automated review findings went through a written triage, fix, decline with a reason, or escalate, rather than being auto-applied or ignored.`,
-      follow:`Tell me about a time the checklist caught something a plain "looks good to me" would have missed.`,
-      red:`Describing review as purely a human judgment call with no mention of what the template forced reviewers to check regardless of who they were.`
+      follow:`Tell me about a time the checklist caught something a plain “looks good to me” would have missed.`,
+      red:`Describing review as purely a human judgement call with no mention of what the template forced reviewers to check regardless of who they were.`
     },
     {
       q:`Explain the scope design behind the Addressables wrapper. Why four values?`,
-      a:`Resident, current base scene, current overlay and next scene map onto the scene layers the router already has, so a load site states when it stops mattering instead of someone guessing. A transition promotes next scene into current base and releases whatever the old current base and overlay held, tying release to an event that already fires instead of a call somebody has to remember. Fewer scopes would have collapsed distinctions that actually matter, a modal closing should not release what the screen behind it is still showing, and more would have added granularity nobody asked for.`,
+      a:`Resident, current base scene, current overlay and next scene map onto the scene layers the router already has, so a load site states when it stops mattering instead of someone guessing. A transition promotes next scene into current base and releases whatever the old current base and overlay held, tying release to an event that already fires instead of a call somebody has to remember. Fewer scopes would have collapsed distinctions that matter, a modal closing should not release what the screen behind it is still showing, and more would have added granularity nobody asked for.`,
       follow:`Give a concrete example of something that would be scoped wrong and what symptom that produces.`,
-      red:`Describing the scope system as "just tagging assets" with no explanation of why the specific four values were chosen over some other number.`
+      red:`Describing the scope system as “just tagging assets” with no explanation of why the specific four values were chosen over some other number.`
     }
   ],
   senior:[
@@ -821,23 +821,23 @@ PROJECT_INTERVIEW('cs-unity-mobile-client-ci', {
       q:`What decision on this project would you reverse if you could go back?`,
       a:`I would have written the job-name table and its negative-control test the moment a fifth near-identical CI job appeared, instead of waiting until there were eight and the drift between them was already expensive to reconstruct. By the time I did the migration, reconstructing the live configuration of all eight jobs into one trustworthy table was itself a project, and a test that could prove it wrong was what made deleting the old jobs safe. Catching the pattern at job four or five would have made the whole thing a small refactor instead of a migration with real risk attached.`,
       follow:`What signal would have told you, in the moment, that job three or four was already the start of a pattern worth stopping?`,
-      red:`Naming a decision that had no real cost, or answering with a generic "communicate more" instead of a specific engineering call that was made too late.`
+      red:`Naming a decision that had no real cost, or answering with a generic “communicate more” instead of a specific engineering call that was made too late.`
     },
     {
       q:`Tell me about a time you had to hold a technical line against pressure from the team or a deadline.`,
-      a:`A teammate asked to let a lower layer reference the screen layer so a feature could ship on time, one day before a milestone. The one-way assembly direction was the architectural rule we actually enforced, and saying yes once would have ended it as a rule rather than a preference. I said no to the inversion and spent the next hour on the alternative instead of the argument, declaring the dependency as an interface in the lower layer, implemented in the screen layer and injected at boot, which turned out to be about the same amount of code and shipped on the same milestone. I wrote the reasoning into the rule file afterward as a worked example.`,
-      follow:`What would you have done if the interface-based alternative had actually cost significantly more time than the inversion?`,
-      red:`Framing this as pure stubbornness, "I just said no." The part that actually mattered was supplying a working alternative within the hour, not the refusal itself.`
+      a:`A teammate asked to let a lower layer reference the screen layer so a feature could ship on time, one day before a milestone. The one-way assembly direction was the architectural rule we enforced, and saying yes once would have ended it as a rule rather than a preference. I said no to the inversion and spent the next hour on the alternative instead of the argument, declaring the dependency as an interface in the lower layer, implemented in the screen layer and injected at boot, which turned out to be about the same amount of code and shipped on the same milestone. I wrote the reasoning into the rule file afterwards as a worked example.`,
+      follow:`What would you have done if the interface-based alternative had cost significantly more time than the inversion?`,
+      red:`Framing this as pure stubbornness, “I just said no.” The part that mattered was supplying a working alternative within the hour, not the refusal itself.`
     },
     {
       q:`Describe a build or CI incident where the system reported success incorrectly, and what you changed structurally.`,
-      a:`A build had failed and the pipeline reported success anyway, and the artefact it produced could not be installed, because the process exit code was the only signal trusted and the editor had exited zero after a failure that mattered. I added a second, independent signal, a curated list of fatal log patterns, and made the pipeline distrust an exit code that disagreed with what the log actually said happened. The structural change was treating agreement between two signals as the only real pass, not picking whichever single signal seemed more reliable, because both signals had already been wrong once on their own.`,
+      a:`A build had failed and the pipeline reported success anyway, and the artefact it produced could not be installed, because the process exit code was the only signal trusted and the editor had exited zero after a failure that mattered. I added a second, independent signal, a curated list of fatal log patterns, and made the pipeline distrust an exit code that disagreed with what the log said happened. The structural change was treating agreement between two signals as the only real pass, not picking whichever single signal seemed more reliable, because both signals had already been wrong once on their own.`,
       follow:`How do you keep the fatal-pattern list from silently going stale after an engine upgrade changes its own message text?`,
-      red:`Presenting the fix as "we added more logging." The actual fix was changing what the pipeline trusted as a pass signal, not just producing more information for a human to read.`
+      red:`Presenting the fix as “we added more logging.” The actual fix was changing what the pipeline trusted as a pass signal, not just producing more information for a human to read.`
     },
     {
       q:`How did you approach owning conventions and rule files for a team, rather than just writing code?`,
-      a:`I treated a rule remembered only in one person's head as a rule that does not survive that person leaving the room, so decisions like the assembly direction, the exclusion list mirroring, and the PR checklist items all got written into narrow files stamped with the incident that justified them. An explicit precedence rule said project rules outrank whatever anyone remembers from a previous session, because relying on memory to defer to documentation had already failed once. The trade is real, twenty-odd files take a search to navigate, and a rule stated too narrowly for its origin can miss the next situation that is almost but not quite the same shape.`,
+      a:`I treated a rule remembered only in one person’s head as a rule that does not survive that person leaving the room, so decisions like the assembly direction, the exclusion list mirroring, and the PR checklist items all got written into narrow files stamped with the incident that justified them. An explicit precedence rule said project rules outrank whatever anyone remembers from a previous session, because relying on memory to defer to documentation had already failed once. The trade is real, twenty-odd files take a search to navigate, and a rule stated too narrowly for its origin can miss the next situation that is almost but not quite the same shape.`,
       follow:`How do you know when a rule file has gone stale, versus just narrow?`,
       red:`Treating documentation as a one-time writing exercise. The senior part of this is the precedence rule and the incident-stamping, not just that documents existed.`
     }

@@ -171,6 +171,9 @@ for (const t of topics) {
 // every game; signature, lenses and screenshots checked where written.
 const FAMILY_IDS = new Set((ctx.GAME_FAMILIES || []).map(f => f[0])), TAG_IDS = new Set(ctx.GAME_TAGS || []), LENS_KEYS = (ctx.GAME_LENSES || []).map(l => l[0]);
 const wordCount = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
+// The fields of a lens analysis and their minimum words (analysis-method.md).
+const LENS_FIELDS = [['claim', 12], ['evidence', 30], ['mechanism', 25], ['effect', 18], ['compare', 18], ['cost', 15], ['principle', 10]];
+const LENS_FIELD_NAMES = new Set([...LENS_FIELDS.map(f => f[0]), 'context', 'topics', 'sources']);
 let analysedGames = 0;
 function checkAnalysis(g){
   const where = `game ${g.id}`, s = g.signature;
@@ -187,15 +190,17 @@ function checkAnalysis(g){
   for (const k of LENS_KEYS) {
     const l = L[k];
     if (!l) { errors.push(`${where}: lens ${k} missing`); continue; }
-    if (l.na !== undefined) { if (!String(l.na).trim()) errors.push(`${where}: lens ${k} says na without a reason`); continue; }
-    if (l.primary) { for (const f of ['did', 'moment', 'why', 'steal', 'trap']) { const min = f === 'steal' || f === 'trap' ? 25 : 35; if (!l[f] || !String(l[f]).trim()) errors.push(`${where}: primary lens ${k} needs ${f}`); else if (wordCount(l[f]) < min) errors.push(`${where}: primary lens ${k}.${f} is ${wordCount(l[f])} words, expected ${min} or more`); } }
-    else if (!l.text || !String(l.text).trim()) errors.push(`${where}: lens ${k} needs text`);
-    else if (wordCount(l.text) < 35 || wordCount(l.text) > 120) errors.push(`${where}: lens ${k} is ${wordCount(l.text)} words, expected 35 to 120`);
+    if (l.na !== undefined) { if (wordCount(l.na) < 30) errors.push(`${where}: lens ${k} says it does not apply; argue why in 30 words or more`); continue; }
+    // An analysis, not a description: every field present and substantial.
+    let total = 0;
+    for (const [f, min] of LENS_FIELDS) { const n = wordCount(l[f]); total += n; if (!n) errors.push(`${where}: lens ${k} needs ${f}`); else if (n < min) errors.push(`${where}: lens ${k}.${f} is ${n} words, expected ${min} or more`); }
+    total += wordCount(l.context);
+    if (total < 150 || total > 380) errors.push(`${where}: lens ${k} is ${total} words, expected 150 to 350`);
+    for (const f of Object.keys(l)) if (!LENS_FIELD_NAMES.has(f)) errors.push(`${where}: lens ${k} has unknown field ${f}`);
     for (const t of (l.topics || [])) if (!TOPICS[t]) errors.push(`${where}: lens ${k} names unknown topic ${t}`);
+    for (const u of (l.sources || [])) { let ok = false; try { ok = new URL(u).protocol === 'https:'; } catch (e) {} if (!ok) errors.push(`${where}: lens ${k} source is not an https URL: ${u}`); }
   }
   for (const k of Object.keys(L)) if (!LENS_KEYS.includes(k)) errors.push(`${where}: unknown lens ${k}`);
-  const primaries = LENS_KEYS.filter(k => L[k] && L[k].primary).length;
-  if (primaries < 2 || primaries > 3) errors.push(`${where}: ${primaries} primary lenses, expected 2 or 3`);
   (g.shots || []).forEach((sh, i) => {
     const sw = `${where}: shot ${i}`;
     if (!LENS_KEYS.includes(sh.lens) || (L[sh.lens] && L[sh.lens].na !== undefined)) errors.push(`${sw}: attached to lens ${sh.lens}, which is not a lens in use`);
@@ -454,6 +459,7 @@ for (const pth of (PATHS || [])) {
         case 'part': if (!validPartKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown part ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'flow': if (!validFlowKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown flow ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'platform': if (!(ctx.PLATFORMS || []).some(p => p.id === step.ref)) errors.push(`${stw}: ref -> unknown platform ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'game': if (!(ctx.REFERENCE_GAMES || []).some(g => g.id === step.ref)) errors.push(`${stw}: ref -> unknown reference game ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'reflect': if (step.ref !== undefined) errors.push(`${stw}: reflect steps take no ref`); runDomain = null; runLen = 0; break;
         default: errors.push(`${stw}: unknown kind ${step.kind}`);
       }

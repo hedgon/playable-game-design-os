@@ -8,15 +8,15 @@ DOMAINS.push({ id:'ux', lens:'design', t:'UX / UI', short:'Readability, feedback
     links:[['core','Feedback closes the loop: without it action has no consequence the player can learn from.'],['player','Cognitive load is relative to what this player already knows.'],['presentation','Visual language and audio are UI when they carry information.'],['ai','AI is good at friction audits, heuristic reviews and flow analysis when you give it the artifacts.']] });
 
 T('ux-as-design',{ d:'ux', t:'UX is game design, not decoration', tag:'Every UI element exists to support a decision. If it does not, it is noise.',
-  what:`Game UX (Celia Hodent's framing) has two halves: usability (can the player perceive, understand and act?) and engage-ability (do they want to?). The UI is the channel through which state, choices and consequences reach the player. A decision the player cannot perceive does not exist for them. Six questions apply to every element: what decision does it support, what information does the player need, when, how fast must they parse it, what happens if they miss it, and could the world communicate it instead?`,
-  why:[`Most "the game is confusing" complaints are UX failures in the design, not in the art.`,`UI competes with the world for attention. Every element in the HUD is a moment not spent looking at the game.`,`Onboarding, feedback and readability decide the first ten minutes, and the first ten minutes decide retention.`],
-  think:{ q:[`For this element: what decision does it support? When? At what parse speed? What if missed? Could the world carry it?`,`What must the player know at this moment, and what is merely available?`,`Which conventions from the player's other games can I lean on?`,`What is the player looking at when this information matters? Put it there.`],
+  what:`Game UX (Celia Hodent’s framing) has two halves: usability (can the player perceive, understand and act?) and engage-ability (do they want to?). The UI is the channel through which state, choices and consequences reach the player. A decision the player cannot perceive does not exist for them. Six questions apply to every element: what decision does it support, what information does the player need, when, how fast must they parse it, what happens if they miss it, and could the world communicate it instead?`,
+  why:[`Most “the game is confusing” complaints are UX failures in the design, not in the art.`,`UI competes with the world for attention. Every element in the HUD is a moment not spent looking at the game.`,`Onboarding, feedback and readability decide the first ten minutes, and the first ten minutes decide retention.`],
+  think:{ q:[`For this element: what decision does it support? When? At what parse speed? What if missed? Could the world carry it?`,`What must the player know at this moment, and what is merely available?`,`Which conventions from the player’s other games can I lean on?`,`What is the player looking at when this information matters? Put it there.`],
     trade:[`Diegetic information (in the world) is immersive and slower to parse. HUD information is fast and distracting.`,`Showing everything reduces recall load and increases visual load.`],
-    traps:[`Designing UI last, as a skin on the systems.`,`Exposing internal state (every stat) because it exists.`,`Using text for what a shape, color or sound could say.`],
+    traps:[`Designing UI last, as a skin on the systems.`,`Exposing internal state (every stat) because it exists.`,`Using text for what a shape, colour or sound could say.`],
     good:[`Players act on information without reading. They glance and move.`,`The HUD can be hidden and the game still communicates.`],
     bad:[`Players read the HUD during action. Players ask what a number means.`] },
   how:[`Inventory every UI element. Answer the six questions for each. Cut or move anything with no decision behind it.`,`Map information to moments: what does the player need before, during and after an action?`,`Prototype the world-first version: can the game communicate this without HUD? Add HUD only where it cannot.`,`Run usability tests with the target player: task-based, silent observation, then questions.`],
-  ai:{ yes:[`Audit a HUD screenshot or element list against the six questions.`,`Apply usability heuristics (Nielsen, Hodent's pillars) to flows you describe.`,`Propose diegetic alternatives for HUD elements.`],
+  ai:{ yes:[`Audit a HUD screenshot or element list against the six questions.`,`Apply usability heuristics (Nielsen, Hodent’s pillars) to flows you describe.`,`Propose diegetic alternatives for HUD elements.`],
        no:[`Judge whether the interface feels right. That is observed with players.`,`Decide the information density appropriate to your player.`] },
   prompts:[{l:'Six-question HUD audit',p:`Here is our HUD element list (or screenshot description) and the decisions the player makes in this mode: [ELEMENTS, DECISIONS]. For each element answer: the decision it supports, the information it carries, when it is needed, how fast it must be parsed, what happens if missed, and whether the world could carry it instead. Flag elements with no decision behind them and elements needed during action that require reading. Propose a minimal HUD and list what moves to the world.`}],
   verify:[`Did it keep elements because they are genre standard rather than because a decision needs them?`,`Are its parse-speed claims plausible for your actual camera distance and pace?`],
@@ -42,9 +42,9 @@ func _ready() -> void:
 
 func _on_ready_changed(ready: bool) -> void:
 \tvisible = ready                            # no decision available, no element on screen`,
-    pitfall:`Leaving mouse_filter at its default on layout containers. Control defaults to MOUSE_FILTER_STOP, so a full-rect MarginContainer used as a HUD frame silently swallows every click meant for the world underneath. The world stops responding and nothing in the input code looks wrong, because the event never reached it.`,
-    map:`Godot Control nodes under a CanvasLayer with a Theme are Unity uGUI under a Canvas with a CanvasScaler, or UI Toolkit's UIDocument with USS.` },
-  unity:{ term:`uGUI Canvas with a CanvasScaler for world-facing HUD, or UI Toolkit UIDocument with USS for menus. Raycast targets are switched off on anything decorative, and CanvasGroup carries the "available" state.`,
+    pitfall:`Building the HUD frame from a full-rect Panel, ColorRect or plain Control. Those default to MOUSE_FILTER_STOP, so the frame silently swallows every click meant for the world underneath. Containers such as MarginContainer default to PASS and let unhandled clicks through. The world stops responding and nothing in the input code looks wrong, because the event never reached it.`,
+    map:`Godot Control nodes under a CanvasLayer with a Theme are Unity uGUI under a Canvas with a CanvasScaler, or UI Toolkit’s UIDocument with USS.` },
+  unity:{ term:`uGUI Canvas with a CanvasScaler for world-facing HUD, or UI Toolkit UIDocument with USS for menus. Raycast targets are switched off on anything decorative, and CanvasGroup carries the “available” state.`,
     api:['Canvas + CanvasScaler + GraphicRaycaster','EventSystem','Graphic.raycastTarget','CanvasGroup.alpha / interactable / blocksRaycasts','UIDocument + VisualElement + USS','UnityEvent'],
     snippet:`public class AbilityHud : MonoBehaviour {
     [SerializeField] Image icon;               // the only Raycast Target in this widget
@@ -72,12 +72,12 @@ INTERVIEW('ux-as-design',{
       follow:`They can act but they cannot say why they chose that option. Which is it?`,
       red:`Proposes a tutorial pop-up before watching anyone play.` },
     { q:`What does diegetic information mean, and when would you use it?`,
-      a:`Information carried by the world rather than by an overlay: ammunition on the weapon model, health in the character's posture, a threat heard before it is seen. It is more immersive and slower to parse. Use it when the player has time and when the fantasy is the point. Keep the HUD for information needed inside a second during action.`,
+      a:`Information carried by the world rather than by an overlay: ammunition on the weapon model, health in the character’s posture, a threat heard before it is seen. It is more immersive and slower to parse. Use it when the player has time and when the fantasy is the point. Keep the HUD for information needed inside a second during action.`,
       follow:`Where would you refuse to go diegetic, and why?`,
       red:`Treats diegetic as a style choice with no parse-speed argument.` }
   ],
   mid:[
-    { q:`Walk me through a HUD audit you have actually run.`,
+    { q:`Walk me through a HUD audit you have run.`,
       a:`Inventory every element. For each, answer the six questions and record the decision it supports. Cut elements with no decision, move slow ones into the world, and rank the rest by how fast they must be read. Then map information to moments: what is needed before, during and after each action. Name what the team pushed back on and how you settled it.`,
       follow:`Which cut did the team refuse, and what evidence would have changed their mind?`,
       red:`Describes a visual restyle and calls it an audit.` },
@@ -102,26 +102,26 @@ INTERVIEW('ux-as-design',{
   ] });
 
 T('readability-and-hierarchy',{ d:'ux', t:'Readability, hierarchy and cognitive load', tag:'The player has one attention budget. Spend it on decisions, not on parsing.',
-  what:`Readability: can the player perceive game state at the speed the game demands? Hierarchy: does the most important information stand out first? Cognitive load: how much must the player hold in mind to act? Hodent's framing separates cognitive load (thinking), memory load (remembering) and physical load (inputs). Each has a budget set by the player and the pace.`,
+  what:`Readability: can the player perceive game state at the speed the game demands? Hierarchy: does the most important information stand out first? Cognitive load: how much must the player hold in mind to act? Hodent’s framing separates cognitive load (thinking), memory load (remembering) and physical load (inputs). Each has a budget set by the player and the pace.`,
   why:[`A decision the player cannot perceive in time is not a decision. It is a surprise.`,`Cognitive load is where complexity is paid. Front-loading it churns players.`,`Hierarchy failures make a legible game feel chaotic and an easy game feel hard.`],
   think:{ q:[`What must the player perceive within one glance during action? Is it the biggest, brightest, most contrasting thing?`,`How many pieces of state must they track at once? More than a handful is a problem at pace.`,`What can be offloaded to the world (spatial memory) or to the UI (recognition instead of recall)?`,`Is the visual noise (VFX, particles, crowd) hiding the signal?`],
     trade:[`Dense information supports expert play and overwhelms new players.`,`Strong hierarchy clarifies and flattens the visual richness.`],
     traps:[`Adding VFX for feel that bury the readable state.`,`Consistency broken for style: the same meaning shown two ways.`,`Testing readability on a large monitor when the platform is a phone.`],
-    good:[`Players react to threats they have not consciously noticed.`,`New players describe the screen as "clear".`],
+    good:[`Players react to threats they have not consciously noticed.`,`New players describe the screen as “clear”.`],
     bad:[`Players die to things they say they never saw.`] },
   how:[`Rank information by decision importance. Assign visual weight (size, contrast, motion, position) in that order.`,`Count tracked state during action. Reduce, chunk, or move to recognition.`,`Squint test and desaturation test on screenshots: does the hierarchy survive?`,`Test on the target device at the target distance.`],
   ai:{ yes:[`Rank information by decision importance from your design and flag hierarchy inversions in a screenshot description.`,`Count tracked state per mode and propose chunking.`,`Suggest visual-weight assignments and consistency fixes.`],
        no:[`Judge whether a screen is readable. Only observation on the target device shows that.`] },
   prompts:[{l:'Hierarchy audit',p:`Here is a description of our screen during [MODE] and the decisions the player makes there: [DESCRIPTION]. Rank the information by decision importance. Compare with the current visual weight (size, contrast, motion, position) and flag inversions. Count pieces of state the player must track simultaneously. Propose the smallest changes to make the top 3 items dominant and to reduce tracked state below [N].`}],
   verify:[`Does it know the target device and viewing distance? If not, its claims are guesses.`],
-  test:[`"What killed you?" after each death. Track "I did not see it".`,`Flash a screenshot for one second and ask what the player saw.`,`Test on the target device.`],
+  test:[`“What killed you?” after each death. Track “I did not see it”.`,`Flash a screenshot for one second and ask what the player saw.`,`Test on the target device.`],
   rel:[['ux-as-design','Hierarchy implements the six questions.'],['visual-language','Visual language is the palette of readability.'],['pacing','Cognitive pacing is load over time.'],['depth-vs-complexity','Complexity is paid as cognitive load.']] });
 DIAGRAM('readability-and-hierarchy', { kind:'stack', title:'One attention budget, sorted by how fast it must be read', taper:true, arrow:'read fastest at the top',
   layers:[{t:'The decision in action', d:'size, contrast and motion, never text'},{t:'State checked between actions', d:'recognition, not recall; the world can carry most of it'},{t:'Reference only', d:'read when stopped; if nobody uses it, cut it'}] });
 TECH('readability-and-hierarchy',[
-  {n:'Information hierarchy and affordances', how:`Rank every piece of on-screen and in-world information. Only the top rank should dominate.`, fit:`Action and systems-heavy games where the screen floods.`, cost:`Requires discipline. Designers add information faster than they remove it.`, alt:`Cap the "always visible" set and move the rest to demand.`},
+  {n:'Information hierarchy and affordances', how:`Rank every piece of on-screen and in-world information. Only the top rank should dominate.`, fit:`Action and systems-heavy games where the screen floods.`, cost:`Requires discipline. Designers add information faster than they remove it.`, alt:`Cap the “always visible” set and move the rest to demand.`},
   {n:'Cognitive load budgeting', how:`Count the simultaneous demands on attention and memory, and reduce them.`, fit:`Onboarding, complex systems, and moments of high action.`, cost:`Quantifying load is heuristic. Use think-aloud tests.`, alt:`Pair with the readability playtest questions.`},
-  {n:'Grey box / clarity pass', how:`Do the game readable in grey boxes before art. If it fails without polish, polish will not fix it.`, fit:`Early validation of layout and feedback.`, cost:`Some feel depends on art. Schedule a later feel pass.`, alt:`Clarity first, then emotion, then spectacle.`}
+  {n:'Grey box / clarity pass', how:`Make the game readable in grey boxes before art. If it fails without polish, polish will not fix it.`, fit:`Early validation of layout and feedback.`, cost:`Some feel depends on art. Schedule a later feel pass.`, alt:`Clarity first, then emotion, then spectacle.`}
 ]);
 ENGINE('readability-and-hierarchy',{
   godot:{ term:`Hierarchy is font size and colour set once in a Theme, not per label. The squint and desaturation tests are a debug CanvasLayer holding a full-rect ColorRect with a screen-reading canvas_item shader.`,
@@ -159,12 +159,12 @@ func _unhandled_input(e: InputEvent) -> void:
     }
 }`,
     pitfall:`Turning on TextMeshPro auto-sizing across the HUD. Every label then picks whatever point size fits its own box, so the ranking you designed collapses into a ranking of box widths and the least important counter ends up the biggest text on screen. Set sizes from the ranking and use auto-size only for translated strings, with a clamped fontSizeMin.`,
-    map:`Unity CanvasScaler plus TMP font sizes is Godot's project stretch mode plus Theme font sizes.` }});
+    map:`Unity CanvasScaler plus TMP font sizes is Godot’s project stretch mode plus Theme font sizes.` }});
 INTERVIEW('readability-and-hierarchy',{
   junior:[
     { q:`What does readability mean in a game, and how is it different from a clean-looking screen?`,
       a:`Readability is whether the player can perceive game state at the speed the game demands. A clean screen can still be unreadable if the most important thing is not the loudest thing. Hierarchy is the ranking, visual weight is how it is expressed, and the target is set by the pace and the device.`,
-      follow:`How would you check that on a phone held at arm's length?`,
+      follow:`How would you check that on a phone held at arm’s length?`,
       red:`Answers with fonts, spacing and palette and never mentions speed or decisions.` },
     { q:`Name the tools you have for giving an element visual weight.`,
       a:`Size, contrast, motion, position, and isolation from clutter. Rank the information by decision importance first, then assign weight in that order. Check the ranking survives a squint test and a desaturation test, because both strip the decoration and leave the hierarchy.`,
@@ -178,7 +178,7 @@ INTERVIEW('readability-and-hierarchy',{
   mid:[
     { q:`How much state can a player track at once during action, and what do you do when you exceed it?`,
       a:`A handful at pace, fewer as the pace rises, and the number is a budget you verify rather than a constant you quote. Reduce by chunking related state into one readable object, converting recall into recognition, or offloading to the world where spatial memory carries it. Then re-test the top three items during action, not at rest.`,
-      follow:`What did you actually remove on a shipped game, and what did it cost?`,
+      follow:`What did you remove on a shipped game, and what did it cost?`,
       red:`Quotes a memory-span number with no reference to pace or to the mode being played.` },
     { q:`The game is readable on your monitor and unreadable on the target handheld. Process?`,
       a:`Test on the device at the real viewing distance before changing anything. Then re-rank the information for the smaller screen, because the budget shrank and the ranking must too. Fix hierarchy before scale: uniform scaling keeps the inversion and eats the world. Verify with a one-second flash test asking what the player saw.`,
@@ -201,25 +201,25 @@ INTERVIEW('readability-and-hierarchy',{
   ] });
 
 T('feedback-and-affordance',{ d:'ux', t:'Feedback and affordance', tag:'Affordance says what you can do. Feedback says what you did. Without both, there is no learning.',
-  what:`Affordance (Don Norman): an object communicates the actions it supports, a signifier makes that explicit. Feedback: the game responds to an action in a way that tells the player what happened, whether it worked, and why. The feedback loop is the learning mechanism of games. Dan Cook's skill atom is action, simulation, feedback, model update.`,
+  what:`Affordance (Don Norman): the actions an object makes possible for a given player. Signifier: the perceivable cue that says where and how to act. Norman added the second term in 2013 because designers were using “affordance” for the cue. Feedback: the game responds to an action in a way that tells the player what happened, whether it worked, and why. The feedback loop is the learning mechanism of games. Dan Cook’s skill atom is action, simulation, feedback, model update.`,
   why:[`Without affordance the player does not know what to try. Without feedback they do not know what happened. Either breaks learning.`,`Failures with no legible cause feel unfair regardless of the actual fairness.`,`Feedback is where polish attaches: juice is amplified feedback.`],
   think:{ q:[`For each player action: what does the game do in the first 100 milliseconds? What tells them it worked? What tells them it failed and why?`,`Can the player tell interactable from decoration at a glance?`,`Is feedback proportional to importance? Do big consequences look big?`,`Does feedback teach, or only confirm?`],
     trade:[`Rich feedback on everything raises noise and hides the important signals.`,`Subtle feedback feels elegant and gets missed by new players.`],
-    traps:[`Feedback that confirms the input but not the outcome (the button flashed. The attack whiffed silently).`,`Affordances broken by inconsistent art (some doors open, identical doors do not).`,`Delayed feedback (damage numbers a second later) that breaks the causal link.`],
-    good:[`Players correct their behavior after one failure.`,`Players try things unprompted because objects look usable.`],
-    bad:[`Players repeat a failing action several times. Players ask "did that do anything?"`] },
-  how:[`List player actions. For each, write the feedback for success, failure and partial result, with timing.`,`Fix missing failure feedback first. It is the most common gap.`,`Audit interactable objects for consistent signifiers.`,`Test: after an action, ask "what happened?" Accuracy measures feedback quality.`],
+    traps:[`Feedback that confirms the input but not the outcome (the button flashed, the attack whiffed silently).`,`Affordances broken by inconsistent art (some doors open, identical doors do not).`,`Delayed feedback (damage numbers a second later) that breaks the causal link.`],
+    good:[`Players correct their behaviour after one failure.`,`Players try things unprompted because objects look usable.`],
+    bad:[`Players repeat a failing action several times. Players ask “did that do anything?”`] },
+  how:[`List player actions. For each, write the feedback for success, failure and partial result, with timing.`,`Fix missing failure feedback first. It is the most common gap.`,`Audit interactable objects for consistent signifiers.`,`Test: after an action, ask “what happened?” Accuracy measures feedback quality.`],
   ai:{ yes:[`Audit an action list for missing or delayed feedback.`,`Propose feedback channels (visual, audio, haptic, camera) per action and outcome.`,`Review object descriptions for signifier consistency.`],
        no:[`Judge whether feedback feels good. That is game feel, observed.`] },
   prompts:[{l:'Feedback matrix',p:`Here are the player actions and possible outcomes in [MODE]: [LIST]. Build a matrix of action x outcome (success, failure, partial) and fill each cell with the feedback the game currently gives and its timing. Flag empty cells and cells with more than 200 ms delay. For each flag, propose feedback that communicates the cause, not just the result, using at most two channels.`}],
   verify:[`Did it propose feedback that confirms input rather than explains outcome?`],
-  test:[`After an action, ask "what happened and why?" Track accuracy.`,`Count repeated failing actions before a player changes behavior.`,`Which objects do players try to interact with that are not interactable, and vice versa?`],
+  test:[`After an action, ask “what happened and why?” Track accuracy.`,`Count repeated failing actions before a player changes behaviour.`,`Which objects do players try to interact with that are not interactable, and vice versa?`],
   rel:[['core-loop','Feedback is a link of the loop.'],['game-feel-and-juice','Juice is amplified feedback.'],['challenge-failure-recovery','Failure needs cause feedback.'],['visual-language','Affordances are carried by art.']] });
 DIAGRAM('feedback-and-affordance', { kind:'loop', title:'The loop that teaches: Dan Cook’s skill atom',
   steps:[{t:'Action', d:'the player does something'},{t:'Simulation', d:'the rules resolve it'},{t:'Feedback', d:'the game shows what happened'},{t:'Model update', d:'the player updates belief'}] });
 TECH('feedback-and-affordance',[
   {n:'Feedback layering', how:`Stack visual, audio and haptic cues on one event so it reads regardless of channel.`, fit:`Making actions and state legible.`, cost:`Noise and cost. Needs priority.`, alt:`Reserve the strongest cues for the most important events.`},
-  {n:'Affordance grammar', how:`Use consistent visual/audio language for what is interactable, dangerous or locked.`, fit:`Teaching the world's rules without text.`, cost:`A single inconsistency teaches wrong.`, alt:`Document and hold the grammar across all content.`},
+  {n:'Affordance grammar', how:`Use consistent visual/audio language for what is interactable, dangerous or locked.`, fit:`Teaching the world’s rules without text.`, cost:`A single inconsistency teaches wrong.`, alt:`Document and hold the grammar across all content.`},
   {n:'Signifiers and diegetic cues', how:`Show the action in-world (a ledge to climb, a handle to pull) rather than a floating marker.`, fit:`Immersion and readability together.`, cost:`Harder to author. Some players miss subtle cues.`, alt:`Layer diegetic cue with an optional marker.`}
 ]);
 ENGINE('feedback-and-affordance',{
@@ -294,12 +294,12 @@ INTERVIEW('feedback-and-affordance',{
     { q:`How do you set a feedback standard across ten designers without writing a document nobody reads?`,
       a:`Make the feedback matrix a deliverable attached to each action, not a separate manual. Put one review question into the existing sign-off: which cells are empty and why. Publish three worked examples from the shipped game rather than rules. Budget channels per moment so a new feature cannot quietly take the whole mix.`,
       follow:`Who enforces it when you are not in the review?`,
-      red:`Writes the standard, circulates it once and treats adoption as someone else's problem.` }
+      red:`Writes the standard, circulates it once and treats adoption as someone else’s problem.` }
   ] });
 
 T('onboarding',{ d:'ux', t:'Onboarding: the first minutes', tag:'Do not explain. Let the player learn by doing, and design what they will do first.',
   what:`The design of the first 30 seconds, the first 5 minutes, and the first session: the first action, the first meaningful decision, the first failure, the first mastery moment, the first reward, and the first reason to return. Good onboarding is invisible. It is level design and feedback doing the teaching. Text is the fallback, not the plan.`,
-  why:[`Most players who quit do so early, and most early quits are onboarding failures: confusion, aimlessness, or a wall of instruction.`,`Players do not read. What they do in the first minutes is what they learn.`,`The first session sets expectations for the whole game. A slow start promises a slow game.`],
+  why:[`Retention curves drop hardest in the first session, and the early quits a team can fix are usually onboarding failures: confusion, aimlessness, or a wall of instruction.`,`Players do not read. What they do in the first minutes is what they learn.`,`The first session sets expectations for the whole game. A slow start promises a slow game.`],
   think:{ q:[`What does the player do in the first 30 seconds with their hands? Is it the core verb?`,`What is the first meaningful decision, and when? Later than five minutes is late for most games.`,`What is the first failure, and does it teach?`,`What is the first moment the player feels competent? The first reward that matters?`,`What will they think about after closing the game?`],
     trade:[`Fast onboarding into the core verb excites and can confuse.`,`Thorough onboarding reassures and bores veterans.`],
     traps:[`Tutorial text as the primary teaching channel.`,`Front-loading every system before the player has a reason to want it.`,`Onboarding designed after the game is finished.`],
@@ -311,12 +311,12 @@ T('onboarding',{ d:'ux', t:'Onboarding: the first minutes', tag:'Do not explain.
   prompts:[{l:'First-session audit',p:`Here is our first-session flow with timings: [FLOW]. Identify the timestamp of the first core-verb action, first meaningful decision, first failure, first mastery moment, first reward that changes options, and the first hook for returning. Flag any that are missing or later than [TARGETS]. For each teaching moment that relies on text, propose a situation that teaches the same thing by doing. List every system introduced before the player has a reason to want it.`},
     {l:'Hesitation clustering',p:`Here are silent observation notes from [N] first-time players (timestamps, hesitations, questions asked aloud, wrong actions): [NOTES]. Cluster the hesitations by cause: unclear goal, unclear affordance, unclear feedback, unknown rule, or interface friction. For each cluster, propose the smallest change to the level or feedback, not to text, and the observable signal that would show it worked.`}],
   verify:[`Did it propose more text or pop-ups? That is the failure mode.`,`Are milestone timestamps computed from my flow or assumed?`],
-  test:[`Silent test: no help, ten minutes, log every hesitation and question.`,`Time to first meaningful decision. Time to first competent moment.`,`Ask at the end: "What would you do next time?"`,`Ask a returning tester what they remember.`],
-  rel:[['level-structure','The first levels are the onboarding.'],['return-and-quit','Early churn is onboarding failure.'],['who-is-the-player','Prior knowledge sets the teaching budget.'],['feedback-and-affordance','Silent teaching depends on feedback.']] });
+  test:[`Silent test: no help, ten minutes, log every hesitation and question.`,`Time to first meaningful decision. Time to first competent moment.`,`Ask at the end: “What would you do next time?”`,`Ask a returning tester what they remember.`],
+  rel:[['puzzle-design','Onboarding teaches a rule; the puzzle that follows tests it, and its fairness rules live in that topic.'],['level-structure','The first levels are the onboarding.'],['return-and-quit','Early churn is onboarding failure.'],['who-is-the-player','Prior knowledge sets the teaching budget.'],['feedback-and-affordance','Silent teaching depends on feedback.']] });
 TECH('onboarding',[
   {n:'Teach through level design', how:`Introduce one mechanic at a time in a safe space, then test it, then combine (kishotenketsu).`, fit:`Almost all games. The strongest form of onboarding.`, cost:`Authoring cost per concept. Risks over-teaching if rigid.`, alt:`A silent onboarding audit is the measurement (see the checklist).`},
   {n:'Diegetic and just-in-time prompts', how:`Explain at the moment of need, in-world, rather than front-loading a tutorial.`, fit:`Reducing friction without a wall of text.`, cost:`Easy to over-trigger and annoy. Hard to get the timing right.`, alt:`Show, then prompt, then remove the prompt once demonstrated.`},
-  {n:'Time-to-fun and first-session goals', how:`Measure how long until the player does the core verb and feels the core emotion. Shorten it.`, fit:`Any game competing for attention. Retention begins here.`, cost:`None. It is a measurement discipline.`, alt:`Instrument it. Treat "first fun moment" as a metric and a design constraint.`}
+  {n:'Time-to-fun and first-session goals', how:`Measure how long until the player does the core verb and feels the core emotion. Shorten it.`, fit:`Any game competing for attention. Retention begins here.`, cost:`None. It is a measurement discipline.`, alt:`Instrument it. Treat “first fun moment” as a metric and a design constraint.`}
 ]);
 ENGINE('onboarding',{
   godot:{ term:`Teaching order is enforced in the InputMap, not in the UI. The overlay consumes events for verbs that are not unlocked yet, and logs every action with a timestamp so the silent audit produces data instead of memory.`,
@@ -332,7 +332,7 @@ func _input(e: InputEvent) -> void:
 \t\t\tif a not in enabled_actions:
 \t\t\t\tget_viewport().set_input_as_handled()
 \t\t\t\treturn                     # gated verbs never reach gameplay`,
-    pitfall:`Handling the tutorial gate in _input without calling set_input_as_handled(). Godot keeps propagating the event to _unhandled_input, so the player node still receives it and the "locked" verb works anyway. Testers discover the ungated ability in minute two and the teaching order you designed never happens.`,
+    pitfall:`Handling the tutorial gate in _input without calling set_input_as_handled(). Godot keeps propagating the event to _unhandled_input, so the player node still receives it and the “locked” verb works anyway. Testers discover the ungated ability in minute two and the teaching order you designed never happens.`,
     map:`Godot InputMap actions plus a user:// flag file are Unity Input System action maps plus PlayerPrefs.` },
   unity:{ term:`Each lesson is an Input System action map. Switching maps unlocks exactly one new verb, and the lesson index lives in PlayerPrefs so a returning player resumes at the right beat.`,
     api:['PlayerInput.SwitchCurrentActionMap()','InputActionMap.Enable() / Disable()','PlayerPrefs.GetInt / SetInt / DeleteKey','Time.unscaledTime','TextMeshProUGUI prompt','Analytics or a custom file logger'],
@@ -387,7 +387,7 @@ INTERVIEW('onboarding',{
       follow:`A new feature ships with its own tutorial pop-up. How do you handle it?`,
       red:`Front-loads all six systems so nothing is missed.` },
     { q:`Onboarding is the most iterated part of a game. How do you budget and schedule it?`,
-      a:`Start early with grey boxes because the shape of the first session constrains the level plan, then re-test with genuinely fresh players after every change. Book a recurring slot and a recruitment pipeline, since the scarce resource at month twenty is people who have never seen the build. Keep a log of change, tester cohort and result so the team stops re-litigating settled findings.`,
+      a:`Start early with grey boxes because the shape of the first session constrains the level plan, then re-test with fresh players after every change. Book a recurring slot and a recruitment pipeline, since the scarce resource at month twenty is people who have never seen the build. Keep a log of change, tester cohort and result so the team stops re-litigating settled findings.`,
       follow:`Where do fresh testers come from late in production?`,
       red:`Schedules one onboarding pass near the end and treats it as polish.` }
   ] });
@@ -396,11 +396,11 @@ T('controls-and-friction',{ d:'ux', t:'Controls, menus and interaction friction'
   what:`The physical and procedural cost of doing what the player intends: input mapping, latency, menu depth, confirmation steps, mode switches, load times. Friction is not always bad (deliberate friction can add weight), but unintended friction is pure loss.`,
   why:[`Latency and mapping decide game feel before any polish.`,`Menu friction shows up as players not using systems that would have been fun.`,`Friction compounds: three small taxes on a frequent action become the reason a player stops.`],
   think:{ q:[`For the ten most frequent actions, how many inputs and how many milliseconds from intent to result?`,`Which frequent actions live in menus? Could they be in the world or on a button?`,`Where does the player need a confirmation, and where is it just a habit of the UI?`,`Is any friction deliberate, and does the player perceive the weight it adds?`],
-    trade:[`Fewer confirmations speed play and increase mistakes.`,`Deep menus organize complexity and hide features.`],
-    traps:[`Mapping designed for the team's habits.`,`Menus that mirror the data model instead of the player's tasks.`,`Deliberate friction defended after players show it is just friction.`],
+    trade:[`Fewer confirmations speed play and increase mistakes.`,`Deep menus organise complexity and hide features.`],
+    traps:[`Mapping designed for the team’s habits.`,`Menus that mirror the data model instead of the player’s tasks.`,`Deliberate friction defended after players show it is just friction.`],
     good:[`Players use systems without being prompted.`,`Players perform frequent actions without looking.`],
-    bad:[`Players avoid a system because "it is annoying to open".`] },
-  how:[`List the ten most frequent actions. Count inputs and time for each. Cut toward the minimum.`,`Map menu flows for the tasks players actually do. Restructure by task, not by data.`,`Measure input latency on the target device.`,`Test with the target player's hands, not the team's.`],
+    bad:[`Players avoid a system because “it is annoying to open”.`] },
+  how:[`List the ten most frequent actions. Count inputs and time for each. Cut towards the minimum.`,`Map menu flows for the tasks players do. Restructure by task, not by data.`,`Measure input latency on the target device.`,`Test with the target player’s hands, not the team’s.`],
   ai:{ yes:[`Count inputs per task from a flow description and flag the worst.`,`Propose task-based menu structures.`,`Review mapping against platform conventions.`],
        no:[`Judge feel. Latency numbers are checkable. Feel is observed.`] },
   prompts:[{l:'Friction count',p:`Here are our menu flows and control mapping: [FLOWS]. For the 10 most frequent player tasks ([TASKS]), count inputs and mode switches from intent to completion. Rank by total friction times frequency. For the top 5, propose the smallest restructure, and state which confirmations are protecting against a real mistake and which are habit.`}],
@@ -408,8 +408,8 @@ T('controls-and-friction',{ d:'ux', t:'Controls, menus and interaction friction'
   test:[`Count inputs per task in recordings.`,`Which systems go unused? Ask why.`,`Watch hands: where do players look at the controller or keyboard?`],
   rel:[['game-feel-and-juice','Latency is the floor of game feel.'],['ux-as-design','Menus are UI. UI supports decisions.'],['accessibility','Friction is amplified for players with different abilities.']] });
 TECH('controls-and-friction',[
-  {n:'Input buffering and forgiveness', how:`Queue inputs briefly and accept small timing errors so intent is honored.`, fit:`Action games with punishing timing.`, cost:`Too much buffer causes unintended actions. Tune per action type.`, alt:`Separate buffer windows for defensive vs offensive actions.`},
-  {n:'Menu and interaction friction', how:`Count the steps to common tasks (equip, compare, retry, invite) and shorten them.`, fit:`Any game with menus. A hidden cause of churn.`, cost:`Shortcuts add UI complexity. Needs telemetry or observation.`, alt:`Instrument the top task flows and cut steps where players actually go.`},
+  {n:'Input buffering and forgiveness', how:`Queue inputs briefly and accept small timing errors so intent is honoured.`, fit:`Action games with punishing timing.`, cost:`Too much buffer causes unintended actions. Tune per action type.`, alt:`Separate buffer windows for defensive vs offensive actions.`},
+  {n:'Menu and interaction friction', how:`Count the steps to common tasks (equip, compare, retry, invite) and shorten them.`, fit:`Any game with menus. A hidden cause of churn.`, cost:`Shortcuts add UI complexity. Needs telemetry or observation.`, alt:`Instrument the top task flows and cut steps where players go.`},
   {n:'Default and preset schemes', how:`Sensible defaults (invert, sensitivity, control layout) so most players never open the menu.`, fit:`Broad audiences and multiple input devices.`, cost:`Defaults that fight conventions for the genre annoy veterans.`, alt:`Default to genre convention. Make the rest reachable, not required.`}
 ]);
 ENGINE('controls-and-friction',{
@@ -431,7 +431,7 @@ func load_binds() -> void:
 \tfor a in cfg.get_section_keys("bind"):
 \t\trebind(a, cfg.get_value("bind", a))`,
     pitfall:`Assuming InputMap edits persist. They live only in the running process and never touch project.godot, so a remap survives until the player quits and is silently gone next launch. Save the events yourself and reapply them at startup, before the first scene reads any action.`,
-    map:`Godot InputMap plus a saved ConfigFile is Unity's Input System with SaveBindingOverridesAsJson.` },
+    map:`Godot InputMap plus a saved ConfigFile is Unity’s Input System with SaveBindingOverridesAsJson.` },
   unity:{ term:`Interactive rebinding on the InputAction, with the pointer and the cancel key excluded, then binding overrides serialised to JSON. Latency budget is set by the frame rate cap and the update mode.`,
     api:['InputAction.PerformInteractiveRebinding(index)','WithControlsExcluding() / WithCancelingThrough()','InputActionAsset.SaveBindingOverridesAsJson() / LoadBindingOverridesFromJson()','InputSystem.settings.updateMode','Application.targetFrameRate','InputAction.ReadValue<T>()'],
     snippet:`public class Rebinder : MonoBehaviour {
@@ -449,8 +449,8 @@ func load_binds() -> void:
             }).Start();
     }
 }`,
-    pitfall:`Starting an interactive rebind without excluding the pointer. Mouse position and delta report movement constantly, so the rebind completes on the first pixel of mouse drift and the player's jump is now bound to moving the mouse. They cannot undo it, because the menu they need also stopped working.`,
-    map:`Unity's PerformInteractiveRebinding with JSON overrides is Godot's InputMap edit with a saved ConfigFile.` }});
+    pitfall:`Starting an interactive rebind without excluding the pointer. Mouse position and delta report movement constantly, so the rebind completes on the first pixel of mouse drift and the player’s jump is now bound to moving the mouse. They cannot undo it, because the menu they need also stopped working.`,
+    map:`Unity’s PerformInteractiveRebinding with JSON overrides is Godot’s InputMap edit with a saved ConfigFile.` }});
 INTERVIEW('controls-and-friction',{
   junior:[
     { q:`What is interaction friction and how would you measure it?`,
@@ -462,7 +462,7 @@ INTERVIEW('controls-and-friction',{
       follow:`How do you tell perceived weight from annoyance in a test?`,
       red:`Defends the friction as realism with no player evidence.` },
     { q:`How would you structure an inventory screen?`,
-      a:`By the tasks players actually do rather than by the data model. Put the most frequent action on a button or in the world, keep depth shallow for anything used during play, and require confirmation only where a real mistake is possible. Then count inputs for the top tasks and compare against the old flow.`,
+      a:`By the tasks players do rather than by the data model. Put the most frequent action on a button or in the world, keep depth shallow for anything used during play, and require confirmation only where a real mistake is possible. Then count inputs for the top tasks and compare against the old flow.`,
       follow:`Does that structure survive on a controller and on touch?`,
       red:`Mirrors the item database categories and calls it organisation.` }
   ],
@@ -476,40 +476,40 @@ INTERVIEW('controls-and-friction',{
       follow:`Where does the extra latency usually come from?`,
       red:`Says it feels responsive on the development machine.` },
     { q:`How do you approach remapping and platform conventions?`,
-      a:`Start from the conventions the player already knows on that platform, because breaking them costs learning time you cannot see in your own tests. Allow every input to be remapped, and give alternatives for holds and repeated presses. Then test the defaults with the target player's hands, not the team's, since the team has built its own habits.`,
+      a:`Start from the conventions the player already knows on that platform, because breaking them costs learning time you cannot see in your own tests. Allow every input to be remapped, and give alternatives for holds and repeated presses. Then test the defaults with the target player’s hands, not the team’s, since the team has built its own habits.`,
       follow:`What breaks when you allow full remapping?`,
-      red:`Maps to the team's muscle memory and never checks the platform norm.` }
+      red:`Maps to the team’s muscle memory and never checks the platform norm.` }
   ],
   senior:[
     { q:`You are porting a controller game to touch. Where does the design break?`,
       a:`Precision falls, the thumbs occlude the screen, analog input disappears, sustained holds become painful, and sessions get interrupted. Rank the frequent actions by the precision they demand and redesign the ones that no longer fit rather than emulating a stick. Expect to change the pace and the readability targets, not only the input layer.`,
       follow:`What would you cut instead of porting it?`,
       red:`Adds a virtual stick and buttons over the same layout and calls the port done.` },
-    { q:`Friction accumulates over a live game's life. How do you stop it?`,
+    { q:`Friction accumulates over a live game’s life. How do you stop it?`,
       a:`Give the frequent actions an input budget and make it part of feature review, so a new system cannot add a step without trading one away. Track inputs per task in telemetry and watch it per release. Do a quarterly pass on the three actions with the highest frequency times cost, and publish the before and after.`,
       follow:`Who owns the budget when every feature has its own owner?`,
       red:`Schedules an occasional cleanup pass with no measurement and no gate.` }
   ] });
 
 T('accessibility',{ d:'ux', t:'Accessibility', tag:'Options that let more people reach the intended experience. Not a separate mode: better design.',
-  what:`Design and options that let players with different abilities, hardware and contexts perceive, understand and act: remappable controls, subtitles and captions, colorblind-safe signaling, scalable text, difficulty and assist options, reduced motion, hold-to-toggle. Most accessibility improvements also help everyone.`,
-  why:[`A significant fraction of players have a permanent or situational impairment. Excluding them is a choice.`,`Redundant signaling (color plus shape plus sound) is better readability for all players.`,`Assist options let players steer difficulty toward their own flow zone, which is good design anyway.`],
+  what:`Design and options that let players with different abilities, hardware and contexts perceive, understand and act: remappable controls, subtitles and captions, colourblind-safe signalling, scalable text, difficulty and assist options, reduced motion, hold-to-toggle. Most accessibility improvements also help everyone.`,
+  why:[`Impairment is permanent for some players and situational for many more: a noisy room, one hand holding a baby, a phone in sunlight. Each option serves both groups, and leaving it out is a choice.`,`Redundant signaling (color plus shape plus sound) is better readability for all players.`,`Assist options let players steer difficulty towards their own flow zone, which is good design anyway.`],
   think:{ q:[`Is any critical information carried by only one channel (color only, sound only, text only)?`,`Can every input be remapped? Are holds and rapid presses avoidable?`,`Can the text be read on the target device by someone with average vision at the actual distance?`,`Which assists let players reach the intended experience without removing it?`],
-    trade:[`Assist options widen the audience and can be perceived as diluting the challenge identity if presented badly.`,`Redundant signaling adds visual elements.`],
-    traps:[`Accessibility as a checklist at the end.`,`Assists that skip content instead of adapting it.`,`Colorblind "modes" that change palettes instead of designing redundancy in.`],
+    trade:[`Assist options widen the audience and can be perceived as diluting the challenge identity if presented badly.`,`Redundant signalling adds visual elements.`],
+    traps:[`Accessibility as a checklist at the end.`,`Assists that skip content instead of adapting it.`,`Colorblind “modes” that change palettes instead of designing redundancy in.`],
     good:[`Players who need options find them without asking and describe the game as playable.`],
     bad:[`Players cannot distinguish teams, read text or perform a hold.`] },
-  how:[`Audit critical information for single-channel signaling and add redundancy.`,`Provide remapping, text scaling, subtitles with speaker labels, and reduced motion early.`,`Design assists as adaptations of the challenge, not skips.`,`Include players with impairments in playtests.`],
+  how:[`Audit critical information for single-channel signalling and add redundancy.`,`Provide remapping, text scaling, subtitles with speaker labels, and reduced motion early.`,`Design assists as adaptations of the challenge, not skips.`,`Include players with impairments in playtests.`],
   ai:{ yes:[`Audit information channels for redundancy gaps.`,`Check contrast and text size against guidelines for your device.`,`Propose assist designs that preserve the intended experience.`],
        no:[`Decide the game is accessible. Players with impairments show that.`] },
-  prompts:[{l:'Channel redundancy audit',p:`Here is the critical information our game communicates and the channel for each: [LIST]. Flag any item carried by a single channel and any that depends on color discrimination, precise timing, sustained holds, or small text. For each flag, propose redundant signaling or an option, and state whether it changes the intended experience. Then list assists that adapt the challenge rather than skip it, for [CHALLENGE TYPE].`}],
+  prompts:[{l:'Channel redundancy audit',p:`Here is the critical information our game communicates and the channel for each: [LIST]. Flag any item carried by a single channel and any that depends on colour discrimination, precise timing, sustained holds, or small text. For each flag, propose redundant signalling or an option, and state whether it changes the intended experience. Then list assists that adapt the challenge rather than skip it, for [CHALLENGE TYPE].`}],
   verify:[`Did it treat accessibility as a checklist, or connect it to the intended experience?`],
   test:[`Test with players who have relevant impairments.`,`Desaturate the screen: can testers still play?`,`Mute the game: what do players miss?`],
   rel:[['readability-and-hierarchy','Redundancy is readability.'],['difficulty','Assists are player-steered difficulty.'],['controls-and-friction','Remapping removes physical friction.']] });
 TECH('accessibility',[
   {n:'Input remapping and alternatives', how:`Full remapping, one-handed modes, hold-vs-toggle, and adjustable sensitivity.`, fit:`Motor accessibility. Basic good practice.`, cost:`UI and testing. Sometimes conflicts with tutorial prompts.`, alt:`Ship remapping early. It is expected, not optional.`},
   {n:'Perception options', how:`Subtitles, captions, colourblind palettes, high-contrast and reduced-motion modes, and audio cue visualisation.`, fit:`Sensory accessibility and clarity for everyone.`, cost:`Design and QA across states. Some effects lose meaning without careful substitution.`, alt:`Design the information hierarchy so it can survive without any one channel.`},
-  {n:'Assist and difficulty options', how:`Adjustable difficulty, aim assist, invulnerability, skips, and no-fail modes.`, fit:`Cognitive and motor accessibility. Widening the audience.`, cost:`Design and balance. Must not be hidden or framed as "lesser".`, alt:`Offer options without judgement and without breaking the intended experience for those who skip them.`}
+  {n:'Assist and difficulty options', how:`Adjustable difficulty, aim assist, invulnerability, skips, and no-fail modes.`, fit:`Cognitive and motor accessibility. Widening the audience.`, cost:`Design and balance. Must not be hidden or framed as “lesser”.`, alt:`Offer options without judgement and without breaking the intended experience for those who skip them.`}
 ]);
 ENGINE('accessibility',{
   godot:{ term:`One autoload holds the settings and emits changed. Text scale goes through the Theme so containers re-flow, audio goes through buses so every future sound obeys it, and motion systems check the reduced-motion flag before they shake anything.`,
@@ -531,7 +531,7 @@ func shake(cam: Camera2D, amount: float) -> void:
 \tcam.offset = Vector2.ZERO if reduced_motion else Vector2(randf_range(-amount, amount), 0)`,
     pitfall:`Scaling text with Control.scale. That resamples already-rasterised glyphs, so large text is blurry and small text is worse, and the container never re-flows, so the longer string clips instead of wrapping. Drive the Theme font size and let the layout recompute.`,
     map:`Godot audio buses and Theme font sizes are Unity AudioMixer groups and TMP font settings.` },
-  unity:{ term:`Static settings read by every system, audio through exposed AudioMixer parameters so sources spawned later obey them, and colour choices taken from the engine's colour-blind safe palette instead of hand-picked hues.`,
+  unity:{ term:`Static settings read by every system, audio through exposed AudioMixer parameters so sources spawned later obey them, and colour choices taken from the engine’s colour-blind safe palette instead of hand-picked hues.`,
     api:['AudioMixer.SetFloat() with exposed parameters','UnityEngine.Accessibility.VisionUtility.GetColorBlindSafePalette()','TMP_Settings / TextMeshProUGUI font size','InputAction rebinding for remapping','Screen.dpi','PlayerPrefs for persistence'],
     snippet:`public class AccessibilitySettings : MonoBehaviour {
     [SerializeField] AudioMixer mixer;                 // exposed params, not per-source volume
@@ -560,12 +560,12 @@ INTERVIEW('accessibility',{
       follow:`Which channels would you use for a low-health state?`,
       red:`Thinks it means adding a text label to everything.` },
     { q:`Is difficulty an accessibility question?`,
-      a:`Partly. Assist options let players steer the challenge toward their own flow zone, which is good design regardless of ability. The distinction that matters is between an assist that adapts the challenge, such as a longer input window, and one that skips it. Skipping removes the experience the player came for.`,
+      a:`Partly. Assist options let players steer the challenge towards their own flow zone, which is good design regardless of ability. The distinction that matters is between an assist that adapts the challenge, such as a longer input window, and one that skips it. Skipping removes the experience the player came for.`,
       follow:`How does that change for a game whose identity is its difficulty?`,
       red:`Says hard games are meant to be hard and never asks who is excluded.` }
   ],
   mid:[
-    { q:`Audit one screen for accessibility. What do you actually do?`,
+    { q:`Audit one screen for accessibility. What do you do?`,
       a:`List the critical information on that screen and the channel carrying each item. Flag anything single-channel, anything depending on colour discrimination, precise timing, a sustained hold, or text below a readable size at the real viewing distance. Propose redundancy or an option per flag, and state whether it changes the intended experience.`,
       follow:`Adding redundancy raises visual noise. How do you resolve that?`,
       red:`Runs an automated contrast checker and reports the result as the audit.` },
@@ -583,7 +583,7 @@ INTERVIEW('accessibility',{
       a:`Make critical-signal redundancy part of the existing feature checklist so it is decided at design time rather than audited at the end. Name an owner, publish the option set the studio ships by default, and build a tester pool that includes players with relevant impairments. Verify with playable evidence per release rather than a compliance document.`,
       follow:`How do you verify it rather than assert it?`,
       red:`Hires a consultant for a final audit and treats the report as the programme.` },
-    { q:`Assist options are seen internally as diluting the game's identity. How do you frame it?`,
+    { q:`Assist options are seen internally as diluting the game’s identity. How do you frame it?`,
       a:`Frame the intended experience as the target and assists as routes to it. Show which players currently cannot reach it and why, and design each assist as an adaptation with a stated effect. Then be explicit about what you would not add, because a credible line makes the rest of the argument land.`,
       follow:`What would you refuse to add, and how do you justify that?`,
       red:`Removes assists to protect purity without asking who is excluded by the default.` }

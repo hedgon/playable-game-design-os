@@ -21,7 +21,7 @@
    ===================================================================== */
 DOMAINS.push({ id:'backend', lens:'eng', t:'Backend', short:'Layering, APIs, data access, caching, observability, testing', color:'var(--d-backend)',
   sum:`The service behind a live game. Backend work is design work: the layering decides what can be changed safely, the protocol decides what the client can ask for, and the data access decides what the game is allowed to be true about. Most live-game failures are not algorithmic. They are a boundary nobody defended.`,
-  links:[['server','The game server is a backend with a tick. Everything here is the part that does not simulate.'],['product','Session length, monetization and platform decide the shape of the API and the cost of the data model.'],['production','Backend risk is schedule risk. The riskiest query and the riskiest migration belong in the first milestone.'],['studio','Conventions, code review and written decisions are what keep a service readable after the third person joins.'],['systems','Economy and progression rules eventually live on a server, because anything the client owns can be edited.']],
+  links:[['server','The game server is a backend with a tick. Everything here is the part that does not simulate.'],['product','Session length, monetisation and platform decide the shape of the API and the cost of the data model.'],['production','Backend risk is schedule risk. The riskiest query and the riskiest migration belong in the first milestone.'],['studio','Conventions, code review and written decisions are what keep a service readable after the third person joins.'],['systems','Economy and progression rules eventually live on a server, because anything the client owns can be edited.']],
   titles:{ test:'What should I test or measure?' } });
 
 /* Engine tabs: backend topics have no node or component of their own. The
@@ -62,10 +62,10 @@ T('backend-layering',{ d:'backend', t:'Clean layering and dependency direction',
       `Generate the mapping functions between a row struct and a domain entity, which is exactly the tedious half.`,
       `Review a diff for layer violations: a handler importing a driver, an entity carrying db tags, an interactor importing generated protobuf.`],
     no:[`Decide where the ring boundaries go. That is shaped by your team size and deploy model, neither of which the model can see.`,
-      `Judge whether a layer is earning its keep. Only you know how often it actually changed.`,
+      `Judge whether a layer is earning its keep. Only you know how often it changed.`,
       `Describe what your code does from memory. Hand it the import graph or it will describe a textbook.`] },
   prompts:[{l:'Import direction audit',p:`Here is go list -deps output for our service plus a one line description of each package: [PASTE]. Our intended layering is entities then use cases then adapters then wiring, with imports pointing inward only. List every import that points the wrong way, grouped by the ring that leaks. For each, state the smallest change that fixes it and what that change would break. Do not propose a rewrite.`},
-    {l:'Port extraction',p:`This interactor calls a repository directly: [PASTE CODE]. Extract the smallest interface the interactor actually needs, written from the caller's point of view, and show the constructor change. List every method you dropped and say why this interactor does not need it.`}],
+    {l:'Port extraction',p:`This interactor calls a repository directly: [PASTE CODE]. Extract the smallest interface the interactor needs, written from the caller’s point of view, and show the constructor change. List every method you dropped and say why this interactor does not need it.`}],
   verify:[`Did the answer name your packages, or a generic diagram? Every package it mentions should appear in your repository.`,
     `Are the extracted interfaces minimal, or the same forty methods with a new name?`,
     `Does the proposed fix move code inward, or does it move a rule outward into a handler?`],
@@ -73,7 +73,7 @@ T('backend-layering',{ d:'backend', t:'Clean layering and dependency direction',
     `Count packages touched by the last ten feature commits. Healthy layering shows a small stable number.`,
     `Add a deliberate backward import on a scratch branch and confirm CI fails. An unenforced rule decays quietly.`],
   rel:[['systemic-design','Layers are a system with rules about what may touch what, and they decay the same way game systems do.'],
-    ['design-documents','The ring diagram plus the import rules is the one document a new engineer actually needs.'],
+    ['design-documents','The ring diagram plus the import rules is the one document a new engineer needs.'],
     ['backend-di-modes','Wiring is the single place allowed to know both the port and the adapter.'],
     ['backend-data-access','The repository port is where layering meets the database.'],
     ['lead-conventions','A layering rule only survives if it is written down and checked by a tool.']],
@@ -95,8 +95,8 @@ func _init(api: ApiClient) -> void:
 func fetch(id: int) -> Player:
 \tvar body := await _api.post("/player/get", {"id": id})
 \treturn Player.from_dict(body)         # rows stop here, the scene sees a Player`,
-    pitfall:`Reaching for a service with get_node("/root/Api") inside a scene. That scene now depends on the scene tree path of a singleton, so it cannot be run alone in a test scene, and renaming the autoload breaks it at runtime with no compile error anywhere.`,
-    map:`A Godot autoload is Unity's composition root, and a RefCounted class is a plain C# class with no engine dependency.` },
+    pitfall:`Reaching for a service with get_node(“/root/Api”) inside a scene. That scene now depends on the scene tree path of a singleton, so it cannot be run alone in a test scene, and renaming the autoload breaks it at runtime with no compile error anywhere.`,
+    map:`A Godot autoload is Unity’s composition root, and a RefCounted class is a plain C# class with no engine dependency.` },
   unity:{ term:`Unity enforces layering for real with assembly definitions. Rules and models go in an asmdef that references nothing, the API client in another, MonoBehaviours in a third that references both. A backward reference is then a compile error.`,
     api:['Assembly Definition (.asmdef)','interface + constructor injection','ScriptableObject','MonoBehaviour as an adapter only','UnityWebRequest','RuntimeInitializeOnLoadMethod'],
     snippet:`// Assembly: Game.Domain - references no UnityEngine networking types
@@ -111,12 +111,12 @@ public sealed class GetPlayer {
 // Assembly: Game.Infrastructure - implements IPlayerGateway over UnityWebRequest
 // Assembly: Game.Presentation   - a MonoBehaviour calls GetPlayer and knows no transport`,
     pitfall:`Leaving everything in Assembly-CSharp, the default assembly. Every script then sees every other script, the layering exists only in folder names, and one edit recompiles the whole project. An asmdef is the only mechanism Unity gives you to make a direction violation fail.`,
-    map:`A Unity asmdef reference graph is Go's import graph made explicit, and an asmdef violation is what a depguard lint rule catches server side.` },
+    map:`A Unity asmdef reference graph is Go’s import graph made explicit, and an asmdef violation is what a depguard lint rule catches server side.` },
   note:`On the server the direction is enforced by the import graph and a lint rule. The client needs the same rule for the same reason: the UI must not know whether a value came from the service, a local cache or a stub, or you cannot build a screen before the endpoint exists.` });
 INTERVIEW('backend-layering',{
   junior:[
     { q:`What does clean layering mean in a Go service, and which way do imports point?`,
-      a:`Name the rings: entities and rules at the centre, use cases around them, adapters outside, wiring at the edge. Imports point inward only. Then name the consequence you actually care about, which is that a rule test runs with no database. Finish with the enforcement, an import graph check or a depguard rule in golangci-lint, because a rule nobody enforces is a diagram.`,
+      a:`Name the rings: entities and rules at the centre, use cases around them, adapters outside, wiring at the edge. Imports point inward only. Then name the consequence you care about, which is that a rule test runs with no database. Finish with the enforcement, an import graph check or a depguard rule in golangci-lint, because a rule nobody enforces is a diagram.`,
       follow:`Where does the interface live: next to the code that needs it, or next to the code that implements it?`,
       red:`Recites the ring diagram from a book and cannot say what breaks when the direction is violated.` },
     { q:`Your interactor needs to read a player row. Describe the shape of that dependency.`,
@@ -162,7 +162,7 @@ T('backend-di-modes',{ d:'backend', t:'Compile-time DI and one binary, many mode
     `One module means one set of entities. Split the batch jobs into their own repository and the next schema change teaches you what drift costs.`,
     `The injector list is an honest inventory of the service. Twenty injectors is twenty things that can be deployed, scheduled, monitored and broken separately.`],
   think:{ q:[`If a binding is missing, do I find out at build, at boot, or at the first request that needs it?`,
-      `Which roles genuinely need a different graph, and which are the same graph with a different entry point?`,
+      `Which roles need a different graph, and which are the same graph with a different entry point?`,
       `What does this binary open at startup that this role never uses?`,
       `Can someone add a dependency without reading the generated file?`,
       `Is the mode flag selecting a process role, or has it quietly become a feature flag inside request handling?`],
@@ -174,7 +174,7 @@ T('backend-di-modes',{ d:'backend', t:'Compile-time DI and one binary, many mode
       `One giant provider set, so every role builds every dependency anyway and the split is cosmetic.`,
       `Adding a mode for something that is a flag on an existing mode.`],
     good:[`Adding a repository is one line in a provider set plus a regenerate.`,
-      `Each role's startup log lists only the connections that role uses.`],
+      `Each role’s startup log lists only the connections that role uses.`],
     bad:[`A nil dependency panic in production that a build step could have caught.`,
       `The generated file has been hand edited, so regeneration has become something nobody dares run.`] },
   how:[`Declare provider sets by concern: infrastructure, controllers, one gateway set per domain. Keep them small enough that a role can pick a subset.`,
@@ -195,14 +195,14 @@ T('backend-di-modes',{ d:'backend', t:'Compile-time DI and one binary, many mode
   prompts:[{l:'Provider set design',p:`Here are the constructors in our service with parameters and return types: [PASTE]. Group them into google/wire provider sets by concern, then show which sets each of these roles needs: [ROLES]. Flag every constructor that opens a connection, reads a file or starts a goroutine, and say why that work belongs in a start step instead.`},
     {l:'Wire error triage',p:`This is our wire error plus the relevant provider sets and interfaces: [PASTE]. Explain in plain language which binding is missing or ambiguous, give the smallest change that fixes it, and say whether the fix belongs in the provider set or in the interface declaration.`}],
   verify:[`Does the suggested change touch the declaration file rather than the generated one? Only the declaration is editable.`,
-    `Did it actually move work out of constructors, or only rename things?`,
-    `Does each role's set still exclude what that role does not use, or did the answer collapse everything into one set?`],
+    `Did it move work out of constructors, or only rename things?`,
+    `Does each role’s set still exclude what that role does not use, or did the answer collapse everything into one set?`],
   test:[`Run the generator in CI and diff against the committed file. A difference is a failed build, not a warning.`,
     `Boot every role in a test and assert it starts and shuts down cleanly. It is the cheapest proof the graph is real.`,
     `Measure what each role opens at startup, connections and goroutines, and compare that to what the role needs.`],
   rel:[['backend-layering','Wiring is the one package allowed to know both the port and the adapter.'],
     ['planning-and-milestones','Each process role is a deployable unit, so the injector list and the milestone plan describe the same things.'],
-    ['backend-observability','Startup logging is where you discover what the graph actually built.'],
+    ['backend-observability','Startup logging is where you discover what the graph built.'],
     ['infra-deploy-models','A mode flag only pays off if the deploy model can run the modes separately.'],
     ['backend-testing','A graph you can build inside a test is a graph you can test against real infrastructure.']],
   tech:[
@@ -211,7 +211,7 @@ T('backend-di-modes',{ d:'backend', t:'Compile-time DI and one binary, many mode
     {n:'Manual constructor wiring', how:`One function calls every constructor in order and returns the server.`, fit:`Roughly thirty dependencies or fewer, with one or two roles.`, cost:`Merge conflicts in a single file, and ordering maintained by hand.`, alt:`Split per role first, reach for a generator when the split stops helping.`},
     {n:'Service locator or package globals', how:`A global registry any package can ask for a dependency.`, fit:`Almost nothing. It arrives as an accident, not a decision.`, cost:`Hidden dependencies, untestable packages, initialization order bugs.`, alt:`Pass dependencies explicitly. If the signature is too long, the type is doing too much.`}] });
 ENGINE('backend-di-modes',{
-  godot:{ term:`One autoload is the composition root. It reads the build's feature tags, constructs the API client, the cache and the gateways once, and hands them out. Export presets carry the tags that separate a development build from a store build.`,
+  godot:{ term:`One autoload is the composition root. It reads the build’s feature tags, constructs the API client, the cache and the gateways once, and hands them out. Export presets carry the tags that separate a development build from a store build.`,
     api:['Autoload singleton','OS.has_feature() / OS.is_debug_build()','Export preset custom feature tags','ProjectSettings.get_setting()','Engine.is_editor_hint()','OS.get_environment()'],
     snippet:`extends Node                          # autoload: Boot
 
@@ -225,8 +225,8 @@ func _ready() -> void:
 \tif OS.is_debug_build():
 \t\tapi = LoggingApiClient.new(api)   # one decorator, decided once
 \tgateway = PlayerGateway.new(api)`,
-    pitfall:`Constructing services in each scene's _ready. Two scenes then hold two API clients with two token caches, and which one refreshed the session depends on load order. Build the graph once in a single autoload and pass it down.`,
-    map:`A Godot autoload plus export feature tags is Unity's RuntimeInitializeOnLoadMethod plus scripting define symbols.` },
+    pitfall:`Constructing services in each scene’s _ready. Two scenes then hold two API clients with two token caches, and which one refreshed the session depends on load order. Build the graph once in a single autoload and pass it down.`,
+    map:`A Godot autoload plus export feature tags is Unity’s RuntimeInitializeOnLoadMethod plus scripting define symbols.` },
   unity:{ term:`The composition root is a static bootstrap that runs before the first scene, or a container such as VContainer or Zenject. Build modes come from scripting define symbols resolved at compile time, which is exactly what a Go build tag does.`,
     api:['RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)','Scripting Define Symbols and #if','ScriptableObject config asset','VContainer or Zenject LifetimeScope','Debug.isDebugBuild','Addressables.InitializeAsync()'],
     snippet:`public static class Boot {
@@ -242,7 +242,7 @@ func _ready() -> void:
         Gateway = new PlayerGateway(api);
     }
 }`,
-    pitfall:`Holding the graph in static fields with Enter Play Mode Options enabled and domain reload disabled. Statics are not reset, so the second play session reuses the first session's client and token. Reset them explicitly in the bootstrap instead of trusting the editor to do it.`,
+    pitfall:`Holding the graph in static fields with Enter Play Mode Options enabled and domain reload disabled. Statics are not reset, so the second play session reuses the first session’s client and token. Reset them explicitly in the bootstrap instead of trusting the editor to do it.`,
     map:`Unity scripting define symbols are Go build tags, and a LifetimeScope is the injector that wire generates.` },
   note:`The server picks its graph per process role at build time so a missing binding cannot reach production. The client makes the same move with defines and one composition root, so a debug logger or a stub gateway cannot ship inside a store build by accident.` });
 INTERVIEW('backend-di-modes',{
@@ -253,7 +253,7 @@ INTERVIEW('backend-di-modes',{
       red:`Calls it a dependency injection container and cannot say when the failure occurs.` },
     { q:`What is a provider, and why should a provider not open a database connection?`,
       a:`A provider is a constructor wire can call. If it opens a connection then building the graph does I/O, so a test that wants one interactor boots the world and a wiring failure is really an infrastructure failure. Return the struct, expose a start step and a cleanup func, and let main decide when to connect.`,
-      follow:`Where does the connection actually open then?`,
+      follow:`Where does the connection open then?`,
       red:`Sees no difference between constructing an object and starting it.` },
     { q:`One binary boots as an API server or as a batch job depending on a flag. Why do that?`,
       a:`One module, one set of entities and interactors, so the nightly job and the request path cannot drift. Each role gets its own injector and builds only what it needs. Say the cost too: every image carries every role.`,
@@ -281,7 +281,7 @@ INTERVIEW('backend-di-modes',{
       red:`Chooses by taste, or claims a reflection container is equivalent.` },
     { q:`You inherit a service where every role builds every dependency. What is the plan?`,
       a:`Measure first: what does each role open at startup that it never uses. Split provider sets by concern rather than by convenience. Move one role at a time, and assert startup connections in a test so the split cannot silently regress. Justify it with startup time, blast radius and the ability to reason about a batch job.`,
-      follow:`How would you prove the split actually reduced anything?`,
+      follow:`How would you prove the split reduced anything?`,
       red:`Starts by rewriting the wiring layer wholesale with no measurement.` }
   ] });
 
@@ -317,15 +317,15 @@ T('backend-api-protocol',{ d:'backend', t:'API protocol choices', tag:'REST/JSON
   ai:{ yes:[`Draft message definitions from a described endpoint and flag fields that should be optional for forward compatibility.`,
       `Review a schema diff for breaking changes: renumbered fields, changed types, reused numbers, narrowed enums.`,
       `Generate the mapping layer between generated messages and domain structs.`,
-      `Lay out the trade-offs of gRPC versus protobuf over HTTP for a specific client engine, given what that engine's network stack supports.`],
-    no:[`Choose the protocol. It is bounded by the engine's network stack and by your operations team, and the model can see neither.`,
+      `Lay out the trade-offs of gRPC versus protobuf over HTTP for a specific client engine, given what that engine’s network stack supports.`],
+    no:[`Choose the protocol. It is bounded by the engine’s network stack and by your operations team, and the model can see neither.`,
       `Set the force update policy. That is product and support.`,
       `Assume a plugin exists for your engine and platform. Verify that yourself.`] },
   prompts:[{l:'Schema compatibility review',p:`Here is the diff of our protobuf definitions: [PASTE]. Our clients cannot be force updated for two weeks. List every change that would break an old client, ordered by severity, with a compatible alternative for each. Then list the changes that are safe and say why they are safe at the wire level, not just at the source level.`},
     {l:'Protocol choice',p:`Our client is [ENGINE AND VERSION], our players are on mobile networks, our largest payload is [SIZE AND SHAPE], and our infrastructure is [DESCRIBE]. Compare REST with JSON, protobuf over plain HTTP, and gRPC for this case. For each, cover client library support, debuggability, payload size, and what it demands from proxies and load balancers. End with the one question I must answer before deciding.`}],
   verify:[`Does the review cite field numbers, or only field names? Only numbers decide wire compatibility.`,
     `Did it check that a maintained plugin exists for your engine, or did it assume one?`,
-    `Will the headers it proposes actually survive your CDN and your proxies?`],
+    `Will the headers it proposes survive your CDN and your proxies?`],
   test:[`Decode a captured production payload with the checked in tool. If nobody can, your on-call debugging story has a hole.`,
     `Run the previous client build against the new server in CI. That is the only honest forward compatibility test.`,
     `Measure payload size and decode time for your largest response on a mid range device, not on a workstation.`],
@@ -355,7 +355,7 @@ func post_proto(path: String, payload: PackedByteArray) -> PackedByteArray:
 \tif r[1] != 200:
 \t\tpush_error("api %s failed: %d" % [path, r[1]])
 \treturn r[3]`,
-    pitfall:`Reusing one HTTPRequest node for overlapping calls. A second request while one is in flight fails outright, and request_completed carries no correlation id, so two awaits on the same node can receive each other's responses. Pool one node per in-flight call, or serialize through a queue.`,
+    pitfall:`Reusing one HTTPRequest node for overlapping calls. A second request while one is in flight fails outright, and request_completed carries no correlation id, so two awaits on the same node can receive each other’s responses. Pool one node per in-flight call, or serialize through a queue.`,
     map:`Godot HTTPRequest is Unity UnityWebRequest, and await request_completed is await SendWebRequest().` },
   unity:{ term:`UnityWebRequest is the transport, with UploadHandlerRaw for the body and DownloadHandlerBuffer for the response. Protobuf messages come from protoc with the C# plugin and the Google.Protobuf runtime, so one schema file generates both ends of the contract.`,
     api:['new UnityWebRequest(url, "POST")','UploadHandlerRaw / DownloadHandlerBuffer','SetRequestHeader()','UnityWebRequest.Result and responseCode','IMessage.ToByteArray() / MessageParser.ParseFrom()','Awaitable or UniTask'],
@@ -384,7 +384,7 @@ INTERVIEW('backend-api-protocol',{
       red:`Picks gRPC because it is modern, with no mention of client support or proxies.` },
     { q:`Why can you never reuse a protobuf field number?`,
       a:`The number is the wire identity. An old client decodes by number, so a reused number means bytes of one meaning are read as another, silently, with no error anywhere. State the rule: add fields, never renumber, mark removed numbers reserved.`,
-      follow:`What does reserved actually protect you from?`,
+      follow:`What does reserved protect you from?`,
       red:`Talks about field names and does not know the number is what travels.` },
     { q:`Where does the client version live in your protocol?`,
       a:`In a header, checked by middleware, with an allow list of paths that must work on an old client, starting with the force update endpoint itself. Say why not the URL: you would have to version every path, and a client that cannot reach the update prompt is a dead install.`,
@@ -407,7 +407,7 @@ INTERVIEW('backend-api-protocol',{
   ],
   senior:[
     { q:`You are starting a new mobile title. Take me through the protocol decision.`,
-      a:`Start from the client engine and its network stack, because that bounds the options before anything else. Then payload size on a mobile connection, then what operations can actually run, then debuggability. Land on a choice, name the cost you accepted and the tooling you will build to cover it, and say what evidence would make you revisit.`,
+      a:`Start from the client engine and its network stack, because that bounds the options before anything else. Then payload size on a mobile connection, then what operations can run, then debuggability. Land on a choice, name the cost you accepted and the tooling you will build to cover it, and say what evidence would make you revisit.`,
       follow:`The engine has no maintained protobuf plugin. Does that decide it?`,
       red:`Gives a general ranking of protocols and never mentions the client.` },
     { q:`Describe a compatibility break you shipped and what it cost.`,
@@ -422,17 +422,17 @@ T('backend-request-context',{ d:'backend', t:'Request context, middleware and id
     `Context is how you avoid threading eight parameters through every function. It is also how you leak, the moment something that is not request scoped goes in.`,
     `Middleware order is policy. Maintenance before auth means an expired session still sees the maintenance screen. Version gate after auth means an old client gets a login error instead of an update prompt.`,
     `A per request memo cache removes the duplicate read nobody planned: three interactors in one request each loading the same player row.`],
-  think:{ q:[`What is genuinely request scoped, and what went on the context because it was convenient?`,
+  think:{ q:[`What is request scoped, and what went on the context because it was convenient?`,
       `In what order must maintenance, version gate, auth, ban check and duplicate gate run, and what does the player see when each one rejects?`,
       `What is the identity of a request for deduplication: player plus endpoint, or a client generated request id?`,
       `How long should the duplicate lock live, and what happens to a legitimate second attempt after it expires?`,
       `If a handler panics, what still runs?`],
     trade:[`Typed context accessors cost a getter and a setter per key and turn a class of runtime mistakes into compile errors. A map of string to any costs nothing today and everything later.`,
       `A short idempotency window lets a genuine retry through and a long one blocks a legitimate repeat action. No single setting is right for every endpoint.`],
-    traps:[`Putting a database handle or an open transaction on the context, so a connection's lifetime is now controlled by whoever copied the context.`,
+    traps:[`Putting a database handle or an open transaction on the context, so a connection’s lifetime is now controlled by whoever copied the context.`,
       `Using a plain string as a context key, which two packages will eventually collide on. Use a private key type.`,
       `Deduplicating on the path alone, so two different players are treated as the same request.`,
-      `A per request cache that is never flushed, which quietly becomes a process wide cache with a request's worth of invalidation.`,
+      `A per request cache that is never flushed, which quietly becomes a process wide cache with a request’s worth of invalidation.`,
       `Ignoring context cancellation, so a client that hung up still pays for the full query.`,
       `Running the duplicate gate after the write, which is a race dressed as a guard.`],
     good:[`The chain order lives in one file and every position has a comment saying why it is there.`,
@@ -450,9 +450,9 @@ T('backend-request-context',{ d:'backend', t:'Request context, middleware and id
       `Draft the middleware chain in order with the failure response for each stage, then critique its own ordering.`,
       `Generate the typed accessor boilerplate for a key list, which is pure repetition.`,
       `Enumerate the retry scenarios an endpoint faces and say what the client sees in each.`],
-    no:[`Choose the TTL. That depends on your client's retry policy and on how a designer expects the action to behave.`,
+    no:[`Choose the TTL. That depends on your client’s retry policy and on how a designer expects the action to behave.`,
       `Decide which endpoints must be idempotent. That is a money and fairness question.`,
-      `Assume a popular framework. Name your router and your cache or the answer will be about somebody else's stack.`] },
+      `Assume a popular framework. Name your router and your cache or the answer will be about somebody else’s stack.`] },
   prompts:[{l:'Middleware order review',p:`Our middleware chain is, in order: [LIST]. For each stage, state what it reads, what it sets, and the exact response a client receives when it rejects. Then find orderings that produce a confusing player experience, for example an expired session during maintenance, or an old client that cannot reach the force update endpoint. Propose the smallest reordering and say exactly what it changes.`},
     {l:'Idempotency design',p:`This endpoint does: [DESCRIBE THE WRITE]. Our clients retry on timeout and on app resume. Propose an idempotency key, a window, and the behaviour for a duplicate (reject or replay the original result). Then work through three failure cases: the first request times out after the write committed, two devices act at the same moment, the cache is unavailable. For each, say what the player sees.`}],
   verify:[`Is the proposed key unique per player, or would two players collide on it?`,
@@ -489,9 +489,9 @@ func call_once(key: String, path: String, payload: PackedByteArray) -> PackedByt
 \t_inflight.erase(key)
 \tfinished.emit(key, res)
 \treturn res`,
-    pitfall:`Letting every screen build its own headers. The session token, client version and master version then drift between call sites, and the server's version gate rejects exactly the one screen somebody forgot to update. Attach them in one place at the bottom of the client.`,
-    map:`A Godot request queue autoload is Unity's request pipeline class, and the in-flight dictionary is the server's duplicate gate moved one hop earlier.` },
-  unity:{ term:`One API client owns the pipeline: headers, cancellation, retry with backoff, and a dictionary of in-flight keys so a double tap joins the running call instead of issuing a second one. CancellationToken is the client's context.`,
+    pitfall:`Letting every screen build its own headers. The session token, client version and master version then drift between call sites, and the server’s version gate rejects exactly the one screen somebody forgot to update. Attach them in one place at the bottom of the client.`,
+    map:`A Godot request queue autoload is Unity’s request pipeline class, and the in-flight dictionary is the server’s duplicate gate moved one hop earlier.` },
+  unity:{ term:`One API client owns the pipeline: headers, cancellation, retry with backoff, and a dictionary of in-flight keys so a double tap joins the running call instead of issuing a second one. CancellationToken is the client’s context.`,
     api:['CancellationToken / MonoBehaviour.destroyCancellationToken','Dictionary<string, Task<T>>','CancellationTokenSource.CreateLinkedTokenSource()','UnityWebRequest.SetRequestHeader()','TaskScheduler.FromCurrentSynchronizationContext()','Application.version'],
     snippet:`readonly Dictionary<string, Task<byte[]>> _inflight = new();
 
@@ -504,7 +504,7 @@ public Task<byte[]> CallOnce(string key, string path, byte[] body, CancellationT
     return task;
 }`,
     pitfall:`Starting a request from a MonoBehaviour without passing destroyCancellationToken. The screen closes, the response arrives, the continuation touches a destroyed object, and you get a MissingReferenceException that only reproduces on a slow connection.`,
-    map:`A Unity CancellationToken is Go's context.Context, and destroyCancellationToken is the request context cancelled when the caller hangs up.` },
+    map:`A Unity CancellationToken is Go’s context.Context, and destroyCancellationToken is the request context cancelled when the caller hangs up.` },
   note:`The server gate is the last line of defence and the client gate is the cheap one. Deduplicating at the tap, attaching headers in one place and cancelling on screen close removes most duplicate requests before they cost a round trip, which matters more on a mobile network than it does on the server.` });
 INTERVIEW('backend-request-context',{
   junior:[
@@ -523,11 +523,11 @@ INTERVIEW('backend-request-context',{
   ],
   mid:[
     { q:`How do you pick the idempotency window?`,
-      a:`From the client's retry policy and from what the action means. Too short and a genuine retry applies twice, too long and a legitimate repeat is blocked. Say it is per endpoint, that a purchase deserves a client supplied intent id rather than a time window, and that a unique constraint is the real guarantee wherever the action has a natural identity.`,
+      a:`From the client’s retry policy and from what the action means. Too short and a genuine retry applies twice, too long and a legitimate repeat is blocked. Say it is per endpoint, that a purchase deserves a client supplied intent id rather than a time window, and that a unique constraint is the real guarantee wherever the action has a natural identity.`,
       follow:`The cache holding the gate goes down. What happens?`,
       red:`Proposes one global window for everything and never mentions the storage layer.` },
     { q:`What is a per request memo cache for, and how does it hurt you when it is wrong?`,
-      a:`It removes duplicate reads inside one handler when several interactors want the same row. It must be created and flushed by the same middleware. If it is not flushed it becomes a process cache with no invalidation, and you get a request acting on another request's data.`,
+      a:`It removes duplicate reads inside one handler when several interactors want the same row. It must be created and flushed by the same middleware. If it is not flushed it becomes a process cache with no invalidation, and you get a request acting on another request’s data.`,
       follow:`How would you measure whether it is earning anything?`,
       red:`Cannot distinguish it from the distributed cache.` },
     { q:`A client disconnects mid request. What should the server do?`,
@@ -552,13 +552,13 @@ T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'A
     `Where an error started matters more than where it was printed. Capturing the stack at the wrap site is the difference between a five minute and a five hour investigation.`,
     `A code block per subsystem turns a number into a routing decision during an incident.`,
     `Sentinels let callers make decisions. A cache not-stored result meaning first writer wins is a rule, not a failure, and only errors.Is expresses that cleanly.`],
-  think:{ q:[`Which errors are the client's business and which are only ours?`,
+  think:{ q:[`Which errors are the client’s business and which are only ours?`,
       `Does this need a code the client branches on, or a status the client merely logs?`,
       `Where is the stack captured, and does wrapping twice capture it twice?`,
       `Is this a failure, or an expected outcome wearing an error type?`,
-      `What does the player actually see for each code, in each language we ship?`],
+      `What does the player see for each code, in each language we ship?`],
     trade:[`A rich error type gives you codes, status and stacks and couples every package to it. Plain wrapped errors stay idiomatic and push the whole taxonomy into the handler.`,
-      `Fine grained codes help support and multiply the client's branching. Coarse codes are easy to ship and useless at 2am.`],
+      `Fine grained codes help support and multiply the client’s branching. Coarse codes are easy to ship and useless at 2am.`],
     traps:[`Wrapping and dropping the cause, so errors.Is stops working three layers up.`,
       `Formatting with the verb that discards the error instead of the one that wraps it. Same mistake, shorter fuse.`,
       `Returning an internal message to the client, which leaks table names and file paths.`,
@@ -574,19 +574,19 @@ T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'A
     `Wrap where the meaning changes, not at every return. A repository returns a storage failure, the interactor turns it into a domain code.`,
     `Use errors.As at the HTTP boundary to pull the domain error out, and errors.Is for sentinels such as sql.ErrNoRows or a cache not-stored signal.`,
     `Log once, at the boundary, with the code, the stack and the request id. Everywhere else, just return.`,
-    `Keep the client message and the internal message apart. The wire payload gets a code and a localization key. The log gets everything else.`,
+    `Keep the client message and the internal message apart. The wire payload gets a code and a localisation key. The log gets everything else.`,
     `Decide the default: an unmapped error becomes a generic 500 with a generic code and leaks nothing.`],
   ai:{ yes:[`Propose a code block allocation from a list of subsystems and flag the blocks likely to run out first.`,
       `Review a package for wrapping that drops the cause and for errors discarded into the blank identifier.`,
-      `Draft the client side mapping from code to dialog, retry behaviour and localization key.`,
+      `Draft the client side mapping from code to dialog, retry behaviour and localisation key.`,
       `Find failures that get logged repeatedly on their way up the stack.`],
     no:[`Decide which internal detail is safe to send to a client. That is a security judgement.`,
       `Invent codes for failures you have not classified. A taxonomy is a commitment, not a guess.`,
       `Decide what counts as an error and what is an expected outcome. That is domain knowledge.`] },
   prompts:[{l:'Error taxonomy pass',p:`Here are our subsystems and the failures each can produce: [LIST]. Propose a numeric code taxonomy in blocks, with an HTTP status per code and a one line client facing meaning. Mark each code the client must branch on, and each code that is internal only. Flag any failure that should be an expected outcome rather than an error at all.`},
-    {l:'Wrapping audit',p:`Here is a Go package: [PASTE]. Find every place an error loses its cause, gets logged more than once on the way out, or leaks internal detail into a response. For each, show the minimal corrected line and name the caller's errors.Is or errors.As check that was broken by it.`}],
+    {l:'Wrapping audit',p:`Here is a Go package: [PASTE]. Find every place an error loses its cause, gets logged more than once on the way out, or leaks internal detail into a response. For each, show the minimal corrected line and name the caller’s errors.Is or errors.As check that was broken by it.`}],
   verify:[`Does every proposed code have a distinct client behaviour, or are some of them cosmetic?`,
-    `Did the audit actually distinguish wrapping from formatting, or only comment on style?`,
+    `Did the audit distinguish wrapping from formatting, or only comment on style?`,
     `Is any internal string reaching the wire payload?`],
   test:[`Force each code from a test and assert the status, the wire payload, and that the captured stack points at the origin rather than the handler.`,
     `Count distinct error codes emitted per week. A code nobody ever emits is dead, and a code that dominates is a design problem.`,
@@ -600,9 +600,9 @@ T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'A
     {n:'Wrapped sentinel errors', how:`Package level error values compared with errors.Is, wrapped on the way up so the cause survives.`, fit:`Libraries and small services where callers branch on a handful of conditions.`, cost:`No codes and no status mapping, so the handler grows a translation table instead.`, alt:`Add a typed error once that table has more than a few rows.`},
     {n:'Custom error type with codes', how:`One interface carrying a numeric code, an HTTP status, a wire payload and a captured stack, constructed at the wrap site.`, fit:`Player facing services where the client and support both need a stable vocabulary.`, cost:`Every package depends on the error package, and the code table needs an owner.`, alt:`Sentinels plus a handler side map when there is only one consumer.`},
     {n:'Codes as enums in the schema', how:`The code list lives in the protocol schema and generates constants for client and server together.`, fit:`Typed clients that branch on codes and must stay in sync with the server.`, cost:`Adding a code becomes a schema change on a release cadence.`, alt:`Numeric codes with a documented table when the client tolerates unknown values.`},
-    {n:'Panic and recover at the boundary', how:`Let genuinely unrecoverable states panic and convert them to a 500 in one recovery middleware.`, fit:`Programmer errors such as a nil map write, where continuing is worse than failing.`, cost:`Easy to abuse as control flow, and a panic inside a goroutine still takes the process down.`, alt:`Return errors for anything a caller could reasonably handle.`}] });
+    {n:'Panic and recover at the boundary', how:`Let unrecoverable states panic and convert them to a 500 in one recovery middleware.`, fit:`Programmer errors such as a nil map write, where continuing is worse than failing.`, cost:`Easy to abuse as control flow, and a panic inside a goroutine still takes the process down.`, alt:`Return errors for anything a caller could reasonably handle.`}] });
 ENGINE('backend-errors',{
-  godot:{ term:`request_completed hands back a transport result, an HTTP status and the body. The client's job is to turn the server's numeric code into one of a few outcomes: retry quietly, show a localized dialog, send the player to the store, or drop to the title screen.`,
+  godot:{ term:`request_completed hands back a transport result, an HTTP status and the body. The client’s job is to turn the server’s numeric code into one of a few outcomes: retry quietly, show a localised dialog, send the player to the store, or drop to the title screen.`,
     api:['HTTPRequest.request_completed(result, response_code, headers, body)','HTTPRequest.RESULT_SUCCESS / RESULT_CANT_CONNECT','match statement','push_error() / push_warning()','TranslationServer.translate()','AcceptDialog'],
     snippet:`func handle(transport: int, code: int) -> void:
 \tif transport != HTTPRequest.RESULT_SUCCESS:
@@ -633,8 +633,8 @@ ENGINE('backend-errors',{
     _dialog.Show(_strings.Localized("err_" + (int)e.Code));   // unknown codes still land
 }`,
     pitfall:`Catching Exception around the whole call and showing one generic dialog. Every failure then looks identical to the player and to your crash reporting, so a session expiry and a server outage produce the same support ticket. Filter on the domain code and count what falls through.`,
-    map:`A Unity exception filter on a domain code is Go's errors.As at the handler boundary.` },
-  note:`The taxonomy the server designs is only worth anything if the client branches on it. Agreeing the code blocks and their client behaviour in one document is what stops the client from matching on error message text, which breaks the first time a string is localized.` });
+    map:`A Unity exception filter on a domain code is Go’s errors.As at the handler boundary.` },
+  note:`The taxonomy the server designs is only worth anything if the client branches on it. Agreeing the code blocks and their client behaviour in one document is what stops the client from matching on error message text, which breaks the first time a string is localised.` });
 INTERVIEW('backend-errors',{
   junior:[
     { q:`Explain errors.Is versus errors.As.`,
@@ -642,7 +642,7 @@ INTERVIEW('backend-errors',{
       follow:`Which one gets a code out of an error, and why not a plain type assertion?`,
       red:`Compares errors with equality or matches on the message text.` },
     { q:`What belongs in an error the client sees?`,
-      a:`A stable numeric code, an HTTP status, and something the client can localize. Not the internal message, not a table name, not a file path. Say why: the wire error is part of your API, and a leaked internal string is a security problem and a compatibility problem at the same time.`,
+      a:`A stable numeric code, an HTTP status, and something the client can localise. Not the internal message, not a table name, not a file path. Say why: the wire error is part of your API, and a leaked internal string is a security problem and a compatibility problem at the same time.`,
       follow:`The client needs to tell the player which item failed. How does that travel?`,
       red:`Returns the raw error text to the client and calls it a message.` },
     { q:`Why capture a stack at the wrap site?`,
@@ -667,16 +667,16 @@ INTERVIEW('backend-errors',{
   senior:[
     { q:`The client is string matching on error messages. How did that happen, and how do you fix it?`,
       a:`It happened because codes were not designed with the client, or the messages shipped before the codes did. The fix is a code table agreed by both sides, a generic fallback branch the client can count, and a deprecation window. Ship the codes first and remove the string matching in the next client release.`,
-      follow:`The messages get localized next sprint. What breaks first?`,
+      follow:`The messages get localised next sprint. What breaks first?`,
       red:`Blames the client team and offers no migration path.` },
     { q:`Talk me through an incident where the error taxonomy helped or failed you.`,
-      a:`Name the shape: a spike on one code, a code that meant two things, a stack that pointed at a handler instead of an origin. Say how long it took to localize the cause and what changed afterwards. The question is whether the taxonomy made the first five minutes cheaper.`,
+      a:`Name the shape: a spike on one code, a code that meant two things, a stack that pointed at a handler instead of an origin. Say how long it took to localise the cause and what changed afterwards. The question is whether the taxonomy made the first five minutes cheaper.`,
       follow:`What single change would most improve your next incident?`,
       red:`Describes the outage with no reference to what was observable at the time.` }
   ] });
 
 T('backend-data-access',{ d:'backend', t:'Transactions, query layers and delta state sync', tag:'Own your queries, scope transactions to the request, and send the client only what changed.',
-  what:`Three decisions that travel together. How queries are written: raw SQL, a builder such as gocraft/dbr, typed functions generated from SQL by sqlc, or a full ORM such as GORM. How transactions are scoped: opened by the handler, passed down as a runner, committed or rolled back in one deferred place. And how state returns to the client: a full snapshot every time, or a delta driven by which tables the request actually dirtied.`,
+  what:`Three decisions that travel together. How queries are written: raw SQL, a builder such as gocraft/dbr, typed functions generated from SQL by sqlc, or a full ORM such as GORM. How transactions are scoped: opened by the handler, passed down as a runner, committed or rolled back in one deferred place. And how state returns to the client: a full snapshot every time, or a delta driven by which tables the request dirtied.`,
   why:[`Query control is latency control. An ORM that chooses your joins will eventually choose your worst query, and you will meet it during an event.`,
     `Transaction scope decides correctness. If each interactor opens its own transaction, two interactors in one action can never be atomic together.`,
     `A live game writes across several schemas in one player action. Commit ordering and rollback have to be one rule, not a habit that varies per handler.`,
@@ -705,7 +705,7 @@ T('backend-data-access',{ d:'backend', t:'Transactions, query layers and delta s
     `Run the delta reload after the handler succeeds: reload exactly the dirty tables, plus whatever the client says it is missing by generation counter.`,
     `Read the generated SQL during review. If the query is invisible in the diff, the diff is not reviewable.`,
     `Keep a migration and the code that uses it in separate pull requests, so either can be rolled back without the other.`,
-    `Index for the query you actually run, then confirm with EXPLAIN against production-like row counts, not against a seeded test table.`],
+    `Index for the query you run, then confirm with EXPLAIN against production-like row counts, not against a seeded test table.`],
   ai:{ yes:[`Turn a described read into a query, then critique its index usage and predict the plan.`,
       `Find N+1 patterns and unbounded result sets across a package.`,
       `Draft the row struct to entity mapping and the repository method signatures.`,
@@ -727,12 +727,12 @@ T('backend-data-access',{ d:'backend', t:'Transactions, query layers and delta s
     ['backend-caching-redis','What you cache is decided by what these queries cost.'],
     ['server-state-sync','Delta sync on a request and state sync in a realtime session are the same problem at different tick rates.']],
   tech:[
-    {n:'SQL builder (gocraft/dbr and similar)', how:`Compose queries in Go through a fluent API that produces SQL you can print and read.`, fit:`Teams that want typed arguments while keeping the query visible in review.`, cost:`More code than an ORM, plus the builder's own quirks to learn.`, alt:`sqlc when the queries are static enough to live in .sql files.`},
+    {n:'SQL builder (gocraft/dbr and similar)', how:`Compose queries in Go through a fluent API that produces SQL you can print and read.`, fit:`Teams that want typed arguments while keeping the query visible in review.`, cost:`More code than an ORM, plus the builder’s own quirks to learn.`, alt:`sqlc when the queries are static enough to live in .sql files.`},
     {n:'Generated queries from SQL (sqlc)', how:`Write the SQL, generate typed Go functions and result structs from it at build time.`, fit:`Static query sets where the SQL itself is the artifact you want reviewed.`, cost:`Dynamic filters are awkward and end up hand written anyway.`, alt:`A builder for dynamic search, sqlc for everything else.`},
     {n:'Full ORM (GORM and similar)', how:`Map structs to tables with associations, hooks and generated queries.`, fit:`Admin tools and internal services where development speed beats query control.`, cost:`Hidden queries, surprising joins, and lazy loading that becomes N+1 under load.`, alt:`Use it for tooling and keep the player facing hot path explicit.`},
-    {n:'Generated repositories from a schema descriptor', how:`Describe each table once in a machine readable file and generate entities, repository interfaces and implementations from it.`, fit:`Many tables with uniform CRUD, where hand writing them is pure repetition.`, cost:`You now own a generator, and anything unusual fights it.`, alt:`Generate the boring majority, hand write the rest and keep it outside the generator's path.`}] });
+    {n:'Generated repositories from a schema descriptor', how:`Describe each table once in a machine readable file and generate entities, repository interfaces and implementations from it.`, fit:`Many tables with uniform CRUD, where hand writing them is pure repetition.`, cost:`You now own a generator, and anything unusual fights it.`, alt:`Generate the boring majority, hand write the rest and keep it outside the generator’s path.`}] });
 ENGINE('backend-data-access',{
-  godot:{ term:`The client's store is a dictionary of tables held in an autoload and persisted to user:// with FileAccess. A delta response replaces whole tables by name, so applying a response is a merge over keys rather than a field by field patch.`,
+  godot:{ term:`The client’s store is a dictionary of tables held in an autoload and persisted to user:// with FileAccess. A delta response replaces whole tables by name, so applying a response is a merge over keys rather than a field by field patch.`,
     api:['FileAccess.open("user://state.dat", FileAccess.WRITE)','FileAccess.store_var() / get_var()','var_to_bytes() / bytes_to_var()','DirAccess','ConfigFile','NOTIFICATION_APPLICATION_PAUSED'],
     snippet:`extends Node                          # autoload: Store
 var tables := {}                      # table name -> Array of rows
@@ -749,8 +749,8 @@ func flush() -> void:                 # called on pause, not on every apply
 \tif not _dirty: return
 \tFileAccess.open("user://state.dat", FileAccess.WRITE).store_var(tables)
 \t_dirty = false`,
-    pitfall:`Saving on every apply. store_var writes synchronously, so a busy screen stutters on a phone's storage. Mark the store dirty and flush on a timer or when the app is backgrounded, and write to a temporary file before replacing the real one.`,
-    map:`Godot user:// with store_var is Unity's Application.persistentDataPath with a binary writer.` },
+    pitfall:`Saving on every apply. store_var writes synchronously, so a busy screen stutters on a phone’s storage. Mark the store dirty and flush on a timer or when the app is backgrounded, and write to a temporary file before replacing the real one.`,
+    map:`Godot user:// with store_var is Unity’s Application.persistentDataPath with a binary writer.` },
   unity:{ term:`A local store keyed by table name, serialized into Application.persistentDataPath, plus the generation counter sent on every request so the server knows what this client is missing. PlayerPrefs is for settings, never for game state.`,
     api:['Application.persistentDataPath','File.WriteAllBytes / File.Replace','Dictionary<string, object> of tables','JsonUtility or Google.Protobuf serialization','OnApplicationPause / OnApplicationFocus','PlayerPrefs for settings only'],
     snippet:`public sealed class LocalStore {
@@ -812,7 +812,7 @@ INTERVIEW('backend-data-access',{
   ] });
 
 T('backend-caching-redis',{ d:'backend', t:'Caching tiers and Redis patterns', tag:'Three cache tiers answer three different questions, and Redis is three different tools wearing one name.',
-  what:`Where a read is answered from, and what Redis is actually doing in a game backend. The tiers: an in-process cache for data that is immutable between releases, a distributed cache such as memcached or Redis for player and shared state, and a per request memo cache that removes duplicate reads inside one handler. Redis earns its place separately through sorted sets for leaderboards, a lock manager for sequencing, and pub/sub for fan-out between instances.`,
+  what:`Where a read is answered from, and what Redis is doing in a game backend. The tiers: an in-process cache for data that is immutable between releases, a distributed cache such as memcached or Redis for player and shared state, and a per request memo cache that removes duplicate reads inside one handler. Redis earns its place separately through sorted sets for leaderboards, a lock manager for sequencing, and pub/sub for fan-out between instances.`,
   why:[`Master data is read on nearly every request and changes only at a release. Fetching it from a database is paying for a query whose answer is frozen.`,
     `A cache tier you cannot invalidate is a bug generator. Each tier needs an invalidation story before it is added, not after the first stale report.`,
     `Ranking is where the data structure beats the query. A sorted set gives rank and a page around a player in log time, where SQL gives you a scan and a window function.`,
@@ -839,7 +839,7 @@ T('backend-caching-redis',{ d:'backend', t:'Caching tiers and Redis patterns', t
     `In the distributed tier, cache the narrow thing the read wants rather than the whole aggregate, and invalidate on the write path inside the same transaction boundary.`,
     `Prevent stampedes with jittered expiry plus a single flight guard, so one goroutine fills the value and the rest wait on its result.`,
     `For leaderboards use a sorted set with an add-if-higher update, and pack a timestamp into the score or a secondary key so an earlier achiever outranks a later one at equal score.`,
-    `Give the lock manager a bounded retry and a lock TTL shorter than the request timeout, and release in a defer so a panic still frees it.`,
+    `Give the lock manager a bounded retry, make the work’s deadline shorter than the lock TTL so the lock cannot expire under a live request, and release in a defer so a panic still frees it.`,
     `Shard pub/sub channels across N connections by a hash of the channel name, and handle resubscribe on reconnect, or one hot room pins one connection.`,
     `Write down the degraded behaviour per cache: serve stale, fall through to the database, or fail. Undecided means it will be decided during an incident.`],
   ai:{ yes:[`Propose cache keys for a described read path, including every dimension the value depends on.`,
@@ -865,10 +865,10 @@ T('backend-caching-redis',{ d:'backend', t:'Caching tiers and Redis patterns', t
   tech:[
     {n:'In-process cache', how:`Hold immutable or slow changing data in a map inside the process, keyed by a version string.`, fit:`Master data, config, anything frozen between releases.`, cost:`One copy per instance, and no invalidation short of a deploy or a version bump.`, alt:`Distributed cache when the data changes while the process is running.`},
     {n:'Distributed cache (memcached or Redis)', how:`A shared store in front of the database, invalidated on the write path.`, fit:`Player state and hot shared reads across many instances.`, cost:`A network hop, a consistency story, and a new availability dependency.`, alt:`No cache at all until a measurement says the read is the problem.`},
-    {n:'Per request memo cache', how:`A small map on the request context, flushed when the response is written.`, fit:`Removing duplicate reads inside a handler that calls several interactors.`, cost:`Nothing, as long as it is genuinely flushed.`, alt:`Pass the loaded entity down as an argument when the call chain is short.`},
+    {n:'Per request memo cache', how:`A small map on the request context, flushed when the response is written.`, fit:`Removing duplicate reads inside a handler that calls several interactors.`, cost:`Nothing, as long as it is flushed.`, alt:`Pass the loaded entity down as an argument when the call chain is short.`},
     {n:'Redis sorted sets for ranking', how:`Score plus member, with add-if-higher, rank, range and range-by-score operations.`, fit:`Leaderboards, seasonal ladders, anything ordered and paged by rank.`, cost:`Memory grows with participants, and the tiebreak must be encoded into the score.`, alt:`A periodically materialized table when the ranking is allowed to be minutes stale.`}] });
 ENGINE('backend-caching-redis',{
-  godot:{ term:`Master data is downloaded once per version and cached in user://, keyed by the version string the server returns in a header. ResourceLoader's cache covers packed assets, but downloaded game data needs a keyed store you write yourself.`,
+  godot:{ term:`Master data is downloaded once per version and cached in user://, keyed by the version string the server returns in a header. ResourceLoader’s cache covers packed assets, but downloaded game data needs a keyed store you write yourself.`,
     api:['FileAccess.file_exists() / store_var() / get_var()','DirAccess.remove_absolute()','ResourceLoader.load() / has_cached()','HTTPRequest.download_file','user:// path','Time.get_unix_time_from_system()'],
     snippet:`func load_master(version: String) -> Dictionary:
 \tvar path := "user://master_%s.dat" % version
@@ -879,9 +879,9 @@ ENGINE('backend-caching-redis',{
 \tFileAccess.open(path, FileAccess.WRITE).store_var(data)
 \t_prune_other_versions(version)     # older versions died the moment this landed
 \treturn data`,
-    pitfall:`Caching master data under a fixed filename. A new release then reads the previous version's tables with the new client's code, and the mismatch surfaces as a missing item id rather than as a cache problem. Put the version in the key so a new release is a miss by construction.`,
-    map:`A version keyed file in user:// is the client's copy of the server's in-process master data cache, with the same invalidation rule.` },
-  unity:{ term:`Addressables with a remote catalog is the built-in version of this: the catalog hash decides whether a cached bundle is reused, and Caching.ClearCache is the escape hatch. Downloaded data tables follow the same rule, keyed by the master version header.`,
+    pitfall:`Caching master data under a fixed filename. A new release then reads the previous version’s tables with the new client’s code, and the mismatch surfaces as a missing item id rather than as a cache problem. Put the version in the key so a new release is a miss by construction.`,
+    map:`A version keyed file in user:// is the client’s copy of the server’s in-process master data cache, with the same invalidation rule.` },
+  unity:{ term:`Addressables with a remote catalogue is the built-in version of this: the catalogue hash decides whether a new catalogue is downloaded, and each bundle’s hash inside it decides whether a cached bundle is reused, and Caching.ClearCache is the escape hatch. Downloaded data tables follow the same rule, keyed by the master version header.`,
     api:['Addressables.LoadContentCatalogAsync()','Addressables.GetDownloadSizeAsync() / DownloadDependenciesAsync()','Caching.ClearCache()','Application.persistentDataPath','Dictionary in-memory tier','File.Exists / ReadAllBytes'],
     snippet:`public async Awaitable<MasterData> LoadAsync(string version, CancellationToken ct) {
     if (_memory.TryGetValue(version, out var hot)) return hot;            // tier 1: process
@@ -894,7 +894,7 @@ ENGINE('backend-caching-redis',{
     return _memory[version] = Parse(bytes);
 }`,
     pitfall:`Assuming the device has room. Addressables and a hand rolled cache fail differently when storage is full, and on mobile that is common. Check the download size before starting, and let a failed write fall back to the network instead of throwing on the next read.`,
-    map:`Unity Addressables catalog versioning is the same idea as keying a server side cache by the master data version.` },
+    map:`Unity Addressables catalogue versioning is the same idea as keying a server side cache by the master data version.` },
   note:`The server caches master data in process because it is immutable between releases. The client does exactly the same thing one tier further out, for the same reason. The shared rule is that the version string is part of the key, so a release invalidates everything without anyone writing invalidation code.` });
 INTERVIEW('backend-caching-redis',{
   junior:[
@@ -945,7 +945,7 @@ T('backend-migrations-config',{ d:'backend', t:'Schema migrations, configuration
     `Configuration decides behaviour, so a config difference between environments is a bug that exists only in production.`,
     `A credential in a repository is leaked the moment it is pushed. Rotation is the fix. Rewriting history is not.`],
   think:{ q:[`Can the current code run against the old schema, and the old code against the new one?`,
-      `How long will this lock the table at production row counts, on the engine version we actually run?`,
+      `How long will this lock the table at production row counts, on the engine version we run?`,
       `What is the rollback: a down migration, a restore, or a forward fix?`,
       `Which settings differ per environment, and where does that difference physically live?`,
       `If this credential leaked today, what would we do, and how long would it take?`],
@@ -992,10 +992,10 @@ T('backend-migrations-config',{ d:'backend', t:'Schema migrations, configuration
   tech:[
     {n:'Versioned migration files (goose, golang-migrate)', how:`Numbered up and down files applied in order, with applied versions recorded in the database.`, fit:`Almost every service. Simple, inspectable, reviewable.`, cost:`Down migrations are only real once tested, and two branches adding a migration collide on ordering.`, alt:`Declarative tools when the team would rather review the target state than the steps.`},
     {n:'Declarative schema diffing', how:`Describe the desired schema and let the tool compute the plan to reach it.`, fit:`Many similar tables with a generated schema description.`, cost:`The generated plan still needs review, and destructive steps need a human gate.`, alt:`Versioned files where the step itself carries meaning, such as a backfill.`},
-    {n:'Embedded configuration', how:`YAML compiled into the binary with go:embed, one block per environment, selected by an environment variable.`, fit:`Self contained deploys where a config change should be a reviewed build.`, cost:`Changing a value needs a rebuild, and blocks drift unless somebody diffs them.`, alt:`Environment variables for the few values that genuinely differ per host.`},
+    {n:'Embedded configuration', how:`YAML compiled into the binary with go:embed, one block per environment, selected by an environment variable.`, fit:`Self contained deploys where a config change should be a reviewed build.`, cost:`Changing a value needs a rebuild, and blocks drift unless somebody diffs them.`, alt:`Environment variables for the few values that differ per host.`},
     {n:'External secret store', how:`Secrets held by a dedicated service, injected at deploy time or fetched at boot with a short lived token.`, fit:`Anything with a credential, which is every service.`, cost:`A dependency at startup and a bootstrap credential of its own to manage.`, alt:`Environment variables injected by the deploy system, which is the minimum acceptable version.`}] });
 ENGINE('backend-migrations-config',{
-  godot:{ term:`The client's migration problem is the save file. Every persisted structure carries a version integer, and load runs the upgrade steps in order before the game sees the data. Environment settings live in an exported resource or a feature tag, and secrets live nowhere.`,
+  godot:{ term:`The client’s migration problem is the save file. Every persisted structure carries a version integer, and load runs the upgrade steps in order before the game sees the data. Environment settings live in an exported resource or a feature tag, and secrets live nowhere.`,
     api:['FileAccess.store_var() with a version field','ConfigFile.load() / set_value()','Resource with @export','ProjectSettings.get_setting()','OS.has_feature() export tags','DirAccess.copy_absolute() for the backup'],
     snippet:`const SAVE_VERSION := 4
 
@@ -1011,7 +1011,7 @@ func load_save() -> Dictionary:
 \tdata["version"] = SAVE_VERSION
 \treturn data`,
     pitfall:`Overwriting the save with the migrated version before the game has proved it can load it. If step three has a bug the original is already gone. Keep the pre-migration file until a session completes, and ship the migration one release before the code that requires it.`,
-    map:`The client's save version chain is the goose migration history with one user, no operator watching and no rollback window.` },
+    map:`The client’s save version chain is the goose migration history with one user, no operator watching and no rollback window.` },
   unity:{ term:`The same shape: a version field on the serialized root, upgrade steps run on load, and an environment config as a ScriptableObject asset selected per build. Secrets do not belong in a client build at all, because an installable package is a zip file.`,
     api:['[Serializable] root with a version field','JsonUtility.FromJson / ToJson','ScriptableObject config asset per environment','File.Replace for atomic writes','Application.version / Application.buildGUID','ISerializationCallbackReceiver'],
     snippet:`public static SaveRoot Load(byte[] raw) {
@@ -1025,7 +1025,7 @@ func load_save() -> Dictionary:
 // EnvConfig is a ScriptableObject: base url, log level, feature switches.
 // It never holds a credential. The client receives a session token and nothing else.`,
     pitfall:`Shipping an API key inside a ScriptableObject or a const string. Anyone can unpack the build and read it, every installed copy carries the same key, and rotating it breaks every player at once. The client gets a short lived session token from the server and never a service credential.`,
-    map:`A per environment ScriptableObject is the server's embedded YAML environment block, and the save version chain is its migration history.` },
+    map:`A per environment ScriptableObject is the server’s embedded YAML environment block, and the save version chain is its migration history.` },
   note:`The server migrates its schema once, in one place, with an operator watching. The client cannot: every device migrates itself, offline, once, with no rollback. That asymmetry is why client save formats grow additively and why a failed client migration must leave the previous file intact.` });
 INTERVIEW('backend-migrations-config',{
   junior:[
@@ -1034,7 +1034,7 @@ INTERVIEW('backend-migrations-config',{
       follow:`Which goes first for an added column, and which for a dropped one?`,
       red:`Bundles schema and code and assumes both revert together.` },
     { q:`What is expand and contract?`,
-      a:`Add the new shape, write to both, backfill, switch reads, then drop the old shape in a later release. Three deploys instead of one, and at no point is a running build looking at a shape it does not understand. Say when you would skip it: a genuinely additive nullable column.`,
+      a:`Add the new shape, write to both, backfill, switch reads, then drop the old shape in a later release. Three deploys instead of one, and at no point is a running build looking at a shape it does not understand. Say when you would skip it: a additive nullable column.`,
       follow:`Where in that sequence is it safe to roll back the code?`,
       red:`Renames a column in one step and does not see the problem.` },
     { q:`Where do database credentials live?`,
@@ -1075,7 +1075,7 @@ T('backend-observability',{ d:'backend', t:'Logging, tracing, profiling and acti
     `Instrumentation that is not on by default does not exist during an incident. A profiler you have to deploy to enable arrives an hour late.`],
   think:{ q:[`If this endpoint got slow right now, what would I ask first, and can I answer it today?`,
       `Which fields must be on every line for logs to be joinable: request id, player, endpoint, code?`,
-      `What is this stream's retention, and who actually reads it?`,
+      `What is this stream’s retention, and who reads it?`,
       `Is anything identifying in this event, and should it be hashed before it is written?`,
       `What does this instrumentation cost, in bytes, in latency and per month?`],
     trade:[`More spans give a sharper picture and cost latency and money. Sampling saves both and loses the rare slow request, which is the one you wanted.`,
@@ -1122,9 +1122,9 @@ T('backend-observability',{ d:'backend', t:'Logging, tracing, profiling and acti
     {n:'Structured logging (slog, zap, logrus)', how:`Key value fields on every line, emitted as JSON or a structured text format, with a level per stream.`, fit:`Any service that will ever be queried by a log tool.`, cost:`Noisier call sites and a field naming convention somebody has to maintain.`, alt:`slog from the standard library when you do not need the extras, since it is one fewer dependency.`},
     {n:'Distributed tracing (OpenTelemetry or a vendor APM)', how:`Spans per unit of work, propagated on the context, aggregated into a waterfall per transaction.`, fit:`Anything with more than one hop, which includes a database and a cache.`, cost:`Latency per span, storage, sampling decisions, and lock-in unless abstracted.`, alt:`Manual timing on a handful of endpoints while the service is still small.`},
     {n:'Profiling endpoints (net/http/pprof)', how:`Expose profile endpoints and pull CPU, heap and goroutine profiles from live instances.`, fit:`Memory growth, CPU spikes, goroutine leaks, everything a trace cannot show.`, cost:`An admin surface that must be protected, and a small overhead while profiling.`, alt:`Local benchmarking when the problem reproduces off production.`},
-    {n:'Generated analytics event stream', how:`One generated type per game event written to an append only stream, with identifying fields hashed at the write site.`, fit:`Live games where design decisions depend on what players actually did.`, cost:`Schema governance, volume cost, and a privacy review per field.`, alt:`Querying the operational database, which works until the query load becomes the problem.`}] });
+    {n:'Generated analytics event stream', how:`One generated type per game event written to an append only stream, with identifying fields hashed at the write site.`, fit:`Live games where design decisions depend on what players did.`, cost:`Schema governance, volume cost, and a privacy review per field.`, alt:`Querying the operational database, which works until the query load becomes the problem.`}] });
 ENGINE('backend-observability',{
-  godot:{ term:`The client's telemetry is a small autoload that batches structured events and posts the things the server cannot see: screen entries, failed requests, and frame time on the device the player actually owns.`,
+  godot:{ term:`The client’s telemetry is a small autoload that batches structured events and posts the things the server cannot see: screen entries, failed requests, and frame time on the device the player owns.`,
     api:['print_debug() / push_warning() / push_error()','Performance.get_monitor(Performance.TIME_FPS)','OS.get_model_name() / OS.get_name()','OS.is_debug_build()','Time.get_unix_time_from_system()','FileAccess for a local log file'],
     snippet:`extends Node                        # autoload: Telemetry
 
@@ -1140,7 +1140,7 @@ func event(name: String, fields: Dictionary = {}) -> void:
 \tif _buffer.size() >= 50:
 \t\t_flush()                            # batched, never one request per event`,
     pitfall:`Leaving print() calls in a release build. The string formatting and the operating system write still happen on every call, and on a phone that shows up as a frame spike in exactly the busy scene you were instrumenting. Gate verbose logging behind OS.is_debug_build().`,
-    map:`A Godot telemetry autoload is Unity's log callback plus a batching event sender, and both are the client end of the server's action log stream.` },
+    map:`A Godot telemetry autoload is Unity’s log callback plus a batching event sender, and both are the client end of the server’s action log stream.` },
   unity:{ term:`Unity gives you a log callback that fires for every Debug.Log and every unhandled exception, from whichever thread logged it. That hook, plus a batching event sender and the Profiler counters, is the client half of observability.`,
     api:['Application.logMessageReceivedThreaded','Debug.LogError / Debug.LogException','UnityEngine.Profiling.Profiler.BeginSample()','SystemInfo.deviceModel / graphicsDeviceName','Time.unscaledDeltaTime','Application.persistentDataPath for a local log'],
     snippet:`void OnEnable()  => Application.logMessageReceivedThreaded += OnLog;
@@ -1156,8 +1156,8 @@ void OnLog(string message, string stack, LogType type) {
     });
 }`,
     pitfall:`Calling Unity API inside the threaded log callback. It runs on whichever thread logged, so touching SystemInfo, a GameObject or PlayerPrefs there throws or corrupts state, and the crash you were trying to report becomes a second crash.`,
-    map:`Application.logMessageReceivedThreaded is the client's error log stream, and the request id field is what joins it to the server's.` },
-  note:`Half of any production incident lives on the client. Putting the server's request id into the client's crash report, and the client's session id into the server's log, is what lets one query answer what the player saw and what the service did, instead of two teams comparing timestamps.` });
+    map:`Application.logMessageReceivedThreaded is the client’s error log stream, and the request id field is what joins it to the server’s.` },
+  note:`Half of any production incident lives on the client. Putting the server’s request id into the client’s crash report, and the client’s session id into the server’s log, is what lets one query answer what the player saw and what the service did, instead of two teams comparing timestamps.` });
 INTERVIEW('backend-observability',{
   junior:[
     { q:`Logs, traces and profiles. What question does each answer?`,
@@ -1193,9 +1193,9 @@ INTERVIEW('backend-observability',{
       follow:`How would you keep the rare slow requests while still sampling?`,
       red:`Instruments everything and has never measured the overhead.` },
     { q:`A player reports something the server logs do not show. How do you close that gap?`,
-      a:`Correlate the two sides: the server's request id inside the client's crash and event reports, the client's session id inside the server log. Half of any production incident lives on the client, and without a shared id the investigation is two teams comparing timestamps.`,
+      a:`Correlate the two sides: the server’s request id inside the client’s crash and event reports, the client’s session id inside the server log. Half of any production incident lives on the client, and without a shared id the investigation is two teams comparing timestamps.`,
       follow:`The client is offline when it fails. How does the report ever reach you?`,
-      red:`Treats client telemetry as somebody else's problem.` }
+      red:`Treats client telemetry as somebody else’s problem.` }
   ] });
 
 T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Three tiers answer three questions, and every expected value is derived independently rather than pasted from a run.',
@@ -1224,7 +1224,7 @@ T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Th
   how:[`Keep pure logic in packages with no infrastructure imports and test it with table driven tests. This tier should be enormous and instant.`,
     `Generate mocks selectively from a config file with an include pattern, so you get the one mock you need on demand instead of a directory of thousands.`,
     `Build integration tests through the same dependency graph the service uses, flush caches during setup, and register cleanup with t.Cleanup so a failure still closes the pool.`,
-    `Derive every expected value independently, from master data, the specification, or arithmetic written into the test. Never from a previous run's output.`,
+    `Derive every expected value independently, from master data, the specification, or arithmetic written into the test. Never from a previous run’s output.`,
     `Make setup failure fail the test. A missing container is red, not skipped.`,
     `Write the failing test first for a bug fix, and keep the red and green log tails in the pull request body as evidence.`,
     `Run the linter through the same command CI runs, with an explicit enabled check list rather than defaults, so a local pass and a CI pass mean the same thing.`,
@@ -1241,7 +1241,7 @@ T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Th
   verify:[`Did it derive the expected values, or read them out of the implementation you pasted?`,
     `Does every generated case have a distinct reason to exist, or are ten of them one case with different numbers?`,
     `Does the flake fix remove the nondeterminism, or hide it behind a retry?`],
-  test:[`Delete a line of a rule and confirm a test goes red. A suite that stays green does not actually test that rule.`,
+  test:[`Delete a line of a rule and confirm a test goes red. A suite that stays green does not test that rule.`,
     `Measure wall time per tier. If the fast tier is not fast, people stop running it and the pyramid inverts.`,
     `Count how often a red end to end run turns out to be a real bug. Below about half, the suite is training the team to ignore it.`],
   rel:[['playtesting','A suite and a playtest answer different questions, and neither one covers the other.'],
@@ -1251,11 +1251,11 @@ T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Th
     ['lead-code-review','Red before and green after in the pull request body is a review convention before it is a testing one.']],
   tech:[
     {n:'Generated mocks (mockery with testify)', how:`Generate a mock per interface from a config file, then assert calls and returns in the test.`, fit:`Interactor tests where the point is that the rule asked for the right things.`, cost:`Mocks drift from the real implementation, and over-asserted call expectations make refactoring painful.`, alt:`A hand written fake with real behaviour when the interface is small and used everywhere.`},
-    {n:'Real dependencies in containers', how:`Start a real database and cache for the run, build the real graph, clean state between tests.`, fit:`Query validity, index usage, transaction behaviour, anything a mock cannot lie about.`, cost:`Slower, needs container infrastructure locally and in CI, and strict cleanup discipline.`, alt:`An in-memory implementation when the store is genuinely simple, which a SQL database is not.`},
+    {n:'Real dependencies in containers', how:`Start a real database and cache for the run, build the real graph, clean state between tests.`, fit:`Query validity, index usage, transaction behaviour, anything a mock cannot lie about.`, cost:`Slower, needs container infrastructure locally and in CI, and strict cleanup discipline.`, alt:`An in-memory implementation when the store is simple, which a SQL database is not.`},
     {n:'Golden file comparison', how:`Freeze a known good output and diff every future run against it.`, fit:`Deterministic simulation, serialization formats, generated code.`, cost:`Regenerating on every difference destroys the signal, so regeneration needs a deliberate gate.`, alt:`Property based assertions when the shape matters more than the exact bytes.`},
-    {n:'End to end suite against a running binary', how:`A separate suite speaking the real protocol to a booted server with generated clients.`, fit:`Protocol compatibility, middleware behaviour, and the flows a player actually performs.`, cost:`Slow, order sensitive, and the most expensive tier to keep trustworthy.`, alt:`Handler level integration tests for most of it, end to end only for flows crossing process roles.`}] });
+    {n:'End to end suite against a running binary', how:`A separate suite speaking the real protocol to a booted server with generated clients.`, fit:`Protocol compatibility, middleware behaviour, and the flows a player performs.`, cost:`Slow, order sensitive, and the most expensive tier to keep trustworthy.`, alt:`Handler level integration tests for most of it, end to end only for flows crossing process roles.`}] });
 ENGINE('backend-testing',{
-  godot:{ term:`Godot ships no official test framework, so teams use GUT or gdUnit4 and run them headless from the command line in CI. The structure is the same as the server's: pure logic tested directly, gateways replaced by a stub, scene tests only where the tree is the thing under test.`,
+  godot:{ term:`Godot ships no official test framework, so teams use GUT or gdUnit4 and run them headless from the command line in CI. The structure is the same as the server’s: pure logic tested directly, gateways replaced by a stub, scene tests only where the tree is the thing under test.`,
     api:['godot --headless --script for the CI entry point','GUT or gdUnit4 test scripts','assert_eq / assert_true','RefCounted doubles injected through _init','var_to_bytes() for fixtures','SceneTree.create_timer() for time control'],
     snippet:`extends GutTest
 
@@ -1289,7 +1289,7 @@ func test_gateway_maps_rows_to_player() -> void:
 }`,
     pitfall:`Keeping the rules in Assembly-CSharp and then testing them from PlayMode. Every run boots the player loop and loads a scene, so a hundred rule tests take minutes and nobody runs them before pushing. The asmdef split is what makes the fast tier fast.`,
     map:`Unity EditMode tests are Go unit tests, PlayMode tests are the integration tier, and the protocol suite is the end to end tier on both sides.` },
-  note:`Both clients face the server's integrity rule in a sharper form. A test whose expected value came from a recorded server response tests the recording, not the rule. Derive it from master data or from the specification, and keep a fake gateway a designer can point at a scenario file.` });
+  note:`Both clients face the server’s integrity rule in a sharper form. A test whose expected value came from a recorded server response tests the recording, not the rule. Derive it from master data or from the specification, and keep a fake gateway a designer can point at a scenario file.` });
 INTERVIEW('backend-testing',{
   junior:[
     { q:`What are the tiers of your suite and what does each prove?`,
@@ -1297,7 +1297,7 @@ INTERVIEW('backend-testing',{
       follow:`Which tier catches a missing index, and which would miss it entirely?`,
       red:`Offers a coverage percentage as the measure of a suite.` },
     { q:`Where should an expected value in a test come from?`,
-      a:`From master data, from the specification, or from arithmetic written into the test. Never from a previous run's output. A pasted expectation asserts only that the code still does what it did, bug included.`,
+      a:`From master data, from the specification, or from arithmetic written into the test. Never from a previous run’s output. A pasted expectation asserts only that the code still does what it did, bug included.`,
       follow:`You are testing a formula with fifteen inputs. Do you still derive by hand?`,
       red:`Runs the code, copies the output into the assertion and calls it a regression test.` },
     { q:`A test cannot start because a container is missing. Skip or fail?`,
@@ -1311,7 +1311,7 @@ INTERVIEW('backend-testing',{
       follow:`Your mocks are over-specified and every refactor breaks them. What went wrong?`,
       red:`Mocks everything, including the thing under test.` },
     { q:`A previously green test goes red after your change. What is your default assumption?`,
-      a:`That the change is wrong. Investigate the behaviour before touching the test, because weakening an assertion is deleting the test slowly. Name the one legitimate case: the test encoded the old intended behaviour and the intent genuinely changed, which belongs in the pull request body.`,
+      a:`That the change is wrong. Investigate the behaviour before touching the test, because weakening an assertion is deleting the test slowly. Name the one legitimate case: the test encoded the old intended behaviour and the intent changed, which belongs in the pull request body.`,
       follow:`How do you tell that case apart from a rationalization?`,
       red:`Adjusts the assertion first and investigates if there is time left.` },
     { q:`How do you kill a flaky test?`,
@@ -1331,11 +1331,11 @@ INTERVIEW('backend-testing',{
   ] });
 
 T('backend-go-idioms',{ d:'backend', t:'Go concurrency, lifecycle and module hygiene', tag:'Context first, errors wrapped, goroutines owned, shutdown deliberate. The idioms are what keep a large Go service readable.',
-  what:`The Go specific habits that decide whether a service stays maintainable at size: context.Context as the first parameter on anything doing I/O, error wrapping matched with errors.Is and errors.As, one owner and one exit path per goroutine, explicit server timeouts, cleanup in reverse construction order at shutdown, generics kept to genuinely repeated shapes, and dependency hygiene enforced by a linter instead of by review comments.`,
+  what:`The Go specific habits that decide whether a service stays maintainable at size: context.Context as the first parameter on anything doing I/O, error wrapping matched with errors.Is and errors.As, one owner and one exit path per goroutine, explicit server timeouts, cleanup in reverse construction order at shutdown, generics kept to repeated shapes, and dependency hygiene enforced by a linter instead of by review comments.`,
   why:[`Goroutines with no owner are the leak class Go is known for. Every goroutine needs a reason to exit and something that waits for it.`,
     `A default HTTP server has no read, write or idle timeout, so one slow client can hold a connection indefinitely. The security linter flags it because it is a real availability bug.`,
     `Shutdown order decides whether in-flight requests finish. Cancel, stop accepting, drain, then close pools in reverse order of construction.`,
-    `Dependency creep is invisible until an audit. An import allow list turns "should we add this library" into a conversation at the moment it happens rather than a year later.`],
+    `Dependency creep is invisible until an audit. An import allow list turns “should we add this library” into a conversation at the moment it happens rather than a year later.`],
   think:{ q:[`Who owns this goroutine, how does it learn to stop, and who waits for it?`,
       `Does this function need a context, or am I passing one because everything else does?`,
       `Is this a mutex problem or a channel problem: shared state, or handing ownership over?`,
@@ -1346,14 +1346,14 @@ T('backend-go-idioms',{ d:'backend', t:'Go concurrency, lifecycle and module hyg
     traps:[`Starting a goroutine inside a constructor, so a test that merely builds the object leaks one.`,
       `Ignoring the error from a deferred Close, which is exactly what errcheck exists to catch.`,
       `Calling WaitGroup Add inside the goroutine instead of before starting it, which races with Wait.`,
-      `time.After inside a select loop, which allocates a timer per iteration that survives until it fires.`,
+      `time.After inside a hot select loop, which allocates a new timer every iteration and, in modules older than Go 1.23, keeps each one alive until it fires. Reuse one time.Timer and Reset it.`,
       `Package level state that makes two tests in the same package interfere.`,
       `Accepting a context and then never checking it, which looks idiomatic and cancels nothing.`],
     good:[`Every long lived goroutine is started by something that can also stop it.`,
       `Shutdown is one function, and it has a test.`],
     bad:[`The goroutine count climbs steadily across a day and nobody can name the source.`,
       `A deploy drops in-flight requests and the team has started calling that normal.`] },
-  how:[`Take context.Context as the first parameter on anything that does I/O, and actually honour cancellation rather than accepting the parameter and ignoring it.`,
+  how:[`Take context.Context as the first parameter on anything that does I/O, and honour cancellation rather than accepting the parameter and ignoring it.`,
     `Create the root context in main with context.WithCancel, defer cancel, and pass it into every subsystem so one signal stops the whole process.`,
     `Construct HTTP servers explicitly with ReadTimeout, ReadHeaderTimeout, WriteTimeout and IdleTimeout set. Never serve from a default server value.`,
     `Pair every goroutine with its exit: a context, a done channel, or a WaitGroup the caller waits on. One goroutine per connection with a deferred close is the readable version.`,
@@ -1387,7 +1387,7 @@ T('backend-go-idioms',{ d:'backend', t:'Go concurrency, lifecycle and module hyg
     {n:'Mutex around shared state', how:`sync.Mutex or RWMutex guarding a structure several goroutines read and write.`, fit:`A matchmaking ticket list, a subscriber set, any small shared collection.`, cost:`Lock scope bugs, and contention under read heavy load if you pick the wrong one.`, alt:`Hand ownership over a channel when the data does not need to be shared at all.`},
     {n:'Generics for utility shapes', how:`Constraint based helpers over numeric or comparable types, written once and used everywhere.`, fit:`Clamp, min and max, slice utilities, weighted selection, chunking.`, cost:`Harder signatures, worse error messages, and a standing temptation to genericize business rules.`, alt:`Concrete versions for the first two call sites. Reach for a generic at the third.`}] });
 ENGINE('backend-go-idioms',{
-  godot:{ term:`Godot's concurrency is coroutines over signals plus explicit threads. await suspends a function until a signal fires, WorkerThreadPool runs real work off the main thread, and anything touching the scene tree from a thread has to go back through call_deferred.`,
+  godot:{ term:`Godot’s concurrency is coroutines over signals plus explicit threads. await suspends a function until a signal fires, WorkerThreadPool runs real work off the main thread, and anything touching the scene tree from a thread has to go back through call_deferred.`,
     api:['await signal / await get_tree().create_timer()','WorkerThreadPool.add_task() / wait_for_task_completion()','Thread and Mutex','Object.call_deferred()','is_instance_valid()','Node.queue_free()'],
     snippet:`var _cancelled := false
 
@@ -1400,9 +1400,9 @@ func load_and_show(path: String) -> void:
 
 func _exit_tree() -> void:
 \t_cancelled = true                               # the only way the task learns to stop`,
-    pitfall:`Awaiting a signal on a node that is freed while you are suspended. Execution resumes on a freed object and the error points at the resume site, nowhere near the cause. Check is_instance_valid after any await that can outlive the node.`,
+    pitfall:`Awaiting across a point where a node can be freed. If the awaiting node is freed, Godot 4 drops the rest of the function with a “class instance is gone” error, so cleanup written after the await never runs; if another node used after the await was freed, touching it errors. Check is_instance_valid on those other objects, and never put required cleanup after an await.`,
     map:`Godot await on a signal is Go receiving on a channel, and is_instance_valid after an await is checking whether the context was cancelled while you were blocked.` },
-  unity:{ term:`Unity 6 gives you Awaitable for main thread friendly async and destroyCancellationToken on every MonoBehaviour, so an await that outlives its object is cancelled rather than resuming into a destroyed reference. UniTask is the established alternative with allocation free awaiters.`,
+  unity:{ term:`Unity 6 gives you Awaitable for main thread friendly async and destroyCancellationToken on every MonoBehaviour, so an await you pass it to is cancelled when the object is destroyed instead of resuming into a destroyed reference; an await without the token is not cancelled at all. UniTask is the established alternative with allocation free awaiters.`,
     api:['Awaitable / Awaitable.MainThreadAsync() / NextFrameAsync()','MonoBehaviour.destroyCancellationToken','CancellationTokenSource.CreateLinkedTokenSource()','UniTask and UniTask.WhenAll','Task.Run for genuine background work','CancellationToken.ThrowIfCancellationRequested()'],
     snippet:`async Awaitable LoadAndShow(string path) {
     var ct = destroyCancellationToken;              // cancelled when this object dies
@@ -1415,7 +1415,7 @@ func _exit_tree() -> void:
 // Never async void here. An exception inside async void cannot be caught by the
 // caller, so the failure vanishes and the screen sits on a spinner forever.`,
     pitfall:`Using async void for anything but an event handler. The exception cannot be observed by the caller, so a failed request disappears with no log and no dialog, and the only symptom is a loading spinner that never ends.`,
-    map:`destroyCancellationToken is Go's request context, and Awaitable.MainThreadAsync is posting a result back to the goroutine that owns the state.` },
+    map:`destroyCancellationToken is Go’s request context, and Awaitable.MainThreadAsync is posting a result back to the goroutine that owns the state.` },
   note:`Both sides solve goroutine ownership with different vocabulary. The server asks who waits for this goroutine, the client asks what cancels this await when the screen closes. A leaked coroutine on a phone shows up as a frozen UI rather than a climbing goroutine count, which makes it harder to see and no less common.` });
 INTERVIEW('backend-go-idioms',{
   junior:[
@@ -1442,7 +1442,7 @@ INTERVIEW('backend-go-idioms',{
       follow:`Something refuses to drain within the deadline. What then?`,
       red:`Relies on the process exiting and calls that shutdown.` },
     { q:`Mutex or channel for shared state?`,
-      a:`Mutex when the data is genuinely shared and small, such as a ticket list or a subscriber set. Channel when ownership moves from one goroutine to another. Mention RWMutex for read heavy access, and the trap of holding a lock across a call that blocks.`,
+      a:`Mutex when the data is shared and small, such as a ticket list or a subscriber set. Channel when ownership moves from one goroutine to another. Mention RWMutex for read heavy access, and the trap of holding a lock across a call that blocks.`,
       follow:`You hold a lock and call a repository method inside it. What is the risk?`,
       red:`Quotes the share-by-communicating slogan with no sense of when a mutex is simply simpler.` }
   ],

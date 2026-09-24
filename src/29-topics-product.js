@@ -4,30 +4,30 @@
    and interview (INTERVIEW).
    ===================================================================== */
 DOMAINS.push({ id:'product', lens:'design', t:'Product', short:'Audience, platform, model, positioning, scope', color:'var(--d-product)',
-    sum:`Who will actually pick this up, on what device, for how long, and why yours instead of the thousand others. Product thinking keeps design honest about scope and about what makes the game distinct.`,
-    links:[['player','Audience is the player model seen through a market lens.'],['production','Scope, platform and business model set every production constraint.'],['systems','Session length and monetization shape economy and progression.'],['experience','Positioning is a promise about the experience. The game must keep it.']] });
+    sum:`Who will pick this up, on what device, for how long, and why yours instead of the thousand others. Product thinking keeps design honest about scope and about what makes the game distinct.`,
+    links:[['player','Audience is the player model seen through a market lens.'],['production','Scope, platform and business model set every production constraint.'],['systems','Session length and monetisation shape economy and progression.'],['experience','Positioning is a promise about the experience. The game must keep it.']] });
 
 T('audience-and-positioning',{ d:'product', t:'Audience, positioning and differentiation', tag:'Why yours, instead of the thousand others? Answer in one sentence or you do not know yet.',
-  what:`The market-facing statement of the player and the promise: who the game is for, what it does that the alternatives do not, and how a stranger would recognize that in ten seconds. Positioning is the fantasy plus the differentiator, stated for someone who has not played.`,
+  what:`The market-facing statement of the player and the promise: who the game is for, what it does that the alternatives do not, and how a stranger would recognise that in ten seconds. Positioning is the fantasy plus the differentiator, stated for someone who has not played.`,
   why:[`Discovery is the main failure mode of finished games. A game nobody can describe is a game nobody recommends.`,`Positioning is the scope filter seen from outside: features that do not sharpen the sentence dilute the product.`,`A differentiator that is invisible in the first ten seconds of a trailer or the first ten minutes of play does not exist for the market.`],
-  think:{ q:[`Complete: "For [PLAYER] who [WANTS], this is the game that [DIFFERENTIATOR], unlike [ALTERNATIVES]."`,`Is the differentiator visible in a screenshot? A trailer? The first ten minutes?`,`Which existing games will I be compared to? What do their players complain about?`,`Is the differentiator a feature or an experience? Experiences travel further by word of mouth.`],
+  think:{ q:[`Complete: “For [PLAYER] who [WANTS], this is the game that [DIFFERENTIATOR], unlike [ALTERNATIVES].”`,`Is the differentiator visible in a screenshot? A trailer? The first ten minutes?`,`Which existing games will I be compared to? What do their players complain about?`,`Is the differentiator a feature or an experience? Experiences travel further by word of mouth.`],
     trade:[`Sharp positioning attracts a niche strongly and excludes the rest.`,`Genre-standard positioning is safe to explain and easy to ignore.`],
-    traps:[`"It is X meets Y" where the meeting point is not the experience.`,`Differentiating on features the player only meets after ten hours.`,`Positioning written by marketing after the design is fixed.`],
+    traps:[`“It is X meets Y” where the meeting point is not the experience.`,`Differentiating on features the player only meets after ten hours.`,`Positioning written by marketing after the design is fixed.`],
     good:[`Playtesters describe the game the way the positioning does, without seeing it.`,`Strangers ask the right question after seeing one screenshot.`],
     bad:[`Every description starts with the genre and ends with a feature list.`] },
   how:[`Write the positioning sentence. Test it on strangers: what do they expect? Compare with the game.`,`Check the differentiator is in the first ten minutes of play and in one screenshot.`,`Mine the complaints about comparable games for a differentiator players already want.`,`Use the sentence as a gate: features that do not sharpen it wait.`],
   ai:{ yes:[`Generate positioning candidates from the fantasy and comparable games.`,`Mine reviews of comparables for unmet wants.`,`Check a feature list against the positioning and flag dilution.`],
        no:[`Choose the positioning. It is strategy.`,`Estimate market size with confidence it does not have.`] },
-  prompts:[{l:'Positioning stress test',p:`Our positioning is: "[SENTENCE]". Comparable games: [LIST]. Act as a skeptical publisher. Is the differentiator visible in a screenshot and in the first 10 minutes of the described flow ([FLOW])? Which comparable already delivers it? What would a player of each comparable say when they hear the sentence? Propose 3 sharper alternatives grounded in what players of the comparables complain about, and state what each alternative would force us to cut.`}],
+  prompts:[{l:'Positioning stress test',p:`Our positioning is: “[SENTENCE]”. Comparable games: [LIST]. Act as a sceptical publisher. Is the differentiator visible in a screenshot and in the first 10 minutes of the described flow ([FLOW])? Which comparable already delivers it? What would a player of each comparable say when they hear the sentence? Propose 3 sharper alternatives grounded in what players of the comparables complain about, and state what each alternative would force us to cut.`}],
   verify:[`Did it flatter the positioning or test it?`,`Are the complaints it cites real and sourced, or plausible inventions?`],
   test:[`Show strangers one screenshot and the sentence. Ask what they expect. Compare.`,`After a first session, ask testers to describe the game to a friend. Compare with the sentence.`],
   rel:[['who-is-the-player','Positioning is the player model for the market.'],['core-experience','The promise must match the experience.'],['platform-and-session','Where and how long they play is part of who they are.'],['scope-control','Positioning is the external scope filter.'],['business-model','Model and positioning must agree.']] });
 TECH('audience-and-positioning',[
   {n:'Positioning sentence', how:`For [player] who [want], this is the game where you [verb] …, unlike [comparables].`, fit:`A testable promise and a marketing line.`, cost:`Vague positioning hides a vague game.`, alt:`Test it on strangers. Count questions and wish-to-play.`},
-  {n:'Comparison set and differentiation', how:`Name the games you will be judged against and the visible reason to pick yours.`, fit:`Making differentiation explicit.`, cost:`"Like X but better" is not differentiation.`, alt:`Use Reference Dissection.`}
+  {n:'Comparison set and differentiation', how:`Name the games you will be judged against and the visible reason to pick yours.`, fit:`Making differentiation explicit.`, cost:`“Like X but better” is not differentiation.`, alt:`Use Reference Dissection.`}
 ]);
 ENGINE('audience-and-positioning',{
-  godot:{ term:`The claim gets tested against frames the build actually produced. A capture key writes the viewport to a PNG in user://, and an export preset feature tag marks the ten-minute slice you show strangers.`,
+  godot:{ term:`The claim gets tested against frames the build produced. A capture key writes the viewport to a PNG in user://, and an export preset feature tag marks the ten-minute slice you show strangers.`,
     api:['Viewport.get_texture().get_image()','Image.save_png()','RenderingServer.frame_post_draw','OS.has_feature() + export preset custom features','OS.get_user_data_dir()','Time.get_ticks_msec()'],
     snippet:`extends Node                                   # capture the differentiator from the build
 
@@ -41,7 +41,7 @@ func _shot() -> void:
 \timg.save_png("user://capsule_%d.png" % Time.get_ticks_msec())`,
     pitfall:`Grabbing the viewport texture in the same frame you asked for it. The GPU has not finished drawing, so you get a black image or the previous frame, and the screenshot you take to the positioning test shows the wrong moment. Await RenderingServer.frame_post_draw first.`,
     map:`Godot viewport capture plus export feature tags is Unity ScreenCapture plus scripting define symbols.` },
-  unity:{ term:`ScreenCapture at end of frame for the capsule candidates, and a build profile with its own define for the slice you put in front of strangers. Both come from a player build, not the editor's game view.`,
+  unity:{ term:`ScreenCapture at end of frame for the capsule candidates, and a build profile with its own define for the slice you put in front of strangers. Both come from a player build, not the editor’s game view.`,
     api:['ScreenCapture.CaptureScreenshotAsTexture() / CaptureScreenshot()','WaitForEndOfFrame','Texture2D.EncodeToPNG()','Application.persistentDataPath','Scripting Define Symbols / BuildProfile','Screen.SetResolution()'],
     snippet:`public class CapsuleCapture : MonoBehaviour {
     IEnumerator Shot() {
@@ -70,9 +70,9 @@ INTERVIEW('audience-and-positioning',{
       follow:`Give an example of each from games you play.`,
       red:`Names a bullet from the store page and calls it positioning.` },
     { q:`What can you learn from the complaints about comparable games?`,
-      a:`They show wants the audience has that nothing currently serves, which is a differentiator someone has already demonstrated demand for. Read reviews and forums for the recurring ones rather than the loudest ones. Then check whether answering that complaint is something your design can actually do.`,
-      follow:`How do you tell a genuine unmet want from a vocal minority's preference?`,
-      red:`Treats their own dislikes as the market's complaints.` }
+      a:`They show wants the audience has that nothing currently serves, which is a differentiator someone has already demonstrated demand for. Read reviews and forums for the recurring ones rather than the loudest ones. Then check whether answering that complaint is something your design can do.`,
+      follow:`How do you tell a genuine unmet want from a vocal minority’s preference?`,
+      red:`Treats their own dislikes as the market’s complaints.` }
   ],
   mid:[
     { q:`Your differentiator only becomes visible after ten hours. What do you do?`,
@@ -90,11 +90,11 @@ INTERVIEW('audience-and-positioning',{
   ],
   senior:[
     { q:`A publisher wants the positioning widened to reach more players. How do you respond?`,
-      a:`Explain what sharp positioning buys: a niche that recommends you and a sentence people can repeat. Widening usually means the differentiator stops being visible, which is the failure mode that actually kills games. Bring the stranger test results, offer a version that widens the audience without softening the hook, and be clear about what you would cut instead.`,
+      a:`Explain what sharp positioning buys: a niche that recommends you and a sentence people can repeat. Widening usually means the differentiator stops being visible, which is the failure mode that kills games. Bring the stranger test results, offer a version that widens the audience without softening the hook, and be clear about what you would cut instead.`,
       follow:`They control the funding and they are not persuaded. What do you do?`,
       red:`Widens the sentence on request and stops testing it.` },
     { q:`Three years in, a comparable ships your differentiator. Now what?`,
-      a:`Re-dissect it and find what they actually delivered versus what they announced, because the gap is usually the opportunity. Look at the complaints their version generates and position against those. If nothing remains, say so early rather than shipping into a space someone else owns, and name what would have to change for the project to still make sense.`,
+      a:`Re-dissect it and find what they delivered versus what they announced, because the gap is usually the opportunity. Look at the complaints their version generates and position against those. If nothing remains, say so early rather than shipping into a space someone else owns, and name what would have to change for the project to still make sense.`,
       follow:`What evidence would make you recommend cancelling?`,
       red:`Adds more features to out-scope the competitor.` }
   ] });
@@ -106,7 +106,7 @@ T('platform-and-session',{ d:'product', t:'Platform, session length and context'
     trade:[`Designing for the smallest session includes more contexts and caps depth per session.`,`Multi-platform reach widens the audience and forces lowest-common-denominator input and readability.`],
     traps:[`Testing on a monitor, shipping on a phone.`,`Sessions that only end at boss fights.`,`Save systems designed after the levels.`],
     good:[`Players finish a satisfying unit inside a typical session.`,`Players quit at natural points and resume without friction.`],
-    bad:[`Players lose progress to interruptions or say "I never have time to get anywhere".`] },
+    bad:[`Players lose progress to interruptions or say “I never have time to get anywhere”.`] },
   how:[`Write the session profile: median length, interruption pattern, device, posture.`,`Define the satisfying unit that fits inside the median session. Structure the game around it.`,`Design saving and resuming as core features.`,`Test on the target device, in the target posture, with realistic interruptions.`],
   ai:{ yes:[`Audit a level and progression plan against the session profile.`,`Propose session-unit structures for a given loop and length.`,`Check readability and input demands against device constraints.`],
        no:[`Choose the platform. That is strategy.`] },
@@ -115,7 +115,7 @@ T('platform-and-session',{ d:'product', t:'Platform, session length and context'
   test:[`Log real session lengths and end reasons.`,`Test with interruptions: what is lost?`,`Test on device and at distance.`],
   rel:[['goals-horizons','The session goal must fit the session.'],['readability-and-hierarchy','Screen and distance set readability.'],['controls-and-friction','Input method sets skill demands.'],['return-and-quit','Interrupted sessions are a churn source.'],['platform-choice','Which platforms to ship on first, and what each costs to reach.']] });
 TECH('platform-and-session',[
-  {n:'Session-shape design', how:`Design the loop and save points around the platform's real session length (phone 3 min, couch 45 min, PC 2 h).`, fit:`Every platform choice. Drives structure, save and pacing decisions.`, cost:`Multi-platform support forces compromises and separate tuning.`, alt:`Pick a lead platform and design to its session shape first.`},
+  {n:'Session-shape design', how:`Design the loop and save points around the session length players on that platform have, taken from your own telemetry or a comparable’s, not from a rule of thumb.`, fit:`Every platform choice. Drives structure, save and pacing decisions.`, cost:`Multi-platform support forces compromises and separate tuning.`, alt:`Pick a lead platform and design to its session shape first.`},
   {n:'Input and posture fit', how:`Match control scheme, text size and UI density to the device and posture (one thumb, controller, desk).`, fit:`Readability and friction. Mobile especially.`, cost:`Porting UI is not free. Needs redesign, not scaling.`, alt:`Design for the tightest target and expand outward.`},
   {n:'Platform services integration', how:`Achievements, cloud saves, multiplayer services, and store requirements.`, fit:`Certification and expected features per platform.`, cost:`Certification and per-platform work. Late integration is a common slip.`, alt:`Plan services integration as production scope, not a polish task.`}
 ]);
@@ -136,8 +136,8 @@ func _write_resume_point() -> void:
 \tvar f := FileAccess.open("user://resume.json", FileAccess.WRITE)
 \tf.store_string(JSON.stringify({"level": Game.level, "checkpoint": Game.checkpoint}))
 \tf.close()`,
-    pitfall:`Leaving quit_on_go_back at its default on a handheld. The back button closes the app immediately, your close-request handler never runs, and the player loses the session they were three minutes into. Take the notification yourself, save, then quit.`,
-    map:`Godot's _notification with NOTIFICATION_APPLICATION_PAUSED is Unity's OnApplicationPause.` },
+    pitfall:`Saving only on NOTIFICATION_WM_CLOSE_REQUEST. The Android back button sends NOTIFICATION_WM_GO_BACK_REQUEST instead, and with quit_on_go_back at its default the app quits at the end of that frame, so a save that waits on a signal or a request never finishes and the player loses the session they were three minutes into. Handle the go-back notification and write the resume point synchronously, or turn quit_on_go_back off and quit after the save.`,
+    map:`Godot’s _notification with NOTIFICATION_APPLICATION_PAUSED is Unity’s OnApplicationPause.` },
   unity:{ term:`OnApplicationPause is the save point, and the frame rate cap is part of the session budget because it decides how warm the device gets and how long the battery lasts in a commute-length session.`,
     api:['OnApplicationPause(bool) / OnApplicationFocus(bool)','Application.targetFrameRate','QualitySettings.vSyncCount','Application.persistentDataPath','Screen.dpi / SystemInfo.deviceType','JsonUtility.ToJson()'],
     snippet:`public class SessionGuard : MonoBehaviour {
@@ -154,8 +154,8 @@ func _write_resume_point() -> void:
         File.WriteAllText(Path.Combine(Application.persistentDataPath, "resume.json"),
                           JsonUtility.ToJson(Game.Snapshot()));
 }`,
-    pitfall:`Setting Application.targetFrameRate while vSyncCount is non-zero. The cap is ignored, the device renders as fast as the display allows, and the thermal and battery budget you sized the session around is not the one the build runs with. Set vSyncCount to zero first, and confirm the frame rate on the device rather than in the editor.`,
-    map:`Unity's OnApplicationPause is Godot's NOTIFICATION_APPLICATION_PAUSED.` }});
+    pitfall:`Leaving Application.targetFrameRate at its default on a phone. Android and iOS ignore vSyncCount, and a target of -1 means a fixed 30 fps, so a game tuned at 60 in the editor ships at 30, and a cap raised to 120 drains the battery the session was sized around. Set targetFrameRate explicitly for mobile, remember that on desktop a non-zero vSyncCount makes Unity ignore the target, and confirm the rate on the device.`,
+    map:`Unity’s OnApplicationPause is Godot’s NOTIFICATION_APPLICATION_PAUSED.` }});
 INTERVIEW('platform-and-session',{
   junior:[
     { q:`Why is session length a design constraint rather than a marketing detail?`,
@@ -181,7 +181,7 @@ INTERVIEW('platform-and-session',{
       follow:`What happens to that answer if the platforms share progression?`,
       red:`Designs for the strongest platform and treats the others as ports.` },
     { q:`Which platform conventions would you break, and how do you decide?`,
-      a:`Break one only when the game genuinely needs it and the cost of relearning is smaller than the gain. Back button semantics, confirm and cancel placement and store conventions are where players are least forgiving. Test the break with players who are fluent on that platform, not with the team.`,
+      a:`Break one only when the game needs it and the cost of relearning is smaller than the gain. Back button semantics, confirm and cancel placement and store conventions are where players are least forgiving. Test the break with players who are fluent on that platform, not with the team.`,
       follow:`Certification requires the convention you wanted to break. Now what?`,
       red:`Breaks conventions because the team prefers a different layout.` }
   ],
@@ -196,28 +196,28 @@ INTERVIEW('platform-and-session',{
       red:`Shortens levels immediately on the strength of one aggregate number.` }
   ] });
 
-T('business-model',{ d:'product', t:'Business model and monetization', tag:'The model should pay for the fun without becoming the design. Where they conflict, players notice first.',
-  what:`How the game earns: premium, free-to-play with purchases, subscription, ads, DLC, live service. Each model applies pressure to the design economy, progression, session design and social systems. Ethical monetization sells things players value without manufacturing the pain it relieves.`,
-  why:[`Monetization pressure is the most common corrupter of design: timers to sell skips, grind to sell boosts, gacha to sell hope.`,`Players sense when a system exists to sell rather than to play, and it poisons trust in adjacent systems.`,`The model decides what "retention" means and which metrics the team will be pushed to optimize.`],
-  think:{ q:[`What does the player pay for, and would they value it if the game had no store?`,`Which design decisions exist only because of the model? Would the game be better without them?`,`What pain does a purchase relieve, and did the design create that pain on purpose?`,`Which metric will the model push us to optimize, and does that metric align with fun?`],
-    trade:[`Premium aligns incentives with fun and limits reach and revenue tail.`,`Free-to-play widens reach and creates constant pressure to monetize friction.`],
-    traps:[`Designing the store before the loop.`,`Metrics (ARPU, session count) optimized at the cost of the experience.`,`"Ethical" monetization declared rather than tested with players.`],
+T('business-model',{ d:'product', t:'Business model and monetisation', tag:'The model should pay for the fun without becoming the design. Where they conflict, players notice first.',
+  what:`How the game earns: premium, free-to-play with purchases, subscription, ads, DLC, live service. Each model applies pressure to the design economy, progression, session design and social systems. Ethical monetisation sells things players value without manufacturing the pain it relieves.`,
+  why:[`Monetization pressure is the most common corrupter of design: timers to sell skips, grind to sell boosts, gacha to sell hope.`,`Players sense when a system exists to sell rather than to play, and it poisons trust in adjacent systems.`,`The model decides what “retention” means and which metrics the team will be pushed to optimise.`],
+  think:{ q:[`What does the player pay for, and would they value it if the game had no store?`,`Which design decisions exist only because of the model? Would the game be better without them?`,`What pain does a purchase relieve, and did the design create that pain on purpose?`,`Which metric will the model push us to optimise, and does that metric align with fun?`],
+    trade:[`Premium aligns incentives with fun and limits reach and revenue tail.`,`Free-to-play widens reach and creates constant pressure to monetise friction.`],
+    traps:[`Designing the store before the loop.`,`Metrics (ARPU, session count) optimized at the cost of the experience.`,`“Ethical” monetisation declared rather than tested with players.`],
     good:[`Players describe purchases as wanted, not needed.`,`Non-payers describe the game as complete.`],
-    bad:[`Players describe the game as "pay to win" or "designed to annoy you into paying".`] },
-  how:[`List every system that exists for the model. For each, ask whether the game would be better without it.`,`Ensure the loop is voluntarily replayed before any monetization is added.`,`Sell value (expression, convenience players did not need to be annoyed into wanting, content) rather than relief.`,`Test with payers and non-payers. Ask both what the store feels like.`],
-  ai:{ yes:[`Model revenue under different structures and player behavior assumptions.`,`Audit the design for monetization-induced friction.`,`Summarize regulatory and platform policy constraints (as a starting point. Verify with counsel).`],
-       no:[`Decide monetization ethics. That is a values decision.`,`Optimize a metric without you deciding whether the metric is right.`] },
-  prompts:[{l:'Monetization friction audit',p:`Here are our systems and our business model: [SYSTEMS, MODEL]. Identify every system or number that exists primarily to create a purchase opportunity. For each, describe the player pain it creates, whether the design manufactured that pain, and what the game would feel like without the system. Then propose monetization that sells value players would want in a game with no store, given the fantasy "[FANTASY]".`}],
-  verify:[`Did it defend friction as "industry standard"?`,`Did it distinguish value from relief?`],
-  test:[`Ask non-payers whether the game feels complete.`,`Ask payers why they bought. "Wanted" versus "had to".`,`Where do players mention the store unprompted, and in what tone?`],
-  rel:[['economy-and-resources','The model pressures the design economy.'],['progression','Grind is where monetization pressure shows.'],['social-experience','Social systems and spending interact.'],['audience-and-positioning','Model and positioning must agree.']] });
+    bad:[`Players describe the game as “pay to win” or “designed to annoy you into paying”.`] },
+  how:[`List every system that exists for the model. For each, ask whether the game would be better without it.`,`Ensure the loop is voluntarily replayed before any monetisation is added.`,`Sell value (expression, convenience players did not need to be annoyed into wanting, content) rather than relief.`,`Test with payers and non-payers. Ask both what the store feels like.`],
+  ai:{ yes:[`Model revenue under different structures and player behaviour assumptions.`,`Audit the design for monetization-induced friction.`,`Summarize regulatory and platform policy constraints (as a starting point. Verify with counsel).`],
+       no:[`Decide monetisation ethics. That is a values decision.`,`Optimize a metric without you deciding whether the metric is right.`] },
+  prompts:[{l:'Monetization friction audit',p:`Here are our systems and our business model: [SYSTEMS, MODEL]. Identify every system or number that exists primarily to create a purchase opportunity. For each, describe the player pain it creates, whether the design manufactured that pain, and what the game would feel like without the system. Then propose monetisation that sells value players would want in a game with no store, given the fantasy “[FANTASY]”.`}],
+  verify:[`Did it defend friction as “industry standard”?`,`Did it distinguish value from relief?`],
+  test:[`Ask non-payers whether the game feels complete.`,`Ask payers why they bought. “Wanted” versus “had to”.`,`Where do players mention the store unprompted, and in what tone?`],
+  rel:[['economy-and-resources','The model pressures the design economy.'],['progression','Grind is where monetisation pressure shows.'],['social-experience','Social systems and spending interact.'],['audience-and-positioning','Model and positioning must agree.']] });
 TECH('business-model',[
-  {n:'Premium / one-time purchase', how:`Charge once. The design can be tuned to respect the player's time.`, fit:`Craft-driven, finite or narrative games. Trust-sensitive audiences.`, cost:`Needs reach. No live revenue to fund long-term content.`, alt:`Premium plus paid expansions.`},
-  {n:'Free-to-play with monetization', how:`Free entry, revenue from cosmetic, convenience or progression sales. Economy design becomes central.`, fit:`Large live audiences and long retention.`, cost:`Pressure to design paywalls and grind. Risks perceived manipulation and churn.`, alt:`Cosmetic-first and transparent, with no power purchase.`},
+  {n:'Premium / one-time purchase', how:`Charge once. The design can be tuned to respect the player’s time.`, fit:`Craft-driven, finite or narrative games. Trust-sensitive audiences.`, cost:`Needs reach. No live revenue to fund long-term content.`, alt:`Premium plus paid expansions.`},
+  {n:'Free-to-play with monetisation', how:`Free entry, revenue from cosmetic, convenience or progression sales. Economy design becomes central.`, fit:`Large live audiences and long retention.`, cost:`Pressure to design paywalls and grind. Risks perceived manipulation and churn.`, alt:`Cosmetic-first and transparent, with no power purchase.`},
   {n:'Subscriptions / season passes / live service', how:`Recurring revenue tied to ongoing content cadence.`, fit:`Games with a content pipeline and a live team.`, cost:`Requires sustained production. Punishing if cadence slips.`, alt:`Only if the team can ship on schedule indefinitely.`}
 ]);
 ENGINE('business-model',{
-  godot:{ term:`Godot has no first-party store layer. Billing arrives as a platform plugin exposed through Engine.get_singleton, and the client's job stops at handing the purchase token to your server.`,
+  godot:{ term:`Godot has no first-party store layer. Billing arrives as a platform plugin exposed through Engine.get_singleton, and the client’s job stops at handing the purchase token to your server.`,
     api:['Engine.has_singleton() / Engine.get_singleton()','Android billing plugin signals such as purchases_updated','HTTPRequest for receipt verification','OS.get_name() for the store branch','ConfigFile / FileAccess for the offer cache','acknowledge and consume calls on the plugin'],
     snippet:`extends Node                                   # the store plugin, not the entitlement
 var _billing: Object
@@ -232,9 +232,9 @@ func _ready() -> void:
 func _on_purchases(purchases: Array) -> void:
 \tfor p in purchases:
 \t\t_verify_on_server(p.purchase_token)    # the server grants, then acknowledges`,
-    pitfall:`Granting the item when purchases_updated fires and never acknowledging or consuming the purchase. The store refunds anything left unacknowledged past its window, so the player pays, gets the item locally, and loses both. A client-side grant is also the easiest thing in the game to fake.`,
-    map:`Godot's platform billing singleton is Unity IAP's store listener.` },
-  unity:{ term:`Unity IAP gives you a store listener and a pending-purchase state. ProcessPurchase returns Pending, the server verifies the receipt and grants, and only then does the client confirm the transaction with the store.`,
+    pitfall:`Granting the item when purchases_updated fires and never acknowledging or consuming the purchase. Google Play refunds any purchase left unacknowledged for three days, so the player pays, gets the item locally, and loses both. A client-side grant is also the easiest thing in the game to fake.`,
+    map:`Godot’s platform billing singleton is Unity IAP’s store listener.` },
+  unity:{ term:`Unity IAP holds a purchase as pending until you confirm it. In IAP 4 ProcessPurchase returns Pending; IAP 5 deprecates the store listener, and StoreController raises OnPurchasePending with a PendingOrder instead. Either way the server verifies the receipt and grants, and only then does the client confirm the transaction with the store.`,
     api:['IDetailedStoreListener.ProcessPurchase()','PurchaseProcessingResult.Pending / Complete','IStoreController.ConfirmPendingPurchase()','ConfigurationBuilder + UnityPurchasing.Initialize()','Product.receipt','CrossPlatformValidator'],
     snippet:`public class Store : MonoBehaviour, IDetailedStoreListener {
     IStoreController controller;
@@ -250,13 +250,13 @@ func _on_purchases(purchases: Array) -> void:
     }
 }`,
     pitfall:`Returning PurchaseProcessingResult.Complete before the grant is confirmed. The store marks the transaction finished and stops redelivering it, so any failure between the purchase and the grant loses the item permanently and the only fix is a manual support ticket per player. Return Pending and confirm after the server says yes.`,
-    map:`Unity IAP's pending purchase plus server verification is Godot's billing plugin plus your own receipt endpoint.` },
+    map:`Unity IAP’s pending purchase plus server verification is Godot’s billing plugin plus your own receipt endpoint.` },
   note:`Both engine tabs stop at the same line. The client surfaces the offer, hands the receipt over and waits. What the player owns is a server fact, because anything the client decides is a value the player can edit. The design questions in this topic (what does a purchase relieve, and did the design create that pain) are answered in the economy on the server, not in the store UI.` });
 INTERVIEW('business-model',{
   junior:[
     { q:`Name three business models and what each pressures in the design.`,
       a:`Premium aligns incentives with making the game good and limits reach and the revenue tail. Free to play widens reach and creates constant pressure to monetise friction. Subscription pressures cadence and retention rather than any single purchase. Say which metric each pushes the team to optimise.`,
-      follow:`Which metric would your team be pushed toward, and does it align with fun?`,
+      follow:`Which metric would your team be pushed towards, and does it align with fun?`,
       red:`Describes the models as pricing choices with no design consequence.` },
     { q:`Explain the difference between selling value and selling relief.`,
       a:`Value is something the player would want in a game that had no store: expression, content, convenience they never needed to be annoyed into wanting. Relief is a purchase that removes pain the design manufactured. The test is whether the system would still exist if nobody could pay.`,
@@ -287,13 +287,13 @@ INTERVIEW('business-model',{
       follow:`They ship it anyway. What do you do next?`,
       red:`Refuses without proposing anything, or complies and stops raising it.` },
     { q:`The model changes from premium to free to play mid-development. What changes in the design?`,
-      a:`The economy, the progression pacing, the session structure, the social systems, the content cadence and the metrics all change, because the model decides what retention means. Treat it as a redesign of the loop's surroundings rather than a store bolted on. Re-validate the loop under the new pacing before building any store content.`,
+      a:`The economy, the progression pacing, the session structure, the social systems, the content cadence and the metrics all change, because the model decides what retention means. Treat it as a redesign of the loop’s surroundings rather than a store bolted on. Re-validate the loop under the new pacing before building any store content.`,
       follow:`What would you refuse to change, and why?`,
       red:`Adds a shop and a currency and treats the rest of the design as unaffected.` }
   ] });
 FACTS('business-model',[
   { claim:`On 11 December 2025 the US Ninth Circuit upheld the finding that Apple was in contempt of the Epic v. Apple injunction. On the US App Store, Apple may not block links to outside purchases or require them to be less prominent than its own purchase buttons, though it may stop them being more prominent. A total ban on commission for those purchases went too far: Apple may charge one limited to its genuine costs of handling the links, with the details sent back to the district court.`, asOf:'2026-09-23', src:'https://cdn.ca9.uscourts.gov/datastore/opinions/2025/12/11/25-2935.pdf' },
-  { claim:`On 30 June 2026 the US Supreme Court agreed to hear Apple's appeal of the contempt ruling, limited to the first question in Apple's petition; Apple filed its brief on 14 September 2026.`, asOf:'2026-09-23', src:'https://www.supremecourt.gov/docket/docketfiles/html/public/25-1311.html' }
+  { claim:`On 30 June 2026 the US Supreme Court agreed to hear Apple’s appeal of the contempt ruling, limited to the first question in Apple’s petition; Apple filed its brief on 14 September 2026.`, asOf:'2026-09-23', src:'https://www.supremecourt.gov/docket/docketfiles/html/public/25-1311.html' }
 ]);
 DIAGRAM('business-model', { kind:'economy', title:'Where the store meets the play economy',
   nodes:[{id:'play', t:'Play rewards', type:'source'},{id:'buy', t:'Real-money purchase', type:'source'},{id:'soft', t:'Soft currency', type:'pool'},{id:'premium', t:'Premium currency', type:'pool'},{id:'items', t:'Items', type:'pool'},{id:'store', t:'Store', type:'converter'},{id:'use', t:'Upgrades used up', type:'sink', row:2}],
@@ -303,17 +303,17 @@ DIAGRAM('business-model', { kind:'economy', title:'Where the store meets the pla
 T('scope-control',{ d:'product', t:'Scope control', tag:'Scope should follow validated value, not imagination. AI makes this harder, not easier.',
   what:`The discipline of deciding what the game contains, based on what has been shown to work rather than what could be built. The healthy sequence is idea, prototype, evidence, commit. The unhealthy one is idea, production commitment. AI makes implementation cheap enough that huge amounts of mediocre content can be produced before anyone asks whether the core is fun.`,
   why:[`Scope is the most common cause of games that never ship or ship hollow.`,`Cheap implementation removes the natural brake on scope. The brake must become deliberate.`,`Every feature carries costs beyond building it: teaching, balancing, maintaining, and diluting the core.`],
-  think:{ q:[`What has been validated with players? Scope grows from there, not from the pitch.`,`What is the smallest version of this game that delivers the core experience?`,`For each feature: what would we lose by not building it? Be specific about the player experience.`,`What is on the "not this game" list? Is it written down?`],
+  think:{ q:[`What has been validated with players? Scope grows from there, not from the pitch.`,`What is the smallest version of this game that delivers the core experience?`,`For each feature: what would we lose by not building it? Be specific about the player experience.`,`What is on the “not this game” list? Is it written down?`],
     trade:[`Tight scope ships and may feel thin. Wide scope feels ambitious and may never cohere.`,`Cutting late saves the project and wastes the cut work.`],
-    traps:[`Scope defined by the pitch deck.`,`"AI can build it in a day" as an argument to build it.`,`Content pipelines started before the system is validated.`,`Never writing the not-list.`],
+    traps:[`Scope defined by the pitch deck.`,`“AI can build it in a day” as an argument to build it.`,`Content pipelines started before the system is validated.`,`Never writing the not-list.`],
     good:[`The team can name the three things the game is about and the ten it is not.`,`Cut features have a documented reason and a player-evidence trigger for revisiting.`],
     bad:[`Feature list grows every sprint. Core loop metrics do not move.`] },
   how:[`Write the core experience statement and the not-list.`,`Order features by dependency on validated evidence: what needs the loop proven first, what needs progression proven, and so on.`,`Gate each production commitment on a prototype and playtest result.`,`Review the feature list monthly: what has evidence, what is imagination?`,`Treat cheap AI implementation as a reason to prototype more, not to ship more.`],
   ai:{ yes:[`Map feature dependencies and identify what can be validated first.`,`Estimate total cost including teaching, balance and maintenance, not just build.`,`Draft the not-list from the positioning and flag features that violate it.`],
-       no:[`Decide what to cut. That is the human's most important job.`,`Argue that low build cost justifies building.`] },
-  prompts:[{l:'Scope triage',p:`Here is our feature list and what has been validated with players so far: [FEATURES, EVIDENCE]. For each feature, state which validated result it depends on, its full cost (build, teach, balance, maintain, dilution of core), and what the player would lose without it. Sort into: build now (evidence supports), prototype first (evidence missing), defer (depends on unvalidated features), and cut (does not serve "[CORE EXPERIENCE]"). Argue against your own "build now" list once.`}],
-  verify:[`Did it count build cost only?`,`Did it defer decisions to "it depends" instead of sorting?`],
-  test:[`Does removing a feature in a prototype change player behavior? If not, it may not need to exist.`,`Which features do players never mention or use?`],
+       no:[`Decide what to cut. That is the human’s most important job.`,`Argue that low build cost justifies building.`] },
+  prompts:[{l:'Scope triage',p:`Here is our feature list and what has been validated with players so far: [FEATURES, EVIDENCE]. For each feature, state which validated result it depends on, its full cost (build, teach, balance, maintain, dilution of core), and what the player would lose without it. Sort into: build now (evidence supports), prototype first (evidence missing), defer (depends on unvalidated features), and cut (does not serve “[CORE EXPERIENCE]”). Argue against your own “build now” list once.`}],
+  verify:[`Did it count build cost only?`,`Did it defer decisions to “it depends” instead of sorting?`],
+  test:[`Does removing a feature in a prototype change player behaviour? If not, it may not need to exist.`,`Which features do players never mention or use?`],
   rel:[['prototyping','Prototypes are how scope earns its place.'],['content-multiplies','Content is where scope explodes.'],['core-experience','The experience statement is the scope filter.'],['ai-failure-modes','Feature inflation and content spam are AI-era scope failures.'],['should-we-build-this','The decision tree operationalizes scope control.']] });
 TECH('scope-control',[
   {n:'Vertical slice', how:`Build a thin, polished, end-to-end slice that proves the full experience at production quality.`, fit:`De-risking the whole pipeline before mass production.`, cost:`Expensive. Does not prove content volume.`, alt:`Slice for pipeline risk. Prototype for mechanic risk.`},
@@ -338,7 +338,7 @@ func _ready() -> void:
     pitfall:`Cutting a feature by excluding it in the export preset filters while a string path still points at it. preload would have failed at parse time, but load with a built path fails at the moment the player opens that menu, in a build that passed every editor test. Check existence at boot, or keep the reference a preload so the cut breaks immediately.`,
     map:`Godot export preset feature tags are Unity scripting define symbols and build profiles.` },
   unity:{ term:`Scripting define symbols per build profile decide whether the feature compiles, and an Addressable reference decides whether its assets ship. A direct prefab field ships the content regardless of the define.`,
-    api:['Scripting Define Symbols / BuildProfile','AssetReferenceGameObject + InstantiateAsync()','Addressables groups and labels','asmdef Define Constraints','[Conditional] attributes','Editor log build report for what actually shipped'],
+    api:['Scripting Define Symbols / BuildProfile','AssetReferenceGameObject + InstantiateAsync()','Addressables groups and labels','asmdef Define Constraints','[Conditional] attributes','Editor log build report for what shipped'],
     snippet:`public class FeatureGate : MonoBehaviour {
     [SerializeField] AssetReferenceGameObject photoMode;  // Addressable, not a direct reference
 
@@ -350,7 +350,7 @@ func _ready() -> void:
         // A direct prefab field would pull the whole feature in even with the define off.
     }
 }`,
-    pitfall:`Believing a define cut the content. Serialised references pull assets into the build whether or not the code that uses them compiles, so a cut feature still costs download size and load time. Read the build report in the Editor log to see what actually shipped, and move optional content behind Addressables.`,
+    pitfall:`Believing a define cut the content. Serialised references pull assets into the build whether or not the code that uses them compiles, so a cut feature still costs download size and load time. Read the build report in the Editor log to see what shipped, and move optional content behind Addressables.`,
     map:`Unity scripting define symbols plus Addressables groups are Godot export preset feature tags plus resource filters.` }});
 INTERVIEW('scope-control',{
   junior:[
@@ -378,7 +378,7 @@ INTERVIEW('scope-control',{
       red:`Proposes better prioritisation without adding any evidence gate.` },
     { q:`How do you cut a feature the team loves?`,
       a:`Show the evidence and the cost side by side rather than arguing taste. Document the reason and the player-evidence trigger that would bring it back, so the work is shelved rather than dismissed. Preserve what can be reused and say so, because the sting is usually about the effort, not the feature.`,
-      follow:`It is the creative director's favourite. How does the conversation go?`,
+      follow:`It is the creative director’s favourite. How does the conversation go?`,
       red:`Cuts it quietly and lets people discover it missing.` }
   ],
   senior:[
@@ -386,28 +386,28 @@ INTERVIEW('scope-control',{
       a:`Order by dependency so you are not cutting something three other things need. Protect the core experience and cut whole features rather than shaving quality everywhere, because uniform quality reduction shows up in every review. Count the teaching and balance cost you recover, and publish the list with the reason attached to each line.`,
       follow:`How do you choose between cutting a feature and cutting quality?`,
       red:`Reduces polish across the board and keeps every feature.` },
-    { q:`How do you make scope control a team habit rather than a lead's nagging?`,
+    { q:`How do you make scope control a team habit rather than a lead’s nagging?`,
       a:`Put the evidence gate into the process the team already follows, so a commitment needs a prototype result to move forward. Keep the not-list visible and update it in public. Budget prototype time explicitly, because a team with no time to test will commit by default. Then show one case where the gate saved the schedule.`,
       follow:`What does the first month of that look like?`,
       red:`Relies on a strong lead saying no and calls that the process.` }
   ] });
 
-T('learning-from-success',{ d:'product', t:'Dissect games that succeeded', tag:'Your idea is only as good as its answer to "why would they play this instead of that?" Find "that" and take it apart.',
+T('learning-from-success',{ d:'product', t:'Dissect games that succeeded', tag:'Your idea is only as good as its answer to “why would they play this instead of that?” Find “that” and take it apart.',
   what:`A method for judging an idea before building it: pick the games your player already plays that satisfy a similar want, dissect each with one template (want served, core verb, first 30 seconds, decision per minute, engines, why it worked, what players complain about), then cross-reference your concept against them: which proven want you share, what you do that none of them do, which complaint you answer, which patterns you are borrowing and whether you re-derived them, where a fan of theirs would find you weaker, and whether your team can reach the quality bar they set.`,
-  why:[`A successful comparable is evidence that the audience and the want exist. Without one, your idea is a bet on a want nobody has demonstrated.`,`Most weak ideas are a comparable with a cosmetic difference. The dissection makes that visible before months of work.`,`Copies fail on what they leave out, not on what they add. Knowing what the original’s success actually rested on tells you what you cannot skip.`],
-  think:{ q:[`Which three games would my player stop playing to play mine? Have I actually taken them apart?`,`What is the one decision per minute that made each of them work? Do I have one that is at least as frequent and as readable?`,`Which recurring complaint about them does my concept answer? Is that a want, or my taste?`,`What am I borrowing? For each borrowed pattern: did I re-derive it from my player and constraints, or copy it because it was there?`,`Where would a fan of the comparable find mine weaker? Can I afford that, or does it kill the concept?`,`Can my team reach the quality bar they set on the things that matter for the want?`],
+  why:[`A successful comparable is evidence that the audience and the want exist. Without one, your idea is a bet on a want nobody has demonstrated.`,`Most weak ideas are a comparable with a cosmetic difference. The dissection makes that visible before months of work.`,`Copies fail on what they leave out, not on what they add. Knowing what the original’s success rested on tells you what you cannot skip.`],
+  think:{ q:[`Which three games would my player stop playing to play mine? Have I taken them apart?`,`What is the one decision per minute that made each of them work? Do I have one that is at least as frequent and as readable?`,`Which recurring complaint about them does my concept answer? Is that a want, or my taste?`,`What am I borrowing? For each borrowed pattern: did I re-derive it from my player and constraints, or copy it because it was there?`,`Where would a fan of the comparable find mine weaker? Can I afford that, or does it kill the concept?`,`Can my team reach the quality bar they set on the things that matter for the want?`],
     trade:[`Close comparables prove the market and make differentiation harder. Distant comparables leave room and prove less.`,`Dissecting deeply takes days. Building the wrong game takes months.`],
-    traps:[`Reading success as features ("it has a shop, a map and a three-card choice") rather than as mechanisms ("every reward is a reasoned decision").`,`Citing sales figures as design lessons. Numbers say it sold. The dissection says why it kept people.`,`Choosing comparables you admire instead of the ones your player actually plays.`,`Letting AI invent postmortem details. Ask for sources or "unknown".`],
-    good:[`You can state, for each comparable, the mechanism its success rested on in one sentence and point to your equivalent.`,`Your differentiator is visible in one screenshot and answers a complaint players of the comparable actually make.`],
-    bad:[`Your pitch is "like X but with Y" where Y is a theme, a setting or more content.`] },
+    traps:[`Reading success as features (“it has a shop, a map and a three-card choice”) rather than as mechanisms (“every reward is a reasoned decision”).`,`Citing sales figures as design lessons. Numbers say it sold. The dissection says why it kept people.`,`Choosing comparables you admire instead of the ones your player plays.`,`Letting AI invent postmortem details. Ask for sources or “unknown”.`],
+    good:[`You can state, for each comparable, the mechanism its success rested on in one sentence and point to your equivalent.`,`Your differentiator is visible in one screenshot and answers a complaint players of the comparable make.`],
+    bad:[`Your pitch is “like X but with Y” where Y is a theme, a setting or more content.`] },
   how:[`Use the Reference Dissection tool. Add the three to five games your player plays for this want. Start from the library entries or dissect your own with the template.`,`For each, fill the template. Where you do not know, ask AI to dissect from public postmortems and interviews, with sources, and verify the ones you rely on.`,`Answer the seven cross-reference questions honestly. The verdict tells you whether the idea is promising, derivative, unproven or undeliverable, and names the next test.`,`Take the differentiator and the answered complaint into the want tests (stranger pitch, one-pager, one-day loop). Take the borrowed patterns into the Behavior Ladder to re-derive them.`],
   ai:{ yes:[`Dissect a named game from public postmortems, talks and interviews, using the template, citing sources or marking unknowns.`,`Cluster player complaints about a comparable from reviews and forums into wants.`,`Steelman the comparables against your concept: argue why a fan would not switch.`,`Compare your concept and the comparables on the template dimensions in a matrix.`],
        no:[`Decide which comparables matter. That depends on your player, whom AI has not met.`,`Assert why a game succeeded without sources. Success narratives are where hallucination thrives.`,`Declare your idea good. The want tests do that.`] },
-  prompts:[{l:'Dissect a comparable',p:`Dissect [GAME] as a designer, using public postmortems, GDC talks, developer interviews and critical consensus. Fill this template with one to three sentences each: the player want it served, the core verb. The first 30 seconds. The decision the player faces every minute. The engines it runs on (mastery, discovery, expression, social, and so on). Why it worked, as the developers and critics explain it. What players most often complain about. The transferable lesson. And what copies of it usually miss. Cite a source for every claim about why it worked, or write "unknown". Do not cite sales figures.`},
+  prompts:[{l:'Dissect a comparable',p:`Dissect [GAME] as a designer, using public postmortems, GDC talks, developer interviews and critical consensus. Fill this template with one to three sentences each: the player want it served, the core verb. The first 30 seconds. The decision the player faces every minute. The engines it runs on (mastery, discovery, expression, social, and so on). Why it worked, as the developers and critics explain it. What players most often complain about. The transferable lesson. And what copies of it usually miss. Cite a source for every claim about why it worked, or write “unknown”. Do not cite sales figures.`},
     {l:'Cross-reference my concept',p:`My concept: [POSITIONING SENTENCE, FANTASY, CORE VERB, DECISION PER MINUTE]. Comparables my player plays, dissected: [DISSECTIONS]. Build a matrix comparing my concept and each comparable on: want served, core verb, decision per minute, first 30 seconds, engines. Then answer: which proven want do I share, what do I do that none of them do, and is it visible in one screenshot. Which recurring complaint do I answer. Which patterns am I borrowing and which of those did I re-derive from my player and constraints. Where would a fan of each comparable find mine weaker. Can a team of [CONSTRAINTS] reach the quality bar they set on the things that matter. Be adversarial. Finish with the single cheapest test that would show my player wants this.`}],
-  verify:[`Did the AI cite sources for every "why it worked" claim, or narrate plausibly?`,`Is the differentiator it credits you with mechanical, or cosmetic?`,`Did it steelman the comparables, or flatter the concept?`],
-  test:[`Stranger pitch to players of the comparable: do they ask how it plays, or say "so it is like X"?`,`Show the one-pager next to a screenshot of the comparable: can they say what is different without being told?`,`One-day loop with fans of the comparable: do they replay, and what do they say it lacks?`],
-  rel:[['finding-an-idea','Dissection is how a raw idea becomes a testable concept.'],['audience-and-positioning','The differentiator you find here is the positioning sentence.'],['who-is-the-player','Comparables are chosen by what your player actually plays.'],['feature-vs-experience','Borrowed patterns must be re-derived on the ladder.'],['scope-control','The quality bar the comparables set is a scope decision.']] });
+  verify:[`Did the AI cite sources for every “why it worked” claim, or narrate plausibly?`,`Is the differentiator it credits you with mechanical, or cosmetic?`,`Did it steelman the comparables, or flatter the concept?`],
+  test:[`Stranger pitch to players of the comparable: do they ask how it plays, or say “so it is like X”?`,`Show the one-pager next to a screenshot of the comparable: can they say what is different without being told?`,`One-day loop with fans of the comparable: do they replay, and what do they say it lacks?`],
+  rel:[['finding-an-idea','Dissection is how a raw idea becomes a testable concept.'],['audience-and-positioning','The differentiator you find here is the positioning sentence.'],['who-is-the-player','Comparables are chosen by what your player plays.'],['feature-vs-experience','Borrowed patterns must be re-derived on the ladder.'],['scope-control','The quality bar the comparables set is a scope decision.']] });
 TECH('learning-from-success',[
   {n:'One-template dissection', how:`Take apart a comparable on one template: want served, core verb, first 30 seconds, decisions per minute, why it worked, complaints, what copies miss.`, fit:`Extracting transferable mechanisms without copying surface.`, cost:`Success narratives are heuristics. Survivorship bias.`, alt:`Use the Reference Dissection tool.`},
   {n:'Cross-reference questions', how:`Test your concept against the comparable on shared want, differentiator, answered complaint, quality bar and audience evidence.`, fit:`Deciding promising / derivative / unproven / undeliverable.`, cost:`Only as good as your comparables.`, alt:`Answer with evidence, not optimism.`}
@@ -444,16 +444,16 @@ func _unhandled_input(e: InputEvent) -> void:
     void OnDisable() =>
         File.WriteAllLines(Path.Combine(Application.persistentDataPath, "decisions.csv"), rows);
 }`,
-    pitfall:`Subscribing to started, performed and canceled on the same action. Any action with a Hold or Press interaction fires all three, so one dodge is logged as three decisions and the rate you compare against the comparable is inflated threefold. Pick the callback that matches what you decided counts as a decision.`,
-    map:`Unity's InputAction callbacks are Godot's action presses in _unhandled_input.` }});
+    pitfall:`Subscribing to started, performed and cancelled on the same action. Any action with a Hold or Press interaction fires all three, so one dodge is logged as three decisions and the rate you compare against the comparable is inflated threefold. Pick the callback that matches what you decided counts as a decision.`,
+    map:`Unity’s InputAction callbacks are Godot’s action presses in _unhandled_input.` }});
 INTERVIEW('learning-from-success',{
   junior:[
     { q:`Pick a game your target player already plays and dissect it.`,
       a:`Use one template: the want it serves, the core verb, the first thirty seconds, the decision the player faces every minute, the engines it runs on, why it worked, and what players complain about. Then say what a copy of it would most likely leave out. The dissection is about mechanisms, not features.`,
-      follow:`What is the mechanism its success actually rested on?`,
+      follow:`What is the mechanism its success rested on?`,
       red:`Lists the features it shipped with and calls that the reason it worked.` },
     { q:`Why is a pitch of the form this game but with a different theme weak?`,
-      a:`Because the difference is cosmetic and the player's reason to switch has to be mechanical or experiential. A theme is not a want. Most weak ideas are a comparable with a cosmetic difference, and the dissection is what makes that visible before months of work.`,
+      a:`Because the difference is cosmetic and the player’s reason to switch has to be mechanical or experiential. A theme is not a want. Most weak ideas are a comparable with a cosmetic difference, and the dissection is what makes that visible before months of work.`,
       follow:`What would make the difference strong instead?`,
       red:`Defends the theme as the differentiator with no mechanical change behind it.` },
     { q:`Where do you get trustworthy information about why a game succeeded?`,
@@ -471,14 +471,14 @@ INTERVIEW('learning-from-success',{
       follow:`How do you identify the load-bearing mechanism rather than guessing?`,
       red:`Reproduces the feature list of the original and expects the same result.` },
     { q:`How do you choose which comparables to dissect?`,
-      a:`The games your player would stop playing to play yours, not the games you admire. That means asking your player model what they actually play for this want. Include the uncomfortable ones, because they are the direct competition for the same hours.`,
+      a:`The games your player would stop playing to play yours, not the games you admire. That means asking your player model what they play for this want. Include the uncomfortable ones, because they are the direct competition for the same hours.`,
       follow:`Your player plays a genre your team cannot build. What does that tell you?`,
       red:`Chooses critically acclaimed games the target audience does not play.` }
   ],
   senior:[
     { q:`The comparables set a quality bar your team cannot reach. What do you do?`,
       a:`Be specific about which dimensions matter for the want and which do not, because a team rarely has to match on everything. Then either narrow the game so the team can be excellent on the dimensions that matter, reposition on a want with a lower bar, or recommend not making it. Say which evidence would settle which dimensions matter.`,
-      follow:`How do you establish which dimensions the want actually depends on?`,
+      follow:`How do you establish which dimensions the want depends on?`,
       red:`Assumes hard work will close a gap in production capacity.` },
     { q:`Your studio treats studying comparables as copying. How do you change that?`,
       a:`Separate dissection from imitation explicitly: the output is a mechanism and an unmet want, and every borrowed pattern has to be re-derived from your own player and constraints before it enters the design. Run the first session yourself on a game everyone respects and finish with a steelman against your own concept. The credibility comes from the steelman.`,
@@ -491,11 +491,11 @@ T('launch-and-discoverability',{ d:'product', t:'Launch and discoverability', ta
   why:[`Most games fail on discovery, not on craft.`,`The store page is where the game is judged before it is played, and it must match the real hook.`,`Wishlists and demos convert attention into launch volume.`,`The first impression sets what the game is allowed to be.`],
   think:{ q:[`Can a stranger explain the hook from the capsule alone?`,`Does the page promise what the first ten minutes deliver?`,`What does the first minute of the trailer show the player doing?`,`Which beats build an audience before launch, and which are too late?`],
     trade:[`A bold capsule wins clicks and can mislead. An honest one converts fewer and keeps them.`,`Marketing spends time that could be spent making the game better, and without it the game is unseen.`],
-    traps:[`Marketing that describes a different game.`,`Launching with no audience built beforehand.`,`Treating the store page as an afterthought.`,`A trailer that shows nothing the player actually does.`],
+    traps:[`Marketing that describes a different game.`,`Launching with no audience built beforehand.`,`Treating the store page as an afterthought.`,`A trailer that shows nothing the player does.`],
     good:[`A fan can say what the game is from the capsule.`,`Wishlists grow before launch and the demo converts them.`],
     bad:[`Nobody can tell what the game is.`,`The page is a feature list.`] },
   how:[`Write the hook as one sentence and keep it honest.`,`Build the capsule around the core verb.`,`Make a demo or a festival beat that shows the loop.`,`Grow wishlists and test the page language as you go.`,`Align the page, the trailer and the first minute.`],
-  ai:{ yes:[`Draft store copy and trailer beat sheets.`,`Generate capsule concepts and A/B variants.`,`Mine reviews of comparables for the language players actually use.`],
+  ai:{ yes:[`Draft store copy and trailer beat sheets.`,`Generate capsule concepts and A/B variants.`,`Mine reviews of comparables for the language players use.`],
        no:[`Decide the hook.`,`Promise something the game does not deliver.`] },
   prompts:[{l:'Hook and page',p:`Here is our game, its player and its core loop: [CONTEXT]. Write one hook sentence a stranger could repeat, a short store description that promises only what the first ten minutes deliver, and a list of the three things a trailer must show. Mark anything you were unsure of.`},{l:'Discoverability plan',p:`Our genre, platform and timeline are: [CONTEXT]. List the realistic beats that could build an audience before launch, ordered by cost and expected effect, and the one demo or festival moment that would best show our loop.`}],
   verify:[`Does the page promise match the first minutes of play?`,`Is the hook mechanical rather than a theme?`],
@@ -507,7 +507,7 @@ TECH('launch-and-discoverability',[
   {n:'Wishlist funnel', how:`Track where attention comes from and how it converts to wishlists and then sales.`, fit:`Any game with a marketing runway.`, cost:`Ongoing measurement and page iteration.`, alt:`Listen to comparables and festival feedback when the audience is small.`}
 ]);
 ENGINE('launch-and-discoverability',{
-  godot:{ term:`The demo and the trailer are both export presets. A trailer feature tag switches on a scripted camera rig, and the engine's movie writer renders deterministic frames at a fixed rate instead of screen-recording a laggy session.`,
+  godot:{ term:`The demo and the trailer are both export presets. A trailer feature tag switches on a scripted camera rig, and the engine’s movie writer renders deterministic frames at a fixed rate instead of screen-recording a laggy session.`,
     api:['Export preset custom features + OS.has_feature()','godot --write-movie file.avi --fixed-fps 60','Movie Maker mode in Project Settings','SceneTree.quit()','ProjectSettings application/config/version','Marker3D camera path'],
     snippet:`extends Node                       # godot --write-movie trailer.avi --fixed-fps 60
 @export var path: Array[Marker3D] = []
@@ -541,14 +541,14 @@ func _process(delta: float) -> void:
 #endif
     }
 }`,
-    pitfall:`Building the demo from the full project. Everything under a Resources folder is included whole regardless of what the demo's scenes reference, so a short slice downloads at close to full game size and the store page's file size contradicts the pitch. Move optional content to Addressables and check the build report.`,
+    pitfall:`Building the demo from the full project. Everything under a Resources folder is included whole regardless of what the demo’s scenes reference, so a short slice downloads at close to full game size and the store page’s file size contradicts the pitch. Move optional content to Addressables and check the build report.`,
     map:`Unity build profiles with Unity Recorder are Godot export presets with Movie Maker mode.` }});
 INTERVIEW('launch-and-discoverability',{
   junior:[
-    { q:`What is the store page's job?`,
+    { q:`What is the store page’s job?`,
       a:`It is where the game is judged before anyone plays it, so it must state the hook in a sentence a stranger can repeat and promise only what the first ten minutes deliver. Build the capsule around the core verb rather than around a logo. Treat it as the first level, because it is the first thing the player has to read.`,
       follow:`A stranger sees only the capsule. What do they say the game is?`,
-      red:`Describes the page as a marketing deliverable outside the design's responsibility.` },
+      red:`Describes the page as a marketing deliverable outside the design’s responsibility.` },
     { q:`What should the first minute of a trailer show?`,
       a:`What the player does. The verb, the decision and the consequence, in that order, with enough clarity that someone can imagine their own hands on it. A trailer that shows only cinematics tells the viewer nothing about the game they would buy.`,
       follow:`Your loop takes ten minutes to become interesting. What do you show?`,
@@ -560,11 +560,11 @@ INTERVIEW('launch-and-discoverability',{
   ],
   mid:[
     { q:`The page promises something the first ten minutes do not deliver. Options?`,
-      a:`Change the page, change the first ten minutes, or accept the mismatch and expect refunds and early negative reviews. Measure which is cheaper and which is honest. The mismatch is usually cheapest to fix in the game's first minutes, because that work also improves onboarding.`,
+      a:`Change the page, change the first ten minutes, or accept the mismatch and expect refunds and early negative reviews. Measure which is cheaper and which is honest. The mismatch is usually cheapest to fix in the game’s first minutes, because that work also improves onboarding.`,
       follow:`The promise is what built the wishlists. Does that change the answer?`,
       red:`Keeps the promise because it converts and treats the refunds as unrelated.` },
     { q:`Build a discoverability plan with no budget.`,
-      a:`List the beats that could build an audience, ordered by cost and expected effect, and pick the one demo or festival moment that best shows the loop. Use the language players of the comparables actually use rather than your internal vocabulary. Make sure the loop is legible on a stream, because that is free reach you either earn or forfeit.`,
+      a:`List the beats that could build an audience, ordered by cost and expected effect, and pick the one demo or festival moment that best shows the loop. Use the language players of the comparables use rather than your internal vocabulary. Make sure the loop is legible on a stream, because that is free reach you either earn or forfeit.`,
       follow:`Your loop is not legible to a viewer who is not playing. What do you change?`,
       red:`Lists channels and posting frequency with no reference to what the game shows.` },
     { q:`How do you test the capsule?`,
@@ -583,19 +583,19 @@ INTERVIEW('launch-and-discoverability',{
       red:`Concludes the content was too thin without checking whether anyone reached it.` }
   ] });
 FACTS('launch-and-discoverability',[
-  { claim:`Steam's content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localization and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' }
+  { claim:`Steam’s content survey asks developers to disclose AI-generated content that ships with the game and reaches players (art, sound, narrative, localisation and the like), split into pre-generated content, made with AI tools during development, and live-generated content, made while the game runs. Efficiency gains from AI development tools are not covered. Valve rewrote the survey in January 2026.`, asOf:'2026-09-23', src:'https://partner.steamgames.com/doc/gettingstarted/contentsurvey' }
 ]);
 
 T('live-operations',{ d:'product', t:'Post-launch and live operations', tag:'Release is a milestone, not a finish line. Decide what the game becomes after players arrive.',
   what:`What happens after launch: update cadence, balance and bug patches, seasons or events, community and support, and how ongoing content funds itself. A premium game, an update-driven game and a live-service game need different post-launch designs.`,
   why:[`Players find balance and exploit problems that testing missed.`,`Post-launch decisions are still design decisions, and they change what the game is.`,`Promising ongoing support is a design commitment, not a marketing line.`],
-  think:{ q:[`What does the first update fix, and what does it add?`,`What cadence can the team actually sustain?`,`How do players report problems, and who answers?`,`Does the content model fund the updates?`,`What do we owe the players who arrived first?`],
+  think:{ q:[`What does the first update fix, and what does it add?`,`What cadence can the team sustain?`,`How do players report problems, and who answers?`,`Does the content model fund the updates?`,`What do we owe the players who arrived first?`],
     trade:[`Live content retains players and risks a treadmill, fatigue and scope.`,`Fast patches are responsive and can thrash the balance.`],
     traps:[`Launching a live plan with no capacity to run it.`,`Nerfing in silence.`,`Ignoring the community.`,`Monetizing the fix for a problem the design created.`],
     good:[`A realistic cadence.`,`A channel for feedback.`,`Updates that keep the original promise.`],
     bad:[`Radio silence.`,`Contradictory patches.`,`A roadmap nobody can build.`] },
   how:[`Plan the first ninety days before launch.`,`Separate fixes from features and say which a patch is.`,`Set a cadence you can keep and protect it.`,`Give players a channel and answer it visibly.`,`Watch the same signals you watched before launch and decide with the evidence.`],
-  ai:{ yes:[`Cluster community feedback and summarize sentiment.`,`Draft patch notes and update plans.`,`Simulate balance changes against player data.`],
+  ai:{ yes:[`Cluster community feedback and summarise sentiment.`,`Draft patch notes and update plans.`,`Simulate balance changes against player data.`],
        no:[`Decide what to change in response to the community.`] },
   prompts:[{l:'First update plan',p:`Here is our launch state, player feedback and team capacity: [CONTEXT]. Propose the first update split into fixes and additions, each with the player problem it addresses and the signal you would watch to know it worked. Flag anything the cadence cannot sustain.`}],
   verify:[`Does the promised cadence match the team?`,`Is there a feedback channel and an owner?`],
@@ -604,7 +604,7 @@ T('live-operations',{ d:'product', t:'Post-launch and live operations', tag:'Rel
 TECH('live-operations',[
   {n:'First-90-days plan', how:`Fixes and additions mapped to the first quarter after launch.`, fit:`Every launch, premium included.`, cost:`Commits capacity after the launch push.`, alt:`A smaller hotfix plan when live content is not intended.`},
   {n:'Feedback channel', how:`One visible place where players report problems and one owner who answers.`, fit:`Building trust and catching issues early.`, cost:`Triage load and expectation management.`, alt:`A public changelog and a monitored community thread.`},
-  {n:'Update cadence', how:`A rhythm of patches and content that the team can actually sustain.`, fit:`Live games and update-driven games.`, cost:`Promise made in public.`, alt:`Milestone-sized updates rather than a fixed clock.`}
+  {n:'Update cadence', how:`A patch and content rhythm sized to the team after fixes are counted, with the slower of review time and build time setting the floor.`, fit:`Live games and update-driven games.`, cost:`Promise made in public.`, alt:`Milestone-sized updates rather than a fixed clock.`}
 ]);
 ENGINE('live-operations',{
   godot:{ term:`Content ships after launch as a .pck resource pack downloaded into user:// and mounted at runtime. The engine binary cannot change this way, so anything needing a new engine feature still goes through the store.`,
@@ -622,7 +622,7 @@ func apply_patch(pck_path: String) -> bool:
 \treturn true`,
     pitfall:`Loading a pack with replace_files left at its default. It overrides existing res:// paths, so a pack built against a newer binary can swap a script or scene under a client that cannot run it, and the crash happens at scene load with no clue that a pack caused it. Pin every pack to an exact build version and prefer adding paths over replacing them.`,
     map:`Godot .pck resource packs are Unity Addressables remote content.` },
-  unity:{ term:`Addressables with a remote catalog. The client checks for catalog updates at boot, downloads only the bundles whose hashes changed, then loads the new content by address.`,
+  unity:{ term:`Addressables with a remote catalogue. The client checks for catalogue updates at boot, downloads only the bundles whose hashes changed, then loads the new content by address.`,
     api:['Addressables.CheckForCatalogUpdates() / UpdateCatalogs()','Addressables.LoadAssetAsync() / LoadSceneAsync()','RemoteLoadPath / RemoteBuildPath','addressables_content_state.bin','Addressables.GetDownloadSizeAsync()','Addressables.ClearDependencyCacheAsync()'],
     snippet:`public class ContentUpdate : MonoBehaviour {
     IEnumerator Start() {
@@ -635,7 +635,7 @@ func apply_patch(pck_path: String) -> bool:
         yield return Addressables.LoadSceneAsync("Season2");
     }
 }`,
-    pitfall:`Doing a full Addressables rebuild for a content update instead of "Update a Previous Build" against the saved content state. Every bundle gets a new hash, so returning players re-download the entire catalogue for a one-asset balance fix, and on mobile a large share of them never finish it. Keep the content state file in version control with the release.`,
+    pitfall:`Doing a full Addressables rebuild for a content update instead of “Update a Previous Build” against the saved content state. Every bundle gets a new hash, so returning players re-download the entire catalogue for a one-asset balance fix, and on mobile a large share of them never finish it. Keep the content state file in version control with the release.`,
     map:`Unity Addressables remote catalogues are Godot .pck packs mounted from user://.` },
   note:`The client half is a download and a mount. The decisions in this topic (what the first update fixes, what cadence the team can hold, how a nerf is announced) live in the backend and in the calendar. The engine work matters because it decides whether a fix takes a store review or an hour, and that single fact sets the cadence you are allowed to promise.` });
 INTERVIEW('live-operations',{
@@ -680,7 +680,7 @@ INTERVIEW('live-operations',{
 
 T('localization-and-culture',{ d:'product', t:'Localization and culturalization', tag:'Text, layout and meaning all change between languages and markets. Design for it before it is expensive.',
   what:`Designing text, interface and content to survive translation and cultural change: string expansion and contraction, gendered and plural grammar, text baked into images or spoken aloud, right-to-left layout, icons and colours that carry meaning, and the platform or age requirements of each market.`,
-  why:[`English layout assumptions break in German and shrink in Chinese.`,`Meaning does not always translate, and references can fail or offend.`,`Retrofitting localization costs far more than designing for it.`,`A market can refuse a launch for a rating or payment reason.`],
+  why:[`German runs longer than English and breaks tight layouts; Chinese runs shorter but needs larger glyphs, so neither fits an English-sized box.`,`Meaning does not always translate, and references can fail or offend.`,`Retrofitting localisation costs far more than designing for it.`,`A market can refuse a launch for a rating or payment reason.`],
   think:{ q:[`How much can this string grow, and does the layout absorb it?`,`Is the meaning in text, in an icon, or in a voice line?`,`What in our art or writing is culture-specific?`,`What does each target market require for rating, language and payment?`,`Who approves the translated tone?`],
     trade:[`Designing for all languages constrains voice and layout.`,`Localizing everything costs and reaches more players.`],
     traps:[`Text baked into images.`,`Hard-coded grammar assumptions.`,`Symbols and colours treated as universal.`,`Translation started at the end.`],
@@ -688,7 +688,7 @@ T('localization-and-culture',{ d:'product', t:'Localization and culturalization'
     bad:[`The interface breaks in German.`,`Jokes fall flat.`,`A market cannot launch for a rating reason.`] },
   how:[`Externalize every string.`,`Budget for text expansion and test the longest language.`,`Annotate context for translators, including tone and speaker.`,`Use locale-aware formatting for numbers, dates and currency.`,`Check platform and rating requirements early.`],
   ai:{ yes:[`Pre-translate drafts and flag expansion risk.`,`Explain cultural references and adapt tone against a guide.`,`Generate pseudo-localized strings to test layout.`],
-       no:[`Sign off the final localized tone or the cultural fit.`] },
+       no:[`Sign off the final localised tone or the cultural fit.`] },
   prompts:[{l:'Localization prep',p:`Here are our UI strings and their layout constraints: [LIST]. For each, state the maximum expansion the layout allows, whether the meaning depends on grammar, gender or word order, and the terms that need a glossary entry. Flag strings whose meaning is carried by an image or a voice line.`}],
   verify:[`Are all strings externalized?`,`Has the longest target language been tested in layout?`,`Are platform and rating requirements known?`],
   test:[`Pseudo-localize every string with a longer language and open every screen. Note what overflows or clips.`],
@@ -696,7 +696,7 @@ T('localization-and-culture',{ d:'product', t:'Localization and culturalization'
 TECH('localization-and-culture',[
   {n:'String externalization', how:`All display text separated from code and layout.`, fit:`Any game that may ship in more than one language.`, cost:`Up-front engineering and discipline.`, alt:`A late extraction pass for tiny projects, at higher cost.`},
   {n:'Pseudo-localization', how:`Replace strings with a longer, accented version to test layout before translation.`, fit:`Catching overflow early and cheaply.`, cost:`Another build variant to maintain.`, alt:`Design with the longest known language in mind.`},
-  {n:'Cultural review', how:`A pass on references, symbols, colours and representation per target market.`, fit:`Markets and content where meaning is not universal.`, cost:`Slows a launch and can require art changes.`, alt:`Flag risky content and localize only what is necessary.`}
+  {n:'Cultural review', how:`A pass on references, symbols, colours and representation per target market.`, fit:`Markets and content where meaning is not universal.`, cost:`Slows a launch and can require art changes.`, alt:`Flag risky content and localise only what is necessary.`}
 ]);
 ENGINE('localization-and-culture',{
   godot:{ term:`Strings live in translation files imported as Translation resources, and the game asks for them with tr. One key carries the whole sentence including its placeholders, so word order stays with the translator.`,
@@ -711,8 +711,8 @@ func refresh(found: String, count: int) -> void:
 \t# One key with placeholders inside it. Fragments freeze English word order.
 \ttext = tr("HUD_FOUND").format({"item": tr(found), "n": count})
 \t$Plural.text = tr_n("ITEM_ONE", "ITEM_MANY", count)`,
-    pitfall:`Building sentences by concatenating translated fragments. Languages put the number, the object and the verb in different places, so tr("YOU_FOUND") plus a name is untranslatable and the translator has no way to fix it. Ship one key per sentence with named placeholders, and use tr_n where the plural rule is not English's.`,
-    map:`Godot's tr with imported translation resources is Unity's Localization package with string tables.` },
+    pitfall:`Building sentences by concatenating translated fragments. Languages put the number, the object and the verb in different places, so tr(“YOU_FOUND”) plus a name is untranslatable and the translator has no way to fix it. Ship one key per sentence with named placeholders, and use tr_n for every string that contains a count, because the translator’s language, not English, decides how many plural forms it needs.`,
+    map:`Godot’s tr with imported translation resources is Unity’s Localization package with string tables.` },
   unity:{ term:`The Localization package holds locales, string tables and smart strings. A LocalizeStringEvent binds a table entry to a label, and the font asset has to cover the glyphs every target locale needs.`,
     api:['LocalizedString / LocalizeStringEvent','LocalizationSettings.SelectedLocale','StringTable + Smart String arguments','TMP_FontAsset fallback list / TMP_Settings.fallbackFontAssets','Pseudo-Locale for the layout pass','LocalizationSettings.InitializationOperation'],
     snippet:`public class Hud : MonoBehaviour {
@@ -729,11 +729,11 @@ func refresh(found: String, count: int) -> void:
     }
 }`,
     pitfall:`Shipping a TextMeshPro font asset baked with a Latin character set. Pseudo-localisation passes because it is still Latin, and the first CJK or Cyrillic build renders every glyph as a box with no error in the console. Configure the fallback chain and test with a real translated string, not an accented one.`,
-    map:`Unity's Localization package with string tables is Godot's tr with imported translation resources.` }});
+    map:`Unity’s Localization package with string tables is Godot’s tr with imported translation resources.` }});
 INTERVIEW('localization-and-culture',{
   junior:[
     { q:`What breaks in an interface when you translate English into German?`,
-      a:`Strings expand, so labels clip, buttons overflow and layouts that were tight become broken. Chinese contracts instead, which leaves layouts looking empty and sometimes changes the reading order of a screen. Budget expansion per string and test the longest target language rather than assuming the English fits everywhere.`,
+      a:`Strings expand, so labels clip, buttons overflow and layouts that were tight become broken. Chinese contracts in width instead, but its glyphs need a larger point size and taller lines to stay legible, so boxes that fit German can still clip vertically. Budget expansion per string and test the longest target language rather than assuming the English fits everywhere.`,
       follow:`What else changes for a right-to-left language?`,
       red:`Assumes a font change and a smaller size will absorb it.` },
     { q:`Why must strings be externalised?`,
@@ -741,7 +741,7 @@ INTERVIEW('localization-and-culture',{
       follow:`What do you do about text already baked into art?`,
       red:`Plans to hand the translator a build and a spreadsheet extracted at the end.` },
     { q:`What is culturalization, as distinct from translation?`,
-      a:`Translation moves the words. Culturalization checks that the meaning survives: references that do not land, gestures and symbols that read differently, colours that carry another association, and content a market's rating or payment rules will not accept. It can change art and design, not only strings.`,
+      a:`Translation moves the words. Culturalization checks that the meaning survives: references that do not land, gestures and symbols that read differently, colours that carry another association, and content a market’s rating or payment rules will not accept. It can change art and design, not only strings.`,
       follow:`Give one example where a mechanic, not a line, had to change.`,
       red:`Treats it as the same job as translation with a longer deadline.` }
   ],
@@ -760,10 +760,10 @@ INTERVIEW('localization-and-culture',{
       red:`Sends the string table with no context and reviews only the word count.` }
   ],
   senior:[
-    { q:`Plan localization for six languages from month one.`,
+    { q:`Plan localisation for six languages from month one.`,
       a:`Externalise everything and forbid text in textures from the start. Put pseudo-localization into the build so layout regressions are caught the day they appear. Budget expansion per layout, maintain a glossary and a tone guide, and schedule a culturalization review per market alongside the rating and payment requirements. The reviews belong before content lock, not after.`,
       follow:`One market requires a content change to be rated at all. How do you decide?`,
-      red:`Schedules translation as a phase at the end and treats layout as a localization vendor problem.` },
+      red:`Schedules translation as a phase at the end and treats layout as a localisation vendor problem.` },
     { q:`A market cannot launch because of a rating requirement discovered late. Walk me through it.`,
       a:`Establish exactly what the requirement is rather than the summary of it, then find the cheapest compliant change and cost its design implications. Weigh that against what the market is worth. If the change breaks something central, be explicit that the honest options are a separate build or not launching there.`,
       follow:`The compliant change breaks a core mechanic. What do you recommend?`,
@@ -771,22 +771,22 @@ INTERVIEW('localization-and-culture',{
   ] });
 
 T('ethics-and-responsibility',{ d:'product', t:'Ethics and responsibility', tag:'Dark patterns, compulsion and data are design decisions. Make them on purpose, or make them by accident.',
-  what:`The ethical constraints a design chooses: monetization that respects the player, engagement versus compulsion, gambling-like mechanics, data and privacy, representation, and honest claims. Treat these as constraints in the same family as scope or platform, applied early rather than reviewed at the end.`,
+  what:`The ethical constraints a design chooses: monetisation that respects the player, engagement versus compulsion, gambling-like mechanics, data and privacy, representation, and honest claims. Treat these as constraints in the same family as scope or platform, applied early rather than reviewed at the end.`,
   why:[`The same loop that retains can manipulate, and the difference is whether the player would endorse it knowing the design.`,`Player trust is a long-term asset and a short-term temptation.`,`Regulation and platform rules keep moving, so designing late means costly rework.`],
   think:{ q:[`Would the player consent to this design if they could see it?`,`Does this pressure the player or inform them?`,`Does it respect their time, money and data?`,`Who is excluded or stereotyped by the defaults?`,`Does the store promise match what the game does?`],
     trade:[`Respectful design can earn less per player and more trust.`,`Aggressive design can earn more now and cost the audience later.`],
     traps:[`Fear of missing out used as the retention engine.`,`Reward mechanics that blur their own value.`,`Pay to skip a problem the design created.`,`Opaque data use.`,`Default characters who quietly exclude.`],
     good:[`The model is explainable and the player would accept it.`,`The values sit next to the pillars.`],
     bad:[`The game is easier to describe as a habit than as an experience.`] },
-  how:[`Write the design values next to the pillars.`,`Review the monetization loop for pressure rather than value.`,`Make odds and data use explicit.`,`Watch the target player for discomfort in a test.`,`Revisit before launch and at each update.`],
+  how:[`Write the design values next to the pillars.`,`Review the monetisation loop for pressure rather than value.`,`Make odds and data use explicit.`,`Watch the target player for discomfort in a test.`,`Revisit before launch and at each update.`],
   ai:{ yes:[`Stress-test a loop for manipulative patterns.`,`Draft clear disclosure copy.`,`Review content and defaults for representation gaps.`,`Flag regulation risk as a starting point.`],
        no:[`Decide the ethical line.`,`Claim legal compliance.`] },
-  prompts:[{l:'Ethics stress test',p:`Here is our loop, monetization and data flow: [CONTEXT]. Identify where the design pressures rather than informs, where a player might feel misled or ashamed, and where the defaults exclude or stereotype. For each, propose the smallest change that keeps the experience and removes the pressure.`}],
+  prompts:[{l:'Ethics stress test',p:`Here is our loop, monetisation and data flow: [CONTEXT]. Identify where the design pressures rather than informs, where a player might feel misled or ashamed, and where the defaults exclude or stereotype. For each, propose the smallest change that keeps the experience and removes the pressure.`}],
   verify:[`Can the model be explained to a player without embarrassment?`,`Are odds and data use disclosed?`,`Were the defaults reviewed for representation?`],
   test:[`Describe the loop to a matched player without defending it. Note hesitation, discomfort or a sense of being tricked.`],
   rel:[['business-model','The model is where most ethical pressure is designed in.'],['player-motivation','Compulsion and intrinsic motivation pull in opposite directions.'],['return-and-quit','Players eventually leave the loop they do not endorse.'],['design-pillars','Values belong beside the pillars, not in a review at the end.'],['ai-disclosure-policy','Telling players what AI made is an honesty duty with store and legal rules behind it.']] });
 TECH('ethics-and-responsibility',[
-  {n:'Consent test', how:`Ask whether the player would endorse the design if they could see it.`, fit:`Reviewing monetization and engagement loops.`, cost:`Kills some profitable ideas.`, alt:`A written values statement beside the design pillars.`},
+  {n:'Consent test', how:`Ask whether the player would endorse the design if they could see it.`, fit:`Reviewing monetisation and engagement loops.`, cost:`Kills some profitable ideas.`, alt:`A written values statement beside the design pillars.`},
   {n:'Disclosure', how:`Explicit odds, data use and honest claims.`, fit:`Randomized rewards, currencies and personal data.`, cost:`Can reduce conversion in the short term.`, alt:`Plain-language summaries alongside the legal text.`},
   {n:'Representation review', how:`Check the defaults, characters and content for who is included or stereotyped.`, fit:`Any content with characters or player identity.`, cost:`Requires care and sometimes redesign.`, alt:`A diverse review group before content is locked.`}
 ]);
@@ -809,8 +809,8 @@ func track(event: String, props: Dictionary) -> void:
 \tprops["pid"] = _stable_random_id()         # never OS.get_unique_id(), and resettable
 \t$HTTPRequest.request(ENDPOINT, [], HTTPClient.METHOD_POST, JSON.stringify(props))`,
     pitfall:`Keying players on OS.get_unique_id(). It is a device identifier that survives reinstalls, which is exactly the property that makes it a privacy liability and a platform policy problem, and it is unavailable on some targets so the code also breaks. Generate a random id, store it in user://, and let the player reset it.`,
-    map:`Godot's HTTPRequest client behind a user:// consent flag is Unity's analytics service gated on StartDataCollection.` },
-  unity:{ term:`The service is initialised early so the consent screen can show, but collection is a separate call. Nothing is gathered until the player says yes, and a no is followed by a deletion request rather than silence.`,
+    map:`Godot’s HTTPRequest client behind a user:// consent flag is Unity’s analytics service gated on StartDataCollection.` },
+  unity:{ term:`The service is initialised early so the consent screen can show, but collection waits for the answer: StartDataCollection before Unity 6.2, and from Analytics SDK 6.1 EndUserConsent.SetConsentState with AnalyticsIntent, which also stores the answer between sessions. Nothing is gathered until the player says yes, and a no is followed by a deletion request rather than silence.`,
     api:['UnityServices.InitializeAsync()','AnalyticsService.Instance.StartDataCollection() / StopDataCollection()','AnalyticsService.Instance.RequestDataDeletion()','PlayerPrefs for the recorded answer','SystemInfo.deviceUniqueIdentifier (the identifier not to send)','Application.RequestAdvertisingIdentifierAsync()'],
     snippet:`public class Telemetry : MonoBehaviour {
     async void Start() {
@@ -827,8 +827,8 @@ func track(event: String, props: Dictionary) -> void:
     }
 }`,
     pitfall:`Starting collection in the same call that initialises the service. The first session is captured before the consent dialog is even drawn, so whatever the player then chooses, you already took it. Initialising and collecting are two calls for this reason, and the gap between them is where the question belongs.`,
-    map:`Unity's analytics service gated on StartDataCollection is Godot's HTTP client gated on a user:// consent flag.` },
-  note:`The consent answer is not only a client setting. It has to reach the server that stores the events and the one that can delete them, which is why the client keeps a local flag and the account keeps the authoritative one. A build that drops events locally while the server still holds last week's is compliant in the UI and not in fact.` });
+    map:`Unity’s analytics service gated on StartDataCollection is Godot’s HTTP client gated on a user:// consent flag.` },
+  note:`The consent answer is not only a client setting. It has to reach the server that stores the events and the one that can delete them, which is why the client keeps a local flag and the account keeps the authoritative one. A build that drops events locally while the server still holds last week’s is compliant in the UI and not in fact.` });
 INTERVIEW('ethics-and-responsibility',{
   junior:[
     { q:`What is a dark pattern in a game, concretely?`,
@@ -836,8 +836,8 @@ INTERVIEW('ethics-and-responsibility',{
       follow:`Name one you have met as a player and what it did to your trust.`,
       red:`Defines it as anything that makes money.` },
     { q:`What is the consent test?`,
-      a:`Ask whether the player would endorse this design if they could see it from the inside. It converts an argument about intentions into a question about the player's view, which is checkable. Where you would be embarrassed to explain the mechanism, that is the finding.`,
-      follow:`How would you actually check that with players?`,
+      a:`Ask whether the player would endorse this design if they could see it from the inside. It converts an argument about intentions into a question about the player’s view, which is checkable. Where you would be embarrassed to explain the mechanism, that is the finding.`,
+      follow:`How would you check that with players?`,
       red:`Answers that players accept it because they keep playing.` },
     { q:`Distinguish engagement from compulsion.`,
       a:`Engagement is a player choosing to return because the experience is worth their time. Compulsion is a player returning because leaving costs them something the design created. Retention numbers look the same for both, which is why the distinction has to be asked as a design question.`,
@@ -854,7 +854,7 @@ INTERVIEW('ethics-and-responsibility',{
       follow:`Legal says the minimum is less than you propose. How do you argue for more?`,
       red:`Discloses the legal minimum and treats clarity as a competitive disadvantage.` },
     { q:`How do you review defaults for representation?`,
-      a:`Look at who the default character, the default voice and the default assumptions exclude, and at where a shorthand has become a stereotype. Do it while the content is being made, because it is a design question and not a compliance pass. Bring people who are not in the room's majority into the review.`,
+      a:`Look at who the default character, the default voice and the default assumptions exclude, and at where a shorthand has become a stereotype. Do it while the content is being made, because it is a design question and not a compliance pass. Bring people who are not in the room’s majority into the review.`,
       follow:`The team is homogeneous. How do you get a useful review?`,
       red:`Adds an options screen and considers the question answered.` }
   ],
@@ -869,9 +869,9 @@ INTERVIEW('ethics-and-responsibility',{
       red:`Objects in a meeting, leaves no record, and implements it unchanged.` }
   ] });
 FACTS('ethics-and-responsibility',[
-  { claim:`Apple's App Store Review Guidelines (3.1.1) require apps that sell loot boxes or other randomised virtual items to disclose the odds of receiving each type of item before purchase, a rule in place since December 2017.`, asOf:'2026-09-23', src:'https://developer.apple.com/app-store/review/guidelines/' },
+  { claim:`Apple’s App Store Review Guidelines (3.1.1) require apps that sell loot boxes or other randomised virtual items to disclose the odds of receiving each type of item before purchase, a rule in place since December 2017.`, asOf:'2026-09-23', src:'https://developer.apple.com/app-store/review/guidelines/' },
   { claim:`Google Play has required games that sell randomised virtual items to disclose the odds before purchase since May 2019.`, asOf:'2026-09-23', src:'https://www.gamedeveloper.com/business/games-on-the-google-play-store-now-required-to-disclose-loot-box-odds' },
-  { claim:`Since April 2020 the ESRB adds the notice "In-Game Purchases (Includes Random Items)" to games that sell randomised items for real money.`, asOf:'2026-09-23', src:'https://www.esrb.org/blog/in-game-purchases-includes-random-items/' },
-  { claim:`In January 2025 Genshin Impact's developer, Cognosphere, agreed to pay $20 million to settle FTC charges; the order bans selling loot boxes to players under 16 in the US without a parent's consent.`, asOf:'2026-09-23', src:'https://www.ftc.gov/news-events/news/press-releases/2025/01/genshin-impact-game-developer-will-be-banned-selling-lootboxes-teens-under-16-without-parental' },
-  { claim:`The FTC's amended COPPA Rule, published on 22 April 2025, requires full compliance from 22 April 2026: separate parental consent before a child's data is disclosed to third parties such as advertisers, and biometric identifiers now count as personal information.`, asOf:'2026-09-23', src:'https://www.federalregister.gov/documents/2025/04/22/2025-05904/childrens-online-privacy-protection-rule' }
+  { claim:`Since April 2020 the ESRB adds the notice “In-Game Purchases (Includes Random Items)” to games that sell randomised items for real money.`, asOf:'2026-09-23', src:'https://www.esrb.org/blog/in-game-purchases-includes-random-items/' },
+  { claim:`In January 2025 Genshin Impact’s developer, Cognosphere, agreed to pay $20 million to settle FTC charges; the order bans selling loot boxes to players under 16 in the US without a parent’s consent.`, asOf:'2026-09-23', src:'https://www.ftc.gov/news-events/news/press-releases/2025/01/genshin-impact-game-developer-will-be-banned-selling-lootboxes-teens-under-16-without-parental' },
+  { claim:`The FTC’s amended COPPA Rule, published on 22 April 2025, requires full compliance from 22 April 2026: separate parental consent before a child’s data is disclosed to third parties such as advertisers, and biometric identifiers now count as personal information.`, asOf:'2026-09-23', src:'https://www.federalregister.gov/documents/2025/04/22/2025-05904/childrens-online-privacy-protection-rule' }
 ]);

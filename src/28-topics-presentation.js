@@ -8,17 +8,17 @@ DOMAINS.push({ id:'presentation', lens:'design', t:'Art / Audio / Feel', short:'
     links:[['ux','Every visual and audio element is potentially information. Treat it as UI.'],['core','Game feel is the loop as the body experiences it: timing, weight, response.'],['experience','Style, music and animation carry the intended emotion.'],['production','Polish is scheduled last for a reason: it should amplify validated experience.']] });
 
 T('visual-language',{ d:'presentation', t:'Visual language and clarity', tag:'Style serves function. A consistent visual grammar is how the game speaks without words.',
-  what:`The rules by which the game's visuals carry meaning: what danger looks like, what interactable looks like, what friend and foe look like, what important looks like. Art direction sets the mood. Visual language sets the grammar. Both must stay consistent or the player stops trusting their eyes.`,
+  what:`The rules by which the game’s visuals carry meaning: what danger looks like, what interactable looks like, what friend and foe look like, what important looks like. Art direction sets the mood. Visual language sets the grammar. Both must stay consistent or the player stops trusting their eyes.`,
   why:[`Players read the world before the HUD. A consistent grammar makes the game legible at a glance.`,`Inconsistent grammar (some red things hurt, some do not) teaches players to ignore signals.`,`Visual language is the cheapest onboarding: it teaches by seeing.`],
   think:{ q:[`What are the ten meanings the player must read instantly? What signals each?`,`Is each signal used for one meaning only?`,`Does the style support readability at the target camera and device, or fight it?`,`What in the scene is noise relative to those meanings?`],
-    trade:[`Realistic styles are immersive and hard to read. Stylized ones are legible and demand commitment.`,`Rich detail is beautiful and noisy.`],
+    trade:[`Realistic styles are immersive and hard to read. Stylised ones are legible and demand commitment.`,`Rich detail is beautiful and noisy.`],
     traps:[`Beauty shots that hide danger.`,`Palette decisions made without the gameplay signals in the room.`,`Signals that collide with the fantasy (bright arrows in a grounded world) when a diegetic option existed.`],
     good:[`Players react correctly to things they have never seen before because the grammar told them.`],
-    bad:[`Players ask "is that going to hurt me?"`] },
+    bad:[`Players ask “is that going to hurt me?”`] },
   how:[`List the meanings the player must read. Assign each a unique signal set (shape, color, motion, sound).`,`Audit assets for grammar violations.`,`Squint and desaturation tests on key screens.`,`Test new-player reactions to unseen objects: do they infer correctly?`],
   ai:{ yes:[`Build the meaning-to-signal grammar table from your design and flag collisions.`,`Audit asset lists or screenshot descriptions for violations.`,`Propose diegetic signal alternatives.`],
        no:[`Choose the style. That is identity and authorship.`,`Judge readability. Players show that.`] },
-  prompts:[{l:'Visual grammar table',p:`Here are the meanings the player must read instantly in our game: [MEANINGS] and our current visual signals for each: [SIGNALS]. Build a table of meaning to signal (shape, color, motion, audio). Flag signals used for two meanings and meanings with only one channel. Propose fixes that fit the art direction "[STYLE]" and prefer diegetic signals. Then list what in a typical scene is noise relative to these meanings.`}],
+  prompts:[{l:'Visual grammar table',p:`Here are the meanings the player must read instantly in our game: [MEANINGS] and our current visual signals for each: [SIGNALS]. Build a table of meaning to signal (shape, colour, motion, audio). Flag signals used for two meanings and meanings with only one channel. Propose fixes that fit the art direction “[STYLE]” and prefer diegetic signals. Then list what in a typical scene is noise relative to these meanings.`}],
   verify:[`Did it propose signals that fit the art direction or generic HUD-style markers?`],
   test:[`Show new players unseen objects. Do they infer danger, interactability, value correctly?`,`Desaturated screenshot: can testers still identify the key meanings?`],
   rel:[['readability-and-hierarchy','Grammar is how hierarchy is expressed.'],['feedback-and-affordance','Affordance is carried by the grammar.'],['encounters-and-enemies','Enemy readability depends on silhouette and telegraph.'],['environmental-storytelling','The same grammar tells stories.']] });
@@ -41,7 +41,7 @@ func set_threat(v: float) -> void:
 \tthreat = clampf(v, 0.0, 1.0)
 \tset_instance_shader_parameter(&"threat", threat)   # per node, shared material untouched`,
     pitfall:`Calling set_shader_parameter on the shared ShaderMaterial to tint one enemy. Materials are Resources, so every object using that material changes with it and the whole room turns red. The matching mistake is material_override, which replaces all surfaces of the mesh and wipes the very grammar the second surface was carrying.`,
-    map:`Godot instance shader parameters are Unity's MaterialPropertyBlock.` },
+    map:`Godot instance shader parameters are Unity’s MaterialPropertyBlock.` },
   unity:{ term:`One Shader Graph with an exposed property per meaning, and a MaterialPropertyBlock per renderer. The grammar is enforced by the shader, the variation is per instance, and batching survives.`,
     api:['Shader Graph exposed properties','Shader.PropertyToID()','MaterialPropertyBlock + Renderer.GetPropertyBlock() / SetPropertyBlock()','Renderer.sharedMaterial vs Renderer.material','Volume + ColorAdjustments for the desaturation test','Shader.SetGlobalColor()'],
     snippet:`[RequireComponent(typeof(Renderer))]
@@ -71,7 +71,7 @@ INTERVIEW('visual-language',{
       follow:`Art wants red for both the enemy faction and for hazards. What do you propose?`,
       red:`Plans to explain the exception in the tutorial.` },
     { q:`What do the squint test and the desaturation test show you?`,
-      a:`Squinting removes detail and leaves the hierarchy, so you see what actually dominates. Desaturation removes hue and shows what survives for a player who cannot rely on colour. Both are cheap, take a screenshot, and answer whether the grammar reads before the art does.`,
+      a:`Squinting removes detail and leaves the hierarchy, so you see what dominates. Desaturation removes hue and shows what survives for a player who cannot rely on colour. Both are cheap, take a screenshot, and answer whether the grammar reads before the art does.`,
       follow:`The key meanings vanish in the desaturated frame. What is your fix order?`,
       red:`Treats them as art critique tools rather than readability checks.` }
   ],
@@ -101,7 +101,7 @@ INTERVIEW('visual-language',{
   ] });
 
 T('game-feel-and-juice',{ d:'presentation', t:'Game feel and juice', tag:'Polish amplifies feedback that already exists. It cannot manufacture meaning the design lacks.',
-  what:`Game feel (Steve Swink): real-time control of virtual objects in a simulated space, with interactions emphasized by polish. Juice is the layer of feedback effects (hit-stop, screen shake, squash and stretch, particles, sound, camera) that makes actions feel consequential. Vlambeer's screenshake talk demonstrated how much perceived quality comes from this layer. It works only when there is a real action and outcome to emphasize.`,
+  what:`Game feel (Steve Swink): real-time control of virtual objects in a simulated space, with interactions emphasised by polish. Juice is the layer of feedback effects (hit-stop, screen shake, squash and stretch, particles, sound, camera) that makes actions feel consequential. Jan Willem Nijman’s talk “The Art of Screenshake” (Vlambeer) and Martin Jonasson and Petri Purho’s “Juice it or lose it” took one prototype from flat to satisfying with effects alone, changing no rules. It works only when there is a real action and outcome to emphasise.`,
   why:[`Feel is the first thing players judge and the last thing they can articulate.`,`Juice makes feedback legible and satisfying, which makes learning faster and repetition pleasurable.`,`Juice on a weak loop is lipstick: it delays the discovery that the loop is weak, which is expensive.`],
   think:{ q:[`Is the loop voluntarily replayed without juice? If not, fix the loop first.`,`Which actions and outcomes matter most? Those get the most emphasis.`,`Does the juice communicate cause and outcome, or only spectacle?`,`Is the emphasis proportional? Does the biggest thing look biggest?`],
     trade:[`Heavy juice feels great and buries readability.`,`Restraint keeps clarity and can feel flat.`],
@@ -113,7 +113,7 @@ T('game-feel-and-juice',{ d:'presentation', t:'Game feel and juice', tag:'Polish
        no:[`Decide the loop is ready for polish.`,`Judge how it feels.`] },
   prompts:[{l:'Polish priority list',p:`Our loop is validated by [EVIDENCE]. Here are our actions and outcomes ranked by importance: [LIST]. For each of the top 5, propose emphasis across anticipation, impact and result using at most 3 channels (animation, VFX, camera, audio, haptics, hit-stop), estimate implementation cost, and state what the player would understand better because of it. Reject any proposal that would add latency to the input response or obscure the top 3 readable meanings ([MEANINGS]).`}],
   verify:[`Did it check the loop was validated, or polish regardless?`,`Are its effects proportional to importance?`],
-  test:[`With and without juice: is feedback clearer, or just louder?`,`Ask players what felt best and why.`,`Does readability survive? "What killed you?" test after adding effects.`],
+  test:[`With and without juice: is feedback clearer, or just louder?`,`Ask players what felt best and why.`,`Does readability survive? “What killed you?” test after adding effects.`],
   rel:[['feedback-and-affordance','Juice is amplified feedback.'],['core-loop','Validate the loop before polishing it.'],['controls-and-friction','Latency is the floor of feel.'],['polish-when','When to polish is a production decision.']] });
 TECH('game-feel-and-juice',[
   {n:'Response and control feel', how:`Tune acceleration, input buffering and coyote-time so the character answers the player within milliseconds and forgives small timing errors.`, fit:`Any real-time control scheme. The foundation before adding effects.`, cost:`Over-assisting removes weight and mastery. Too little feels unresponsive.`, alt:`Tune control first, then layer effects.`},
@@ -140,7 +140,7 @@ func hitstop(sec := 0.05) -> void:
 \tawait get_tree().create_timer(sec, true, false, true).timeout   # ignore_time_scale
 \tEngine.time_scale = 1.0`,
     pitfall:`Awaiting a plain scene tree timer during hit-stop. The timer is scaled by Engine.time_scale too, so a fifty millisecond freeze at a time scale of 0.05 lasts a full second and the game appears to hang on every hit. Pass ignore_time_scale as true, or track the freeze with an unscaled clock.`,
-    map:`Godot's Engine.time_scale with an ignore_time_scale timer is Unity's Time.timeScale with WaitForSecondsRealtime.` },
+    map:`Godot’s Engine.time_scale with an ignore_time_scale timer is Unity’s Time.timeScale with WaitForSecondsRealtime.` },
   unity:{ term:`Buffering on unscaled time, hit-stop on Time.timeScale, and shake on a Cinemachine impulse channel so it does not fight whatever the follow camera is doing.`,
     api:['Time.timeScale / Time.unscaledTime / Time.unscaledDeltaTime','WaitForSecondsRealtime','CinemachineImpulseSource.GenerateImpulse()','AnimationCurve for easing','Gamepad.current.SetMotorSpeeds()','Time.fixedDeltaTime'],
     snippet:`public class Juice : MonoBehaviour {
@@ -159,7 +159,7 @@ func hitstop(sec := 0.05) -> void:
     }
 }`,
     pitfall:`Using WaitForSeconds inside the hit-stop coroutine. It counts scaled time, so at a time scale of 0.05 it waits twenty times too long, and at a time scale of zero it never resumes at all, leaving the game frozen with no error. Use realtime waits for anything that has to outlive the freeze it caused.`,
-    map:`Unity's Time.timeScale with WaitForSecondsRealtime is Godot's Engine.time_scale with an ignore_time_scale timer.` }});
+    map:`Unity’s Time.timeScale with WaitForSecondsRealtime is Godot’s Engine.time_scale with an ignore_time_scale timer.` }});
 INTERVIEW('game-feel-and-juice',{
   junior:[
     { q:`What is game feel, and what is juice?`,
@@ -202,7 +202,7 @@ INTERVIEW('game-feel-and-juice',{
 
 T('audio-and-music',{ d:'presentation', t:'Audio and music', tag:'Sound is the fastest feedback channel and the most direct emotional control you have.',
   what:`Sound effects as feedback (confirm, warn, reward, locate), music as emotional pacing (tension, release, identity), and the mix as hierarchy (what is heard first). Audio reaches the player faster than vision and works while they look elsewhere.`,
-  why:[`Audio feedback lands while the eyes are busy. It is the main channel for off-screen and peripheral information.`,`Music sets the emotional curve more reliably than any other element.`,`A bad mix buries critical signals under spectacle.`],
+  why:[`Audio feedback lands while the eyes are busy. It is the main channel for off-screen and peripheral information.`,`Music changes the felt intensity of a scene without changing its rules, so it can raise or settle tension in seconds.`,`A bad mix buries critical signals under spectacle.`],
   think:{ q:[`Which critical signals need to reach a player who is looking elsewhere?`,`Does the music track the intended intensity curve, or play regardless?`,`What is the loudest thing in the mix? Is it the most important?`,`Mute the game: what stops working?`],
     trade:[`Dynamic music tracks the play and can feel manipulative or repetitive.`,`Rich soundscapes are immersive and mask feedback.`],
     traps:[`Audio as the last hire.`,`Critical information in audio only, with no visual redundancy.`,`Music that plays the same during rest and peak.`],
@@ -298,7 +298,7 @@ INTERVIEW('audio-and-music',{
   ] });
 
 T('animation-and-vfx',{ d:'presentation', t:'Animation, VFX and camera', tag:'Anticipation tells the player what is coming. Impact tells them it happened. Timing is the design.',
-  what:`Motion as communication: anticipation frames that telegraph, impact frames that confirm, follow-through that sells weight, camera behavior that frames the decision, hit reactions that show the state change. In gameplay, animation timing is a rules decision: it defines windows, telegraphs and commitment.`,
+  what:`Motion as communication: anticipation frames that telegraph, impact frames that confirm, follow-through that sells weight, camera behaviour that frames the decision, hit reactions that show the state change. In gameplay, animation timing is a rules decision: it defines windows, telegraphs and commitment.`,
   why:[`Animation timing is how players read enemy intent and their own commitment. It is the fairness of action games.`,`Camera decides what the player can see and therefore what decisions they can make.`,`VFX carry state (on fire, shielded, empowered) faster than any icon.`],
   think:{ q:[`For each enemy attack: how long is the telegraph, and is it readable at the intended camera distance?`,`For each player action: how long is the commitment, and does the player know it?`,`What does the camera hide at the worst moment?`,`Does the VFX for a state read as that state to a new player?`],
     trade:[`Long telegraphs are fair and slow. Short ones are exciting and unfair.`,`Dramatic cameras look great and hide threats.`],
@@ -306,11 +306,11 @@ T('animation-and-vfx',{ d:'presentation', t:'Animation, VFX and camera', tag:'An
     good:[`Players react to telegraphs they have never seen.`,`Players describe hits as weighty.`],
     bad:[`Players die to attacks they say had no warning.`] },
   how:[`Define telegraph and commitment windows as rules first, then animate to them.`,`Test readability of telegraphs at the target camera and lighting.`,`Assign each state a distinct VFX and verify new-player interpretation.`,`Review camera at the top ten decision moments: what is visible?`],
-  ai:{ yes:[`Audit telegraph and commitment windows against fairness heuristics.`,`Propose VFX grammar per state and flag collisions.`,`Analyze death logs for "no warning" clusters.`],
+  ai:{ yes:[`Audit telegraph and commitment windows against fairness heuristics.`,`Propose VFX grammar per state and flag collisions.`,`Analyze death logs for “no warning” clusters.`],
        no:[`Decide the feel of the animation style.`] },
   prompts:[{l:'Telegraph fairness audit',p:`Here are our enemy attacks with telegraph durations, damage and the camera distance and pace at which they appear: [LIST]. For each, estimate whether a player at [SKILL] can perceive and react within the window, given human reaction time and the visual noise you would expect. Flag attacks where the window is too short for the punishment, and propose changes to telegraph length, visibility or punishment, not to damage alone.`}],
   verify:[`Did it use realistic reaction times and account for visual noise?`],
-  test:[`"Did you see it coming?" after deaths.`,`Do new players react correctly to first-seen telegraphs?`,`Do players misread any VFX state?`],
+  test:[`“Did you see it coming?” after deaths.`,`Do new players react correctly to first-seen telegraphs?`,`Do players misread any VFX state?`],
   rel:[['game-feel-and-juice','Animation timing is game feel.'],['encounters-and-enemies','Telegraphs are enemy readability.'],['difficulty','Unfairness is often telegraph failure.'],['visual-language','VFX is part of the grammar.']] });
 TECH('animation-and-vfx',[
   {n:'State-machine animation', how:`Blend between clips driven by gameplay state and transitions with blend times.`, fit:`Most character animation where states are discrete and readable.`, cost:`Transitions can pop. Combinatorics grow with layered actions.`, alt:`Add blending/IK for the seams. Consider motion matching for large, smooth sets.`},
@@ -350,12 +350,12 @@ func attack() -> void:
 
     public void OnWindupEnd() => hitbox.enabled = true;   // AnimationEvent target
 }`,
-    pitfall:`Leaving the culling mode at its default while hitboxes are driven by AnimationEvents. An enemy just off camera stops animating, its windup event never fires, and it either never attacks or attacks with a hitbox that was never switched off. The bug only appears at the screen edge, which is exactly where nobody reproduces it.`,
+    pitfall:`Setting an enemy’s Animator to Cull Completely while hitboxes are driven by AnimationEvents. Off camera the state machine stops entirely, its windup event never fires, and it either never attacks or attacks with a hitbox that was never switched off. The bug only appears at the screen edge, which is exactly where nobody reproduces it.`,
     map:`A Unity Animator controller with AnimationEvents is a Godot AnimationTree with animation tracks.` }});
 INTERVIEW('animation-and-vfx',{
   junior:[
     { q:`What is a telegraph, and what makes one fair?`,
-      a:`The anticipation that tells the player what is coming. It is fair when the window is long enough for a human to perceive and answer it at the intended camera distance, with the visual noise the scene actually has. The window and the punishment must be sized against each other, because a short tell with a heavy cost reads as cheating.`,
+      a:`The anticipation that tells the player what is coming. It is fair when the window is long enough for a human to perceive and answer it at the intended camera distance, with the visual noise the scene has. The window and the punishment must be sized against each other, because a short tell with a heavy cost reads as cheating.`,
       follow:`How short is too short, and how did you arrive at that number?`,
       red:`Treats telegraph length as an animation preference rather than a rule.` },
     { q:`What is commitment, and does the player know it?`,
@@ -371,7 +371,7 @@ INTERVIEW('animation-and-vfx',{
     { q:`Players say attacks arrive with no warning. Investigate.`,
       a:`Cluster the deaths by attack and look at what was on screen at the moment of the tell. Check telegraph duration against reaction time, then check occlusion, camera framing and effect noise. Confirm whether an audio cue exists for the off-screen case. The fix is usually visibility, not duration.`,
       follow:`The telegraph is 600 milliseconds but the attacker is off screen. What changes?`,
-      red:`Lengthens every telegraph without finding which ones were actually unseen.` },
+      red:`Lengthens every telegraph without finding which ones were unseen.` },
     { q:`Why define windows as rules first and animate to them second?`,
       a:`Because the windows are the fairness and the balance, and animation is how they are communicated. If the animation sets the timing, every artistic revision silently rebalances the fight. Publish frame data as the source of truth and let the animator work against it.`,
       follow:`The animator insists a longer wind-up is needed for the motion to read. How do you resolve it?`,

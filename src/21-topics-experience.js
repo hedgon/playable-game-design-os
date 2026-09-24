@@ -4,21 +4,21 @@
    and interview (INTERVIEW).
    ===================================================================== */
 DOMAINS.push({ id:'experience', lens:'design', t:'Experience', short:'Fantasy, emotion, goals, tension, mastery, discovery', color:'var(--d-experience)',
-    sum:`The experience is what the player actually has: a fantasy they inhabit, emotions they move through, goals at three horizons. It is the target. Every mechanic, system and pixel exists to produce it.`,
+    sum:`The experience is what the player has: a fantasy they inhabit, emotions they move through, goals at three horizons. It is the target. Every mechanic, system and pixel exists to produce it.`,
     links:[['core','The core loop is the machine that manufactures the experience minute by minute.'],['narrative','Story gives the emotional arc a reason and the fantasy a shape.'],['presentation','Art and audio make the intended emotion legible and believable.'],['level','Levels pace the experience: they decide when tension rises and releases.']] });
 
 T('core-experience',{ d:'experience', t:'Core experience', tag:'One sentence: who the player is, what they do, and how it feels. Everything else is in service of it.',
-  what:`The core experience is the intended combination of fantasy, dominant emotions and moment-to-moment activity. It is written as a short statement such as "a tense, methodical hunt where preparation pays off and mistakes are survivable but costly". It is the design target that every discipline aims at.`,
-  why:[`Without a shared target, every discipline optimizes locally: combat gets faster, story gets longer, UI gets denser, and the whole gets muddier.`,`The core experience is the first filter for scope. Anything that does not intensify it is a candidate to cut.`,`It is what playtesting measures against. "Is it fun?" is unanswerable. "Did they feel tense and methodical?" is observable.`],
+  what:`The core experience is the intended combination of fantasy, dominant emotions and moment-to-moment activity. It is written as a short statement such as “a tense, methodical hunt where preparation pays off and mistakes are survivable but costly”. It is the design target that every discipline aims at.`,
+  why:[`Without a shared target, every discipline optimises locally: combat gets faster, story gets longer, UI gets denser, and the whole gets muddier.`,`The core experience is the first filter for scope. Anything that does not intensify it is a candidate to cut.`,`It is what playtesting measures against. “Is it fun?” is unanswerable. “Did they feel tense and methodical?” is observable.`],
   think:{ q:[`What are the two or three emotions the player should feel most often? In what rhythm?`,`What does the player do with their hands and mind moment to moment? Does that produce those emotions?`,`Which reference moments from other games produce the target feeling? What exactly produces it there?`,`What is this game NOT? Which adjacent experiences are we deliberately refusing?`],
-    trade:[`Focus produces clarity and excludes players. Breadth produces "something for everyone" and nothing anyone remembers.`,`A target emotion like "tension" demands real stakes. Adding comfort features dilutes it.`],
-    traps:[`Writing a feature list and calling it an experience statement.`,`Choosing emotions the mechanics cannot produce (e.g., "awe" in a game with no scale, "dread" with no consequence).`],
+    trade:[`Focus produces clarity and excludes players. Breadth produces “something for everyone” and nothing anyone remembers.`,`A target emotion like “tension” demands real stakes. Adding comfort features dilutes it.`],
+    traps:[`Writing a feature list and calling it an experience statement.`,`Choosing emotions the mechanics cannot produce (e.g., “awe” in a game with no scale, “dread” with no consequence).`],
     good:[`Any team member can recite the statement and use it to reject an idea.`,`Playtesters unprompted use the target emotion words.`],
-    bad:[`The statement changes with every pitch meeting.`,`The statement is a genre plus adjectives: "a fun, deep roguelike".`] },
+    bad:[`The statement changes with every pitch meeting.`,`The statement is a genre plus adjectives: “a fun, deep roguelike”.`] },
   how:[`Draft the statement using the Core Experience Canvas: player, fantasy, target emotions and rhythm, moment-to-moment activity, session goal, long goal, what it is not, reference moments.`,`Test the statement against the current core loop. Where the loop produces a different emotion than intended, one of them must change.`,`Publish it where the team sees it. Use it as the first question in every feature review.`,`After each playtest, score observed emotions against the target. Revise the statement only with evidence, not with enthusiasm.`],
-  ai:{ yes:[`Generate 10 candidate experience statements from a rough pitch so the human can recognize the one that fits.`,`Analyze reference games and articulate precisely which mechanics produce the target feeling there.`,`Check a feature list against the statement and flag features that dilute it.`],
+  ai:{ yes:[`Generate 10 candidate experience statements from a rough pitch so the human can recognise the one that fits.`,`Analyze reference games and articulate precisely which mechanics produce the target feeling there.`,`Check a feature list against the statement and flag features that dilute it.`],
        no:[`Choose the core experience. This is the central act of authorship.`,`Claim a prototype delivers the emotion. Only players show that.`] },
-  prompts:[{l:'Reference dissection',p:`Our target experience is "[STATEMENT]". Here are three moments from other games that produce a similar feeling: [MOMENTS]. For each, dissect what exactly produces the feeling: the information the player has, the decision they face, the time pressure, the consequence, and the feedback. Then identify which of those ingredients our current prototype ([DESCRIPTION]) has, lacks, or contradicts. Do not propose features. Propose the smallest change to the ingredient list.`}],
+  prompts:[{l:'Reference dissection',p:`Our target experience is “[STATEMENT]”. Here are three moments from other games that produce a similar feeling: [MOMENTS]. For each, dissect what exactly produces the feeling: the information the player has, the decision they face, the time pressure, the consequence, and the feedback. Then identify which of those ingredients our current prototype ([DESCRIPTION]) has, lacks, or contradicts. Do not propose features. Propose the smallest change to the ingredient list.`}],
   verify:[`Did it explain the mechanism of the feeling, or just describe the feeling?`,`Are the ingredients specific enough that a level designer could act on them?`],
   test:[`Ask players for three words describing the session. Compare against target emotions.`,`Watch body language and speech at the moments meant to peak. Do they lean in, go quiet, swear, laugh?`,`Ask what they would tell a friend. Does the description match the statement?`],
   rel:[['fantasy','The fantasy is the identity half of the core experience.'],['fun-dimensions','Dimensions of fun are the vocabulary for target emotions.'],['core-loop','The loop is how the experience is manufactured.'],['scope-control','The experience statement is the primary scope filter.'],['tension-release','Rhythm of emotion is the experience over time.']] });
@@ -28,7 +28,7 @@ TECH('core-experience',[
   {n:'Reference moments', how:`Find moments in other games that produce the target feeling and dissect exactly what produces it.`, fit:`Translating an intended feeling into concrete mechanics.`, cost:`Risk of copying surface without the cause.`, alt:`Use the Reference Dissection tool.`}
 ]);
 ENGINE('core-experience',{
-  godot:{ term:`The experience statement becomes something you can check against a recording. A small debug autoload that grabs a screenshot and a performance line on a hotkey turns "did it feel tense" into a file two people can look at together.`,
+  godot:{ term:`The experience statement becomes something you can check against a recording. A small debug autoload that grabs a screenshot and a performance line on a hotkey turns “did it feel tense” into a file two people can look at together.`,
     api:['get_viewport().get_texture().get_image()','await RenderingServer.frame_post_draw','Image.save_png()','Time.get_datetime_string_from_system()','Performance.get_monitor()','Node._unhandled_key_input()'],
     snippet:`func capture(label: String) -> void:
 \tawait RenderingServer.frame_post_draw    # without this you save the previous frame
@@ -38,8 +38,8 @@ ENGINE('core-experience',{
 \tvar fps := Performance.get_monitor(Performance.TIME_FPS)
 \tprint("[%s] %s fps=%.0f" % [stamp, label, fps])`,
     pitfall:`Calling get_viewport().get_texture().get_image() without awaiting RenderingServer.frame_post_draw. You get the previous frame or a blank image, so the capture of the moment you wanted to study is a picture of the moment before it, and nobody notices until the comparison matters.`,
-    map:`Godot's viewport texture grab is Unity's ScreenCapture, and Performance.get_monitor is a ProfilerRecorder.` },
-  unity:{ term:`Same idea with ScreenCapture and the Input System's event trace. The point is evidence: the target emotions get checked against a recording of what players did, not against the team's memory of the session.`,
+    map:`Godot’s viewport texture grab is Unity’s ScreenCapture, and Performance.get_monitor is a ProfilerRecorder.` },
+  unity:{ term:`Same idea with ScreenCapture and the Input System’s event trace. The point is evidence: the target emotions get checked against a recording of what players did, not against the team’s memory of the session.`,
     api:['ScreenCapture.CaptureScreenshot()','InputEventTrace / trace.WriteTo()','Application.persistentDataPath','Time.realtimeSinceStartup','Application.logMessageReceived','Debug.Break()'],
     snippet:`public class SessionProbe : MonoBehaviour {
     InputEventTrace trace;
@@ -61,19 +61,19 @@ INTERVIEW('core-experience',{
     { q:`What is a core experience statement, and why does it have to fit in one sentence?`,
       a:`It names who the player is, what they do moment to moment, and how it feels. One sentence because it has to be recited from memory in a review and used to reject something. Give a real one, such as a tense methodical hunt where preparation pays off and mistakes are survivable but costly, and contrast it with a feature list.`,
       follow:`Recite the statement for a game you worked on and name a feature it killed.`,
-      red:`Offers a genre plus adjectives, such as "a fun, deep roguelike", and calls that the target.` },
-    { q:`Why is "is it fun?" a useless playtest question?`,
+      red:`Offers a genre plus adjectives, such as “a fun, deep roguelike”, and calls that the target.` },
+    { q:`Why is “is it fun?” a useless playtest question?`,
       a:`It is unanswerable and unfalsifiable, so every answer confirms whatever the team already believed. Convert it into the target emotions and the behaviour that would show them. Did they go quiet at the ambush, did they prepare before entering, did they use the word tense unprompted.`,
-      follow:`How do you actually record that during a session?`,
+      follow:`How do you record that during a session?`,
       red:`Proposes a five-point fun rating and treats the average as evidence.` },
-    { q:`How do you pick target emotions the mechanics can actually produce?`,
+    { q:`How do you pick target emotions the mechanics can produce?`,
       a:`Work backwards from what the loop does. Uncertainty with stakes produces tension. Scale and contrast produce awe. Real consequence produces dread. If no mechanic can manufacture the emotion, it is decoration and you drop it rather than hoping audio will carry it.`,
       follow:`Name an emotion you had to abandon, and what you replaced it with.`,
       red:`Picks awe and dread because they sound impressive, with no mechanism behind either.` }
   ],
   mid:[
     { q:`Combat wants to be faster, narrative wants longer scenes, UI keeps getting denser. How does the statement help?`,
-      a:`It stops each discipline optimising locally by giving all of them the same target. Every ask is judged against the same sentence, in public. Where two asks genuinely conflict you escalate with the trade named rather than with preference, which is a much shorter meeting.`,
+      a:`It stops each discipline optimising locally by giving all of them the same target. Every ask is judged against the same sentence, in public. Where two asks conflict you escalate with the trade named rather than with preference, which is a much shorter meeting.`,
       follow:`Two disciplines both claim the statement supports them. Then what?`,
       red:`Lets whoever argues longest win and describes that as collaboration.` },
     { q:`Players are relaxed in the section you designed to be tense. What do you do?`,
@@ -87,7 +87,7 @@ INTERVIEW('core-experience',{
   ],
   senior:[
     { q:`The statement has changed three times this year. What is happening, and how do you stop it?`,
-      a:`Either it was written from enthusiasm rather than from the loop, or it is being rewritten to ratify decisions already taken. Version it with the reason and the evidence for each change. Then check whether the loop actually produces the new claim, because a statement the game cannot deliver is worse than none.`,
+      a:`Either it was written from enthusiasm rather than from the loop, or it is being rewritten to ratify decisions already taken. Version it with the reason and the evidence for each change. Then check whether the loop produces the new claim, because a statement the game cannot deliver is worse than none.`,
       follow:`Which of those three changes was legitimate, and how did you know?`,
       red:`Treats the drift as healthy iteration and keeps rewriting the sentence for each pitch meeting.` },
     { q:`How do you make a core experience statement operational across forty people?`,
@@ -96,24 +96,24 @@ INTERVIEW('core-experience',{
       red:`Puts it on a poster, measures nothing, and assumes alignment.` }
   ] });
 
-T('fun-dimensions',{ d:'experience', t:'Fun as dimensions, not magic', tag:'"Fun" is a bundle. Untangle it to see what the player is actually enjoying.',
-  what:`Fun is not one thing. Useful decompositions include LeBlanc's eight kinds (sensation, fantasy, narrative, challenge, fellowship, discovery, expression, submission), Lazzaro's four keys (hard fun, easy fun, serious fun, people fun), and Koster's view of fun as the pleasure of learning patterns. This guide uses a working set of dimensions: mastery, discovery, anticipation, surprise, tension, relief, power, creativity, expression, optimization, competition, cooperation, collection, progression, storytelling, social connection, flow, meaningful choice, experimentation.`,
-  why:[`"Make it more fun" is not actionable. "Players lack anticipation because nothing is foreshadowed" is.`,`Different games mix dimensions differently. Copying a feature copies the dimension mix of another game, which may be wrong for yours.`,`Players enjoying a dimension you did not design for is a signal to redesign around it, not to suppress it.`],
-  think:{ q:[`What is the player actually enjoying right now? Not what did I build, what are they savoring?`,`Which two or three dimensions dominate? Do they reinforce or compete?`,`Which dimension is missing that the fantasy implies?`,`When players say "boring", which dimension went flat: no learning left (mastery), nothing new (discovery), no stakes (tension)?`],
-    trade:[`Optimization and expression pull apart: a clear optimum kills expression, too many equal options kills optimization.`,`Surprise and mastery pull apart: too much randomness prevents learning, too little prevents surprise.`],
-    traps:[`Adding a dimension by adding a system (a crafting system for "creativity") instead of by changing the existing interaction.`,`Mistaking novelty for fun. Novelty fades. The dimensions underneath either hold or do not.`],
+T('fun-dimensions',{ d:'experience', t:'Fun as dimensions, not magic', tag:'“Fun” is a bundle. Untangle it to see what the player is enjoying.',
+  what:`Fun is not one thing. Useful decompositions include LeBlanc’s eight kinds (sensation, fantasy, narrative, challenge, fellowship, discovery, expression, submission), Lazzaro’s four keys (hard fun, easy fun, serious fun, people fun), and Koster’s view of fun as the pleasure of learning patterns. This guide uses a working set of dimensions: mastery, discovery, anticipation, surprise, tension, relief, power, creativity, expression, optimisation, competition, cooperation, collection, progression, storytelling, social connection, flow, meaningful choice, experimentation.`,
+  why:[`“Make it more fun” is not actionable. “Players lack anticipation because nothing is foreshadowed” is.`,`Different games mix dimensions differently. Copying a feature copies the dimension mix of another game, which may be wrong for yours.`,`Players enjoying a dimension you did not design for is a signal to redesign around it, not to suppress it.`],
+  think:{ q:[`What is the player enjoying right now? Not what did I build, what are they savoring?`,`Which two or three dimensions dominate? Do they reinforce or compete?`,`Which dimension is missing that the fantasy implies?`,`When players say “boring”, which dimension went flat: no learning left (mastery), nothing new (discovery), no stakes (tension)?`],
+    trade:[`Optimization and expression pull apart: a clear optimum kills expression, too many equal options kills optimisation.`,`Surprise and mastery pull apart: too much randomness prevents learning, too little prevents surprise.`],
+    traps:[`Adding a dimension by adding a system (a crafting system for “creativity”) instead of by changing the existing interaction.`,`Mistaking novelty for fun. Novelty fades. The dimensions underneath either hold or do not.`],
     good:[`You can name the dimension a mechanic serves and observe players experiencing it.`],
     bad:[`The pitch lists features. Nobody can say what the player enjoys.`] },
-  how:[`Watch a playtest and log moments of visible enjoyment (leaning in, laughter, "oh!", replay). Tag each with a dimension.`,`Compare the observed dimension mix with the intended one from the core experience statement.`,`For a missing dimension, change the existing interaction before adding a system.`,`Re-test. Fun dimensions shift as players learn. Measure at multiple points in the skill curve.`],
+  how:[`Watch a playtest and log moments of visible enjoyment (leaning in, laughter, “oh!”, replay). Tag each with a dimension.`,`Compare the observed dimension mix with the intended one from the core experience statement.`,`For a missing dimension, change the existing interaction before adding a system.`,`Re-test. Fun dimensions shift as players learn. Measure at multiple points in the skill curve.`],
   ai:{ yes:[`Tag playtest observations by dimension and surface the distribution.`,`Propose how an existing mechanic could feed a missing dimension without adding rules.`,`Compare the dimension mix of reference games to yours.`],
        no:[`Decide which dimensions the game is about.`,`Assert that a dimension is present. Only observation shows that.`] },
-  prompts:[{l:'Dimension tagging',p:`Here are timestamped observer notes from a playtest: [NOTES]. Tag each moment of visible engagement or disengagement with the fun dimension involved (mastery, discovery, anticipation, surprise, tension, relief, power, creativity, expression, optimization, competition, cooperation, collection, progression, storytelling, social, flow, choice, experimentation). Summarize the distribution, compare it to our intended mix ([INTENDED]), and identify the largest gap. Propose one change to an existing interaction, not a new system, that would close it.`}],
+  prompts:[{l:'Dimension tagging',p:`Here are timestamped observer notes from a playtest: [NOTES]. Tag each moment of visible engagement or disengagement with the fun dimension involved (mastery, discovery, anticipation, surprise, tension, relief, power, creativity, expression, optimisation, competition, cooperation, collection, progression, storytelling, social, flow, choice, experimentation). Summarize the distribution, compare it to our intended mix ([INTENDED]), and identify the largest gap. Propose one change to an existing interaction, not a new system, that would close it.`}],
   verify:[`Are tags grounded in a specific note, or inferred from what the designer intended?`,`Did it propose a new system when a change to the existing interaction would do?`],
   test:[`Log visible enjoyment moments and tag them. Does the distribution match intent?`,`Ask players what the best moment was and why. Tag the answer.`,`Do dimensions shift as players get better? Which vanish?`],
   rel:[['core-experience','Dimensions are the vocabulary for the experience statement.'],['player-motivation','Motivation is the need. Fun dimensions are how it is felt.'],['depth-vs-complexity','Mastery and choice dimensions depend on depth.'],['core-loop','The loop is where dimensions are produced or not.']] });
 TECH('fun-dimensions',[
   {n:'Dimension tagging of playtest footage', how:`Tag each moment of visible engagement or disengagement with the fun dimension involved.`, fit:`Finding which dimensions are working and which are flat.`, cost:`Needs a coding scheme and consistent observers.`, alt:`Compare the distribution to the intended mix.`},
-  {n:'Intended-vs-actual mix', how:`State the mix of fun you intend, then measure the mix players actually experience.`, fit:`Diagnosing "we built X but they feel Y".`, cost:`Self-report bias. Pair with behavior.`, alt:`Use the Fun Diagnostic view.`},
+  {n:'Intended-vs-actual mix', how:`State the mix of fun you intend, then measure the mix players experience.`, fit:`Diagnosing “we built X but they feel Y”.`, cost:`Self-report bias. Pair with behaviour.`, alt:`Use the Fun Diagnostic view.`},
   {n:'Survey instruments (e.g. PENS)', how:`Validated motivation/experience scales to compare builds or groups.`, fit:`Measurable signal across many players.`, cost:`Not game-specific. Needs careful interpretation.`, alt:`Treat as one input beside observation.`}
 ]);
 ENGINE('fun-dimensions',{
@@ -128,9 +128,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 \t\t_log.store_line("%d,%s" % [Time.get_ticks_msec(), TAGS[k.keycode]])
 \t\t_log.flush()                         # the session may end in a crash
 \t\tget_viewport().set_input_as_handled()`,
-    pitfall:`Putting the observer hotkey in _input() on a node under the HUD. Any focused Control with mouse_filter left at STOP consumes the event first, so tagging works in the main menu and silently stops working during play, which is the only time it matters. _unhandled_key_input runs after the UI has had its turn.`,
+    pitfall:`Putting the observer hotkey in _input(). _input runs before the GUI, so the tag also fires while a tester types into a LineEdit, and any node that calls set_input_as_handled() in its own _input can swallow it first. _unhandled_key_input runs after the GUI and shortcuts, so it only sees keys nothing else wanted. mouse_filter plays no part: it governs mouse events, not keys.`,
     map:`Godot _unhandled_key_input is Unity polling Keyboard.current after the EventSystem, and an InputMap action is an InputAction.` },
-  unity:{ term:`The same tagging pass reads Keyboard.current directly, outside the game's action map, so the observer's keys cannot be rebound by a player or swallowed by gameplay.`,
+  unity:{ term:`The same tagging pass reads Keyboard.current directly, outside the game’s action map, so the observer’s keys cannot be rebound by a player or swallowed by gameplay.`,
     api:['Keyboard.current[Key.F5].wasPressedThisFrame','Time.realtimeSinceStartup','StreamWriter with AutoFlush','Application.persistentDataPath','EventSystem.current.currentSelectedGameObject','Application.isEditor'],
     snippet:`public class DimensionTagger : MonoBehaviour {
     static readonly (Key key, string tag)[] Tags = {
@@ -148,15 +148,15 @@ func _unhandled_key_input(event: InputEvent) -> void:
     }
 }`,
     pitfall:`Reaching for Input.GetKeyDown in a project whose Active Input Handling is set to the new Input System. It throws InvalidOperationException at runtime rather than failing to compile, so the tagging tool dies in the first playtest build. Keyboard.current is also null when no keyboard is attached, which is every console and most handhelds.`,
-    map:`Unity Keyboard.current is Godot's InputEventKey in _unhandled_key_input, and Time.realtimeSinceStartup is Time.get_ticks_msec().` } });
+    map:`Unity Keyboard.current is Godot’s InputEventKey in _unhandled_key_input, and Time.realtimeSinceStartup is Time.get_ticks_msec().` } });
 INTERVIEW('fun-dimensions',{
   junior:[
-    { q:`A producer says "make it more fun". What do you ask back?`,
-      a:`Which dimension went flat. Mastery means there is nothing left to learn. Discovery means nothing new is appearing. Tension means there are no stakes. Expression means there is one right answer. Each of those has a different fix, and "more fun" has none.`,
+    { q:`A producer says “make it more fun”. What do you ask back?`,
+      a:`Which dimension went flat. Mastery means there is nothing left to learn. Discovery means nothing new is appearing. Tension means there are no stakes. Expression means there is one right answer. Each of those has a different fix, and “more fun” has none.`,
       follow:`How would you find out which one, from a session recording?`,
       red:`Starts listing features that could be added.` },
     { q:`Which vocabulary of fun do you use, and where does it come from?`,
-      a:`LeBlanc's eight kinds, Lazzaro's four keys and Koster's fun as the pleasure of learning patterns are the common ones. They are lenses, not laws, and none of them has an agreed metric. What matters is having words specific enough to be acted on: mastery, discovery, tension, expression, optimisation, surprise.`,
+      a:`LeBlanc’s eight kinds, Lazzaro’s four keys and Koster’s fun as the pleasure of learning patterns are the common ones. They are lenses, not laws, and none of them has an agreed metric. What matters is having words specific enough to be acted on: mastery, discovery, tension, expression, optimisation, surprise.`,
       follow:`Which two dominate in a game you love, and how do they reinforce each other?`,
       red:`Recites a taxonomy without attaching a single dimension to a mechanic.` },
     { q:`Players are enjoying something you did not design for. What do you do?`,
@@ -171,11 +171,11 @@ INTERVIEW('fun-dimensions',{
       red:`Balances everything to equal power and calls the result diverse.` },
     { q:`How do you measure the dimension mix instead of asserting it?`,
       a:`Log timestamped moments of visible engagement and disengagement during play. Tag each with a dimension. Compare the distribution against the intended mix from the experience statement and work on the largest gap. The tags have to come from the note, not from the design document.`,
-      follow:`Your tags and a second observer's disagree. How do you handle that?`,
+      follow:`Your tags and a second observer’s disagree. How do you handle that?`,
       red:`Tags the moments from what the design intended rather than from what was recorded.` },
     { q:`A dimension is missing. What do you build?`,
       a:`Change the existing interaction before adding a system. A crafting system bolted on for creativity is the classic overspend. Ask what information, constraint or consequence the current verb lacks, because most missing dimensions are a missing ingredient rather than a missing feature.`,
-      follow:`When is a new system genuinely the right answer?`,
+      follow:`When is a new system the right answer?`,
       red:`Adds one system per missing dimension and doubles the teaching cost.` }
   ],
   senior:[
@@ -191,23 +191,23 @@ INTERVIEW('fun-dimensions',{
 
 T('goals-horizons',{ d:'experience', t:'Goals at three horizons', tag:'Right now, this session, this month. The player should always have all three.',
   what:`Short-term goals (seconds to a minute: kill this, reach that), medium-term goals (this session: clear the area, finish the run, build the thing), long-term goals (across sessions: complete the collection, master the class, see the ending). The nesting of horizons is what makes stopping feel like a choice rather than an exhaustion.`,
-  why:[`A missing horizon shows up as a specific failure: no short goal means aimlessness, no session goal means sessions end arbitrarily, no long goal means no reason to return.`,`Horizons let a player rationalize continuing ("just one more") and let them stop satisfied.`,`Player-created goals are the strongest kind. The game must leave room for them.`],
+  why:[`A missing horizon shows up as a specific failure: no short goal means aimlessness, no session goal means sessions end arbitrarily, no long goal means no reason to return.`,`Horizons let a player rationalize continuing (“just one more”) and let them stop satisfied.`,`Player-created goals are the strongest kind. The game must leave room for them.`],
   think:{ q:[`At any random moment, can the player state what they are trying to do right now, this session, and overall?`,`Which goals are given and which are chosen? Chosen goals feed autonomy.`,`Do the horizons connect? Does finishing the short goal visibly advance the long one?`,`Where can a player invent a goal the game did not set?`],
     trade:[`Explicit goals (quest markers, checklists) reduce aimlessness and reduce discovery.`,`Long horizons that are too long feel like grind. Too short and the game feels finished before it is.`],
     traps:[`Providing goals only through UI (a quest log) rather than through the world and systems.`,`Confusing a progress bar with a goal. A goal is a state the player wants. A bar is a measurement.`],
-    good:[`Players narrate their plans: "I am going to try to..." `,`Players set their own challenges.`],
-    bad:[`Players ask "what am I supposed to do?" or drift.`,`Players finish a session with nothing pending.`] },
-  how:[`Sample five random moments from a playtest recording. For each, write the player's apparent goal at each horizon. Blanks are problems.`,`Ensure the short goal is visible in the world, not only in a log.`,`Make finishing a session goal deposit something into the long goal, visibly.`,`Leave slack for player-set goals: open-ended systems, optional challenges, scoring.`],
+    good:[`Players narrate their plans: “I am going to try to...” `,`Players set their own challenges.`],
+    bad:[`Players ask “what am I supposed to do?” or drift.`,`Players finish a session with nothing pending.`] },
+  how:[`Sample five random moments from a playtest recording. For each, write the player’s apparent goal at each horizon. Blanks are problems.`,`Ensure the short goal is visible in the world, not only in a log.`,`Make finishing a session goal deposit something into the long goal, visibly.`,`Leave slack for player-set goals: open-ended systems, optional challenges, scoring.`],
   ai:{ yes:[`Audit a design or level script for goal availability at each horizon at each stage.`,`Generate alternative ways to make a goal visible in the world rather than the UI.`],
        no:[`Decide how directed the game should be. Guidance level is an identity decision.`] },
-  prompts:[{l:'Horizon audit',p:`Here is our first-hour flow: [FLOW]. For each 5-minute segment, state the player's likely short-term, session and long-term goal, and whether each is communicated through the world, the UI, or not at all. Flag segments where any horizon is missing or only visible in a menu. Suggest, per gap, the smallest change that surfaces the goal in play.`}],
-  verify:[`Are the inferred goals what a player would actually think, or what the design document says?`],
-  test:[`Pause a session and ask "what are you trying to do right now? this session? overall?" Note blanks and hesitation.`,`Do players stop at satisfying points, or drift away?`,`Do any players invent goals? Which systems let them?`],
+  prompts:[{l:'Horizon audit',p:`Here is our first-hour flow: [FLOW]. For each 5-minute segment, state the player’s likely short-term, session and long-term goal, and whether each is communicated through the world, the UI, or not at all. Flag segments where any horizon is missing or only visible in a menu. Suggest, per gap, the smallest change that surfaces the goal in play.`}],
+  verify:[`Are the inferred goals what a player would think, or what the design document says?`],
+  test:[`Pause a session and ask “what are you trying to do right now? this session? overall?” Note blanks and hesitation.`,`Do players stop at satisfying points, or drift away?`,`Do any players invent goals? Which systems let them?`],
   rel:[['return-and-quit','Long-horizon goals are the pull to return.'],['progression','Progression is the long horizon made concrete.'],['level-structure','Levels supply short and session goals in space.'],['player-motivation','Chosen goals feed autonomy.']] });
 TECH('goals-horizons',[
   {n:'Goal ladder', how:`Define a visible short-term goal, a session goal and a long-term goal, each with its own reward and stopping point.`, fit:`Giving the player direction at every timescale.`, cost:`Layers can conflict (grind for the long goal, ignore the session).`, alt:`Check each layer has a reason to act now.`},
   {n:'Next-unlock visibility', how:`Show the next meaningful unlock so the player has a reason to continue without a quest log.`, fit:`Anticipation and return.`, cost:`Can turn play into waiting if the present is unrewarding.`, alt:`Make the present valuable too, not only the next thing.`},
-  {n:'Session-goal design', how:`Shape a session so it can end at a satisfying point matching the platform's session length.`, fit:`Retention and platform fit.`, cost:`Conflicts with "one more turn" pull. Needs save-point discipline.`, alt:`Design stopping points, then let players choose.`}
+  {n:'Session-goal design', how:`Shape a session so it can end at a satisfying point matching the platform’s session length.`, fit:`Retention and platform fit.`, cost:`Conflicts with “one more turn” pull. Needs save-point discipline.`, alt:`Design stopping points, then let players choose.`}
 ]);
 ENGINE('goals-horizons',{
   godot:{ term:`The short goal is a marker in the world, the session goal is state on an autoload, and the long goal is in the save. The marker is the fiddly one, because a world position has to be projected into the HUD every frame.`,
@@ -238,7 +238,7 @@ func _process(_delta: float) -> void:
         icon.position = sp;
     }
 }`,
-    pitfall:`Positioning the marker in Update. Cinemachine moves the camera in LateUpdate, so the icon is drawn from last frame's camera and visibly swims during fast turns. The z below zero check matters for the same reason as in Godot: behind the camera, WorldToScreenPoint returns a mirrored point that looks entirely valid.`,
+    pitfall:`Positioning the marker in Update. Cinemachine moves the camera in LateUpdate, so the icon is drawn from last frame’s camera and visibly swims during fast turns. The z below zero check matters for the same reason as in Godot: behind the camera, WorldToScreenPoint returns a mirrored point that looks entirely valid.`,
     map:`Unity LateUpdate is a Godot _process that runs after the camera node, and a ScriptableObject objective is an objective Resource.` } });
 INTERVIEW('goals-horizons',{
   junior:[
@@ -271,7 +271,7 @@ INTERVIEW('goals-horizons',{
   ],
   senior:[
     { q:`Player-set goals are the strongest kind. How do you design for goals you did not write?`,
-      a:`Leave slack: open-ended systems, optional challenges, scoring, visible places you cannot reach yet. Make the world legible enough that a plan is possible. Then watch which invented goals actually appear in tests and support those rather than the ones you hoped for.`,
+      a:`Leave slack: open-ended systems, optional challenges, scoring, visible places you cannot reach yet. Make the world legible enough that a plan is possible. Then watch which invented goals appear in tests and support those rather than the ones you hoped for.`,
       follow:`A player-set goal turns out more compelling than yours. What do you do?`,
       red:`Fills every gap with authored objectives so there is nothing left to invent.` },
     { q:`Your long horizon is too long and players call it a grind. What is your analysis?`,
@@ -282,17 +282,17 @@ INTERVIEW('goals-horizons',{
 
 T('tension-release',{ d:'experience', t:'Tension and release', tag:'Emotion is a rhythm. Flat tension is boredom. Constant tension is exhaustion.',
   what:`The rise and fall of stakes, pressure and uncertainty over time. Tension comes from uncertain outcomes the player cares about. Release comes from resolution, safety, reward or humor. Pacing is the deliberate shaping of this rhythm across a level, a session and a whole game.`,
-  why:[`Players remember peaks and endings, not averages. A well-placed peak is worth an hour of even content.`,`Release is what makes the next tension legible. Without rest, players habituate and stop feeling.`,`Tension needs real stakes. If failure costs nothing, nothing is tense.`],
+  why:[`Players judge an experience mostly by its most intense moment and its ending, not its average (Kahneman’s peak-end rule). A well-placed peak is worth an hour of even content.`,`Release is what makes the next tension legible. Without rest, players habituate and stop feeling.`,`Tension needs real stakes. If failure costs nothing, nothing is tense.`],
   think:{ q:[`Where in a typical session does the player feel safest? Most pressured? Is that where I intended?`,`What does the player stand to lose at the peak? Do they know it?`,`How long is the longest stretch without release? Without tension?`,`Does the release reward reflection (loot, story, view) or just stop the pressure?`],
     trade:[`Higher stakes make peaks stronger and failure costlier. Casual players may bounce.`,`Frequent release keeps the game comfortable and dulls the peaks.`],
     traps:[`Adding tension through time pressure alone. Time pressure without a meaningful decision is stress, not tension.`,`Confusing spectacle with tension. Explosions with no uncertainty are release, not tension.`],
     good:[`Players audibly exhale, laugh or comment at release points.`,`Players slow down and go quiet at peaks.`],
-    bad:[`Players describe the game as "relentless" or "samey" (both are rhythm failures).`] },
+    bad:[`Players describe the game as “relentless” or “samey” (both are rhythm failures).`] },
   how:[`Draw the intended intensity curve for a level or session. Mark peaks, valleys and what causes each.`,`Watch a playtest and draw the observed curve from behavior (speech, posture, pace). Overlay.`,`Fix the biggest divergence with one change: add stakes, add information, add a rest, cut a redundant beat.`,`Check that release moments carry something (reward, story, vista) so they feel earned rather than empty.`],
   ai:{ yes:[`Draft intensity curves for a level script and identify flat or relentless stretches.`,`Propose alternative sources of tension (uncertainty, stakes, information) for a beat that relies only on time pressure.`,`Extract an observed intensity curve from timestamped playtest notes.`],
        no:[`Decide how intense the game should be overall. That is an experience decision.`] },
   prompts:[{l:'Intensity curve',p:`Here is a level or session script with approximate durations: [SCRIPT]. Draw the intended intensity curve as a list of (time, intensity 1 to 5, source of tension, what the player stands to lose). Identify the longest stretch without release and the longest without tension. For each, propose the smallest change: add stakes, add information, add rest, or cut a beat. Explain what the player would perceive differently.`}],
-  verify:[`Is tension attributed to real uncertainty and stakes, or to spectacle and speed?`,`Would a player actually perceive the stakes it claims exist?`],
+  verify:[`Is tension attributed to real uncertainty and stakes, or to spectacle and speed?`,`Would a player perceive the stakes it claims exist?`],
   test:[`Log speech, posture and pace against time. Draw the observed curve.`,`Ask players where the scariest or most exciting moment was and where they felt safe.`,`Do players take breaks at release points or at random?`],
   rel:[['pacing','Pacing is tension and release engineered in a level.'],['challenge-failure-recovery','Failure gives tension its stakes.'],['level-structure','The teach-test-twist-rest structure is a tension template.'],['audio-and-music','Music is the most direct tension controller.']] });
 TECH('tension-release',[
@@ -328,8 +328,8 @@ func set_intensity(v: float) -> void:
         dangerPost.weight = pacing.Evaluate(t);
     }
 }`,
-    pitfall:`Mixing SetFloat with snapshot transitions on the same knob. A snapshot owns every parameter it was saved with, so it overwrites the value you just set and the tension curve goes flat for the length of the transition. Pick one owner per parameter: snapshots for state changes, SetFloat for the gradient, never both.`,
-    map:`A Unity AudioMixer is Godot's audio bus layout, and a Volume weight is the WorldEnvironment's environment.` } });
+    pitfall:`Mixing SetFloat with snapshot transitions on the same knob. Once a script calls SetFloat on an exposed parameter, snapshots stop controlling it until ClearFloat is called, so the calm-to-combat transition silently skips the volume you tuned into it. Pick one owner per parameter: snapshots for state changes, SetFloat for the gradient, and call ClearFloat when you hand a knob back.`,
+    map:`A Unity AudioMixer is Godot’s audio bus layout, and a Volume weight is the WorldEnvironment’s environment.` } });
 INTERVIEW('tension-release',{
   junior:[
     { q:`Why is constant tension a design failure?`,
@@ -361,11 +361,11 @@ INTERVIEW('tension-release',{
   ],
   senior:[
     { q:`Pace a whole game rather than a level. How is that different?`,
-      a:`The rhythm nests: beats inside levels, levels inside acts, acts inside the campaign. You plan the peaks at the scale players actually remember, and you budget novelty because a peak needs an ingredient the player has not met yet. Valleys at game scale still have to carry something.`,
+      a:`The rhythm nests: beats inside levels, levels inside acts, acts inside the campaign. You plan the peaks at the scale players remember, and you budget novelty because a peak needs an ingredient the player has not met yet. Valleys at game scale still have to carry something.`,
       follow:`Where do most teams get the game-scale curve wrong?`,
       red:`Pastes the level curve at every scale and expects it to work.` },
     { q:`Six people build levels in parallel. How do you keep the pacing intact?`,
-      a:`A published curve with each level's intended position on it, a shared vocabulary for beats, a review that plays them in sequence rather than in isolation, and a rule that nobody raises intensity locally without trading it down somewhere else.`,
+      a:`A published curve with each level’s intended position on it, a shared vocabulary for beats, a review that plays them in sequence rather than in isolation, and a rule that nobody raises intensity locally without trading it down somewhere else.`,
       follow:`Two levels both claim to be the peak. How do you decide?`,
       red:`Reviews levels only in isolation and finds the problem at the first full playthrough.` }
   ] });
@@ -373,26 +373,26 @@ DIAGRAM('tension-release', { kind:'curve', title:'Emotion is a rhythm: build, pe
   x:'Session time', y:'Tension',
   series:[{t:'Tension', pts:[[0,0.2],[0.12,0.45],[0.2,0.75],[0.28,0.3],[0.44,0.55],[0.54,0.85],[0.62,0.28],[0.8,0.6],[0.9,0.95],[1,0.3]]}],
   beats:[{at:0.2, t:'Peak'},{at:0.29, t:'Release'},{at:0.54, t:'Peak'},{at:0.63, t:'Release'},{at:0.9, t:'Climax'}],
-  alt:'Tension rises and falls in waves that build toward a climax. Flat tension is boredom; constant tension is exhaustion.' });
+  alt:'Tension rises and falls in waves that build towards a climax. Flat tension is boredom; constant tension is exhaustion.' });
 
 T('mastery-discovery-expression',{ d:'experience', t:'Mastery, discovery, expression', tag:'Three engines of long-term engagement. Most great games run on at least two.',
   what:`Mastery: getting better at something with perceivable progress. Discovery: finding what you did not know was there, in the world or in the system. Expression: shaping the game to reflect yourself through builds, style, creations or choices. They are distinct engines with distinct fuel: skill ceiling, hidden content or emergent interactions, and meaningful variability.`,
   why:[`Each engine sustains play after novelty fades. A game with none is finished when the content is seen.`,`They fail differently: mastery fails when the ceiling is low or feedback is absent, discovery fails when the world or system runs out of surprises. Expression fails when one option dominates.`,`Knowing which engine you run on tells you what to build next.`],
   think:{ q:[`After 10 hours, what is the player still getting better at? What are they still finding? What choices still reflect them?`,`Does the game show the player their mastery, or must they infer it?`,`Are discoveries findable by attention and curiosity, or only by luck?`,`Do expressive choices have consequences others can see?`],
     trade:[`Discovery content is consumed once. Mastery and expression regenerate. Budget accordingly.`,`Expression requires many viable options, which fights balance and clarity.`],
-    traps:[`Claiming "replayability" from randomness alone. Randomness without mastery or expression is noise.`,`Adding cosmetic customization and calling it expression. Expression must change how the game is played or seen by others.`],
-    good:[`Players talk about "my build", "my route", "what I found".`],
-    bad:[`Players describe finishing as the end: "I saw everything."`] },
+    traps:[`Claiming “replayability” from randomness alone. Randomness without mastery or expression is noise.`,`Adding cosmetic customization and calling it expression. Expression must change how the game is played or seen by others.`],
+    good:[`Players talk about “my build”, “my route”, “what I found”.`],
+    bad:[`Players describe finishing as the end: “I saw everything.”`] },
   how:[`Identify your primary and secondary engine from the core experience statement.`,`For mastery: define what skill grows and how the game shows it. Ensure the ceiling exceeds what a good player reaches by the end.`,`For discovery: list the discovery sources (world, system interactions, story). Estimate how fast they deplete.`,`For expression: count viable distinct approaches at each stage and check that they are visible to the player and to others.`,`Playtest at multiple skill levels. Engines show up differently for novices and veterans.`],
   ai:{ yes:[`Estimate content depletion rate from your content list and typical pace.`,`Enumerate system interactions that could serve as systemic discovery.`,`Count and compare viable approaches from your rules, marking dominant ones.`],
        no:[`Decide which engine defines the game.`] },
   prompts:[{l:'Engine audit',p:`Our intended engines are [PRIMARY] and [SECONDARY]. Here are our systems and content: [DESCRIPTION]. For mastery: what skill grows, how the player perceives it, and where the ceiling is. For discovery: list sources and estimate depletion at a typical pace. For expression: enumerate distinct viable approaches at early, mid and late game and flag likely dominant ones. Conclude with which engine is weakest and one experiment to test that.`}],
-  verify:[`Is "mastery" attributed to real skill growth or to stat growth?`,`Are "viable approaches" really distinct in play, or cosmetic variants?`],
+  verify:[`Is “mastery” attributed to real skill growth or to stat growth?`,`Are “viable approaches” really distinct in play, or cosmetic variants?`],
   test:[`Veterans: can they demonstrate a skill novices lack? Can they describe it?`,`Do players keep finding things after hour 5? What kind?`,`Do two players in the same situation choose differently, and can they explain why?`],
-  rel:[['skill-and-mastery','Skill acquisition is the mechanism of mastery.'],['builds-and-loadouts','Builds are the main vehicle of expression in systemic games.'],['systemic-design','System interactions are the renewable source of discovery.'],['progression','Progression should unlock new expression, not just power.']] });
+  rel:[['knowledge-as-progression','Discovery taken to its limit: the whole game advances as the player understands more.'],['skill-and-mastery','Skill acquisition is the mechanism of mastery.'],['builds-and-loadouts','Builds are the main vehicle of expression in systemic games.'],['systemic-design','System interactions are the renewable source of discovery.'],['progression','Progression should unlock new expression, not just power.']] });
 TECH('mastery-discovery-expression',[
   {n:'Skill ceiling and floor design', how:`Separate the easy-to-start surface from deep, hard-to-master options.`, fit:`Welcoming newcomers while rewarding veterans.`, cost:`Balancing both is hard. Ceilings that are too high isolate most players.`, alt:`Design floor for onboarding, ceiling for identity.`},
-  {n:'Expression space', how:`Give players meaningful choices that reflect who they are, not only which is stronger.`, fit:`Building attachment and player stories.`, cost:`Expression options must be viable or they become traps.`, alt:`Audit whether choices differ in decision, not just flavor.`},
+  {n:'Expression space', how:`Give players meaningful choices that reflect who they are, not only which is stronger.`, fit:`Building attachment and player stories.`, cost:`Expression options must be viable or they become traps.`, alt:`Audit whether choices differ in decision, not just flavour.`},
   {n:'Discovery density', how:`Schedule how often players find something they did not know was there.`, fit:`Exploration and long-tail engagement.`, cost:`Front-loading discoveries leaves the late game empty.`, alt:`Ration discovery across the full play arc.`}
 ]);
 ENGINE('mastery-discovery-expression',{
@@ -413,7 +413,7 @@ func _physics_process(_delta: float) -> void:
 \ttape.append(bits)                        # replay feeds this back instead of Input`,
     pitfall:`Recording on _process instead of _physics_process. The tape then holds a variable number of entries per second, so a replay on a 144 Hz machine desynchronises from a run captured at 60 and the ghost walks through a wall. Any randf() taken from the global generator breaks it the same way, which is why the run owns its own RandomNumberGenerator.`,
     map:`A Godot RandomNumberGenerator instance is a System.Random in Unity, and a physics tick tape is a FixedUpdate tape.` },
-  unity:{ term:`Same tape, recorded in FixedUpdate. Unity's extra trap is having two random APIs: UnityEngine.Random is a single global stream shared with everything else in the project, so a replayable run needs its own System.Random.`,
+  unity:{ term:`Same tape, recorded in FixedUpdate. Unity’s extra trap is having two random APIs: UnityEngine.Random is a single global stream shared with everything else in the project, so a replayable run needs its own System.Random.`,
     api:['FixedUpdate() / Time.fixedDeltaTime','System.Random per run','UnityEngine.Random.InitState()','InputAction.IsPressed()','BinaryWriter / Application.persistentDataPath','Animator.StartRecording() / playbackTime'],
     snippet:`public class RunRecorder : MonoBehaviour {
     readonly List<int> tape = new();
@@ -437,7 +437,7 @@ INTERVIEW('mastery-discovery-expression',{
     { q:`Name the three long-term engines and the fuel each one needs.`,
       a:`Mastery needs a skill ceiling above where good players land, plus perceivable improvement. Discovery needs hidden content or systemic surprise. Expression needs meaningful variability that other people can see. They deplete at different rates, which is why the mix matters.`,
       follow:`Which engine is your game still running on at hour ten?`,
-      red:`Answers "replayability" and stops there.` },
+      red:`Answers “replayability” and stops there.` },
     { q:`Why is randomness alone not replayability?`,
       a:`Random variation without mastery or expression is noise. The player is not learning to read it and not shaping it, so the runs blur together. Variation only counts when it changes a decision the player can get better at making.`,
       follow:`What would make a random run feel like it was yours?`,
@@ -484,19 +484,19 @@ T('social-experience',{ d:'experience', t:'Social experience', tag:'Who does the
     good:[`Players tell stories about each other.`],
     bad:[`Social features are ignored or feel like obligation.`] },
   how:[`Identify the social act the game supports: compete, cooperate, show, share, teach, or be seen by characters.`,`Ensure the act creates something visible (a result, a story, a status).`,`Design the falling-behind experience deliberately.`,`Test with groups, not individuals, if the game is social.`],
-  ai:{ yes:[`Map social features to the social acts they enable and flag hollow ones.`,`Model catch-up dynamics and matchmaking tradeoffs.`],
+  ai:{ yes:[`Map social features to the social acts they enable and flag hollow ones.`,`Model catch-up dynamics and matchmaking trade-offs.`],
        no:[`Decide whether the game is social at heart.`] },
   prompts:[{l:'Social act audit',p:`Here are our social features: [LIST]. For each, name the social act it enables (compete, cooperate, show, share, teach, be seen) and what visible artifact it produces. Flag features with no act or no artifact. Then describe the experience of a player who falls behind by two weeks, and propose the smallest change that makes that experience tolerable without removing the reason to keep up.`}],
   verify:[`Does the analysis distinguish social acts from social UI?`],
   test:[`Test with real groups. Do players talk about each other afterwards?`,`Observe a returning player who fell behind. What do they do in the first five minutes?`],
-  rel:[['player-motivation','Relatedness is a core need.'],['business-model','Social systems and monetization interact strongly.'],['return-and-quit','Social obligation is both a return force and a churn force.']] });
+  rel:[['player-motivation','Relatedness is a core need.'],['business-model','Social systems and monetisation interact strongly.'],['return-and-quit','Social obligation is both a return force and a churn force.']] });
 TECH('social-experience',[
-  {n:'Interdependence design', how:`Design roles and goals so players need each other in ways each can feel.`, fit:`Co-op that is cooperative, not parallel play.`, cost:`Solo players and matchmaking gaps. Players may idle.`, alt:`Make each role's contribution visible.`},
+  {n:'Interdependence design', how:`Design roles and goals so players need each other in ways each can feel.`, fit:`Co-op that is cooperative, not parallel play.`, cost:`Solo players and matchmaking gaps. Players may idle.`, alt:`Make each role’s contribution visible.`},
   {n:'Async and social loops', how:`Gifts, visits, leaderboards or persistent shared state that operate between sessions.`, fit:`Retention and relatedness between sessions.`, cost:`Can become obligation. Needs care not to coerce.`, alt:`Optional, non-punishing social layers.`},
-  {n:'Matchmaking and grouping', how:`Skill/behavior-based matching and party formation.`, fit:`Competitive fairness and quick, good sessions.`, cost:`Waiting times. Smurfing and mixed groups.`, alt:`Design for the player pool you actually have.`}
+  {n:'Matchmaking and grouping', how:`Match on a skill rating that updates after each game and on behaviour reports, and keep parties together even when that widens the skill gap.`, fit:`Competitive fairness and quick, good sessions.`, cost:`Waiting times. Smurfing and mixed groups.`, alt:`Design for the player pool you have.`}
 ]);
 ENGINE('social-experience',{
-  godot:{ term:`Relatedness needs the other player's act to arrive. Godot's high level multiplayer splits that into two tools: @rpc for acts and MultiplayerSynchronizer for state, and the design question is which of the two each social moment is.`,
+  godot:{ term:`Relatedness needs the other player’s act to arrive. Godot’s high level multiplayer splits that into two tools: @rpc for acts and MultiplayerSynchronizer for state, and the design question is which of the two each social moment is.`,
     api:['ENetMultiplayerPeer.create_server() / create_client()','@rpc("any_peer", "call_local", "reliable")','multiplayer.get_remote_sender_id()','MultiplayerSynchronizer / MultiplayerSpawner','multiplayer.peer_connected signal','Node.set_multiplayer_authority()'],
     snippet:`@rpc("any_peer", "call_local", "reliable")
 func cheer(target_id: int) -> void:
@@ -508,7 +508,7 @@ func cheer(target_id: int) -> void:
 func _ready() -> void:
 \tmultiplayer.peer_connected.connect(
 \t\tfunc(id: int) -> void: _spawn_player(id))`,
-    pitfall:`Marking an RPC any_peer and then trusting its arguments. Any connected client can call it with any id, so a cheer becomes a way to puppet other players. The quieter trap is routing: RPCs are matched by node path, so two peers whose scene trees differ by one node deliver nothing at all and log almost nothing.`,
+    pitfall:`Marking an RPC any_peer and then trusting its arguments. Any connected client can call it with any id, so a cheer becomes a way to puppet other players. The quieter trap is routing: RPCs are matched by node path, so two peers whose scene trees differ by one node deliver nothing, and the only trace is a “Requested node was not found” error on the receiving peer.`,
     map:`Godot @rpc is a Unity Rpc attribute in Netcode, and MultiplayerSynchronizer is a set of NetworkVariables.` },
   unity:{ term:`Netcode for GameObjects splits the same two things: an Rpc for the act, a NetworkVariable for the state everyone must agree on. Who may write each one is a permission on the variable rather than a convention in a code review.`,
     api:['NetworkBehaviour / NetworkObject','[Rpc(SendTo.Server)] / RpcParams.Receive.SenderClientId','NetworkVariable<T> read and write permissions','NetworkManager.Singleton.ConnectedClients','RpcTarget.Single() / RpcTargetUse.Temp','IsOwner / IsServer'],
@@ -525,9 +525,9 @@ func _ready() -> void:
         ShowCheerRpc(from, RpcTarget.Single(targetId, RpcTargetUse.Temp));
     }
 }`,
-    pitfall:`Writing a NetworkVariable from a client. The default write permission is Server, so the assignment is rejected with a warning and the local value silently reverts on the next tick, which players read as lag rather than as a permission error. Decide ownership per variable and let clients ask through an Rpc.`,
+    pitfall:`Writing a NetworkVariable from a client. The default write permission is Server, so the assignment never happens. NGO 2.x logs a write-permission error and leaves the value unchanged, 1.x throws InvalidOperationException, and the player who pressed the button sees nothing happen, which reads as lag rather than as a permission error. Decide ownership per variable and let clients ask through an Rpc.`,
     map:`A Unity NetworkVariable is a Godot MultiplayerSynchronizer property, and SendTo.Server is an @rpc called on the authority.` },
-  note:`Both engines hand you a transport and no judgement. The moment the social act carries a reward, authority moves to a server you run, and the client's job shrinks to showing what the server already decided.` });
+  note:`Both engines hand you a transport and no judgement. The moment the social act carries a reward, authority moves to a server you run, and the client’s job shrinks to showing what the server already decided.` });
 INTERVIEW('social-experience',{
   junior:[
     { q:`Who does the player matter to in a single-player game?`,
@@ -568,23 +568,23 @@ INTERVIEW('social-experience',{
       red:`Designs the social layer around the highest spenders and treats everyone else as a funnel.` }
   ] });
 
-T('feature-vs-experience',{ d:'experience', t:'Experience thinking, not feature thinking', tag:'"We need crafting" is a feature. "Players should make meaningful preparation decisions" is a design goal. Start from the second.',
-  what:`Feature thinking starts from a thing to build and justifies it afterwards: feature, implementation, justification. Experience thinking starts from a player behavior and derives the feature last: desired player behavior, experience, system, mechanic, feature. The same word ("crafting") can be the right answer to a behavior goal or a genre reflex. The ladder tells you which.`,
-  why:[`Features are how scope inflates: each is plausible, none is necessary, and together they bury the core.`,`A behavior goal admits many solutions, some far cheaper than the feature you first imagined.`,`AI makes features cheap to propose and build. Without a behavior goal there is no way to reject them.`],
-  think:{ q:[`What do I want the player to do differently? Say it as an observable behavior.`,`What would they feel while doing it?`,`What system creates that situation? What is the smallest mechanic that implements it?`,`Only now: which feature, and could an existing one do the job?`],
-    trade:[`Behavior-first design is slower to start and far cheaper to finish.`,`Genre features carry player expectations. Omitting one may cost recognition even if it adds no behavior.`],
-    traps:[`Writing the behavior to justify the feature you already wanted.`,`Behavior goals that are not observable ("players feel immersed").`,`Skipping the system rung and jumping from behavior to feature.`],
-    good:[`Feature proposals arrive with a behavior and a signal attached.`,`Features get cut when a cheaper mechanic produces the behavior.`],
+T('feature-vs-experience',{ d:'experience', t:'Experience thinking, not feature thinking', tag:'“We need crafting” is a feature. “Players should make meaningful preparation decisions” is a design goal. Start from the second.',
+  what:`Feature thinking starts from a thing to build and justifies it afterwards: feature, implementation, justification. Experience thinking starts from a player behaviour and derives the feature last: desired player behaviour, experience, system, mechanic, feature. The same word (“crafting”) can be the right answer to a behaviour goal or a genre reflex. The ladder tells you which.`,
+  why:[`Features are how scope inflates: each is plausible, none is necessary, and together they bury the core.`,`A behaviour goal admits many solutions, some far cheaper than the feature you first imagined.`,`AI makes features cheap to propose and build. Without a behaviour goal there is no way to reject them.`],
+  think:{ q:[`What do I want the player to do differently? Say it as an observable behaviour.`,`What would they feel while doing it?`,`What system creates that situation? What is the smallest mechanic that implements it?`,`Only now: which feature, and could an existing one do the job?`],
+    trade:[`Behaviour-first design is slower to start and far cheaper to finish.`,`Genre features carry player expectations. Omitting one may cost recognition even if it adds no behaviour.`],
+    traps:[`Writing the behaviour to justify the feature you already wanted.`,`Behavior goals that are not observable (“players feel immersed”).`,`Skipping the system rung and jumping from behaviour to feature.`],
+    good:[`Feature proposals arrive with a behaviour and a signal attached.`,`Features get cut when a cheaper mechanic produces the behaviour.`],
     bad:[`The roadmap is a list of nouns.`] },
-  how:[`Use the Behavior Ladder tool: start with the feature idea, climb to the behavior, then descend again to the smallest mechanic.`,`For every feature request, demand the behavior and the observable signal.`,`Compare the original feature with the mechanic the ladder produced. Build the smaller one.`,`Test for the behavior, not for the feature's presence.`],
-  ai:{ yes:[`Climb the ladder from a feature to candidate behaviors.`,`Generate alternative mechanics for a stated behavior.`,`Flag feature requests that lack a behavior.`],
-       no:[`Choose the behavior. That is what the game is about.`] },
-  prompts:[{l:'Ladder climb',p:`Someone proposed the feature "[FEATURE]". Climb the ladder: what player behaviors could this feature exist to produce (list 3, each observable in a playtest)? For the most plausible, what experience does the behavior create? What system would produce that situation? What is the smallest mechanic that implements it? Compare that mechanic with the original feature: which is cheaper and which produces the behavior more reliably?`}],
-  verify:[`Are the behaviors observable, or feelings?`,`Did it land back on the original feature by default?`],
-  test:[`Did the behavior appear? Measure it directly. Do not measure feature usage.`],
-  rel:[['core-experience','The behavior serves the core experience.'],['scope-control','The ladder is the scope filter at feature level.'],['should-we-build-this','The decision tree is the ladder plus evidence.'],['hypothesis-driven-design','A behavior goal is a hypothesis.']] });
+  how:[`Use the Behavior Ladder tool: start with the feature idea, climb to the behaviour, then descend again to the smallest mechanic.`,`For every feature request, demand the behaviour and the observable signal.`,`Compare the original feature with the mechanic the ladder produced. Build the smaller one.`,`Test for the behaviour, not for the feature’s presence.`],
+  ai:{ yes:[`Climb the ladder from a feature to candidate behaviours.`,`Generate alternative mechanics for a stated behaviour.`,`Flag feature requests that lack a behaviour.`],
+       no:[`Choose the behaviour. That is what the game is about.`] },
+  prompts:[{l:'Ladder climb',p:`Someone proposed the feature “[FEATURE]”. Climb the ladder: what player behaviours could this feature exist to produce (list 3, each observable in a playtest)? For the most plausible, what experience does the behaviour create? What system would produce that situation? What is the smallest mechanic that implements it? Compare that mechanic with the original feature: which is cheaper and which produces the behaviour more reliably?`}],
+  verify:[`Are the behaviours observable, or feelings?`,`Did it land back on the original feature by default?`],
+  test:[`Did the behaviour appear? Measure it directly. Do not measure feature usage.`],
+  rel:[['core-experience','The behaviour serves the core experience.'],['scope-control','The ladder is the scope filter at feature level.'],['should-we-build-this','The decision tree is the ladder plus evidence.'],['hypothesis-driven-design','A behaviour goal is a hypothesis.']] });
 TECH('feature-vs-experience',[
-  {n:'Behavior ladder', how:`Climb from a proposed feature to the behavior and experience it should produce, then back to the smallest mechanic.`, fit:`Testing whether a feature idea serves the experience.`, cost:`Can land back on the same feature (sometimes correct, often rationalization).`, alt:`Use the Behavior Ladder tool.`},
+  {n:'Behavior ladder', how:`Climb from a proposed feature to the behaviour and experience it should produce, then back to the smallest mechanic.`, fit:`Testing whether a feature idea serves the experience.`, cost:`Can land back on the same feature (sometimes correct, often rationalization).`, alt:`Use the Behavior Ladder tool.`},
   {n:'Outcome-first framing', how:`State the player outcome you want before the solution. Reject solutions that do not produce it.`, fit:`Killing feature-creep at the source.`, cost:`Requires discipline and a decision owner.`, alt:`Follow with Should We Build This?`}
 ]);
 ENGINE('feature-vs-experience',{
@@ -635,7 +635,7 @@ INTERVIEW('feature-vs-experience',{
       red:`Recites the rungs and then treats the ladder as a documentation template.` },
     { q:`What makes a behaviour goal observable?`,
       a:`You can watch it happen. The player prepares before entering, changes loadout between attempts, asks a teammate for something, backtracks to a shop. Feelings are not observable, so a goal written as a feeling cannot be passed or failed.`,
-      follow:`Rewrite "players feel powerful" as a behaviour.`,
+      follow:`Rewrite “players feel powerful” as a behaviour.`,
       red:`Writes goals like immersed, engaged or invested and calls them measurable.` }
   ],
   mid:[
@@ -649,7 +649,7 @@ INTERVIEW('feature-vs-experience',{
       red:`Builds the full system because every game in the genre has one.` },
     { q:`How do you stop yourself writing the behaviour to justify the feature you already wanted?`,
       a:`Write the behaviour before naming the feature. Have someone else generate alternative mechanics for it. Check whether any cheaper mechanic produces the same behaviour. If no alternative was ever considered, the ladder was theatre and you should say so.`,
-      follow:`Give a case where the ladder actually changed your mind.`,
+      follow:`Give a case where the ladder changed your mind.`,
       red:`Claims the ladder has always confirmed the original idea.` }
   ],
   senior:[
@@ -675,7 +675,7 @@ T('design-pillars',{ d:'experience', t:'Design pillars and creative direction', 
     bad:[`The pillars cannot be used to decide anything.`,`Every feature can be justified, which means none is protected.`] },
   how:[`Write candidate pillars from the fantasy and the core experience.`,`For each pillar, write what it forbids. A pillar with no cost is a slogan.`,`Add the non-goals: adjacent experiences you refuse and features you will not build.`,`Test the set against five decisions the team is debating. If the pillars do not resolve them, rewrite.`,`Publish them and change them only with evidence.`],
   ai:{ yes:[`Generate candidate pillar sets from a fantasy and, for each, the features it would forbid.`,`Attack a pillar set: name the decisions it cannot resolve and the features it would wrongly cut.`,`Check the current feature list against the pillars and flag contradictions.`],
-       no:[`Choose the pillars. They are founding commitments.`,`Soften a pillar to avoid a hard tradeoff.`] },
+       no:[`Choose the pillars. They are founding commitments.`,`Soften a pillar to avoid a hard trade-off.`] },
   prompts:[{l:'Candidate pillars',p:`Here is our fantasy, core experience and current feature list: [CONTEXT]. Propose 3 different sets of 2 to 4 design pillars. For each pillar, state in one sentence what it forbids and which current feature it puts at risk. Then name the decisions each set still cannot resolve. Do not recommend one.`},{l:'Pillar audit',p:`Our pillars are: [PILLARS]. Our current design decisions are: [DECISIONS]. For each decision, say which pillar it serves or violates, and where two pillars conflict. Then state the single pillar that is doing no work and must be rewritten or cut.`}],
   verify:[`Does every pillar forbid something concrete?`,`Can the set settle a real current disagreement?`],
   test:[`Give three team members a debatable feature and the pillars. Do they reach the same call independently?`,`Review one week of decisions. Could each have been made from the pillars alone?`],
@@ -699,7 +699,7 @@ func _init() -> void:
 \t\t\tpush_error("%s violates the escape pillar" % f)
 \t\t\tbad += 1
 \tquit(1 if bad > 0 else 0)`,
-    pitfall:`Writing the checker as a @tool script on a game node without guarding with Engine.is_editor_hint(). _ready then runs inside the editor, spawns real gameplay objects into the open scene and saves them with it. Editor-time code and runtime code share one file in Godot, and that guard is the only thing separating them.`,
+    pitfall:`Writing the checker as a @tool script on a game node without guarding with Engine.is_editor_hint(). _ready then runs inside the editor, so gameplay code fires on the open scene, and any property it changes on nodes the scene owns is saved the next time someone saves. Editor-time code and runtime code share one file in Godot, and that guard is the only thing separating them.`,
     map:`A Godot @tool script is a Unity [ExecuteAlways] component, and --headless --script is -batchmode -executeMethod.` },
   unity:{ term:`The same check runs as an EditMode test or a build preprocessor. OnValidate catches a broken rule while the designer is still in the Inspector, which is the cheapest place to catch anything.`,
     api:['IPreprocessBuildWithReport.OnPreprocessBuild()','BuildFailedException','AssetDatabase.FindAssets() / GUIDToAssetPath()','MonoBehaviour.OnValidate()','[Test] EditMode tests with NUnit','#if UNITY_EDITOR'],
@@ -717,13 +717,13 @@ public class PillarCheck : IPreprocessBuildWithReport {
 }
 #endif`,
     pitfall:`Letting editor-only code reach a runtime assembly. One using UnityEditor outside an Editor folder and outside #if UNITY_EDITOR compiles fine in the editor and fails the player build, usually on the build machine and usually at the worst moment. Put the checks in an editor assembly and keep the runtime side clean.`,
-    map:`A Unity build preprocessor is a Godot EditorScript run headless, and OnValidate is the setter behind an @export property.` } });
+    map:`A Unity build preprocessor is a Godot EditorExportPlugin, an EditMode test is a SceneTree script run with --headless --script, and OnValidate is the setter behind an @export property.` } });
 INTERVIEW('design-pillars',{
   junior:[
     { q:`What is a design pillar, and how is it different from a value?`,
       a:`Two to four statements about what the game must always do and must never do, each forbidding something concrete. A value like immersive or player-first forbids nothing, so it settles no argument. The test is whether you can name what the pillar costs you.`,
       follow:`Take one pillar and tell me exactly what it forbids.`,
-      red:`Offers "player-first" or "immersive" as a pillar and cannot say what it rules out.` },
+      red:`Offers “player-first” or “immersive” as a pillar and cannot say what it rules out.` },
     { q:`How would a new team member use the pillars in their first week?`,
       a:`To reject a feature by naming the pillar it violates, without escalating to the director. That is the entire purpose. If they cannot do that, the set is decoration and the director is still the bottleneck they were meant to remove.`,
       follow:`They name a pillar and a senior disagrees. What happens next?`,

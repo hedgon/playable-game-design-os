@@ -49,10 +49,10 @@ function flowOverlaps(F, CASE_STUDIES, problems) {
 // too (project overview, each system open, each part selected) and the
 // "seen in practice" leaves are fed into the domain states, so the checker
 // sees the same fourth layer the app draws.
-function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F, PATHS) {
+function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F, PATHS, GAMES) {
   DOMAINS.forEach(d => d.topics = Object.values(TOPICS).filter(t => t.d === d.id).map(t => t.id));
   const seen = new Set();
-  const pl = G.practiceLinks ? G.practiceLinks(CASE_STUDIES || []) : { views: {}, extra: {} };
+  const pl = G.practiceLinks ? G.practiceLinks(CASE_STUDIES || [], 2, GAMES || []) : { views: {}, extra: {} };
   let states = 0; const problems = []; const clipped = new Map();
   const scan = (g, name) => {
     states++;

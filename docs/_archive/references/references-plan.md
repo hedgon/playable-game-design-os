@@ -1,5 +1,5 @@
 ---
-status: active
+status: shipped
 updated: 2026-09-24
 ---
 
@@ -81,11 +81,10 @@ big to review, and so every topic a lens links exists before the lens.
      direction, lore and narrative, world building, environmental
      storytelling, business and release (price, platforms, early access,
      DLC, re-releases, team size), replayability and difficulty, lineage
-     (what it borrowed, what it invented, who copied it). Two or three lenses
-     per game are primary and go deep; the rest are one or two lines. Each
-     lens: what they did, one concrete moment or screen, why it works, steal
-     this, the trap when copying, and the topic it illustrates. A lens says
-     "does not apply" only when that is true (Tetris has no lore; its
+     (what it borrowed, what it invented, who copied it). Every lens is an
+     analysis written to [analysis-method.md](../../references/analysis-method.md): claim,
+     evidence, mechanism, effect, comparison, cost, principle, sources. A
+     lens says "does not apply" only when that is true (Tetris has no lore; its
      business lens is rich).
    - `shots`: about two images per game, each attached to a lens, cropped to
      what is being taught, with alt text, a caption naming what to look at,
@@ -93,13 +92,14 @@ big to review, and so every topic a lens links exists before the lens.
    - `family` (one value, for grouping) and `tags` (many: 'japanese',
      'turn-based', 'real-time', 'deduction'...), and `aka`.
 2. Depth (owner feedback on the pilots, 2026-09-24: sections read as one-liners).
-   Every section is a paragraph: signature parts 60 or more words each (400 to
-   650 in all); primary lens fields 35 or more words (steal and trap 25 or
-   more); short lenses 35 to 120 words; an analysed game's first 30 seconds,
+   Every section is a paragraph: signature parts 55 or more words each (380 to
+   700 in all); an analysed game's first 30 seconds,
    decision per minute, why it worked, complaints, lesson and what copies miss
    are paragraphs too. The validator enforces these minimums.
-   Quality rubric a reviewer applies to every lens: names a concrete moment,
-   states the mechanism, gives a transferable rule, no generic adjectives.
+   Second owner feedback (2026-09-24: lenses read as description, not
+   analysis) replaced the primary/short split with the analysis schema and
+   the ten-item rubric in [analysis-method.md](../../references/analysis-method.md); every
+   lens is 150 to 380 words, all fields required.
 3. Default lens to topic table (see Design) so links are consistent.
 4. Reverse index `gameLinks` (modelled on `pathLinks`); topic pages list
    "In real games" with the lens each game shows.
@@ -199,7 +199,7 @@ full entries (no store art); they appear as lineage inside lenses.
   exists and fails a single image over 150 KB or the folder over 5 MB;
   README's "small assets folder" line updated.
 - **Validator:** new checks after the reference-games loop: signature length
-  and parts, lens set, primary count, topic links resolve, shots attached to
+  and parts, lens set, every lens field present and within its length, topic links resolve, shots attached to
   a lens with alt and caption, family and tags from fixed lists.
 - **inventory.js:** gains `REFERENCE_GAMES` for the `game` step kind.
 
@@ -234,7 +234,7 @@ The decisions in section 7.
 - (d) Library: every card has an image that loads (smoke.js, natural width
   greater than 0); filters and list view work.
 - (e) Search queries in P2.5.
-- (f) Every game page: signature, lenses (primary ones deep), shots load with
+- (f) Every game page: signature, ten analysed lenses, shots load with
   alt text, topic links resolve (smoke plus validator).
 - (g) New topics list their games; the map shows a game leaf and passes the
   layout checker.
@@ -281,7 +281,7 @@ content quality.
 | New tint variant would be unchecked for contrast | Explicit check-contrast entry |
 | Two acceptance criteria not scriptable | Sweep is a human-reviewed list; image loading checked in smoke |
 | inventory.js lacks games for the new step kind | Added |
-| Eight equal short lenses will not feel deeper | Signature deep dive per game, primary lenses deep, rubric, pilot first |
+| Eight equal short lenses will not feel deeper | Signature deep dive per game, every lens a full analysis, rubric, pilot first |
 | Real-time and turn blends had one example | Clair Obscur, Superhot, FFXII Gambits, SMT III Press Turn added |
 | Fact errors in descriptions (Persona's Confidants, ATB's origin, Souls messages' origin) | Corrected in the list |
 | Sub-tabs vanish on deep pages; games hidden under Map | Sub-tabs everywhere, Library group, unknown route to index, one-click test |
@@ -291,3 +291,25 @@ content quality.
 | Image risk understated | Fewer, cropped, annotated images, one credits table, takedown line |
 | Dissect picker and hard-coded counts will not scale to 32 games | Picker grouped with search; counts from data |
 | "Commit and push per pass" as a standing approval | Asked explicitly as decision 4 |
+
+## 9. Outcome (2026-09-24)
+
+Landed: P1, P2, P3a (the method changed after owner feedback, see
+[analysis-method.md](../../references/analysis-method.md)), P3b, P3c and P4.
+
+- 32 reference games, every one analysed through ten lenses; the 16 new
+  games are in `17-games-japan.js` and `18-games-innovative.js`.
+- Four new topics; the `game` path step; a fourteenth path, “Learn from
+  games that broke the mould”; game steps in three design paths; one game
+  leaf per topic on the map.
+- The process that held up: research notes first, a draft, then an
+  independent fact-check per two games (typically 80 to 130 corrections a
+  pair: wrong mechanics, misapplied frameworks, reused comparisons,
+  misplaced screenshot callouts), applied and re-validated before landing.
+- Decisions taken on the way: `year` is the full release (Slay the Spire
+  2019, Hades 2020, Vampire Survivors 2022) and `t` the game’s own name,
+  with remasters in the business lens; games with no Steam page use the
+  publisher’s store or a free-licensed Wikimedia Commons image, credited
+  with its licence; a lens is `na` only with an argued reason.
+- Not done: Animal Crossing, Minecraft and Wordle have no screenshots (no
+  Steam page to take them from).
