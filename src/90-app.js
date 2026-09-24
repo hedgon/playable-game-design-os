@@ -384,18 +384,19 @@ function renderPlatforms(id){
   const note = '<p class="small muted">Not legal or tax advice. Every dated fact links its source; open it before you rely on a number.</p>';
   if(!P){
     const card = p => `<a class="card clickable lnk blk" href="#/platforms/${p.id}"><b>${esc(p.t)}</b><div class="small dim">${esc(p.sub)}</div><p class="small" style="margin:6px 0 0">${esc(p.short)}</p></a>`;
-    const main = PLATFORMS.filter(p => p.kind !== 'open'), other = PLATFORMS.filter(p => p.kind === 'open');
-    setView(`${crumbs([['Make','#/lab'],['Platforms']])}<h1>Platforms</h1><p class="dim" style="max-width:820px">How to get a game onto each store, from access to patches. Every guide walks the same six stages. Numbers and rules that change are dated facts with their source, and whatever a platform keeps under NDA is named, not guessed.</p>
+    const main = PLATFORMS.filter(p => p.kind !== 'open' && p.kind !== 'ugc'), ugc = PLATFORMS.filter(p => p.kind === 'ugc'), other = PLATFORMS.filter(p => p.kind === 'open');
+    setView(`${crumbs([['Make','#/lab'],['Platforms']])}<h1>Platforms</h1><p class="dim" style="max-width:820px">How to get a game onto each store, from access to patches. Every store and console guide walks the same six stages; a UGC platform, which is engine, hosting and economy in one, walks seven of its own. Numbers and rules that change are dated facts with their source, and whatever a platform keeps under NDA is named, not guessed.</p>
       ${diagramCard(platformMatrix())}
       <div class="section-head"><h2>Stores and consoles</h2></div><div class="grid auto">${main.map(card).join('')}</div>
+      ${ugc.length ? `<div class="section-head"><h2>UGC platforms</h2></div><p class="small dim" style="max-width:820px">You build inside the platform’s own editor, it runs the servers, and players find and pay for your game in its economy.</p><div class="grid auto">${ugc.map(card).join('')}</div>` : ''}
       ${other.length ? `<div class="section-head"><h2>Other channels</h2></div><div class="grid auto">${other.map(card).join('')}</div>` : ''}${note}`);
     return;
   }
-  const stage = ([k, label]) => { const s = P.stages[k]; return `<section class="pstage"><h2>${label}</h2>${list(s.points)}${factItems(s.facts)}</section>`; };
+  const stage = ([k, label]) => { const s = P.stages[k]; return `<section class="pstage"><h2>${label}</h2>${s.diagram ? diagramCard(s.diagram) : ''}${list(s.points)}${factItems(s.facts)}</section>`; };
   setView(`${crumbs([['Make','#/lab'],['Platforms','#/platforms'],[P.t]])}<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
     ${P.nda ? `<div class="callout"><b>Under NDA.</b> ${esc(P.nda)}</div>` : ''}
     ${P.flow ? diagramCard(P.flow) : ''}
-    ${PLATFORM_STAGES.map(stage).join('')}
+    ${stagesOf(P).map(stage).join('')}
     ${(P.topics || []).length ? `<p class="small">Topics: ${P.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`);
 }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }

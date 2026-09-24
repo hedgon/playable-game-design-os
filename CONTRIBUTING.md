@@ -171,13 +171,16 @@ drawings; never add a screenshot.
 ### Platform guides
 
 `PLATFORM('id', {...})` in `15-platforms.js` adds a guide at `#/platforms/id`:
-`t`, `sub`, `short`, `kind` (`pc`, `console`, `mobile` or `open`),
-`glance` (access, review gate, turnaround, for the comparison table), and
-`stages` with all six keys in `PLATFORM_STAGES` (access, build, cert,
-ratings, store, release), each `{points, facts?}`. `points` describe the
+`t`, `sub`, `short`, `kind` (`pc`, `console`, `mobile`, `open` or `ugc`),
+`glance` (access, review gate, turnaround, for the comparison table; not
+needed for `ugc`), and `stages` with every key its kind walks: the six in
+`PLATFORM_STAGES` (access, build, cert, ratings, store, release), or for a
+UGC platform the seven in `UGC_STAGES` (access, architecture, tools, rules,
+money, publish, marketing). Each stage is `{points, facts?, diagram?}`; a
+`diagram` is drawn above the points and checked by the layout checker. `points` describe the
 process; anything that can change (fees, rules, deadlines, turnaround) is a
 dated fact with its source, checked like topic facts. `nda` names what the
-platform keeps under NDA; never guess NDA content. A store or console guide
+platform keeps under NDA; never guess NDA content. Every guide except `open` ones
 needs a `flow` (a flow diagram from sign-up to release), and `topics` must
 name real topics.
 

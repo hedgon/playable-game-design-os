@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,platformMatrix,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -182,14 +182,17 @@ for (const p of (ctx.PLATFORMS || [])) {
   const where = `platform ${p.id}`;
   if (platIds.has(p.id)) errors.push(`${where}: duplicate id`); platIds.add(p.id);
   for (const k of ['t', 'sub', 'short']) if (!p[k] || !String(p[k]).trim()) errors.push(`${where}: ${k} empty`);
-  if (!['pc', 'console', 'mobile', 'open'].includes(p.kind)) errors.push(`${where}: kind must be pc, console, mobile or open`);
-  if (!Array.isArray(p.glance) || p.glance.length !== 3 || p.glance.some(g => !String(g).trim())) errors.push(`${where}: glance needs access, review gate and turnaround`);
+  if (!['pc', 'console', 'mobile', 'open', 'ugc'].includes(p.kind)) errors.push(`${where}: kind must be pc, console, mobile, open or ugc`);
+  if (p.kind !== 'ugc' && (!Array.isArray(p.glance) || p.glance.length !== 3 || p.glance.some(g => !String(g).trim()))) errors.push(`${where}: glance needs access, review gate and turnaround`);
   if (p.nda !== undefined && !String(p.nda).trim()) errors.push(`${where}: nda is empty`);
-  for (const [k] of ctx.PLATFORM_STAGES) {
+  const stageKeys = ctx.stagesOf(p).map(s => s[0]);
+  for (const k of Object.keys(p.stages || {})) if (!stageKeys.includes(k)) errors.push(`${where}: stage ${k} is not a ${p.kind === 'ugc' ? 'UGC' : 'store'} stage`);
+  for (const k of stageKeys) {
     const s = (p.stages || {})[k];
     if (!s) { errors.push(`${where}: stage ${k} missing`); continue; }
     if (!Array.isArray(s.points) || !s.points.length || s.points.some(x => !String(x).trim())) errors.push(`${where}: stage ${k} needs points`);
     if (s.facts !== undefined) checkFacts(s.facts, `${where}/${k}`);
+    if (s.diagram !== undefined) checkDiagram(s.diagram, `${where}/${k}: diagram`, errors);
   }
   if (p.flow !== undefined) checkDiagram(p.flow, `${where}: flow`, errors);
   if (p.kind !== 'open' && !p.flow) errors.push(`${where}: a store or console guide needs a zero-to-live flow`);
