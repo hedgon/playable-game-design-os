@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 215" role="img" aria-label="Original drawing of falling four-square blocks stacking in a well">
+  <!-- Original drawing for Playable, not official art: generic four-square blocks. -->
+  <rect width="460" height="215" fill="#0d1030"/>
+  <g stroke="#0d1030" stroke-width="2">
+    <!-- the well -->
+    <rect x="150" y="8" width="160" height="200" fill="#161a44" stroke="#5a6bd6"/>
+    <!-- falling T piece -->
+    <g fill="#b35ad6"><rect x="210" y="28" width="20" height="20"/><rect x="190" y="48" width="20" height="20"/><rect x="210" y="48" width="20" height="20"/><rect x="230" y="48" width="20" height="20"/></g>
+    <!-- the stack -->
+    <g fill="#5ad6d1"><rect x="150" y="188" width="20" height="20"/><rect x="170" y="188" width="20" height="20"/><rect x="190" y="188" width="20" height="20"/><rect x="210" y="188" width="20" height="20"/></g>
+    <g fill="#e8c547"><rect x="230" y="168" width="20" height="20"/><rect x="250" y="168" width="20" height="20"/><rect x="230" y="188" width="20" height="20"/><rect x="250" y="188" width="20" height="20"/></g>
+    <g fill="#e2594a"><rect x="270" y="188" width="20" height="20"/><rect x="290" y="188" width="20" height="20"/><rect x="290" y="168" width="20" height="20"/><rect x="290" y="148" width="20" height="20"/></g>
+    <g fill="#5ad670"><rect x="150" y="168" width="20" height="20"/><rect x="170" y="168" width="20" height="20"/><rect x="170" y="148" width="20" height="20"/><rect x="190" y="148" width="20" height="20"/></g>
+    <g fill="#4a7ae2"><rect x="190" y="168" width="20" height="20"/><rect x="210" y="168" width="20" height="20"/><rect x="270" y="168" width="20" height="20"/></g>
+  </g>
+  <!-- next piece -->
+  <g transform="translate(340,30)"><rect width="84" height="64" fill="none" stroke="#5a6bd6" stroke-width="2"/><g fill="#5ad6d1" stroke="#0d1030" stroke-width="2"><rect x="2" y="22" width="20" height="20"/><rect x="22" y="22" width="20" height="20"/><rect x="42" y="22" width="20" height="20"/><rect x="62" y="22" width="20" height="20"/></g></g>
+</svg>

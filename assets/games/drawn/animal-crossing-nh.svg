@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 215" role="img" aria-label="Original drawing of a small island with a tent and a palm tree">
+  <!-- Original drawing for Playable, not official art: a generic island scene. -->
+  <rect width="460" height="215" fill="#8fd3f0"/>
+  <circle cx="390" cy="46" r="22" fill="#fff3b0"/>
+  <g fill="#fff" opacity=".85"><ellipse cx="90" cy="40" rx="34" ry="11"/><ellipse cx="120" cy="34" rx="22" ry="9"/><ellipse cx="300" cy="58" rx="28" ry="9"/></g>
+  <rect y="140" width="460" height="75" fill="#3aa7c9"/>
+  <path d="M40,150 Q230,96 420,150 Q420,176 230,182 Q40,176 40,150 Z" fill="#f2dfa4"/>
+  <path d="M90,146 Q230,106 370,146 Q360,160 230,164 Q100,160 90,146 Z" fill="#7cc26a"/>
+  <!-- tent -->
+  <polygon points="170,146 206,104 242,146" fill="#e26a4a" stroke="#8a3a25" stroke-width="2"/>
+  <polygon points="200,146 206,122 212,146" fill="#8a3a25"/>
+  <!-- palm -->
+  <path d="M300,146 Q296,120 306,96" stroke="#8a5a36" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <g fill="#3f9a4a"><path d="M306,96 Q280,86 262,100 Q286,94 306,98 Z"/><path d="M306,96 Q330,82 350,94 Q326,90 306,98 Z"/><path d="M306,96 Q300,72 284,66 Q300,80 304,98 Z"/><path d="M306,96 Q322,72 340,70 Q322,82 308,98 Z"/></g>
+  <!-- a leaf on the sand -->
+  <path d="M120,166 Q134,152 150,158 Q138,172 120,166 Z" fill="#5aa648"/>
+  <g stroke="#fff" stroke-width="2" opacity=".6" fill="none"><path d="M30,196 q10,-6 20,0 t20,0"/><path d="M380,190 q10,-6 20,0 t20,0"/></g>
+</svg>

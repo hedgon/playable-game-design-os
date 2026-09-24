@@ -275,17 +275,42 @@ window.PlayableDiagram = (function(){
       boxes: nodes.map(n => box('node ' + n.id, n.x, n.y, n.w, n.h)).concat(labels.map(l => box('label ' + l.text, l.x, l.y, l.w, l.h))) };
   };
 
+  // A screen region shows a number badge (matching the legend under the
+  // frame), its label beside the badge when the whole label fits, and, when
+  // there is room, a glyph of what it holds. A label that does not fit is
+  // left to the legend, as on any numbered schematic; only a region too small
+  // for its badge counts as cut text.
   L.screen = spec => {
     const cut = [], tall = spec.aspect === '9:16';
     const FW = tall ? 236 : W - 2 * PAD, FH = tall ? 420 : Math.round((W - 2 * PAD) * (spec.aspect === '4:3' ? 3 / 4 : 9 / 16));
     const fx = (W - FW) / 2, fy = PAD;
-    const regions = spec.regions.map((r, i) => {
+    const regions = spec.regions.map(r => {
       const x = fx + r.x * FW, y = fy + r.y * FH, w = r.w * FW, h = r.h * FH;
-      const l = wrap((i + 1) + ' ' + r.t, w - 8, SFS, Math.max(1, Math.min(4, Math.floor((h - 6) / SLH))), cut);
-      if (h < 18) cut.push(r.t);
-      return { x, y, w, h, l };
+      const lines = Math.max(1, Math.min(4, Math.floor((h - 6) / SLH))), tried = [];
+      const fit = wrap(r.t, w - 22, SFS, lines, tried);
+      const l = tried.length ? [] : fit;
+      if (h < 18 || w < 22) cut.push(r.t);
+      const top = y + 6 + l.length * SLH, room = Math.min(w - 12, y + h - 4 - top);
+      const glyph = r.g && room >= 16 ? { s: Math.min(26, room), cx: x + w / 2, cy: top + (y + h - top) / 2 } : null;
+      return { x, y, w, h, l, glyph, world: r.kind === 'world' };
     });
     return { w: W, h: fy + FH + PAD, fx, fy, FW, FH, regions, cut, boxes: regions.map((r, i) => box('region ' + spec.regions[i].t, r.x, r.y, r.w, r.h)) };
+  };
+  // Glyphs drawn in a 24-unit box centred on (0,0): what a region holds.
+  const GLYPH = {
+    health: 'M0,9 C-10,2 -11,-7 -5,-8 C-2,-8.5 0,-6 0,-4 C0,-6 2,-8.5 5,-8 C11,-7 10,2 0,9 Z',
+    currency: 'M0,-9 A9,9 0 1 1 -0.01,-9 Z M0,-4 A4,4 0 1 1 -0.01,-4 Z',
+    map: 'M-10,-7 L-4,-9 L4,-7 L10,-9 L10,7 L4,9 L-4,7 L-10,9 Z M-4,-9 L-4,7 M4,-7 L4,9',
+    text: 'M-10,-6 L10,-6 M-10,0 L10,0 M-10,6 L4,6',
+    list: 'M-10,-6 L-8,-6 M-4,-6 L10,-6 M-10,0 L-8,0 M-4,0 L10,0 M-10,6 L-8,6 M-4,6 L10,6',
+    world: 'M-11,8 L-4,-2 L0,3 L5,-5 L11,8 Z M6,-8 A2.5,2.5 0 1 1 5.99,-8 Z',
+    timer: 'M0,-9 A9,9 0 1 1 -0.01,-9 Z M0,-5 L0,0 L4,3',
+    bar: 'M-11,-3 L11,-3 L11,3 L-11,3 Z M-11,0 L3,0',
+    cards: 'M-9,-7 L1,-7 L1,8 L-9,8 Z M-3,-9 L7,-9 L7,6',
+    button: 'M-10,-5 L10,-5 A5,5 0 0 1 10,5 L-10,5 A5,5 0 0 1 -10,-5 Z M0,-1.5 A1.5,1.5 0 1 1 -0.01,-1.5 Z',
+    character: 'M0,-9 A3.5,3.5 0 1 1 -0.01,-9 Z M-6,9 L-5,0 L5,0 L6,9',
+    enemies: 'M-6,-4 A3,3 0 1 1 -6.01,-4 Z M6,-4 A3,3 0 1 1 5.99,-4 Z M0,4 A3,3 0 1 1 -0.01,4 Z',
+    tools: 'M-8,8 L4,-4 M2,-8 L8,-2 L4,2 L-2,-4 Z'
   };
 
   // Flow specs are laid out by PlayableFlow; the checker handles them there.
@@ -293,7 +318,10 @@ window.PlayableDiagram = (function(){
 
   // --- rendering ---------------------------------------------------------
   const marker = id => `<defs><marker id="${id}" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path class="darrow" d="M0,0 L7,3 L0,6 Z"/></marker></defs>`;
-  const open = (g, spec) => `<svg class="dgm" viewBox="0 0 ${Math.ceil(g.w)} ${Math.ceil(g.h)}" style="max-width:${Math.ceil(g.w * 1.25)}px" role="img" aria-label="${esc(spec.title)}">`;
+  // A screen schematic is a picture of a whole screen, so it may display
+  // larger than the other kinds; its layout width (and the checker's limit)
+  // is unchanged.
+  const open = (g, spec) => `<svg class="dgm" viewBox="0 0 ${Math.ceil(g.w)} ${Math.ceil(g.h)}" style="max-width:${Math.ceil(g.w * (spec.kind === 'screen' ? 1.75 : 1.25))}px" role="img" aria-label="${esc(spec.title)}">`;
   const R = {};
   R.loop = (spec, g, id) => marker(id) + g.edges.map(e => `<path class="dedge" d="${e.d}" marker-end="url(#${id})"/>`).join('') + g.nodes.map((n, i) => cardSVG(n, i + 1)).join('');
   R.state = (spec, g, id) => {
@@ -366,7 +394,13 @@ window.PlayableDiagram = (function(){
     + g.nodes.map(n => cardSVG(n, 0)).join('');
   R.screen = (spec, g) => {
     let s = `<rect class="dframe" x="${f(g.fx)}" y="${f(g.fy)}" width="${f(g.FW)}" height="${f(g.FH)}" rx="6"/>`;
-    g.regions.forEach(r => { s += `<rect class="dregion" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="2"/>`; r.l.forEach((l, k) => { s += `<text class="dlbl dsmall" x="${f(r.x + 4)}" y="${f(r.y + 12 + k * SLH)}" font-size="${SFS}">${esc(l)}</text>`; }); });
+    g.regions.forEach((r, i) => {
+      s += `<rect class="dregion${r.world ? ' world' : ''}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="2"/>`;
+      s += `<circle class="dbadge" cx="${f(r.x + 10)}" cy="${f(r.y + 10)}" r="6.5"/><text class="dbadgenum" x="${f(r.x + 10)}" y="${f(r.y + 13.3)}" text-anchor="middle" font-size="9">${i + 1}</text>`;
+      r.l.forEach((l, k) => { s += `<text class="dlbl dsmall" x="${f(r.x + 20)}" y="${f(r.y + 13 + k * SLH)}" font-size="${SFS}">${esc(l)}</text>`; });
+      const gl = r.glyph && GLYPH[spec.regions[i].g];
+      if (gl) s += `<path class="dglyph" d="${gl}" transform="translate(${f(r.glyph.cx)},${f(r.glyph.cy)}) scale(${f(r.glyph.s / 24)})"/>`;
+    });
     return s;
   };
 
@@ -397,6 +431,12 @@ window.PlayableDiagram = (function(){
     return '';
   }
 
+  // The numbered legend under a screen schematic: every region's label and
+  // what it holds, since the drawing has room only for the label.
+  function legend(spec){
+    if (spec.kind !== 'screen') return '';
+    return `<ol class="dgm-legend">${spec.regions.map((r, i) => `<li><span class="lnum">${i + 1}</span><span><b>${esc(r.t)}</b>${r.d ? ` <span class="muted">${esc(r.d)}</span>` : ''}${r.kind === 'world' ? ' <span class="chip">play space</span>' : ''}</span></li>`).join('')}</ol>`;
+  }
   // MAX_W: the widest canvas the layout checker accepts (a two-way flow is 412).
-  return { layout, render, describe, MAX_W: 420 };
+  return { layout, render, describe, legend, MAX_W: 420 };
 })();

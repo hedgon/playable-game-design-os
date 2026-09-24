@@ -22,6 +22,8 @@ T('ux-as-design',{ d:'ux', t:'UX is game design, not decoration', tag:'Every UI 
   verify:[`Did it keep elements because they are genre standard rather than because a decision needs them?`,`Are its parse-speed claims plausible for your actual camera distance and pace?`],
   test:[`Eye direction during action: are players reading the HUD?`,`Hide the HUD for a session. What do players fail to understand?`,`Ask players what a specific element means. Wrong answers mean the element is noise or misdesigned.`],
   rel:[['readability-and-hierarchy','Hierarchy is how the UI decides what is seen first.'],['feedback-and-affordance','Feedback is the UI of consequences.'],['onboarding','Onboarding is UX applied to the first minutes.'],['visual-language','Art carries information too.']] });
+DIAGRAM('ux-as-design', { kind:'stack', title:'One attention budget, sorted by how fast it must be read', taper:true, arrow:'read fastest at the top',
+  layers:[{t:'The decision in action', d:'size, contrast and motion, never text'},{t:'State checked between actions', d:'recognition, not recall; the world can carry most of it'},{t:'Reference only', d:'read when stopped; if nobody uses it, cut it'}] });
 TECH('ux-as-design',[
   {n:'Friction audit', how:`Count the steps, clicks and cognitive demands for the most common tasks.`, fit:`Finding hidden churn in menus and flows.`, cost:`Needs telemetry or observation to know the real tasks.`, alt:`Instrument top flows. Cut steps.`},
   {n:'Heuristic review', how:`Evaluate the interface against known usability heuristics (clarity, consistency, error recovery, feedback).`, fit:`A fast, cheap UX pass before playtests.`, cost:`Generic heuristics miss game-specific feel.`, alt:`Pair with think-aloud playtests.`},
@@ -114,6 +116,8 @@ T('readability-and-hierarchy',{ d:'ux', t:'Readability, hierarchy and cognitive 
   verify:[`Does it know the target device and viewing distance? If not, its claims are guesses.`],
   test:[`"What killed you?" after each death. Track "I did not see it".`,`Flash a screenshot for one second and ask what the player saw.`,`Test on the target device.`],
   rel:[['ux-as-design','Hierarchy implements the six questions.'],['visual-language','Visual language is the palette of readability.'],['pacing','Cognitive pacing is load over time.'],['depth-vs-complexity','Complexity is paid as cognitive load.']] });
+DIAGRAM('readability-and-hierarchy', { kind:'stack', title:'One attention budget, sorted by how fast it must be read', taper:true, arrow:'read fastest at the top',
+  layers:[{t:'The decision in action', d:'size, contrast and motion, never text'},{t:'State checked between actions', d:'recognition, not recall; the world can carry most of it'},{t:'Reference only', d:'read when stopped; if nobody uses it, cut it'}] });
 TECH('readability-and-hierarchy',[
   {n:'Information hierarchy and affordances', how:`Rank every piece of on-screen and in-world information. Only the top rank should dominate.`, fit:`Action and systems-heavy games where the screen floods.`, cost:`Requires discipline. Designers add information faster than they remove it.`, alt:`Cap the "always visible" set and move the rest to demand.`},
   {n:'Cognitive load budgeting', how:`Count the simultaneous demands on attention and memory, and reduce them.`, fit:`Onboarding, complex systems, and moments of high action.`, cost:`Quantifying load is heuristic. Use think-aloud tests.`, alt:`Pair with the readability playtest questions.`},
@@ -211,6 +215,8 @@ T('feedback-and-affordance',{ d:'ux', t:'Feedback and affordance', tag:'Affordan
   verify:[`Did it propose feedback that confirms input rather than explains outcome?`],
   test:[`After an action, ask "what happened and why?" Track accuracy.`,`Count repeated failing actions before a player changes behavior.`,`Which objects do players try to interact with that are not interactable, and vice versa?`],
   rel:[['core-loop','Feedback is a link of the loop.'],['game-feel-and-juice','Juice is amplified feedback.'],['challenge-failure-recovery','Failure needs cause feedback.'],['visual-language','Affordances are carried by art.']] });
+DIAGRAM('feedback-and-affordance', { kind:'loop', title:'The loop that teaches: Dan Cook’s skill atom',
+  steps:[{t:'Action', d:'the player does something'},{t:'Simulation', d:'the rules resolve it'},{t:'Feedback', d:'the game shows what happened'},{t:'Model update', d:'the player updates belief'}] });
 TECH('feedback-and-affordance',[
   {n:'Feedback layering', how:`Stack visual, audio and haptic cues on one event so it reads regardless of channel.`, fit:`Making actions and state legible.`, cost:`Noise and cost. Needs priority.`, alt:`Reserve the strongest cues for the most important events.`},
   {n:'Affordance grammar', how:`Use consistent visual/audio language for what is interactable, dangerous or locked.`, fit:`Teaching the world's rules without text.`, cost:`A single inconsistency teaches wrong.`, alt:`Document and hold the grammar across all content.`},

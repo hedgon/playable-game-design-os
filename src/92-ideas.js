@@ -37,7 +37,7 @@ function toolDissect(el){
     ${field('ds_concept','Concept','Fantasy, core verb, player. Prefilled from the Idea Shaper if you used it.', saved.concept, 2)}
     <div class="step-num">Step 2 · Comparables: what your player plays instead</div>
     <p class="small dim">Choose from the library or add your own. Choose what your player plays, not what you admire.</p>
-    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div>${g.dev ? `<small class="credit">Art: ${esc(g.dev)}</small>` : ''}</div></div>`).join('')}</div>
+    <div class="reflib" id="ds_lib">${REFERENCE_GAMES.map(g => `<div class="refcard ${saved.comps.some(c=>c.id===g.id)?'on':''}" data-g="${g.id}">${g.img?`<img src="${g.img}" alt="${esc(g.t)}" loading="lazy">`:`<div class="tile">${esc(g.t)}</div>`}<div class="meta"><b>${esc(g.t)}</b><small>${g.year} · ${esc(g.genre)}</small><div class="want">${esc(g.want)}</div>${g.dev ? `<small class="credit">Art: ${esc(g.dev)}</small>` : g.drawn ? '<small class="credit">Drawing: ours, not official art</small>' : ''}</div></div>`).join('')}</div>
     <div class="row" style="margin-bottom:10px"><input id="ds_custom" placeholder="Add a game not in the library…" style="flex:1"><button class="btn" id="ds_add">Add</button></div>
     <div id="ds_comps"></div>
     <div class="step-num">Step 3 · Cross-reference</div>

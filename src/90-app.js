@@ -78,13 +78,16 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 
 /* ---------- router ---------- */
 // Keys 1-9 map to the first nine entries, so anything added here goes last.
-// Six groups in the top bar; each opens its first view, and a group with
-// several views shows them as a row of sub-tabs on those views. Keys 1-6
-// open the groups in this order.
+// Seven groups in the top bar; each opens its first view, and a group with
+// several views shows them as a row of sub-tabs on every page of the group.
+// Keys 1-7 open the groups in this order. The Library holds the collections
+// (games, platforms, checklists, prompts, sources), so "where are the
+// games?" has one answer.
 const NAV = [
   { id:'paths', t:'Paths', views:[['paths','Learning paths'],['review','Review']] },
-  { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index'],['games','Reference games']] },
-  { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists'],['platforms','Platforms']] },
+  { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index']] },
+  { id:'library', t:'Library', views:[['games','Reference games'],['platforms','Platforms'],['checklists','Checklists'],['prompts','Prompts'],['sources','Sources']] },
+  { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
   { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
   { id:'experience', t:'Projects', views:[['experience','Projects']] }
@@ -360,7 +363,7 @@ function setView(html){
 // its landing views only, not above every domain and topic page.
 function subNavHTML(){
   const p = currentParts(), v = p[0] || 'map', g = VIEW_GROUP[v];
-  if(!g || g.views.length < 2 || (v === 'map' && p[1] && p[1] !== 'home')) return '';
+  if(!g || g.views.length < 2) return '';
   const cur = v === 'smell' ? 'diagnose' : v;
   const due = g.id === 'paths' ? reviewDue().length : 0;
   return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}</nav>`;
@@ -369,20 +372,23 @@ function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? 
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
 /* ---------- reference games: dissections, schematics, credited art ---------- */
 function gameArt(g){
-  return g.img ? `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>` : '';
+  if(!g.img) return '';
+  // A game with no store art has an original drawing of ours, and says so.
+  if(g.drawn) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: an original drawing, not official art" loading="lazy"><figcaption>An original drawing for this guide, not official art: this game has no store page we can credit.</figcaption></figure>`;
+  return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>`;
 }
 function renderGames(id){
   const g = REFERENCE_GAMES.find(x => x.id === id);
   if(!g){
-    setView(`${crumbs([['Map','#/map'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">Fifteen successful games taken apart with one template, each with a schematic of its loop and six with a schematic of their screen. The schematics are our own drawings of the mechanism; store art is credited to its developer.</p>
+    setView(`${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">Fifteen successful games taken apart with one template, each with a schematic of its loop and six with a schematic of their screen. The schematics are our own drawings of the mechanism; store art is credited to its developer.</p>
       <div class="reflib">${REFERENCE_GAMES.map(x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${x.year} · ${esc(x.genre)}</small><div class="want">${esc(x.want)}</div></div></a>`).join('')}</div>`);
     return;
   }
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
-  setView(`${crumbs([['Map','#/map'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${g.year} · ${esc(g.genre)}</p>
+  setView(`${crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${g.year} · ${esc(g.genre)}</p>
     ${gameArt(g)}
     <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
-    ${(g.diagrams || []).map(d => diagramCard(d) + (d.topics ? `<p class="small">Illustrates: ${d.topics.map(t => topicLink(t)).join(', ')}</p>` : '')).join('')}
+    ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
     <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
 }
@@ -396,7 +402,7 @@ function renderPlatforms(id){
   if(!P){
     const card = p => `<a class="card clickable lnk blk" href="#/platforms/${p.id}"><b>${esc(p.t)}</b><div class="small dim">${esc(p.sub)}</div><p class="small" style="margin:6px 0 0">${esc(p.short)}</p></a>`;
     const main = PLATFORMS.filter(p => p.kind !== 'open' && p.kind !== 'ugc'), ugc = PLATFORMS.filter(p => p.kind === 'ugc'), other = PLATFORMS.filter(p => p.kind === 'open');
-    setView(`${crumbs([['Make','#/lab'],['Platforms']])}<h1>Platforms</h1><p class="dim" style="max-width:820px">How to get a game onto each store, from access to patches. Every store and console guide walks the same six stages; a UGC platform, which is engine, hosting and economy in one, walks seven of its own. Numbers and rules that change are dated facts with their source, and whatever a platform keeps under NDA is named, not guessed.</p>
+    setView(`${crumbs([['Library','#/games'],['Platforms']])}<h1>Platforms</h1><p class="dim" style="max-width:820px">How to get a game onto each store, from access to patches. Every store and console guide walks the same six stages; a UGC platform, which is engine, hosting and economy in one, walks seven of its own. Numbers and rules that change are dated facts with their source, and whatever a platform keeps under NDA is named, not guessed.</p>
       ${diagramCard(platformMatrix())}
       <div class="section-head"><h2>Stores and consoles</h2></div><div class="grid auto">${main.map(card).join('')}</div>
       ${ugc.length ? `<div class="section-head"><h2>UGC platforms</h2></div><p class="small dim" style="max-width:820px">You build inside the platform’s own editor, it runs the servers, and players find and pay for your game in its economy.</p><div class="grid auto">${ugc.map(card).join('')}</div>` : ''}
@@ -404,7 +410,7 @@ function renderPlatforms(id){
     return;
   }
   const stage = ([k, label]) => { const s = P.stages[k]; return `<section class="pstage"><h2>${label}</h2>${s.diagram ? diagramCard(s.diagram) : ''}${list(s.points)}${factItems(s.facts)}</section>`; };
-  setView(`${crumbs([['Make','#/lab'],['Platforms','#/platforms'],[P.t]])}<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
+  setView(`${crumbs([['Library','#/games'],['Platforms','#/platforms'],[P.t]])}<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
     ${P.nda ? `<div class="callout"><b>Under NDA.</b> ${esc(P.nda)}</div>` : ''}
     ${P.flow ? diagramCard(P.flow) : ''}
     ${stagesOf(P).map(stage).join('')}
@@ -416,30 +422,6 @@ function list(arr){ return `<ul>${(arr||[]).map(x => `<li>${esc(x)}</li>`).join(
 function chainHTML(items, cls){ return `<div class="chain">${items.map((it, i) => (i ? '<span class="arrow">→</span>' : '') + `<a class="cn ${it[2]||cls||''} lnk" title="${esc(it[3]||'')}" href="${it[1]}">${esc(it[0])}</a>`).join('')}</div>`; }
 
 /* ---------- inline SVG diagrams (theme-aware, no external assets) ---------- */
-const DIAGRAM_HIERARCHY = `<svg class="diagram" viewBox="0 0 640 232" role="img" aria-label="Information hierarchy: one attention budget, sorted by how fast it must be read">
-  <text class="dhead" x="0" y="13">One attention budget, sorted by how fast it must be read</text>
-  <rect class="bar1" x="0" y="26" width="632" height="52" rx="2"/>
-  <text class="dt" x="14" y="48">The decision in action</text>
-  <text x="14" y="66">size, contrast and motion, never text</text>
-  <rect class="bar2" x="0" y="92" width="452" height="52" rx="2"/>
-  <text class="dt" x="14" y="114">State checked between actions</text>
-  <text x="14" y="132">recognition, not recall. The world can carry most of it</text>
-  <rect class="bar3" x="0" y="158" width="300" height="52" rx="2"/>
-  <text class="dt" x="14" y="180">Reference only</text>
-  <text x="14" y="198">read when stopped. If nobody uses it, cut it</text>
-</svg>`;
-const DIAGRAM_FEEDBACK = `<svg class="diagram" viewBox="0 0 620 246" role="img" aria-label="The feedback loop: action, simulation, feedback, model update">
-  <defs><marker id="arrfb" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="fill-a" d="M0,0 L6,3 L0,6 Z"/></marker></defs>
-  <text class="dhead" x="0" y="13">The loop that teaches: Dan Cook's skill atom</text>
-  <rect class="box" x="20" y="30" width="220" height="64" rx="2"/><text class="dt" x="34" y="54">Action</text><text x="34" y="72">the player does something</text>
-  <rect class="box" x="380" y="30" width="220" height="64" rx="2"/><text class="dt" x="394" y="54">Simulation</text><text x="394" y="72">the rules resolve it</text>
-  <rect class="box" x="380" y="150" width="220" height="64" rx="2"/><text class="dt" x="394" y="174">Feedback</text><text x="394" y="192">the game shows what happened</text>
-  <rect class="box" x="20" y="150" width="220" height="64" rx="2"/><text class="dt" x="34" y="174">Model update</text><text x="34" y="192">the player updates belief</text>
-  <line class="stroke-a" x1="242" y1="62" x2="374" y2="62" marker-end="url(#arrfb)"/>
-  <line class="stroke-a" x1="490" y1="96" x2="490" y2="144" marker-end="url(#arrfb)"/>
-  <line class="stroke-a" x1="378" y1="182" x2="246" y2="182" marker-end="url(#arrfb)"/>
-  <line class="stroke-a" x1="130" y1="148" x2="130" y2="100" marker-end="url(#arrfb)"/>
-</svg>`;
 const DIAGRAM_DISSECTION = `<svg class="diagram" viewBox="0 0 704 258" role="img" aria-label="Dissect each comparable with one template, then cross-reference your concept against all of them">
   <defs><marker id="arrds" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="fill-b" d="M0,0 L6,3 L0,6 Z"/></marker></defs>
   <text class="dhead" x="0" y="13">Dissect each comparable with one template</text>
@@ -458,14 +440,17 @@ const DIAGRAM_DISSECTION = `<svg class="diagram" viewBox="0 0 704 258" role="img
   <text x="0" y="222">Shared want, a difference visible in one screenshot, an answered complaint, and a bar you can reach.</text>
   <text class="muted" x="0" y="242">Sources are heuristics. Verify every claim about why a game worked, or mark it unknown.</text>
 </svg>`;
-const DIAGRAMS = { 'ux-as-design': DIAGRAM_HIERARCHY, 'readability-and-hierarchy': DIAGRAM_HIERARCHY, 'feedback-and-affordance': DIAGRAM_FEEDBACK, 'learning-from-success': DIAGRAM_DISSECTION };
-const DOMAIN_DIAGRAMS = { ux: DIAGRAM_HIERARCHY };
+const DIAGRAMS = { 'learning-from-success': DIAGRAM_DISSECTION };
+// A domain page can open with one of its topics' data diagrams.
+const DOMAIN_DIAGRAMS = { ux: 'ux-as-design' };
 // A diagram drawn from data (DIAGRAM() in the topic files, 87-diagrams.js),
 // with the same content as a list for screen readers and for anyone who
 // prefers text.
-function diagramCard(spec, color){
+// `footer` is extra HTML that belongs to the diagram (the real games that
+// show it), kept inside the card so it reads as part of it.
+function diagramCard(spec, color, footer){
   const D = window.PlayableDiagram;
-  return `<figure class="card dgm-card" style="--dc:${color || 'var(--accent2)'}"><figcaption class="dgm-title">${esc(spec.title)}</figcaption>${D.render(spec)}${spec.note ? `<p class="dgm-note">${esc(spec.note)}</p>` : ''}<details class="dgm-text"><summary>Diagram as text</summary>${D.describe(spec)}</details></figure>`;
+  return `<figure class="card dgm-card" style="--dc:${color || 'var(--accent2)'}"><figcaption class="dgm-title">${esc(spec.title)}</figcaption>${D.render(spec)}${D.legend(spec)}${spec.note ? `<p class="dgm-note">${esc(spec.note)}</p>` : ''}${footer || ''}<details class="dgm-text"><summary>Diagram as text</summary>${D.describe(spec)}</details></figure>`;
 }
 
 /* =====================================================================
@@ -484,7 +469,7 @@ function renderExplore(domainId){
     main = `${crumbs([['Map','#/map'],['Explore','#/explore'],[d.t]])}
       <div class="domain-hero" style="--dc:${d.color}"><h1>${esc(d.t)}</h1><p class="dim" style="max-width:820px">${esc(d.sum)}</p>
         <div class="chips">${d.links.map(([to]) => `<a class="chip dom lnk" style="--dc:${DOM[to].color};cursor:pointer" href="#/explore/${to}">→ ${esc(DOM[to].t)}</a>`).join('')}</div></div>
-      ${DOMAIN_DIAGRAMS[d.id] ? `<div class="card diagram-card">${DOMAIN_DIAGRAMS[d.id]}</div>` : ''}
+      ${DOMAIN_DIAGRAMS[d.id] && TOPICS[DOMAIN_DIAGRAMS[d.id]].diagram ? diagramCard(TOPICS[DOMAIN_DIAGRAMS[d.id]].diagram, d.color) : ''}
       <div class="row" style="margin-bottom:10px"><a class="btn sm primary" href="#/map/d/${d.id}">Open this branch on the map ↗</a></div>
       <div class="section-head"><h2>Topics</h2></div>
       <div class="grid auto">${d.topics.map(tid => { const t = TOPICS[tid]; return `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/t/${tid}"><h3>${esc(t.t)} ${seen.has(tid)?'<span class="chip ok">read</span>':''}</h3><p class="dim small" style="margin:0">${esc(t.tag)}</p></a>`; }).join('')}</div>
@@ -654,7 +639,8 @@ function topicBody(id){
   // Rules and rulings that change, each with the day it was checked.
   const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h4>Dated facts</h4><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
   const inGames = REFERENCE_GAMES.filter(g => (g.diagrams || []).some(x => (x.topics || []).includes(id)));
-  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}</div>` : t.diagram ? diagramCard(t.diagram, d.color) : ''}${inGames.length ? `<p class="small ingames">See it in a real game: ${inGames.map(g => `<a class="chip lnk" href="#/games/${g.id}">${esc(g.t)} screen</a>`).join(' ')}</p>` : ''}
+  const gameFoot = inGames.length ? `<div class="dgm-foot"><span class="overline">See it in a real game</span><span class="chips">${inGames.map(g => `<a class="chip lnk" href="#/games/${g.id}">${esc(g.t)} screen</a>`).join('')}</span></div>` : '';
+  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}
     ${secs}${techSec}${facts}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div>
@@ -681,7 +667,7 @@ ACTIONS['expand-all'] = el => expandAll(el.dataset.open === '1');
    ===================================================================== */
 function renderDiagnose(sub='smells', arg){
   const tabs = [['smells','Design smells'], ...DIAGNOSTICS.map(([id, tab]) => [id, tab])];
-  const head = `${crumbs([['Map','#/map'],['Diagnose']])}<h1>Diagnose</h1><p class="dim">Start from what you observe in players, not from what you built. Each diagnosis ends in an experiment and a prompt.</p>
+  const head = `${crumbs([['Diagnose']])}<h1>Diagnose</h1><p class="dim">Start from what you observe in players, not from what you built. Each diagnosis ends in an experiment and a prompt.</p>
     <div class="tabs">${tabs.map(([id, t]) => `<button class="${id===sub?'active':''}" data-href="#/diagnose/${id}">${t}</button>`).join('')}</div>`;
   let body = '';
   if(sub === 'smells') body = smellsView(arg);
@@ -808,7 +794,7 @@ function wireContentTree(){
    BUILD (tools)
    ===================================================================== */
 function renderBuild(tool='idea'){
-  const head = `${crumbs([['Map','#/map'],['Build']])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
+  const head = `${crumbs([['Make','#/lab'],['Build tools']])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
     <div class="tool-nav">${TOOLS.map(([id, t, s]) => `<button class="${id===tool?'active':''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`).join('')}</div>`;
   const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt, gameai: toolGameAI }[tool] || toolIdea;
   setView(head + `<div class="tool" id="tool"></div>`);
@@ -1091,7 +1077,7 @@ function toolIdea(el){
    ===================================================================== */
 function renderAI(sub='loop', arg){
   const tabs = [['loop','The 12-step loop'],['ladder','Prompt ladder'],['philosophy','Bottleneck shift'],['roles','AI roles'],['matrix','Responsibility matrix'],['framework','Prompting framework'],['failures','When AI makes it worse']];
-  const head = `${crumbs([['Map','#/map'],['AI Workflow']])}<h1>AI Workflow</h1><p class="dim">How to delegate design work to AI without delegating design judgment.</p><div class="tabs">${tabs.map(([id,t]) => `<button class="${id===sub?'active':''}" data-href="#/ai/${id}">${t}</button>`).join('')}</div>`;
+  const head = `${crumbs([['AI Workflow']])}<h1>AI Workflow</h1><p class="dim">How to delegate design work to AI without delegating design judgment.</p><div class="tabs">${tabs.map(([id,t]) => `<button class="${id===sub?'active':''}" data-href="#/ai/${id}">${t}</button>`).join('')}</div>`;
   let body = '';
   if(sub==='loop') body = aiLoopView(arg);
   else if(sub==='ladder') body = aiLadderView();
@@ -1192,7 +1178,7 @@ function renderPlaytest(){
     ['Failure points',['Where do they become bored (pace up, attention drifts)?','Where do they become confused (pause, map, questions)?','Where do they lose agency ("it did not matter")?','Where do sessions end, and what preceded it?']],
     ['Return',['What will they do next time? (specific answer predicts return)','Do they return the next day unprompted?','What do they remember a week later?']]
   ];
-  setView(`${crumbs([['Map','#/map'],['Playtest']])}<h1>Playtest: the truth machine</h1><p class="dim">Observe players instead of defending your design. Turn hypotheses into experiments, and keep AI in analysis while humans interpret and decide.</p>
+  setView(`${crumbs([['Diagnose','#/diagnose'],['Playtest']])}<h1>Playtest: the truth machine</h1><p class="dim">Observe players instead of defending your design. Turn hypotheses into experiments, and keep AI in analysis while humans interpret and decide.</p>
     <div class="quotebig">What players say is useful. What players do is evidence. Neither should be interpreted without context.</div>
     <div class="grid c3">
       <div class="card"><h3>Say</h3><p class="small">Interviews, surveys, think-aloud. Reveals intent and mental models. Biased by politeness, memory and what they think you want. Ask open questions, after play, from behavior to opinion.</p></div>
@@ -1225,7 +1211,7 @@ function renderPlaytest(){
 function renderPrompts(id){
   const cats = [...new Set(PROMPT_TEMPLATES.map(p => p.cat))];
   const sel = PROMPT_TEMPLATES.find(p => p.id === id);
-  setView(`${crumbs([['Map','#/map'],['Prompt library']])}<h1>Prompt library</h1><p class="dim">Reusable patterns built on the formula. Fill the variables. The prompt updates live. Every template ends with a stop or critique instruction so the AI does not decide for you.</p>
+  setView(`${crumbs([['Library','#/games'],['Prompts']])}<h1>Prompt library</h1><p class="dim">Reusable patterns built on the formula. Fill the variables. The prompt updates live. Every template ends with a stop or critique instruction so the AI does not decide for you.</p>
     <div class="split"><aside class="side sticky"><button class="btn side-toggle" data-action="toggle-parent"><span>☰ Browse templates</span><span class="car">▸</span></button>${cats.map(c => `<div class="dom open"><button style="cursor:default"><span class="dot" style="background:var(--d-ai)"></span>${c}</button><div class="topics">${PROMPT_TEMPLATES.filter(p => p.cat===c).map(p => `<button class="${p.id===id?'active':''}" data-href="#/prompts/${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}</aside>
     <div id="promptMain">${sel ? '' : `<div class="grid auto">${PROMPT_TEMPLATES.map(p => `<a class="card clickable lnk blk" href="#/prompts/${p.id}"><span class="chip ai">${p.cat}</span><h3 style="margin-top:6px">${esc(p.t)}</h3><p class="small dim" style="margin:0">${esc(p.p.slice(0,140))}…</p></a>`).join('')}</div><div class="callout" style="margin-top:14px">Want to compose your own? The <a href="#/build/prompt">Prompt Generator</a> walks the eight terms. Topic pages each carry prompts specific to that concept.</div>`}</div></div>`);
   if(sel){
@@ -1244,7 +1230,7 @@ function renderPrompts(id){
 function renderChecklists(id){
   const sel = CHECKLISTS.find(c => c.id === id) || CHECKLISTS[0];
   const state = store.get('check.'+sel.id, {});
-  setView(`${crumbs([['Map','#/map'],['Checklists']])}<h1>Checklists</h1><p class="dim">Practical reviews. Checkbox state is saved per checklist. Reset when you start a new feature or session.</p>
+  setView(`${crumbs([['Library','#/games'],['Checklists']])}<h1>Checklists</h1><p class="dim">Practical reviews. Checkbox state is saved per checklist. Reset when you start a new feature or session.</p>
     <div class="pill-tabs">${CHECKLISTS.map(c => `<button class="${c.id===sel.id?'active':''}" data-href="#/checklists/${c.id}">${esc(c.t)}</button>`).join('')}</div>
     <div class="card"><div class="row between"><div><h2>${esc(sel.t)}</h2><p class="dim" style="margin:0">${esc(sel.desc)}</p></div><div class="row"><span class="chip" id="ckCount"></span><button class="btn sm" id="ckExport">Export Markdown</button><button class="btn sm ghost danger" id="ckReset">Reset</button></div></div>
       <div class="grid c2" style="margin-top:12px">${sel.groups.map(([g, items], gi) => `<div class="checklist"><h4>${esc(g)}</h4>${items.map((it, ii) => { const k = gi+'.'+ii; return `<label class="${state[k]?'done':''}"><input type="checkbox" data-k="${k}" ${state[k]?'checked':''}><span>${esc(it)}</span></label>`; }).join('')}</div>`).join('')}</div></div>`);
@@ -1291,7 +1277,7 @@ const SOURCES = [
 ];
 function renderSources(){
   const tag = k => ({research:'<span class="chip ok">research-backed</span>', heuristic:'<span class="chip">practitioner heuristic</span>', contested:'<span class="chip warn">contested</span>', practice:'<span class="chip shared">practice</span>'})[k];
-  setView(`${crumbs([['Map','#/map'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesizes established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres. A few items rest on research. Several are contested and marked as such. Verify against your players.</p>
+  setView(`${crumbs([['Library','#/games'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesizes established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres. A few items rest on research. Several are contested and marked as such. Verify against your players.</p>
     <div class="grid c2">${SOURCES.map(s => `<div class="card"><div class="row between"><h3 style="margin:0">${esc(s[0])}</h3>${tag(s[3])}</div><p style="margin:8px 0 6px">${esc(s[1])}</p><div class="small muted">${esc(s[2])}</div></div>`).join('')}</div>
     <div class="callout" style="margin-top:14px"><b>How the synthesis was done.</b> Frameworks were checked for attribution and date. Where a maxim is routinely misquoted, the guide states the original intent. Where a template has no game-specific origin (the hypothesis form), the guide says so. Where ideas conflict (definitions of fun, flow literalism, player types), they are presented as lenses and the reader is told to test against players.</div>`);
 }
@@ -1304,7 +1290,7 @@ function caseCard(c){ return `<a class="card clickable tint lnk blk" style="--dc
 // strip between them: the codename, its description and the chips stay put
 // while Overview, Workflows and Interview swap underneath.
 function caseHead(c){
-  return `${crumbs([['Map','#/map'],['Projects','#/experience'],[c.t]])}
+  return `${crumbs([['Projects','#/experience'],[c.t]])}
     <div class="casehead"><h1>${esc(c.t)}</h1>${c.sub ? `<p class="casesub">${esc(c.sub)}</p>` : ''}<div class="chips">${[c.role, c.period].map(x => `<span class="chip">${esc(x)}</span>`).join('')}${c.stack.map(s => `<span class="chip api">${esc(s)}</span>`).join('')}</div></div>`;
 }
 function casePage(c){
@@ -1449,7 +1435,7 @@ function renderExperience(id, a, b){
     setView(p ? partPage(c, s, p) : systemPage(c, s));
     return renderTree(p ? 'part' : 'sys');
   }
-  setView(`${crumbs([['Map','#/map'],['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
+  setView(`${crumbs([['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
     ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/40-cases.js and appear here as soon as one is written.</div>'}`);
 }
 
@@ -1875,7 +1861,7 @@ document.addEventListener('keydown', e => {
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ openModal('helpModal', 'h2'); return; }
-  if(/^[1-6]$/.test(e.key)){ go('#/' + NAV[+e.key - 1].views[0][0]); return; }
+  if(/^[1-9]$/.test(e.key) && NAV[+e.key - 1]){ go('#/' + NAV[+e.key - 1].views[0][0]); return; }
   if(e.key.toLowerCase()==='m'){ fitMap(); return; }
   if(e.key.toLowerCase()==='t'){ $('#themeBtn').click(); return; }
   const m = location.hash.match(/^#\/map\/t\/([\w-]+)/);

@@ -558,6 +558,7 @@ nav.primary button{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
 nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(--accent);color:var(--accent)}
 /* phones: short group names and tighter padding so all six fit on one row (after the rule above, which sets padding) */
 @media (max-width:700px){ .nav-long{display:none} .nav-short{display:inline} nav.primary button{padding:7px 6px} }
+@media (max-width:420px){ nav.primary{justify-content:space-between} nav.primary button{padding:7px 3px;min-width:26px;font-size:.68rem;letter-spacing:.04em} }
 .searchbtn,.iconbtn{border-radius:2px}
 .tabs button{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border-radius:0}
 .pill-tabs button{border-radius:2px;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
@@ -728,7 +729,6 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .gameart{margin:0 0 14px}
 .gameart img{display:block;width:100%;max-width:460px;height:auto;border:1px solid var(--line)}
 .gameart figcaption{font-size:.8rem;color:var(--fg2);margin-top:4px}
-.ingames{margin:-6px 0 14px}
 .pstage{margin:18px 0 0;max-width:860px}
 .pstage h2{margin:0 0 6px}
 .pfacts{margin:8px 0 0;padding-left:18px;font-size:.92rem}
@@ -772,7 +772,13 @@ details.comp .body{padding-top:6px}
 .diagram .fill-a{fill:var(--accent)}
 .diagram .fill-b{fill:var(--accent2)}
 .diagram .muted{fill:var(--fg3)}
-.diagram-card{padding:12px 14px;display:flex;justify-content:center}
+.diagram-card{padding:12px 14px;display:flex;flex-direction:column;align-items:center}
+.dgm-foot{align-self:stretch;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.dgm-foot .overline{margin:0}
+.dgm-foot .chips{display:flex;flex-wrap:wrap;gap:6px}
+.dgm-legend{list-style:none;margin:10px auto 4px;padding:0;max-width:680px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 16px;font-size:.88rem}
+.dgm-legend li{display:flex;gap:8px;align-items:baseline;line-height:1.35}
+.dgm-legend .lnum{flex:none;width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;font-family:var(--mono);font-size:.7rem;font-weight:700;background:var(--dc,var(--accent2));color:var(--bg)}
 .diagram-cap{font-size:.8rem;color:var(--fg3);margin:0}
 /* data diagrams (87-diagrams.js): tokens only, so both themes and every
    domain colour are covered by the contrast check */
@@ -784,7 +790,7 @@ details.comp .body{padding-top:6px}
 .dgm-text{margin-top:8px;font-size:.88rem}
 .dgm-text summary{cursor:pointer;color:var(--fg2);font-size:.82rem}
 .dgm-text ol{margin:6px 0 0;padding-left:20px}
-.dgm-table{border-collapse:collapse;margin-top:6px;font-size:.85rem}
+.dgm-table{border-collapse:collapse;margin-top:6px;font-size:.85rem;display:block;max-width:100%;overflow-x:auto}
 .dgm-table th,.dgm-table td{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
 .dgm .dcard{fill:color-mix(in srgb,var(--dc,var(--accent2)) 14%,var(--bg2));stroke:var(--dc,var(--accent2));stroke-width:1.5}
 .dgm .dcard.pool{stroke-width:2.8}
@@ -809,6 +815,10 @@ details.comp .body{padding-top:6px}
 .dgm .dband{fill:color-mix(in srgb,var(--dc,var(--accent2)) 12%,transparent)}
 .dgm .dframe{fill:var(--bg3);stroke:var(--fg3);stroke-width:1.5}
 .dgm .dregion{fill:color-mix(in srgb,var(--dc,var(--accent2)) 18%,var(--bg3));stroke:var(--dc,var(--accent2));stroke-width:1.2}
+.dgm .dregion.world{fill:color-mix(in srgb,var(--dc,var(--accent2)) 6%,var(--bg3));stroke-dasharray:5 3}
+.dgm .dbadge{fill:var(--dc,var(--accent2))}
+.dgm .dbadgenum{fill:var(--bg);font-family:var(--mono);font-weight:700}
+.dgm .dglyph{fill:none;stroke:var(--dc,var(--accent2));stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;opacity:.85}
 /* workflow charts: the mind map's visual language, laid out top to bottom so
    a two-way branch fits the content pane at phone width. The svg's inline
    max-width is its own layout width, so a wide pane shows it at 1:1 and a
@@ -1006,6 +1016,9 @@ details.comp .body{padding-top:6px}
   .railbtn{display:inline-flex}
   .pane{position:fixed;top:var(--hdr,0px);right:0;bottom:0;width:min(92vw,520px);height:auto;padding:56px 14px 40px;z-index:81;background:var(--panel);border-left:1px solid var(--line2);transform:translateX(101%);transition:transform .18s;overflow:auto}
   .pane.open{transform:none}
+  /* a work view (library, tools, lists) has nothing to show on the map, so
+     its drawer takes the whole width instead of leaving a strip of map. */
+  .shell.work .pane{width:100vw;border-left:0}
   /* every pixel the wrapper does not take is a pixel the chart renders at,
      and in the drawer the chart is already the widest thing on the page. */
   .flowwrap{padding:10px 2px}
@@ -1044,7 +1057,7 @@ details.comp .body{padding-top:6px}
     <table>
       <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> or <kbd>/</kbd></td><td>Search everything</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close dialogs</td></tr>
-      <tr><td><kbd>1</kbd> … <kbd>6</kbd></td><td>Open a section: Paths, Map, Make, Diagnose, AI Workflow, Projects</td></tr>
+      <tr><td><kbd>1</kbd> … <kbd>7</kbd></td><td>Open a section: Paths, Map, Library, Make, Diagnose, AI Workflow, Projects</td></tr>
       <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Previous / next topic while reading</td></tr>
       <tr><td><kbd>E</kbd></td><td>Expand or collapse all sections of a topic</td></tr>
       <tr><td><kbd>M</kbd></td><td>Fit the mind map</td></tr>

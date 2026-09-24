@@ -9,7 +9,7 @@
 const http = require('http'), fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
 const root = path.join(__dirname, '..');
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.jpg': 'image/jpeg', '.png': 'image/png', '.json': 'application/json' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.json': 'application/json' };
 
 const server = http.createServer((req, res) => {
   const p = path.join(root, decodeURIComponent(req.url.split('?')[0]) === '/' ? 'playable.html' : decodeURIComponent(req.url.split('?')[0]));
@@ -65,6 +65,19 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       if (w <= 1100 && !mapOnly(r) && !s.onScreen) failures.push(`${w}px ${r}: content pane off screen`);
       if (w <= 1100 && mapOnly(r) && s.onScreen) failures.push(`${w}px ${r}: map-only route covered the map`);
     }
+    // Wayfinding: from deep pages, one click on Library reaches Reference games.
+    for (const deep of ['#/map/t/core-loop/overview', '#/platforms/' + (await page.evaluate(() => PLATFORMS[0].id)), '#/checklists/' + (await page.evaluate(() => CHECKLISTS[0].id)), '#/paths/' + (await page.evaluate(() => PATHS[0].id + '/' + PATHS[0].stages[0].id))]) {
+      await page.evaluate(route => { location.hash = route; }, deep); await page.waitForTimeout(150);
+      await page.evaluate(() => document.querySelector('#primaryNav [data-group="library"]').click()); await page.waitForTimeout(150);
+      const at = await page.evaluate(() => location.hash);
+      if (at !== '#/games') failures.push(`${w}px ${deep}: the Library button led to ${at}, not #/games`);
+    }
+    // Every reference card shows an image that actually loaded.
+    await page.evaluate(() => { location.hash = '#/games'; });
+    await page.evaluate(() => document.querySelectorAll('#pane .refcard img').forEach(i => { i.loading = 'eager'; }));
+    await page.waitForFunction(() => [...document.querySelectorAll('#pane .refcard img')].every(i => i.complete), null, { timeout: 8000 }).catch(() => {});
+    const art = await page.evaluate(() => { const cards = [...document.querySelectorAll('#pane .refcard')]; return { cards: cards.length, broken: cards.filter(c => { const i = c.querySelector('img'); return !i || !i.naturalWidth; }).map(c => c.querySelector('b').textContent) }; });
+    if (!art.cards || art.broken.length) failures.push(`${w}px #/games: cards without a loaded image: ${art.broken.join(', ') || 'no cards'}`);
     await ctx.close();
   }
   // Crossing the narrow width with a topic open: widening drops the drawer

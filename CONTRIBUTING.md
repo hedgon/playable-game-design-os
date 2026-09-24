@@ -159,7 +159,7 @@ Every spec has `kind`, `title` (under 90 characters) and an optional
 | `curve` | `x`, `y`, `series:[{t, pts:[[x, y]]}]` (1 or 2), `band?`, `beats?`, `alt` | pacing, difficulty, beat charts |
 | `economy` | `nodes:[{id, t, type, row?}]` (source, pool, converter, sink), `edges` | sources and sinks |
 | `state` | `states:[{id, t, d}]`, `edges:[[from, to, label]]`, `start` | states and transitions |
-| `screen` | `aspect`, `regions:[{t, d, x, y, w, h}]` in 0..1, `topics?` | an annotated screen layout |
+| `screen` | `aspect`, `regions:[{t, d, x, y, w, h, g?, kind?}]` in 0..1, `topics?` | an annotated screen layout: each region gets a number badge and a legend line; `g` draws a glyph of what it holds (the names are the `GLYPH` table in 87-diagrams.js), `kind:'world'` marks the play space. A label that does not fit its region is left to the legend. |
 | `flow` | `steps:[{id, t, d}]`, `edges` (acyclic, all reachable) | a pipeline or decision tree |
 
 Labels are short by design. When one does not fit, `node src/check-layout.js`
@@ -171,7 +171,10 @@ with a hand-drawn diagram in `DIAGRAMS` (90-app.js) cannot also have a
 
 Reference games carry their own `diagrams` (a loop for every game, a screen
 layout for some) in `14-references.js`, and store art needs a developer
-credit and an https store link (`GAME_ART_CREDITS`). Schematics are our own
+credit and an https store link (`GAME_ART_CREDITS`). A game with no store
+page we can credit gets an original drawn tile instead (`drawn:true`, a file in
+`assets/games/drawn/`), captioned as our drawing, never passed off as official
+art. The validator checks that every image file exists. Schematics are our own
 drawings; never add a screenshot.
 
 ### Platform guides

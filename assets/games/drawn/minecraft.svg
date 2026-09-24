@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 215" role="img" aria-label="Original drawing of stacked voxel blocks under a dusk sky">
+  <!-- Original drawing for Playable, not official art: a generic voxel landscape. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2b4a"/><stop offset="1" stop-color="#e59a5a"/></linearGradient>
+  </defs>
+  <rect width="460" height="215" fill="url(#sky)"/>
+  <rect x="360" y="34" width="26" height="26" fill="#f4e7b0"/>
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <!-- far hills -->
+    <rect x="0" y="120" width="40" height="95" fill="#3c6b3a"/><rect x="40" y="100" width="40" height="115" fill="#3c6b3a"/><rect x="80" y="120" width="40" height="95" fill="#3c6b3a"/>
+    <rect x="300" y="110" width="40" height="105" fill="#3c6b3a"/><rect x="340" y="130" width="40" height="85" fill="#3c6b3a"/><rect x="380" y="100" width="40" height="115" fill="#3c6b3a"/><rect x="420" y="120" width="40" height="95" fill="#3c6b3a"/>
+    <!-- a tree -->
+    <rect x="96" y="86" width="12" height="34" fill="#6b4a2b"/><rect x="78" y="58" width="48" height="30" fill="#2f5a2c"/>
+    <!-- one isometric block, front and centre -->
+    <polygon points="230,70 290,100 230,130 170,100" fill="#6fbf5a"/>
+    <polygon points="170,100 230,130 230,194 170,164" fill="#8a5a36"/>
+    <polygon points="290,100 230,130 230,194 290,164" fill="#6d4526"/>
+    <polygon points="170,100 230,130 230,142 170,112" fill="#5aa648"/>
+    <polygon points="290,100 230,130 230,142 290,112" fill="#4d913d"/>
+  </g>
+  <g fill="#1a1a1a" opacity=".35"><rect x="186" y="140" width="8" height="8"/><rect x="206" y="160" width="8" height="8"/><rect x="250" y="150" width="8" height="8"/><rect x="266" y="130" width="8" height="8"/></g>
+</svg>

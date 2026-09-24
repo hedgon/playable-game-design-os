@@ -48,7 +48,7 @@ const MAP = {
 
 // Data diagrams (87-diagrams.js): the same tint rule shape as the map.
 const DGM = {
-  card: tintOf('.dgm .dcard'), head: tintOf('.dgm .dhead'), region: tintOf('.dgm .dregion'),
+  card: tintOf('.dgm .dcard'), head: tintOf('.dgm .dhead'), region: tintOf('.dgm .dregion'), world: tintOf('.dgm .dregion.world'),
   lbl: fillOf('.dgm .dlbl'), sub: fillOf('.dgm .dsub'), tag: fillOf('.dgm .dtag'), num: fillOf('.dgm .dnum')
 };
 const pairs = [];
@@ -77,6 +77,7 @@ for (const [theme, T] of Object.entries(themes)) {
     pairs.push([theme, `diagram number on ${d} card`, col(DGM.num), card(DGM.card, d)]);
     pairs.push([theme, `diagram header on ${d} tint`, col(DGM.lbl), card(DGM.head, d)]);
     pairs.push([theme, `diagram region label on ${d} tint`, col(DGM.lbl), card(DGM.region, d)]);
+    pairs.push([theme, `diagram region label on ${d} play-space tint`, col(DGM.lbl), card(DGM.world, d)]);
   }
   pairs.push([theme, 'map leaf label on smell card', col(MAP.leafLabel), card(MAP.smell)]);
   pairs.push([theme, 'map leaf label on view card', col(MAP.leafLabel), card(MAP.view)]);

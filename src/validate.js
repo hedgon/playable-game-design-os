@@ -23,6 +23,8 @@ function checkIvItems(arr, where, errors) {
 }
 const VIEW_LINKS = Object.keys(ctx.VIEW_LINKS);
 // Topics with a hand-drawn diagram, read from the DIAGRAMS map in 90-app.js.
+// Glyph names a screen region may use, read from the renderer's GLYPH table.
+const GLYPHS = [...(fs.readFileSync(path.join(__dirname, '87-diagrams.js'), 'utf8').match(/const GLYPH = \{([\s\S]*?)\n  \};/) || ['', ''])[1].matchAll(/^\s+(\w+):/gm)].map(m => m[1]);
 const HAND_DRAWN = new Set([...(fs.readFileSync(path.join(__dirname, '90-app.js'), 'utf8').match(/const DIAGRAMS = \{([^}]*)\}/) || ['', ''])[1].matchAll(/'([\w-]+)':/g)].map(m => m[1]));
 // Shape of a diagram spec (87-diagrams.js draws it). Layout and fit are the
 // layout checker's job; this checks what the renderer needs to exist.
@@ -72,6 +74,7 @@ function checkDiagram(g, where, errors) {
     case 'screen':
       if (!['16:9', '4:3', '9:16'].includes(g.aspect)) errors.push(`${where}: aspect must be 16:9, 4:3 or 9:16`);
       if (count(g.regions, 1, 9, 'regions')) g.regions.forEach((r, i) => { if (!str(r.t) || ![r.x, r.y, r.w, r.h].every(unit) || r.x + r.w > 1.0001 || r.y + r.h > 1.0001) errors.push(`${where}: regions[${i}] needs t and x, y, w, h in 0..1 inside the frame`); });
+      (g.regions || []).forEach((r, i) => { if (r.kind !== undefined && !['hud', 'world'].includes(r.kind)) errors.push(`${where}: regions[${i}].kind must be hud or world`); if (r.g !== undefined && !GLYPHS.includes(r.g)) errors.push(`${where}: regions[${i}].g must be one of ${GLYPHS.join(', ')}`); });
       break;
     case 'flow':
       if (count(g.steps, 2, 9, 'steps')) {
@@ -169,7 +172,8 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     checkDiagram(d, `game ${g.id}: diagram ${i}`, errors);
     for (const tid of (d.topics || [])) if (!TOPICS[tid]) errors.push(`game ${g.id}: diagram ${i} names unknown topic ${tid}`);
   });
-  if (g.img) {
+  if (g.img && !fs.existsSync(path.join(__dirname, '..', g.img))) errors.push(`game ${g.id}: image file ${g.img} does not exist`);
+  if (g.img && !g.drawn) {
     if (!g.dev || !String(g.dev).trim()) errors.push(`game ${g.id}: store art without a developer credit`);
     let host = ''; try { const u = new URL(g.store); if (u.protocol === 'https:') host = u.hostname; } catch (e) {}
     if (!host) errors.push(`game ${g.id}: store art without an https store page`);

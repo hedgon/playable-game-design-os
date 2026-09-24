@@ -12,7 +12,7 @@ const root = path.join(__dirname, '..');
 const server = http.createServer((req, res) => {
   const p = path.join(root, decodeURIComponent(req.url.split('?')[0]) === '/' ? 'playable.html' : decodeURIComponent(req.url.split('?')[0]));
   if (!p.startsWith(root)) { res.writeHead(403); return res.end(); }
-  fs.readFile(p, (err, data) => { if (err) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': p.endsWith('.html') ? 'text/html; charset=utf-8' : 'application/octet-stream' }); res.end(data); });
+  fs.readFile(p, (err, data) => { if (err) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': ({ '.html': 'text/html; charset=utf-8', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp' })[path.extname(p)] || 'application/octet-stream' }); res.end(data); });
 });
 (async () => {
   await new Promise(r => server.listen(0, r));
