@@ -256,6 +256,14 @@ pre.snippet{white-space:pre;overflow-x:auto;border-left:3px solid var(--dc,var(-
 .strike{text-decoration:line-through;color:var(--fg3)}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:99px;font-weight:600;font-size:.85rem;z-index:100;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
+.toast.act{pointer-events:auto}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card.picked{outline:2px solid var(--accent2);outline-offset:2px}
+.chooser .chooser-q{margin:10px 0}
+.chooser .chooser-q .dims{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.chooser .chooser-q .dims button{padding:8px 10px}
+.chooser-out{margin:12px 0 4px}
+.toastbtn{margin-left:12px;background:none;border:1px solid currentColor;color:inherit;font:inherit;padding:2px 10px;border-radius:99px;cursor:pointer}
 
 /* ---------- map ---------- */
 .mapwrap{position:relative;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--accent) 6%,transparent),transparent 55%),var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
@@ -871,6 +879,10 @@ details.comp .body{padding-top:6px}
 .labsteps.all + .labstepper{display:none}
 .labstepper{margin-top:10px}
 .ivq .body > .btn{margin-top:8px}
+.recall .ivq summary::after{content:'Show answer';margin-left:auto;padding-left:10px;font-size:.78rem;color:var(--fg3);white-space:nowrap}
+.recall .ivq[open] summary::after{content:'Hide'}
+@media (max-width:700px){ .recall .ivq summary::after{display:none} }
+.recall .ivq.plain{padding:8px 12px;font-size:.95rem}
 .card.facts{border-left:4px solid var(--dc,var(--accent));margin:14px 0}
 .card.facts ul{margin:8px 0 0;padding-left:18px}
 .card.facts li{margin-bottom:6px}
@@ -981,6 +993,8 @@ details.comp .body{padding-top:6px}
 .pathstep.done .pathstep-body>a{color:var(--fg3);text-decoration:line-through}
 .pathstep-body{flex:1;min-width:0}
 .pathstep-body>a{font-weight:700}
+.pathstep.next{background:color-mix(in srgb,var(--accent) 9%,transparent);box-shadow:inset 3px 0 0 var(--accent)}
+.pathstep.flash{outline:2px solid var(--accent2);outline-offset:-2px}
 .kindchip{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:.66rem;flex:none;margin-top:3px}
 .pathcheck,.pathskip{border:1px dashed var(--line2);background:var(--bg2);border-radius:var(--r2)}
 @media (max-width:1100px){
@@ -3554,7 +3568,7 @@ func _physics_process(_delta: float) -> void:
 
 func _attack() -> void:
 \tstruck.emit(velocity.length())       # one action, one legible consequence`,
-    pitfall:`Multiplying velocity by delta before move_and_slide(). CharacterBody2D.move_and_slide() already integrates over the physics step, so the extra multiply silently makes the loop frame-rate dependent and roughly sixty times too slow. The matching mistake is running the verb in _process instead of _physics_process, which makes the same action resolve differently on a 60 Hz and a 144 Hz monitor.`,
+    pitfall:`Multiplying velocity by delta before move_and_slide(). CharacterBody2D.move_and_slide() already integrates over the physics step, so the extra multiply scales speed by the step length: roughly sixty times too slow at sixty physics ticks per second, and different whenever the tick rate changes. The matching mistake is running the verb in _process instead of _physics_process, which makes the same action resolve differently on a 60 Hz and a 144 Hz monitor.`,
     map:`Godot _physics_process(delta) is Unity FixedUpdate(), _process(delta) is Update(), and a signal is a UnityEvent.` },
   unity:{ term:`The loop is split across the PlayerLoop: sample input in Update so no press is missed, resolve movement and hits in FixedUpdate so the rules run on a fixed step, and raise a UnityEvent for the feedback.`,
     api:['MonoBehaviour.Update() / FixedUpdate()','Time.deltaTime / Time.fixedDeltaTime','InputAction.ReadValue<T>() / WasPressedThisFrame()','CharacterController.Move() / Rigidbody.MovePosition()','UnityEvent<T>','Animator.SetTrigger()'],
@@ -19241,17 +19255,18 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
      level:'',                              // one of LEVELS below: the ENTRY level
      hours:0,                               // sum of stage hours
      audience:'', outcome:'',               // 1-2 sentences each
+     pick:'',                               // under 60 characters: the quick-pick line on the door
      prereq:[''], next:[''],                // other path ids, may be empty
      stages:[{
        id:'', t:'', level:'', goal:'', hours:0,
        steps:[{
-         kind:'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'reflect',
+         kind:'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'reflect',
          ref:'',                            // omitted for 'reflect'
          tab:'',                            // optional, topic only: 'overview'|'godot'|'unity'|'interview'
          why:'', do:'', min:0                // why now (1 sentence), the exercise (1-3 sentences), 10-60
        }],
        review:[''],                          // 0-2 topic ids from EARLIER stages, for retrieval and spacing
-       check:{ recall:[''], build:'', skip:[''] }  // 2-4 recall questions, one build task, 3-5 skip questions
+       check:{ recall:[{q:'', a:''}], build:'', skip:[''] }  // 2-4 recall questions with answer outlines, one build task, 3-5 skip questions
      }]
    })
 
@@ -19264,6 +19279,7 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
      part       -> '<cs>/<sys>/<part>' resolving through CASE_STUDIES  #/experience/<cs>/<sys>/<part>
      flow       -> '<cs>/<flowId>' resolving through CASE_STUDIES  #/experience/<cs>/flow/<flowId>
      prompt     -> an id in PROMPT_TEMPLATES                       #/prompts/<ref>
+     platform   -> an id in PLATFORMS (15-platforms.js)            #/platforms/<ref>
      reflect    -> no ref; 'do' is the writing prompt, answered on the path page itself
 
    Rules (checked by validate.js): 4-6 stages; 3-8 steps per stage; every
@@ -19278,7 +19294,7 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
    ===================================================================== */
 /**
  * @typedef {object} PathStep
- * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'reflect'} kind
+ * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'reflect'} kind
  * @property {string} [ref]   omitted for 'reflect'
  * @property {'overview'|'godot'|'unity'|'interview'} [tab]   topic steps only
  * @property {string} why
@@ -19294,7 +19310,7 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
  * @property {number} hours
  * @property {PathStep[]} steps
  * @property {string[]} review
- * @property {{recall: string[], build: string, skip: string[]}} check
+ * @property {{recall: (string|{q: string, a: string})[], build: string, skip: string[]}} check
  */
 /**
  * @typedef {object} Path
@@ -19306,6 +19322,7 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
  * @property {number} hours
  * @property {string} audience
  * @property {string} outcome
+ * @property {string} pick
  * @property {string[]} prereq
  * @property {string[]} next
  * @property {PathStage[]} stages
@@ -19314,7 +19331,33 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
 const PATHS = [];
 /** @param {string} id @param {Path} o */
 function PATH(id, o){ o.id = id; PATHS.push(o); }
-const TRACKS = [['design','Design'],['engineering','Engineering'],['leadership','Leadership'],['interview','Interview prep']];
+const TRACKS = [['design','Design'],['engineering','Engineering'],['production','Production'],['leadership','Leadership'],['interview','Interview prep']];
+/* The chooser on the paths door: three answers pick one path. Each goal and
+   level lists candidate paths in order of preference; the time answer takes
+   the first candidate that fits it, or the shortest when none does.
+   validate.js checks that every combination picks a real path. */
+const CHOOSER = {
+  goals: [['design','Design games'],['gameplay','Program gameplay'],['backend','Build backends and servers'],['ship','Ship a game'],['lead','Lead a team'],['iv-design','Interview for a design job'],['iv-eng','Interview for an engineering job']],
+  levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
+  times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
+  paths: /** @type {Record<string, Record<string, string[]>>} */ ({
+    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer'], senior:['systems-designer','level-and-ux-designer'] },
+    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
+    backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
+    ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer'] },
+    lead:{ new:['technical-lead'], some:['technical-lead'], senior:['technical-lead'] },
+    'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
+    'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] }
+  })
+};
+/** @param {string} goal @param {string} level @param {string} time */
+function choosePath(goal, level, time){
+  const list = ((CHOOSER.paths[goal] || {})[level] || []).map(id => PATHS.find(p => p.id === id)).filter(p => !!p);
+  if(!list.length) return null;
+  const t = CHOOSER.times.find(x => x[0] === time), budget = t ? t[2] : Infinity;
+  const path = list.find(p => p.hours <= budget) || list.reduce((a, b) => b.hours < a.hours ? b : a);
+  return { path, alt: list.filter(p => p !== path), over: path.hours > budget };
+}
 const LEVELS = [['beginner','Beginner'],['intermediate','Intermediate'],['advanced','Advanced'],['expert','Expert']];
 /* Level descriptors, shown on the door and on a path's header.
    Beginner: follows explicit templates, cannot yet judge when a rule does
@@ -19363,6 +19406,7 @@ function stepTitle(step){
     case 'prompt': { const x = PROMPT_TEMPLATES.find(p => p.id === step.ref); return x ? x.t : step.ref; }
     case 'part': { const { part } = findCasePart(step.ref); return part ? part.t : step.ref; }
     case 'flow': { const { flow } = findCaseFlow(step.ref); return flow ? flow.t : step.ref; }
+    case 'platform': { const x = PLATFORMS.find(p => p.id === step.ref); return x ? `${x.t} guide` : step.ref; }
     case 'reflect': return 'Reflect and write it in your own words';
     default: return step.ref || step.kind;
   }
@@ -19381,6 +19425,7 @@ function stepHref(step, pathId, stageId){
     case 'smell': return '#/smell/' + step.ref;
     case 'diagnostic': return '#/diagnose/' + step.ref;
     case 'prompt': return '#/prompts/' + step.ref;
+    case 'platform': return '#/platforms/' + step.ref;
     case 'part': { const { cs, sys, part } = findCasePart(step.ref); return cs && sys && part ? `#/experience/${cs.id}/${sys.id}/${part.id}` : '#/experience'; }
     case 'flow': { const { cs, flow } = findCaseFlow(step.ref); return cs && flow ? `#/experience/${cs.id}/flow/${flow.id}` : '#/experience'; }
     case 'reflect': return pathId ? '#/paths/' + pathId + (stageId ? '/' + stageId : '') : '#/paths';
@@ -19390,10 +19435,11 @@ function stepHref(step, pathId, stageId){
 
 PATH('game-designer-foundations', {
   t:'Game designer foundations', tag:'Player, loop, and the discipline to test before you build.',
+  pick:'Design a game that holds up before you build it',
   track:'design', level:'beginner', hours:8,
   audience:'Anyone starting in game design, or an engineer, producer or artist picking up design responsibility for the first time.',
   outcome:'You can name a player and a promise, build and defend a core loop, judge whether a feature idea creates a real decision, and turn a hunch into a hypothesis before you write a line of code.',
-  prereq:[], next:['systems-designer','level-and-ux-designer'],
+  prereq:[], next:['systems-designer','level-and-ux-designer','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer'],
   stages:[
     { id:'s1', t:'The player and the promise', level:'beginner',
       goal:'Name a real player, the fantasy you are selling them, and the one sentence that has to survive every later decision.', hours:2,
@@ -19406,7 +19452,11 @@ PATH('game-designer-foundations', {
       ],
       review:[],
       check:{
-        recall:['What is the difference between a want and a fantasy sentence?','Why does experience thinking start from a behavior instead of a feature?','What breaks if you skip straight from a feature idea to a feature?'],
+        recall:[
+          { q:'What is the difference between a want and a fantasy sentence?', a:'A want is the underlying motivation driving play, like competence or autonomy. A fantasy sentence turns that want into the identity the player gets to inhabit, phrased as "I get to be someone who...". The want explains why; the fantasy states the promise as a verb.' },
+          { q:'Why does experience thinking start from a behavior instead of a feature?', a:'A feature is a solution guessed too early. Starting from the behavior you want the player to perform, then climbing the Behavior Ladder through experience, system and mechanic, keeps the design serving the player instead of just implementing whatever came to mind first.' },
+          { q:'What breaks if you skip straight from a feature idea to a feature?', a:'You build the first implementation you imagined instead of the smallest mechanic that actually produces the intended behavior, so the result is often bigger, more complex, or aimed at the wrong experience than the ladder would have found.' }
+        ],
         build:'Write your player sketch, your chosen fantasy sentence and your one-paragraph core experience statement on one page. Read it aloud to someone who has not seen the project.',
         skip:['Can you write a player sketch and a fantasy sentence for a new idea in under ten minutes?','Can you explain why "a roguelike deckbuilder" names a genre, not an experience?','Have you already run the Behavior Ladder on a real feature idea and changed the plan because of it?','Can you tell a want the market already shows apart from a want you are only guessing at?']
       } },
@@ -19421,7 +19471,11 @@ PATH('game-designer-foundations', {
       ],
       review:['fantasy'],
       check:{
-        recall:['What are the five links in the core loop?','What makes a decision meaningful rather than merely present?','How do you tell a load-only mechanic from one that creates a decision?'],
+        recall:[
+          { q:'What are the five links in the core loop?', a:'Action, feedback, decision, consequence, and new situation: the player acts, the game responds legibly, they decide based on that response, the decision has consequences, and those consequences create a fresh situation demanding another action.' },
+          { q:'What makes a decision meaningful rather than merely present?', a:'The options must be genuinely different with no dominant choice, the right answer must change with the situation, and different players must actually choose differently. The player needs enough information to reason but not enough to be certain.' },
+          { q:'How do you tell a load-only mechanic from one that creates a decision?', a:'Ask what decision would disappear if you removed it. If none, it only adds a rule to track without changing any tradeoff, so it is load-only rather than decision- or interaction-creating.' }
+        ],
         build:'Export your Loop Builder diagram with the weakest link marked and the one change you made to strengthen it.',
         skip:['Can you describe your core loop in five sentences without leaving out a link?','Can you write the tradeoff sentence for every option in your game right now?','Have you already run a weak-link check on a loop and fixed what it found?','Do you know which of your mechanics would go unnoticed if you deleted it?']
       } },
@@ -19437,7 +19491,11 @@ PATH('game-designer-foundations', {
       ],
       review:['core-loop'],
       check:{
-        recall:['What is the difference between complexity and depth?','Why does feedback need to show cause, not only outcome?','Which of the nine "Should we build this?" questions kills the most ideas in your experience so far?'],
+        recall:[
+          { q:'What is the difference between complexity and depth?', a:'Complexity is what the player must learn: rules, exceptions, state. Depth is what they can do with it: the meaningful, situationally different decisions those rules generate. Elegance means high depth for little complexity, so aim to buy depth, not complexity.' },
+          { q:'Why does feedback need to show cause, not only outcome?', a:'Confirming that something happened without showing why gives the player nothing to correct. Cause feedback lets them update their understanding and act differently next time; without it, a failure feels unfair regardless of whether it actually was.' },
+          { q:'Which of the nine "Should we build this?" questions kills the most ideas in your experience so far?', a:'Personal, but in the tool’s own scoring the heaviest penalties sit on two questions: could a simpler change deliver the same experience, and what happens if we do not build it. An idea that a change to an existing system could deliver, or whose absence nobody would notice, loses the most points.' }
+        ],
         build:'Run the design review checklist on one feature you are considering, and either cut it or write down what each group answered.',
         skip:['Can you run a rule audit on your own systems and say which rules earn their place?','Can you name the empty cell in your current feedback matrix?','Have you already used "Should we build this?" to kill an idea you liked?','Can you explain teaching by doing to someone in one sentence?']
       } },
@@ -19446,14 +19504,18 @@ PATH('game-designer-foundations', {
       steps:[
         { kind:'topic', ref:'prototyping', why:'A prototype that answers no question is a demo, however good it looks.', do:'Name the one question your next build has to answer, and the medium that answers it for the least work.', min:20 },
         { kind:'topic', ref:'hypothesis-driven-design', why:'A hypothesis with a signal and a kill criterion is what turns an opinion into something you can be wrong about.', do:'Write one hypothesis in the standard form: player, behavior, reason, signal, kill criterion.', min:15 },
-        { kind:'tool', ref:'hypothesis', why:'The builder keeps the four parts honest and exports the brief you hand to whoever builds the prototype.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:20 },
+        { kind:'tool', ref:'hypothesis', why:'The builder keeps the five parts honest and exports the brief you hand to whoever builds the prototype.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:20 },
         { kind:'checklist', ref:'pre-prototype', why:'A prototype without a hypothesis, a scope cut and instrumentation is a demo with extra steps.', do:'Run the pre-prototype checklist against the brief you just exported and fix whatever it fails.', min:15 },
         { kind:'topic', ref:'playtesting', why:'What a player says is useful. What a player does is evidence. Only one of them tests your hypothesis.', do:'Plan a fifteen-minute silent playtest for your prototype: who you would recruit, what you would watch for, and the one question you would ask afterward.', min:20 },
         { kind:'reflect', why:'Writing your own answer, not the guide’s, is what makes the plan yours to run.', do:'In your own words, write what you will build next, the hypothesis it tests, and the signal that would make you kill it.', min:20 }
       ],
       review:['mechanics-and-rules','depth-vs-complexity'],
       check:{
-        recall:['What four parts does a hypothesis need?','Why is a prototype that answers no question a demo?','What is the difference between what a player says and what a player does?'],
+        recall:[
+          { q:'What five parts does a hypothesis need?', a:'Player, behavior and reason, in the form “we believe [player] will [behavior] because [reason]”, plus the observable signal that shows it is true and a kill criterion written before the build.' },
+          { q:'Why is a prototype that answers no question a demo?', a:'A prototype\'s value is the question it answers and how fast it answers it; fidelity is a cost, not a virtue. Without a specific question and kill criterion, a build only shows something off, which makes it a demo.' },
+          { q:'What is the difference between what a player says and what a player does?', a:'What a player says is self-report: useful but unreliable, since they report what they think they felt or think you want to hear. What they do is observed behavior, the actual evidence. Believe the behavior; use the words to form hypotheses about why.' }
+        ],
         build:'Write one hypothesis in the standard form, the smallest prototype that tests it, and the kill criterion, using the Hypothesis Builder.',
         skip:['Have you already written a hypothesis with a signal and a kill criterion for your current idea?','Can you name the smallest medium that would answer your current design question?','Do you know what result would make you kill your favorite idea?','Can you separate what a tester said from what they did in your last playtest?']
       } }
@@ -19462,10 +19524,11 @@ PATH('game-designer-foundations', {
 
 PATH('systems-designer', {
   t:'Systems designer', tag:'Economy, progression, and the discipline to prove a system by breaking it.',
+  pick:'Own an economy, a progression curve or any system',
   track:'design', level:'intermediate', hours:10,
   audience:'Designers past the basics who want to own an economy, a progression curve, or any system with more than three moving parts.',
   outcome:'You can map a system’s parts and feedback loops, run a rule audit that separates decisions from load, and turn a design smell into a testable experiment instead of a guess.',
-  prereq:['game-designer-foundations'], next:['technical-lead'],
+  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer'],
   stages:[
     { id:'s1', t:'Systems and their pieces', level:'intermediate',
       goal:'See a system as parts and the relationships between them, not just a list of numbers.', hours:2,
@@ -19478,7 +19541,11 @@ PATH('systems-designer', {
       ],
       review:[],
       check:{
-        recall:['What is the difference between a relationship and a rule in a system?','Why does listing sinks with no attached choice matter before you touch numbers?','What does a feedback loop look like on your relationship map that a spreadsheet would hide?'],
+        recall:[
+          { q:'What is the difference between a relationship and a rule in a system?', a:'A relationship is the observed dependency between two parts, stated as "A affects B." A rule is the exact mechanic that enforces that relationship. Naming the rule, not just the relationship, is what makes it changeable later.' },
+          { q:'Why does listing sinks with no attached choice matter before you touch numbers?', a:'A sink with no meaningful choice attached is really a progress bar, not a resource decision, so tuning its numbers will not create engagement. Finding these first shows where the economy needs a new tradeoff rather than a balance pass.' },
+          { q:'What does a feedback loop look like on your relationship map that a spreadsheet would hide?', a:'It appears as a visible cycle of edges, where one node\'s output loops back to affect itself or an earlier node, such as abundance lowering its own value. A spreadsheet\'s linear rows of numbers make that cycle much harder to notice.' }
+        ],
         build:'Export your System Relationship Map with the feedback loop you found circled, and the rule sentence for the relationship that causes it.',
         skip:['Can you name the feedback loops in your current system without opening the map tool?','Can you list every currency and sink in your game from memory, sink by sink?','Do you already know which sink in your economy has no real choice attached?','Have you built a relationship map for a system before and found something you had not noticed?']
       } },
@@ -19494,7 +19561,11 @@ PATH('systems-designer', {
       ],
       review:['systemic-design'],
       check:{
-        recall:['What breaks when progression and difficulty are tuned separately?','What is the test for whether an unlock is meaningful?','What does a currency need to justify existing, according to the smell you just read?'],
+        recall:[
+          { q:'What breaks when progression and difficulty are tuned separately?', a:'Progression and difficulty are two names for the same pressure. If power grows faster than demand the game turns boringly easy, and if demand outpaces power it turns unfair; tuned apart, one curve silently undercuts the other.' },
+          { q:'What is the test for whether an unlock is meaningful?', a:'Ask what new capability, decision, or experience the unlock creates, not what number it changes. A step that only raises a stat without changing what the player can do or choose is "number goes up," not real progression.' },
+          { q:'What does a currency need to justify existing, according to the smell you just read?', a:'It needs to create a spending decision, a tradeoff, that no other currency in the game already creates. A currency added only to gate a system, with no unique choice attached, should be merged into an existing one or cut.' }
+        ],
         build:'Run the design review checklist on your progression curve and the depth-vs-complexity rule audit on its rules, and write down what each one caught.',
         skip:['Can you point to the exact spot on your curve where difficulty and power cross?','Can you defend every currency in your game with the one decision it alone enables?','Have you already cut an unlock because a rule audit showed it was load, not depth?','Can you name a real game whose progression curve you would redesign, and why?']
       } },
@@ -19510,7 +19581,11 @@ PATH('systems-designer', {
       ],
       review:['progression'],
       check:{
-        recall:['What separates a decision rule from a load-only rule?','When does more content stop adding value to a system?','What is the one change the no-experiment smell asked you to name?'],
+        recall:[
+          { q:'What separates a decision rule from a load-only rule?', a:'A decision rule creates a situational choice that would be missed if removed. A load-only rule only adds cognitive or implementation cost with no decision or interaction behind it. The rule audit classifies each rule this way before anything is cut.' },
+          { q:'When does more content stop adding value to a system?', a:'Once the system can no longer absorb it, meaning new content stops creating a situation or decision the existing pieces do not already produce. Past that point content only adds cost, and the system itself needs work, not more pieces.' },
+          { q:'What is the one change the no-experiment smell asked you to name?', a:'The one change that would make trying something new worth the risk, usually by lowering the cost of failure, rewarding curiosity with real feedback, hiding the obviously optimal option, or exposing a visible cross-system interaction worth chasing.' }
+        ],
         build:'Run the content-or-mechanic diagnostic on your next planned addition, and either build it differently or cut it based on the result.',
         skip:['Can you classify a rule as decision, interaction, or load in under ten seconds?','Can you name the point where adding content to your system stopped paying off?','Have you already found a one-build problem in your own system and named its cause?','Do you know which item in your backlog a scope check would cut first?']
       } },
@@ -19525,7 +19600,11 @@ PATH('systems-designer', {
       ],
       review:['depth-vs-complexity'],
       check:{
-        recall:['Why is an ignored mechanic a cost, not a neutral feature?','What turns a fix into an experiment?','What are the two signals your hypothesis needs?'],
+        recall:[
+          { q:'Why is an ignored mechanic a cost, not a neutral feature?', a:'The system still pays for it, in complexity budget, teaching cost and upkeep, even though no player ever uses the decision it was built to create. An ignored mechanic is a tax the game pays for a choice nobody makes.' },
+          { q:'What turns a fix into an experiment?', a:'Writing it as a hypothesis with an observable signal and a kill criterion before shipping it. A fix with no predicted result and no way to know if it failed is an opinion that was shipped and hoped for, not tested.' },
+          { q:'What are the two signals your hypothesis needs?', a:'The signal that would confirm the hypothesis worked, an observable behavior you expect if it is true, and the kill criterion, the result that would make you revert or abandon the change. Both must be visible in a real playtest.' }
+        ],
         build:'Export your Hypothesis Builder brief for the system fix you chose, with a real signal and a real kill criterion.',
         skip:['Have you already written a hypothesis with a kill criterion for a system fix?','Can you name a mechanic in your game you are fairly sure nobody uses, and why?','Do you know what evidence would make you revert your last system change?','Can you tell a tested fix from a shipped-and-hoped fix in your own recent work?']
       } },
@@ -19539,7 +19618,11 @@ PATH('systems-designer', {
       ],
       review:['builds-and-loadouts'],
       check:{
-        recall:['What does flagging reward with no risk tell you about a decision point?','What is the difference between fixing a loop and moving its smell?','What has to be true of an audit for someone else to act on it without you?'],
+        recall:[
+          { q:'What does flagging reward with no risk tell you about a decision point?', a:'It means the point is not really a risk-reward choice: there is a payoff but nothing genuinely at stake, so the "decision" is a formality. It needs a real, legible cost attached, or players will always take it.' },
+          { q:'What is the difference between fixing a loop and moving its smell?', a:'Fixing a loop removes the underlying cause, such as adding a real counter or constraint that changes behavior. Moving the smell just relocates the same symptom, like nerfing a dominant build only for the next-best one to take its place at the same rate.' },
+          { q:'What has to be true of an audit for someone else to act on it without you?', a:'It has to name the smells found with evidence, the experiment run or planned, and the expected result on one page, with a build task concrete enough that another person could run it and interpret the result without asking you first.' }
+        ],
         build:'Write the one-page system audit and attach the relationship map and the playtest prep checklist you ran against the redesigned system.',
         skip:['Can you point to a decision point in your system with reward and no real risk?','Have you already rebuilt your relationship map after a redesign and found the smell had just moved?','Can you write a playtest plan built around one specific smell, not a general session?','Could someone else run your audit’s build task from your one-page writeup alone?']
       } }
@@ -19548,10 +19631,11 @@ PATH('systems-designer', {
 
 PATH('level-and-ux-designer', {
   t:'Level and UX designer', tag:'Pacing, readability, and the first five minutes nobody skips.',
+  pick:'Pace levels and teach players without a wall of text',
   track:'design', level:'intermediate', hours:10,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
-  prereq:['game-designer-foundations'], next:['technical-lead'],
+  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
       goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2,
@@ -19564,7 +19648,11 @@ PATH('level-and-ux-designer', {
       ],
       review:[],
       check:{
-        recall:['What are the six beats a level structure moves through?','Why can a level be well paced and still exhaust a player?','How does a sightline control pacing before an encounter even starts?'],
+        recall:[
+          { q:'What are the six beats a level structure moves through?', a:'Teach, test, twist, combine, master, rest: introduce the idea safely, demand it under pressure, reframe it unexpectedly, mix it with something known, demand fluency, then release.' },
+          { q:'Why can a level be well paced and still exhaust a player?', a:'Pacing has two curves, intensity and cognitive load, and a level can manage one while leaving the other constantly high, or vary intensity correctly but never give a genuine rest beat that carries a reward, so the player never actually recovers.' },
+          { q:'How does a sightline control pacing before an encounter even starts?', a:'What is visible from the entrance, the goal, the danger, or the choice, sets the player\'s expectation and readiness before anything happens, so the sightline paces anticipation and tension ahead of the encounter design itself.' }
+        ],
         build:'Draw the pacing graph for your level by hand and label each of the six beats on your layout, then run the design review checklist against the plan.',
         skip:['Can you label the six structural beats on a level you know without looking them up?','Can you draw your own level’s intensity graph from memory and defend the shape?','Have you already found a sightline problem in your own level by walking it, not reading about it?','Can you tell a pacing problem from a difficulty problem when a tester stalls?']
       } },
@@ -19579,7 +19667,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['level-structure'],
       check:{
-        recall:['What are the four parts of an encounter as a small loop?','What is the difference between a decision-space problem and a readability problem?','What causes did the “players do not know what to do” smell point to in your case?'],
+        recall:[
+          { q:'What are the four parts of an encounter as a small loop?', a:'Setup, where the player reads what is coming; engagement, the execution; shift, something that changes the plan partway through; and resolution. An encounter is a small core loop with its own version of feedback and consequence.' },
+          { q:'What is the difference between a decision-space problem and a readability problem?', a:'A decision-space problem means the choices themselves are missing or bad, with nothing meaningful to decide. A readability problem means the choices exist but the player cannot perceive them in time, so the fix is feedback or hierarchy, not more content.' },
+          { q:'What causes did the “players do not know what to do” smell point to in your case?', a:'The smell lists four candidates: no visible short-term goal in the world, unclear affordances, a goal that exists only in text or a log the player skipped, or a poorly composed space with no sightlines or landmarks. The fix targets the world and feedback, not more text.' }
+        ],
         build:'Export your Game Loop Builder diagram for the encounter with its weak link marked and fixed.',
         skip:['Can you name the weakest of the four parts in any encounter you are currently building?','Can you point to the exact visual element that should draw a player’s eye first, and check whether it does?','Have you already fixed a “players do not know what to do” report by changing readability instead of adding text?','Do you know the difference between a loop weak link and a readability weak link?']
       } },
@@ -19594,7 +19686,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['encounter-design'],
       check:{
-        recall:['What are the two things feedback has to confirm for every action?','Why is “floaty” usually a feedback problem, not a physics problem?','What is friction, in one sentence?'],
+        recall:[
+          { q:'What are the two things feedback has to confirm for every action?', a:'That the input registered, ideally within about a hundred milliseconds, and what the outcome was and why, including for failure. Confirming input without outcome, or outcome without cause, both break the player\'s ability to learn.' },
+          { q:'Why is “floaty” usually a feedback problem, not a physics problem?', a:'Floaty is what players say when feedback lags behind or contradicts the input that caused it, such as a missing impact cue or a hit with no visible consequence, rather than the underlying physics values actually being wrong.' },
+          { q:'What is friction, in one sentence?', a:'Friction is the cost in inputs, mode switches, menu depth or latency between the player\'s intent and the game\'s response, and every unintended increment of it is a tax on the action, even though some deliberate friction can add real weight.' }
+        ],
         build:'Fill your feedback matrix for the three most common actions, then run the design review checklist against the control scheme alone.',
         skip:['Can you name the empty cell in your feedback matrix right now?','Can you count the inputs your most common action takes without checking?','Have you already fixed a “floaty” complaint by changing feedback timing instead of a physics value?','Do you know the one friction point in your own build you have stopped noticing?']
       } },
@@ -19609,7 +19705,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['feedback-and-affordance'],
       check:{
-        recall:['What is the difference between teaching by doing and teaching by reading?','Name one accessibility dimension your build has not been checked against.','What does the silent onboarding audit remove on purpose, and why?'],
+        recall:[
+          { q:'What is the difference between teaching by doing and teaching by reading?', a:'Teaching by doing puts the player in a situation that demands the mechanic and lets them learn from the consequence. Teaching by reading tells them with text they can skip. Good onboarding is level design and feedback doing the work, with text only as a fallback.' },
+          { q:'Name one accessibility dimension your build has not been checked against.', a:'Common candidates are color redundancy, input remapping and hold-versus-toggle alternatives, text scale at real viewing distance, and captioned audio cues. Pick whichever your last build never tested and audit that one channel specifically.' },
+          { q:'What does the silent onboarding audit remove on purpose, and why?', a:'At its core it removes you: no help and no explanation during play, so every hesitation shows what the level and feedback fail to teach. This path also asks you to turn sound off and hide tutorial text where you can, so a tooltip cannot take credit for learning the space should have done.' }
+        ],
         build:'Run the silent onboarding audit with sound off and tutorial text hidden, and write the three things it caught that you would have missed otherwise.',
         skip:['Can you run your first five minutes with sound off and text hidden and still explain what happened?','Can you name which accessibility dimension your current build is weakest on?','Have you already caught an onboarding problem by watching a silent playtest instead of reading feedback?','Do you know the one onboarding change you would make first, right now?']
       } },
@@ -19623,7 +19723,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['onboarding'],
       check:{
-        recall:['What are the three horizons a level’s pacing has to serve?','What did dissecting someone else’s level show you about your own that reading could not?','What makes a playtest session actually test onboarding, rather than just running it again?'],
+        recall:[
+          { q:'What are the three horizons a level’s pacing has to serve?', a:'Short-term, seconds to a minute; session, the current sitting; and long-term, across sessions. A level\'s pacing has to support the immediate action while still advancing the session\'s and the game\'s larger goals.' },
+          { q:'What did dissecting someone else’s level show you about your own that reading could not?', a:'Dissection forces you to name the exact structural beats, sightlines and readability choices another designer made, giving concrete mechanisms to compare directly against your own level, which reading about level design in the abstract cannot surface.' },
+          { q:'What makes a playtest session actually test onboarding, rather than just running it again?', a:'A specific written question and hypothesis about onboarding or pacing, fresh matched players who have never seen the build, silent observation, and a protocol aimed at the exact change made. Without those it is just another playthrough, not a test.' }
+        ],
         build:'Dissect one level from a game you know, then write the one change to your own level that dissection justified.',
         skip:['Can you name your level’s immediate, session and long-term goal without checking notes?','Have you already dissected a level from another game and found something concrete to steal or avoid?','Can you plan a playtest session aimed at one specific question instead of a general “how did that feel”?','Do you know the single next change your level needs, right now, without re-reading this stage?']
       } }
@@ -19632,6 +19736,7 @@ PATH('level-and-ux-designer', {
 
 PATH('idea-to-prototype-30-days', {
   t:'Idea to prototype in 30 days', tag:'A deliberately short path: one idea, one loop, one honest test.',
+  pick:'Go from an idea to a tested prototype in 30 days',
   track:'design', level:'beginner', hours:10,
   audience:'Solo or small-team builders who want a fast, motivating first win instead of a long syllabus.',
   outcome:'You end with a shaped idea, a tested core loop, a real hypothesis and playtest behind it, and a scoped 30-day plan you can actually run.',
@@ -19647,7 +19752,11 @@ PATH('idea-to-prototype-30-days', {
       ],
       review:[],
       check:{
-        recall:['What does dissecting a reference game give you that just enjoying it does not?','What is the one gap your idea is supposed to fill?','What would make you conclude your idea does not actually beat its closest reference?'],
+        recall:[
+          { q:'What does dissecting a reference game give you that just enjoying it does not?', a:'It turns liking a game into specific, stealable structure, the exact mechanism of information, decision, time pressure, consequence and feedback that produces the feeling you admire, rather than a vague impression you cannot act on.' },
+          { q:'What is the one gap your idea is supposed to fill?', a:'It should be an exit reason or an unmet want players state or work around in reviews and forums for close reference games, never a tolerated cost or your own taste, named precisely enough to quote a player\'s own words for it.' },
+          { q:'What would make you conclude your idea does not actually beat its closest reference?', a:'If you cannot name the specific gap your idea fills that the reference does not, if players of the reference do not recognize the gap when you describe it, or if an incumbent could ship your mechanism without breaking their own model.' }
+        ],
         build:'Export the Idea Shaper’s one-line pitch and attach your one-paragraph case for why it beats the two games you dissected.',
         skip:['Can you name the exact gap your idea fills in under one paragraph, right now?','Have you already dissected a close reference game for this exact idea?','Can you state your idea’s one-line pitch without checking your notes?','Do you know the one thing every close reference to your idea gets wrong?']
       } },
@@ -19661,7 +19770,11 @@ PATH('idea-to-prototype-30-days', {
       ],
       review:['finding-an-idea'],
       check:{
-        recall:['What does the core experience statement have to survive, going forward?','Why is the smallest loop the right thing to build first?','What does the pre-prototype checklist catch that excitement about the idea does not?'],
+        recall:[
+          { q:'What does the core experience statement have to survive, going forward?', a:'Every later decision and every discipline\'s local optimization: it is the one-sentence target that every system, feature review and scope cut answers to, so it has to survive contact with a real prototype and a real playtest, not just a pitch meeting.' },
+          { q:'Why is the smallest loop the right thing to build first?', a:'The loop is the machine the player repeats most, and everything else multiplies it. Testing and fixing a weak loop first is the cheapest way to validate the core experience before investing in progression, content or polish that would only multiply a weakness.' },
+          { q:'What does the pre-prototype checklist catch that excitement about the idea does not?', a:'Whether the hypothesis is written in standard form with a kill criterion, whether the scope is cut to the cheapest medium that answers the question, and whether the test is actually instrumented. Excitement alone tends to skip the kill criterion and let a demo grow instead.' }
+        ],
         build:'Export your Core Experience Canvas and your Game Loop Builder diagram with the weak link marked, and note what the pre-prototype checklist caught.',
         skip:['Can you say your core experience statement from memory, in one sentence?','Can you name your loop’s weakest link without opening the tool again?','Have you already run a pre-prototype checklist and cut scope because of what it found?','Do you know the smallest version of your idea that would still test the thing you actually care about?']
       } },
@@ -19669,14 +19782,18 @@ PATH('idea-to-prototype-30-days', {
       goal:'Turn the loop into a real hypothesis, and get it in front of a player before you trust your own opinion of it.', hours:2.5,
       steps:[
         { kind:'topic', ref:'hypothesis-driven-design', why:'A hypothesis with a signal and a kill criterion is what turns thinking this works into something you can actually be wrong about.', do:'Write one hypothesis in the standard form: player, behavior, reason, signal, kill criterion, based on the loop you just built.', min:25 },
-        { kind:'tool', ref:'hypothesis', why:'The Hypothesis Builder keeps the four parts honest and exports the brief that tells you, and anyone helping you build, what you are actually testing.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:35 },
+        { kind:'tool', ref:'hypothesis', why:'The Hypothesis Builder keeps the five parts honest and exports the brief that tells you, and anyone helping you build, what you are actually testing.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:35 },
         { kind:'topic', ref:'playtesting', why:'What a player says is useful. What a player does is evidence, and only one of those actually tests your hypothesis.', do:'Plan a fifteen-minute silent playtest: who you would recruit, what you would watch for, and the one question you ask only after they finish.', min:25 },
         { kind:'checklist', ref:'playtest-prep', why:'A playtest without a plan turns into a demo you narrate, which teaches you nothing you did not already believe.', do:'Run the playtest session preparation checklist for the session you just planned.', min:30 },
         { kind:'reflect', why:'Predicting the result before you run the test is what makes a surprising result actually count as evidence.', do:'Write down what you predict will happen in the playtest, before you run it, so you can compare afterward.', min:25 }
       ],
       review:['core-experience'],
       check:{
-        recall:['What are the four parts a hypothesis needs?','What is the difference between what a player says and what a player does?','Why does predicting the result beforehand matter?'],
+        recall:[
+          { q:'What are the five parts a hypothesis needs?', a:'Player, behavior and reason, in the form “we believe [player] will [behavior] because [reason]”, plus the observable signal that shows it is true and a kill criterion written before the build.' },
+          { q:'What is the difference between what a player says and what a player does?', a:'What players say is self-report, useful but unreliable since they report what they think they felt or think you want to hear. What they do is observed behavior, the actual evidence. Believe the behavior; treat the words as leads.' },
+          { q:'Why does predicting the result beforehand matter?', a:'Writing the prediction before running the test is what lets a surprising result count as real evidence instead of being rationalized afterward into whatever happened, which prevents you from unconsciously reading confirmation into an ambiguous outcome.' }
+        ],
         build:'Export your Hypothesis Builder brief and your playtest prep checklist, and run the fifteen-minute silent playtest they describe.',
         skip:['Have you already written a hypothesis with a real kill criterion for this idea?','Can you name the one question you would ask a tester only after they finish playing?','Do you know what result would make you kill this version of the idea?','Have you predicted a playtest result in writing before running the session, and checked yourself against it?']
       } },
@@ -19691,7 +19808,11 @@ PATH('idea-to-prototype-30-days', {
       ],
       review:['hypothesis-driven-design'],
       check:{
-        recall:['Why does a forcing function matter more on day 25 than on day one?','What makes a slice vertical instead of just small?','Why should the riskiest assumption get tested first, not last?'],
+        recall:[
+          { q:'Why does a forcing function matter more on day 25 than on day one?', a:'The temptation to quietly skip your own kill criterion grows as the deadline nears and sunk cost builds up. A rule written calmly on day one is what stops you rationalizing past your own evidence once pressure is high.' },
+          { q:'What makes a slice vertical instead of just small?', a:'A vertical slice cuts through every layer, art, feel and systems, to shipping quality in one small section end to end, proving both the experience and the real cost per unit, unlike a small build that stays shallow across every discipline.' },
+          { q:'Why should the riskiest assumption get tested first, not last?', a:'Everything scheduled after an unvalidated assumption is a bet on it being true. Testing the riskiest thing first, while there is still time to change direction, is cheaper than discovering it is false after building everything downstream of it.' }
+        ],
         build:'Write the one-page 30-day plan: what ships each week, the riskiest assumption tested first, and the cut list a scope check produced.',
         skip:['Can you name your riskiest assumption and when in your plan it gets tested?','Do you have a written forcing function that would stop you from skipping your own kill criterion?','Can you describe your vertical slice in one sentence without it including something you already agreed to cut?','Have you already run a scope check against a real plan and cut something because of it?']
       } }
@@ -19700,6 +19821,7 @@ PATH('idea-to-prototype-30-days', {
 
 PATH('technical-lead', {
   t:'Technical lead', tag:'Delegation, review and the incident that becomes a rule instead of a scar.',
+  pick:'Lead a small team and make its work better',
   track:'leadership', level:'advanced', hours:10,
   audience:'Senior designers or engineers stepping into leading a small team, who already do the work and now have to make other people’s work better too.',
   outcome:'You can delegate and say no on purpose, run a review that actually improves the thing being reviewed, and turn an incident or a cut into a rule the team keeps.',
@@ -19717,7 +19839,11 @@ PATH('technical-lead', {
       ],
       review:[],
       check:{
-        recall:['What is the difference between a job only you can do and one you are just used to doing?','Why does unclear ownership usually cause a handoff failure before anything technical does?','What does saying no on purpose require that saying yes by default does not?'],
+        recall:[
+          { q:'What is the difference between a job only you can do and one you are just used to doing?', a:'A job only you can do needs judgment, authority or context nobody else currently has. A job you are just used to doing is one you keep out of habit even though someone else could now own it, and it is time they did.' },
+          { q:'Why does unclear ownership usually cause a handoff failure before anything technical does?', a:'Most lead failures are collaboration failures wearing a technical costume. When nobody knows who decided what, handoffs happen silently and decisions get made twice or not at all, so the visible technical symptom is downstream of that ownership gap.' },
+          { q:'What does saying no on purpose require that saying yes by default does not?', a:'It requires naming what the request is actually for, sizing its real cost, and stating what it would displace. A deliberate no trades explicitly, while a default yes just accumulates commitments nobody accounted for.' }
+        ],
         build:'Run the Delegation Planner on one real task and write the concrete first step for delegating or refusing it this week.',
         skip:['Can you sort your current task list into only-me and someone-else-now without hesitating?','Do you already ask at least one non-status question in every 1:1?','Can you point to a recent handoff failure and name exactly where ownership was unclear?','Have you already said no on purpose this month, and can you name what you said instead?']
       } },
@@ -19735,7 +19861,11 @@ PATH('technical-lead', {
       ],
       review:['lead-role'],
       check:{
-        recall:['What turns a preference into a convention someone can actually follow?','What did comparing correctness comments to readability comments in your reviews show you?','What test decides whether a written convention is actually working?'],
+        recall:[
+          { q:'What turns a preference into a convention someone can actually follow?', a:'Writing it down with the specific incident or cost that justifies it, stated in the imperative, dated, and placed where the decision happens. An unwritten rule is only a habit, and a written one with no origin is nearly as unfollowable.' },
+          { q:'What did comparing correctness comments to readability comments in your reviews show you?', a:'Whether review is only catching bugs or also protecting the next reader\'s ability to safely change the code. A review skewed entirely toward correctness misses the slower failure of a codebase only its original author can maintain.' },
+          { q:'What test decides whether a written convention is actually working?', a:'Whether someone who has not been told directly, like a new hire, can find and follow the rule for a situation they have not met yet without asking. If they cannot, the convention is in the wrong place or was never really adopted.' }
+        ],
         build:'Write down one previously unwritten rule with its justifying incident, and run the design review checklist on a piece of work you did not author.',
         skip:['Can you name an unwritten rule your team follows, and the incident that caused it?','Do you already know what a new hire on your team would waste their first week guessing at?','Have you compared your own review comments for correctness versus readability, and did the split surprise you?','Can you name a recurring argument on your team that a written convention would settle?']
       } },
@@ -19750,7 +19880,11 @@ PATH('technical-lead', {
       ],
       review:['lead-conventions'],
       check:{
-        recall:['Why does a blameless version of an incident point at a fix better than a blame version?','What is the ordering test for a risk register, and why does it matter more than the list?','What does a postmortem have to produce to count as more than a story?'],
+        recall:[
+          { q:'Why does a blameless version of an incident point at a fix better than a blame version?', a:'Blame ends the investigation at a person, while the blameless version keeps asking why the guard that should have caught the mistake was missing. That missing guard, not the individual, is the thing that can actually be fixed.' },
+          { q:'What is the ordering test for a risk register, and why does it matter more than the list?', a:'Order risks by how much they would hurt if they hit tomorrow, not by which is easiest to write about. A long unordered list looks thorough, but the ordering is what tells the team which risk this month\'s work is meant to retire.' },
+          { q:'What does a postmortem have to produce to count as more than a story?', a:'A small number of owned changes with dates, placed where the next person will actually encounter them, such as a checklist, a template or a rule file. A postmortem that only narrates events without producing a change is a story, not a fix.' }
+        ],
         build:'Write or revisit one postmortem and run the design review checklist against its proposed fix before it goes into the backlog unreviewed.',
         skip:['Can you write both a blame version and a systems version of your last incident, and see the difference?','Is your risk register ordered by actual damage, or by whatever was easiest to write down?','Can you point to a postmortem that produced a real rule, not just an apology?','Do you know the risk you are currently avoiding naming, and what would force your hand?']
       } },
@@ -19765,7 +19899,11 @@ PATH('technical-lead', {
       ],
       review:['lead-incidents'],
       check:{
-        recall:['Why is a scope cut made on purpose better than one made under deadline pressure?','What question should a milestone actually answer, beyond a date?','Why is build health a leading indicator rather than housekeeping?'],
+        recall:[
+          { q:'Why is a scope cut made on purpose better than one made under deadline pressure?', a:'A cut made calmly, before pressure, is a design decision with its tail, tools, data, tests, considered and the team\'s agreement secured. A cut made in the last week is damage control that usually leaves the tail behind and blindsides the team.' },
+          { q:'What question should a milestone actually answer, beyond a date?', a:'What has to be true by that point for the next milestone to still make sense. A milestone is a question with an exit criterion that retires a risk or settles a decision, not a tally of features hit by a date.' },
+          { q:'Why is build health a leading indicator rather than housekeeping?', a:'A broken or unstable build stops the evidence loop: no playable build means no playtest, which means the next decision gets made on opinion instead of evidence. Build health predicts whether the team can keep learning, not just whether the code is tidy.' }
+        ],
         build:'Run the scope sanity checklist against the full roadmap, and write the one cut it justifies that you have been avoiding.',
         skip:['Can you name the item you would cut first if your deadline moved a month closer, right now?','Do you know what has to be true by your next milestone for the one after it to make sense?','Is your build health signal trending toward or away from your next milestone, and do you know why?','Can you name the cut you are avoiding, and its actual cost to the team?']
       } },
@@ -19779,7 +19917,11 @@ PATH('technical-lead', {
       ],
       review:['pm-scoping-cuts'],
       check:{
-        recall:['What can seeing a whole workflow chart show you that seeing only your own step cannot?','What test does the docs-nobody-reads smell suggest for a written convention?','What made the process change you named the right one to lead with?'],
+        recall:[
+          { q:'What can seeing a whole workflow chart show you that seeing only your own step cannot?', a:'Where the process actually breaks structurally: which handoffs have no artifact, which gates exist because of a past incident, and where your own team\'s process diverges from a working example, none of which is visible from inside a single step.' },
+          { q:'What test does the docs-nobody-reads smell suggest for a written convention?', a:'Whether anyone would actually find and read it. Check whether it is stale, contradicted by another document, or whether there is no single source of truth for that decision area, since a convention nobody encounters is as useful as one never written.' },
+          { q:'What made the process change you named the right one to lead with?', a:'The strongest first change is one traceable to a real gap the workflow walk or a design review checklist actually surfaced, small enough to run right away, and named alongside exactly who needs to agree to it before it can happen.' }
+        ],
         build:'Write the one process change you would propose, who you need to convince, and the one question from the design review checklist your team currently cannot answer.',
         skip:['Have you already walked a workflow end to end and found where your own process actually differs?','Can you name one of your team’s written conventions that nobody actually reads anymore?','Do you know the one process change you would lead with, and who would need to agree to it?','Can you defend that change to someone who is happy with how things work today?']
       } }
@@ -19788,10 +19930,11 @@ PATH('technical-lead', {
 
 PATH('interview-prep-designer', {
   t:'Interview prep: designer', tag:'The stories and the frameworks, rehearsed until they are fast.',
+  pick:'Answer design interview questions with real stories',
   track:'interview', level:'intermediate', hours:10,
   audience:'Designers preparing for a job interview who already have the fundamentals and need to turn them into fast, concrete answers.',
   outcome:'You can answer a question in any core design category in under two minutes, back it with a real story, and speak to at least one engineering constraint you have actually worked against.',
-  prereq:['game-designer-foundations','systems-designer','level-and-ux-designer'], next:[],
+  prereq:['systems-designer','level-and-ux-designer'], next:[],
   stages:[
     { id:'s1', t:'Player, motivation and the story you tell', level:'intermediate',
       goal:'Rehearse the player and experience questions out loud, and have one game you can dissect on demand.', hours:2,
@@ -19803,7 +19946,11 @@ PATH('interview-prep-designer', {
       ],
       review:[],
       check:{
-        recall:['What does defending a player actually mean in an interview answer?','What word did you catch yourself using without defining it?','What is the fastest way to have a concrete reference-game example ready?'],
+        recall:[
+          { q:'What does defending a player actually mean in an interview answer?', a:'Naming a concrete player model, recent games they finished, session shape, device, the feeling they came for, then giving one real decision that model changed, such as a cut tutorial or a rejected control scheme, instead of a demographic label like "gamers."' },
+          { q:'What word did you catch yourself using without defining it?', a:'Usual offenders are words like fun, engaging, immersive or deep. The exercise is noticing which undefined word you leaned on while answering, then replacing it with the specific emotion, behavior or mechanism you actually meant.' },
+          { q:'What is the fastest way to have a concrete reference-game example ready?', a:'Dissect one game you did not design ahead of time, using Reference Dissection, so you already hold the two-sentence structural summary of what it does and why, instead of improvising an analysis live in the interview.' }
+        ],
         build:'Write the two-sentence dissection summary and the full STAR story, then say both out loud once, timed.',
         skip:['Can you answer who is the player for your own project in under two minutes, unscripted?','Do you already have a reference game dissected and ready to describe in two sentences?','Have you written a STAR story about a player or fantasy decision before today?','Can you catch yourself using an undefined term like fun or engaging and replace it on the spot?']
       } },
@@ -19818,7 +19965,11 @@ PATH('interview-prep-designer', {
       ],
       review:['who-is-the-player'],
       check:{
-        recall:['What makes a core loop answer precise instead of just enthusiastic?','How would you explain your economy’s central tradeoff to someone non-technical?','What did the matchmaking part give you that pure design theory would not?'],
+        recall:[
+          { q:'What makes a core loop answer precise instead of just enthusiastic?', a:'Walking one concrete iteration of a real loop through its five beats, action, feedback, decision, consequence, new situation, and naming how long an iteration takes and what changes between iterations. Precision comes from specifics, not from calling the loop fun.' },
+          { q:'How would you explain your economy’s central tradeoff to someone non-technical?', a:'Name the one decision a currency forces, what a player gives up now to get something later, in plain terms, without spreadsheet vocabulary, and say why that tension is the actual point of the currency existing.' },
+          { q:'What did the matchmaking part give you that pure design theory would not?', a:'A concrete design and engineering tradeoff: tickets carry capacity plus rule predicates and are scanned under one mutex, which keeps matching rules easy to evolve and correctness easy to reason about, at the cost of throughput that a later scaling pass must replace. It shows you have met the constraint, not just theorised about match quality.' }
+        ],
         build:'Write your two-sentence engineering-tradeoff explanation and your STAR story about a systems decision under a real constraint.',
         skip:['Can you describe your core loop’s weak link out loud in under a minute?','Can you explain your economy’s central tradeoff to someone with no design background?','Have you already got a concrete engineering-constraint story ready for a systems interview question?','Do you have a STAR story about a system decision that met real pushback?']
       } },
@@ -19833,7 +19984,11 @@ PATH('interview-prep-designer', {
       ],
       review:['core-loop'],
       check:{
-        recall:['Why does naming the structural beats you used beat describing the level generally?','What should a strong onboarding answer describe watching, instead of asking?','What did the determinism part give you for a fairness question?'],
+        recall:[
+          { q:'Why does naming the structural beats you used beat describing the level generally?', a:'Naming teach, test, twist, combine, master or rest proves the level was designed as a deliberate lesson rather than assembled as a pile of encounters, and it gives the interviewer something specific to probe instead of a vague description.' },
+          { q:'What should a strong onboarding answer describe watching, instead of asking?', a:'What a new player actually did in the first minutes, where they hesitated, what they tried unprompted, what they missed, rather than what a tester said they thought. Onboarding evidence comes from silent observation, not from asking whether it was clear.' },
+          { q:'What did the determinism part give you for a fairness question?', a:'A concrete story about keeping simulation results bit-exact between client and server, a ported random generator, forbidding a compiler fold that changed outcomes, diffing traces step by step, which beats a general claim about caring about fairness.' }
+        ],
         build:'Quote one line from your onboarding audit run and write your STAR story about a UX problem diagnosed by observation.',
         skip:['Can you name the structural beats in a level you have shipped or built, on the spot?','Do you have a specific line from an onboarding audit ready to quote?','Can you speak to a fairness or cheating question with a concrete example, not just a value statement?','Do you have a STAR story about a UX fix that came from watching, not asking?']
       } },
@@ -19848,7 +20003,11 @@ PATH('interview-prep-designer', {
       ],
       review:['level-structure'],
       check:{
-        recall:['What does the stop-prototyping answer reward, structure or feeling?','What kill criterion have you actually used, and can you name it fast?','What transferred from the second game you dissected?'],
+        recall:[
+          { q:'What does the stop-prototyping answer reward, structure or feeling?', a:'Structure: a real kill criterion agreed before the test, not a feeling that the team already knew it was fun. Naming the actual criterion used, and whether it was honored, is what makes the answer credible.' },
+          { q:'What kill criterion have you actually used, and can you name it fast?', a:'It should be a concrete rate or behavior stated before a real prototype was tested, such as a voluntary-repetition rate below a stated threshold, that you can recall instantly rather than inventing on the spot for the interview.' },
+          { q:'What transferred from the second game you dissected?', a:'One specific mechanism, a pacing beat, a feedback technique, a risk-reward structure, from a game outside your usual genre that applies to your own project, showing dissection works as a general skill and not just on games like yours.' }
+        ],
         build:'Write your kill-criterion example and your STAR story about being proven wrong by a playtest.',
         skip:['Can you name a real kill criterion you have used to stop prototyping, without inventing one on the spot?','Do you have a second dissected game outside your usual genre ready to reference?','Can you tell a playtest-surprised-me story in under two minutes?','Do you have a story ready for tell me about a time you were wrong that is not generic?']
       } },
@@ -19863,7 +20022,11 @@ PATH('interview-prep-designer', {
       ],
       review:['playtesting'],
       check:{
-        recall:['What does the fun diagnostic force you to name instead of an adjective?','What makes a design pillar a slogan instead of a decision tool?','What should an AI-process answer describe, beyond a workflow?'],
+        recall:[
+          { q:'What does the fun diagnostic force you to name instead of an adjective?', a:'A specific fun dimension, such as mastery, discovery, tension or expression, with observable evidence for it, instead of a vague adjective like fun or engaging. Naming the dimension makes the claim checkable against actual player behavior.' },
+          { q:'What makes a design pillar a slogan instead of a decision tool?', a:'A pillar is a slogan if it is generic enough that any game could claim it and it never says no to anything. A real pillar can be rewritten as something it forbids, and it has actually killed a bad idea, with a story attached.' },
+          { q:'What should an AI-process answer describe, beyond a workflow?', a:'A concrete safeguard, such as the AI output verification checklist covering assumptions, sources, problem fit, testability and who owns the embedded decisions, rather than just a description of which AI tools get used and when.' }
+        ],
         build:'Write and time your two-minute walk-through-your-process answer, and your one-sentence fun-diagnostic summary.',
         skip:['Can you answer what makes your game fun in one sentence, using a real dimension, not an adjective?','Can you state a design pillar that has actually killed a bad idea, with the story attached?','Do you have a concrete answer ready for how you use AI tools, with a named safeguard?','Can you deliver your full walk-through-your-process answer in under two minutes, timed?']
       } }
@@ -19887,6 +20050,7 @@ PATH('interview-prep-designer', {
 
 PATH('gameplay-engineer-godot', {
   t:'Gameplay engineer, Godot', tag:'Ship the core loop in Godot: signals, physics ticks, and a technique you can debug.',
+  pick:'Build a gameplay system end to end in Godot 4',
   track:'engineering', level:'beginner', hours:12,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
@@ -19903,7 +20067,11 @@ PATH('gameplay-engineer-godot', {
       ],
       review:[],
       check:{
-        recall:['Why does move_and_slide() already apply delta, and what happens if you multiply by delta anyway?','What is the difference between an action, a decision, and a consequence in the core loop?','Which mouse_filter value makes an overlay invisible to clicks, and which value makes it swallow them?'],
+        recall:[
+          { q:'Why does move_and_slide() already apply delta, and what happens if you multiply by delta anyway?', a:'move_and_slide() integrates velocity over the physics step itself, so velocity is already in units per second. Multiplying by delta again scales it by the step length, roughly sixty times too slow at sixty physics ticks per second, and makes speed change whenever the physics tick rate changes.' },
+          { q:'What is the difference between an action, a decision, and a consequence in the core loop?', a:'An action is what the player does, feedback tells them what happened, a decision is the choice they make based on that feedback, and a consequence is the resulting state change that creates the new situation the next action responds to.' },
+          { q:'Which mouse_filter value makes an overlay invisible to clicks, and which value makes it swallow them?', a:'STOP makes an overlay swallow clicks so nothing beneath it receives them, and IGNORE lets clicks pass through to whatever is underneath. A decorative overlay left at the default STOP silently blocks every button below it.' }
+        ],
         build:'Export the Loop Builder diagram, then paste your CharacterBody2D script and Button menu script under it in one page.',
         skip:['Can you write a CharacterBody2D script with _physics_process and a consequence signal without checking the docs?','Do you know why multiplying velocity by delta before move_and_slide() breaks the loop, and could you spot it in review?','Have you already fixed a UI click that a Control higher in the tree was swallowing?','Can you name the tradeoff sentence for every decision in your current game right now?']
       } },
@@ -19918,7 +20086,11 @@ PATH('gameplay-engineer-godot', {
       ],
       review:['core-loop'],
       check:{
-        recall:['What does reload_current_scene() NOT reset, and why does that matter?','How do you decide whether a rule belongs in code or in a Resource?','Why does a mechanic that touches no decision get cut?'],
+        recall:[
+          { q:'What does reload_current_scene() NOT reset, and why does that matter?', a:'It leaves autoloads running with whatever state they held, so a buff, a timer, or a music value from the failed attempt leaks into the retry. Anything not explicitly cleared in the autoload\'s own restore function survives across the reload.' },
+          { q:'How do you decide whether a rule belongs in code or in a Resource?', a:'The rule stays in code, since logic is what governs behaviour, but its numbers and flags move into a Resource once there is more than one instance of the mechanic, so a designer can tune values in a .tres file without touching code.' },
+          { q:'Why does a mechanic that touches no decision get cut?', a:'A mechanic only earns its place by creating or feeding a decision the player faces. One that touches nothing else is a mini-game sharing a menu with the real game, costing teaching and implementation time for no return.' }
+        ],
         build:'Export the design review checklist results for your MechanicDef, alongside the die() function and the Resource script.',
         skip:['Have you already written a die() function that measures and logs its own recovery time?','Can you turn a mechanic into an @export Resource without checking the Godot docs?','Do you know what happens to an autoload’s state across reload_current_scene(), from experience rather than a guess?','Can you run a design review checklist on your own feature and act on an answer you did not want to hear?']
       } },
@@ -19935,7 +20107,11 @@ PATH('gameplay-engineer-godot', {
       ],
       review:['decisions'],
       check:{
-        recall:['What is the difference between confirming an input and confirming an outcome?','Why can juice not fix a loop that is not compelling underneath?','What are the two things that make Godot’s input buffer and hit-stop measured instead of guessed?'],
+        recall:[
+          { q:'What is the difference between confirming an input and confirming an outcome?', a:'Confirming an input tells the player their press registered, ideally within about a hundred milliseconds. Confirming an outcome tells them what the action actually accomplished, such as a hit, a block, or a miss. Games that skip the second leave failure silent.' },
+          { q:'Why can juice not fix a loop that is not compelling underneath?', a:'Juice amplifies feedback that already exists inside a compelling loop. It cannot manufacture meaning or a decision the design never gave the player, so polishing before the bare loop is validated only delays discovering that the loop itself is not fun.' },
+          { q:'What are the two things that make Godot’s input buffer and hit-stop measured instead of guessed?', a:'The input buffer is a numeric window, buffer_sec, measured in seconds rather than felt out. Hit-stop runs on an explicit timer that ignores Engine.time_scale, so its freeze duration is a set, tunable value instead of an arbitrary pause.' }
+        ],
         build:'Export your Hypothesis Builder brief for the feel change you tested, and attach the buffer, hit-stop, or rebind script it is testing.',
         skip:['Can you name the empty cell in your own feedback matrix right now?','Have you already tuned a buffer_sec or hitstop() value against a playtest, not a guess?','Do you know why Engine.time_scale needs a timer that ignores it, to make hit-stop work at all?','Can you write a hypothesis with a signal and a kill criterion for a feel change in under ten minutes?']
       } },
@@ -19951,7 +20127,11 @@ PATH('gameplay-engineer-godot', {
       ],
       review:['mechanics-and-rules'],
       check:{
-        recall:['How do you decide whether a decision is reactive or goal-directed?','Why must a sight or perception query run inside _physics_process in Godot?','What problem does staggering agent updates by frame index solve?'],
+        recall:[
+          { q:'How do you decide whether a decision is reactive or goal-directed?', a:'A reactive decision picks among options available right now, which fits a state machine or behaviour tree. A goal-directed decision needs a sequence of actions toward a future state, which calls for a planner or utility layer. Name the hardest decision first to tell which.' },
+          { q:'Why must a sight or perception query run inside _physics_process in Godot?', a:'Physics queries such as ray casts are only valid inside _physics_process, because the physics server locks its space outside that step. Calling them from _process or a signal callback either errors or silently answers from a stale, previous-tick state, which reads as an enemy seeing through walls.' },
+          { q:'What problem does staggering agent updates by frame index solve?', a:'Staggering spreads the cost of many agents thinking across several frames instead of all deciding on the same tick, preventing a frame-rate spike whenever a large fight starts. It trades a little reaction latency for a bounded, predictable per-frame AI budget.' }
+        ],
         build:'Export the In-game AI Technique Chooser result, and attach your state machine, navigation, and scheduler scripts as the worked example.',
         skip:['Can you justify picking a state machine over a behaviour tree (or the reverse) for a specific enemy, out loud, in one sentence?','Have you already fixed an agent that got stuck on level geometry?','Do you know why a physics-space query from _process or a signal callback fails or lies in Godot?','Can you read an AI cost monitor and say which of your agents is too expensive, right now?']
       } },
@@ -19965,7 +20145,11 @@ PATH('gameplay-engineer-godot', {
       ],
       review:['game-feel-and-juice'],
       check:{
-        recall:['Why does putting a tuning value on @export_range beat hardcoding it, even for a throwaway scene?','What does Godot’s leaked-instance report at exit actually tell you?','What is the difference between a prototype and a demo?'],
+        recall:[
+          { q:'Why does putting a tuning value on @export_range beat hardcoding it, even for a throwaway scene?', a:'An export_range slider lets you retune the one value you are least sure about live, in the inspector or during play, without editing and recompiling code, which is what makes a throwaway scene fast enough to actually test something in one sitting.' },
+          { q:'What does Godot’s leaked-instance report at exit actually tell you?', a:'It counts objects still alive in the engine\'s object database when the process quits, flagging nodes a script or a test created but never freed. A leak invisible in a passing test suite is the same leak that later shows up as a slow memory climb in play.' },
+          { q:'What is the difference between a prototype and a demo?', a:'A prototype exists to answer one specific question, ideally with a stated kill criterion, using the cheapest build that can answer it. A demo shows off a feature or the current state of the game and answers no question at all, however polished it looks.' }
+        ],
         build:'Export the pre-prototype checklist result and your GdUnit4 test file as the artefact for this stage.',
         skip:['Can you spin up a disposable Godot scene with export sliders in under ten minutes?','Have you already written and run a headless GdUnit4 test against your own code?','Can you run the pre-prototype checklist from memory?','Do you know what your project’s current leaked-instance count is at exit?']
       } }
@@ -19974,6 +20158,7 @@ PATH('gameplay-engineer-godot', {
 
 PATH('gameplay-engineer-unity', {
   t:'Gameplay engineer, Unity', tag:'Ship the core loop in Unity: the Input System, FixedUpdate, and a technique you can debug.',
+  pick:'Build a gameplay system end to end in Unity 6',
   track:'engineering', level:'beginner', hours:13,
   audience:'Programmers new to Unity who already know how to code and want to implement a documented gameplay system end to end, in Unity 6.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Unity, and you can point at the Update/FixedUpdate split, the UnityEvent, and the ScriptableObject that make each one work.',
@@ -19990,7 +20175,11 @@ PATH('gameplay-engineer-unity', {
       ],
       review:[],
       check:{
-        recall:['Why can reading a single-frame input inside FixedUpdate drop or double-count a press?','What is the difference between an action, a decision, and a consequence in the core loop?','What does reading your action map out loud tell you about your game’s fantasy?'],
+        recall:[
+          { q:'Why can reading a single-frame input inside FixedUpdate drop or double-count a press?', a:'FixedUpdate can run zero or twice within a single rendered frame, so a check for a press made there can miss it entirely or count it twice, producing exactly the input dropouts and double-triggers players report as an unresponsive control scheme.' },
+          { q:'What is the difference between an action, a decision, and a consequence in the core loop?', a:'An action is the player\'s move, feedback shows what happened, a decision is what they choose next, and a consequence is the resulting state change that creates the next situation. All four sit inside the same repeating loop.' },
+          { q:'What does reading your action map out loud tell you about your game’s fantasy?', a:'Reading the name of every action in an InputActionAsset aloud is a quick audit of everything the player can actually do, and therefore of the game\'s real fantasy. A short or mismatched list reveals a fantasy thinner or different than intended.' }
+        ],
         build:'Export the Loop Builder diagram, then paste your MonoBehaviour and option-menu script under it in one page.',
         skip:['Can you write an Update/FixedUpdate split with a UnityEvent consequence without checking the docs?','Do you know why sampling input in FixedUpdate is a trap, from experience rather than a guess?','Have you already generated a menu from ScriptableObject data instead of hand-placed buttons?','Can you name the Unity equivalent of a Godot Resource without looking it up?']
       } },
@@ -20006,7 +20195,11 @@ PATH('gameplay-engineer-unity', {
       ],
       review:['core-loop'],
       check:{
-        recall:['Why does a full scene reload past a certain size cost you retries?','How do you decide whether a rule belongs in code or in a ScriptableObject?','What direction do imports point in the client’s assembly stack, and why does it matter?'],
+        recall:[
+          { q:'Why does a full scene reload past a certain size cost you retries?', a:'SceneManager.LoadScene reloads and reinitializes the whole scene, including everything unrelated to the failed encounter, so past a certain scene size the load time itself turns a short failure lesson into a wait long enough that players stop retrying.' },
+          { q:'How do you decide whether a rule belongs in code or in a ScriptableObject?', a:'The logic stays in code, but once a mechanic has more than one instance its numbers and flags move into a ScriptableObject asset, so a diff shows exactly which value moved and a designer can tune it without touching a script.' },
+          { q:'What direction do imports point in the client’s assembly stack, and why does it matter?', a:'Imports point down the stack, from a lean entry-point assembly through client and game layers to a shared layer and finally an engine-adjacent core layer, never upward. A backward import breaks the layering that keeps a large client compiling in pieces and its lower layers reusable.' }
+        ],
         build:'Export the design review checklist results for your mechanic ScriptableObject, alongside the retry/pooling script and the assembly-layering note.',
         skip:['Have you already pooled a retry path instead of reloading the whole scene?','Can you turn a mechanic into a ScriptableObject with a FormerlySerializedAs guard without checking the docs?','Do you know which of your own scripts breaks a strict one-way dependency direction, right now?','Can you run a design review checklist on your own feature and act on an answer you did not want to hear?']
       } },
@@ -20023,7 +20216,11 @@ PATH('gameplay-engineer-unity', {
       ],
       review:['decisions'],
       check:{
-        recall:['Why do a UnityEvent per outcome and a trigger reset avoid a stuck animation state?','Why does hit-stop need WaitForSecondsRealtime instead of a normal wait?','What has to happen to a rebinding override for it to survive a relaunch?'],
+        recall:[
+          { q:'Why do a UnityEvent per outcome and a trigger reset avoid a stuck animation state?', a:'A separate UnityEvent for hit, blocked, and missed guarantees every outcome, including a whiffed attack, has a wired response instead of one path being silently forgotten. Resetting every trigger before setting the new one stops a stale trigger firing later on the wrong animation.' },
+          { q:'Why does hit-stop need WaitForSecondsRealtime instead of a normal wait?', a:'Time.timeScale is set near zero during hit-stop, and a normal wait counts scaled time, so it would run many times longer than intended, or never resume if the scale hit zero. WaitForSecondsRealtime counts real time, so it can outlive the freeze it caused.' },
+          { q:'What has to happen to a rebinding override for it to survive a relaunch?', a:'The override has to be serialized with SaveBindingOverridesAsJson and written to persistent storage, then loaded back before any action reads its binding at startup. Otherwise the remap exists only in memory and disappears the moment the player quits.' }
+        ],
         build:'Export your Hypothesis Builder brief for the feel change you tested, and attach the feedback, buffer/hit-stop, or rebind script it is testing.',
         skip:['Can you name the empty cell in your own feedback matrix right now?','Have you already tuned a buffer or hit-stop value against a playtest, not a guess?','Do you know why Time.timeScale alone is not enough for hit-stop, from experience rather than a guess?','Can you write a hypothesis with a signal and a kill criterion for a feel change in under ten minutes?']
       } },
@@ -20040,7 +20237,11 @@ PATH('gameplay-engineer-unity', {
       ],
       review:['mechanics-and-rules'],
       check:{
-        recall:['How do you decide whether a decision is reactive or goal-directed?','Why does storing a sighting in a knowledge component beat behaviour reading the player transform directly?','What does a ProfilerMarker give you that a stopwatch variable does not?'],
+        recall:[
+          { q:'How do you decide whether a decision is reactive or goal-directed?', a:'A reactive decision picks among options available right now and suits a state machine or behaviour tree. A goal-directed decision needs a sequence of actions toward a future state and suits a planner or utility layer. The agent\'s hardest decision decides which family fits.' },
+          { q:'Why does storing a sighting in a knowledge component beat behaviour reading the player transform directly?', a:'A knowledge component stores only what the agent has actually sensed, so behaviour reading it stays fair and cannot see through walls or off screen. Reading the player\'s transform directly gives the agent information no sense channel produced, which players experience as cheating.' },
+          { q:'What does a ProfilerMarker give you that a stopwatch variable does not?', a:'A ProfilerMarker gives a timed block a name that shows up in the Profiler timeline alongside rendering, physics, and navigation costs, and can be read live at runtime with a ProfilerRecorder. A hand-rolled stopwatch variable has no visibility into what else is competing for the frame.' }
+        ],
         build:'Export the In-game AI Technique Chooser result, and attach your state runner, navigation, and profiling scripts as the worked example.',
         skip:['Can you justify picking a hand-rolled state machine over the Behavior package (or the reverse) for a specific enemy, out loud, in one sentence?','Have you already fixed an agent that never landed on the NavMesh?','Can you read your own transition table and say what state a given event leads to, without opening the code?','Can you read a ProfilerRecorder result and say which of your agents is too expensive, right now?']
       } },
@@ -20054,7 +20255,11 @@ PATH('gameplay-engineer-unity', {
       ],
       review:['game-feel-and-juice'],
       check:{
-        recall:['Why does putting a tuning value in a Range field beat hardcoding it, even for a throwaway scene?','What is the risk of only testing in the Editor’s Mono runtime and never on an IL2CPP build?','What is the difference between a prototype and a demo?'],
+        recall:[
+          { q:'Why does putting a tuning value in a Range field beat hardcoding it, even for a throwaway scene?', a:'A Range field on a ScriptableObject tuning asset lets you retune the one uncertain value live, and because it lives on an asset rather than a scene instance, the value you tuned during play survives after you press Stop, unlike a change made directly on a MonoBehaviour.' },
+          { q:'What is the risk of only testing in the Editor’s Mono runtime and never on an IL2CPP build?', a:'The Editor runs Mono with a JIT and no managed stripping; the shipped player usually runs IL2CPP, compiled ahead of time and stripped. Reflection, dynamically built generics and runtime code generation can pass every Editor test and then fail on device, so a green Editor suite says nothing about the player build.' },
+          { q:'What is the difference between a prototype and a demo?', a:'A prototype tests one named question with the cheapest possible build and a stated result that would kill the idea. A demo shows off a feature or a polished slice and answers no question, regardless of how much of the game it represents.' }
+        ],
         build:'Export the pre-prototype checklist result and your EditMode test file as the artefact for this stage.',
         skip:['Can you spin up a disposable Unity scene with a Range-tuned ScriptableObject in under ten minutes?','Have you already written and run an EditMode test against your own code?','Can you run the pre-prototype checklist from memory?','Do you know whether your current build even compiles under IL2CPP?']
       } }
@@ -20063,10 +20268,11 @@ PATH('gameplay-engineer-unity', {
 
 PATH('live-game-backend-engineer', {
   t:'Live-game backend engineer', tag:'Ship a Go service that survives crashes, lying clients, and players who never stop playing.',
+  pick:'Build a backend that survives a live game',
   track:'engineering', level:'intermediate', hours:14,
   audience:'Backend or Go engineers moving into games, who already ship services and want the constraints unique to a live game: state that must survive a crash, a client that lies, and players who do not stop playing while you ship.',
   outcome:'You can design and defend a request path, a caching and migration strategy, and a live-ops rollout for a game backend, and verify what an AI assistant wrote for you before it ships.',
-  prereq:[], next:['netcode-server-engineer'],
+  prereq:['game-designer-foundations'], next:['netcode-server-engineer','interview-prep-engineer'],
   stages:[
     { id:'s1', t:'Shape the service', level:'intermediate',
       goal:'Decide which way dependencies point, how one binary can boot as many roles, and which protocol fits your client, before any of it is code.', hours:2.5,
@@ -20080,7 +20286,11 @@ PATH('live-game-backend-engineer', {
       ],
       review:[],
       check:{
-        recall:['Which direction should a dependency point, and what breaks when it points the other way?','What decides whether one binary can boot as more than one process role?','Name one field in a shipped backend’s header contract your own protocol choice does not carry yet.'],
+        recall:[
+          { q:'Which direction should a dependency point, and what breaks when it points the other way?', a:'Dependencies should point inward, toward entities and use cases at the centre, with adapters like handlers and repositories outside. Pointed outward, the centre imports a database driver or transport directly, so a rule test needs real infrastructure and the game rules become tied to whatever stores them.' },
+          { q:'What decides whether one binary can boot as more than one process role?', a:'A dependency graph generated at build time from provider sets lets main read a mode flag and call a different injector per role, so each role, API server, worker, or batch job, builds only the dependencies it needs from one shared set of entities and interactors.' },
+          { q:'Name one field in a shipped backend’s header contract your own protocol choice does not carry yet.', a:'A protobuf-over-HTTP contract like the one in the case study carries session, platform, language, client version, master data version, and a state generation counter in its headers. A protocol missing the master data version cannot tell a client whether its cached configuration is stale.' }
+        ],
         build:'Export the AI Delegation Planner’s design review of your layering and protocol decisions, and attach the one sentence justifying your protocol choice.',
         skip:['Can you draw your service’s layers and its import direction from memory, right now?','Do you already know which process roles one binary needs to boot as, for your own service?','Can you justify a protocol choice against the two you did not pick, out loud, in one sentence?','Have you already walked a real request end to end and found the gap in your own design?']
       } },
@@ -20097,9 +20307,31 @@ PATH('live-game-backend-engineer', {
       ],
       review:['backend-layering'],
       check:{
-        recall:['Where should an idempotency gate sit relative to the handler, and why?','What are the two disciplines that keep a transaction and a response both minimal?','What must an AI output verification pass actually check, beyond whether the code compiles?'],
+        recall:[
+          { q:'Where should an idempotency gate sit relative to the handler, and why?', a:'It sits in the middleware chain before the handler runs, typically as an add-if-absent cache key of player, method, and path with a short expiry, so a duplicate submission is rejected or replayed at the boundary instead of the handler executing the write twice.' },
+          { q:'What are the two disciplines that keep a transaction and a response both minimal?', a:'Scoping every transaction to the request, opened by the handler and committed or rolled back in one deferred place, and sending the client only the fields or tables a request actually changed rather than a full snapshot. Both keep a write or response from growing wider than the action that caused it.' },
+          { q:'What must an AI output verification pass actually check, beyond whether the code compiles?', a:'Whether the code matches the actual design intent, not just that it builds: whether it introduced behaviour nobody asked for, whether error handling and transaction boundaries follow the agreed pattern, and whether it silently changed something the original brief never mentioned.' }
+        ],
         build:'Export the AI output verification checklist result for the code your assistant produced from the implementation prompt.',
         skip:['Can you write a request-context middleware step from memory?','Do you already give every error a code, a status and a client-actionable field, without being reminded?','Have you already caught an AI assistant changing something you did not ask for?','Can you scope a transaction to a single request without pulling in more than it needs, on the first try?']
+      } },
+    { id:'s5', t:'Idioms and tests', level:'intermediate',
+      goal:'Write Go that stays readable at scale, and prove your service’s behaviour with tests whose expected values are not just pasted from a run.', hours:2,
+      steps:[
+        { kind:'topic', ref:'backend-go-idioms', why:'Context first, errors wrapped, goroutines owned, shutdown deliberate. These idioms are what keep a large Go service readable a year from now.', do:'Pick one function in your service that does not yet pass a context, wrap its errors, or own its goroutines, and rewrite its signature to fix it.', min:30 },
+        { kind:'topic', ref:'backend-testing', why:'Three tiers answer three questions, and an expected value pasted from a run proves nothing was actually checked.', do:'Write one test where the expected value is derived independently of the code under test, not copied from its own output.', min:30 },
+        { kind:'tool', ref:'delegate', why:'Deciding what to hand an AI assistant and what to keep for yourself is itself a design decision worth planning.', do:'Run this stage’s two tasks (the idiom fix and the test) through the AI Delegation Planner and compare its split of AI-work versus your-work to what you actually did.', min:30 },
+        { kind:'reflect', why:'Writing your own answer, not the guide’s, is what makes this workflow yours to repeat on the next service.', do:'In your own words, write the one habit from this path (layering direction, error wrapping, or AI verification) you are most likely to skip under deadline pressure, and the check that would catch you.', min:30 }
+      ],
+      review:['backend-data-access'],
+      check:{
+        recall:[
+          { q:'What does wrapping an error actually preserve that a bare return does not?', a:'Wrapping keeps the original cause in a chain that errors.Is and errors.As can still walk, so code three layers up can still recognise it. Plain fmt.Errorf with %w adds context but no stack; the guide’s service error type also captures a stack at the wrap site, which tells on-call where the failure started.' },
+          { q:'Why does a test with a pasted expected value prove nothing?', a:'An expected value copied from the code\'s own output only proves the code still does what it did the moment the test was written, bugs included. It was never checked against the specification or master data, so it cannot catch a regression in the thing it claims to test.' },
+          { q:'What does the AI Delegation Planner’s split actually decide?', a:'For each task it assigns an owner before work starts: Human, AI, both, or player evidence required for anything only a playtest can answer. It forces an explicit decision about who owns each task\'s judgment instead of defaulting to whoever is available.' }
+        ],
+        build:'Export the AI Delegation Planner’s split for this stage’s two tasks, alongside the rewritten function and the independently-derived test.',
+        skip:['Can you spot a goroutine your own code does not own, on sight?','Do you already derive a test’s expected value independently, as a habit?','Can you decide what to delegate to AI and what to keep, before you start a task, not after?','Have you already named the habit you are most likely to skip under deadline pressure?']
       } },
     { id:'s3', t:'Cache, migrate, secure', level:'intermediate',
       goal:'Pick the right cache tier for the question being asked, ship schema changes separately from code, and keep secrets out of version control.', hours:3.5,
@@ -20115,7 +20347,11 @@ PATH('live-game-backend-engineer', {
       ],
       review:['backend-request-context'],
       check:{
-        recall:['How do you decide which of the three cache tiers a given read belongs in?','Why does a schema migration need to deploy and roll back independently of the code that reads it?','What makes history, not the current commit, the real boundary for a leaked secret?'],
+        recall:[
+          { q:'How do you decide which of the three cache tiers a given read belongs in?', a:'Ask what question the read is answering. Data almost immutable between releases belongs in a process-local cache, mutable state more than one instance must agree on belongs in a distributed cache, and a value read more than once inside one request belongs in a per-request memo cache.' },
+          { q:'Why does a schema migration need to deploy and roll back independently of the code that reads it?', a:'Code and schema land at different moments during a rolling deploy, so for the minutes in between, the running code has to work against both the old and new schema. Shipping them together removes the ability to roll back one without also reverting the other.' },
+          { q:'What makes history, not the current commit, the real boundary for a leaked secret?', a:'Deleting a committed credential from the current file does nothing about every clone, fork, and CI cache that already holds it in history. The value is compromised the moment it is pushed, so rotation, not deletion, is the only real remedy.' }
+        ],
         build:'Export the AI Delegation Planner’s review of your migration plan, alongside the cache-tier decision and the match-verification comparison step you wrote.',
         skip:['Can you place a new hot read into the right cache tier without hesitating?','Have you already written a migration that deploys and rolls back independently of its code?','Would you catch a credential in a diff before it is committed, not after?','Can you name the comparison a server must run before trusting a client-submitted result?']
       } },
@@ -20132,29 +20368,20 @@ PATH('live-game-backend-engineer', {
       ],
       review:['backend-caching-redis','infra-secrets'],
       check:{
-        recall:['Which of the four observability signals would answer “why did this fail” versus “how slow is this”?','Why should an alert watch a symptom players feel rather than a raw metric?','What decides whether a live-ops change is safe to ship while players are online?'],
+        recall:[
+          { q:'Which of the four observability signals would answer “why did this fail” versus “how slow is this”?', a:'The four are logs, traces, profiles and the player action event stream. A trace answers how slow, showing where the request’s time went; a log, with its captured stack, answers why it failed. A profile says why the machine is busy, and the event stream records what players did, not why the service broke.' },
+          { q:'Why should an alert watch a symptom players feel rather than a raw metric?', a:'Time to notice dominates time to recover, and a symptom like players failing to log in is what the team actually promised to prevent, while a raw metric like CPU usage can spike for reasons that never touch a single player. Alerting on causes trains the team to ignore pages that matter.' },
+          { q:'What decides whether a live-ops change is safe to ship while players are online?', a:'Whether it can go through a version or maintenance gate that lets only the endpoints that must still respond keep working, and whether every intermediate state between the data, server, and client releases is one a live session can safely sit inside.' }
+        ],
         build:'Export the AI output verification checklist result for the alert rule or runbook step you checked, alongside the metric and revert threshold you wrote.',
         skip:['Can you name your service’s weakest observability signal without checking?','Have you already written a runbook-linked alert on a symptom, not a raw metric?','Can you ship a change to a live game and name the gate that makes it safe?','Do you already know what number would make you revert your last live-ops change?']
-      } },
-    { id:'s5', t:'Idioms and tests', level:'advanced',
-      goal:'Write Go that stays readable at scale, and prove your service’s behaviour with tests whose expected values are not just pasted from a run.', hours:2,
-      steps:[
-        { kind:'topic', ref:'backend-go-idioms', why:'Context first, errors wrapped, goroutines owned, shutdown deliberate. These idioms are what keep a large Go service readable a year from now.', do:'Pick one function in your service that does not yet pass a context, wrap its errors, or own its goroutines, and rewrite its signature to fix it.', min:30 },
-        { kind:'topic', ref:'backend-testing', why:'Three tiers answer three questions, and an expected value pasted from a run proves nothing was actually checked.', do:'Write one test where the expected value is derived independently of the code under test, not copied from its own output.', min:30 },
-        { kind:'tool', ref:'delegate', why:'Deciding what to hand an AI assistant and what to keep for yourself is itself a design decision worth planning.', do:'Run this stage’s two tasks (the idiom fix and the test) through the AI Delegation Planner and compare its split of AI-work versus your-work to what you actually did.', min:30 },
-        { kind:'reflect', why:'Writing your own answer, not the guide’s, is what makes this workflow yours to repeat on the next service.', do:'In your own words, write the one habit from this path (layering direction, cache tier choice, or AI verification) you are most likely to skip under deadline pressure, and the check that would catch you.', min:30 }
-      ],
-      review:['backend-data-access'],
-      check:{
-        recall:['What does wrapping an error actually preserve that a bare return does not?','Why does a test with a pasted expected value prove nothing?','What does the AI Delegation Planner’s split actually decide?'],
-        build:'Export the AI Delegation Planner’s split for this stage’s two tasks, alongside the rewritten function and the independently-derived test.',
-        skip:['Can you spot a goroutine your own code does not own, on sight?','Do you already derive a test’s expected value independently, as a habit?','Can you decide what to delegate to AI and what to keep, before you start a task, not after?','Have you already named the habit you are most likely to skip under deadline pressure?']
       } }
   ]
 });
 
 PATH('netcode-server-engineer', {
   t:'Netcode / game-server engineer', tag:'Decide who is right, what bit-exact costs, and why a client’s result is never trusted alone.',
+  pick:'Build real-time multiplayer servers that hold up',
   track:'engineering', level:'advanced', hours:14,
   audience:'Backend engineers specializing in real-time multiplayer, who already run a service in production and want to reason about latency, authority, and reconciliation with the same rigor as a request handler.',
   outcome:'You can choose an authority model and defend it, design a wire protocol and a fan-out layer, and explain why a client’s result is never trusted by itself.',
@@ -20171,7 +20398,11 @@ PATH('netcode-server-engineer', {
       ],
       review:[],
       check:{
-        recall:['What is the difference between an equivalent answer and a bit-exact one, and why does replay verification need the second?','Name two sources of nondeterminism that break a bit-exact simulation replay.','Why does a trace gate compare every recorded step instead of only the final score?'],
+        recall:[
+          { q:'What is the difference between an equivalent answer and a bit-exact one, and why does replay verification need the second?', a:'An equivalent answer means two implementations agree on the final result or its distribution. A bit-exact one means they reach the identical last bit at every step. Replay verification needs the second because equivalent-only implementations still diverge step by step on real match data.' },
+          { q:'Name two sources of nondeterminism that break a bit-exact simulation replay.', a:'A platform\'s random number generator producing different bit sequences unless ported by hand, and floating point operations the compiler is free to fold into a fused multiply-add, changing the result depending on the build. Both need a bit-for-bit port and math helpers that forbid the fold.' },
+          { q:'Why does a trace gate compare every recorded step instead of only the final score?', a:'Two different simulations can land on the same final score while disagreeing about every step that produced it, so comparing only the final result would let that exact class of bug through. Diffing every recorded step fails on the first divergent instruction instead of averaging it away.' }
+        ],
         build:'Export the System Relationship Map connecting authority, determinism, and anti-cheat, with the one dependency you marked as load-bearing.',
         skip:['Can you name your authority model and the exact correction a player feels when overruled, without checking?','Have you already found and fixed a source of nondeterminism in a real simulation?','Do you know why your project’s replay or trace test compares every step rather than the final score?','Can you draw the dependency between your authority model and your anti-cheat plan from memory?']
       } },
@@ -20186,7 +20417,11 @@ PATH('netcode-server-engineer', {
       ],
       review:['server-authority'],
       check:{
-        recall:['Why does sending what changed need a rate someone chose on purpose?','What is the minimum a message envelope needs, and what does adding a field beyond that cost you?','What field lets a realtime message detect and drop a duplicate delivery?'],
+        recall:[
+          { q:'Why does sending what changed need a rate someone chose on purpose?', a:'Bandwidth and server cost scale with what you send times how often times how many players see it, so an undeliberate tick rate, picked because it matched the physics loop, becomes the largest running cost of the game, discovered during a postmortem instead of chosen on purpose.' },
+          { q:'What is the minimum a message envelope needs, and what does adding a field beyond that cost you?', a:'A length, an op code, a message id, and a payload. Anything past that is a decision that has to be defended, because it grows every message and every parser reading it, and adding a field later means every existing client has to be updated too.' },
+          { q:'What field lets a realtime message detect and drop a duplicate delivery?', a:'A client-generated intent or request id repeated on every retry of the same action, so the server can store the outcome against that id and replay it rather than applying the action a second time when a retried packet arrives.' }
+        ],
         build:'Export the updated System Relationship Map with your envelope format and idempotency field added.',
         skip:['Can you state your tick rate and the field you delta-encode without checking?','Can you sketch your message envelope field by field, from memory?','Have you already added an idempotency field to a realtime protocol, not just an HTTP one?','Do you know what breaks first if your tick rate changed tomorrow?']
       } },
@@ -20202,7 +20437,11 @@ PATH('netcode-server-engineer', {
       ],
       review:['server-realtime-protocol'],
       check:{
-        recall:['What must a matchmaking ticket explicitly answer besides capacity and rules?','Why does a multi-instance chat or presence system need a fan-out layer at all?','Which cache tier does fast-changing, shared room state belong in, and why?'],
+        recall:[
+          { q:'What must a matchmaking ticket explicitly answer besides capacity and rules?', a:'What happens to the room when a matched player disconnects or their app is suspended: whether the seat is held and for how long, whether they can reconnect, or whether the match ends or is forfeited. Reconnection is a product decision with a real cost; it has to be decided, not discovered.' },
+          { q:'Why does a multi-instance chat or presence system need a fan-out layer at all?', a:'A publish on one instance only reaches clients connected to that process. With chat or presence spread across instances, a fan-out layer hashes each channel to a Redis publish-subscribe shard and re-publishes through it, so every instance holding subscribers for that channel delivers the message.' },
+          { q:'Which cache tier does fast-changing, shared room state belong in, and why?', a:'The distributed tier, because a room or matchmaking pool is shared, fast-changing state that more than one server instance must agree on. A process-local cache would let each instance disagree, and a per-request cache would not persist between requests at all.' }
+        ],
         build:'Export the System Relationship Map with rooms and sessions added, and the ticket field set that answers the disconnect question.',
         skip:['Can you write your disconnect rule for a mid-match room without checking?','Do you know which message type in your protocol would need Redis fan-out, if you ran on more than one instance?','Have you already found the gap between a real session flow and your own server-side handling?','Can you say which node in your system map has the most dependents, right now?']
       } },
@@ -20217,7 +20456,11 @@ PATH('netcode-server-engineer', {
       ],
       review:['server-matchmaking','backend-caching-redis'],
       check:{
-        recall:['Why can stateless components scale by adding copies while stateful ones cannot?','What are the three separate decisions in an anti-cheat response, and why keep them separate?','Why does re-simulation give you an anti-cheat signal for free?'],
+        recall:[
+          { q:'Why can stateless components scale by adding copies while stateful ones cannot?', a:'A stateless component holds nothing between requests, so adding another copy behind a load balancer works immediately. A stateful component such as a live match holds session state in one process\'s memory, so a client has to find that specific instance, and killing it kills the match.' },
+          { q:'What are the three separate decisions in an anti-cheat response, and why keep them separate?', a:'Detection, which flags a suspicious result; evidence, which retains the replay and inputs for a human to review; and response, a separate policy decision ranging from a rejection to a rate limit to a shadow ban. Keeping them separate stops a noisy detector from directly triggering an unreviewable ban.' },
+          { q:'Why does re-simulation give you an anti-cheat signal for free?', a:'Because the server already re-runs the same simulation independently to confirm the result is correct, comparing its own computed outcome against what the client submitted costs nothing extra to implement and catches a client lying about the result, on top of the parity check it already needed.' }
+        ],
         build:'Export the System Relationship Map with the stateful core and shard key added, and the three-part anti-cheat decision you wrote.',
         skip:['Can you classify every component in your server as stateless or stateful without checking?','Have you already picked a shard key and lived with a query pattern it made worse?','Can you separate detection, evidence, and response for a cheat you already know about?','Do you know whether your own simulation could re-run a client’s claim to verify it?']
       } },
@@ -20234,7 +20477,11 @@ PATH('netcode-server-engineer', {
       ],
       review:['server-scaling','server-anticheat'],
       check:{
-        recall:['Why is tearing down a suspended session on a phone a decision, not a default?','What kind of bug does a name-based renaming pass risk breaking in a netcode layer?','Which step in match verification would fail first under load, in your own design?'],
+        recall:[
+          { q:'Why is tearing down a suspended session on a phone a decision, not a default?', a:'A suspended phone session is ambiguous either way, it might come back or might not, and a loud, immediate failure was chosen over a silent one where a stale client or leftover server state could keep operating it. Accepting no reconnect grace period is a deliberate design call, not a technical default.' },
+          { q:'What kind of bug does a name-based renaming pass risk breaking in a netcode layer?', a:'A netcode library that resolves some of its generated network members by name at runtime is structurally incompatible with any renaming or obfuscation pass, because renaming those members silently breaks remote registration or replication in a way that only appears in a protected build, never in the editor.' },
+          { q:'Which step in match verification would fail first under load, in your own design?', a:'A well-grounded answer names the actual bottleneck in the design, such as the step that re-simulates or looks up a stored result under peak concurrent load, and explains why that specific step, rather than authentication or scoring, is where contention would first appear.' }
+        ],
         build:'Export the finished System Relationship Map connecting every stage’s system back to player-felt wait time.',
         skip:['Can you name a server-side change you would need a version gate to ship safely mid-match?','Do you know which layer, transport or hand-written protocol, would own a desync bug in your own stack?','Have you already found a build step in your own pipeline that resolves something by name at runtime?','Can you trace every system in your design back to the wait time a player actually feels?']
       } }
@@ -20243,10 +20490,11 @@ PATH('netcode-server-engineer', {
 
 PATH('build-and-release-engineer', {
   t:'Build and release engineer', tag:'Make a release boring on purpose: one entry point, one provenance stamp, one rhythm.',
+  pick:'Make builds and releases boring by design',
   track:'engineering', level:'intermediate', hours:12.5,
   audience:'Engineers responsible for CI/CD, build pipelines, and the release process for a game team, who want a release that is boring by design rather than a fire drill every time.',
   outcome:'You can define and run a release checklist, build a player from a single parameterised entry point, and identify a pipeline smell before it costs a release.',
-  prereq:[], next:['technical-lead'],
+  prereq:['game-designer-foundations'], next:['technical-lead'],
   stages:[
     { id:'s1', t:'Pin the environment', level:'intermediate',
       goal:'Make the dev stack and the CI stack the same description, and replace near-identical pipeline jobs with one table.', hours:2,
@@ -20259,7 +20507,11 @@ PATH('build-and-release-engineer', {
       ],
       review:[],
       check:{
-        recall:['Why does pinning the toolchain in an image remove a whole class of bug, not just reduce it?','What does a job-name table let you collapse that eight near-identical jobs could not?','Why should a checkout or upload retry, but a broken build not?'],
+        recall:[
+          { q:'Why does pinning the toolchain in an image remove a whole class of bug, not just reduce it?', a:'Pinning the toolchain, database, and OS packages in an image means every laptop and every build agent run identical versions, so a whole category of failure, a query that works locally and fails in CI on a different collation or default, cannot occur rather than merely occurring less often.' },
+          { q:'What does a job-name table let you collapse that eight near-identical jobs could not?', a:'A table keyed on job name, holding the handful of values that actually differed between eight near-identical jobs, lets one declarative pipeline with stages guarded by that name replace eight separate job definitions that had drifted apart under years of manual edits.' },
+          { q:'Why should a checkout or upload retry, but a broken build not?', a:'Checkout and uploads fail for reasons unrelated to the code, such as network flakiness, so retrying them with backoff is honest. Retrying a broken build or a failing test destroys the evidence that something is wrong and trains the team to re-run until green instead of fixing the cause.' }
+        ],
         build:'Export the System Relationship Map of your pipeline stages, with the one load-bearing stage marked.',
         skip:['Can you name the one tool-version mismatch between your machine and CI, right now?','Have you already collapsed near-identical pipeline jobs into one table-driven job?','Do you know which of your pipeline’s external calls are missing a retry?','Can you draw your pipeline’s stage dependencies from memory?']
       } },
@@ -20275,7 +20527,11 @@ PATH('build-and-release-engineer', {
       ],
       review:['infra-ci-pipelines'],
       check:{
-        recall:['Why can provenance not be added after the fact?','What makes history, not the current commit, the real boundary for a leaked secret?','Why does grading a failure need two independent signals instead of one?'],
+        recall:[
+          { q:'Why can provenance not be added after the fact?', a:'The version, commit hash, build date, and toolchain version have to be captured at the moment the artefact is produced, because the exact commit under test and the toolchain state are gone once the job ends. There is no later point where that information can be reconstructed.' },
+          { q:'What makes history, not the current commit, the real boundary for a leaked secret?', a:'A credential is compromised the instant it is pushed, because every clone, fork, and CI cache made since then keeps a plaintext copy indefinitely, regardless of the latest commit. Deleting it from the current file leaves it fully reachable in history, so rotation is the actual fix.' },
+          { q:'Why does grading a failure need two independent signals instead of one?', a:'Either signal alone had already been wrong: a build tool can print a fatal error and still exit zero, and it can also exit non-zero after producing a usable artefact. Requiring agreement between a curated fatal-log-pattern check and the exit code catches what either one alone would miss.' }
+        ],
         build:'Export the scope sanity checklist result for your release process, alongside the provenance fields your build currently stamps.',
         skip:['Can you name every field your build artefact stamps, without checking?','Would you catch a credential in history, not just in the current diff?','Do you know whether your pipeline’s failure detection relies on one signal or two?','Have you already run a scope sanity pass on your release process this quarter?']
       } },
@@ -20291,7 +20547,11 @@ PATH('build-and-release-engineer', {
       ],
       review:['infra-artifacts-provenance'],
       check:{
-        recall:['What does a single parameterised entry point buy you over ten separate build scripts?','Why document a workaround explicitly instead of just leaving the code as it is?','Why does an exclusion list need to be mirrored into the checkout step, not just the build step?'],
+        recall:[
+          { q:'What does a single parameterised entry point buy you over ten separate build scripts?', a:'The difference between build targets becomes data, a set of command-line flags read by one entry point, instead of ten separate scripts that duplicate setup and teardown and quietly drift apart from each other as each is edited independently.' },
+          { q:'Why document a workaround explicitly instead of just leaving the code as it is?', a:'An undocumented workaround looks exactly like a mistake to the next person reading the pipeline, and without an explanation they are likely to remove it, reintroducing the timing bug it was written to avoid. A comment at the call site preserves the reason past the person who wrote it.' },
+          { q:'Why does an exclusion list need to be mirrored into the checkout step, not just the build step?', a:'If content is only excluded at the build step, it still reaches the build agent\'s disk and can be picked up by accident. Mirroring the same list as a sparse-checkout exclude means the content never arrives on the agent at all, a stronger guarantee than trusting every build step to skip it.' }
+        ],
         build:'Export the System Relationship Map of your build pipeline with its blocking step marked, alongside the workaround you chose to document.',
         skip:['Could you collapse your own build scripts into one parameterised entry point today?','Have you already documented a build workaround explicitly, instead of leaving a comment nobody reads?','Do you know what your build currently does with content that should not ship?','Can you name the one step in your build pipeline that blocks every step after it?']
       } },
@@ -20306,7 +20566,11 @@ PATH('build-and-release-engineer', {
       ],
       review:['quality-and-build-health'],
       check:{
-        recall:['What property of a workload should actually decide its deploy model?','Why does a CDN path need a content hash rather than a stable filename?','What does sharing one stage shape across pipelines actually prevent?'],
+        recall:[
+          { q:'What property of a workload should actually decide its deploy model?', a:'Whether the workload holds state, how long it runs, and how often it is invoked. A stateless request should scale by adding copies, a long-lived connection needs a supervised or scheduled process, and a periodic job belongs on a clock, so the work\'s shape decides the model rather than fashion.' },
+          { q:'Why does a CDN path need a content hash rather than a stable filename?', a:'A content hash in the path guarantees a changed file gets a new URL by construction, so it can never collide with a stale cached copy at any layer. A stable filename relies on every cache and CDN edge correctly noticing the file changed, which some intermediaries simply ignore.' },
+          { q:'What does sharing one stage shape across pipelines actually prevent?', a:'It prevents the platform pipelines from drifting into different processes over time, because a change to how setup validates parameters or how a failure is graded is one edit applied everywhere those pipelines share a stage, rather than several edits that can fall out of sync with each other.' }
+        ],
         build:'Export the System Relationship Map showing whether code and content can ship independently in your own system.',
         skip:['Can you justify your service’s deploy model by its workload, not by habit?','Do you know whether your CDN path scheme hashes content or trusts a filename?','Have you already found two pipelines in your own project that could share one stage shape?','Can you ship a content update today without also shipping a new client build?']
       } },
@@ -20321,7 +20585,11 @@ PATH('build-and-release-engineer', {
       ],
       review:['infra-deploy-models','infra-cdn-assets'],
       check:{
-        recall:['What is the difference between a fixed release train and a deadline-driven release?','Why does re-prefixing a failure with its phase name matter for a two-hour log?','What does validating and restoring around every build actually prevent?'],
+        recall:[
+          { q:'What is the difference between a fixed release train and a deadline-driven release?', a:'A fixed release train has a departure time set in advance; whatever is ready and green ships and whatever is not waits for the next train. A deadline-driven release instead bends the calendar around whatever is unfinished, concentrating the riskiest changes at the moment closest to shipping.' },
+          { q:'Why does re-prefixing a failure with its phase name matter for a two-hour log?', a:'When every stage tags a failure with the name of the phase that produced it, a two-hour build log can be triaged by reading that single re-prefixed line instead of scrolling through the entire log to find where things actually went wrong.' },
+          { q:'What does validating and restoring around every build actually prevent?', a:'Validating parameters in a cheap setup stage before an expensive build starts catches a bad input in the first minute instead of after hours of work, and restoring the working tree before each run stops a build that mutates or deletes files from leaving broken state for the next run.' }
+        ],
         build:'Export the second scope sanity checklist result, showing what changed after you added the missing release gate.',
         skip:['Can you say whether your release cadence is a fixed train or a moving deadline, without checking?','Could you triage a failure in your own build logs from one line, or would you have to scroll?','Do you know the one validation or restore step your own pipeline currently skips?','Have you already added a release gate you previously did not have?']
       } }
@@ -20330,10 +20598,11 @@ PATH('build-and-release-engineer', {
 
 PATH('interview-prep-engineer', {
   t:'Interview prep, engineering', tag:'Turn layering, authority, and build health into answers with a real tradeoff in them.',
+  pick:'Answer engineering interview questions with examples',
   track:'interview', level:'intermediate', hours:8,
   audience:'Anyone preparing for an engineering interview across backend, server, infrastructure, game AI, or production roles, who wants the app’s own frameworks as the backing for their answers.',
   outcome:'You can answer a structured interview question in any of these tracks with a real example, verify what an AI drafted for you, and tell your own project’s story instead of reciting a definition.',
-  prereq:['gameplay-engineer-godot','live-game-backend-engineer','build-and-release-engineer'], next:[],
+  prereq:['gameplay-engineer-godot','live-game-backend-engineer','netcode-server-engineer'], next:[],
   stages:[
     { id:'s1', t:'Backend and server craft', level:'intermediate',
       goal:'Turn layering and authority from vocabulary into an answer with a real tradeoff in it.', hours:2,
@@ -20346,7 +20615,11 @@ PATH('interview-prep-engineer', {
       ],
       review:[],
       check:{
-        recall:['What makes a layering answer sound like an interview cliché versus a real tradeoff?','What follow-up question would you ask a candidate who gives a textbook authority-model answer?','What is the difference between “we write tests” and naming a specific rule your team enforces?'],
+        recall:[
+          { q:'What makes a layering answer sound like an interview cliché versus a real tradeoff?', a:'An interviewer wants the actual tradeoff a candidate hit while enforcing layering, such as a specific import-direction violation and what it cost to fix, not a textbook recitation of dependency inversion or the names of the rings.' },
+          { q:'What follow-up question would you ask a candidate who gives a textbook authority-model answer?', a:'Ask for a concrete case that tests whether they actually built it: what happens when the model disagrees with the client, what a cheating client could get away with in the gap, or what the player literally sees during a correction.' },
+          { q:'What is the difference between “we write tests” and naming a specific rule your team enforces?', a:'We write tests is a general claim nobody can verify, while naming a specific enforced rule, such as requiring a failing test shown red before the fix that makes it pass, gives the interviewer something concrete to probe and shows the practice is actually followed.' }
+        ],
         build:'Write out your sixty-second answer to “tell me about a backend decision you would make differently now,” and time yourself saying it out loud.',
         skip:['Can you answer a layering question with a real tradeoff, not a definition, right now?','Do you already have a follow-up question ready for an authority-model answer?','Can you name a specific process rule your team enforces, not just “we write tests”?','Have you already rehearsed your sixty-second decision story out loud?']
       } },
@@ -20361,7 +20634,11 @@ PATH('interview-prep-engineer', {
       ],
       review:['backend-layering'],
       check:{
-        recall:['What makes a monitoring answer specific instead of generic?','Why is “a test that passed but should not have” a sharper story than “we have good test coverage”?','What would you actually say if asked how you decide what to delegate to AI?'],
+        recall:[
+          { q:'What makes a monitoring answer specific instead of generic?', a:'A specific answer names the actual alert, the symptom it watches, such as players failing to log in, and the runbook that tells someone what to do at three in the morning. A generic answer only says the team watches dashboards, naming no decision and no action.' },
+          { q:'Why is “a test that passed but should not have” a sharper story than “we have good test coverage”?', a:'We have good test coverage is unverifiable and often means little more than a high percentage. Describing a specific test whose expected value was pasted from the code\'s own output shows the candidate understands that a green suite can still prove nothing was actually checked.' },
+          { q:'What would you actually say if asked how you decide what to delegate to AI?', a:'State the categories explicitly: this task is Human because it needs judgment, this one is AI because it is repetitive and checkable, this one is player evidence required because only a playtest can answer it. Naming the split for a real recent task beats a vague comfort level with tools.' }
+        ],
         build:'Write and time your sixty-second answer to the monitoring or testing gap question.',
         skip:['Do you already have a real incident story with a named symptom ready to tell?','Can you describe a test that passed but should not have, from your own experience?','Could you explain your AI delegation split in one sentence, on the spot?','Have you rehearsed this stage’s sixty-second answer out loud?']
       } },
@@ -20376,7 +20653,11 @@ PATH('interview-prep-engineer', {
       ],
       review:['infra-monitoring'],
       check:{
-        recall:['Why does naming the technique you did not pick make an answer stronger?','What is the difference between a prototype that failed and a prototype that answered no question?','What does a fixed review checklist give an interview answer that “we do code review” does not?'],
+        recall:[
+          { q:'Why does naming the technique you did not pick make an answer stronger?', a:'It shows the candidate actually weighed the alternative\'s cost rather than reaching for the only technique they know. Explaining why a behaviour tree would have been harder to debug, or a planner too expensive to author, demonstrates the tradeoff was real, not assumed.' },
+          { q:'What is the difference between a prototype that failed and a prototype that answered no question?', a:'A prototype that failed tested a real hypothesis and the result said no, which is a useful outcome. One that answered no question was never built with a kill criterion or a signal to measure, so nothing was learned regardless of how it turned out.' },
+          { q:'What does a fixed review checklist give an interview answer that “we do code review” does not?', a:'A fixed checklist names the exact evidence a reviewer must verify every time, such as confirming zero warnings or that a soft reset runs clean, so the answer points at something specific a general review reliably misses. We do code review names no particular check at all.' }
+        ],
         build:'Write and time your sixty-second technique-choice answer, checked against the chooser tool’s result.',
         skip:['Can you name the technique you did not pick for a real system, and why, on the spot?','Do you have a real prototype-that-failed story ready, not a hypothetical one?','Can you name one concrete thing your team’s code review process actually checks?','Have you rehearsed this stage’s sixty-second answer out loud?']
       } },
@@ -20391,9 +20672,102 @@ PATH('interview-prep-engineer', {
       ],
       review:['choosing-ai-technique','server-authority'],
       check:{
-        recall:['What is the difference between triaging a bug that blocks the core loop and a cosmetic one?','Why does “a number and a threshold” beat “it felt right” as an answer to “how did you know it worked”?','What does a written verification ladder give you that “we test a lot” does not?'],
+        recall:[
+          { q:'What is the difference between triaging a bug that blocks the core loop and a cosmetic one?', a:'A bug that blocks the core loop or a specific test goal stops the evidence loop entirely and gets fixed first regardless of how minor it looks. A cosmetic bug, however visible, waits behind it. The distinction is whether the bug stops learning something, not how it looks on screen.' },
+          { q:'Why does “a number and a threshold” beat “it felt right” as an answer to “how did you know it worked”?', a:'A number and a revert threshold, decided before the change shipped, can be checked by anyone and force the team to state in advance what would count as failure. It felt right is an unfalsifiable impression that cannot be attributed to the change or challenged afterward.' },
+          { q:'What does a written verification ladder give you that “we test a lot” does not?', a:'A written ladder orders checks from cheapest to most expensive, states which rung a given change is expected to need, and can be checked afterward against what was actually used. We test a lot names no order, no cost, and gives nobody a way to verify the claim was followed.' }
+        ],
         build:'Write and time your final sixty-second answer combining the build-health or metrics story with the one habit you named as least confident.',
         skip:['Can you state your own core-loop-blocking triage rule on the spot?','Do you have a real metric and revert threshold ready from your own work?','Can you name the one rung you would add to your team’s verification ladder?','Have you named the habit you are least confident defending, and a concrete fix for it?']
+      } }
+  ]
+});
+
+PATH('ship-it', {
+  t:'Ship a game on PC, console and mobile', tag:'From choosing platforms to a release that survives its first patch.',
+  pick:'Ship a game on PC, console and mobile',
+  track:'production', level:'intermediate', hours:8,
+  audience:'Producers, leads and developers taking a finished or nearly finished game to one or more stores for the first time.',
+  outcome:'You can choose platforms on purpose, start access early, pass certification on a planned calendar, file ratings and disclosures correctly, and release and patch without breaking saves.',
+  prereq:[], next:['build-and-release-engineer','technical-lead'],
+  stages:[
+    { id:'s1', t:'Pick your platforms', level:'intermediate',
+      goal:'Choose where the game ships, and know what each choice commits you to before a line of platform code.', hours:2,
+      steps:[
+        { kind:'topic', ref:'platform-choice', why:'The platform decides the engine, the input, the calendar and the audience before any feature does.', do:'Score two or three candidate platforms on reach, cost, gatekeeping and effort, and write which one your validated audience is actually on.', min:30 },
+        { kind:'topic', ref:'platform-and-session', why:'Session length and input follow from the platform, and the loop has to fit them.', do:'Write how one session of your game changes between a PC and a phone: its length, its input, and where the player stops.', min:20 },
+        { kind:'platform', ref:'steam', why:'Steam is the most open store, so it is the baseline every other gate is measured against.', do:'Read the Steam guide and list what you need on day one: the fee, the store page, both reviews and the Coming Soon runway.', min:25 },
+        { kind:'topic', ref:'ugc-platforms', why:'Roblox and Fortnite are a platform choice that also picks the engine, the language and the economy.', do:'Decide in one paragraph whether your game belongs on a UGC platform instead of a store, and why.', min:20 },
+        { kind:'tool', ref:'feature', why:'A second platform is scope, and deserves the same scrutiny as any feature.', do:'Run your second platform through “Should we build this?” as if it were a feature, and keep the verdict.', min:25 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'What does a platform decide before any feature does?', a:'The engine and its export path, the input scheme and session length, the access and certification calendar, and which audience can find the game. It is a design constraint set first, not a marketing choice made at the end.' },
+          { q:'Why is “we will port it later” never free?', a:'Porting touches input, save data, UI scale and sometimes the engine’s export path, and it competes with the current milestone for the same people. It needs an estimate and a place in the plan like any other feature.' },
+          { q:'When is a UGC platform a better home than a store?', a:'When the game fits what that platform rewards (multiplayer, short sessions, engagement-ranked discovery), and the team accepts building inside its runtime and earning inside its economy in exchange for its audience, servers and payments.' }
+        ],
+        build:'Write a one-page platform decision: the platforms you will ship on, in order, what each commits you to (access, calendar, input), and the one you decided against and why.',
+        skip:['Can you name what each of your target platforms commits you to before you write platform code?','Have you already decided the order you will ship platforms in, with a reason?','Can you explain why a port has to be estimated like a feature?']
+      } },
+    { id:'s2', t:'Get access and meet the requirements', level:'intermediate',
+      goal:'Start the slow paperwork early, and build the behaviour every platform checks.', hours:2,
+      steps:[
+        { kind:'topic', ref:'platform-access', why:'Entity checks, NDAs and dev-kit approval can take longer than any technical work.', do:'For each target platform, list the entity, identity and NDA steps with an owner and a lead time.', min:25 },
+        { kind:'platform', ref:'nintendo', why:'A console shows what an NDA-bound process looks like from outside: a queue first, then an SDK.', do:'Read the Nintendo guide and mark which of its stages you can plan now and which open only after the NDA.', min:15 },
+        { kind:'platform', ref:'google-play', why:'Mobile stores add their own gates, such as testing rules for new accounts and target API deadlines.', do:'Read the Google Play guide and note every requirement that comes with a date.', min:15 },
+        { kind:'topic', ref:'platform-requirements', why:'Suspend, resume, controller loss and a save that survives them are the entry fee on every platform.', do:'Test your build: suspend it mid-save, pull the controller mid-action, and write down what broke.', min:30 },
+        { kind:'topic', ref:'infra-ci-pipelines', why:'One pipeline that builds every platform’s player is what keeps the requirements checked on every build.', do:'Sketch the CI job that builds each platform target from one entry point, and mark where the platform checks run.', min:25 },
+        { kind:'tool', ref:'delegate', why:'Paperwork and checklists are where AI can help most, and where it must never sign for you.', do:'Plan which access and requirement tasks an AI assistant can draft and which a person must own.', min:10 }
+      ],
+      review:['platform-choice'],
+      check:{
+        recall:[
+          { q:'Why start platform access before the build is ready?', a:'Entity, identity and NDA steps (a registered company, a D-U-N-S number, a signed NDA, a dev-kit request) can take longer than the technical work, and a console SDK does not exist for you until they are done.' },
+          { q:'Which lifecycle events does every platform expect a build to survive?', a:'Suspend and resume without losing progress, a controller disconnecting mid-session, and a save that is never left half written. A phone can suspend the game with no warning, so the save must happen on the pause notification.' },
+          { q:'What should a CI pipeline for several platforms guarantee?', a:'That every platform’s player is built from one parameterised entry point by the same steps every time, so a requirement checked once stays checked on the next build.' }
+        ],
+        build:'Write the access checklist for your platforms (an owner and a lead time per step) and a short test log of suspend, resume and controller loss on your current build.',
+        skip:['Have you already started the entity and NDA steps for every console you target?','Does your build already survive suspend, resume and controller loss without losing data?','Is every platform’s player built by one pipeline from one entry point?']
+      } },
+    { id:'s3', t:'Pass the gates', level:'intermediate',
+      goal:'Plan certification and store review as fixed dates, and file ratings and disclosures correctly the first time.', hours:2,
+      steps:[
+        { kind:'topic', ref:'certification-and-review', why:'Every platform has a gate and a clock, and a rejection costs the turnaround twice.', do:'Build a submission calendar backward from your launch date, with each platform’s review window and one resubmission of buffer.', min:30 },
+        { kind:'topic', ref:'ratings-and-disclosures', why:'A missing or wrong rating or privacy answer blocks a release as hard as a crash does.', do:'List every storefront you ship on and whether it uses IARC, its own questionnaire or a direct board rating, and every SDK whose data collection you must declare.', min:25 },
+        { kind:'platform', ref:'apple', why:'Apple runs its own age rating and privacy labels, so it shows the disclosure work at its most detailed.', do:'Read the Apple guide’s review and ratings stages and list what your privacy label must declare.', min:20 },
+        { kind:'topic', ref:'pm-qa-release', why:'Review windows are calendar commitments that the release plan has to hold.', do:'Put your submission dates into the release plan as fixed milestones, each with an owner.', min:25 },
+        { kind:'checklist', ref:'submit-console', why:'A pre-submission pass catches the common rejections before the reviewer does.', do:'Run the submission checklist for your platform family (console here; PC and mobile are on the checklists page) and fix the first three failures.', min:20 }
+      ],
+      review:['platform-access'],
+      check:{
+        recall:[
+          { q:'Why is a review window a fixed date rather than an estimate?', a:'A rejection usually means a new queue, so a miss costs the turnaround twice. Put each platform’s published review time, or a conservative estimate where it is confidential, on the calendar with buffer for at least one resubmission.' },
+          { q:'Which storefronts need something other than the shared IARC questionnaire?', a:'Steam and Apple run their own questionnaires, and a console release in Japan or any boxed release needs a rating from the local board directly, because that board is not part of the shared system.' },
+          { q:'What must a privacy form cover besides your own code?', a:'What every third-party SDK in the build collects on your behalf, such as ads, analytics and crash reporting, because the form is a statement about the whole game.' }
+        ],
+        build:'Produce your submission calendar (dates, review windows, buffer) and the filled rating and privacy answers for one storefront, with every SDK checked.',
+        skip:['Is every review window in your plan a fixed date with resubmission buffer?','Do you know which of your storefronts use IARC and which do not?','Have you checked every SDK in your build for the data it collects?']
+      } },
+    { id:'s4', t:'Launch and keep it running', level:'advanced',
+      goal:'Put the store page up early, release on purpose, and patch without breaking a save.', hours:2,
+      steps:[
+        { kind:'topic', ref:'store-presence', why:'The store page sells the game before the game does, and a Coming Soon page needs runway.', do:'Draft your store page asset list to one store’s exact specs, and pick the date the page goes up.', min:25 },
+        { kind:'topic', ref:'launch-and-discoverability', why:'A launch is found through the store’s own surfaces first, so plan for them.', do:'Write the three store surfaces you will aim for at launch and what each needs from you.', min:15 },
+        { kind:'topic', ref:'release-and-updates', why:'Release is a button on some stores and a staged rollout on others, and the save has to survive every patch.', do:'Write the release runbook for each platform: who presses what, the rollout, and the day-one patch path, including a save-version check.', min:30 },
+        { kind:'platform', ref:'xbox', why:'Xbox publishes its update certification times, which makes a realistic patch calendar possible.', do:'Read the Xbox guide’s release stage and plan your first patch against its update turnaround.', min:15 },
+        { kind:'checklist', ref:'submit-mobile', why:'The last pass before release catches what the store will otherwise catch for you.', do:'Run the pre-submission checklist for your platform family on the release candidate.', min:20 },
+        { kind:'topic', ref:'live-operations', why:'After launch the game is a service, and every update passes another gate.', do:'Plan the first month of updates with each platform’s review time built in.', min:15 }
+      ],
+      review:['certification-and-review','ratings-and-disclosures'],
+      check:{
+        recall:[
+          { q:'Why open a Coming Soon or pre-registration page early?', a:'It turns attention gathered before launch into wishlists or pre-registrations the store can notify at launch, and some stores require the page to be public for a minimum time before release.' },
+          { q:'What must a patch never break, and how do you protect it?', a:'The player’s save. Store a save-format version with the save, check it on load and migrate old saves, because an update arrives on a version the player did not choose.' },
+          { q:'How does release differ between Steam and the mobile stores?', a:'On Steam an approved game waits until you press Release. Apple and Google offer managed releases with phased or staged rollouts that can be paused.' }
+        ],
+        build:'Write the release runbook for each platform (mechanism, owner, rollout, day-one patch path) and the save-version check your first patch relies on.',
+        skip:['Is your store page planned with enough runway before launch?','Do you have a release runbook per platform with a named owner?','Does every save carry a version your code checks and migrates?']
       } }
   ]
 });
@@ -21331,7 +21705,7 @@ const store = {
 };
 const seen = new Set(store.get('seen', []));
 function markSeen(id){ if(!seen.has(id)){ seen.add(id); store.set('seen', [...seen]); updateProgress(); } }
-function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `${s} / ${n} topics`; $('#progressBar').style.width = (100*s/n)+'%'; }
+function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `Topics read ${s}/${n}`; $('#progressBar').style.width = (100*s/n)+'%'; }
 
 /* ---------- theme ---------- */
 // The theme follows the system until the reader picks one with the toggle;
@@ -21345,7 +21719,12 @@ $('#themeBtn').onclick = () => { const t = document.documentElement.getAttribute
 
 /* ---------- toast / copy ---------- */
 let toastT;
-function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('show'), 1600); }
+// An action toast (Undo) stays longer and takes clicks; a plain one does not.
+function toast(msg, act){
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('act', !!act);
+  if(act){ const b = document.createElement('button'); b.type = 'button'; b.className = 'toastbtn'; b.textContent = act.label; Object.assign(b.dataset, act.data); t.appendChild(b); }
+  t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show', 'act'), act ? 6000 : 1600);
+}
 async function copyText(text){ try { await navigator.clipboard.writeText(text); toast('Copied to clipboard'); } catch(e){ const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('Copied'); }catch(err){ toast('Copy failed: select and copy manually'); } ta.remove(); } }
 
 /* ---------- one delegated listener per event ----------
@@ -21586,18 +21965,17 @@ function railProjectHTML(c, sysId, partId){
     </div>
     ${systems.length ? '' : '<div class="empty">No systems written for this project yet.</div>'}`;
 }
-// The rail in path mode: a path list header, stages as groups (like domains),
-// steps as items (like topics), ticked the same way a read topic is.
-function railPathHTML(pth, stageId){
-  const prog = pathProgress(pth.id);
+// The rail in path mode lists the paths, by track, with the open one marked.
+// The path's own stages and steps are shown once, in the stage view.
+function railPathHTML(pth){
   return `<div class="railhead">
       <a class="railgraph" href="#/paths">← All paths</a>
-      <input class="railsearch" id="railSearch" placeholder="Jump to a step…" autocomplete="off">
+      <input class="railsearch" id="railSearch" placeholder="Jump to a path…" autocomplete="off">
     </div>
-    <div class="raillist">${pth.stages.map(st => { const status = prog.stages[st.id];
-      return `<div class="raildom ${st.id === stageId ? 'open' : ''}" data-dom="${st.id}" style="--dc:var(--accent2)">
-      <button class="raildom-btn" data-stage="${st.id}"><span class="rdot"></span><span class="rt">${status === 'done' ? '✓ ' : status === 'skipped' ? '⇥ ' : ''}${esc(st.t)}</span><span class="rn">${st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length}/${st.steps.length}</span></button>
-      <div class="railtopics">${st.steps.map((step, i) => `<button class="railtopic ${prog.steps[`${st.id}/${i}`] ? 'seen' : ''}" data-stage="${st.id}" data-step="${i}">${esc(stepTitle(step))}</button>`).join('')}</div></div>`; }).join('')}
+    <div class="raillist">${TRACKS.map(([tid, tlabel]) => { const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
+      return `<div class="raildom open" data-dom="track-${tid}" style="--dc:var(--accent2)">
+      <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(tlabel)}</span><span class="rn">${list.length}</span></button>
+      <div class="railtopics">${list.map(p => `<button class="railtopic ${p.id === pth.id ? 'active' : ''}" data-path="${p.id}" ${p.id === pth.id ? 'aria-current="page"' : ''}>${esc(p.t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
 }
 function railActive(){
@@ -21637,9 +22015,9 @@ function updateRail(){
   }
   const pth = hash[0] === 'paths' && hash[1] ? PATHS.find(x => x.id === hash[1]) : null;
   if(pth){
-    r.innerHTML = railPathHTML(pth, hash[2]);
-    r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${b.dataset.stage}`; }));
-    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { const st = pth.stages.find(s => s.id === b.dataset.stage); const step = st && st.steps[+b.dataset.step]; if(step) go(stepHref(step, pth.id, st.id)); closeRailDrawer(r); }));
+    r.innerHTML = railPathHTML(pth);
+    r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => b.parentElement.classList.toggle('open')));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/paths/' + b.dataset.path); closeRailDrawer(r); }));
     railFilter(r, '.railtopic');
     return;
   }
@@ -21648,7 +22026,14 @@ function updateRail(){
   r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/map/t/' + b.dataset.topic); closeRailDrawer(r); }));
   railFilter(r, '.railtopic');
 }
-function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
+// keepScroll is set for one render by an action that re-renders the page the
+// reader is on (ticking a step); every other render starts at the top.
+let keepScroll = false;
+function setView(html){
+  ensureShell(); const pane = $('#pane'), keep = keepScroll, y = window.scrollY, py = pane.scrollTop; keepScroll = false;
+  pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail();
+  if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else window.scrollTo({ top: 0 });
+}
 // The views of the current group, as sub-tabs. The map group shows them on
 // its landing views only, not above every domain and topic page.
 function subNavHTML(){
@@ -22788,7 +23173,7 @@ function renderReview(){
     ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next ${inDays(next - today())}` : ''}` : ''}</span></div>
     ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due today. A new question comes back tomorrow, so answering it is a real test of recall.</div>'}
     ${upcoming.length ? `<details class="review-later"><summary>Coming up (${upcoming.length})</summary><ul>${upcoming.map(([k, r]) => `<li><span>${esc(r.q)}</span><span class="small muted">${inDays(r.due - today())}</span><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></li>`).join('')}</ul></details>` : ''}`
-    : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) and press "Review later".</div>'}`);
+    : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) or a checkpoint question on a learning path, and press "Review later".</div>'}`);
 }
 
 /* =====================================================================
@@ -22844,16 +23229,31 @@ function goPastStage(pathId, stageId){
   const pth = PATHS.find(p => p.id === pathId); const idx = pth.stages.findIndex(s => s.id === stageId); const nxt = pth.stages[idx + 1];
   go(nxt ? `#/paths/${pathId}/${nxt.id}` : `#/paths/${pathId}`);
 }
+// Ticking re-renders the same page in place, then brings the next unticked
+// step of the open stage into view.
 function togglePathStep(pathId, key, checked){
   const prog = pathProgress(pathId); prog.steps[key] = !!checked; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
-  savePathProgress(pathId, prog); store.set('paths.active', pathId); route();
+  savePathProgress(pathId, prog); store.set('paths.active', pathId); keepScroll = true; route();
+  const nextRow = checked && document.querySelector('#pane .pathstage.open .pathstep:not(.done)');
+  if(nextRow) nextRow.scrollIntoView({ block: 'nearest' });
 }
-ACTIONS['stage-done'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'done'); goPastStage(el.dataset.path, el.dataset.stage); };
-ACTIONS['stage-skip'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'skipped'); goPastStage(el.dataset.path, el.dataset.stage); };
+function clearStageStatus(pathId, stageId){
+  const prog = pathProgress(pathId); delete prog.stages[stageId]; prog.last = Date.now(); savePathProgress(pathId, prog);
+}
+const undoToast = (msg, el) => toast(msg, { label: 'Undo', data: { action: 'stage-undo', path: el.dataset.path, stage: el.dataset.stage } });
+ACTIONS['stage-done'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'done'); goPastStage(el.dataset.path, el.dataset.stage); undoToast('Stage marked done', el); };
+ACTIONS['stage-skip'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'skipped'); goPastStage(el.dataset.path, el.dataset.stage); undoToast('Stage skipped', el); };
+ACTIONS['stage-undo'] = el => { clearStageStatus(el.dataset.path, el.dataset.stage); $('#toast').classList.remove('show', 'act'); go(`#/paths/${el.dataset.path}/${el.dataset.stage}`); };
+// A step node clicked on the path map opens that step in the stage view.
+let focusStep = null;
+const showPathStep = (pathId, key) => { focusStep = key; go(`#/paths/${pathId}/${key.slice(0, key.lastIndexOf('/'))}`); };
+// A stage is never marked done from the path bar: "continue" at a checkpoint
+// opens the checkpoint, and marking it done stays a click inside it.
+let focusCheckpoint = null;
 ACTIONS['path-continue'] = el => {
   const pathId = el.dataset.path, next = pathNextStep(pathId); if(!next) return;
   if(next.type === 'step') togglePathStep(pathId, `${next.stage.id}/${next.index}`, true);
-  else { markStageStatus(pathId, next.stage.id, 'done'); route(); }
+  else { focusCheckpoint = next.stage.id; go(`#/paths/${pathId}/${next.stage.id}`); }
 };
 // Leaving while sitting on that path's own page would otherwise re-activate
 // it on the very next render (renderPaths always activates the path it
@@ -22878,16 +23278,19 @@ function pathBarHTML(){
   return `<div class="pathbar">
     <div class="pathbar-info"><b>${esc(pth.t)}</b><span class="muted"> · Stage ${curIdx} of ${pth.stages.length} · Next: ${esc(nextStepLabel(next))}</span></div>
     <div class="pathbar-actions">
-      ${next ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">Next →</a>`) : ''}
+      ${next ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Mark done and continue'}</button>` : `<a class="btn sm primary" href="${href}">Next →</a>`) : ''}
       <button class="btn sm ghost" data-action="leave-path">Leave path</button>
     </div></div>`;
 }
 
-function pathCard(p){
+const pathTitle = id => { const p = PATHS.find(x => x.id === id); return p ? p.t : id; };
+function pathCard(p, picked){
   const { pct } = pathProgressCounts(p);
-  return `<a class="card clickable tint lnk blk" style="--dc:var(--accent2)" href="#/paths/${p.id}">
-    <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span></div>
+  return `<a class="card clickable tint lnk blk ${picked ? 'picked' : ''}" style="--dc:var(--accent2)" href="#/paths/${p.id}" data-path-card="${p.id}">
+    <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span>${picked ? '<span class="chip ok">Suggested for you</span>' : ''}</div>
     <b>${esc(p.t)}</b><div class="small dim">${esc(p.tag)}</div>
+    <div class="small clamp2" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
+    <div class="small muted">${p.prereq.length ? `After ${p.prereq.map(id => esc(pathTitle(id))).join(', ')}` : 'No prerequisites'}</div>
     <div class="progress" style="margin-top:8px"><span class="small muted">${pct}%</span><span class="bar"><i style="width:${pct}%"></i></span></div></a>`;
 }
 function pathsDoorHTML(){
@@ -22898,33 +23301,54 @@ function pathsDoorHTML(){
     return `<div class="card tint" style="--dc:var(--accent2);margin-bottom:18px"><div class="overline">Continue</div><h3 style="margin:2px 0 4px">${esc(active.t)}</h3><p class="dim small">Next: ${esc(nextStepLabel(next))}</p>
       <div class="row"><a class="btn primary" href="${nextStepHref(next)}">Continue →</a><a class="btn ghost" href="#/paths/${active.id}">Open the path</a></div></div>`;
   })() : '';
-  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<button class="path" data-href="#/paths/${p.id}"><b>${esc(p.outcome.split(/(?<=\.)\s/)[0])}</b><span>${esc(p.tag)}</span></button>`).join('')}</div>` : '';
+  const ans = chooserAnswers(), rec = ans.goal && ans.level && ans.time ? choosePath(ans.goal, ans.level, ans.time) : null;
+  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<button class="path" data-href="#/paths/${p.id}"><b>${esc(p.pick)}</b><span>${esc(p.tag)}</span></button>`).join('')}</div>` : '';
   const tracks = TRACKS.map(([tid, tlabel]) => {
     const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
-    return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(pathCard).join('')}</div>`;
+    return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(p => pathCard(p, !!rec && rec.path === p)).join('')}</div>`;
   }).join('');
   return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
     ${continueCard}
+    ${chooserHTML(ans, rec)}
     ${outcomes ? `<div class="section-head"><h2>What do you want to be able to do?</h2></div>${outcomes}` : ''}
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
     <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
 }
 
-function stepRowHTML(pth, st, i, step, prog){
+// The three-question chooser. Answers are a per-browser convenience; the
+// pick itself is choosePath (50-paths.js), shared with the validator.
+const chooserAnswers = () => store.get('chooser', {});
+ACTIONS.choose = el => { const a = chooserAnswers(); a[el.dataset.q] = el.dataset.v; store.set('chooser', a); keepScroll = true; renderPaths(); };
+function chooserHTML(ans, rec){
+  const q = (key, label, opts) => `<div class="chooser-q"><div class="overline" id="cq-${key}">${label}</div><div class="dims" role="group" aria-labelledby="cq-${key}">${opts.map(([v, t]) => `<button type="button" data-action="choose" data-q="${key}" data-v="${v}" class="${ans[key] === v ? 'active' : ''}" aria-pressed="${ans[key] === v}">${esc(t)}</button>`).join('')}</div></div>`;
+  let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
+  if(rec){
+    const p = rec.path, why = [`${p.pick}.`, `About ${p.hours} hours${rec.over ? ', more than you have, so skip the stages you already know' : ''}.`];
+    if(ans.level === 'new' && p.prereq.length) why.push(`New to this? Start with ${p.prereq.map(pathTitle).join(' or ')}.`);
+    if(ans.level === 'senior' && p.level === 'beginner') why.push('Use “I already know this” on the stages you have covered.');
+    if(rec.alt.length) why.push(`Also fits: ${rec.alt.map(a => a.t).join(', ')}.`);
+    out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)"><div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${esc(why.join(' '))}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a></div>`;
+  }
+  return `<section class="chooser"><div class="section-head"><h2>Which path is for me?</h2></div>
+    ${q('goal', 'I want to', CHOOSER.goals)}${q('level', 'My experience', CHOOSER.levels)}${q('time', 'Time I have', CHOOSER.times)}
+    <div class="chooser-out" aria-live="polite">${out}</div></section>`;
+}
+function stepRowHTML(pth, st, i, step, prog, isNext){
   const key = `${st.id}/${i}`, checked = !!prog.steps[key], href = stepHref(step, pth.id, st.id);
-  return `<label class="pathstep ${checked ? 'done' : ''}">
+  return `<label class="pathstep ${checked ? 'done' : ''} ${isNext ? 'next' : ''}" data-row="${key}">
     <input type="checkbox" ${checked ? 'checked' : ''} data-path="${pth.id}" data-step="${key}">
-    <span class="chip kindchip">${esc(step.kind)}</span>
+    <span class="chip kindchip">${isNext ? 'next' : esc(step.kind)}</span>
     <span class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
       <div class="small dim">${esc(step.why)}</div><div class="small">${esc(step.do)}</div></span>
   </label>`;
 }
 function stageFooterHTML(pth, st, prog){
+  const next = pathNextStep(pth.id), checkpointOpen = !!next && next.type === 'checkpoint' && next.stage.id === st.id;
   const review = (st.review || []).map(tid => { const t = TOPICS[tid]; return t ? `<a class="chip lnk" style="cursor:pointer" href="#/map/t/${tid}">${esc(t.t)}</a>` : ''; }).join('');
   const status = prog.stages[st.id];
   return `${review ? `<div class="small" style="margin-top:10px"><b>Review:</b> ${review}</div>` : ''}
-    <details class="pathcheck" style="margin-top:10px"><summary>Checkpoint</summary><div class="body">
-      <h4>Can you answer these?</h4><ul>${(st.check.recall || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+    <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>Checkpoint</summary><div class="body">
+      <h4>Can you answer these?</h4>${recallHTML(pth, st)}
       <h4>Build</h4><p>${esc(st.check.build)}</p>
       <button class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
     </div></details>
@@ -22933,32 +23357,38 @@ function stageFooterHTML(pth, st, prog){
       <button class="btn sm ghost" ${status ? 'disabled' : ''} data-action="stage-skip" data-path="${pth.id}" data-stage="${st.id}">${status === 'skipped' ? 'Stage skipped' : 'I can answer these, skip this stage'}</button>
     </div></details>`;
 }
-function stageSectionHTML(pth, st, si, curStage, prog){
+// Checkpoint recall: answer first, then open a question to compare with its
+// outline. Each can go into the review queue, keyed by its text.
+function recallHTML(pth, st){
+  const queued = reviewItems(), items = (st.check.recall || []).map(x => typeof x === 'string' ? { q: x, a: '' } : x);
+  return `<p class="small muted" style="margin:0 0 6px">Answer each one in your head first, then open it to compare.</p><div class="ivlist recall">${items.map(x => {
+    if(!x.a) return `<div class="ivq plain">${esc(x.q)}</div>`;
+    const k = `ck:${pth.id}:${st.id}:${x.q}`, on = !!queued[k];
+    return `<details class="ivq" style="--dc:var(--accent2)"><summary>${esc(x.q)}</summary><div class="body"><h4>Answer outline</h4><p>${esc(x.a)}</p>
+      <button type="button" class="btn sm ghost" data-action="review-toggle" data-key="${esc(k)}" aria-pressed="${on}">${on ? 'In your review queue' : 'Review later'}</button></div></details>`; }).join('')}</div>`;
+}
+function stageSectionHTML(pth, st, si, curStage, prog, next){
   const status = prog.stages[st.id];
+  const nextIdx = next && next.type === 'step' && next.stage === st ? next.index : -1;
   const isOpen = st.id === curStage;
   const doneCount = st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length;
   const tick = status === 'done' ? '✓' : status === 'skipped' ? '⇥' : String(si + 1);
   return `<section class="pathstage ${isOpen ? 'open' : ''} ${status || ''}" data-stage="${st.id}">
-    <header data-href="#/paths/${pth.id}/${st.id}"><span class="letter">${tick}</span><div style="flex:1"><h3><a class="lnk sec-link" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></h3><div class="small muted">${esc(st.goal)}</div></div><span class="chip">${doneCount}/${st.steps.length}</span><span class="car">▸</span></header>
-    <div class="body"><div class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog)).join('')}</div>${stageFooterHTML(pth, st, prog)}</div>
+    <header data-href="#/paths/${pth.id}/${st.id}"><span class="letter">${tick}</span><div style="flex:1"><h3><a class="lnk sec-link" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></h3><div class="small muted">${esc(st.goal)}</div></div>${status ? `<button type="button" class="btn sm ghost" data-action="stage-undo" data-path="${pth.id}" data-stage="${st.id}">Undo ${status === 'done' ? 'done' : 'skip'}</button>` : ''}<span class="chip">${doneCount}/${st.steps.length}</span><span class="car">▸</span></header>
+    <div class="body"><div class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog, i === nextIdx)).join('')}</div>${stageFooterHTML(pth, st, prog)}</div>
   </section>`;
 }
 function pathPageHTML(pth, stageIdParam){
   const curStage = (stageIdParam && pth.stages.some(s => s.id === stageIdParam)) ? stageIdParam : currentStageId(pth);
   const { prog, total, done, doneStages, pct } = pathProgressCounts(pth);
   const next = pathNextStep(pth.id);
-  const nextCallout = next
-    ? `<div class="callout"><b>Next:</b> ${esc(nextStepLabel(next))} <a class="btn sm primary" style="margin-left:8px" href="${nextStepHref(next)}">Go →</a></div>`
-    : `<div class="callout ok"><b>All stages complete.</b> Revisit any stage below, or start another path.</div>`;
-  return `${crumbs([['Paths', '#/paths'], [pth.t]])}
-    <div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
+  return `<div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
     ${pth.prereq.length ? `<p class="small muted">Prereq: ${pth.prereq.map(pathLinkChip).join(', ')}</p>` : ''}
-    <div class="progress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps</span><span class="bar"><i style="width:${pct}%"></i></span></div>
-    ${nextCallout}
-    <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog)).join('')}</div>
+    <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
+    <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
     ${pth.next.length ? `<div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : ''}`;
 }
 function renderPaths(id, stageId){
@@ -22968,7 +23398,15 @@ function renderPaths(id, stageId){
     const openStage = (stageId && pth.stages.some(s => s.id === stageId)) ? stageId : currentStageId(pth);
     enterPathMap(pth, openStage);
     setView(pathPageHTML(pth, stageId));
-    return renderTree(stageId ? 'stage' : 'home');
+    if(focusCheckpoint){
+      const sum = document.querySelector(`#pane .pathstage[data-stage="${focusCheckpoint}"] .pathcheck summary`); focusCheckpoint = null;
+      if(sum){ sum.scrollIntoView({ block: 'start' }); sum.focus(); }
+    }
+    if(focusStep){
+      const row = document.querySelector(`#pane .pathstep[data-row="${focusStep}"]`); focusStep = null;
+      if(row){ row.scrollIntoView({ block: 'center' }); row.classList.add('flash'); const box = row.querySelector('input'); if(box) box.focus({ preventScroll: true }); }
+    }
+    return renderTree('stage');
   }
   setView(pathsDoorHTML());
 }
@@ -23128,7 +23566,7 @@ document.addEventListener('keydown', e => {
 // What the later files import from this one.
 Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal, DIAGRAM_DISSECTION });
+  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION });
 })(window.PlayableApp = {});
 
 
@@ -23141,7 +23579,7 @@ Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, upda
 (function(A){
 'use strict';
 const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, isNarrow, setView, crumbs, domChip, list,
-  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal } = A;
+  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal } = A;
 const START_PATHS = [
   ['#/paths','I want to learn step by step','Pick a path and follow one visible next step at a time, with a soft checkpoint per stage.',''],
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
@@ -23333,9 +23771,19 @@ function phoneTarget(g){
   const top = Math.min(...list.map(n => n.y - n.h / 2)) - 16;
   return { x: minX, y: sel ? sel.y - h / 2 : top, w, h };
 }
+// A path opens framed to its open stage and that stage's steps; framed to the
+// whole tree its nodes are too small to read.
+function pathStageTarget(g){
+  const f = treeFocus(g); if(!f) return null;
+  const A = Math.max(0.5, MAP.wrap.clientWidth / Math.max(1, MAP.wrap.clientHeight));
+  let x = f.x - f.w * 0.05, y = f.y - f.h * 0.05, w = f.w * 1.1, h = f.h * 1.1;
+  if(w / h < A){ const nw = h * A; x -= (nw - w) / 2; w = nw; } else { const nh = w / A; y -= (nh - h) / 2; h = nh; }
+  return { x, y, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
   if(phoneQuery.matches) return phoneTarget(g);
+  if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return t; }
   let target = cameraTarget(g, cam, kind);
   if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
   return target;
@@ -23357,7 +23805,7 @@ function pathTipHTML(n){
   const pth = curPath(); if(!pth) return '';
   if(kind==='center') return `<b style="color:var(--accent2)">${esc(pth.t)}</b><div>${esc(pth.tag)}</div><div class="muted">${pathMapState.stage ? 'click to collapse back to the path' : 'click to open the path page'}</div>`;
   if(kind==='domain'){ const st = pth.stages.find(x => x.id===id); if(!st) return ''; return `<b style="color:var(--accent2)">${esc(st.t)}</b><div>${esc(st.goal)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${(st.steps||[]).length} steps`}</div>`; }
-  if(kind==='topic'){ const [stageId, i] = id.split('/'); const st = pth.stages.find(x => x.id===stageId); const step = st && st.steps[+i]; if(!step) return ''; return `<b>${esc(stepTitle(step))}</b><div>${esc(step.why)}</div><div class="muted">click to open</div>`; }
+  if(kind==='topic'){ const [stageId, i] = id.split('/'); const st = pth.stages.find(x => x.id===stageId); const step = st && st.steps[+i]; if(!step) return ''; return `<b>${esc(stepTitle(step))}</b><div>${esc(step.why)}</div><div class="muted">click to show this step in the stage</div>`; }
   return '';
 }
 function mapTipHTML(n){
@@ -23400,11 +23848,7 @@ function pathMapClick(n){
   if(!pth) return;
   if(kind==='center') return go(`#/paths/${pth.id}`);
   if(kind==='domain') return go(n.classList.contains('open') ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${id}`);
-  if(kind==='topic'){
-    const i = id.lastIndexOf('/'), stageId = id.slice(0, i), idx = id.slice(i + 1);
-    const st = pth.stages.find(x => x.id===stageId), step = st && st.steps[+idx];
-    if(step) go(stepHref(step, pth.id, stageId));
-  }
+  if(kind==='topic') showPathStep(pth.id, id);
 }
 function mapClick(n){
   if(n.dataset.scope === 'project') return projClick(n);

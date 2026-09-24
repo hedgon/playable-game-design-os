@@ -27,7 +27,7 @@ const store = {
 };
 const seen = new Set(store.get('seen', []));
 function markSeen(id){ if(!seen.has(id)){ seen.add(id); store.set('seen', [...seen]); updateProgress(); } }
-function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `${s} / ${n} topics`; $('#progressBar').style.width = (100*s/n)+'%'; }
+function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `Topics read ${s}/${n}`; $('#progressBar').style.width = (100*s/n)+'%'; }
 
 /* ---------- theme ---------- */
 // The theme follows the system until the reader picks one with the toggle;
@@ -41,7 +41,12 @@ $('#themeBtn').onclick = () => { const t = document.documentElement.getAttribute
 
 /* ---------- toast / copy ---------- */
 let toastT;
-function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('show'), 1600); }
+// An action toast (Undo) stays longer and takes clicks; a plain one does not.
+function toast(msg, act){
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('act', !!act);
+  if(act){ const b = document.createElement('button'); b.type = 'button'; b.className = 'toastbtn'; b.textContent = act.label; Object.assign(b.dataset, act.data); t.appendChild(b); }
+  t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show', 'act'), act ? 6000 : 1600);
+}
 async function copyText(text){ try { await navigator.clipboard.writeText(text); toast('Copied to clipboard'); } catch(e){ const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('Copied'); }catch(err){ toast('Copy failed: select and copy manually'); } ta.remove(); } }
 
 /* ---------- one delegated listener per event ----------
@@ -282,18 +287,17 @@ function railProjectHTML(c, sysId, partId){
     </div>
     ${systems.length ? '' : '<div class="empty">No systems written for this project yet.</div>'}`;
 }
-// The rail in path mode: a path list header, stages as groups (like domains),
-// steps as items (like topics), ticked the same way a read topic is.
-function railPathHTML(pth, stageId){
-  const prog = pathProgress(pth.id);
+// The rail in path mode lists the paths, by track, with the open one marked.
+// The path's own stages and steps are shown once, in the stage view.
+function railPathHTML(pth){
   return `<div class="railhead">
       <a class="railgraph" href="#/paths">← All paths</a>
-      <input class="railsearch" id="railSearch" placeholder="Jump to a step…" autocomplete="off">
+      <input class="railsearch" id="railSearch" placeholder="Jump to a path…" autocomplete="off">
     </div>
-    <div class="raillist">${pth.stages.map(st => { const status = prog.stages[st.id];
-      return `<div class="raildom ${st.id === stageId ? 'open' : ''}" data-dom="${st.id}" style="--dc:var(--accent2)">
-      <button class="raildom-btn" data-stage="${st.id}"><span class="rdot"></span><span class="rt">${status === 'done' ? '✓ ' : status === 'skipped' ? '⇥ ' : ''}${esc(st.t)}</span><span class="rn">${st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length}/${st.steps.length}</span></button>
-      <div class="railtopics">${st.steps.map((step, i) => `<button class="railtopic ${prog.steps[`${st.id}/${i}`] ? 'seen' : ''}" data-stage="${st.id}" data-step="${i}">${esc(stepTitle(step))}</button>`).join('')}</div></div>`; }).join('')}
+    <div class="raillist">${TRACKS.map(([tid, tlabel]) => { const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
+      return `<div class="raildom open" data-dom="track-${tid}" style="--dc:var(--accent2)">
+      <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(tlabel)}</span><span class="rn">${list.length}</span></button>
+      <div class="railtopics">${list.map(p => `<button class="railtopic ${p.id === pth.id ? 'active' : ''}" data-path="${p.id}" ${p.id === pth.id ? 'aria-current="page"' : ''}>${esc(p.t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
 }
 function railActive(){
@@ -333,9 +337,9 @@ function updateRail(){
   }
   const pth = hash[0] === 'paths' && hash[1] ? PATHS.find(x => x.id === hash[1]) : null;
   if(pth){
-    r.innerHTML = railPathHTML(pth, hash[2]);
-    r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const open = b.parentElement.classList.contains('open'); location.hash = open ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${b.dataset.stage}`; }));
-    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { const st = pth.stages.find(s => s.id === b.dataset.stage); const step = st && st.steps[+b.dataset.step]; if(step) go(stepHref(step, pth.id, st.id)); closeRailDrawer(r); }));
+    r.innerHTML = railPathHTML(pth);
+    r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => b.parentElement.classList.toggle('open')));
+    r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/paths/' + b.dataset.path); closeRailDrawer(r); }));
     railFilter(r, '.railtopic');
     return;
   }
@@ -344,7 +348,14 @@ function updateRail(){
   r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/map/t/' + b.dataset.topic); closeRailDrawer(r); }));
   railFilter(r, '.railtopic');
 }
-function setView(html){ ensureShell(); const pane = $('#pane'); pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail(); window.scrollTo({ top: 0 }); }
+// keepScroll is set for one render by an action that re-renders the page the
+// reader is on (ticking a step); every other render starts at the top.
+let keepScroll = false;
+function setView(html){
+  ensureShell(); const pane = $('#pane'), keep = keepScroll, y = window.scrollY, py = pane.scrollTop; keepScroll = false;
+  pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail();
+  if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else window.scrollTo({ top: 0 });
+}
 // The views of the current group, as sub-tabs. The map group shows them on
 // its landing views only, not above every domain and topic page.
 function subNavHTML(){
@@ -1484,7 +1495,7 @@ function renderReview(){
     ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next ${inDays(next - today())}` : ''}` : ''}</span></div>
     ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due today. A new question comes back tomorrow, so answering it is a real test of recall.</div>'}
     ${upcoming.length ? `<details class="review-later"><summary>Coming up (${upcoming.length})</summary><ul>${upcoming.map(([k, r]) => `<li><span>${esc(r.q)}</span><span class="small muted">${inDays(r.due - today())}</span><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></li>`).join('')}</ul></details>` : ''}`
-    : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) and press "Review later".</div>'}`);
+    : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) or a checkpoint question on a learning path, and press "Review later".</div>'}`);
 }
 
 /* =====================================================================
@@ -1540,16 +1551,31 @@ function goPastStage(pathId, stageId){
   const pth = PATHS.find(p => p.id === pathId); const idx = pth.stages.findIndex(s => s.id === stageId); const nxt = pth.stages[idx + 1];
   go(nxt ? `#/paths/${pathId}/${nxt.id}` : `#/paths/${pathId}`);
 }
+// Ticking re-renders the same page in place, then brings the next unticked
+// step of the open stage into view.
 function togglePathStep(pathId, key, checked){
   const prog = pathProgress(pathId); prog.steps[key] = !!checked; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
-  savePathProgress(pathId, prog); store.set('paths.active', pathId); route();
+  savePathProgress(pathId, prog); store.set('paths.active', pathId); keepScroll = true; route();
+  const nextRow = checked && document.querySelector('#pane .pathstage.open .pathstep:not(.done)');
+  if(nextRow) nextRow.scrollIntoView({ block: 'nearest' });
 }
-ACTIONS['stage-done'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'done'); goPastStage(el.dataset.path, el.dataset.stage); };
-ACTIONS['stage-skip'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'skipped'); goPastStage(el.dataset.path, el.dataset.stage); };
+function clearStageStatus(pathId, stageId){
+  const prog = pathProgress(pathId); delete prog.stages[stageId]; prog.last = Date.now(); savePathProgress(pathId, prog);
+}
+const undoToast = (msg, el) => toast(msg, { label: 'Undo', data: { action: 'stage-undo', path: el.dataset.path, stage: el.dataset.stage } });
+ACTIONS['stage-done'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'done'); goPastStage(el.dataset.path, el.dataset.stage); undoToast('Stage marked done', el); };
+ACTIONS['stage-skip'] = el => { markStageStatus(el.dataset.path, el.dataset.stage, 'skipped'); goPastStage(el.dataset.path, el.dataset.stage); undoToast('Stage skipped', el); };
+ACTIONS['stage-undo'] = el => { clearStageStatus(el.dataset.path, el.dataset.stage); $('#toast').classList.remove('show', 'act'); go(`#/paths/${el.dataset.path}/${el.dataset.stage}`); };
+// A step node clicked on the path map opens that step in the stage view.
+let focusStep = null;
+const showPathStep = (pathId, key) => { focusStep = key; go(`#/paths/${pathId}/${key.slice(0, key.lastIndexOf('/'))}`); };
+// A stage is never marked done from the path bar: "continue" at a checkpoint
+// opens the checkpoint, and marking it done stays a click inside it.
+let focusCheckpoint = null;
 ACTIONS['path-continue'] = el => {
   const pathId = el.dataset.path, next = pathNextStep(pathId); if(!next) return;
   if(next.type === 'step') togglePathStep(pathId, `${next.stage.id}/${next.index}`, true);
-  else { markStageStatus(pathId, next.stage.id, 'done'); route(); }
+  else { focusCheckpoint = next.stage.id; go(`#/paths/${pathId}/${next.stage.id}`); }
 };
 // Leaving while sitting on that path's own page would otherwise re-activate
 // it on the very next render (renderPaths always activates the path it
@@ -1574,16 +1600,19 @@ function pathBarHTML(){
   return `<div class="pathbar">
     <div class="pathbar-info"><b>${esc(pth.t)}</b><span class="muted"> · Stage ${curIdx} of ${pth.stages.length} · Next: ${esc(nextStepLabel(next))}</span></div>
     <div class="pathbar-actions">
-      ${next ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">Next →</a>`) : ''}
+      ${next ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Mark done and continue'}</button>` : `<a class="btn sm primary" href="${href}">Next →</a>`) : ''}
       <button class="btn sm ghost" data-action="leave-path">Leave path</button>
     </div></div>`;
 }
 
-function pathCard(p){
+const pathTitle = id => { const p = PATHS.find(x => x.id === id); return p ? p.t : id; };
+function pathCard(p, picked){
   const { pct } = pathProgressCounts(p);
-  return `<a class="card clickable tint lnk blk" style="--dc:var(--accent2)" href="#/paths/${p.id}">
-    <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span></div>
+  return `<a class="card clickable tint lnk blk ${picked ? 'picked' : ''}" style="--dc:var(--accent2)" href="#/paths/${p.id}" data-path-card="${p.id}">
+    <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span>${picked ? '<span class="chip ok">Suggested for you</span>' : ''}</div>
     <b>${esc(p.t)}</b><div class="small dim">${esc(p.tag)}</div>
+    <div class="small clamp2" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
+    <div class="small muted">${p.prereq.length ? `After ${p.prereq.map(id => esc(pathTitle(id))).join(', ')}` : 'No prerequisites'}</div>
     <div class="progress" style="margin-top:8px"><span class="small muted">${pct}%</span><span class="bar"><i style="width:${pct}%"></i></span></div></a>`;
 }
 function pathsDoorHTML(){
@@ -1594,33 +1623,54 @@ function pathsDoorHTML(){
     return `<div class="card tint" style="--dc:var(--accent2);margin-bottom:18px"><div class="overline">Continue</div><h3 style="margin:2px 0 4px">${esc(active.t)}</h3><p class="dim small">Next: ${esc(nextStepLabel(next))}</p>
       <div class="row"><a class="btn primary" href="${nextStepHref(next)}">Continue →</a><a class="btn ghost" href="#/paths/${active.id}">Open the path</a></div></div>`;
   })() : '';
-  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<button class="path" data-href="#/paths/${p.id}"><b>${esc(p.outcome.split(/(?<=\.)\s/)[0])}</b><span>${esc(p.tag)}</span></button>`).join('')}</div>` : '';
+  const ans = chooserAnswers(), rec = ans.goal && ans.level && ans.time ? choosePath(ans.goal, ans.level, ans.time) : null;
+  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<button class="path" data-href="#/paths/${p.id}"><b>${esc(p.pick)}</b><span>${esc(p.tag)}</span></button>`).join('')}</div>` : '';
   const tracks = TRACKS.map(([tid, tlabel]) => {
     const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
-    return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(pathCard).join('')}</div>`;
+    return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(p => pathCard(p, !!rec && rec.path === p)).join('')}</div>`;
   }).join('');
   return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
     ${continueCard}
+    ${chooserHTML(ans, rec)}
     ${outcomes ? `<div class="section-head"><h2>What do you want to be able to do?</h2></div>${outcomes}` : ''}
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
     <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
 }
 
-function stepRowHTML(pth, st, i, step, prog){
+// The three-question chooser. Answers are a per-browser convenience; the
+// pick itself is choosePath (50-paths.js), shared with the validator.
+const chooserAnswers = () => store.get('chooser', {});
+ACTIONS.choose = el => { const a = chooserAnswers(); a[el.dataset.q] = el.dataset.v; store.set('chooser', a); keepScroll = true; renderPaths(); };
+function chooserHTML(ans, rec){
+  const q = (key, label, opts) => `<div class="chooser-q"><div class="overline" id="cq-${key}">${label}</div><div class="dims" role="group" aria-labelledby="cq-${key}">${opts.map(([v, t]) => `<button type="button" data-action="choose" data-q="${key}" data-v="${v}" class="${ans[key] === v ? 'active' : ''}" aria-pressed="${ans[key] === v}">${esc(t)}</button>`).join('')}</div></div>`;
+  let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
+  if(rec){
+    const p = rec.path, why = [`${p.pick}.`, `About ${p.hours} hours${rec.over ? ', more than you have, so skip the stages you already know' : ''}.`];
+    if(ans.level === 'new' && p.prereq.length) why.push(`New to this? Start with ${p.prereq.map(pathTitle).join(' or ')}.`);
+    if(ans.level === 'senior' && p.level === 'beginner') why.push('Use “I already know this” on the stages you have covered.');
+    if(rec.alt.length) why.push(`Also fits: ${rec.alt.map(a => a.t).join(', ')}.`);
+    out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)"><div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${esc(why.join(' '))}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a></div>`;
+  }
+  return `<section class="chooser"><div class="section-head"><h2>Which path is for me?</h2></div>
+    ${q('goal', 'I want to', CHOOSER.goals)}${q('level', 'My experience', CHOOSER.levels)}${q('time', 'Time I have', CHOOSER.times)}
+    <div class="chooser-out" aria-live="polite">${out}</div></section>`;
+}
+function stepRowHTML(pth, st, i, step, prog, isNext){
   const key = `${st.id}/${i}`, checked = !!prog.steps[key], href = stepHref(step, pth.id, st.id);
-  return `<label class="pathstep ${checked ? 'done' : ''}">
+  return `<label class="pathstep ${checked ? 'done' : ''} ${isNext ? 'next' : ''}" data-row="${key}">
     <input type="checkbox" ${checked ? 'checked' : ''} data-path="${pth.id}" data-step="${key}">
-    <span class="chip kindchip">${esc(step.kind)}</span>
+    <span class="chip kindchip">${isNext ? 'next' : esc(step.kind)}</span>
     <span class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
       <div class="small dim">${esc(step.why)}</div><div class="small">${esc(step.do)}</div></span>
   </label>`;
 }
 function stageFooterHTML(pth, st, prog){
+  const next = pathNextStep(pth.id), checkpointOpen = !!next && next.type === 'checkpoint' && next.stage.id === st.id;
   const review = (st.review || []).map(tid => { const t = TOPICS[tid]; return t ? `<a class="chip lnk" style="cursor:pointer" href="#/map/t/${tid}">${esc(t.t)}</a>` : ''; }).join('');
   const status = prog.stages[st.id];
   return `${review ? `<div class="small" style="margin-top:10px"><b>Review:</b> ${review}</div>` : ''}
-    <details class="pathcheck" style="margin-top:10px"><summary>Checkpoint</summary><div class="body">
-      <h4>Can you answer these?</h4><ul>${(st.check.recall || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+    <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>Checkpoint</summary><div class="body">
+      <h4>Can you answer these?</h4>${recallHTML(pth, st)}
       <h4>Build</h4><p>${esc(st.check.build)}</p>
       <button class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
     </div></details>
@@ -1629,32 +1679,38 @@ function stageFooterHTML(pth, st, prog){
       <button class="btn sm ghost" ${status ? 'disabled' : ''} data-action="stage-skip" data-path="${pth.id}" data-stage="${st.id}">${status === 'skipped' ? 'Stage skipped' : 'I can answer these, skip this stage'}</button>
     </div></details>`;
 }
-function stageSectionHTML(pth, st, si, curStage, prog){
+// Checkpoint recall: answer first, then open a question to compare with its
+// outline. Each can go into the review queue, keyed by its text.
+function recallHTML(pth, st){
+  const queued = reviewItems(), items = (st.check.recall || []).map(x => typeof x === 'string' ? { q: x, a: '' } : x);
+  return `<p class="small muted" style="margin:0 0 6px">Answer each one in your head first, then open it to compare.</p><div class="ivlist recall">${items.map(x => {
+    if(!x.a) return `<div class="ivq plain">${esc(x.q)}</div>`;
+    const k = `ck:${pth.id}:${st.id}:${x.q}`, on = !!queued[k];
+    return `<details class="ivq" style="--dc:var(--accent2)"><summary>${esc(x.q)}</summary><div class="body"><h4>Answer outline</h4><p>${esc(x.a)}</p>
+      <button type="button" class="btn sm ghost" data-action="review-toggle" data-key="${esc(k)}" aria-pressed="${on}">${on ? 'In your review queue' : 'Review later'}</button></div></details>`; }).join('')}</div>`;
+}
+function stageSectionHTML(pth, st, si, curStage, prog, next){
   const status = prog.stages[st.id];
+  const nextIdx = next && next.type === 'step' && next.stage === st ? next.index : -1;
   const isOpen = st.id === curStage;
   const doneCount = st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length;
   const tick = status === 'done' ? '✓' : status === 'skipped' ? '⇥' : String(si + 1);
   return `<section class="pathstage ${isOpen ? 'open' : ''} ${status || ''}" data-stage="${st.id}">
-    <header data-href="#/paths/${pth.id}/${st.id}"><span class="letter">${tick}</span><div style="flex:1"><h3><a class="lnk sec-link" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></h3><div class="small muted">${esc(st.goal)}</div></div><span class="chip">${doneCount}/${st.steps.length}</span><span class="car">▸</span></header>
-    <div class="body"><div class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog)).join('')}</div>${stageFooterHTML(pth, st, prog)}</div>
+    <header data-href="#/paths/${pth.id}/${st.id}"><span class="letter">${tick}</span><div style="flex:1"><h3><a class="lnk sec-link" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></h3><div class="small muted">${esc(st.goal)}</div></div>${status ? `<button type="button" class="btn sm ghost" data-action="stage-undo" data-path="${pth.id}" data-stage="${st.id}">Undo ${status === 'done' ? 'done' : 'skip'}</button>` : ''}<span class="chip">${doneCount}/${st.steps.length}</span><span class="car">▸</span></header>
+    <div class="body"><div class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog, i === nextIdx)).join('')}</div>${stageFooterHTML(pth, st, prog)}</div>
   </section>`;
 }
 function pathPageHTML(pth, stageIdParam){
   const curStage = (stageIdParam && pth.stages.some(s => s.id === stageIdParam)) ? stageIdParam : currentStageId(pth);
   const { prog, total, done, doneStages, pct } = pathProgressCounts(pth);
   const next = pathNextStep(pth.id);
-  const nextCallout = next
-    ? `<div class="callout"><b>Next:</b> ${esc(nextStepLabel(next))} <a class="btn sm primary" style="margin-left:8px" href="${nextStepHref(next)}">Go →</a></div>`
-    : `<div class="callout ok"><b>All stages complete.</b> Revisit any stage below, or start another path.</div>`;
-  return `${crumbs([['Paths', '#/paths'], [pth.t]])}
-    <div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
+  return `<div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
     ${pth.prereq.length ? `<p class="small muted">Prereq: ${pth.prereq.map(pathLinkChip).join(', ')}</p>` : ''}
-    <div class="progress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps</span><span class="bar"><i style="width:${pct}%"></i></span></div>
-    ${nextCallout}
-    <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog)).join('')}</div>
+    <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
+    <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
     ${pth.next.length ? `<div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : ''}`;
 }
 function renderPaths(id, stageId){
@@ -1664,7 +1720,15 @@ function renderPaths(id, stageId){
     const openStage = (stageId && pth.stages.some(s => s.id === stageId)) ? stageId : currentStageId(pth);
     enterPathMap(pth, openStage);
     setView(pathPageHTML(pth, stageId));
-    return renderTree(stageId ? 'stage' : 'home');
+    if(focusCheckpoint){
+      const sum = document.querySelector(`#pane .pathstage[data-stage="${focusCheckpoint}"] .pathcheck summary`); focusCheckpoint = null;
+      if(sum){ sum.scrollIntoView({ block: 'start' }); sum.focus(); }
+    }
+    if(focusStep){
+      const row = document.querySelector(`#pane .pathstep[data-row="${focusStep}"]`); focusStep = null;
+      if(row){ row.scrollIntoView({ block: 'center' }); row.classList.add('flash'); const box = row.querySelector('input'); if(box) box.focus({ preventScroll: true }); }
+    }
+    return renderTree('stage');
   }
   setView(pathsDoorHTML());
 }
@@ -1824,6 +1888,6 @@ document.addEventListener('keydown', e => {
 // What the later files import from this one.
 Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal, DIAGRAM_DISSECTION });
+  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION });
 })(window.PlayableApp = {});
 

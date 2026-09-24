@@ -58,6 +58,12 @@ node src/smoke.js
 
 Set `PLAYWRIGHT_CHANNEL=chrome` to use an installed Chrome instead.
 
+`src/e2e-paths.js` drives the learning paths the same way, at 375 and 1440 px:
+continue at a checkpoint, ticking a step, undo, the four structure indicators on
+an open path, map framing, the chooser, and a checkpoint question going into
+Review. Run it with `node src/e2e-paths.js` after the same Playwright setup. CI
+does not run it yet.
+
 CI (`.github/workflows/build.yml`) runs the build, the `playable.html` sync check,
 the type check and the smoke test on every push and pull request.
 
@@ -90,7 +96,7 @@ the type check and the smoke test on every push and pull request.
 99-tail.js                boot
 manifest.js               ordered file list
 build.js                  build and checks (above)
-validate.js, check-layout.js, layout-core.js, check-contrast.js, inventory.js, smoke.js, serve.js
+validate.js, check-layout.js, layout-core.js, check-contrast.js, inventory.js, smoke.js, e2e-paths.js, serve.js
 research-notes.md         verified sources behind the synthesis, with dates
 ```
 
@@ -226,7 +232,12 @@ enforced by the validator: 4 to 6 stages, 3 to 8 steps per stage, at least one
 tool or checklist step per stage, a checkpoint on every stage, stage levels that
 never go down, step minutes within 10% of the stage hours, and stage hours within
 10% of the path hours. A topic step's optional `tab` (`godot`, `unity` or
-`interview`) must exist on that topic.
+`interview`) must exist on that topic. A `platform` step names a platform guide.
+Every path has a `pick` line under 60 characters for the door; every recall
+question is `{q, a}` with a short answer outline; and every path in a `prereq`
+must list this path in its own `next`. If you add a path, place it in the
+chooser's `CHOOSER.paths` table in `50-paths.js` where it fits; the validator
+checks that every combination of answers still picks a real path.
 
 ## Writing style
 

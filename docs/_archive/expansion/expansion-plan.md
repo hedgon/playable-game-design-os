@@ -1,9 +1,27 @@
 ---
-status: active
+status: shipped
 updated: 2026-09-24
 ---
 
 # Expansion plan: visuals, platforms, learning paths
+
+## Outcome (2026-09-24)
+
+All four passes landed on main: A visuals (8e4c355), B1 platform code
+(420d1cc), B2 platform content (1a369c1), the UGC guides added mid-plan
+(8ea50e5), and C learning paths (the commit that archives this plan).
+Where the work differs from the plan below:
+
+- `ship-it` sits on a new Production track rather than an existing one.
+- Recall answer outlines: 183, not about 170, because `ship-it` brought its
+  own. An Opus review corrected 11 of them before commit.
+- The prerequisite rule needed no exemptions, so none were built.
+- The backend path's idioms-and-testing stage moved to third place but kept
+  its id `s5`, so saved progress and review keys stay valid.
+- The path end-to-end test is in the repo (`src/e2e-paths.js`) but CI does
+  not run it yet.
+- On phones the checkpoint's "Show answer" label is hidden; the caret alone
+  marks a question that opens.
 
 Owner request (2026-09-24): more reference images for games, systems and
 flowcharts; how to develop for and publish on Steam, Switch, Google Play,

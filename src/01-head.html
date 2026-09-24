@@ -256,6 +256,14 @@ pre.snippet{white-space:pre;overflow-x:auto;border-left:3px solid var(--dc,var(-
 .strike{text-decoration:line-through;color:var(--fg3)}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:99px;font-weight:600;font-size:.85rem;z-index:100;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
+.toast.act{pointer-events:auto}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card.picked{outline:2px solid var(--accent2);outline-offset:2px}
+.chooser .chooser-q{margin:10px 0}
+.chooser .chooser-q .dims{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.chooser .chooser-q .dims button{padding:8px 10px}
+.chooser-out{margin:12px 0 4px}
+.toastbtn{margin-left:12px;background:none;border:1px solid currentColor;color:inherit;font:inherit;padding:2px 10px;border-radius:99px;cursor:pointer}
 
 /* ---------- map ---------- */
 .mapwrap{position:relative;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--accent) 6%,transparent),transparent 55%),var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
@@ -871,6 +879,10 @@ details.comp .body{padding-top:6px}
 .labsteps.all + .labstepper{display:none}
 .labstepper{margin-top:10px}
 .ivq .body > .btn{margin-top:8px}
+.recall .ivq summary::after{content:'Show answer';margin-left:auto;padding-left:10px;font-size:.78rem;color:var(--fg3);white-space:nowrap}
+.recall .ivq[open] summary::after{content:'Hide'}
+@media (max-width:700px){ .recall .ivq summary::after{display:none} }
+.recall .ivq.plain{padding:8px 12px;font-size:.95rem}
 .card.facts{border-left:4px solid var(--dc,var(--accent));margin:14px 0}
 .card.facts ul{margin:8px 0 0;padding-left:18px}
 .card.facts li{margin-bottom:6px}
@@ -981,6 +993,8 @@ details.comp .body{padding-top:6px}
 .pathstep.done .pathstep-body>a{color:var(--fg3);text-decoration:line-through}
 .pathstep-body{flex:1;min-width:0}
 .pathstep-body>a{font-weight:700}
+.pathstep.next{background:color-mix(in srgb,var(--accent) 9%,transparent);box-shadow:inset 3px 0 0 var(--accent)}
+.pathstep.flash{outline:2px solid var(--accent2);outline-offset:-2px}
 .kindchip{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:.66rem;flex:none;margin-top:3px}
 .pathcheck,.pathskip{border:1px dashed var(--line2);background:var(--bg2);border-radius:var(--r2)}
 @media (max-width:1100px){

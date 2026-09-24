@@ -7,7 +7,7 @@
 (function(A){
 'use strict';
 const { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, go, route, isNarrow, setView, crumbs, domChip, list,
-  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, closeModals, openModal } = A;
+  chainHTML, practice, setTopicTab, topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal } = A;
 const START_PATHS = [
   ['#/paths','I want to learn step by step','Pick a path and follow one visible next step at a time, with a soft checkpoint per stage.',''],
   ['#/lab','I want to shape an idea','Observe a signal, find the tension, turn it into a design question, design mechanisms and test them.',''],
@@ -199,9 +199,19 @@ function phoneTarget(g){
   const top = Math.min(...list.map(n => n.y - n.h / 2)) - 16;
   return { x: minX, y: sel ? sel.y - h / 2 : top, w, h };
 }
+// A path opens framed to its open stage and that stage's steps; framed to the
+// whole tree its nodes are too small to read.
+function pathStageTarget(g){
+  const f = treeFocus(g); if(!f) return null;
+  const A = Math.max(0.5, MAP.wrap.clientWidth / Math.max(1, MAP.wrap.clientHeight));
+  let x = f.x - f.w * 0.05, y = f.y - f.h * 0.05, w = f.w * 1.1, h = f.h * 1.1;
+  if(w / h < A){ const nw = h * A; x -= (nw - w) / 2; w = nw; } else { const nh = w / A; y -= (nh - h) / 2; h = nh; }
+  return { x, y, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
   if(phoneQuery.matches) return phoneTarget(g);
+  if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return t; }
   let target = cameraTarget(g, cam, kind);
   if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
   return target;
@@ -223,7 +233,7 @@ function pathTipHTML(n){
   const pth = curPath(); if(!pth) return '';
   if(kind==='center') return `<b style="color:var(--accent2)">${esc(pth.t)}</b><div>${esc(pth.tag)}</div><div class="muted">${pathMapState.stage ? 'click to collapse back to the path' : 'click to open the path page'}</div>`;
   if(kind==='domain'){ const st = pth.stages.find(x => x.id===id); if(!st) return ''; return `<b style="color:var(--accent2)">${esc(st.t)}</b><div>${esc(st.goal)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':`click to open its ${(st.steps||[]).length} steps`}</div>`; }
-  if(kind==='topic'){ const [stageId, i] = id.split('/'); const st = pth.stages.find(x => x.id===stageId); const step = st && st.steps[+i]; if(!step) return ''; return `<b>${esc(stepTitle(step))}</b><div>${esc(step.why)}</div><div class="muted">click to open</div>`; }
+  if(kind==='topic'){ const [stageId, i] = id.split('/'); const st = pth.stages.find(x => x.id===stageId); const step = st && st.steps[+i]; if(!step) return ''; return `<b>${esc(stepTitle(step))}</b><div>${esc(step.why)}</div><div class="muted">click to show this step in the stage</div>`; }
   return '';
 }
 function mapTipHTML(n){
@@ -266,11 +276,7 @@ function pathMapClick(n){
   if(!pth) return;
   if(kind==='center') return go(`#/paths/${pth.id}`);
   if(kind==='domain') return go(n.classList.contains('open') ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${id}`);
-  if(kind==='topic'){
-    const i = id.lastIndexOf('/'), stageId = id.slice(0, i), idx = id.slice(i + 1);
-    const st = pth.stages.find(x => x.id===stageId), step = st && st.steps[+idx];
-    if(step) go(stepHref(step, pth.id, stageId));
-  }
+  if(kind==='topic') showPathStep(pth.id, id);
 }
 function mapClick(n){
   if(n.dataset.scope === 'project') return projClick(n);

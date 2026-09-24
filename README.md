@@ -12,14 +12,19 @@ GitHub Pages.
 
 ## Start here
 
-A first visit opens **Learning paths** (`#/paths`). Twelve paths across four
-tracks (design, engineering, leadership, interview prep) walk you from beginner to
-expert through the guide's topics, tools, checklists, diagnostics, project parts
-and prompts, in order, with a reason for each stop and a concrete exercise. A path
-never duplicates content; it puts it in order. Each stage ends in a short
-checkpoint (a few recall questions and one build task), not a test, and "I already
-know this" lets you skip a stage. A slim bar on every page names your current
-stage and the next step. There are no streaks and no badges.
+A first visit opens **Learning paths** (`#/paths`). Thirteen paths across five
+tracks (design, engineering, production, leadership, interview prep) walk you from
+beginner to expert through the guide's topics, tools, checklists, diagnostics,
+project parts, platform guides and prompts, in order, with a reason for each stop
+and a concrete exercise. Not sure which one? Answer three questions (what you want
+to do, your experience, your time) and one path is suggested with the reason; each
+path card also says who it is for and what comes before it. A path never
+duplicates content; it puts it in order. Each stage ends in a short checkpoint (a
+few recall questions, each with an answer outline to compare against once you
+have answered, and one build task), not a test, and "I already know this" lets you
+skip a stage. A stage marked done or skipped by mistake can be undone. A slim bar
+on every page names your current stage and the next step. There are no streaks
+and no badges.
 
 If you already know what you are looking for, go to the **Map**. The map has two
 lenses, switched in the index or on the map's home panel:
@@ -50,7 +55,7 @@ pacing curve, a comparison, a state machine, a pipeline) open with a
 
 | Section (key) | Views | What it is for |
 | --- | --- | --- |
-| **Paths** (1) | Learning paths, Review | The guided way in, above. **Review** brings back interview questions you marked, on a spaced schedule (1, 2, 4, 8, then 16 days). |
+| **Paths** (1) | Learning paths, Review | The guided way in, above. **Review** brings back interview and checkpoint questions you marked, on a spaced schedule (1, 2, 4, 8, then 16 days). |
 | **Map** (2) | Map, List, Concept index, Reference games | The mind map: the lens's goal in the middle, domains around it, a domain's topics when it opens, and related concepts, smells and tools under the topic you select. The list shows the same topics as a list; the concept index ranks topics by how often others reference them. **Reference games** takes 15 successful games apart with one template, each with a schematic of its loop and six with a schematic of their screen. |
 | **Make** (3) | Idea Lab, Build tools, Prompts, Checklists, Platforms | The **Idea Lab** treats an idea as a chain of small, evidence-rated steps (signal, tension, opportunity, question, design space, mechanisms, critique, converge, experiment, decide), one step at a time, and compresses it into an Idea Card. Eleven **build tools** (reference dissection, idea shaper, loop builder, experience canvas, behaviour ladder, "should we build this?", hypothesis builder, AI delegation planner, system map, prompt generator, in-game AI technique chooser) export Markdown. 17 prompt templates and 9 checklists, three of them for store submission. **Platforms** has a guide per store or console (Steam, Nintendo, PlayStation, Xbox, Google Play, the App Store, Epic, the web, Meta Quest, itch.io) from getting access to release, and a guide per UGC platform (Roblox, Fortnite with UEFN) covering its architecture, editor and language, rules, money, publishing and discovery. Each stage has dated, sourced facts, and each guide a flowchart; the stores share a comparison table. |
 | **Diagnose** (4) | Diagnose, Playtest | 33 design smells with causes and experiments, the fun, core-loop, unfairness, depth and content diagnostics, and the playtest question bank and methods. |

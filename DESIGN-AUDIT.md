@@ -209,14 +209,21 @@ only orders `ref`s into existing topics, tools, checklists, smells, diagnostics,
 project parts, flows and prompts, so the 146-topic map, the projects
 and the tool suite stay the single source of truth.
 
-Twelve paths across four tracks (design, engineering, leadership, interview prep)
-were shaped against the research behind the plan rather than against a generic
-"course" template:
+Thirteen paths across five tracks (design, engineering, production, leadership,
+interview prep) were shaped against the research behind the plan rather than
+against a generic "course" template:
 
 - **Soft mastery gates.** A stage ends in a checkpoint, not a test: two to four
-  recall questions and one build task, both ungraded. Nothing blocks a reader from
-  opening the next stage regardless of the checkpoint; the checkpoint is a prompt
-  to self-assess, not a lock.
+  recall questions and one build task, both ungraded. Each recall question has a
+  short answer outline, shown only when the reader opens it, so they answer first
+  and compare after; any of them can go into the Review queue. Nothing blocks a
+  reader from opening the next stage regardless of the checkpoint; the checkpoint
+  is a prompt to self-assess, not a lock. The path bar never marks a stage done:
+  at a checkpoint it opens the checkpoint, and a stage done or skipped can be
+  undone.
+- **Choosing and ordering.** A three-question chooser on the door suggests a path
+  for every combination of answers (the validator checks all of them), and every
+  prerequisite points forward to the path that needs it (also validated).
 - **Cognitive load.** No stage runs more than four consecutive `topic` steps from
   one domain (the validator enforces this as an interleave rule), so a stage mixes
   reading with a tool, a checklist, or a project part rather than piling up

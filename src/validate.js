@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -349,10 +349,11 @@ for (const c of (CASE_STUDIES || [])) {
   for (const f of (c.flows || [])) validFlowKeys.add(`${c.id}/${f.id}`);
 }
 const pathIds = new Set((PATHS || []).map(p => p.id));
-let pathStepCount = 0;
+let pathStepCount = 0, recallNoAnswer = 0;
 for (const pth of (PATHS || [])) {
   const where = `path ${pth.id || '(no id)'}`;
-  for (const k of ['t', 'tag', 'track', 'level', 'audience', 'outcome']) if (!pth[k] || !String(pth[k]).trim()) errors.push(`${where}: ${k} empty`);
+  for (const k of ['t', 'tag', 'track', 'level', 'audience', 'outcome', 'pick']) if (!pth[k] || !String(pth[k]).trim()) errors.push(`${where}: ${k} empty`);
+  if (pth.pick && pth.pick.length >= 60) errors.push(`${where}: pick is ${pth.pick.length} characters, expected under 60`);
   if (pth.track && !TRACK_IDS.has(pth.track)) errors.push(`${where}: unknown track ${pth.track}`);
   if (pth.level && !LEVEL_IDS.has(pth.level)) errors.push(`${where}: unknown level ${pth.level}`);
   if (typeof pth.hours !== 'number' || pth.hours <= 0) errors.push(`${where}: hours must be a positive number`);
@@ -397,6 +398,7 @@ for (const pth of (PATHS || [])) {
         case 'prompt': if (!PROMPT_IDS.has(step.ref)) errors.push(`${stw}: ref -> unknown prompt ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'part': if (!validPartKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown part ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'flow': if (!validFlowKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown flow ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'platform': if (!(ctx.PLATFORMS || []).some(p => p.id === step.ref)) errors.push(`${stw}: ref -> unknown platform ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'reflect': if (step.ref !== undefined) errors.push(`${stw}: reflect steps take no ref`); runDomain = null; runLen = 0; break;
         default: errors.push(`${stw}: unknown kind ${step.kind}`);
       }
@@ -409,7 +411,13 @@ for (const pth of (PATHS || [])) {
     else {
       const { recall, build, skip } = st.check;
       if (!Array.isArray(recall) || recall.length < 2 || recall.length > 4) errors.push(`${sw}: check.recall has ${Array.isArray(recall) ? recall.length : 'no'} questions, expected 2 to 4`);
-      else recall.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.recall[${i}] empty`); });
+      else recall.forEach((x, i) => {
+        const q = typeof x === 'string' ? x : x && x.q;
+        if (!q || !String(q).trim()) errors.push(`${sw}: check.recall[${i}] empty`);
+        if (typeof x === 'string') recallNoAnswer++;
+        else if (!x.a || !String(x.a).trim()) errors.push(`${sw}: check.recall[${i}] has an empty answer outline`);
+        else if (x.a.length > 420) errors.push(`${sw}: check.recall[${i}] answer outline is ${x.a.length} characters, expected an outline under 420`);
+      });
       if (!build || !String(build).trim()) errors.push(`${sw}: check.build empty`);
       if (!Array.isArray(skip) || skip.length < 3 || skip.length > 5) errors.push(`${sw}: check.skip has ${Array.isArray(skip) ? skip.length : 'no'} questions, expected 3 to 5`);
       else skip.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.skip[${i}] empty`); });
@@ -419,7 +427,22 @@ for (const pth of (PATHS || [])) {
   if (levelDrop) errors.push(`${where}: stage levels must be non-decreasing`);
   if (typeof pth.hours === 'number' && hoursSum > 0 && Math.abs(hoursSum - pth.hours) / pth.hours > 0.1) errors.push(`${where}: stage hours sum to ${hoursSum}, path declares ${pth.hours} (expected within 10%)`);
 }
-console.log(`paths: ${(PATHS || []).length}, stages: ${(PATHS || []).reduce((n, p) => n + (Array.isArray(p.stages) ? p.stages.length : 0), 0)}, steps: ${pathStepCount}`);
+// A prerequisite points forward to the path that needs it: every path named
+// in a prereq lists this path in its own next.
+for (const pth of (PATHS || [])) for (const id of (pth.prereq || [])) {
+  const pre = (PATHS || []).find(p => p.id === id);
+  if (pre && !(pre.next || []).includes(pth.id)) errors.push(`path ${pth.id}: prereq ${id} does not list ${pth.id} in its next`);
+}
+// The door's chooser must suggest a real path for every combination of answers.
+let chooserCombos = 0;
+if (ctx.CHOOSER) for (const [g] of ctx.CHOOSER.goals) for (const [l] of ctx.CHOOSER.levels) for (const [t] of ctx.CHOOSER.times) {
+  chooserCombos++;
+  const r = ctx.choosePath(g, l, t);
+  if (!r) errors.push(`chooser: no path for ${g} / ${l} / ${t}`);
+}
+for (const [g, byLevel] of Object.entries(ctx.CHOOSER ? ctx.CHOOSER.paths : {})) for (const ids of Object.values(byLevel)) for (const id of ids) if (!pathIds.has(id)) errors.push(`chooser: ${g} names unknown path ${id}`);
+if (recallNoAnswer) errors.push(`paths: ${recallNoAnswer} checkpoint recall questions have no answer outline`);
+console.log(`paths: ${(PATHS || []).length}, chooser combinations: ${chooserCombos}, stages: ${(PATHS || []).reduce((n, p) => n + (Array.isArray(p.stages) ? p.stages.length : 0), 0)}, steps: ${pathStepCount}`);
 
 for (const d of DOMAINS) for (const [to] of d.links) if (!domIds.has(to)) errors.push(`domain ${d.id}: link -> unknown ${to}`);
 for (const s of SMELLS) { for (const c of s.causes) if (!TOPICS[c.top]) errors.push(`smell ${s.id}: cause -> unknown topic ${c.top}`); for (const d of s.dom) if (!domIds.has(d)) errors.push(`smell ${s.id}: unknown domain ${d}`); if (s.fun && !s.dims?.length) errors.push(`smell ${s.id}: fun without dims`); }

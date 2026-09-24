@@ -13,17 +13,18 @@
      level:'',                              // one of LEVELS below: the ENTRY level
      hours:0,                               // sum of stage hours
      audience:'', outcome:'',               // 1-2 sentences each
+     pick:'',                               // under 60 characters: the quick-pick line on the door
      prereq:[''], next:[''],                // other path ids, may be empty
      stages:[{
        id:'', t:'', level:'', goal:'', hours:0,
        steps:[{
-         kind:'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'reflect',
+         kind:'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'reflect',
          ref:'',                            // omitted for 'reflect'
          tab:'',                            // optional, topic only: 'overview'|'godot'|'unity'|'interview'
          why:'', do:'', min:0                // why now (1 sentence), the exercise (1-3 sentences), 10-60
        }],
        review:[''],                          // 0-2 topic ids from EARLIER stages, for retrieval and spacing
-       check:{ recall:[''], build:'', skip:[''] }  // 2-4 recall questions, one build task, 3-5 skip questions
+       check:{ recall:[{q:'', a:''}], build:'', skip:[''] }  // 2-4 recall questions with answer outlines, one build task, 3-5 skip questions
      }]
    })
 
@@ -36,6 +37,7 @@
      part       -> '<cs>/<sys>/<part>' resolving through CASE_STUDIES  #/experience/<cs>/<sys>/<part>
      flow       -> '<cs>/<flowId>' resolving through CASE_STUDIES  #/experience/<cs>/flow/<flowId>
      prompt     -> an id in PROMPT_TEMPLATES                       #/prompts/<ref>
+     platform   -> an id in PLATFORMS (15-platforms.js)            #/platforms/<ref>
      reflect    -> no ref; 'do' is the writing prompt, answered on the path page itself
 
    Rules (checked by validate.js): 4-6 stages; 3-8 steps per stage; every
@@ -50,7 +52,7 @@
    ===================================================================== */
 /**
  * @typedef {object} PathStep
- * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'reflect'} kind
+ * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'reflect'} kind
  * @property {string} [ref]   omitted for 'reflect'
  * @property {'overview'|'godot'|'unity'|'interview'} [tab]   topic steps only
  * @property {string} why
@@ -66,7 +68,7 @@
  * @property {number} hours
  * @property {PathStep[]} steps
  * @property {string[]} review
- * @property {{recall: string[], build: string, skip: string[]}} check
+ * @property {{recall: (string|{q: string, a: string})[], build: string, skip: string[]}} check
  */
 /**
  * @typedef {object} Path
@@ -78,6 +80,7 @@
  * @property {number} hours
  * @property {string} audience
  * @property {string} outcome
+ * @property {string} pick
  * @property {string[]} prereq
  * @property {string[]} next
  * @property {PathStage[]} stages
@@ -86,7 +89,33 @@
 const PATHS = [];
 /** @param {string} id @param {Path} o */
 function PATH(id, o){ o.id = id; PATHS.push(o); }
-const TRACKS = [['design','Design'],['engineering','Engineering'],['leadership','Leadership'],['interview','Interview prep']];
+const TRACKS = [['design','Design'],['engineering','Engineering'],['production','Production'],['leadership','Leadership'],['interview','Interview prep']];
+/* The chooser on the paths door: three answers pick one path. Each goal and
+   level lists candidate paths in order of preference; the time answer takes
+   the first candidate that fits it, or the shortest when none does.
+   validate.js checks that every combination picks a real path. */
+const CHOOSER = {
+  goals: [['design','Design games'],['gameplay','Program gameplay'],['backend','Build backends and servers'],['ship','Ship a game'],['lead','Lead a team'],['iv-design','Interview for a design job'],['iv-eng','Interview for an engineering job']],
+  levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
+  times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
+  paths: /** @type {Record<string, Record<string, string[]>>} */ ({
+    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer'], senior:['systems-designer','level-and-ux-designer'] },
+    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
+    backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
+    ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer'] },
+    lead:{ new:['technical-lead'], some:['technical-lead'], senior:['technical-lead'] },
+    'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
+    'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] }
+  })
+};
+/** @param {string} goal @param {string} level @param {string} time */
+function choosePath(goal, level, time){
+  const list = ((CHOOSER.paths[goal] || {})[level] || []).map(id => PATHS.find(p => p.id === id)).filter(p => !!p);
+  if(!list.length) return null;
+  const t = CHOOSER.times.find(x => x[0] === time), budget = t ? t[2] : Infinity;
+  const path = list.find(p => p.hours <= budget) || list.reduce((a, b) => b.hours < a.hours ? b : a);
+  return { path, alt: list.filter(p => p !== path), over: path.hours > budget };
+}
 const LEVELS = [['beginner','Beginner'],['intermediate','Intermediate'],['advanced','Advanced'],['expert','Expert']];
 /* Level descriptors, shown on the door and on a path's header.
    Beginner: follows explicit templates, cannot yet judge when a rule does
@@ -135,6 +164,7 @@ function stepTitle(step){
     case 'prompt': { const x = PROMPT_TEMPLATES.find(p => p.id === step.ref); return x ? x.t : step.ref; }
     case 'part': { const { part } = findCasePart(step.ref); return part ? part.t : step.ref; }
     case 'flow': { const { flow } = findCaseFlow(step.ref); return flow ? flow.t : step.ref; }
+    case 'platform': { const x = PLATFORMS.find(p => p.id === step.ref); return x ? `${x.t} guide` : step.ref; }
     case 'reflect': return 'Reflect and write it in your own words';
     default: return step.ref || step.kind;
   }
@@ -153,6 +183,7 @@ function stepHref(step, pathId, stageId){
     case 'smell': return '#/smell/' + step.ref;
     case 'diagnostic': return '#/diagnose/' + step.ref;
     case 'prompt': return '#/prompts/' + step.ref;
+    case 'platform': return '#/platforms/' + step.ref;
     case 'part': { const { cs, sys, part } = findCasePart(step.ref); return cs && sys && part ? `#/experience/${cs.id}/${sys.id}/${part.id}` : '#/experience'; }
     case 'flow': { const { cs, flow } = findCaseFlow(step.ref); return cs && flow ? `#/experience/${cs.id}/flow/${flow.id}` : '#/experience'; }
     case 'reflect': return pathId ? '#/paths/' + pathId + (stageId ? '/' + stageId : '') : '#/paths';
@@ -162,10 +193,11 @@ function stepHref(step, pathId, stageId){
 
 PATH('game-designer-foundations', {
   t:'Game designer foundations', tag:'Player, loop, and the discipline to test before you build.',
+  pick:'Design a game that holds up before you build it',
   track:'design', level:'beginner', hours:8,
   audience:'Anyone starting in game design, or an engineer, producer or artist picking up design responsibility for the first time.',
   outcome:'You can name a player and a promise, build and defend a core loop, judge whether a feature idea creates a real decision, and turn a hunch into a hypothesis before you write a line of code.',
-  prereq:[], next:['systems-designer','level-and-ux-designer'],
+  prereq:[], next:['systems-designer','level-and-ux-designer','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer'],
   stages:[
     { id:'s1', t:'The player and the promise', level:'beginner',
       goal:'Name a real player, the fantasy you are selling them, and the one sentence that has to survive every later decision.', hours:2,
@@ -178,7 +210,11 @@ PATH('game-designer-foundations', {
       ],
       review:[],
       check:{
-        recall:['What is the difference between a want and a fantasy sentence?','Why does experience thinking start from a behavior instead of a feature?','What breaks if you skip straight from a feature idea to a feature?'],
+        recall:[
+          { q:'What is the difference between a want and a fantasy sentence?', a:'A want is the underlying motivation driving play, like competence or autonomy. A fantasy sentence turns that want into the identity the player gets to inhabit, phrased as "I get to be someone who...". The want explains why; the fantasy states the promise as a verb.' },
+          { q:'Why does experience thinking start from a behavior instead of a feature?', a:'A feature is a solution guessed too early. Starting from the behavior you want the player to perform, then climbing the Behavior Ladder through experience, system and mechanic, keeps the design serving the player instead of just implementing whatever came to mind first.' },
+          { q:'What breaks if you skip straight from a feature idea to a feature?', a:'You build the first implementation you imagined instead of the smallest mechanic that actually produces the intended behavior, so the result is often bigger, more complex, or aimed at the wrong experience than the ladder would have found.' }
+        ],
         build:'Write your player sketch, your chosen fantasy sentence and your one-paragraph core experience statement on one page. Read it aloud to someone who has not seen the project.',
         skip:['Can you write a player sketch and a fantasy sentence for a new idea in under ten minutes?','Can you explain why "a roguelike deckbuilder" names a genre, not an experience?','Have you already run the Behavior Ladder on a real feature idea and changed the plan because of it?','Can you tell a want the market already shows apart from a want you are only guessing at?']
       } },
@@ -193,7 +229,11 @@ PATH('game-designer-foundations', {
       ],
       review:['fantasy'],
       check:{
-        recall:['What are the five links in the core loop?','What makes a decision meaningful rather than merely present?','How do you tell a load-only mechanic from one that creates a decision?'],
+        recall:[
+          { q:'What are the five links in the core loop?', a:'Action, feedback, decision, consequence, and new situation: the player acts, the game responds legibly, they decide based on that response, the decision has consequences, and those consequences create a fresh situation demanding another action.' },
+          { q:'What makes a decision meaningful rather than merely present?', a:'The options must be genuinely different with no dominant choice, the right answer must change with the situation, and different players must actually choose differently. The player needs enough information to reason but not enough to be certain.' },
+          { q:'How do you tell a load-only mechanic from one that creates a decision?', a:'Ask what decision would disappear if you removed it. If none, it only adds a rule to track without changing any tradeoff, so it is load-only rather than decision- or interaction-creating.' }
+        ],
         build:'Export your Loop Builder diagram with the weakest link marked and the one change you made to strengthen it.',
         skip:['Can you describe your core loop in five sentences without leaving out a link?','Can you write the tradeoff sentence for every option in your game right now?','Have you already run a weak-link check on a loop and fixed what it found?','Do you know which of your mechanics would go unnoticed if you deleted it?']
       } },
@@ -209,7 +249,11 @@ PATH('game-designer-foundations', {
       ],
       review:['core-loop'],
       check:{
-        recall:['What is the difference between complexity and depth?','Why does feedback need to show cause, not only outcome?','Which of the nine "Should we build this?" questions kills the most ideas in your experience so far?'],
+        recall:[
+          { q:'What is the difference between complexity and depth?', a:'Complexity is what the player must learn: rules, exceptions, state. Depth is what they can do with it: the meaningful, situationally different decisions those rules generate. Elegance means high depth for little complexity, so aim to buy depth, not complexity.' },
+          { q:'Why does feedback need to show cause, not only outcome?', a:'Confirming that something happened without showing why gives the player nothing to correct. Cause feedback lets them update their understanding and act differently next time; without it, a failure feels unfair regardless of whether it actually was.' },
+          { q:'Which of the nine "Should we build this?" questions kills the most ideas in your experience so far?', a:'Personal, but in the tool’s own scoring the heaviest penalties sit on two questions: could a simpler change deliver the same experience, and what happens if we do not build it. An idea that a change to an existing system could deliver, or whose absence nobody would notice, loses the most points.' }
+        ],
         build:'Run the design review checklist on one feature you are considering, and either cut it or write down what each group answered.',
         skip:['Can you run a rule audit on your own systems and say which rules earn their place?','Can you name the empty cell in your current feedback matrix?','Have you already used "Should we build this?" to kill an idea you liked?','Can you explain teaching by doing to someone in one sentence?']
       } },
@@ -218,14 +262,18 @@ PATH('game-designer-foundations', {
       steps:[
         { kind:'topic', ref:'prototyping', why:'A prototype that answers no question is a demo, however good it looks.', do:'Name the one question your next build has to answer, and the medium that answers it for the least work.', min:20 },
         { kind:'topic', ref:'hypothesis-driven-design', why:'A hypothesis with a signal and a kill criterion is what turns an opinion into something you can be wrong about.', do:'Write one hypothesis in the standard form: player, behavior, reason, signal, kill criterion.', min:15 },
-        { kind:'tool', ref:'hypothesis', why:'The builder keeps the four parts honest and exports the brief you hand to whoever builds the prototype.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:20 },
+        { kind:'tool', ref:'hypothesis', why:'The builder keeps the five parts honest and exports the brief you hand to whoever builds the prototype.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:20 },
         { kind:'checklist', ref:'pre-prototype', why:'A prototype without a hypothesis, a scope cut and instrumentation is a demo with extra steps.', do:'Run the pre-prototype checklist against the brief you just exported and fix whatever it fails.', min:15 },
         { kind:'topic', ref:'playtesting', why:'What a player says is useful. What a player does is evidence. Only one of them tests your hypothesis.', do:'Plan a fifteen-minute silent playtest for your prototype: who you would recruit, what you would watch for, and the one question you would ask afterward.', min:20 },
         { kind:'reflect', why:'Writing your own answer, not the guide’s, is what makes the plan yours to run.', do:'In your own words, write what you will build next, the hypothesis it tests, and the signal that would make you kill it.', min:20 }
       ],
       review:['mechanics-and-rules','depth-vs-complexity'],
       check:{
-        recall:['What four parts does a hypothesis need?','Why is a prototype that answers no question a demo?','What is the difference between what a player says and what a player does?'],
+        recall:[
+          { q:'What five parts does a hypothesis need?', a:'Player, behavior and reason, in the form “we believe [player] will [behavior] because [reason]”, plus the observable signal that shows it is true and a kill criterion written before the build.' },
+          { q:'Why is a prototype that answers no question a demo?', a:'A prototype\'s value is the question it answers and how fast it answers it; fidelity is a cost, not a virtue. Without a specific question and kill criterion, a build only shows something off, which makes it a demo.' },
+          { q:'What is the difference between what a player says and what a player does?', a:'What a player says is self-report: useful but unreliable, since they report what they think they felt or think you want to hear. What they do is observed behavior, the actual evidence. Believe the behavior; use the words to form hypotheses about why.' }
+        ],
         build:'Write one hypothesis in the standard form, the smallest prototype that tests it, and the kill criterion, using the Hypothesis Builder.',
         skip:['Have you already written a hypothesis with a signal and a kill criterion for your current idea?','Can you name the smallest medium that would answer your current design question?','Do you know what result would make you kill your favorite idea?','Can you separate what a tester said from what they did in your last playtest?']
       } }
@@ -234,10 +282,11 @@ PATH('game-designer-foundations', {
 
 PATH('systems-designer', {
   t:'Systems designer', tag:'Economy, progression, and the discipline to prove a system by breaking it.',
+  pick:'Own an economy, a progression curve or any system',
   track:'design', level:'intermediate', hours:10,
   audience:'Designers past the basics who want to own an economy, a progression curve, or any system with more than three moving parts.',
   outcome:'You can map a system’s parts and feedback loops, run a rule audit that separates decisions from load, and turn a design smell into a testable experiment instead of a guess.',
-  prereq:['game-designer-foundations'], next:['technical-lead'],
+  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer'],
   stages:[
     { id:'s1', t:'Systems and their pieces', level:'intermediate',
       goal:'See a system as parts and the relationships between them, not just a list of numbers.', hours:2,
@@ -250,7 +299,11 @@ PATH('systems-designer', {
       ],
       review:[],
       check:{
-        recall:['What is the difference between a relationship and a rule in a system?','Why does listing sinks with no attached choice matter before you touch numbers?','What does a feedback loop look like on your relationship map that a spreadsheet would hide?'],
+        recall:[
+          { q:'What is the difference between a relationship and a rule in a system?', a:'A relationship is the observed dependency between two parts, stated as "A affects B." A rule is the exact mechanic that enforces that relationship. Naming the rule, not just the relationship, is what makes it changeable later.' },
+          { q:'Why does listing sinks with no attached choice matter before you touch numbers?', a:'A sink with no meaningful choice attached is really a progress bar, not a resource decision, so tuning its numbers will not create engagement. Finding these first shows where the economy needs a new tradeoff rather than a balance pass.' },
+          { q:'What does a feedback loop look like on your relationship map that a spreadsheet would hide?', a:'It appears as a visible cycle of edges, where one node\'s output loops back to affect itself or an earlier node, such as abundance lowering its own value. A spreadsheet\'s linear rows of numbers make that cycle much harder to notice.' }
+        ],
         build:'Export your System Relationship Map with the feedback loop you found circled, and the rule sentence for the relationship that causes it.',
         skip:['Can you name the feedback loops in your current system without opening the map tool?','Can you list every currency and sink in your game from memory, sink by sink?','Do you already know which sink in your economy has no real choice attached?','Have you built a relationship map for a system before and found something you had not noticed?']
       } },
@@ -266,7 +319,11 @@ PATH('systems-designer', {
       ],
       review:['systemic-design'],
       check:{
-        recall:['What breaks when progression and difficulty are tuned separately?','What is the test for whether an unlock is meaningful?','What does a currency need to justify existing, according to the smell you just read?'],
+        recall:[
+          { q:'What breaks when progression and difficulty are tuned separately?', a:'Progression and difficulty are two names for the same pressure. If power grows faster than demand the game turns boringly easy, and if demand outpaces power it turns unfair; tuned apart, one curve silently undercuts the other.' },
+          { q:'What is the test for whether an unlock is meaningful?', a:'Ask what new capability, decision, or experience the unlock creates, not what number it changes. A step that only raises a stat without changing what the player can do or choose is "number goes up," not real progression.' },
+          { q:'What does a currency need to justify existing, according to the smell you just read?', a:'It needs to create a spending decision, a tradeoff, that no other currency in the game already creates. A currency added only to gate a system, with no unique choice attached, should be merged into an existing one or cut.' }
+        ],
         build:'Run the design review checklist on your progression curve and the depth-vs-complexity rule audit on its rules, and write down what each one caught.',
         skip:['Can you point to the exact spot on your curve where difficulty and power cross?','Can you defend every currency in your game with the one decision it alone enables?','Have you already cut an unlock because a rule audit showed it was load, not depth?','Can you name a real game whose progression curve you would redesign, and why?']
       } },
@@ -282,7 +339,11 @@ PATH('systems-designer', {
       ],
       review:['progression'],
       check:{
-        recall:['What separates a decision rule from a load-only rule?','When does more content stop adding value to a system?','What is the one change the no-experiment smell asked you to name?'],
+        recall:[
+          { q:'What separates a decision rule from a load-only rule?', a:'A decision rule creates a situational choice that would be missed if removed. A load-only rule only adds cognitive or implementation cost with no decision or interaction behind it. The rule audit classifies each rule this way before anything is cut.' },
+          { q:'When does more content stop adding value to a system?', a:'Once the system can no longer absorb it, meaning new content stops creating a situation or decision the existing pieces do not already produce. Past that point content only adds cost, and the system itself needs work, not more pieces.' },
+          { q:'What is the one change the no-experiment smell asked you to name?', a:'The one change that would make trying something new worth the risk, usually by lowering the cost of failure, rewarding curiosity with real feedback, hiding the obviously optimal option, or exposing a visible cross-system interaction worth chasing.' }
+        ],
         build:'Run the content-or-mechanic diagnostic on your next planned addition, and either build it differently or cut it based on the result.',
         skip:['Can you classify a rule as decision, interaction, or load in under ten seconds?','Can you name the point where adding content to your system stopped paying off?','Have you already found a one-build problem in your own system and named its cause?','Do you know which item in your backlog a scope check would cut first?']
       } },
@@ -297,7 +358,11 @@ PATH('systems-designer', {
       ],
       review:['depth-vs-complexity'],
       check:{
-        recall:['Why is an ignored mechanic a cost, not a neutral feature?','What turns a fix into an experiment?','What are the two signals your hypothesis needs?'],
+        recall:[
+          { q:'Why is an ignored mechanic a cost, not a neutral feature?', a:'The system still pays for it, in complexity budget, teaching cost and upkeep, even though no player ever uses the decision it was built to create. An ignored mechanic is a tax the game pays for a choice nobody makes.' },
+          { q:'What turns a fix into an experiment?', a:'Writing it as a hypothesis with an observable signal and a kill criterion before shipping it. A fix with no predicted result and no way to know if it failed is an opinion that was shipped and hoped for, not tested.' },
+          { q:'What are the two signals your hypothesis needs?', a:'The signal that would confirm the hypothesis worked, an observable behavior you expect if it is true, and the kill criterion, the result that would make you revert or abandon the change. Both must be visible in a real playtest.' }
+        ],
         build:'Export your Hypothesis Builder brief for the system fix you chose, with a real signal and a real kill criterion.',
         skip:['Have you already written a hypothesis with a kill criterion for a system fix?','Can you name a mechanic in your game you are fairly sure nobody uses, and why?','Do you know what evidence would make you revert your last system change?','Can you tell a tested fix from a shipped-and-hoped fix in your own recent work?']
       } },
@@ -311,7 +376,11 @@ PATH('systems-designer', {
       ],
       review:['builds-and-loadouts'],
       check:{
-        recall:['What does flagging reward with no risk tell you about a decision point?','What is the difference between fixing a loop and moving its smell?','What has to be true of an audit for someone else to act on it without you?'],
+        recall:[
+          { q:'What does flagging reward with no risk tell you about a decision point?', a:'It means the point is not really a risk-reward choice: there is a payoff but nothing genuinely at stake, so the "decision" is a formality. It needs a real, legible cost attached, or players will always take it.' },
+          { q:'What is the difference between fixing a loop and moving its smell?', a:'Fixing a loop removes the underlying cause, such as adding a real counter or constraint that changes behavior. Moving the smell just relocates the same symptom, like nerfing a dominant build only for the next-best one to take its place at the same rate.' },
+          { q:'What has to be true of an audit for someone else to act on it without you?', a:'It has to name the smells found with evidence, the experiment run or planned, and the expected result on one page, with a build task concrete enough that another person could run it and interpret the result without asking you first.' }
+        ],
         build:'Write the one-page system audit and attach the relationship map and the playtest prep checklist you ran against the redesigned system.',
         skip:['Can you point to a decision point in your system with reward and no real risk?','Have you already rebuilt your relationship map after a redesign and found the smell had just moved?','Can you write a playtest plan built around one specific smell, not a general session?','Could someone else run your audit’s build task from your one-page writeup alone?']
       } }
@@ -320,10 +389,11 @@ PATH('systems-designer', {
 
 PATH('level-and-ux-designer', {
   t:'Level and UX designer', tag:'Pacing, readability, and the first five minutes nobody skips.',
+  pick:'Pace levels and teach players without a wall of text',
   track:'design', level:'intermediate', hours:10,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
-  prereq:['game-designer-foundations'], next:['technical-lead'],
+  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
       goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2,
@@ -336,7 +406,11 @@ PATH('level-and-ux-designer', {
       ],
       review:[],
       check:{
-        recall:['What are the six beats a level structure moves through?','Why can a level be well paced and still exhaust a player?','How does a sightline control pacing before an encounter even starts?'],
+        recall:[
+          { q:'What are the six beats a level structure moves through?', a:'Teach, test, twist, combine, master, rest: introduce the idea safely, demand it under pressure, reframe it unexpectedly, mix it with something known, demand fluency, then release.' },
+          { q:'Why can a level be well paced and still exhaust a player?', a:'Pacing has two curves, intensity and cognitive load, and a level can manage one while leaving the other constantly high, or vary intensity correctly but never give a genuine rest beat that carries a reward, so the player never actually recovers.' },
+          { q:'How does a sightline control pacing before an encounter even starts?', a:'What is visible from the entrance, the goal, the danger, or the choice, sets the player\'s expectation and readiness before anything happens, so the sightline paces anticipation and tension ahead of the encounter design itself.' }
+        ],
         build:'Draw the pacing graph for your level by hand and label each of the six beats on your layout, then run the design review checklist against the plan.',
         skip:['Can you label the six structural beats on a level you know without looking them up?','Can you draw your own level’s intensity graph from memory and defend the shape?','Have you already found a sightline problem in your own level by walking it, not reading about it?','Can you tell a pacing problem from a difficulty problem when a tester stalls?']
       } },
@@ -351,7 +425,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['level-structure'],
       check:{
-        recall:['What are the four parts of an encounter as a small loop?','What is the difference between a decision-space problem and a readability problem?','What causes did the “players do not know what to do” smell point to in your case?'],
+        recall:[
+          { q:'What are the four parts of an encounter as a small loop?', a:'Setup, where the player reads what is coming; engagement, the execution; shift, something that changes the plan partway through; and resolution. An encounter is a small core loop with its own version of feedback and consequence.' },
+          { q:'What is the difference between a decision-space problem and a readability problem?', a:'A decision-space problem means the choices themselves are missing or bad, with nothing meaningful to decide. A readability problem means the choices exist but the player cannot perceive them in time, so the fix is feedback or hierarchy, not more content.' },
+          { q:'What causes did the “players do not know what to do” smell point to in your case?', a:'The smell lists four candidates: no visible short-term goal in the world, unclear affordances, a goal that exists only in text or a log the player skipped, or a poorly composed space with no sightlines or landmarks. The fix targets the world and feedback, not more text.' }
+        ],
         build:'Export your Game Loop Builder diagram for the encounter with its weak link marked and fixed.',
         skip:['Can you name the weakest of the four parts in any encounter you are currently building?','Can you point to the exact visual element that should draw a player’s eye first, and check whether it does?','Have you already fixed a “players do not know what to do” report by changing readability instead of adding text?','Do you know the difference between a loop weak link and a readability weak link?']
       } },
@@ -366,7 +444,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['encounter-design'],
       check:{
-        recall:['What are the two things feedback has to confirm for every action?','Why is “floaty” usually a feedback problem, not a physics problem?','What is friction, in one sentence?'],
+        recall:[
+          { q:'What are the two things feedback has to confirm for every action?', a:'That the input registered, ideally within about a hundred milliseconds, and what the outcome was and why, including for failure. Confirming input without outcome, or outcome without cause, both break the player\'s ability to learn.' },
+          { q:'Why is “floaty” usually a feedback problem, not a physics problem?', a:'Floaty is what players say when feedback lags behind or contradicts the input that caused it, such as a missing impact cue or a hit with no visible consequence, rather than the underlying physics values actually being wrong.' },
+          { q:'What is friction, in one sentence?', a:'Friction is the cost in inputs, mode switches, menu depth or latency between the player\'s intent and the game\'s response, and every unintended increment of it is a tax on the action, even though some deliberate friction can add real weight.' }
+        ],
         build:'Fill your feedback matrix for the three most common actions, then run the design review checklist against the control scheme alone.',
         skip:['Can you name the empty cell in your feedback matrix right now?','Can you count the inputs your most common action takes without checking?','Have you already fixed a “floaty” complaint by changing feedback timing instead of a physics value?','Do you know the one friction point in your own build you have stopped noticing?']
       } },
@@ -381,7 +463,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['feedback-and-affordance'],
       check:{
-        recall:['What is the difference between teaching by doing and teaching by reading?','Name one accessibility dimension your build has not been checked against.','What does the silent onboarding audit remove on purpose, and why?'],
+        recall:[
+          { q:'What is the difference between teaching by doing and teaching by reading?', a:'Teaching by doing puts the player in a situation that demands the mechanic and lets them learn from the consequence. Teaching by reading tells them with text they can skip. Good onboarding is level design and feedback doing the work, with text only as a fallback.' },
+          { q:'Name one accessibility dimension your build has not been checked against.', a:'Common candidates are color redundancy, input remapping and hold-versus-toggle alternatives, text scale at real viewing distance, and captioned audio cues. Pick whichever your last build never tested and audit that one channel specifically.' },
+          { q:'What does the silent onboarding audit remove on purpose, and why?', a:'At its core it removes you: no help and no explanation during play, so every hesitation shows what the level and feedback fail to teach. This path also asks you to turn sound off and hide tutorial text where you can, so a tooltip cannot take credit for learning the space should have done.' }
+        ],
         build:'Run the silent onboarding audit with sound off and tutorial text hidden, and write the three things it caught that you would have missed otherwise.',
         skip:['Can you run your first five minutes with sound off and text hidden and still explain what happened?','Can you name which accessibility dimension your current build is weakest on?','Have you already caught an onboarding problem by watching a silent playtest instead of reading feedback?','Do you know the one onboarding change you would make first, right now?']
       } },
@@ -395,7 +481,11 @@ PATH('level-and-ux-designer', {
       ],
       review:['onboarding'],
       check:{
-        recall:['What are the three horizons a level’s pacing has to serve?','What did dissecting someone else’s level show you about your own that reading could not?','What makes a playtest session actually test onboarding, rather than just running it again?'],
+        recall:[
+          { q:'What are the three horizons a level’s pacing has to serve?', a:'Short-term, seconds to a minute; session, the current sitting; and long-term, across sessions. A level\'s pacing has to support the immediate action while still advancing the session\'s and the game\'s larger goals.' },
+          { q:'What did dissecting someone else’s level show you about your own that reading could not?', a:'Dissection forces you to name the exact structural beats, sightlines and readability choices another designer made, giving concrete mechanisms to compare directly against your own level, which reading about level design in the abstract cannot surface.' },
+          { q:'What makes a playtest session actually test onboarding, rather than just running it again?', a:'A specific written question and hypothesis about onboarding or pacing, fresh matched players who have never seen the build, silent observation, and a protocol aimed at the exact change made. Without those it is just another playthrough, not a test.' }
+        ],
         build:'Dissect one level from a game you know, then write the one change to your own level that dissection justified.',
         skip:['Can you name your level’s immediate, session and long-term goal without checking notes?','Have you already dissected a level from another game and found something concrete to steal or avoid?','Can you plan a playtest session aimed at one specific question instead of a general “how did that feel”?','Do you know the single next change your level needs, right now, without re-reading this stage?']
       } }
@@ -404,6 +494,7 @@ PATH('level-and-ux-designer', {
 
 PATH('idea-to-prototype-30-days', {
   t:'Idea to prototype in 30 days', tag:'A deliberately short path: one idea, one loop, one honest test.',
+  pick:'Go from an idea to a tested prototype in 30 days',
   track:'design', level:'beginner', hours:10,
   audience:'Solo or small-team builders who want a fast, motivating first win instead of a long syllabus.',
   outcome:'You end with a shaped idea, a tested core loop, a real hypothesis and playtest behind it, and a scoped 30-day plan you can actually run.',
@@ -419,7 +510,11 @@ PATH('idea-to-prototype-30-days', {
       ],
       review:[],
       check:{
-        recall:['What does dissecting a reference game give you that just enjoying it does not?','What is the one gap your idea is supposed to fill?','What would make you conclude your idea does not actually beat its closest reference?'],
+        recall:[
+          { q:'What does dissecting a reference game give you that just enjoying it does not?', a:'It turns liking a game into specific, stealable structure, the exact mechanism of information, decision, time pressure, consequence and feedback that produces the feeling you admire, rather than a vague impression you cannot act on.' },
+          { q:'What is the one gap your idea is supposed to fill?', a:'It should be an exit reason or an unmet want players state or work around in reviews and forums for close reference games, never a tolerated cost or your own taste, named precisely enough to quote a player\'s own words for it.' },
+          { q:'What would make you conclude your idea does not actually beat its closest reference?', a:'If you cannot name the specific gap your idea fills that the reference does not, if players of the reference do not recognize the gap when you describe it, or if an incumbent could ship your mechanism without breaking their own model.' }
+        ],
         build:'Export the Idea Shaper’s one-line pitch and attach your one-paragraph case for why it beats the two games you dissected.',
         skip:['Can you name the exact gap your idea fills in under one paragraph, right now?','Have you already dissected a close reference game for this exact idea?','Can you state your idea’s one-line pitch without checking your notes?','Do you know the one thing every close reference to your idea gets wrong?']
       } },
@@ -433,7 +528,11 @@ PATH('idea-to-prototype-30-days', {
       ],
       review:['finding-an-idea'],
       check:{
-        recall:['What does the core experience statement have to survive, going forward?','Why is the smallest loop the right thing to build first?','What does the pre-prototype checklist catch that excitement about the idea does not?'],
+        recall:[
+          { q:'What does the core experience statement have to survive, going forward?', a:'Every later decision and every discipline\'s local optimization: it is the one-sentence target that every system, feature review and scope cut answers to, so it has to survive contact with a real prototype and a real playtest, not just a pitch meeting.' },
+          { q:'Why is the smallest loop the right thing to build first?', a:'The loop is the machine the player repeats most, and everything else multiplies it. Testing and fixing a weak loop first is the cheapest way to validate the core experience before investing in progression, content or polish that would only multiply a weakness.' },
+          { q:'What does the pre-prototype checklist catch that excitement about the idea does not?', a:'Whether the hypothesis is written in standard form with a kill criterion, whether the scope is cut to the cheapest medium that answers the question, and whether the test is actually instrumented. Excitement alone tends to skip the kill criterion and let a demo grow instead.' }
+        ],
         build:'Export your Core Experience Canvas and your Game Loop Builder diagram with the weak link marked, and note what the pre-prototype checklist caught.',
         skip:['Can you say your core experience statement from memory, in one sentence?','Can you name your loop’s weakest link without opening the tool again?','Have you already run a pre-prototype checklist and cut scope because of what it found?','Do you know the smallest version of your idea that would still test the thing you actually care about?']
       } },
@@ -441,14 +540,18 @@ PATH('idea-to-prototype-30-days', {
       goal:'Turn the loop into a real hypothesis, and get it in front of a player before you trust your own opinion of it.', hours:2.5,
       steps:[
         { kind:'topic', ref:'hypothesis-driven-design', why:'A hypothesis with a signal and a kill criterion is what turns thinking this works into something you can actually be wrong about.', do:'Write one hypothesis in the standard form: player, behavior, reason, signal, kill criterion, based on the loop you just built.', min:25 },
-        { kind:'tool', ref:'hypothesis', why:'The Hypothesis Builder keeps the four parts honest and exports the brief that tells you, and anyone helping you build, what you are actually testing.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:35 },
+        { kind:'tool', ref:'hypothesis', why:'The Hypothesis Builder keeps the five parts honest and exports the brief that tells you, and anyone helping you build, what you are actually testing.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:35 },
         { kind:'topic', ref:'playtesting', why:'What a player says is useful. What a player does is evidence, and only one of those actually tests your hypothesis.', do:'Plan a fifteen-minute silent playtest: who you would recruit, what you would watch for, and the one question you ask only after they finish.', min:25 },
         { kind:'checklist', ref:'playtest-prep', why:'A playtest without a plan turns into a demo you narrate, which teaches you nothing you did not already believe.', do:'Run the playtest session preparation checklist for the session you just planned.', min:30 },
         { kind:'reflect', why:'Predicting the result before you run the test is what makes a surprising result actually count as evidence.', do:'Write down what you predict will happen in the playtest, before you run it, so you can compare afterward.', min:25 }
       ],
       review:['core-experience'],
       check:{
-        recall:['What are the four parts a hypothesis needs?','What is the difference between what a player says and what a player does?','Why does predicting the result beforehand matter?'],
+        recall:[
+          { q:'What are the five parts a hypothesis needs?', a:'Player, behavior and reason, in the form “we believe [player] will [behavior] because [reason]”, plus the observable signal that shows it is true and a kill criterion written before the build.' },
+          { q:'What is the difference between what a player says and what a player does?', a:'What players say is self-report, useful but unreliable since they report what they think they felt or think you want to hear. What they do is observed behavior, the actual evidence. Believe the behavior; treat the words as leads.' },
+          { q:'Why does predicting the result beforehand matter?', a:'Writing the prediction before running the test is what lets a surprising result count as real evidence instead of being rationalized afterward into whatever happened, which prevents you from unconsciously reading confirmation into an ambiguous outcome.' }
+        ],
         build:'Export your Hypothesis Builder brief and your playtest prep checklist, and run the fifteen-minute silent playtest they describe.',
         skip:['Have you already written a hypothesis with a real kill criterion for this idea?','Can you name the one question you would ask a tester only after they finish playing?','Do you know what result would make you kill this version of the idea?','Have you predicted a playtest result in writing before running the session, and checked yourself against it?']
       } },
@@ -463,7 +566,11 @@ PATH('idea-to-prototype-30-days', {
       ],
       review:['hypothesis-driven-design'],
       check:{
-        recall:['Why does a forcing function matter more on day 25 than on day one?','What makes a slice vertical instead of just small?','Why should the riskiest assumption get tested first, not last?'],
+        recall:[
+          { q:'Why does a forcing function matter more on day 25 than on day one?', a:'The temptation to quietly skip your own kill criterion grows as the deadline nears and sunk cost builds up. A rule written calmly on day one is what stops you rationalizing past your own evidence once pressure is high.' },
+          { q:'What makes a slice vertical instead of just small?', a:'A vertical slice cuts through every layer, art, feel and systems, to shipping quality in one small section end to end, proving both the experience and the real cost per unit, unlike a small build that stays shallow across every discipline.' },
+          { q:'Why should the riskiest assumption get tested first, not last?', a:'Everything scheduled after an unvalidated assumption is a bet on it being true. Testing the riskiest thing first, while there is still time to change direction, is cheaper than discovering it is false after building everything downstream of it.' }
+        ],
         build:'Write the one-page 30-day plan: what ships each week, the riskiest assumption tested first, and the cut list a scope check produced.',
         skip:['Can you name your riskiest assumption and when in your plan it gets tested?','Do you have a written forcing function that would stop you from skipping your own kill criterion?','Can you describe your vertical slice in one sentence without it including something you already agreed to cut?','Have you already run a scope check against a real plan and cut something because of it?']
       } }
@@ -472,6 +579,7 @@ PATH('idea-to-prototype-30-days', {
 
 PATH('technical-lead', {
   t:'Technical lead', tag:'Delegation, review and the incident that becomes a rule instead of a scar.',
+  pick:'Lead a small team and make its work better',
   track:'leadership', level:'advanced', hours:10,
   audience:'Senior designers or engineers stepping into leading a small team, who already do the work and now have to make other people’s work better too.',
   outcome:'You can delegate and say no on purpose, run a review that actually improves the thing being reviewed, and turn an incident or a cut into a rule the team keeps.',
@@ -489,7 +597,11 @@ PATH('technical-lead', {
       ],
       review:[],
       check:{
-        recall:['What is the difference between a job only you can do and one you are just used to doing?','Why does unclear ownership usually cause a handoff failure before anything technical does?','What does saying no on purpose require that saying yes by default does not?'],
+        recall:[
+          { q:'What is the difference between a job only you can do and one you are just used to doing?', a:'A job only you can do needs judgment, authority or context nobody else currently has. A job you are just used to doing is one you keep out of habit even though someone else could now own it, and it is time they did.' },
+          { q:'Why does unclear ownership usually cause a handoff failure before anything technical does?', a:'Most lead failures are collaboration failures wearing a technical costume. When nobody knows who decided what, handoffs happen silently and decisions get made twice or not at all, so the visible technical symptom is downstream of that ownership gap.' },
+          { q:'What does saying no on purpose require that saying yes by default does not?', a:'It requires naming what the request is actually for, sizing its real cost, and stating what it would displace. A deliberate no trades explicitly, while a default yes just accumulates commitments nobody accounted for.' }
+        ],
         build:'Run the Delegation Planner on one real task and write the concrete first step for delegating or refusing it this week.',
         skip:['Can you sort your current task list into only-me and someone-else-now without hesitating?','Do you already ask at least one non-status question in every 1:1?','Can you point to a recent handoff failure and name exactly where ownership was unclear?','Have you already said no on purpose this month, and can you name what you said instead?']
       } },
@@ -507,7 +619,11 @@ PATH('technical-lead', {
       ],
       review:['lead-role'],
       check:{
-        recall:['What turns a preference into a convention someone can actually follow?','What did comparing correctness comments to readability comments in your reviews show you?','What test decides whether a written convention is actually working?'],
+        recall:[
+          { q:'What turns a preference into a convention someone can actually follow?', a:'Writing it down with the specific incident or cost that justifies it, stated in the imperative, dated, and placed where the decision happens. An unwritten rule is only a habit, and a written one with no origin is nearly as unfollowable.' },
+          { q:'What did comparing correctness comments to readability comments in your reviews show you?', a:'Whether review is only catching bugs or also protecting the next reader\'s ability to safely change the code. A review skewed entirely toward correctness misses the slower failure of a codebase only its original author can maintain.' },
+          { q:'What test decides whether a written convention is actually working?', a:'Whether someone who has not been told directly, like a new hire, can find and follow the rule for a situation they have not met yet without asking. If they cannot, the convention is in the wrong place or was never really adopted.' }
+        ],
         build:'Write down one previously unwritten rule with its justifying incident, and run the design review checklist on a piece of work you did not author.',
         skip:['Can you name an unwritten rule your team follows, and the incident that caused it?','Do you already know what a new hire on your team would waste their first week guessing at?','Have you compared your own review comments for correctness versus readability, and did the split surprise you?','Can you name a recurring argument on your team that a written convention would settle?']
       } },
@@ -522,7 +638,11 @@ PATH('technical-lead', {
       ],
       review:['lead-conventions'],
       check:{
-        recall:['Why does a blameless version of an incident point at a fix better than a blame version?','What is the ordering test for a risk register, and why does it matter more than the list?','What does a postmortem have to produce to count as more than a story?'],
+        recall:[
+          { q:'Why does a blameless version of an incident point at a fix better than a blame version?', a:'Blame ends the investigation at a person, while the blameless version keeps asking why the guard that should have caught the mistake was missing. That missing guard, not the individual, is the thing that can actually be fixed.' },
+          { q:'What is the ordering test for a risk register, and why does it matter more than the list?', a:'Order risks by how much they would hurt if they hit tomorrow, not by which is easiest to write about. A long unordered list looks thorough, but the ordering is what tells the team which risk this month\'s work is meant to retire.' },
+          { q:'What does a postmortem have to produce to count as more than a story?', a:'A small number of owned changes with dates, placed where the next person will actually encounter them, such as a checklist, a template or a rule file. A postmortem that only narrates events without producing a change is a story, not a fix.' }
+        ],
         build:'Write or revisit one postmortem and run the design review checklist against its proposed fix before it goes into the backlog unreviewed.',
         skip:['Can you write both a blame version and a systems version of your last incident, and see the difference?','Is your risk register ordered by actual damage, or by whatever was easiest to write down?','Can you point to a postmortem that produced a real rule, not just an apology?','Do you know the risk you are currently avoiding naming, and what would force your hand?']
       } },
@@ -537,7 +657,11 @@ PATH('technical-lead', {
       ],
       review:['lead-incidents'],
       check:{
-        recall:['Why is a scope cut made on purpose better than one made under deadline pressure?','What question should a milestone actually answer, beyond a date?','Why is build health a leading indicator rather than housekeeping?'],
+        recall:[
+          { q:'Why is a scope cut made on purpose better than one made under deadline pressure?', a:'A cut made calmly, before pressure, is a design decision with its tail, tools, data, tests, considered and the team\'s agreement secured. A cut made in the last week is damage control that usually leaves the tail behind and blindsides the team.' },
+          { q:'What question should a milestone actually answer, beyond a date?', a:'What has to be true by that point for the next milestone to still make sense. A milestone is a question with an exit criterion that retires a risk or settles a decision, not a tally of features hit by a date.' },
+          { q:'Why is build health a leading indicator rather than housekeeping?', a:'A broken or unstable build stops the evidence loop: no playable build means no playtest, which means the next decision gets made on opinion instead of evidence. Build health predicts whether the team can keep learning, not just whether the code is tidy.' }
+        ],
         build:'Run the scope sanity checklist against the full roadmap, and write the one cut it justifies that you have been avoiding.',
         skip:['Can you name the item you would cut first if your deadline moved a month closer, right now?','Do you know what has to be true by your next milestone for the one after it to make sense?','Is your build health signal trending toward or away from your next milestone, and do you know why?','Can you name the cut you are avoiding, and its actual cost to the team?']
       } },
@@ -551,7 +675,11 @@ PATH('technical-lead', {
       ],
       review:['pm-scoping-cuts'],
       check:{
-        recall:['What can seeing a whole workflow chart show you that seeing only your own step cannot?','What test does the docs-nobody-reads smell suggest for a written convention?','What made the process change you named the right one to lead with?'],
+        recall:[
+          { q:'What can seeing a whole workflow chart show you that seeing only your own step cannot?', a:'Where the process actually breaks structurally: which handoffs have no artifact, which gates exist because of a past incident, and where your own team\'s process diverges from a working example, none of which is visible from inside a single step.' },
+          { q:'What test does the docs-nobody-reads smell suggest for a written convention?', a:'Whether anyone would actually find and read it. Check whether it is stale, contradicted by another document, or whether there is no single source of truth for that decision area, since a convention nobody encounters is as useful as one never written.' },
+          { q:'What made the process change you named the right one to lead with?', a:'The strongest first change is one traceable to a real gap the workflow walk or a design review checklist actually surfaced, small enough to run right away, and named alongside exactly who needs to agree to it before it can happen.' }
+        ],
         build:'Write the one process change you would propose, who you need to convince, and the one question from the design review checklist your team currently cannot answer.',
         skip:['Have you already walked a workflow end to end and found where your own process actually differs?','Can you name one of your team’s written conventions that nobody actually reads anymore?','Do you know the one process change you would lead with, and who would need to agree to it?','Can you defend that change to someone who is happy with how things work today?']
       } }
@@ -560,10 +688,11 @@ PATH('technical-lead', {
 
 PATH('interview-prep-designer', {
   t:'Interview prep: designer', tag:'The stories and the frameworks, rehearsed until they are fast.',
+  pick:'Answer design interview questions with real stories',
   track:'interview', level:'intermediate', hours:10,
   audience:'Designers preparing for a job interview who already have the fundamentals and need to turn them into fast, concrete answers.',
   outcome:'You can answer a question in any core design category in under two minutes, back it with a real story, and speak to at least one engineering constraint you have actually worked against.',
-  prereq:['game-designer-foundations','systems-designer','level-and-ux-designer'], next:[],
+  prereq:['systems-designer','level-and-ux-designer'], next:[],
   stages:[
     { id:'s1', t:'Player, motivation and the story you tell', level:'intermediate',
       goal:'Rehearse the player and experience questions out loud, and have one game you can dissect on demand.', hours:2,
@@ -575,7 +704,11 @@ PATH('interview-prep-designer', {
       ],
       review:[],
       check:{
-        recall:['What does defending a player actually mean in an interview answer?','What word did you catch yourself using without defining it?','What is the fastest way to have a concrete reference-game example ready?'],
+        recall:[
+          { q:'What does defending a player actually mean in an interview answer?', a:'Naming a concrete player model, recent games they finished, session shape, device, the feeling they came for, then giving one real decision that model changed, such as a cut tutorial or a rejected control scheme, instead of a demographic label like "gamers."' },
+          { q:'What word did you catch yourself using without defining it?', a:'Usual offenders are words like fun, engaging, immersive or deep. The exercise is noticing which undefined word you leaned on while answering, then replacing it with the specific emotion, behavior or mechanism you actually meant.' },
+          { q:'What is the fastest way to have a concrete reference-game example ready?', a:'Dissect one game you did not design ahead of time, using Reference Dissection, so you already hold the two-sentence structural summary of what it does and why, instead of improvising an analysis live in the interview.' }
+        ],
         build:'Write the two-sentence dissection summary and the full STAR story, then say both out loud once, timed.',
         skip:['Can you answer who is the player for your own project in under two minutes, unscripted?','Do you already have a reference game dissected and ready to describe in two sentences?','Have you written a STAR story about a player or fantasy decision before today?','Can you catch yourself using an undefined term like fun or engaging and replace it on the spot?']
       } },
@@ -590,7 +723,11 @@ PATH('interview-prep-designer', {
       ],
       review:['who-is-the-player'],
       check:{
-        recall:['What makes a core loop answer precise instead of just enthusiastic?','How would you explain your economy’s central tradeoff to someone non-technical?','What did the matchmaking part give you that pure design theory would not?'],
+        recall:[
+          { q:'What makes a core loop answer precise instead of just enthusiastic?', a:'Walking one concrete iteration of a real loop through its five beats, action, feedback, decision, consequence, new situation, and naming how long an iteration takes and what changes between iterations. Precision comes from specifics, not from calling the loop fun.' },
+          { q:'How would you explain your economy’s central tradeoff to someone non-technical?', a:'Name the one decision a currency forces, what a player gives up now to get something later, in plain terms, without spreadsheet vocabulary, and say why that tension is the actual point of the currency existing.' },
+          { q:'What did the matchmaking part give you that pure design theory would not?', a:'A concrete design and engineering tradeoff: tickets carry capacity plus rule predicates and are scanned under one mutex, which keeps matching rules easy to evolve and correctness easy to reason about, at the cost of throughput that a later scaling pass must replace. It shows you have met the constraint, not just theorised about match quality.' }
+        ],
         build:'Write your two-sentence engineering-tradeoff explanation and your STAR story about a systems decision under a real constraint.',
         skip:['Can you describe your core loop’s weak link out loud in under a minute?','Can you explain your economy’s central tradeoff to someone with no design background?','Have you already got a concrete engineering-constraint story ready for a systems interview question?','Do you have a STAR story about a system decision that met real pushback?']
       } },
@@ -605,7 +742,11 @@ PATH('interview-prep-designer', {
       ],
       review:['core-loop'],
       check:{
-        recall:['Why does naming the structural beats you used beat describing the level generally?','What should a strong onboarding answer describe watching, instead of asking?','What did the determinism part give you for a fairness question?'],
+        recall:[
+          { q:'Why does naming the structural beats you used beat describing the level generally?', a:'Naming teach, test, twist, combine, master or rest proves the level was designed as a deliberate lesson rather than assembled as a pile of encounters, and it gives the interviewer something specific to probe instead of a vague description.' },
+          { q:'What should a strong onboarding answer describe watching, instead of asking?', a:'What a new player actually did in the first minutes, where they hesitated, what they tried unprompted, what they missed, rather than what a tester said they thought. Onboarding evidence comes from silent observation, not from asking whether it was clear.' },
+          { q:'What did the determinism part give you for a fairness question?', a:'A concrete story about keeping simulation results bit-exact between client and server, a ported random generator, forbidding a compiler fold that changed outcomes, diffing traces step by step, which beats a general claim about caring about fairness.' }
+        ],
         build:'Quote one line from your onboarding audit run and write your STAR story about a UX problem diagnosed by observation.',
         skip:['Can you name the structural beats in a level you have shipped or built, on the spot?','Do you have a specific line from an onboarding audit ready to quote?','Can you speak to a fairness or cheating question with a concrete example, not just a value statement?','Do you have a STAR story about a UX fix that came from watching, not asking?']
       } },
@@ -620,7 +761,11 @@ PATH('interview-prep-designer', {
       ],
       review:['level-structure'],
       check:{
-        recall:['What does the stop-prototyping answer reward, structure or feeling?','What kill criterion have you actually used, and can you name it fast?','What transferred from the second game you dissected?'],
+        recall:[
+          { q:'What does the stop-prototyping answer reward, structure or feeling?', a:'Structure: a real kill criterion agreed before the test, not a feeling that the team already knew it was fun. Naming the actual criterion used, and whether it was honored, is what makes the answer credible.' },
+          { q:'What kill criterion have you actually used, and can you name it fast?', a:'It should be a concrete rate or behavior stated before a real prototype was tested, such as a voluntary-repetition rate below a stated threshold, that you can recall instantly rather than inventing on the spot for the interview.' },
+          { q:'What transferred from the second game you dissected?', a:'One specific mechanism, a pacing beat, a feedback technique, a risk-reward structure, from a game outside your usual genre that applies to your own project, showing dissection works as a general skill and not just on games like yours.' }
+        ],
         build:'Write your kill-criterion example and your STAR story about being proven wrong by a playtest.',
         skip:['Can you name a real kill criterion you have used to stop prototyping, without inventing one on the spot?','Do you have a second dissected game outside your usual genre ready to reference?','Can you tell a playtest-surprised-me story in under two minutes?','Do you have a story ready for tell me about a time you were wrong that is not generic?']
       } },
@@ -635,7 +780,11 @@ PATH('interview-prep-designer', {
       ],
       review:['playtesting'],
       check:{
-        recall:['What does the fun diagnostic force you to name instead of an adjective?','What makes a design pillar a slogan instead of a decision tool?','What should an AI-process answer describe, beyond a workflow?'],
+        recall:[
+          { q:'What does the fun diagnostic force you to name instead of an adjective?', a:'A specific fun dimension, such as mastery, discovery, tension or expression, with observable evidence for it, instead of a vague adjective like fun or engaging. Naming the dimension makes the claim checkable against actual player behavior.' },
+          { q:'What makes a design pillar a slogan instead of a decision tool?', a:'A pillar is a slogan if it is generic enough that any game could claim it and it never says no to anything. A real pillar can be rewritten as something it forbids, and it has actually killed a bad idea, with a story attached.' },
+          { q:'What should an AI-process answer describe, beyond a workflow?', a:'A concrete safeguard, such as the AI output verification checklist covering assumptions, sources, problem fit, testability and who owns the embedded decisions, rather than just a description of which AI tools get used and when.' }
+        ],
         build:'Write and time your two-minute walk-through-your-process answer, and your one-sentence fun-diagnostic summary.',
         skip:['Can you answer what makes your game fun in one sentence, using a real dimension, not an adjective?','Can you state a design pillar that has actually killed a bad idea, with the story attached?','Do you have a concrete answer ready for how you use AI tools, with a named safeguard?','Can you deliver your full walk-through-your-process answer in under two minutes, timed?']
       } }
