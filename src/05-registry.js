@@ -42,6 +42,38 @@ const LENSES = [
 
 // A topic's `rel` or a loop step's `top` may name one of these instead of a
 // topic: [route, label]. The app adds project-part links at runtime.
+// Every page a reader can land on: search finds them as pages, the All pages
+// index lists them, and the empty search box offers the common ones.
+// [route, title, section, purpose, synonyms]. validate.js checks each route
+// is one the router handles.
+const PAGES = [
+  ['#/paths', 'Learning paths', 'Paths', 'Guided sequences from beginner to expert, with a chooser that suggests one.', ['courses', 'curriculum', 'tutorial', 'learn', 'start here', 'roadmap']],
+  ['#/review', 'Review queue', 'Paths', 'Questions you marked, brought back on a spaced schedule.', ['spaced repetition', 'flashcards', 'review later', 'practice', 'quiz']],
+  ['#/map', 'Map', 'Map', 'The mind map of every domain and topic.', ['mind map', 'overview', 'home', 'topics']],
+  ['#/explore', 'Topic list', 'Map', 'Every domain and topic as a list.', ['list', 'all topics', 'domains', 'browse', 'contents']],
+  ['#/concepts', 'Concept index', 'Map', 'Topics ranked by how many other topics reference them.', ['concepts', 'glossary', 'terms', 'vocabulary']],
+  ['#/games', 'Library', 'Library', 'The collections: reference games, platforms, checklists, prompts and sources.', ['collections', 'resources']],
+  ['#/games', 'Reference games', 'Library', 'Successful games taken apart with one template, with loop and screen schematics.', ['game library', 'examples', 'games', 'reference', 'analysis', 'case studies', 'jrpg', 'teardown']],
+  ['#/platforms', 'Platforms', 'Library', 'How to get onto each store, console and UGC platform, from access to release.', ['stores', 'publishing', 'steam', 'console', 'roblox', 'release', 'certification', 'shipping']],
+  ['#/checklists', 'Checklists', 'Library', 'Practical reviews whose ticks are saved.', ['checklist', 'pre-submission', 'audit']],
+  ['#/prompts', 'Prompts', 'Library', 'Reusable AI prompt templates built on the formula.', ['prompt library', 'templates', 'ai prompts']],
+  ['#/sources', 'Sources and lineage', 'Library', 'The frameworks the guide draws on, and how solid each one is.', ['references', 'bibliography', 'citations', 'research', 'credits']],
+  ['#/lab', 'Idea Lab', 'Make', 'Shape an idea step by step into an Idea Card.', ['ideation', 'brainstorm', 'new idea', 'concept']],
+  ['#/build', 'Build tools', 'Make', 'Canvases and tools that export Markdown.', ['tools', 'canvas', 'worksheet', 'templates']],
+  ['#/diagnose', 'Diagnose', 'Diagnose', 'Start from a symptom you see in players: causes, experiments, a prompt.', ['problem', 'fix', 'troubleshoot', 'debug design']],
+  ['#/diagnose/smells', 'Design smells', 'Diagnose', 'Thirty-odd symptoms with their likely causes and experiments.', ['smells', 'symptoms', 'issues']],
+  ['#/playtest', 'Playtest', 'Diagnose', 'The playtest question bank and methods.', ['testing', 'user testing', 'questions', 'observation']],
+  ['#/ai', 'AI Workflow', 'AI Workflow', 'How to delegate design work to AI without handing it the decisions.', ['ai', 'llm', 'chatgpt', 'claude', 'workflow']],
+  ['#/ai/loop', 'The 12-step AI loop', 'AI Workflow', 'The design loop with who does each step, human or AI.', ['process', 'steps']],
+  ['#/ai/ladder', 'Prompt ladder', 'AI Workflow', 'How far up the ladder of delegation each stage can go.', ['delegation', 'stages']],
+  ['#/ai/philosophy', 'Bottleneck shift', 'AI Workflow', 'Why cheap generation moves the bottleneck to judgement.', ['philosophy', 'bottleneck']],
+  ['#/ai/roles', 'AI roles', 'AI Workflow', 'Role cards: what to ask an AI to be, and what not.', ['roles', 'personas']],
+  ['#/ai/matrix', 'Responsibility matrix', 'AI Workflow', 'Who owns each decision, human or AI.', ['raci', 'ownership', 'matrix']],
+  ['#/ai/framework', 'Prompting framework', 'AI Workflow', 'The eight-part formula behind every prompt here.', ['formula', 'prompting']],
+  ['#/ai/failures', 'When AI makes it worse', 'AI Workflow', 'Failure modes of AI-assisted design and their fixes.', ['failures', 'risks', 'mistakes']],
+  ['#/experience', 'Projects', 'Projects', 'Anonymised shipped projects: architecture, decisions, workflows and stories.', ['portfolio', 'experience', 'case study', 'star stories']],
+  ['#/index', 'All pages', 'Help', 'Every page in the guide, by section.', ['sitemap', 'index', 'directory', 'menu', 'navigation']]
+];
 const VIEW_LINKS = {
   'playtest-view':['#/playtest','Playtest view: question bank and hypothesis builder'],
   'ai-roles-view':['#/ai/roles','AI Workflow: interactive role cards'],

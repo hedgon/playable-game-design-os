@@ -72,6 +72,25 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       const at = await page.evaluate(() => location.hash);
       if (at !== '#/games') failures.push(`${w}px ${deep}: the Library button led to ${at}, not #/games`);
     }
+    // Search: a page is found by its name, a synonym or with one typo, and a
+    // word that matches nothing excludes the item. The empty box lists pages.
+    if (w === 1440) {
+      const ask = q => page.evaluate(async q => { const inp = document.getElementById('searchInput'); document.getElementById('searchBtn').click(); inp.value = q; inp.dispatchEvent(new Event('input')); await new Promise(r => setTimeout(r, 30)); const first = document.querySelector('#searchResults .res b'); const all = [...document.querySelectorAll('#searchResults .res b')].map(b => b.textContent); document.querySelector('.modal-bg.show') && document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); return { first: first && first.textContent, all }; }, q);
+      for (const [q, want] of [['reference games', 'Reference games'], ['games', 'Reference games'], ['library', 'Library'], ['platforms', 'Platforms'], ['review queue', 'Review queue'], ['checklist', 'Checklists'], ['all pages', 'All pages'], ['refrence games', 'Reference games'], ['platfroms', 'Platforms']]) {
+        const r = await ask(q);
+        if (r.first !== want) failures.push(`search "${q}": first result is "${r.first}", expected "${want}"`);
+      }
+      const none = await ask('platforms zzqx');
+      if (none.all.length) failures.push(`search "platforms zzqx": expected nothing, got ${none.all.slice(0, 3).join(', ')}`);
+      const empty = await ask('');
+      if (!empty.all.includes('Reference games')) failures.push('search: the empty box does not offer the common pages');
+      await page.evaluate(() => { location.hash = '#/nowhere'; }); await page.waitForTimeout(150);
+      const lost = await page.evaluate(() => (document.querySelector('#pane h1') || {}).textContent);
+      if (lost !== 'All pages') failures.push(`unknown route shows "${lost}", expected the All pages index`);
+      const idx = await page.evaluate(() => [...document.querySelectorAll('#pane .view a[href^="#/"]')].map(a => a.getAttribute('href').split('/')[1]));
+      for (const v of ['paths', 'review', 'map', 'explore', 'concepts', 'games', 'platforms', 'checklists', 'prompts', 'sources', 'lab', 'build', 'diagnose', 'playtest', 'ai', 'experience'])
+        if (!idx.includes(v)) failures.push(`All pages does not link #/${v}`);
+    }
     // Every reference card shows an image that actually loaded.
     await page.evaluate(() => { location.hash = '#/games'; });
     await page.evaluate(() => document.querySelectorAll('#pane .refcard img').forEach(i => { i.loading = 'eager'; }));

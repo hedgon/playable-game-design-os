@@ -169,6 +169,7 @@ function route(){
   closeModals();
   syncMapMode(view, parts[1]);
   render(view, parts);
+  rememberPage();
   $("#shell").classList.toggle("work", !usesMap(parts));
   showPaneFor(parts);
   const key = routeKey(parts), samePage = key === lastRouteKey;
@@ -176,6 +177,14 @@ function route(){
   // The first render keeps the browser's own focus; later ones move it.
   if(booted) placeFocus(parts, samePage);
   booted = true;
+}
+// The last pages this browser visited, for the empty search box: a capped,
+// per-browser convenience, keyed by route.
+function rememberPage(){
+  const h1 = $('#pane .view h1'), crumb = $('#pane .view .crumbs'); if(!h1 || /^#\/index/.test(location.hash)) return;
+  const list = recentPages().filter(r => r.href !== location.hash);
+  list.unshift({ href: location.hash, t: h1.textContent.trim(), snip: crumb ? crumb.textContent.replace(/\s*›\s*/g, ' › ').trim() : '' });
+  store.set('recent', list.slice(0, 8));
 }
 function render(view, parts){
   switch(view){
@@ -197,7 +206,8 @@ function render(view, parts){
     case 'sources': return renderSources();
     case 'games': return renderGames(parts[1]);
     case 'platforms': return renderPlatforms(parts[1]);
-    default: return renderMap();
+    case 'index': return renderIndex();
+    default: return renderIndex(view);
   }
 }
 window.addEventListener('hashchange', route);
@@ -391,6 +401,18 @@ function renderGames(id){
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
     <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+}
+/* ---------- All pages: every section, view and collection ---------- */
+// Also where an unknown route lands, with a line saying so.
+function renderIndex(unknown){
+  const count = { '#/paths': PATHS.length + ' paths', '#/games': REFERENCE_GAMES.length + ' games', '#/platforms': PLATFORMS.length + ' guides', '#/checklists': CHECKLISTS.length + ' checklists', '#/prompts': PROMPT_TEMPLATES.length + ' templates', '#/explore': TOPIC_LIST.length + ' topics', '#/concepts': TOPIC_LIST.length + ' concepts', '#/diagnose/smells': SMELLS.length + ' smells', '#/build': TOOLS.length + ' tools', '#/experience': CASE_STUDIES.length + ' projects', '#/sources': SOURCES.length + ' sources' };
+  const sections = [...new Set(PAGES.map(p => p[2]))];
+  const item = p => `<a class="card clickable lnk blk idxcard" href="${p[0]}"><b>${esc(p[1])}</b>${count[p[0]] ? ` <span class="chip">${esc(count[p[0]])}</span>` : ''}<div class="small dim">${esc(p[3])}</div></a>`;
+  const domains = `<div class="chips" style="margin-top:8px">${DOMAINS.map(d => `<a class="chip dom lnk" style="--dc:${d.color}" href="#/explore/${d.id}">${esc(d.t)}</a>`).join('')}</div>`;
+  setView(`${crumbs([['All pages']])}<h1>All pages</h1>
+    ${unknown ? `<div class="callout">There is no page at <code>#/${esc(unknown)}</code>. Everything the guide has is listed below.</div>` : ''}
+    <p class="dim" style="max-width:820px">Every page in the guide, by section. The header groups open these same sections; search (Ctrl K or /) finds any page, topic, game or tool by name.</p>
+    ${sections.map(s => `<div class="section-head"><h2>${esc(s)}</h2></div><div class="grid auto">${PAGES.filter(p => p[2] === s && !(p[1] === 'Library')).map(item).join('')}</div>${s === 'Map' ? domains : ''}`).join('')}`);
 }
 /* ---------- platform guides: access to patches, per store ---------- */
 function factItems(list){
@@ -1756,6 +1778,7 @@ CASE_STUDIES.forEach(c => (c.flows||[]).forEach(f => INDEX.push({ type:'experien
 CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t+' · interview', snip:`${c.sub || c.role} · questions, model answers and red flags`, href:'#/experience/'+c.id+'/interview', text:('interview questions answers red flag junior mid senior project '+c.t+' '+(c.sub||'')+' '+['junior','mid','senior'].flatMap(k => (c.iv[k]||[]).map(x => x.q+' '+x.a)).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
+PAGES.forEach(([href, t, section, purpose, aka]) => INDEX.push({ type:'page', t, snip:`${section} · ${purpose}`, href, text:[t, section, purpose, ...aka].join(' ').toLowerCase(), aka }));
 PLATFORMS.forEach(p => INDEX.push({ type:'platform', t:p.t, snip:p.short, href:'#/platforms/'+p.id, text:[p.t, p.sub, p.short, ...Object.values(p.stages).flatMap(s => [...s.points, ...(s.facts || []).map(f => f.claim)])].join(' ').toLowerCase() }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
@@ -1779,13 +1802,78 @@ INDEX.push({ type:'diagnostic', t:'Content or mechanic?', snip:'Should we add an
 function ensureIndex(){ return _INDEX || (_INDEX = buildIndex()); }
 
 let searchSel = 0, searchResults = [];
-function search(q){ q = q.trim().toLowerCase(); if(!q) return []; const words = q.split(/\s+/); return ensureIndex().map(it => { let score = 0; words.forEach(w => { if(it.t.toLowerCase().includes(w)) score += 10; if(it.snip.toLowerCase().includes(w)) score += 4; if(it.text.includes(w)) score += 1; }); if(it.t.toLowerCase().startsWith(q)) score += 8; return [score, it]; }).filter(x => x[0] > 0).sort((a,b) => b[0]-a[0]).slice(0, 30).map(x => x[1]); }
-function renderSearch(){ const q = $('#searchInput').value; searchResults = search(q); searchSel = Math.min(searchSel, Math.max(searchResults.length-1, 0));
-  $('#searchResults').innerHTML = searchResults.length ? searchResults.map((r, i) => `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${r.type}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`).join('') : (q.trim() ? '<div class="empty">Nothing matches. Try a symptom ("repetitive"), a concept ("depth"), or a role ("critic").</div>' : `<div class="res" style="cursor:default"><span class="type">try</span><div class="snip">repetitive · one build · onboarding · depth · economy · critic · playtest analysis · should we build this · unfair</div></div>`);
-  $('#searchCount').textContent = searchResults.length ? `${searchResults.length} results` : '';
-  $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); }); }
+// Search: every query word (after stop words, with simple plurals folded)
+// must match somewhere; a title match outranks a synonym, a snippet or the
+// body; one typo is forgiven on words of five letters or more, against
+// titles and synonyms only. Results come back grouped, pages first.
+const STOP_WORDS = new Set(['a', 'an', 'the', 'of', 'to', 'and', 'or', 'for', 'in', 'on', 'with', 'how', 'what', 'is', 'my', 'i', 'do', 'about']);
+const foldWord = w => w.length > 4 && /ies$/.test(w) ? w.slice(0, -3) + 'y' : w.length > 3 && /[^s]s$/.test(w) ? w.slice(0, -1) : w;
+const searchWords = s => (String(s).toLowerCase().match(/[a-z0-9]+/g) || []).map(foldWord);
+// True when a and b differ by one insertion, deletion, substitution or swap.
+function oneEdit(a, b){
+  if(a === b || Math.abs(a.length - b.length) > 1) return a === b;
+  let i = 0; while(i < a.length && a[i] === b[i]) i++;
+  if(a.length === b.length) return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
+  return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
+}
+const SEARCH_GROUPS = [['page', 'Pages'], ['topic', 'Topics'], ['reference', 'Reference games'], ['platform', 'Platforms'], ['path', 'Learning paths'], ['tool', 'Build tools'], ['checklist', 'Checklists'], ['prompt', 'Prompts'], ['smell', 'Design smells'], ['interview', 'Interview questions'], ['experience', 'Projects']];
+function search(q){
+  const whole = q.trim().toLowerCase(), qs = searchWords(whole).filter(w => !STOP_WORDS.has(w)); if(!qs.length) return [];
+  const hits = [];
+  for(const it of ensureIndex()){
+    if(!it._t){ it._t = searchWords(it.t); it._a = (it.aka || []).flatMap(searchWords); it._s = ' ' + searchWords(it.snip).join(' ') + ' '; it._b = ' ' + searchWords(it.text).join(' ') + ' '; }
+    let score = 0, ok = true;
+    for(const w of qs){
+      const s = it._t.includes(w) ? 20 : it._t.some(t => t.startsWith(w)) ? 14 : it._a.some(a => a === w || a.startsWith(w)) ? 12
+        : it._s.includes(' ' + w) ? 6 : it._b.includes(' ' + w) ? 2 : (w.length >= 5 && (it._t.some(t => oneEdit(t, w)) || it._a.some(a => oneEdit(a, w)))) ? 8 : 0;
+      if(!s){ ok = false; break; }
+      score += s;
+    }
+    if(!ok) continue;
+    const t = it.t.toLowerCase();
+    if(t === whole) score += 100; else if(t.startsWith(whole)) score += 40;
+    if(it.type === 'page') score += 5;
+    hits.push([score, it]);
+  }
+  return hits.sort((a, b) => b[0] - a[0]).slice(0, 80).map(x => x[1]);
+}
+// The results list, grouped by kind; each group shows its first six and can
+// be opened in full. With an empty box it is a jump list: pages visited in
+// this browser, then the pages people look for most.
+let searchOpenGroups = new Set();
+ACTIONS['search-more'] = el => { searchOpenGroups.add(el.dataset.group); renderSearch(); };
+const COMMON_PAGES = ['#/paths', '#/games', '#/platforms', '#/map', '#/checklists', '#/index'];
+const recentPages = () => store.get('recent', []);
+function renderSearch(){
+  const q = $('#searchInput').value.trim();
+  let html = '';
+  if(!q){
+    const recent = recentPages().slice(0, 5), seenHref = new Set(recent.map(r => r.href));
+    const common = COMMON_PAGES.filter(h => !seenHref.has(h)).map(h => PAGES.find(p => p[0] === h && p[1] !== 'Library')).filter(Boolean).map(p => ({ type:'page', t:p[1], snip:`${p[2]} · ${p[3]}`, href:p[0] }));
+    searchResults = [...recent.map(r => ({ type:'recent', t:r.t, snip:r.snip || '', href:r.href })), ...common];
+    const row = (r, i) => `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${r.type === 'recent' ? 'recent' : 'page'}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`;
+    html = (recent.length ? `<div class="resgroup">Visited recently</div>${searchResults.slice(0, recent.length).map(row).join('')}` : '') + `<div class="resgroup">Jump to</div>${searchResults.slice(recent.length).map((r, k) => row(r, recent.length + k)).join('')}`;
+  } else {
+    const all = search(q), byType = {};
+    all.forEach(r => { (byType[r.type] || (byType[r.type] = [])).push(r); });
+    // pages first, then each kind in the order its best result ranks
+    const ordered = [...(byType.page ? ['page'] : []), ...Object.keys(byType).filter(t => t !== 'page').sort((x, y) => all.indexOf(byType[x][0]) - all.indexOf(byType[y][0]))];
+    searchResults = [];
+    for(const t of ordered){
+      const list = byType[t], open = searchOpenGroups.has(t), shown = open ? list : list.slice(0, 6);
+      const label = (SEARCH_GROUPS.find(g => g[0] === t) || [t, t.charAt(0).toUpperCase() + t.slice(1)])[1];
+      html += `<div class="resgroup">${esc(label)} <span class="muted">${list.length}</span></div>` + shown.map(r => { const i = searchResults.push(r) - 1; return `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${esc(r.type)}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`; }).join('')
+        + (list.length > shown.length ? `<button type="button" class="btn sm ghost resmore" data-action="search-more" data-group="${esc(t)}">Show all ${list.length}</button>` : '');
+    }
+    if(!all.length) html = `<div class="empty">Nothing matches every word. Try fewer words, a symptom ("repetitive"), a concept ("depth"), or open <a href="#/index">All pages</a>.</div>`;
+  }
+  searchSel = Math.min(searchSel, Math.max(searchResults.length - 1, 0));
+  $('#searchResults').innerHTML = html;
+  $('#searchCount').textContent = q && searchResults.length ? `${$$('#searchResults .res').length} shown` : '';
+  $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); });
+}
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
-function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; renderSearch(); openModal('searchModal', '#searchInput'); }
+function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; searchOpenGroups = new Set(); renderSearch(); openModal('searchModal', '#searchInput'); }
 // A dialog takes focus when it opens, keeps Tab inside while open, and hands
 // focus back to whatever opened it when it closes.
 let modalOpener = null;
@@ -1814,7 +1902,8 @@ document.addEventListener('keydown', e => {
   else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
 });
 $('#searchBtn').onclick = openSearch;
-$('#searchInput').addEventListener('input', () => { searchSel = 0; renderSearch(); });
+$('#indexBtn').onclick = () => go('#/index');
+$('#searchInput').addEventListener('input', () => { searchSel = 0; searchOpenGroups = new Set(); renderSearch(); });
 $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.preventDefault(); searchSel = Math.min(searchSel+1, searchResults.length-1); renderSearch(); } else if(e.key==='ArrowUp'){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); renderSearch(); } else if(e.key==='Enter'){ openResult(searchSel); } });
 $$('.modal-bg').forEach(m => m.addEventListener('click', e => { if(e.target === m) closeModals(); }));
 $('#helpBtn').onclick = () => openModal('helpModal', 'h2');

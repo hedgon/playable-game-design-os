@@ -63,8 +63,13 @@ pacing curve, a comparison, a state machine, a pipeline) open with a
 | **AI Workflow** (6) | The 12-step loop, prompt ladder, bottleneck shift, roles, responsibility matrix, prompting framework, failure modes | How to delegate to AI without handing it the decisions. |
 | **Projects** (7) | Three anonymised shipped projects | Architecture, decisions and their trade-offs, what went wrong, STAR interview stories, a project mind map of systems and parts, workflow charts, and project-level interview questions. Each project is named by a codename; the technique travels, the names do not. |
 
-**Search** (`Ctrl/⌘ K` or `/`) covers topics, smells, prompts, tools, roles,
-failure modes, loop steps, fun dimensions, platform guides and sources. The footer link **Sources
+**Search** (`Ctrl/⌘ K` or `/`) finds every page by name or synonym ("library",
+"stores", "review queue"), plus topics, games, platform guides, paths, smells,
+prompts, tools, roles, failure modes and sources. Every word must match, one typo
+is forgiven, and results are grouped with pages first; an empty box lists the
+pages you visited last. **All pages** (the grid button in the header, or
+`#/index`) lists every page by section; a link to a page that does not exist
+lands there too. The footer link **Sources
 and lineage** lists the frameworks the guide draws on and marks each as
 research-backed, practitioner heuristic, practice, or contested.
 

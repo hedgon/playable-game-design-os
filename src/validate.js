@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -437,6 +437,15 @@ for (const pth of (PATHS || [])) for (const id of (pth.prereq || [])) {
   const pre = (PATHS || []).find(p => p.id === id);
   if (pre && !(pre.next || []).includes(pth.id)) errors.push(`path ${pth.id}: prereq ${id} does not list ${pth.id} in its next`);
 }
+// Every page in PAGES is a route the app's router handles.
+const ROUTER_VIEWS = new Set([...((fs.readFileSync(path.join(__dirname, '90-app.js'), 'utf8').match(/function render\(view, parts\)\{([\s\S]*?)\n\}/) || ['', ''])[1].matchAll(/case '([\w-]+)'/g))].map(m => m[1]));
+for (const [href, t] of (ctx.PAGES || [])) { const v = href.replace(/^#\//, '').split('/')[0]; if (!ROUTER_VIEWS.has(v)) errors.push(`page ${t}: route ${href} is not handled by the router`); }
+if (!ROUTER_VIEWS.size) errors.push('pages: could not read the router cases from 90-app.js');
+// ...and every view in the header navigation has a page, so search and All pages list it.
+const NAV_VIEWS = [...((fs.readFileSync(path.join(__dirname, '90-app.js'), 'utf8').match(/const NAV = \[([\s\S]*?)\n\];/) || ['', ''])[1].matchAll(/\['([\w-]+)','/g))].map(m => m[1]);
+const PAGE_VIEWS = new Set((ctx.PAGES || []).map(([href]) => href.replace(/^#\//, '').split('/')[0]));
+for (const v of NAV_VIEWS) if (!PAGE_VIEWS.has(v)) errors.push(`navigation view ${v} has no entry in PAGES`);
+if (!NAV_VIEWS.length) errors.push('pages: could not read NAV from 90-app.js');
 // The door's chooser must suggest a real path for every combination of answers.
 let chooserCombos = 0;
 if (ctx.CHOOSER) for (const [g] of ctx.CHOOSER.goals) for (const [l] of ctx.CHOOSER.levels) for (const [t] of ctx.CHOOSER.times) {

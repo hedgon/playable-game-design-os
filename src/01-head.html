@@ -443,6 +443,10 @@ pre.snippet{white-space:pre;overflow-x:auto;border-left:3px solid var(--dc,var(-
 .modal .res .type{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);width:70px;flex:none;padding-top:3px}
 .modal .res b{display:block}
 .modal .res .snip{font-size:.85rem;color:var(--fg3)}
+.modal .resgroup{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);padding:10px 12px 4px;border-top:1px solid var(--line)}
+.modal .resgroup:first-child{border-top:0}
+.modal .resmore{margin:2px 12px 6px}
+.idxcard b{font-family:var(--display);font-stretch:92%}
 .modal .foot{padding:8px 14px;border-top:1px solid var(--line);font-size:.8rem;color:var(--fg3);display:flex;gap:14px;flex-wrap:wrap}
 .help-modal .modal{padding:20px}
 .start-modal .modal{padding:20px;width:min(620px,94vw)}
@@ -1040,13 +1044,14 @@ details.comp .body{padding-top:6px}
   <div class="progress" id="progress" title="Topics you have opened"><span id="progressText">0 / 0</span><span class="bar"><i id="progressBar"></i></span></div>
   <button class="searchbtn" id="searchBtn" aria-label="Search">🔍 <span class="lbl">Search…</span> <kbd>Ctrl K</kbd></button>
   <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts (?)">?</button>
+  <button class="iconbtn" id="indexBtn" title="All pages" aria-label="All pages"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M1 1h6v6H1zM9 1h6v6H9zM1 9h6v6H1zM9 9h6v6H9z"/></svg></button>
   <button class="iconbtn" id="themeBtn" title="Toggle light/dark theme">◐</button>
 </header>
 <main id="app" tabindex="-1"></main>
-<footer>Playable · A practical operating system for designing games people want to play, with AI as a tireless collaborator and humans as the judge. Everything here is a heuristic, not a law: test it against your players. · <a href="#/sources">Sources and lineage</a> · <a href="#/map">Map</a></footer>
+<footer>Playable · A practical operating system for designing games people want to play, with AI as a tireless collaborator and humans as the judge. Everything here is a heuristic, not a law: test it against your players. · <a href="#/index">All pages</a> · <a href="#/sources">Sources and lineage</a> · <a href="#/map">Map</a></footer>
 <div class="modal-bg" id="searchModal" role="dialog" aria-modal="true" aria-label="Search">
   <div class="modal">
-    <div class="sinput">🔍<input id="searchInput" placeholder="Search topics, design smells, prompts, tools, AI roles…" autocomplete="off"></div>
+    <div class="sinput">🔍<input id="searchInput" placeholder="Search pages, topics, games, platforms, tools…" autocomplete="off"></div>
     <div class="results" id="searchResults"></div>
     <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span><span id="searchCount"></span></div>
   </div>
@@ -1055,7 +1060,7 @@ details.comp .body{padding-top:6px}
   <div class="modal">
     <h2 tabindex="-1">Keyboard shortcuts</h2>
     <table>
-      <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> or <kbd>/</kbd></td><td>Search everything</td></tr>
+      <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> or <kbd>/</kbd></td><td>Search everything (an empty box lists recent and common pages; <a href="#/index">All pages</a> lists every page)</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close dialogs</td></tr>
       <tr><td><kbd>1</kbd> … <kbd>7</kbd></td><td>Open a section: Paths, Map, Library, Make, Diagnose, AI Workflow, Projects</td></tr>
       <tr><td><kbd>[</kbd> / <kbd>]</kbd></td><td>Previous / next topic while reading</td></tr>

@@ -71,7 +71,7 @@ the type check and the smoke test on every push and pull request.
 
 ```
 01-head.html              CSS and the page shell (header, dialogs, toast)
-05-registry.js            ids declared once: TOOLS, DIAGNOSTICS, LENSES, VIEW_LINKS
+05-registry.js            ids declared once: TOOLS, DIAGNOSTICS, LENSES, VIEW_LINKS, PAGES (every page, for search and All pages)
 10-schema.js              JSDoc types, DOMAINS, TOPICS, section titles, and T, TECH, ENGINE, INTERVIEW, FACTS
 12-diagnostics.js         smells, fun dimensions, core-loop and unfairness diagnostics
 13-ai-workflow.js         AI roles, failure modes, responsibility matrix, loop steps, prompt templates, checklists, feature tree
