@@ -14,7 +14,7 @@
      lead-incidents    Incident handling and blameless learning
      lead-saying-no    Saying no, prioritisation and stakeholders
    ===================================================================== */
-DOMAINS.push({ id:'leadership', lens:'eng', t:'Team Leadership', short:'The lead role, 1:1s, review culture, conventions, onboarding, hiring', color:'var(--d-leadership)',
+DOMAINS.push({ id:'leadership', lens:'eng', eng:'none', t:'Team Leadership', short:'The lead role, 1:1s, review culture, conventions, onboarding, hiring', color:'var(--d-leadership)',
   sum:`The work that only exists because other people are doing the work. A lead converts direction into decisions other people can make without asking, notices who is stuck before they say so, and absorbs the requests that would otherwise land on the team as noise.`,
   links:[['management','Management owns the plan. Leadership owns whether the people executing it can.'],['studio','Conventions, decision records and quality bars are leadership written down.'],['production','Leads decide what gets reviewed, what gets merged and what ships tonight.'],['ai','AI changed what a junior does first, so it changed what a lead has to teach and verify.']],
   titles:{ test:'What should I measure or review?' } });

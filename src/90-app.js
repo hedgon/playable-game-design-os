@@ -79,7 +79,7 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 const NAV = [
   { id:'paths', t:'Paths', views:[['paths','Learning paths'],['review','Review']] },
   { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index'],['games','Reference games']] },
-  { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists']] },
+  { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists'],['platforms','Platforms']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
   { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
   { id:'experience', t:'Projects', views:[['experience','Projects']] }
@@ -188,6 +188,7 @@ function render(view, parts){
     case 'review': return renderReview();
     case 'sources': return renderSources();
     case 'games': return renderGames(parts[1]);
+    case 'platforms': return renderPlatforms(parts[1]);
     default: return renderMap();
   }
 }
@@ -373,6 +374,29 @@ function renderGames(id){
     ${(g.diagrams || []).map(d => diagramCard(d) + (d.topics ? `<p class="small">Illustrates: ${d.topics.map(t => topicLink(t)).join(', ')}</p>` : '')).join('')}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
     <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+}
+/* ---------- platform guides: access to patches, per store ---------- */
+function factItems(list){
+  return list && list.length ? `<ul class="pfacts">${list.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul>` : '';
+}
+function renderPlatforms(id){
+  const P = PLATFORMS.find(x => x.id === id);
+  const note = '<p class="small muted">Not legal or tax advice. Every dated fact links its source; open it before you rely on a number.</p>';
+  if(!P){
+    const card = p => `<a class="card clickable lnk blk" href="#/platforms/${p.id}"><b>${esc(p.t)}</b><div class="small dim">${esc(p.sub)}</div><p class="small" style="margin:6px 0 0">${esc(p.short)}</p></a>`;
+    const main = PLATFORMS.filter(p => p.kind !== 'open'), other = PLATFORMS.filter(p => p.kind === 'open');
+    setView(`${crumbs([['Make','#/lab'],['Platforms']])}<h1>Platforms</h1><p class="dim" style="max-width:820px">How to get a game onto each store, from access to patches. Every guide walks the same six stages. Numbers and rules that change are dated facts with their source, and whatever a platform keeps under NDA is named, not guessed.</p>
+      ${diagramCard(platformMatrix())}
+      <div class="section-head"><h2>Stores and consoles</h2></div><div class="grid auto">${main.map(card).join('')}</div>
+      ${other.length ? `<div class="section-head"><h2>Other channels</h2></div><div class="grid auto">${other.map(card).join('')}</div>` : ''}${note}`);
+    return;
+  }
+  const stage = ([k, label]) => { const s = P.stages[k]; return `<section class="pstage"><h2>${label}</h2>${list(s.points)}${factItems(s.facts)}</section>`; };
+  setView(`${crumbs([['Make','#/lab'],['Platforms','#/platforms'],[P.t]])}<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
+    ${P.nda ? `<div class="callout"><b>Under NDA.</b> ${esc(P.nda)}</div>` : ''}
+    ${P.flow ? diagramCard(P.flow) : ''}
+    ${PLATFORM_STAGES.map(stage).join('')}
+    ${(P.topics || []).length ? `<p class="small">Topics: ${P.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`);
 }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
 function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
@@ -1681,12 +1705,13 @@ CASE_STUDIES.forEach(c => (c.flows||[]).forEach(f => INDEX.push({ type:'experien
 CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t+' · interview', snip:`${c.sub || c.role} · questions, model answers and red flags`, href:'#/experience/'+c.id+'/interview', text:('interview questions answers red flag junior mid senior project '+c.t+' '+(c.sub||'')+' '+['junior','mid','senior'].flatMap(k => (c.iv[k]||[]).map(x => x.q+' '+x.a)).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
+PLATFORMS.forEach(p => INDEX.push({ type:'platform', t:p.t, snip:p.short, href:'#/platforms/'+p.id, text:[p.t, p.sub, p.short, ...Object.values(p.stages).flatMap(s => [...s.points, ...(s.facts || []).map(f => f.claim)])].join(' ').toLowerCase() }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
 PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
-REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${g.lesson.slice(0,90)}…`, href:'#/build/dissect', text:(g.t+' '+g.genre+' '+g.want+' '+g.verb+' '+g.why+' '+g.lesson+' '+g.misses).toLowerCase() }));
+REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${g.lesson.slice(0,90)}…`, href:'#/games/'+g.id, text:(g.t+' '+g.genre+' '+g.want+' '+g.verb+' '+g.why+' '+g.lesson+' '+g.misses).toLowerCase() }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));

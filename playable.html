@@ -721,6 +721,11 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .gameart img{display:block;width:100%;max-width:460px;height:auto;border:1px solid var(--line)}
 .gameart figcaption{font-size:.8rem;color:var(--fg2);margin-top:4px}
 .ingames{margin:-6px 0 14px}
+.pstage{margin:18px 0 0;max-width:860px}
+.pstage h2{margin:0 0 6px}
+.pfacts{margin:8px 0 0;padding-left:18px;font-size:.92rem}
+.pfacts li{margin-bottom:6px}
+.pfacts .when{white-space:nowrap}
 #ctreeChart .flownode.on .fdisc{stroke-width:3;fill:color-mix(in srgb,var(--dc,var(--accent2)) 30%,var(--bg2))}
 /* idea lab */
 .labchain{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:10px 0 14px}
@@ -1122,6 +1127,7 @@ const VIEW_LINKS = {
  * @typedef {object} Domain
  * @property {string} id
  * @property {'design'|'eng'} lens   which map lens shows it (LENSES)
+ * @property {'required'|'optional'|'none'} [eng]  Godot and Unity views on its topics (default required)
  * @property {string} t
  * @property {string} short   one line under the title
  * @property {string} color   a --d-<id> CSS variable
@@ -1897,6 +1903,60 @@ REFERENCE_GAMES.forEach(g => {
   g.diagrams = GAME_DIAGRAMS[g.id] || [];
   if (GAME_ART_CREDITS[g.id]) [g.dev, g.store] = GAME_ART_CREDITS[g.id];
 });
+
+/* =====================================================================
+   PLATFORMS
+   How to get a game onto each store, from access to patches. Each guide
+   walks the same six stages. `points` are the process, stable for years;
+   `facts` are the numbers and rules that change, each with the day it was
+   checked and its source (same rules and stale warning as topic facts).
+   `nda` says what the platform keeps under NDA, so a thin section is
+   explained rather than padded. `glance` feeds the comparison table.
+   ===================================================================== */
+const PLATFORM_STAGES = [
+  ['access', 'Getting access'], ['build', 'Building for it'], ['cert', 'Review and certification'],
+  ['ratings', 'Ratings, privacy and legal'], ['store', 'Store page and money'], ['release', 'Release and after']
+];
+const PLATFORMS = [];
+/** @param {string} id @param {any} o */
+function PLATFORM(id, o){ o.id = id; PLATFORMS.push(o); }
+const CHECKED = '2026-09-24';
+
+PLATFORM('steam', { t:'Steam', kind:'pc', sub:'Windows, Mac, Linux and Steam Deck',
+  short:'Open to anyone: pay a fee per game, pass a store page review and a build review, then press Release yourself.',
+  glance:['Anyone; $100 per game','Store page, then build','3 to 5 business days each'],
+  stages:{
+    access:{ points:['Sign up to Steamworks as a person or a company. There is no NDA and no concept approval.','Pay the app fee for each game, then give bank, tax and identity details.','Your first game cannot release until 30 days after its fee is paid.'],
+      facts:[{ claim:'The Steam Direct fee is $100 per game, paid back to you once the game earns $1,000 in adjusted gross revenue.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/gettingstarted/appfee' },
+        { claim:'A new partner waits 30 days after paying the app fee before the first game can release; tax verification can take 2 to 7 business days.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/gettingstarted/onboarding' }] },
+    build:{ points:['Build for Windows, Mac or Linux with any engine. There is no dev kit.','The Steamworks SDK (achievements, cloud saves, Steam Input, Workshop) is optional, but anything the store page promises must work.','Steam Deck compatibility review is optional and grades a game Verified, Playable or Unsupported.'],
+      facts:[{ claim:'Steam Deck Verified checks controller input and on-screen glyphs, default settings that run well, no launcher warnings, and text at least 9 pixels tall at 1280 by 800.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/steamdeck/compat' }] },
+    cert:{ points:['Two reviews: the store page first, then the build. The page must be approved before the build can be submitted.','The page may show only what is in the game at launch, and screenshots must show gameplay.','The build must start on every system it claims and do what the page advertises. Answer the content survey, including AI-generated content, before review.'],
+      facts:[{ claim:'Store page review and build review each typically take 3 to 5 business days; Valve asks for submission at least 7 business days before launch.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/store/review_process' }] },
+    ratings:{ points:['Steam does not use IARC. Its content survey produces ratings for several regional boards, with required sections for Germany and Indonesia.','Every partner completes a tax interview; Valve collects and pays VAT and GST in many countries, and store prices include it.'],
+      facts:[{ claim:'US tax on US-source income defaults to 30% withholding for non-US partners, reduced where a tax treaty applies.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/finance/taxfaq' }] },
+    store:{ points:['Required art: header, small, main and vertical capsules, and at least five gameplay screenshots at 1920 by 1080.','A Coming Soon page collects wishlists, and wishlisters are emailed at launch.','Set a base price and regional prices; discount rules limit how soon after launch or a price change you can discount.'],
+      facts:[{ claim:'A new game must be public as Coming Soon for at least two weeks before it can release.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/store/coming_soon' },
+        { claim:'Payouts are monthly, once a month\'s sales pass $100, about 30 days after the month ends.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/finance/payments_salesreporting' },
+        { claim:'Valve\'s revenue share was reported in 2018 as 30% up to $10 million per game, 25% to $50 million, and 20% above; the agreement itself is not public.', asOf:CHECKED, src:'https://gameinformer.com/2018/11/30/valve-adjusting-revenue-share-for-steams-most-popular-games' },
+        { claim:'Players can refund within 14 days of purchase if they have played under 2 hours.', asOf:CHECKED, src:'https://store.steampowered.com/steam_refunds/' }] },
+    release:{ points:['An approved game does not release itself: you press Release.','Patches go live when you set a build live on the default branch; test it on a password-protected branch first.','Demos and playtests are separate app entries with their own review. Early Access games must be playable now and promise nothing specific about the future.'],
+      facts:[{ claim:'Steam Next Fest runs three times a year; a game needs a public demo and must be unreleased, and can take part only once.', asOf:CHECKED, src:'https://partner.steamgames.com/doc/marketing/upcoming_events/nextfest' }] }
+  },
+  flow:{ kind:'flow', title:'Steam, from sign-up to release',
+    steps:[{id:'account', t:'Steamworks sign-up', d:'person or company'},{id:'fee', t:'Pay the app fee', d:'the 30-day wait starts'},{id:'page', t:'Build the store page', d:'art, text, content survey'},{id:'pagerev', t:'Store page review', d:'3 to 5 business days'},{id:'soon', t:'Coming Soon', d:'at least two weeks of wishlists'},{id:'buildrev', t:'Build review', d:'3 to 5 business days'},{id:'release', t:'Press Release', d:'nothing happens until you do'}],
+    edges:[['account','fee'],['fee','page'],['page','pagerev'],['pagerev','soon'],['pagerev','buildrev'],['soon','release'],['buildrev','release']] },
+  topics:['launch-and-discoverability','live-operations']
+});
+
+
+// The comparison table on the Platforms page: one row per store or console,
+// from each guide's `glance` (access, review gate, typical turnaround).
+function platformMatrix(){
+  const main = PLATFORMS.filter(p => p.kind !== 'open');
+  return { kind: 'matrix', title: 'The platforms at a glance', rows: main.map(p => p.t), cols: ['Access', 'Review gate', 'Turnaround'], cells: main.map(p => p.glance),
+    note: 'Console turnaround and terms are under NDA. Check each guide’s dated facts before you plan around a number.' };
+}
 
 /* =====================================================================
    PLAYER
@@ -14266,7 +14326,7 @@ INTERVIEW('server-liveops',{
      pm-liveops-cadence   Live-ops cadence and release calendars
      pm-postmortems       Post-mortems and retrospectives
    ===================================================================== */
-DOMAINS.push({ id:'management', lens:'eng', t:'Project Management', short:'Scope, estimates, risk, process, handoffs, QA, cadence, post-mortems', color:'var(--d-management)',
+DOMAINS.push({ id:'management', lens:'eng', eng:'none', t:'Project Management', short:'Scope, estimates, risk, process, handoffs, QA, cadence, post-mortems', color:'var(--d-management)',
   sum:`How the work is sequenced, cut and kept honest. Management is not ceremony. It is the discipline of deciding what will not be built, knowing what is uncertain, and making sure the riskiest thing is the thing being worked on right now.`,
   links:[['production','Production is the craft of making the game. Management is the craft of making the plan survive it.'],['studio','Direction, documents and metrics are what management steers with.'],['leadership','A plan is executed by people. Leadership is the half of this that is not a schedule.'],['product','Scope and cadence answer to the promise the product made and the money behind it.'],['infra','Release trains, build health and deploy cadence are the plan expressed in pipelines.']],
   titles:{ test:'What should I measure or review?' } });
@@ -14708,7 +14768,7 @@ INTERVIEW('pm-postmortems',{
      lead-incidents    Incident handling and blameless learning
      lead-saying-no    Saying no, prioritisation and stakeholders
    ===================================================================== */
-DOMAINS.push({ id:'leadership', lens:'eng', t:'Team Leadership', short:'The lead role, 1:1s, review culture, conventions, onboarding, hiring', color:'var(--d-leadership)',
+DOMAINS.push({ id:'leadership', lens:'eng', eng:'none', t:'Team Leadership', short:'The lead role, 1:1s, review culture, conventions, onboarding, hiring', color:'var(--d-leadership)',
   sum:`The work that only exists because other people are doing the work. A lead converts direction into decisions other people can make without asking, notices who is stuck before they say so, and absorbs the requests that would otherwise land on the team as noise.`,
   links:[['management','Management owns the plan. Leadership owns whether the people executing it can.'],['studio','Conventions, decision records and quality bars are leadership written down.'],['production','Leads decide what gets reviewed, what gets merged and what ships tonight.'],['ai','AI changed what a junior does first, so it changed what a lead has to teach and verify.']],
   titles:{ test:'What should I measure or review?' } });
@@ -20420,7 +20480,7 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 const NAV = [
   { id:'paths', t:'Paths', views:[['paths','Learning paths'],['review','Review']] },
   { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index'],['games','Reference games']] },
-  { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists']] },
+  { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools'],['prompts','Prompts'],['checklists','Checklists'],['platforms','Platforms']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
   { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
   { id:'experience', t:'Projects', views:[['experience','Projects']] }
@@ -20529,6 +20589,7 @@ function render(view, parts){
     case 'review': return renderReview();
     case 'sources': return renderSources();
     case 'games': return renderGames(parts[1]);
+    case 'platforms': return renderPlatforms(parts[1]);
     default: return renderMap();
   }
 }
@@ -20714,6 +20775,29 @@ function renderGames(id){
     ${(g.diagrams || []).map(d => diagramCard(d) + (d.topics ? `<p class="small">Illustrates: ${d.topics.map(t => topicLink(t)).join(', ')}</p>` : '')).join('')}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}</div>
     <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+}
+/* ---------- platform guides: access to patches, per store ---------- */
+function factItems(list){
+  return list && list.length ? `<ul class="pfacts">${list.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul>` : '';
+}
+function renderPlatforms(id){
+  const P = PLATFORMS.find(x => x.id === id);
+  const note = '<p class="small muted">Not legal or tax advice. Every dated fact links its source; open it before you rely on a number.</p>';
+  if(!P){
+    const card = p => `<a class="card clickable lnk blk" href="#/platforms/${p.id}"><b>${esc(p.t)}</b><div class="small dim">${esc(p.sub)}</div><p class="small" style="margin:6px 0 0">${esc(p.short)}</p></a>`;
+    const main = PLATFORMS.filter(p => p.kind !== 'open'), other = PLATFORMS.filter(p => p.kind === 'open');
+    setView(`${crumbs([['Make','#/lab'],['Platforms']])}<h1>Platforms</h1><p class="dim" style="max-width:820px">How to get a game onto each store, from access to patches. Every guide walks the same six stages. Numbers and rules that change are dated facts with their source, and whatever a platform keeps under NDA is named, not guessed.</p>
+      ${diagramCard(platformMatrix())}
+      <div class="section-head"><h2>Stores and consoles</h2></div><div class="grid auto">${main.map(card).join('')}</div>
+      ${other.length ? `<div class="section-head"><h2>Other channels</h2></div><div class="grid auto">${other.map(card).join('')}</div>` : ''}${note}`);
+    return;
+  }
+  const stage = ([k, label]) => { const s = P.stages[k]; return `<section class="pstage"><h2>${label}</h2>${list(s.points)}${factItems(s.facts)}</section>`; };
+  setView(`${crumbs([['Make','#/lab'],['Platforms','#/platforms'],[P.t]])}<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
+    ${P.nda ? `<div class="callout"><b>Under NDA.</b> ${esc(P.nda)}</div>` : ''}
+    ${P.flow ? diagramCard(P.flow) : ''}
+    ${PLATFORM_STAGES.map(stage).join('')}
+    ${(P.topics || []).length ? `<p class="small">Topics: ${P.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`);
 }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
 function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
@@ -22022,12 +22106,13 @@ CASE_STUDIES.forEach(c => (c.flows||[]).forEach(f => INDEX.push({ type:'experien
 CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t+' · interview', snip:`${c.sub || c.role} · questions, model answers and red flags`, href:'#/experience/'+c.id+'/interview', text:('interview questions answers red flag junior mid senior project '+c.t+' '+(c.sub||'')+' '+['junior','mid','senior'].flatMap(k => (c.iv[k]||[]).map(x => x.q+' '+x.a)).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
+PLATFORMS.forEach(p => INDEX.push({ type:'platform', t:p.t, snip:p.short, href:'#/platforms/'+p.id, text:[p.t, p.sub, p.short, ...Object.values(p.stages).flatMap(s => [...s.points, ...(s.facts || []).map(f => f.claim)])].join(' ').toLowerCase() }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
 PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
-REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${g.lesson.slice(0,90)}…`, href:'#/build/dissect', text:(g.t+' '+g.genre+' '+g.want+' '+g.verb+' '+g.why+' '+g.lesson+' '+g.misses).toLowerCase() }));
+REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${g.lesson.slice(0,90)}…`, href:'#/games/'+g.id, text:(g.t+' '+g.genre+' '+g.want+' '+g.verb+' '+g.why+' '+g.lesson+' '+g.misses).toLowerCase() }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));

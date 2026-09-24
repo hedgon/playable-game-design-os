@@ -69,7 +69,8 @@ the type check and the smoke test on every push and pull request.
 10-schema.js              JSDoc types, DOMAINS, TOPICS, section titles, and T, TECH, ENGINE, INTERVIEW, FACTS
 12-diagnostics.js         smells, fun dimensions, core-loop and unfairness diagnostics
 13-ai-workflow.js         AI roles, failure modes, responsibility matrix, loop steps, prompt templates, checklists, feature tree
-14-references.js          the reference library of dissected games
+14-references.js          the reference library of dissected games, their schematics and art credits
+15-platforms.js           platform guides: PLATFORM(), PLATFORMS, the six stages, the comparison table
 20-topics-player.js       one file per domain, in map order: the domain, then each topic
   ...                     with its TECH, ENGINE, INTERVIEW and FACTS
 38-topics-leadership.js
@@ -116,8 +117,9 @@ Right after the topic, in the same file:
 - `ENGINE('topic-id', {godot:{...}, unity:{...}, note:''})` adds the Godot and
   Unity tabs. Each engine needs `term, api[], snippet, pitfall, map`. `snippet` is
   real GDScript or C#, 15 lines or fewer and 900 characters or fewer, using the
-  APIs named in `api[]`. Topics in the `management` and `leadership` domains must
-  not carry `eng`; every other topic needs it.
+  APIs named in `api[]`. The domain decides whether its topics need them:
+  `eng:'required'` (the default), `'optional'` or `'none'` in its
+  `DOMAINS.push`. Project management and team leadership are `'none'`.
 - `INTERVIEW('topic-id', {junior:[...], mid:[...], senior:[...]})` adds the
   Interview tab: six to ten questions in total, at least one per level, each
   `{q, a, follow, red}` (question, model-answer outline, expected follow-up,
@@ -165,6 +167,19 @@ Reference games carry their own `diagrams` (a loop for every game, a screen
 layout for some) in `14-references.js`, and store art needs a developer
 credit and an https store link (`GAME_ART_CREDITS`). Schematics are our own
 drawings; never add a screenshot.
+
+### Platform guides
+
+`PLATFORM('id', {...})` in `15-platforms.js` adds a guide at `#/platforms/id`:
+`t`, `sub`, `short`, `kind` (`pc`, `console`, `mobile` or `open`),
+`glance` (access, review gate, turnaround, for the comparison table), and
+`stages` with all six keys in `PLATFORM_STAGES` (access, build, cert,
+ratings, store, release), each `{points, facts?}`. `points` describe the
+process; anything that can change (fees, rules, deadlines, turnaround) is a
+dated fact with its source, checked like topic facts. `nda` names what the
+platform keeps under NDA; never guess NDA content. A store or console guide
+needs a `flow` (a flow diagram from sign-up to release), and `topics` must
+name real topics.
 
 ### Smells, tools and diagnostics
 

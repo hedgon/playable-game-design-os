@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,platformMatrix,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -94,6 +94,19 @@ const errors = [];
 // A fact older than a year is a warning, not an error: the build must not
 // break because the calendar moved, but the line tells you what to recheck.
 const staleFacts = [];
+// Dated facts, on topics and platform guides: a claim, the day it was checked,
+// and a source that parses as https (the page reads its host with new URL()).
+function checkFacts(list, where) {
+  if (!Array.isArray(list) || !list.length) return errors.push(`${where}: facts present but empty`);
+  list.forEach((f, i) => {
+    if (!f.claim || !String(f.claim).trim()) errors.push(`${where}: facts[${i}].claim empty`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f.asOf || '') || isNaN(Date.parse(f.asOf))) errors.push(`${where}: facts[${i}].asOf must be YYYY-MM-DD`);
+    else if (Date.now() - Date.parse(f.asOf) > 365 * 86400000) staleFacts.push(`${where}: "${String(f.claim).slice(0, 60)}..." checked ${f.asOf}`);
+    let host = '';
+    try { const u = new URL(f.src); if (u.protocol === 'https:') host = u.hostname; } catch (e) {}
+    if (!host) errors.push(`${where}: facts[${i}].src must be an https URL with a host`);
+  });
+}
 for (const [name, list] of [['TOOLS', TOOLS], ['DIAGNOSTICS', DIAGNOSTICS]]) {
   const ids = list.map(x => x[0]);
   if (new Set(ids).size !== ids.length) errors.push(`${name}: duplicate id`);
@@ -112,19 +125,7 @@ for (const t of topics) {
   if (!t.ai.yes?.length || !t.ai.no?.length) errors.push(`${t.id}: ai.yes/no empty`);
   for (const [rid] of t.rel) if (!TOPICS[rid] && !VIEW_LINKS.includes(rid)) errors.push(`${t.id}: rel -> unknown ${rid}`);
   for (const p of t.prompts) if (!p.l || !p.p) errors.push(`${t.id}: prompt missing label/text`);
-  if (t.facts !== undefined) {
-    if (!Array.isArray(t.facts) || !t.facts.length) errors.push(`${t.id}: facts present but empty`);
-    else t.facts.forEach((f, i) => {
-      if (!f.claim || !String(f.claim).trim()) errors.push(`${t.id}: facts[${i}].claim empty`);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(f.asOf || '') || isNaN(Date.parse(f.asOf))) errors.push(`${t.id}: facts[${i}].asOf must be YYYY-MM-DD`);
-      else if (Date.now() - Date.parse(f.asOf) > 365 * 86400000) staleFacts.push(`${t.id}: "${String(f.claim).slice(0, 60)}..." checked ${f.asOf}`);
-      // Parsed, not prefix-matched: the topic page reads the source's host
-      // with new URL(), so "https://" alone must fail here, not in a reader's browser.
-      let host = '';
-      try { const u = new URL(f.src); if (u.protocol === 'https:') host = u.hostname; } catch (e) {}
-      if (!host) errors.push(`${t.id}: facts[${i}].src must be an https URL with a host`);
-    });
-  }
+  if (t.facts !== undefined) checkFacts(t.facts, t.id);
   if (t.diagram !== undefined) {
     checkDiagram(t.diagram, `${t.id}: diagram`, errors);
     if (HAND_DRAWN.has(t.id)) errors.push(`${t.id}: has both a hand-drawn diagram (DIAGRAMS in 90-app.js) and a DIAGRAM() spec`);
@@ -133,11 +134,12 @@ for (const t of topics) {
     if (!Array.isArray(t.tech) || !t.tech.length) errors.push(`${t.id}: tech present but empty`);
     else for (const x of t.tech) for (const k of ['n', 'how', 'fit', 'cost', 'alt']) if (!x[k]) errors.push(`${t.id}: tech entry missing ${k}`);
   }
-  // eng: every topic outside the two people domains needs a Godot and a Unity view.
-  const needsEng = t.d !== 'management' && t.d !== 'leadership';
-  if (t.eng === undefined) { if (needsEng) { if (STRICT) errors.push(`${t.id}: missing eng`); else warns.eng++; } }
+  // eng: the domain says whether its topics need Godot and Unity views
+  // ('required', the default), may have them ('optional'), or must not ('none').
+  const engRule = (DOMAINS.find(d => d.id === t.d) || {}).eng || 'required';
+  if (t.eng === undefined) { if (engRule === 'required') { if (STRICT) errors.push(`${t.id}: missing eng`); else warns.eng++; } }
   else {
-    if (!needsEng) errors.push(`${t.id}: eng present on a ${t.d} topic, which has no engine counterpart`);
+    if (engRule === 'none') errors.push(`${t.id}: eng present on a ${t.d} topic, which has no engine counterpart`);
     for (const e of ['godot', 'unity']) {
       const v = t.eng[e];
       if (!v) { errors.push(`${t.id}: eng.${e} missing`); continue; }
@@ -173,6 +175,27 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     if (!host) errors.push(`game ${g.id}: store art without an https store page`);
   }
 }
+// Platform guides: every guide walks all six stages, with dated facts where
+// rules change, a zero-to-live flow, and links to real topics.
+const platIds = new Set();
+for (const p of (ctx.PLATFORMS || [])) {
+  const where = `platform ${p.id}`;
+  if (platIds.has(p.id)) errors.push(`${where}: duplicate id`); platIds.add(p.id);
+  for (const k of ['t', 'sub', 'short']) if (!p[k] || !String(p[k]).trim()) errors.push(`${where}: ${k} empty`);
+  if (!['pc', 'console', 'mobile', 'open'].includes(p.kind)) errors.push(`${where}: kind must be pc, console, mobile or open`);
+  if (!Array.isArray(p.glance) || p.glance.length !== 3 || p.glance.some(g => !String(g).trim())) errors.push(`${where}: glance needs access, review gate and turnaround`);
+  if (p.nda !== undefined && !String(p.nda).trim()) errors.push(`${where}: nda is empty`);
+  for (const [k] of ctx.PLATFORM_STAGES) {
+    const s = (p.stages || {})[k];
+    if (!s) { errors.push(`${where}: stage ${k} missing`); continue; }
+    if (!Array.isArray(s.points) || !s.points.length || s.points.some(x => !String(x).trim())) errors.push(`${where}: stage ${k} needs points`);
+    if (s.facts !== undefined) checkFacts(s.facts, `${where}/${k}`);
+  }
+  if (p.flow !== undefined) checkDiagram(p.flow, `${where}: flow`, errors);
+  if (p.kind !== 'open' && !p.flow) errors.push(`${where}: a store or console guide needs a zero-to-live flow`);
+  for (const tid of (p.topics || [])) if (!TOPICS[tid]) errors.push(`${where}: names unknown topic ${tid}`);
+}
+if ((ctx.PLATFORMS || []).length) checkDiagram(ctx.platformMatrix(), 'platform comparison table', errors);
 const SECTION_KEYS = new Set(SECTION_META.map(m => m[0]));
 for (const d of DOMAINS) if (d.titles) for (const k of Object.keys(d.titles)) {
   if (!SECTION_KEYS.has(k)) errors.push(`domain ${d.id}: titles key "${k}" is not a section`);
@@ -408,7 +431,8 @@ LOOP_PARTS.forEach(p => p.top.forEach(t => inbound.add(t)));
 LOOP_STEPS.forEach(s => s.top.forEach(t => inbound.add(t)));
 const orphans = topics.filter(t => !inbound.has(t.id)).map(t => t.id);
 const factCount = topics.reduce((n, t) => n + (t.facts || []).length, 0);
-console.log(`dated facts: ${factCount} on ${topics.filter(t => t.facts).length} topics; older than a year: ${staleFacts.length}`);
+const platFacts = (ctx.PLATFORMS || []).reduce((n, p) => n + Object.values(p.stages || {}).reduce((m, s) => m + (s.facts || []).length, 0), 0);
+console.log(`dated facts: ${factCount} on ${topics.filter(t => t.facts).length} topics, ${platFacts} in ${(ctx.PLATFORMS || []).length} platform guides; older than a year: ${staleFacts.length}`);
 staleFacts.forEach(s => console.log('  recheck: ' + s));
 console.log(`domains: ${DOMAINS.length}, topics: ${topics.length}, smells: ${SMELLS.length}, roles: ${ctx.ROLES.length}, failures: ${ctx.FAILURES.length}, prompts: ${ctx.PROMPT_TEMPLATES.length}, checklists: ${ctx.CHECKLISTS.length}`);
 console.log('topics per domain:', DOMAINS.map(d => `${d.id}=${topics.filter(t => t.d === d.id).length}`).join(' '));

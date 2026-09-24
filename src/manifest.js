@@ -11,6 +11,7 @@ const DATA = [
   '12-diagnostics.js',
   '13-ai-workflow.js',
   '14-references.js',
+  '15-platforms.js',
   '20-topics-player.js',
   '21-topics-experience.js',
   '22-topics-core.js',
