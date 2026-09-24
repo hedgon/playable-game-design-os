@@ -178,16 +178,19 @@ function checkAnalysis(g){
   else {
     for (const k of ['idea', ...ctx.SIGNATURE_PARTS.map(p => p[0])]) if (!s[k] || !String(s[k]).trim()) errors.push(`${where}: signature.${k} empty`);
     const n = ctx.SIGNATURE_PARTS.reduce((m, [k]) => m + wordCount(s[k]), 0);
-    if (n < 250 || n > 420) errors.push(`${where}: signature is ${n} words, expected 250 to 400`);
+    if (n < 380 || n > 700) errors.push(`${where}: signature is ${n} words, expected 400 to 650`);
+    for (const [k] of ctx.SIGNATURE_PARTS) if (wordCount(s[k]) < 55) errors.push(`${where}: signature.${k} is ${wordCount(s[k])} words, expected a paragraph of 60 or more`);
   }
+  // The game's own summary fields are paragraphs too, once it is analysed.
+  for (const [f, min] of [['first30', 30], ['minute', 30], ['why', 60], ['complaints', 35], ['lesson', 35], ['misses', 35]]) if (wordCount(g[f]) < min) errors.push(`${where}: ${f} is ${wordCount(g[f])} words, expected ${min} or more for an analysed game`);
   const L = g.lens || {};
   for (const k of LENS_KEYS) {
     const l = L[k];
     if (!l) { errors.push(`${where}: lens ${k} missing`); continue; }
     if (l.na !== undefined) { if (!String(l.na).trim()) errors.push(`${where}: lens ${k} says na without a reason`); continue; }
-    if (l.primary) { for (const f of ['did', 'moment', 'why', 'steal', 'trap']) if (!l[f] || !String(l[f]).trim()) errors.push(`${where}: primary lens ${k} needs ${f}`); }
+    if (l.primary) { for (const f of ['did', 'moment', 'why', 'steal', 'trap']) { const min = f === 'steal' || f === 'trap' ? 25 : 35; if (!l[f] || !String(l[f]).trim()) errors.push(`${where}: primary lens ${k} needs ${f}`); else if (wordCount(l[f]) < min) errors.push(`${where}: primary lens ${k}.${f} is ${wordCount(l[f])} words, expected ${min} or more`); } }
     else if (!l.text || !String(l.text).trim()) errors.push(`${where}: lens ${k} needs text`);
-    else if (l.text.length > 360) errors.push(`${where}: short lens ${k} is ${l.text.length} characters; make it primary or cut it under 360`);
+    else if (wordCount(l.text) < 35 || wordCount(l.text) > 120) errors.push(`${where}: lens ${k} is ${wordCount(l.text)} words, expected 35 to 120`);
     for (const t of (l.topics || [])) if (!TOPICS[t]) errors.push(`${where}: lens ${k} names unknown topic ${t}`);
   }
   for (const k of Object.keys(L)) if (!LENS_KEYS.includes(k)) errors.push(`${where}: unknown lens ${k}`);

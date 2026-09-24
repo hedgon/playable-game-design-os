@@ -92,7 +92,13 @@ big to review, and so every topic a lens links exists before the lens.
      and optional numbered callouts drawn over it.
    - `family` (one value, for grouping) and `tags` (many: 'japanese',
      'turn-based', 'real-time', 'deduction'...), and `aka`.
-2. Quality rubric a reviewer applies to every lens: names a concrete moment,
+2. Depth (owner feedback on the pilots, 2026-09-24: sections read as one-liners).
+   Every section is a paragraph: signature parts 60 or more words each (400 to
+   650 in all); primary lens fields 35 or more words (steal and trap 25 or
+   more); short lenses 35 to 120 words; an analysed game's first 30 seconds,
+   decision per minute, why it worked, complaints, lesson and what copies miss
+   are paragraphs too. The validator enforces these minimums.
+   Quality rubric a reviewer applies to every lens: names a concrete moment,
    states the mechanism, gives a transferable rule, no generic adjectives.
 3. Default lens to topic table (see Design) so links are consistent.
 4. Reverse index `gameLinks` (modelled on `pathLinks`); topic pages list
