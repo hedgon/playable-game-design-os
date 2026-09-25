@@ -81,7 +81,7 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | landed (all six: Fire Emblem, Pokémon, Xeno, Mega Man, Contra, Super Mario) |
 | G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | landed (Civilization, Street Fighter, Zelda, Monster Hunter) |
 | G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | landed (Ace Attorney as a series, Steins;Gate in the new `18-games-genres.js`) |
-| G2.3+ | Proposed: Zero Escape: 999, Danganronpa, Doki Doki Literature Club | researching (999 checked, Danganronpa fact-check, Doki Doki Literature Club drafting) |
+| G2.3+ | Proposed: Zero Escape: 999, Danganronpa, Doki Doki Literature Club | landed (Doki Doki Literature Club’s step in “Presentation as design”; 999 and Danganronpa steps queued in L2) |
 | G3.1–G3.3 | Open world: Skyrim, Grand Theft Auto V (GTA III as lineage), Fallout: New Vegas (Fallout 3/4 as context) | landed (Skyrim with its D.I.C.E. and GDCA Game of the Year awards; GTA V and New Vegas path steps queued in L2) |
 | G3.4+ | Proposed: Breath of the Wild, Elden Ring, The Witcher 3 (the Ubisoft tower formula as the compare counter-example, not an entry) | researching (Breath of the Wild covered by the Zelda series; Elden Ring fact-check, The Witcher 3 drafting) |
 | G4.1–G4.2 | Old-school fun: Dynasty Warriors (musou), Worms Armageddon | landed (Dynasty Warriors as a series; both path steps queued in L2) |
@@ -242,7 +242,7 @@ official documentation at writing time, as dated facts with sources.
 | Id | Todo | Status |
 | --- | --- | --- |
 | L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | todo |
-| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon) |
+| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa) |
 | L3 | New paths from the plan: casual (I4), AI engineering (I7), plus any the L1 inventory shows are missing (for example engine and platform interview prep, pivoting out of games) | todo |
 | L4 | Chooser and the paths landing page updated so every path is reachable and the choice stays simple | todo |
 
