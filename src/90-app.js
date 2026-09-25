@@ -397,6 +397,8 @@ function gameArt(g){
   if(!g.img) return '';
   // A game with no store art has an original drawing of ours, and says so.
   if(g.drawn) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: an original drawing, not official art" loading="lazy"><figcaption>An original drawing for this guide, not official art: this game has no store page we can credit.</figcaption></figure>`;
+  // A header from anywhere but the store carries its own credit.
+  if(g.imgCredit) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.imgCredit.alt || g.t + ': a screenshot')}" loading="lazy"><figcaption>${creditLine(g.imgCredit)}</figcaption></figure>`;
   // A free-licensed image names its licence and where it came from.
   if(g.artLicence) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: a screenshot" loading="lazy"><figcaption>Image: ${esc(g.dev)}, ${esc(g.artLicence)}, via <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">${esc(g.artSource)}</a>.</figcaption></figure>`;
   return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>`;
@@ -472,7 +474,7 @@ const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.en
 // Series pages list their entries (linking any analysed on its own) and say
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
-  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist">${g.entries.map(e => `<li><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</li>`).join('')}</ol>
+  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist">${g.entries.map(e => `<li class="${e.shot ? 'hasshot' : ''}">${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : ''}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
     <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
   if(!g.series) return '';
   const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);
@@ -496,6 +498,7 @@ function renderGames(id){
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
   setView(`${crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${gameYears(g)} · ${esc(g.kind === 'series' ? 'series · ' + g.genre : g.genre)}</p>${seriesHTML(g).startsWith('<p') ? seriesHTML(g) : ''}
     <div class="chips" style="margin:-4px 0 12px"><a class="chip dom lnk" href="#/games" data-action="lib-family" data-v="${esc(g.family)}">${esc(familyLabel(g.family))}</a>${(g.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+    ${gameAwards(g).length ? `<p class="small gameawards"><b>Awards.</b> ${gameAwards(g).map(a => `<a href="${esc(a.src)}" target="_blank" rel="noopener noreferrer">${esc((AWARDS.find(x => x[0] === a.id) || [, a.id])[1])} (${a.year})</a>`).join(' · ')}</p>` : ''}
     ${gameArt(g)}
     <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
     ${g.kind === 'series' ? seriesHTML(g) : ''}

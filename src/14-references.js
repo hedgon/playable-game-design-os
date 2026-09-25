@@ -145,18 +145,43 @@ const GAME_TAGS = ['turn-based','real-time','time-blend','deduction','knowledge'
 // Every image carries a credit whose licence is one of these: store art and
 // screenshots offered by the publisher, a free licence (named exactly), or
 // our own schematic. A share-alike image also says whether we changed it.
-const IMAGE_LICENCES = ['store', 'CC BY 4.0', 'CC BY 3.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
+const IMAGE_LICENCES = ['store', 'CC BY 4.0', 'CC BY 3.0', 'CC BY 2.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
 // Curated shelves across genres: the groupings a reader looks for first
 // (a series, an open world, a casual game). A shelf is a kind or a tag, and
 // the library shows it only once it holds a game.
-const GAME_SHELVES = /** @type {[string, string, {kind?: string, tag?: string}][]} */ ([
+// The top awards a game can win: the four industry Game of the Year awards
+// and the Independent Games Festival's grand prize. A game's wins are data,
+// each with the ceremony year and a source, shown on its page and used by
+// the award-winners shelf. Awards the library does not list stay out.
+const AWARDS = [
+  ['tga', 'The Game Awards: Game of the Year'],
+  ['dice', 'D.I.C.E. Awards: Game of the Year'],
+  ['bafta', 'BAFTA Games Awards: Best Game'],
+  ['gdca', 'Game Developers Choice Awards: Game of the Year'],
+  ['igf', 'Independent Games Festival: Seumas McNally Grand Prize']
+];
+const WIKI = 'https://en.wikipedia.org/wiki/';
+/** @type {Record<string, {id: string, year: number, src: string}[]>} */
+const GAME_AWARDS = {
+  'portal': [{ id:'gdca', year:2008, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
+  'minecraft': [{ id:'igf', year:2011, src: WIKI + 'Independent_Games_Festival' }],
+  'papers-please': [{ id:'igf', year:2014, src: WIKI + 'Independent_Games_Festival' }],
+  'outer-wilds': [{ id:'igf', year:2015, src: WIKI + 'Independent_Games_Festival' }, { id:'bafta', year:2020, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'return-of-the-obra-dinn': [{ id:'igf', year:2019, src: WIKI + 'Independent_Games_Festival' }],
+  'hades': [{ id:'dice', year:2021, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2021, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2021, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'vampire-survivors': [{ id:'bafta', year:2023, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'balatro': [{ id:'gdca', year:2025, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
+  'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
+};
+/** @param {any} g */
+const gameAwards = g => GAME_AWARDS[g.id] || [];
+// Shelves cannot be edited on the site, so only two: whole series, and the
+// games that won a top award. Genres and themes stay filters (family, tags).
+const GAME_SHELVES = /** @type {[string, string, {kind?: string, tag?: string, awards?: boolean}][]} */ ([
   ['series', 'Long-running series', { kind: 'series' }],
-  ['open-world', 'Open worlds', { tag: 'open-world' }],
-  ['casual', 'Casual and mobile', { tag: 'casual' }],
-  ['old-school', 'Old-school fun', { tag: 'old-school' }],
-  ['visual-novel', 'Visual novels', { tag: 'visual-novel' }]
+  ['awards', 'Top award winners', { awards: true }]
 ]);
-const onShelf = (g, id) => { const s = GAME_SHELVES.find(x => x[0] === id); if (!s) return true; const q = s[2]; return q.kind ? g.kind === q.kind : (g.tags || []).includes(q.tag); };
+const onShelf = (g, id) => { const s = GAME_SHELVES.find(x => x[0] === id); if (!s) return true; const q = s[2]; return q.kind ? g.kind === q.kind : q.awards ? gameAwards(g).length > 0 : (g.tags || []).includes(q.tag); };
 // [key, label, default topics]: a lens links these unless it names its own.
 const GAME_LENSES = [
   ['gameplay','Gameplay and systems',['core-loop','mechanics-and-rules']],
@@ -179,6 +204,9 @@ function GAME(g){ g.diagrams = g.diagrams || []; REFERENCE_GAMES.push(g); }
 // series-wide; `first30` is the opening of the entry that set the formula.
 // A game analysed on its own carries `series:{id, t, n}` and appears here
 // as an entry with `ref`, so the two pages link each other.
+// An entry may carry `shot:{ img, alt, credit }`, a real screen of that
+// entry; at least half the entries (and four) need one, so the timeline
+// shows how the series looked as it evolved.
 // `reception` (3 to 7 items) answers why entries built on the same core
 // game were received so differently: `{ entry, year, verdict, evidence,
 // why, src, ref? }`, verdict one of RECEPTION_VERDICTS, evidence sourced

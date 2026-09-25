@@ -40,6 +40,10 @@ scope; its findings are folded in below.
 | R16 | (2026-09-25, later) After everything, research and update the learning paths to match all the new content | L1–L4 |
 | R17 | (2026-09-25, later) A guide page on how to use the site: “kinda lost with so many features” | H1–H3 |
 | R18 | (2026-09-25, later) In every series analysis: why entries built on the same core game were praised or received badly, which entries, what each did right or wrong, and the lesson | F1 (`reception`, `receptionLesson`), every series entry |
+| R19 | (2026-09-25, later) Series pages show how the series evolved: more images, one real screen per timeline entry | X1 |
+| R20 | (2026-09-25, later) Shelves are not editable on the site, so only important ones: keep Long-running series; replace Casual and mobile (and the genre-like shelves) with an award-winners shelf for the very top games | X2 |
+| R21 | (2026-09-25, later) Flappy Bird has no image; real screens only, never drawn | X3 |
+| R22 | (2026-09-25, later) Always follow the checklist and the plan so nothing is missed | this table, every pass |
 
 The owner’s named examples are always included; “etc” candidates are listed
 with a verdict (add, or excluded with a reason) and confirmed in decision 2.
@@ -52,6 +56,9 @@ with a verdict (add, or excluded with a reason) and confirmed in decision 2.
 | --- | --- | --- |
 | U1 | Headless screenshot sweep of every page type at 375, 1024 and 1440 px, both themes; issue list; quick fixes | landed |
 | U2 | Library at scale: curated shelves (Series, Open world, Casual and mobile, Old-school fun, Visual novels) alongside family groups; filter row that stays usable on a phone; “In real games” strip capped and grouped on topic pages | landed |
+| X1 | Series entry screenshots: `entries[].shot` (real screen, credited, at most 40 KB), required on at least half the entries and at least four; drawn in the timeline beside each entry; Mega Man first, then every series | frame landed; Mega Man in progress |
+| X2 | Shelves: Long-running series and Top award winners only. Awards are data (`awards:[{t, year, src}]` from a closed list of the top awards), shown on the game page; the shelf lists games with at least one. Open world, casual, old-school and visual-novel stay as tags in the tag filter | landed: nine games (Portal, Minecraft, Papers, Please, Outer Wilds, Return of the Obra Dinn, Hades, Vampire Survivors, Balatro, Clair Obscur); every new game checks the award lists |
+| X3 | Flappy Bird image: a real screen with a licence the site accepts (Commons, archived official listing), or none | landed: a CC BY 2.0 Commons photo of the licensed 2018 arcade cabinet, captioned as such (`CC BY 2.0` added to the licences) |
 
 **Games** (each: research, draft, fact-check, images where licensable,
 callouts checked on the rendered page; I1–I3 done in the same pass)

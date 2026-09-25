@@ -213,8 +213,18 @@ defining entries `{t, short, year, platform, added, ref?}`, drawn as a timeline)
 `{entry, year, verdict, evidence, why, src, ref?}` saying which entries built on
 the same core game were praised or received badly and what each did
 differently, with at least one of each side and sources for every verdict, and
-a `receptionLesson`. A game analysed on its own carries `series:{id, t, n}` and
-the series lists it with `ref`; the validator checks both sides.
+a `receptionLesson`. At least half its entries (and four) carry
+`shot:{img, alt, credit}`, a real screen of that entry, so the timeline shows how
+the series looked as it evolved. A game analysed on its own carries
+`series:{id, t, n}` and the series lists it with `ref`; the validator checks both
+sides.
+
+A game whose header is not store art credits it with `imgCredit:{author, url,
+licence, changed?, alt}`. Top awards live in `GAME_AWARDS` in `14-references.js`
+(ids from `AWARDS`: the four industry Game of the Year awards and the IGF grand
+prize, each with the ceremony year and a source); they show on the game page
+and fill the “Top award winners” shelf. The library has two shelves only, series
+and award winners; genres and themes are family and tag filters.
 
 ### Platform guides
 

@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,RECEPTION_VERDICTS,IMAGE_LICENCES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -226,6 +226,14 @@ function checkAnalysis(g){
   if ((g.shots || []).length > 4) errors.push(`${where}: ${g.shots.length} screenshots, keep it to four or fewer`);
 }
 for (const [id, , q] of (ctx.GAME_SHELVES || [])) if (q.tag && !TAG_IDS.has(q.tag)) errors.push(`shelf ${id}: tag ${q.tag} is not in GAME_TAGS`);
+{ const awardIds = new Set((ctx.AWARDS || []).map(a => a[0])), gameIds = new Set((ctx.REFERENCE_GAMES || []).map(g => g.id));
+  for (const [gid, list] of Object.entries(ctx.GAME_AWARDS || {})) {
+    if (!gameIds.has(gid)) errors.push(`awards: unknown game ${gid}`);
+    (list || []).forEach((a, i) => { const w = `awards ${gid}[${i}]`;
+      if (!awardIds.has(a.id)) errors.push(`${w}: award ${a.id} is not one of ${[...awardIds].join(', ')}`);
+      if (typeof a.year !== 'number' || a.year < 1990) errors.push(`${w}: needs the ceremony year`);
+      if (!/^https:\/\/\S+$/.test(a.src || '')) errors.push(`${w}: needs an https source`); });
+  } }
 // Series: the entry's own shape, and membership that agrees on both sides.
 const GAMES_BY_ID = new Map((ctx.REFERENCE_GAMES || []).map(g => [g.id, g]));
 for (const g of (ctx.REFERENCE_GAMES || [])) {
@@ -235,7 +243,16 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     else g.entries.forEach((e, i) => {
       if (!String(e.t || '').trim() || typeof e.year !== 'number' || !String(e.platform || '').trim() || wordCount(e.added) < 8) errors.push(`series ${g.id}: entries[${i}] needs t, year, platform and what it added (8 words or more)`);
       if (e.ref !== undefined) { const r = GAMES_BY_ID.get(e.ref); if (!r) errors.push(`series ${g.id}: entries[${i}] refers to unknown game ${e.ref}`); else if (!r.series || r.series.id !== g.id) errors.push(`series ${g.id}: ${e.ref} is listed but does not carry series.id '${g.id}'`); }
+      if (e.shot !== undefined) {
+        const w = `series ${g.id}: entries[${i}].shot`, s = e.shot || {};
+        if (!String(s.img || '').trim() || !String(s.alt || '').trim()) errors.push(`${w} needs img and alt`);
+        else { const file = path.join(__dirname, '..', s.img); if (!fs.existsSync(file)) errors.push(`${w}: image ${s.img} does not exist`); else if (fs.statSync(file).size > 40 * 1024) errors.push(`${w}: image ${s.img} is over 40 KB`); }
+        if (!s.credit) errors.push(`${w} needs a credit`); else checkCredit(s.credit, w);
+      }
     });
+    // A series shows how it evolved: a real screen for most of its entries.
+    const shotCount = (g.entries || []).filter(e => e.shot).length;
+    if (Array.isArray(g.entries) && shotCount < Math.max(4, Math.ceil(g.entries.length / 2))) errors.push(`series ${g.id}: ${shotCount} entries have a screenshot, expected at least ${Math.max(4, Math.ceil(g.entries.length / 2))} (a real screen per entry shows how the series evolved)`);
     for (const k of ['constant', 'changed']) if (wordCount(g[k]) < 60) errors.push(`series ${g.id}: ${k} is ${wordCount(g[k])} words, expected 60 or more`);
     // Hits and misses: the same core game, received differently, and why.
     const verdicts = (ctx.RECEPTION_VERDICTS || []).map(v => v[0]);
@@ -267,7 +284,8 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
   });
   if (g.img && !fs.existsSync(path.join(__dirname, '..', g.img))) errors.push(`game ${g.id}: image file ${g.img} does not exist`);
   if (g.artLicence && !LICENCE_SET.has(g.artLicence)) errors.push(`game ${g.id}: art licence ${g.artLicence} is not in IMAGE_LICENCES`);
-  if (g.img && !g.drawn) {
+  if (g.imgCredit) { if (!g.img) errors.push(`game ${g.id}: imgCredit without img`); checkCredit(g.imgCredit, `game ${g.id}: header image`); }
+  if (g.img && !g.drawn && !g.imgCredit) {
     if (!g.dev || !String(g.dev).trim()) errors.push(`game ${g.id}: store art without a developer credit`);
     let host = ''; try { const u = new URL(g.store); if (u.protocol === 'https:') host = u.hostname; } catch (e) {}
     if (!host) errors.push(`game ${g.id}: store art without an https store page`);

@@ -735,6 +735,9 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .librow{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:6px 0 4px}
 .more-games summary{cursor:pointer;font-size:.8rem;color:var(--fg2);margin-top:6px}
 .serieslist{margin:6px 0 10px;padding-left:22px}.serieslist li{margin:0 0 8px}
+.serieslist li.hasshot{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}
+.entryshot{margin:0}.entryshot img{display:block;width:100%;height:auto;max-height:180px;object-fit:contain;background:var(--bg2,#0000);border:1px solid var(--line)}.entryshot figcaption{margin-top:2px;font-size:.72rem}
+@media (max-width:700px){.serieslist li.hasshot{grid-template-columns:1fr;gap:6px}}
 .seriesnote{margin:-4px 0 10px}
 .recitem{padding:10px 0;border-top:1px solid var(--line)}.rechead{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}.recitem p{margin:6px 0 0}
 .deploysteps{margin:8px 0 12px;padding-left:24px}.deploysteps>li{margin:0 0 10px}.deploysteps .shot{margin-top:8px}
@@ -2064,18 +2067,43 @@ const GAME_TAGS = ['turn-based','real-time','time-blend','deduction','knowledge'
 // Every image carries a credit whose licence is one of these: store art and
 // screenshots offered by the publisher, a free licence (named exactly), or
 // our own schematic. A share-alike image also says whether we changed it.
-const IMAGE_LICENCES = ['store', 'CC BY 4.0', 'CC BY 3.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
+const IMAGE_LICENCES = ['store', 'CC BY 4.0', 'CC BY 3.0', 'CC BY 2.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
 // Curated shelves across genres: the groupings a reader looks for first
 // (a series, an open world, a casual game). A shelf is a kind or a tag, and
 // the library shows it only once it holds a game.
-const GAME_SHELVES = /** @type {[string, string, {kind?: string, tag?: string}][]} */ ([
+// The top awards a game can win: the four industry Game of the Year awards
+// and the Independent Games Festival's grand prize. A game's wins are data,
+// each with the ceremony year and a source, shown on its page and used by
+// the award-winners shelf. Awards the library does not list stay out.
+const AWARDS = [
+  ['tga', 'The Game Awards: Game of the Year'],
+  ['dice', 'D.I.C.E. Awards: Game of the Year'],
+  ['bafta', 'BAFTA Games Awards: Best Game'],
+  ['gdca', 'Game Developers Choice Awards: Game of the Year'],
+  ['igf', 'Independent Games Festival: Seumas McNally Grand Prize']
+];
+const WIKI = 'https://en.wikipedia.org/wiki/';
+/** @type {Record<string, {id: string, year: number, src: string}[]>} */
+const GAME_AWARDS = {
+  'portal': [{ id:'gdca', year:2008, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
+  'minecraft': [{ id:'igf', year:2011, src: WIKI + 'Independent_Games_Festival' }],
+  'papers-please': [{ id:'igf', year:2014, src: WIKI + 'Independent_Games_Festival' }],
+  'outer-wilds': [{ id:'igf', year:2015, src: WIKI + 'Independent_Games_Festival' }, { id:'bafta', year:2020, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'return-of-the-obra-dinn': [{ id:'igf', year:2019, src: WIKI + 'Independent_Games_Festival' }],
+  'hades': [{ id:'dice', year:2021, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2021, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2021, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'vampire-survivors': [{ id:'bafta', year:2023, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'balatro': [{ id:'gdca', year:2025, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
+  'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
+};
+/** @param {any} g */
+const gameAwards = g => GAME_AWARDS[g.id] || [];
+// Shelves cannot be edited on the site, so only two: whole series, and the
+// games that won a top award. Genres and themes stay filters (family, tags).
+const GAME_SHELVES = /** @type {[string, string, {kind?: string, tag?: string, awards?: boolean}][]} */ ([
   ['series', 'Long-running series', { kind: 'series' }],
-  ['open-world', 'Open worlds', { tag: 'open-world' }],
-  ['casual', 'Casual and mobile', { tag: 'casual' }],
-  ['old-school', 'Old-school fun', { tag: 'old-school' }],
-  ['visual-novel', 'Visual novels', { tag: 'visual-novel' }]
+  ['awards', 'Top award winners', { awards: true }]
 ]);
-const onShelf = (g, id) => { const s = GAME_SHELVES.find(x => x[0] === id); if (!s) return true; const q = s[2]; return q.kind ? g.kind === q.kind : (g.tags || []).includes(q.tag); };
+const onShelf = (g, id) => { const s = GAME_SHELVES.find(x => x[0] === id); if (!s) return true; const q = s[2]; return q.kind ? g.kind === q.kind : q.awards ? gameAwards(g).length > 0 : (g.tags || []).includes(q.tag); };
 // [key, label, default topics]: a lens links these unless it names its own.
 const GAME_LENSES = [
   ['gameplay','Gameplay and systems',['core-loop','mechanics-and-rules']],
@@ -2098,6 +2126,9 @@ function GAME(g){ g.diagrams = g.diagrams || []; REFERENCE_GAMES.push(g); }
 // series-wide; `first30` is the opening of the entry that set the formula.
 // A game analysed on its own carries `series:{id, t, n}` and appears here
 // as an entry with `ref`, so the two pages link each other.
+// An entry may carry `shot:{ img, alt, credit }`, a real screen of that
+// entry; at least half the entries (and four) need one, so the timeline
+// shows how the series looked as it evolved.
 // `reception` (3 to 7 items) answers why entries built on the same core
 // game were received so differently: `{ entry, year, verdict, evidence,
 // why, src, ref? }`, verdict one of RECEPTION_VERDICTS, evidence sourced
@@ -7133,7 +7164,7 @@ GAME({ id:'fruit-ninja', img:'assets/games/fruit-ninja.jpg', dev:'Halfbrick Stud
   ]
 });
 
-GAME({ id:'flappy-bird',
+GAME({ id:'flappy-bird', dev:'dotGears', img:'assets/games/flappy-bird.jpg', imgCredit:{ author:'daveynin', url:'https://commons.wikimedia.org/wiki/File:Flappy_Bird_arcade_game_(32956457128).jpg', licence:'CC BY 2.0', changed:true, alt:'Flappy Bird: the bird, a green pipe and the wordless tap prompt, photographed on the licensed 2018 arcade cabinet' },
   t:'Flappy Bird', year:2013, genre:'arcade flyer', family:'action', tags:['casual','mobile','hyper-casual','ads'], aka:['flappy','flappybird'],
   want:'Beat the score I just got, with one thumb and one rule: tap to rise, or fall into the pipe.',
   verb:'tap to flap; gravity does the rest',
@@ -7239,7 +7270,12 @@ GAME({ id:'flappy-bird',
       principle: 'Judge a disputed lineage by what the newcomer changed rather than by who saw whom: a mechanic this simple is cheap to reinvent and copying is rarely provable, but the tuning that made one version spread can be measured.',
       topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Flappy_Bird', 'https://en.wikipedia.org/wiki/Threes'] }
-  }
+  },
+  shots: [
+    { img:'assets/games/shots/flappy-bird-arcade.webp', lens:'ui', alt:'Flappy Bird on the licensed 2018 arcade cabinet in its demo loop: the yellow bird between two green pipe pairs, a grey ghost bird and an arrow showing the flap, two TAP labels, and a 250-ticket counter below the play field.', caption:'A real screen, though not the phone original: the licensed 2018 arcade cabinet in its demo loop. The pipes, the bird and the wordless tap prompt are the 2013 game’s; the ticket counter is the arcade’s own addition.',
+      credit:{ author:'daveynin', url:'https://commons.wikimedia.org/wiki/File:Flappy_Bird_arcade_game_(32956457128).jpg', licence:'CC BY 2.0', changed:true },
+      callouts:[{ x:0.78, y:0.405, t:'The gap: the only safe line through each pipe pair' }, { x:0.5, y:0.655, t:'The tap prompt: the only instruction, drawn, not written' }, { x:0.12, y:0.93, t:'Ticket counter: the arcade version’s addition' }] }
+  ]
 });
 
 GAME({ id:'cookie-clicker', img:'assets/games/cookie-clicker.jpg', dev:'Orteil, DashNet', store:'https://store.steampowered.com/app/1454400/Cookie_Clicker/',
@@ -7400,14 +7436,22 @@ SERIES({
   lesson: 'Give the player exactly one structural choice, order, inside a fixed web of strengths and weaknesses, and let every reward from that choice become the next fight’s tool; the puzzle stays interesting because the graph, not the level layout, is what changes challenge from player to player. Protect that graph when adding anything new: Mega Man 9 went back to Mega Man 2’s rules by dropping the slide and the charge shot that later entries had added.',
   misses: 'Copies that borrow the get-a-weapon idea often forget the weakness graph is the whole point, and hand out new tools that are simply stronger rather than each other’s answer, removing the reason to plan an order at all. Others copy the throwback move, Mega Man 9’s return to 8-bit graphics, as if the look were the draw, when Mega Man 9 paired it with new stages built to Mega Man 2’s rules; the look alone makes a nostalgia piece rather than a new argument for the format.',
   entries: [
-    { t: 'Mega Man', short: 'Formula set', year: 1987, platform: 'NES', added: 'Introduced six freely-orderable Robot Masters, the Mega Buster, and the get-a-weapon loop the series still runs on.' },
-    { t: 'Mega Man 2', short: 'Contest, 8 bosses', year: 1988, platform: 'NES', added: 'Drew its eight Robot Masters from a public design contest, added support items after complaints that the first game was too hard, and introduced Energy Tanks and a password.' },
-    { t: 'Mega Man 3', short: 'Rush and slide', year: 1990, platform: 'NES', added: 'Added Rush and the slide move under a rushed schedule Inafune later called turbulent, while still selling over a million copies.' },
-    { t: 'Mega Man 7', short: 'Bass arrives', year: 1995, platform: 'SNES', added: 'Added rival Bass and brought the Game Boy games’ bolt shop into the numbered series, but reviewers judged the format stale beside Mega Man X.' },
-    { t: 'Mega Man 8', short: 'CD-ROM cutscenes', year: 1996, platform: 'PlayStation, Saturn', added: 'Moved to CD-ROM with full-motion cutscenes and voice acting, criticised for weak English dubbing despite strong early sales.' },
-    { t: 'Mega Man 9', short: '8-bit throwback', year: 2008, platform: 'WiiWare, PSN, XBLA', added: 'Deliberately rebuilt NES-style graphics and sound twelve years after Mega Man 8, removing the slide and charge shot to match Mega Man 2’s rules.' },
-    { t: 'Mega Man 10', short: 'Easy Mode added', year: 2010, platform: 'WiiWare, PSN, XBLA', added: 'Repeated the throwback formula, added Proto Man as a playable character and an Easy Mode, and drew complaints of sameness beside Mega Man 9.' },
-    { t: 'Mega Man 11', short: 'Double Gear, 2.5D', year: 2018, platform: 'Switch, PS4, PC, Xbox One', added: 'Rebuilt the visuals in 2.5D and added the Double Gear System, a genuine mechanical risk, becoming the best-selling entry in the series after an eight-year gap.' }
+    { t: 'Mega Man', short: 'Formula set', year: 1987, platform: 'NES', added: 'Introduced six freely-orderable Robot Masters, the Mega Buster, and the get-a-weapon loop the series still runs on.',
+      shot: { img: 'assets/games/shots/mega-man-e1.webp', alt: 'Mega Man (1987): Mega Man fights the brown, block-throwing Guts Man, with a running score counter at the top of the screen, as re-released in Mega Man Legacy Collection (2015).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/363440/Mega_Man_Legacy_Collection/', licence: 'store' } } },
+    { t: 'Mega Man 2', short: 'Contest, 8 bosses', year: 1988, platform: 'NES', added: 'Drew its eight Robot Masters from a public design contest, added support items after complaints that the first game was too hard, and introduced Energy Tanks and a password.',
+      shot: { img: 'assets/games/shots/mega-man-select.webp', alt: 'Mega Man 2 (1988): the stage-select screen of eight Robot Master portraits around Dr. Wily, as re-released in Mega Man Legacy Collection (2015).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/363440/', licence: 'store' } } },
+    { t: 'Mega Man 3', short: 'Rush and slide', year: 1990, platform: 'NES', added: 'Added Rush and the slide move under a rushed schedule Inafune later called turbulent, while still selling over a million copies.',
+      shot: { img: 'assets/games/shots/mega-man-e3.webp', alt: 'Mega Man 3 (1990): Mega Man faces the giant robotic serpent hazard of Snake Man’s stage, as re-released in Mega Man Legacy Collection (2015).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/363440/Mega_Man_Legacy_Collection/', licence: 'store' } } },
+    { t: 'Mega Man 7', short: 'Bass arrives', year: 1995, platform: 'SNES', added: 'Added rival Bass and brought the Game Boy games’ bolt shop into the numbered series, but reviewers judged the format stale beside Mega Man X.',
+      shot: { img: 'assets/games/shots/mega-man-e4.webp', alt: 'Mega Man 7’s Freeze Man stage, as re-released in Mega Man Legacy Collection 2 (2017).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/495050/Mega_Man_Legacy_Collection_2/', licence: 'store' } } },
+    { t: 'Mega Man 8', short: 'CD-ROM cutscenes', year: 1996, platform: 'PlayStation, Saturn', added: 'Moved to CD-ROM with full-motion cutscenes and voice acting, criticised for weak English dubbing despite strong early sales.',
+      shot: { img: 'assets/games/shots/mega-man-e5.webp', alt: 'Mega Man 8: Mega Man mid-jump in Clown Man’s amusement-park stage, past its O/X answer boxes, as re-released in Mega Man Legacy Collection 2 (2017).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/495050/Mega_Man_Legacy_Collection_2/', licence: 'store' } } },
+    { t: 'Mega Man 9', short: '8-bit throwback', year: 2008, platform: 'WiiWare, PSN, XBLA', added: 'Deliberately rebuilt NES-style graphics and sound twelve years after Mega Man 8, removing the slide and charge shot to match Mega Man 2’s rules.',
+      shot: { img: 'assets/games/shots/mega-man-e6.webp', alt: 'Mega Man 9: Mega Man faces the segmented fire-dragon miniboss of Magma Man’s Wily-fortress stage, in its restored 8-bit style, as re-released in Mega Man Legacy Collection 2 (2017).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/495050/Mega_Man_Legacy_Collection_2/', licence: 'store' } } },
+    { t: 'Mega Man 10', short: 'Easy Mode added', year: 2010, platform: 'WiiWare, PSN, XBLA', added: 'Repeated the throwback formula, added Proto Man as a playable character and an Easy Mode, and drew complaints of sameness beside Mega Man 9.',
+      shot: { img: 'assets/games/shots/mega-man-e7.webp', alt: 'Mega Man 10: Mega Man rides a bounced ball past capped, baseball-themed enemies in Strike Man’s stage, as re-released in Mega Man Legacy Collection 2 (2017).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/495050/Mega_Man_Legacy_Collection_2/', licence: 'store' } } },
+    { t: 'Mega Man 11', short: 'Double Gear, 2.5D', year: 2018, platform: 'Switch, PS4, PC, Xbox One', added: 'Rebuilt the visuals in 2.5D and added the Double Gear System, a genuine mechanical risk, becoming the best-selling entry in the series after an eight-year gap.',
+      shot: { img: 'assets/games/shots/mega-man-e8.webp', alt: 'Mega Man 11: Mega Man runs through Tundra Man’s frozen, fossil-lined stage in the series’ 2.5D rebuild.', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/742300/Mega_Man_11/', licence: 'store' } } }
   ],
   constant: 'Every mainline entry keeps the same skeleton: a fixed set of Robot Masters, each carrying one special weapon and a specific weakness to another boss’s weapon, chosen in any order from a portrait screen (Mega Man 7 and 8 open them four at a time). The player’s build comes mainly from which weapons they have earned and still have ammunition for, never from stat points; the bolt shop that arrived with Mega Man 7 sells items and upgrades, not boss weapons. The base attack, the Mega Buster, is always available and always weaker than the right special weapon, so every Robot Master stays beatable from any direction while the correct order still pays off.',
   changed: 'What renewed the format added something the player uses rather than more content on top of the old loop: Mega Man 2 (1988) added Energy Tanks and a password, Mega Man 3 (1990) Rush and a slide, and Mega Man 11 (2018) the risk-based Double Gear System. Mega Man 4’s (1991) chargeable Buster cut both ways, since critics later said it made many boss weapons unnecessary. What stalled it was change that never reached the hands: Mega Man 8 (1996) added animated, voiced cutscenes but, reviewers said, almost nothing new to play, and by Mega Man 6 (1993) an EGM reviewer wrote, “Now the game is just getting redundant.”',
@@ -28120,6 +28164,8 @@ function gameArt(g){
   if(!g.img) return '';
   // A game with no store art has an original drawing of ours, and says so.
   if(g.drawn) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: an original drawing, not official art" loading="lazy"><figcaption>An original drawing for this guide, not official art: this game has no store page we can credit.</figcaption></figure>`;
+  // A header from anywhere but the store carries its own credit.
+  if(g.imgCredit) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.imgCredit.alt || g.t + ': a screenshot')}" loading="lazy"><figcaption>${creditLine(g.imgCredit)}</figcaption></figure>`;
   // A free-licensed image names its licence and where it came from.
   if(g.artLicence) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: a screenshot" loading="lazy"><figcaption>Image: ${esc(g.dev)}, ${esc(g.artLicence)}, via <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">${esc(g.artSource)}</a>.</figcaption></figure>`;
   return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>`;
@@ -28195,7 +28241,7 @@ const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.en
 // Series pages list their entries (linking any analysed on its own) and say
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
-  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist">${g.entries.map(e => `<li><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</li>`).join('')}</ol>
+  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist">${g.entries.map(e => `<li class="${e.shot ? 'hasshot' : ''}">${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : ''}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
     <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
   if(!g.series) return '';
   const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);
@@ -28219,6 +28265,7 @@ function renderGames(id){
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
   setView(`${crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${gameYears(g)} · ${esc(g.kind === 'series' ? 'series · ' + g.genre : g.genre)}</p>${seriesHTML(g).startsWith('<p') ? seriesHTML(g) : ''}
     <div class="chips" style="margin:-4px 0 12px"><a class="chip dom lnk" href="#/games" data-action="lib-family" data-v="${esc(g.family)}">${esc(familyLabel(g.family))}</a>${(g.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+    ${gameAwards(g).length ? `<p class="small gameawards"><b>Awards.</b> ${gameAwards(g).map(a => `<a href="${esc(a.src)}" target="_blank" rel="noopener noreferrer">${esc((AWARDS.find(x => x[0] === a.id) || [, a.id])[1])} (${a.year})</a>`).join(' · ')}</p>` : ''}
     ${gameArt(g)}
     <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
     ${g.kind === 'series' ? seriesHTML(g) : ''}

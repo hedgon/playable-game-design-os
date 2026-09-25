@@ -738,7 +738,7 @@ GAME({ id:'fruit-ninja', img:'assets/games/fruit-ninja.jpg', dev:'Halfbrick Stud
   ]
 });
 
-GAME({ id:'flappy-bird',
+GAME({ id:'flappy-bird', dev:'dotGears', img:'assets/games/flappy-bird.jpg', imgCredit:{ author:'daveynin', url:'https://commons.wikimedia.org/wiki/File:Flappy_Bird_arcade_game_(32956457128).jpg', licence:'CC BY 2.0', changed:true, alt:'Flappy Bird: the bird, a green pipe and the wordless tap prompt, photographed on the licensed 2018 arcade cabinet' },
   t:'Flappy Bird', year:2013, genre:'arcade flyer', family:'action', tags:['casual','mobile','hyper-casual','ads'], aka:['flappy','flappybird'],
   want:'Beat the score I just got, with one thumb and one rule: tap to rise, or fall into the pipe.',
   verb:'tap to flap; gravity does the rest',
@@ -844,7 +844,12 @@ GAME({ id:'flappy-bird',
       principle: 'Judge a disputed lineage by what the newcomer changed rather than by who saw whom: a mechanic this simple is cheap to reinvent and copying is rarely provable, but the tuning that made one version spread can be measured.',
       topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Flappy_Bird', 'https://en.wikipedia.org/wiki/Threes'] }
-  }
+  },
+  shots: [
+    { img:'assets/games/shots/flappy-bird-arcade.webp', lens:'ui', alt:'Flappy Bird on the licensed 2018 arcade cabinet in its demo loop: the yellow bird between two green pipe pairs, a grey ghost bird and an arrow showing the flap, two TAP labels, and a 250-ticket counter below the play field.', caption:'A real screen, though not the phone original: the licensed 2018 arcade cabinet in its demo loop. The pipes, the bird and the wordless tap prompt are the 2013 game’s; the ticket counter is the arcade’s own addition.',
+      credit:{ author:'daveynin', url:'https://commons.wikimedia.org/wiki/File:Flappy_Bird_arcade_game_(32956457128).jpg', licence:'CC BY 2.0', changed:true },
+      callouts:[{ x:0.78, y:0.405, t:'The gap: the only safe line through each pipe pair' }, { x:0.5, y:0.655, t:'The tap prompt: the only instruction, drawn, not written' }, { x:0.12, y:0.93, t:'Ticket counter: the arcade version’s addition' }] }
+  ]
 });
 
 GAME({ id:'cookie-clicker', img:'assets/games/cookie-clicker.jpg', dev:'Orteil, DashNet', store:'https://store.steampowered.com/app/1454400/Cookie_Clicker/',
