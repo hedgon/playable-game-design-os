@@ -145,7 +145,9 @@ const GAME_TAGS = ['turn-based','real-time','time-blend','deduction','knowledge'
 // Every image carries a credit whose licence is one of these: store art and
 // screenshots offered by the publisher, a free licence (named exactly), or
 // our own schematic. A share-alike image also says whether we changed it.
-const IMAGE_LICENCES = ['store', 'CC BY 4.0', 'CC BY 3.0', 'CC BY 2.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
+// 'press' is an official press screenshot, credited to its publisher and
+// linked to the page it was found on (a press kit or a news article).
+const IMAGE_LICENCES = ['store', 'press', 'CC BY 4.0', 'CC BY 3.0', 'CC BY 2.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
 // Curated shelves across genres: the groupings a reader looks for first
 // (a series, an open world, a casual game). A shelf is a kind or a tag, and
 // the library shows it only once it holds a game.

@@ -375,9 +375,33 @@ function updateRail(){
 // keepScroll is set for one render by an action that re-renders the page the
 // reader is on (ticking a step); every other render starts at the top.
 let keepScroll = false;
+/* ---------- image viewer ---------- */
+// Opens a screenshot, header or timeline image as large as the screen
+// allows (small files up to 2.5x), keeping a screenshot's numbered callouts
+// by cloning its frame, whose markers are placed in percentages.
+const ZOOMABLE = '.shotframe img, .entryshot img, .gameart img';
+function openLightbox(img){
+  const lb = $('#lightbox'), stage = $('.lbstage', lb), frame = img.closest('.shotframe');
+  const node = frame ? frame.cloneNode(true) : img.cloneNode(false); stage.replaceChildren(node);
+  const big = node.tagName === 'IMG' ? node : node.querySelector('img');
+  big.removeAttribute('tabindex'); big.removeAttribute('role'); big.removeAttribute('aria-label'); big.loading = 'eager';
+  const fig = img.closest('figure'), cap = fig && fig.querySelector('figcaption');
+  $('.lbcap', lb).innerHTML = cap ? cap.innerHTML : esc(img.alt || '');
+  const fit = () => { const w = big.naturalWidth || img.naturalWidth, h = big.naturalHeight || img.naturalHeight; if(!w || !h) return;
+    const capH = $('.lbcap', lb).offsetHeight + 40, s = Math.min(innerWidth * 0.96 / w, (innerHeight * 0.92 - capH) / h, 2.5);
+    big.style.width = Math.round(w * s) + 'px'; big.style.height = 'auto'; };
+  openModal('lightbox', '.lbclose'); if(big.complete) fit(); else big.onload = fit;
+}
+document.addEventListener('click', e => {
+  const img = e.target.closest && e.target.closest(ZOOMABLE); if(img && !img.closest('#lightbox')){ e.preventDefault(); openLightbox(img); return; }
+  const lb = e.target.closest && e.target.closest('#lightbox'); if(lb && (e.target === lb || e.target.closest('[data-lbclose]'))) closeModals();
+});
+document.addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches(ZOOMABLE)){ e.preventDefault(); openLightbox(e.target); } });
 function setView(html){
   ensureShell(); const pane = $('#pane'), keep = keepScroll, y = window.scrollY, py = pane.scrollTop; keepScroll = false;
   pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail();
+  // Every picture can be opened larger, by click, tap or keyboard.
+  $$(ZOOMABLE, pane).forEach(i => { i.tabIndex = 0; i.setAttribute('role', 'button'); i.setAttribute('aria-label', 'View larger: ' + (i.alt || 'image')); });
   // A new page starts at its top, in the window and in the pane's own scroll.
   if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else { window.scrollTo({ top: 0 }); pane.scrollTop = 0; }
 }
@@ -437,6 +461,7 @@ function libraryHTML(){
 function creditLine(c){
   if(c.licence === 'own') return 'Our own schematic, not a screenshot.';
   const link = (label) => c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>` : esc(label);
+  if(c.licence === 'press') return `Press screenshot: ${esc(c.author || 'the publisher')}, via ${link(c.source || (() => { try { return new URL(c.url).hostname.replace(/^www./, ''); } catch(e) { return 'source'; } })())}.`;
   if(c.licence === 'store') return `Screenshot: ${esc(c.author || 'the developer')}, from the ${link('official store page')}.`;
   let host = c.source || ''; if(!host && c.url){ try { host = new URL(c.url).hostname.replace(/^www\./, ''); } catch(e) {} }
   return `Image: ${esc(c.author)}, ${esc(c.licence)}${c.changed ? ', cropped' : ''}, via ${link(host || 'source')}.`;
@@ -474,7 +499,7 @@ const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.en
 // Series pages list their entries (linking any analysed on its own) and say
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
-  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist${g.entries.some(e => e.shot) ? ' withshots' : ''}">${g.entries.map(e => `<li>${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : (g.entries.some(x => x.shot) ? entryRefArt(e) || `<div class="entryshot noshot small muted">No licensable screenshot of this entry</div>` : '')}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
+  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist${g.entries.some(e => e.shot) ? ' withshots' : ''}">${g.entries.map(e => `<li>${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : (g.entries.some(x => x.shot) ? entryRefArt(e) || '<div></div>' : '')}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
     <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
   if(!g.series) return '';
   const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);

@@ -740,6 +740,13 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .entryshot{margin:0}.entryshot img{display:block;width:100%;height:auto;max-height:180px;object-fit:contain;background:var(--bg2,#0000);border:1px solid var(--line)}.entryshot figcaption{margin-top:2px;font-size:.72rem}
 @media (max-width:700px){.serieslist.withshots li{grid-template-columns:1fr;gap:6px}.entryshot.noshot{display:none}}
 .seriesnote{margin:-4px 0 10px}
+.shotframe img,.entryshot img,.gameart img{cursor:zoom-in}
+.lightbox{align-items:center;padding:12px}
+.lbwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:96vw}
+.lbstage .shotframe{display:inline-block;max-width:none}#lightbox .lbstage img{display:block;max-width:none;max-height:none;border:1px solid var(--line);cursor:default}
+.lbcap{color:#fff;max-width:min(900px,92vw);text-align:center;line-height:1.45;max-height:18vh;overflow:auto}.lbcap a{color:#fff;text-decoration:underline}
+.lbclose{position:absolute;top:-14px;right:-14px;z-index:2;width:40px;height:40px;border-radius:50%;background:var(--panel);font-size:1.1rem}
+@media (max-width:700px){.lbclose{top:-10px;right:-4px}}
 .recitem{padding:10px 0;border-top:1px solid var(--line)}.rechead{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}.recitem p{margin:6px 0 0}
 .deploysteps{margin:8px 0 12px;padding-left:24px}.deploysteps>li{margin:0 0 10px}.deploysteps .shot{margin-top:8px}
 .guideiv details{margin:0 0 8px}.guideiv summary{cursor:pointer}
@@ -1091,6 +1098,9 @@ details.comp .body{padding-top:6px}
     <div class="results" id="searchResults"></div>
     <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span><span id="searchCount"></span></div>
   </div>
+</div>
+<div class="modal-bg lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <div class="lbwrap"><button type="button" class="iconbtn lbclose" data-lbclose aria-label="Close image">✕</button><div class="lbstage"></div><div class="lbcap small"></div></div>
 </div>
 <div class="modal-bg help-modal" id="helpModal" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
   <div class="modal">

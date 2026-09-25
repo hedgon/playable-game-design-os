@@ -46,6 +46,8 @@ scope; its findings are folded in below.
 | R22 | (2026-09-25, later) Always follow the checklist and the plan so nothing is missed | this table, every pass |
 | R23 | (2026-09-25, later) Mega Man X as well as the classic line: no new mainline entry since 2004, yet a large fan-game scene | X4 |
 | R24 | (2026-09-25, later) Touhou Project as a long-running series: a creator who lets fans use the IP freely, even commercially, and the IP still thrives | X5 |
+| R25 | (2026-09-25, later) No “no licensable screenshot” placeholders: when a store page has no screenshot of an entry, find one in gaming news coverage | X6 |
+| R26 | (2026-09-25, later) Recheck past work for anything left out for lack of a licensed image; view any image larger on click, phone compatible | X6, X7 |
 
 The owner’s named examples are always included; “etc” candidates are listed
 with a verdict (add, or excluded with a reason) and confirmed in decision 2.
@@ -63,6 +65,9 @@ with a verdict (add, or excluded with a reason) and confirmed in decision 2.
 | X3 | Flappy Bird image: a real screen with a licence the site accepts (Commons, archived official listing), or none | landed: a CC BY 2.0 Commons photo of the licensed 2018 arcade cabinet, captioned as such (`CC BY 2.0` added to the licences) |
 | X4 | SERIES `mega-man-x` (X to X8, 1993 to 2004, plus collections and spin-offs where they explain it): the formula split from the classic line, the stall after X6, why fans keep making X games; linked both ways with `mega-man` | researching |
 | X5 | SERIES `touhou` (ZUN, from 1996): the main shooting games, the fan-work guidelines that allow commercial fan games, and fan games that reached Steam and consoles; reception from sourced evidence only | researching |
+| X6 | Image sources widened: official press screenshots, including those republished by gaming news sites, credited to the publisher via the outlet (licence `press`); the placeholder is removed; every series entry without a screen gets one (Final Fantasy XIV first, then the gaps in Megami Tensei and every series in progress) | in progress |
+| X7 | Image viewer: click or tap a screenshot, header or timeline image to open it large with its callouts; closes on the close button, a tap outside or Escape, one layer at a time; fits a phone screen | in progress |
+| X8 | Platform guides have no images at all: P1–P6 add real portal and store screens from each platform’s own documentation (for example Steamworks, Play Console and App Store Connect help pages), credited as press or store images | todo (with P1–P6) |
 
 **Games** (each: research, draft, fact-check, images where licensable,
 callouts checked on the rendered page; I1–I3 done in the same pass)
@@ -409,7 +414,12 @@ Decisions 1 to 5 in section 7, including which “etc” candidates to take.
 3. Git: a standing yes for this plan only: after each pass passes the build,
    type check, smoke, path tests and the UI sweep, commit and push to main.
    Never force; ends when this plan ships.
-4. Images: our own schematics for portal screens plus licensed images where
+4. Images: real screens only (owner, later 2026-09-25): store screenshots,
+   then official press screenshots (press kits or news articles that
+   publish them), then free-licensed images; platform portal screens come
+   from the platforms’ own documentation screenshots, and a schematic is used
+   only for a diagram, never as a stand-in for a screen. Originally:
+   our own schematics for portal screens plus licensed images where
    the licence allows; art budget raised to 10 MB counting all of `assets/`.
    Tier 1 at about 110 KB per entry plus engine images needs about 11 to
    12 MB: images are capped at two shots of 40 KB and a 30 KB header per
