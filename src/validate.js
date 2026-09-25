@@ -180,6 +180,7 @@ function checkCredit(c, where) {
   if (!c.author || !String(c.author).trim()) errors.push(`${where}: credit needs an author`);
   let ok = false; try { ok = new URL(c.url).protocol === 'https:'; } catch (e) {}
   if (!ok) errors.push(`${where}: credit needs an https source url`);
+  if ((c.licence === 'press' || c.licence === 'capture') && !String(c.source || '').trim()) errors.push(`${where}: a ${c.licence} credit needs a source (the site it came from)`);
   if (/SA/.test(c.licence) && typeof c.changed !== 'boolean') errors.push(`${where}: a share-alike image must say whether it was changed (changed: true or false)`);
 }
 // The fields of a lens analysis and their minimum words (analysis-method.md).

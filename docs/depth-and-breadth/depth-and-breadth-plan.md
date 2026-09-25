@@ -85,7 +85,7 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | G3.1–G3.3 | Open world: Skyrim, Grand Theft Auto V (GTA III as lineage), Fallout: New Vegas (Fallout 3/4 as context) | landed (Skyrim with its D.I.C.E. and GDCA Game of the Year awards; GTA V and New Vegas path steps queued in L2) |
 | G3.4+ | Proposed: Breath of the Wild, Elden Ring, The Witcher 3 (the Ubisoft tower formula as the compare counter-example, not an entry) | landed (Breath of the Wild covered by the Zelda series; Elden Ring and The Witcher 3 with their Game of the Year awards, path steps queued in L2) |
 | G4.1–G4.2 | Old-school fun: Dynasty Warriors (musou), Worms Armageddon | landed (Dynasty Warriors as a series; both path steps queued in L2) |
-| G4.3+ | Proposed: Katamari Damacy, Diablo II (the Vampire Survivors ancestor), Doom | researching (Katamari checked; Diablo II and Doom fact-checks) |
+| G4.3+ | Proposed: Katamari Damacy, Diablo II (the Vampire Survivors ancestor), Doom | landed (Diablo II with its D.I.C.E. Game of the Year; Katamari’s step in “Prototype and test”; Doom’s 1993 screens are database captures, since no Steam screenshot is certainly from 1993; Diablo II and Doom steps queued in L2) |
 
 **Series consistency (owner decision 1).** Games already in the library that
 belong to a series must fit the new series model:
@@ -242,7 +242,7 @@ official documentation at writing time, as dated facts with sources.
 | Id | Todo | Status |
 | --- | --- | --- |
 | L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | todo |
-| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa, Elden Ring, The Witcher 3) |
+| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa, Elden Ring, The Witcher 3, Diablo II, Doom) |
 | L3 | New paths from the plan: casual (I4), AI engineering (I7), plus any the L1 inventory shows are missing (for example engine and platform interview prep, pivoting out of games) | todo |
 | L4 | Chooser and the paths landing page updated so every path is reachable and the choice stays simple | todo |
 

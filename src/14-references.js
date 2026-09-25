@@ -180,6 +180,7 @@ const GAME_AWARDS = {
   'skyrim': [{ id:'dice', year:2012, src:'https://www.interactive.org/awards/2012_15th_awards.asp' }, { id:'gdca', year:2012, src:'https://www.gamedeveloper.com/audio/-i-skyrim-i-wins-game-of-the-year-at-gdc-awards' }],
   'elden-ring': [{ id:'tga', year:2022, src: WIKI + 'The_Game_Awards_2022' }, { id:'dice', year:2023, src: WIKI + '26th_Annual_D.I.C.E._Awards' }, { id:'gdca', year:2023, src: WIKI + '23rd_Game_Developers_Choice_Awards' }],
   'witcher-3': [{ id:'tga', year:2015, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'gdca', year:2016, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
+  'diablo-ii': [{ id:'dice', year:2001, src: WIKI + '4th_Annual_Interactive_Achievement_Awards' }],
   'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
 };
 /** @param {any} g */
