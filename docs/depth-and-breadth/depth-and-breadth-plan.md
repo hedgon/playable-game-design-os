@@ -75,7 +75,7 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | Id | Todo | Status |
 | --- | --- | --- |
 | G5.1–G5.6 | Casual and mobile: Candy Crush Saga, Angry Birds, Fruit Ninja, Plants vs. Zombies, Bejeweled (PopCap), Subway Surfers | landed (in `18-games-casual.js`) |
-| G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | landed (Flappy Bird without images: no licensable screenshot of the 2013 original was found; real screens only, never a drawing, so retry the Internet Archive copy of the original store listing, which answered HTTP 429 on 2026-09-25) |
+| G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | landed (Flappy Bird’s header is a CC BY 2.0 photo of an arcade cabinet, with two real screens of the game) |
 | T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | landed (`soft-launch-and-playable-ads`, product; a step in `ship-it` s4) |
 | F1 | Series frame, landed with one pilot (Mega Man): see Design | landed (`18-games-series.js`, with the R18 `reception` rule) |
 | G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | landed (all six: Fire Emblem, Pokémon, Xeno, Mega Man, Contra, Super Mario) |
@@ -94,7 +94,7 @@ belong to a series must fit the new series model:
 | --- | --- | --- |
 | F2 | Series membership: every single-game entry gains `series:{id, t, n}` (series id, name, place in it); a series entry lists its analysed games as `ref` entries, and each side links the other | landed |
 | F3 | Series entries for series the library already analyses a game from: Megami Tensei (Shin Megami Tensei III: Nocturne and Persona 5 Royal as its two analysed branches) and Final Fantasy (Final Fantasy XII) | landed (Megami Tensei, Final Fantasy; entries with their own page lend its art to the timeline) |
-| F4 | Membership only (no series entry): Dark Souls (FromSoftware’s Souls games, with Elden Ring), Valkyria Chronicles, NieR (with Drakengard), Hades (Hades II), Chrono Trigger, Undertale (Deltarune), Slay the Spire (Slay the Spire 2), Hollow Knight (Silksong), Portal (Portal 2), Into the Breach, Celeste, Minecraft, Among Us: the lineage lens names the series and the entry carries `series` | todo |
+| F4 | Membership only (no series entry): Dark Souls (FromSoftware’s Souls games, with Elden Ring), Valkyria Chronicles, NieR (with Drakengard), Hades (Hades II), Chrono Trigger, Undertale (Deltarune), Slay the Spire (Slay the Spire 2), Hollow Knight (Silksong), Portal (Portal 2), Into the Breach, Celeste, Minecraft, Among Us: the lineage lens names the series and the entry carries `series` | landed (ten carry `series`, Celeste, Minecraft and Among Us added last; Into the Breach has no series, Subset’s FTL being a separate game, so it carries none) |
 
 **Genre coverage (owner: “cover most popular genres as much as
 possible”).** Market data (GAMIVO’s 2025 bestseller analysis via Yahoo
