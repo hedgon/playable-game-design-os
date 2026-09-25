@@ -78,8 +78,8 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | landed (Flappy Bird without images: no licensable screenshot of the 2013 original was found; real screens only, never a drawing, so retry the Internet Archive copy of the original store listing, which answered HTTP 429 on 2026-09-25) |
 | T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | landed (`soft-launch-and-playable-ads`, product; a step in `ship-it` s4) |
 | F1 | Series frame, landed with one pilot (Mega Man): see Design | landed (`18-games-series.js`, with the R18 `reception` rule) |
-| G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | landed: Fire Emblem, Pokémon, the Xeno lineage, Super Mario (with Mega Man, pass 6); Contra drafted, in fact-check |
-| G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | researching (Civilization and Street Fighter in fact-check, Zelda and Monster Hunter drafting) |
+| G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | landed (all six: Fire Emblem, Pokémon, Xeno, Mega Man, Contra, Super Mario) |
+| G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | Civilization and Street Fighter landed; Zelda in fact-check; Monster Hunter drafting (Civilization path step queued for L2: its stage already gained a step this session) |
 | G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | todo |
 | G2.3+ | Proposed: Zero Escape: 999, Danganronpa, Doki Doki Literature Club | todo |
 | G3.1–G3.3 | Open world: Skyrim, Grand Theft Auto V (GTA III as lineage), Fallout: New Vegas (Fallout 3/4 as context) | todo |
