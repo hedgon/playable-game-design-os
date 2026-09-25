@@ -132,7 +132,7 @@ Tier 1 is committed, Tier 2 follows if the art and bundle budgets allow.
 
 Tier 1 is about 55 new entries (14 series, 41 games); Tier 2 adds 17.
 
-Tier 1 status (2026-09-26): the G1 to G5 rows above landed; shooters and battle royale landed (Doom, Half-Life 2 with its D.I.C.E., BAFTA and GDCA Game of the Year awards, Counter-Strike 2, Fortnite, whose screens are database captures because Epic’s press pages refuse automated access; Fortnite’s step is in Ship it “Pick your platforms”, the others queued in L2); strategy and MOBA (StarCraft, Age of Empires II, Dota 2) and sports and racing (Rocket League, Mario Kart 8) in progress; EA Sports FC, simulation, RPG, survival, MMO and horror to do.
+Tier 1 status (2026-09-26): the G1 to G5 rows above landed; shooters and battle royale landed (Doom, Half-Life 2 with its D.I.C.E., BAFTA and GDCA Game of the Year awards, Counter-Strike 2, Fortnite, whose screens are database captures because Epic’s press pages refuse automated access; Fortnite’s step is in Ship it “Pick your platforms”, the others queued in L2); strategy and MOBA landed (StarCraft on Blizzard’s official press screenshots, Age of Empires II, Dota 2; path steps queued in L2); sports and racing (Rocket League, Mario Kart 8, EA Sports FC) and simulation (Cities: Skylines, Euro Truck Simulator 2) in progress; The Sims, Kerbal Space Program, RPG, survival, MMO and horror to do.
 
 Excluded on purpose (named so the choice is visible): Dragon Quest, Sonic,
 Higurashi, Fate/stay night, Pac-Man, Earth Defense Force, merge games,
@@ -244,7 +244,7 @@ official documentation at writing time, as dated facts with sources.
 | Id | Todo | Status |
 | --- | --- | --- |
 | L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | todo |
-| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa, Elden Ring, The Witcher 3, Diablo II, Doom) |
+| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa, Elden Ring, The Witcher 3, Diablo II, Doom, Half-Life 2, Counter-Strike 2, StarCraft, Age of Empires II, Dota 2) |
 | L3 | New paths from the plan: casual (I4), AI engineering (I7), plus any the L1 inventory shows are missing (for example engine and platform interview prep, pivoting out of games) | todo |
 | L4 | Chooser and the paths landing page updated so every path is reachable and the choice stays simple | todo |
 
@@ -426,6 +426,10 @@ Decisions 1 to 5 in section 7, including which “etc” candidates to take.
    Tier 1 at about 110 KB per entry plus engine images needs about 11 to
    12 MB: images are capped at two shots of 40 KB and a 30 KB header per
    entry, and the owner is asked before the budget passes 10 MB.
+   Raised to 12 MB on 2026-09-26 at 9.2 MB used, under the owner’s later
+   standing instruction to run the plan without asking; series entry
+   screens (asked for by the owner) grew the per-series cost past the
+   original estimate.
 5. Careers: a new domain of six topics (the recommended option, taken as
    the default; the owner can still move it into leadership).
 6. No Japanese shelf or tag (later the same day): every game is treated the
