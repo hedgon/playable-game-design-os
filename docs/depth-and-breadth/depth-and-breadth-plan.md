@@ -79,10 +79,10 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | landed (`soft-launch-and-playable-ads`, product; a step in `ship-it` s4) |
 | F1 | Series frame, landed with one pilot (Mega Man): see Design | landed (`18-games-series.js`, with the R18 `reception` rule) |
 | G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | landed (all six: Fire Emblem, Pokémon, Xeno, Mega Man, Contra, Super Mario) |
-| G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | Civilization and Street Fighter landed; Zelda in fact-check; Monster Hunter drafting (Civilization path step queued for L2: its stage already gained a step this session) |
-| G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | todo |
+| G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | Civilization, Street Fighter, Zelda landed; Monster Hunter in fact-check |
+| G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | researching |
 | G2.3+ | Proposed: Zero Escape: 999, Danganronpa, Doki Doki Literature Club | todo |
-| G3.1–G3.3 | Open world: Skyrim, Grand Theft Auto V (GTA III as lineage), Fallout: New Vegas (Fallout 3/4 as context) | todo |
+| G3.1–G3.3 | Open world: Skyrim, Grand Theft Auto V (GTA III as lineage), Fallout: New Vegas (Fallout 3/4 as context) | researching (Skyrim, GTA V drafting) |
 | G3.4+ | Proposed: Breath of the Wild, Elden Ring, The Witcher 3 (the Ubisoft tower formula as the compare counter-example, not an entry) | todo |
 | G4.1–G4.2 | Old-school fun: Dynasty Warriors (musou), Worms Armageddon | todo |
 | G4.3+ | Proposed: Katamari Damacy, Diablo II (the Vampire Survivors ancestor), Doom | todo |
@@ -242,7 +242,7 @@ official documentation at writing time, as dated facts with sources.
 | Id | Todo | Status |
 | --- | --- | --- |
 | L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | todo |
-| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo |
+| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda) |
 | L3 | New paths from the plan: casual (I4), AI engineering (I7), plus any the L1 inventory shows are missing (for example engine and platform interview prep, pivoting out of games) | todo |
 | L4 | Chooser and the paths landing page updated so every path is reachable and the choice stays simple | todo |
 

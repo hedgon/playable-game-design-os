@@ -165,7 +165,7 @@ const AWARDS = [
   ['igf', 'Independent Games Festival: Seumas McNally Grand Prize']
 ];
 const WIKI = 'https://en.wikipedia.org/wiki/';
-/** @type {Record<string, {id: string, year: number, src: string}[]>} */
+/** @type {Record<string, {id: string, year: number, src: string, for?: string}[]>} */
 const GAME_AWARDS = {
   'portal': [{ id:'gdca', year:2008, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
   'minecraft': [{ id:'igf', year:2011, src: WIKI + 'Independent_Games_Festival' }],
@@ -175,7 +175,8 @@ const GAME_AWARDS = {
   'hades': [{ id:'dice', year:2021, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2021, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2021, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
   'vampire-survivors': [{ id:'bafta', year:2023, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
   'balatro': [{ id:'gdca', year:2025, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
-  'super-mario': [{ id:'bafta', year:2009, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'super-mario': [{ id:'bafta', year:2009, for:'Super Mario Galaxy', src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
+  'zelda': [{ id:'tga', year:2017, for:'Breath of the Wild', src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2018, for:'Breath of the Wild', src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2018, for:'Breath of the Wild', src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
   'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
 };
 /** @param {any} g */
