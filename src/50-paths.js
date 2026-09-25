@@ -516,15 +516,16 @@ PATH('level-and-ux-designer', {
 PATH('games-that-broke-the-mould', {
   t:'Learn from games that broke the mould', tag:'Rules that teach themselves, knowledge as progress, time bent, genres fused.',
   pick:'Study the games that invented something new',
-  track:'design', level:'intermediate', hours:10,
+  track:'design', level:'intermediate', hours:11.5,
   audience:'Designers who know the fundamentals and want to see how some of the most original games of the last twenty-five years solved problems the usual answers could not.',
   outcome:'You can take apart an unusual game through ten lenses, name the one idea it contributed, and adapt that idea to your own design without copying its surface.',
   prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer'],
   stages:[
     { id:'s1', t:'Rules that teach themselves', level:'intermediate',
-      goal:'See how a game can teach its rules with no words, and design one rule that teaches itself.', hours:2,
+      goal:'See how a game can teach its rules with no words, and design one rule that teaches itself.', hours:2.25,
       steps:[
         { kind:'game', ref:'the-witness', why:'The Witness teaches every puzzle rule through a sequence of panels and no text, a clear example of teaching by doing.', do:'Read its analysis, then list three rules it teaches and the panel sequence that teaches each one: introduce, confirm, then combine.', min:30 },
+        { kind:'game', ref:'steins-gate', why:'Steins;Gate teaches its entire branching mechanic, replying to a text or ignoring a call, through a long, low-stakes opening stretch of ordinary messages, with no tutorial pop-up ever naming the system.', do:'Read its gameplay lens and signature teach section, then write the one low-stakes action your own game repeats early that it is quietly training the player to trust before a real decision depends on it.', min:20 },
         { kind:'topic', ref:'onboarding', why:'The general principles behind wordless teaching live here, so you can tell what The Witness does from what any good tutorial does.', do:'Compare The Witness’s panel sequences with the onboarding topic’s advice, and note one thing it does that most tutorials do not.', min:20 },
         { kind:'game', ref:'baba-is-you', why:'Baba Is You turns the rules themselves into objects you push, so learning the rules and breaking them are the same act.', do:'Read its analysis and write down the one moment where a rule you took for granted became something you could change.', min:25 },
         { kind:'topic', ref:'puzzle-design', why:'Both games depend on a solution space that is fair: every answer can be confirmed from what the player already knows.', do:'Sketch one puzzle for your own game and name its aha: the one insight that unlocks it and the clue that makes that insight fair.', min:25 },
@@ -541,13 +542,14 @@ PATH('games-that-broke-the-mould', {
         skip:['Can you name the three steps of a wordless teaching sequence and give an example of each?','Can you explain how a puzzle is confirmed as fair without playing it?','Have you already taught a rule in your own game with no text and watched a new player learn it?']
       } },
     { id:'s2', t:'Knowledge as progression', level:'intermediate',
-      goal:'Understand games where progress is what the player knows, and plan a gate that is understanding rather than a lock.', hours:2,
+      goal:'Understand games where progress is what the player knows, and plan a gate that is understanding rather than a lock.', hours:2.5,
       steps:[
         { kind:'topic', ref:'knowledge-as-progression', why:'Most games store progress in stats and items. A few store it only in the player’s head, which changes how every gate and reward works.', do:'List three gates in a game you know and say whether each is a lock (an item or stat) or an understanding (something the player must know).', min:25 },
         { kind:'game', ref:'outer-wilds', why:'Outer Wilds resets the solar system every 22 minutes and keeps only what the player learned, the clearest case of knowledge as the only progression.', do:'Read its analysis and write how the ship’s log keeps a player oriented without telling them the answer.', min:30 },
         { kind:'game', ref:'return-of-the-obra-dinn', why:'Obra Dinn turns deduction into a ledger and confirms fates only in sets of three, so single guesses cannot be checked and reasoning is rewarded.', do:'Read its analysis and explain in two sentences why confirming in threes changes how players reason.', min:30 },
         { kind:'tool', ref:'hypothesis', why:'Knowledge gates fail silently: players who miss a clue just stall. The hypothesis turns “they will figure it out” into something you can test.', do:'Write a playtest hypothesis for one knowledge gate: what a player must know, where they learn it, and how you will see whether they did.', min:25 },
-        { kind:'smell', ref:'dont-know-what-to-do', why:'A knowledge game’s most common failure looks exactly like this smell, and the fixes differ from a normal game’s.', do:'Check the smell’s causes against your gate and mark which one a knowledge game is most exposed to.', min:20 }
+        { kind:'smell', ref:'dont-know-what-to-do', why:'A knowledge game’s most common failure looks exactly like this smell, and the fixes differ from a normal game’s.', do:'Check the smell’s causes against your gate and mark which one a knowledge game is most exposed to.', min:20 },
+        { kind:'game', ref:'ace-attorney', why:'Ace Attorney never gates a verdict behind an item the player has not already found; the only thing that changes between a wrong guess and a right one is whether the player has understood which sentence is the lie.', do:'Read its gameplay lens, then write the one rule that keeps its Court Record fair (every possible answer already in the player’s hands) and check whether your own hardest gate follows the same rule.', min:25 }
       ],
       review:['puzzle-design'],
       check:{

@@ -80,11 +80,11 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | F1 | Series frame, landed with one pilot (Mega Man): see Design | landed (`18-games-series.js`, with the R18 `reception` rule) |
 | G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | landed (all six: Fire Emblem, Pokémon, Xeno, Mega Man, Contra, Super Mario) |
 | G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | landed (Civilization, Street Fighter, Zelda, Monster Hunter) |
-| G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | researching |
-| G2.3+ | Proposed: Zero Escape: 999, Danganronpa, Doki Doki Literature Club | todo |
-| G3.1–G3.3 | Open world: Skyrim, Grand Theft Auto V (GTA III as lineage), Fallout: New Vegas (Fallout 3/4 as context) | researching (Skyrim, GTA V drafting) |
+| G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | landed (Ace Attorney as a series, Steins;Gate in the new `18-games-genres.js`) |
+| G2.3+ | Proposed: Zero Escape: 999, Danganronpa, Doki Doki Literature Club | researching (999 drafting) |
+| G3.1–G3.3 | Open world: Skyrim, Grand Theft Auto V (GTA III as lineage), Fallout: New Vegas (Fallout 3/4 as context) | researching (Skyrim checked, GTA V fact-check, New Vegas drafting) |
 | G3.4+ | Proposed: Breath of the Wild, Elden Ring, The Witcher 3 (the Ubisoft tower formula as the compare counter-example, not an entry) | todo |
-| G4.1–G4.2 | Old-school fun: Dynasty Warriors (musou), Worms Armageddon | todo |
+| G4.1–G4.2 | Old-school fun: Dynasty Warriors (musou), Worms Armageddon | researching (both drafting; Dynasty Warriors as a series) |
 | G4.3+ | Proposed: Katamari Damacy, Diablo II (the Vampire Survivors ancestor), Doom | todo |
 
 **Series consistency (owner decision 1).** Games already in the library that
