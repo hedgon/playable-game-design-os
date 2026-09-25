@@ -848,7 +848,10 @@ GAME({ id:'flappy-bird', dev:'dotGears', img:'assets/games/flappy-bird.jpg', img
   shots: [
     { img:'assets/games/shots/flappy-bird-arcade.webp', lens:'ui', alt:'Flappy Bird on the licensed 2018 arcade cabinet in its demo loop: the yellow bird between two green pipe pairs, a grey ghost bird and an arrow showing the flap, two TAP labels, and a 250-ticket counter below the play field.', caption:'A real screen, though not the phone original: the licensed 2018 arcade cabinet in its demo loop. The pipes, the bird and the wordless tap prompt are the 2013 game’s; the ticket counter is the arcade’s own addition.',
       credit:{ author:'daveynin', url:'https://commons.wikimedia.org/wiki/File:Flappy_Bird_arcade_game_(32956457128).jpg', licence:'CC BY 2.0', changed:true },
-      callouts:[{ x:0.78, y:0.405, t:'The gap: the only safe line through each pipe pair' }, { x:0.5, y:0.655, t:'The tap prompt: the only instruction, drawn, not written' }, { x:0.12, y:0.93, t:'Ticket counter: the arcade version’s addition' }] }
+      callouts:[{ x:0.78, y:0.405, t:'The gap: the only safe line through each pipe pair' }, { x:0.5, y:0.655, t:'The tap prompt: the only instruction, drawn, not written' }, { x:0.12, y:0.93, t:'Ticket counter: the arcade version’s addition' }] },
+    { img: 'assets/games/shots/flappy-bird-original.webp', lens: 'gameplay', alt: 'Flappy Bird (2013): the original phone game’s “Get Ready!” screen, showing the yellow bird and the tap-to-flap prompt, photographed on a phone in February 2014 news coverage of its removal.', caption: 'The whole game is one input: a tap gives the bird a fixed upward flap; the demo screen shows the flap-and-fall rhythm before a run even starts.',
+  callouts: [{ x: 0.4125, y: 0.529, t: 'The bird: one tap gives a fixed upward flap' }, { x: 0.5, y: 0.410, t: 'The grey ghost bird shows the fall between taps' }],
+  credit: { author: 'dotGears / Dong Nguyen', url: 'https://www.pbs.org/newshour/economy/creator-popular-flappy-bird-discontinues-game', licence: 'press', source: 'PBS NewsHour' } }
   ]
 });
 

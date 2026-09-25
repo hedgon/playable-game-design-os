@@ -1329,6 +1329,14 @@ ANALYSIS('among-us', {
 });
 
 ANALYSIS('wordle', {
+  shots: [
+    { img: 'assets/games/shots/wordle-grid.webp', lens: 'gameplay', alt: 'Wordle: a phone screen mid-game, the guesses SHORT, HOTEL, AUDIO, HUMAN and the solved word HUNCH, coloured green, yellow and grey.', caption: 'Every guess is a bet against the six-row cap: the yellow H in SHORT banks information four guesses before HUNCH is found.',
+      callouts: [{ x: 0.373, y: 0.255, t: 'Yellow: the right letter, wrong spot' }, { x: 0.267, y: 0.698, t: 'One row still unused when the word was found' }],
+      credit: { author: 'The New York Times', url: 'https://apps.apple.com/us/app/nyt-games-wordle-crossword/id307569751', licence: 'store' } },
+    { img: 'assets/games/shots/wordle-kb.webp', lens: 'ui', alt: 'Wordle: the on-screen keyboard after several guesses, letters recoloured green, grey and light grey.', caption: 'The keyboard is a running summary: a player scans it before typing, rather than rereading the rows above.',
+      callouts: [{ x: 0.39, y: 0.63, t: 'Green U: confirmed, remembered for every later guess' }, { x: 0.10, y: 0.36, t: 'Grey letters already ruled out, at a glance' }],
+      credit: { author: 'The New York Times', url: 'https://apps.apple.com/us/app/nyt-games-wordle-crossword/id307569751', licence: 'store' } }
+  ],
   signature: {
     idea: 'Ration one puzzle a day for everyone',
     mechanism: 'Each day exposes exactly one five-letter target word to every player at once. A guess must be a valid English word, and pressing enter checks it letter by letter: a green tile means that letter sits in the correct position, a yellow tile means the letter appears somewhere else in the word, and a grey tile means the letter is absent altogether, with a repeated letter split across as many colours as the target contains of it. The on-screen keyboard permanently recolours each letter the moment it is used, so the accumulated state of the whole game is summarised letter by letter without rereading the earlier rows. Six rows are allowed before the puzzle locks for the day, and there is no way to try again until the date changes.',
@@ -1416,6 +1424,14 @@ ANALYSIS('wordle', {
 });
 
 ANALYSIS('tetris', {
+  shots: [
+    { img: 'assets/games/shots/tetris-elektronika.webp', lens: 'gameplay', alt: 'Tetris on the original 1984 Elektronika 60: tetrominoes drawn as bracket characters fall into a ten-column well, with a Russian command list at the right, as replayed in Tetris Forever (2024).', caption: 'The whole rule was already there in 1984: a ten-column well, falling shapes, and rows that lock into the stack.',
+      callouts: [{ x: 0.4375, y: 0.038, t: 'The well: ten columns, marked by < and >' }, { x: 0.20, y: 0.70, t: 'Blocks already locked into the stack' }],
+      credit: { author: 'Digital Eclipse', url: 'https://store.steampowered.com/app/3180240/Tetris_Forever/', licence: 'store' } },
+    { img: 'assets/games/shots/tetris-nes-next.webp', lens: 'ui', alt: 'An early console version of Tetris, as replayed in the Tetris Forever collection (2024): a falling piece above a mostly empty well, a NEXT preview box at bottom right and lives shown as hearts.', caption: 'Console ports added a small preview box for the next piece; this early console version labels it NEXT.',
+      callouts: [{ x: 0.90, y: 0.84, t: 'NEXT: the preview box console ports added' }, { x: 0.1375, y: 0.224, t: 'LIVES: a console-era addition' }],
+      credit: { author: 'Digital Eclipse', url: 'https://store.steampowered.com/app/3180240/Tetris_Forever/', licence: 'store' } }
+  ],
   signature: {
     idea: 'Escalate through speed alone',
     mechanism: 'Seven shapes, each built from four squares, fall one at a time down a ten-column well. The player slides the falling piece left or right and rotates it in ninety-degree steps; modern versions let a piece nudge sideways into a gap the rotation alone would not reach, a wall kick defined by the Super Rotation System. A completed horizontal row clears immediately and everything above drops by one line. A short lock delay lets the piece rest and be adjusted after it touches down before it fixes in place, and gravity, the fixed interval between one downward step and the next, shortens every few completed lines, so the single input, rotate and place, never changes while the time allowed to use it steadily shrinks.',
@@ -1512,6 +1528,14 @@ ANALYSIS('tetris', {
 });
 
 ANALYSIS('minecraft', {
+  shots: [
+    { img: 'assets/games/shots/minecraft-mining.webp', lens: 'gameplay', alt: 'Minecraft: a first-person view of a diamond ore vein lit by a torch, mid-mine with an iron pickaxe, the hotbar showing a mined diamond and other items.', caption: 'The block is scenery and resource at once: this diamond ore needs a strong enough pickaxe before it can be carried away as an item.',
+      callouts: [{ x: 0.30, y: 0.28, t: 'Diamond ore: needs an iron pickaxe or better' }, { x: 0.52, y: 0.93, t: 'A mined diamond, now carried in the hotbar' }],
+      credit: { author: 'Xbox México', url: 'https://commons.wikimedia.org/wiki/File:Screenshot_of_a_player_mining_for_diamonds_in_Minecraft.png', licence: 'CC BY 3.0', changed: true } },
+    { img: 'assets/games/shots/minecraft-crafting.webp', lens: 'ui', alt: 'Minecraft Beta 1.8.1: the survival crafting grid, two wood planks over two more planks and a stick arranged to craft a Wooden Sword, with no recipe list shown anywhere on screen.', caption: 'Before the 2017 recipe book, the crafting grid gave no hint of any recipe: a player had to already know this exact shape.',
+      callouts: [{ x: 0.42, y: 0.24, t: 'The exact shape of planks and a stick makes a sword' }, { x: 0.865, y: 0.33, t: 'Result slot: fills in only once the shape matches' }],
+      credit: { author: 'Xbox México', url: 'https://commons.wikimedia.org/wiki/File:Minecraft_Beta_1.8.1_%E2%80%93_Crafting_a_Wooden_Sword.png', licence: 'CC BY 3.0', changed: true } }
+  ],
   signature: {
     idea: 'Make the world and the toolkit out of the same one primitive',
     mechanism: 'Everything the player can see, terrain, trees, the walls of a cave, is built from an unbroken block grid, and any visible block can, with the right tool, be broken and carried away as an item, then placed again anywhere else. A crafting grid turns raw blocks and drops into tools and materials, and those materials unlock further blocks: wood becomes a workbench, stone becomes better tools, ore becomes metal, and metal eventually reaches redstone, a block that carries a signal and can be wired into switches, doors and pistons. There is no second material system running in parallel; decoration, structure, tool and terrain all live in the same grid.',
@@ -1626,6 +1650,14 @@ ANALYSIS('minecraft', {
 });
 
 ANALYSIS('animal-crossing-nh', {
+  shots: [
+    { img: 'assets/games/shots/animal-crossing-nookphone.webp', lens: 'ui', alt: 'Animal Crossing: New Horizons: the player character holds the NookPhone, its Camera app menu open showing icons for Photos, DIY Recipes, Nook Miles, Map, Passport and Airport, beside their tent.', caption: 'Every system, the map, tasks, the camera, lives on one in-fiction object the character visibly holds, not a menu overlay.',
+      callouts: [{ x: 0.338, y: 0.554, t: 'Map app: check the island without leaving the fiction' }, { x: 0.65, y: 0.647, t: 'The character visibly holds and reads the phone' }],
+      credit: { author: 'Nintendo', url: 'https://www.imore.com/animal-crossing-new-horizons-what-nookphone-and-what-it', licence: 'press', source: 'iMore' } },
+    { img: 'assets/games/shots/animal-crossing-museum.webp', lens: 'world', alt: 'Animal Crossing: New Horizons: Blathers the owl, the museum’s curator, startled awake in the museum’s entrance hall, his dialogue reading “Hoooo… WHO?!”.', caption: 'Blathers, the curator, is the island’s natural-history teacher: the museum he runs shows real fossils, fish and insects, the setting’s one factual layer beside an invented villager cast.',
+      callouts: [{ x: 0.575, y: 0.349, t: 'Blathers, the museum’s curator' }],
+      credit: { author: 'Nintendo', url: 'https://www.nintendo.com/us/store/products/animal-crossing-new-horizons-switch/', licence: 'store' } }
+  ],
   signature: {
     idea: 'Run the game on the real calendar, and let the player be the only goal',
     mechanism: 'New Horizons reads the Nintendo Switch’s own internal clock and calendar rather than an in-game timer, so a shop’s hours, a season’s weather, a fish or insect’s appearance window and a once-a-week event such as K.K. Slider’s Saturday concert all match the real date and time the console reports. On top of that clock the game states no required objective: Tom Nook hands over a loan for a tent, then a house, but charges no interest and sets no due date, and terraforming, once unlocked, lets the player reshape cliffs, rivers and paths freely. What the player does with any session, fish, dig, decorate, chat, visit a friend’s island, is left entirely open, and the island’s only real audience is the player and whoever they choose to invite.',

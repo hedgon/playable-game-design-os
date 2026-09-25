@@ -3818,6 +3818,14 @@ ANALYSIS('among-us', {
 });
 
 ANALYSIS('wordle', {
+  shots: [
+    { img: 'assets/games/shots/wordle-grid.webp', lens: 'gameplay', alt: 'Wordle: a phone screen mid-game, the guesses SHORT, HOTEL, AUDIO, HUMAN and the solved word HUNCH, coloured green, yellow and grey.', caption: 'Every guess is a bet against the six-row cap: the yellow H in SHORT banks information four guesses before HUNCH is found.',
+      callouts: [{ x: 0.373, y: 0.255, t: 'Yellow: the right letter, wrong spot' }, { x: 0.267, y: 0.698, t: 'One row still unused when the word was found' }],
+      credit: { author: 'The New York Times', url: 'https://apps.apple.com/us/app/nyt-games-wordle-crossword/id307569751', licence: 'store' } },
+    { img: 'assets/games/shots/wordle-kb.webp', lens: 'ui', alt: 'Wordle: the on-screen keyboard after several guesses, letters recoloured green, grey and light grey.', caption: 'The keyboard is a running summary: a player scans it before typing, rather than rereading the rows above.',
+      callouts: [{ x: 0.39, y: 0.63, t: 'Green U: confirmed, remembered for every later guess' }, { x: 0.10, y: 0.36, t: 'Grey letters already ruled out, at a glance' }],
+      credit: { author: 'The New York Times', url: 'https://apps.apple.com/us/app/nyt-games-wordle-crossword/id307569751', licence: 'store' } }
+  ],
   signature: {
     idea: 'Ration one puzzle a day for everyone',
     mechanism: 'Each day exposes exactly one five-letter target word to every player at once. A guess must be a valid English word, and pressing enter checks it letter by letter: a green tile means that letter sits in the correct position, a yellow tile means the letter appears somewhere else in the word, and a grey tile means the letter is absent altogether, with a repeated letter split across as many colours as the target contains of it. The on-screen keyboard permanently recolours each letter the moment it is used, so the accumulated state of the whole game is summarised letter by letter without rereading the earlier rows. Six rows are allowed before the puzzle locks for the day, and there is no way to try again until the date changes.',
@@ -3905,6 +3913,14 @@ ANALYSIS('wordle', {
 });
 
 ANALYSIS('tetris', {
+  shots: [
+    { img: 'assets/games/shots/tetris-elektronika.webp', lens: 'gameplay', alt: 'Tetris on the original 1984 Elektronika 60: tetrominoes drawn as bracket characters fall into a ten-column well, with a Russian command list at the right, as replayed in Tetris Forever (2024).', caption: 'The whole rule was already there in 1984: a ten-column well, falling shapes, and rows that lock into the stack.',
+      callouts: [{ x: 0.4375, y: 0.038, t: 'The well: ten columns, marked by < and >' }, { x: 0.20, y: 0.70, t: 'Blocks already locked into the stack' }],
+      credit: { author: 'Digital Eclipse', url: 'https://store.steampowered.com/app/3180240/Tetris_Forever/', licence: 'store' } },
+    { img: 'assets/games/shots/tetris-nes-next.webp', lens: 'ui', alt: 'An early console version of Tetris, as replayed in the Tetris Forever collection (2024): a falling piece above a mostly empty well, a NEXT preview box at bottom right and lives shown as hearts.', caption: 'Console ports added a small preview box for the next piece; this early console version labels it NEXT.',
+      callouts: [{ x: 0.90, y: 0.84, t: 'NEXT: the preview box console ports added' }, { x: 0.1375, y: 0.224, t: 'LIVES: a console-era addition' }],
+      credit: { author: 'Digital Eclipse', url: 'https://store.steampowered.com/app/3180240/Tetris_Forever/', licence: 'store' } }
+  ],
   signature: {
     idea: 'Escalate through speed alone',
     mechanism: 'Seven shapes, each built from four squares, fall one at a time down a ten-column well. The player slides the falling piece left or right and rotates it in ninety-degree steps; modern versions let a piece nudge sideways into a gap the rotation alone would not reach, a wall kick defined by the Super Rotation System. A completed horizontal row clears immediately and everything above drops by one line. A short lock delay lets the piece rest and be adjusted after it touches down before it fixes in place, and gravity, the fixed interval between one downward step and the next, shortens every few completed lines, so the single input, rotate and place, never changes while the time allowed to use it steadily shrinks.',
@@ -4001,6 +4017,14 @@ ANALYSIS('tetris', {
 });
 
 ANALYSIS('minecraft', {
+  shots: [
+    { img: 'assets/games/shots/minecraft-mining.webp', lens: 'gameplay', alt: 'Minecraft: a first-person view of a diamond ore vein lit by a torch, mid-mine with an iron pickaxe, the hotbar showing a mined diamond and other items.', caption: 'The block is scenery and resource at once: this diamond ore needs a strong enough pickaxe before it can be carried away as an item.',
+      callouts: [{ x: 0.30, y: 0.28, t: 'Diamond ore: needs an iron pickaxe or better' }, { x: 0.52, y: 0.93, t: 'A mined diamond, now carried in the hotbar' }],
+      credit: { author: 'Xbox México', url: 'https://commons.wikimedia.org/wiki/File:Screenshot_of_a_player_mining_for_diamonds_in_Minecraft.png', licence: 'CC BY 3.0', changed: true } },
+    { img: 'assets/games/shots/minecraft-crafting.webp', lens: 'ui', alt: 'Minecraft Beta 1.8.1: the survival crafting grid, two wood planks over two more planks and a stick arranged to craft a Wooden Sword, with no recipe list shown anywhere on screen.', caption: 'Before the 2017 recipe book, the crafting grid gave no hint of any recipe: a player had to already know this exact shape.',
+      callouts: [{ x: 0.42, y: 0.24, t: 'The exact shape of planks and a stick makes a sword' }, { x: 0.865, y: 0.33, t: 'Result slot: fills in only once the shape matches' }],
+      credit: { author: 'Xbox México', url: 'https://commons.wikimedia.org/wiki/File:Minecraft_Beta_1.8.1_%E2%80%93_Crafting_a_Wooden_Sword.png', licence: 'CC BY 3.0', changed: true } }
+  ],
   signature: {
     idea: 'Make the world and the toolkit out of the same one primitive',
     mechanism: 'Everything the player can see, terrain, trees, the walls of a cave, is built from an unbroken block grid, and any visible block can, with the right tool, be broken and carried away as an item, then placed again anywhere else. A crafting grid turns raw blocks and drops into tools and materials, and those materials unlock further blocks: wood becomes a workbench, stone becomes better tools, ore becomes metal, and metal eventually reaches redstone, a block that carries a signal and can be wired into switches, doors and pistons. There is no second material system running in parallel; decoration, structure, tool and terrain all live in the same grid.',
@@ -4115,6 +4139,14 @@ ANALYSIS('minecraft', {
 });
 
 ANALYSIS('animal-crossing-nh', {
+  shots: [
+    { img: 'assets/games/shots/animal-crossing-nookphone.webp', lens: 'ui', alt: 'Animal Crossing: New Horizons: the player character holds the NookPhone, its Camera app menu open showing icons for Photos, DIY Recipes, Nook Miles, Map, Passport and Airport, beside their tent.', caption: 'Every system, the map, tasks, the camera, lives on one in-fiction object the character visibly holds, not a menu overlay.',
+      callouts: [{ x: 0.338, y: 0.554, t: 'Map app: check the island without leaving the fiction' }, { x: 0.65, y: 0.647, t: 'The character visibly holds and reads the phone' }],
+      credit: { author: 'Nintendo', url: 'https://www.imore.com/animal-crossing-new-horizons-what-nookphone-and-what-it', licence: 'press', source: 'iMore' } },
+    { img: 'assets/games/shots/animal-crossing-museum.webp', lens: 'world', alt: 'Animal Crossing: New Horizons: Blathers the owl, the museum’s curator, startled awake in the museum’s entrance hall, his dialogue reading “Hoooo… WHO?!”.', caption: 'Blathers, the curator, is the island’s natural-history teacher: the museum he runs shows real fossils, fish and insects, the setting’s one factual layer beside an invented villager cast.',
+      callouts: [{ x: 0.575, y: 0.349, t: 'Blathers, the museum’s curator' }],
+      credit: { author: 'Nintendo', url: 'https://www.nintendo.com/us/store/products/animal-crossing-new-horizons-switch/', licence: 'store' } }
+  ],
   signature: {
     idea: 'Run the game on the real calendar, and let the player be the only goal',
     mechanism: 'New Horizons reads the Nintendo Switch’s own internal clock and calendar rather than an in-game timer, so a shop’s hours, a season’s weather, a fish or insect’s appearance window and a once-a-week event such as K.K. Slider’s Saturday concert all match the real date and time the console reports. On top of that clock the game states no required objective: Tom Nook hands over a loan for a tent, then a house, but charges no interest and sets no due date, and terraforming, once unlocked, lets the player reshape cliffs, rivers and paths freely. What the player does with any session, fish, dig, decorate, chat, visit a friend’s island, is left entirely open, and the island’s only real audience is the player and whoever they choose to invite.',
@@ -7287,7 +7319,10 @@ GAME({ id:'flappy-bird', dev:'dotGears', img:'assets/games/flappy-bird.jpg', img
   shots: [
     { img:'assets/games/shots/flappy-bird-arcade.webp', lens:'ui', alt:'Flappy Bird on the licensed 2018 arcade cabinet in its demo loop: the yellow bird between two green pipe pairs, a grey ghost bird and an arrow showing the flap, two TAP labels, and a 250-ticket counter below the play field.', caption:'A real screen, though not the phone original: the licensed 2018 arcade cabinet in its demo loop. The pipes, the bird and the wordless tap prompt are the 2013 game’s; the ticket counter is the arcade’s own addition.',
       credit:{ author:'daveynin', url:'https://commons.wikimedia.org/wiki/File:Flappy_Bird_arcade_game_(32956457128).jpg', licence:'CC BY 2.0', changed:true },
-      callouts:[{ x:0.78, y:0.405, t:'The gap: the only safe line through each pipe pair' }, { x:0.5, y:0.655, t:'The tap prompt: the only instruction, drawn, not written' }, { x:0.12, y:0.93, t:'Ticket counter: the arcade version’s addition' }] }
+      callouts:[{ x:0.78, y:0.405, t:'The gap: the only safe line through each pipe pair' }, { x:0.5, y:0.655, t:'The tap prompt: the only instruction, drawn, not written' }, { x:0.12, y:0.93, t:'Ticket counter: the arcade version’s addition' }] },
+    { img: 'assets/games/shots/flappy-bird-original.webp', lens: 'gameplay', alt: 'Flappy Bird (2013): the original phone game’s “Get Ready!” screen, showing the yellow bird and the tap-to-flap prompt, photographed on a phone in February 2014 news coverage of its removal.', caption: 'The whole game is one input: a tap gives the bird a fixed upward flap; the demo screen shows the flap-and-fall rhythm before a run even starts.',
+  callouts: [{ x: 0.4125, y: 0.529, t: 'The bird: one tap gives a fixed upward flap' }, { x: 0.5, y: 0.410, t: 'The grey ghost bird shows the fall between taps' }],
+  credit: { author: 'dotGears / Dong Nguyen', url: 'https://www.pbs.org/newshour/economy/creator-popular-flappy-bird-discontinues-game', licence: 'press', source: 'PBS NewsHour' } }
   ]
 });
 
@@ -7452,7 +7487,7 @@ SERIES({
     { t: 'Mega Man', short: 'Formula set', year: 1987, platform: 'NES', added: 'Introduced six freely-orderable Robot Masters, the Mega Buster, and the get-a-weapon loop the series still runs on.',
       shot: { img: 'assets/games/shots/mega-man-e1.webp', alt: 'Mega Man (1987): Mega Man fights the brown, block-throwing Guts Man, with a running score counter at the top of the screen, as re-released in Mega Man Legacy Collection (2015).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/363440/Mega_Man_Legacy_Collection/', licence: 'store' } } },
     { t: 'Mega Man 2', short: 'Contest, 8 bosses', year: 1988, platform: 'NES', added: 'Drew its eight Robot Masters from a public design contest, added support items after complaints that the first game was too hard, and introduced Energy Tanks and a password.',
-      shot: { img: 'assets/games/shots/mega-man-select.webp', alt: 'Mega Man 2 (1988): the stage-select screen of eight Robot Master portraits around Dr. Wily, as re-released in Mega Man Legacy Collection (2015).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/363440/', licence: 'store' } } },
+      shot: { img: 'assets/games/shots/mega-man-2-airman.webp', alt: 'Mega Man 2 (1988): Mega Man rides a Tackle Fire lift between two totem enemies in Air Man’s stage, as re-released in Mega Man Legacy Collection (2015).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/363440/Mega_Man_Legacy_Collection/', licence: 'store' } } },
     { t: 'Mega Man 3', short: 'Rush and slide', year: 1990, platform: 'NES', added: 'Added Rush and the slide move under a rushed schedule Inafune later called turbulent, while still selling over a million copies.',
       shot: { img: 'assets/games/shots/mega-man-e3.webp', alt: 'Mega Man 3 (1990): Mega Man faces the giant robotic serpent hazard of Snake Man’s stage, as re-released in Mega Man Legacy Collection (2015).', credit: { author: 'Capcom', url: 'https://store.steampowered.com/app/363440/Mega_Man_Legacy_Collection/', licence: 'store' } } },
     { t: 'Mega Man 7', short: 'Bass arrives', year: 1995, platform: 'SNES', added: 'Added rival Bass and brought the Game Boy games’ bolt shop into the numbered series, but reviewers judged the format stale beside Mega Man X.',
@@ -7635,7 +7670,7 @@ SERIES({
     { t: 'Final Fantasy XII', short: 'Gambits', year: 2006, platform: 'PlayStation 2', ref: 'final-fantasy-xii', added: 'Added programmable gambits that issue party commands automatically inside a seamless real-time field; analysed in full on its own page in this library.' },
     { t: 'Final Fantasy XIII', short: 'Corridor, Paradigm', year: 2009, platform: 'PlayStation 3, Xbox 360', added: 'Traded open towns for a single corridor across its first ten chapters and the fast Paradigm role-switching battle system, splitting critics.',
       shot: { img: 'assets/games/shots/final-fantasy-xiii-shot.webp', alt: 'Final Fantasy XIII (2009): Lightning rides Odin, her Eidolon, in its horse-like Gestalt form during a fiery battle.', credit: { author: 'Square Enix', url: 'https://store.steampowered.com/app/292120/', licence: 'store' } } },
-    { t: 'Final Fantasy XIV', short: 'Launch, rebirth', year: 2010, platform: 'Windows; PS3 from 2013', added: 'Launched as a broken subscription MMO in 2010, then was rebuilt entirely from scratch as A Realm Reborn in 2013, saving the series’ live-service model.' },
+    { shot: { img: 'assets/games/shots/final-fantasy-xiv-1-0.webp', alt: 'Final Fantasy XIV (2010, version 1.0, before A Realm Reborn): the player character aims a matchlock arquebus at an NPC on a city street, the dialogue log open below.', credit: { author: 'Square Enix', url: 'https://www.pcgamer.com/final-fantasy-xiv-review/', licence: 'press', source: 'PC Gamer' } }, t: 'Final Fantasy XIV', short: 'Launch, rebirth', year: 2010, platform: 'Windows; PS3 from 2013', added: 'Launched as a broken subscription MMO in 2010, then was rebuilt entirely from scratch as A Realm Reborn in 2013, saving the series’ live-service model.' },
     { t: 'Final Fantasy XV', short: '10-year dev', year: 2016, platform: 'PlayStation 4, Xbox One', added: 'Emerged after a decade of development as an open-world road trip with real-time combat, its story finished later through paid episodes.',
       shot: { img: 'assets/games/shots/final-fantasy-xv-roadtrip.webp', alt: 'Final Fantasy XV Windows Edition: the Regalia convertible drives through a palm-lined town on the game’s open-world road trip.', credit: { author: 'Square Enix', url: 'https://store.steampowered.com/app/637650/', licence: 'store' } } },
     { t: 'Final Fantasy XVI', short: 'Full action', year: 2023, platform: 'PlayStation 5', added: 'Became what Square Enix calls the series’ first fully fledged action RPG: one controllable hero, with combat built by a former Devil May Cry designer.',
@@ -7808,11 +7843,11 @@ SERIES({
   lesson: 'If a franchise splits into two branches, decide which half of a compound mechanic each branch keeps rather than assuming both need the whole thing: Persona kept fusion and treated negotiation as optional, which survived a two-game removal and a comeback, while mainline treated negotiation as load-bearing and never removed it. Either choice can work, but only if the branch is honest with itself about which half its players actually came for.',
   misses: 'Copies that borrow the recruit-and-fuse loop often keep only fusion, the simpler half to implement, and skip negotiation entirely, producing a collection game with no reason to feel anything for an enemy before absorbing it. Others copy Persona’s calendar and Social Link surface without also giving a Confidant a mechanical payoff in combat, the way Arcana-matched fusion bonuses do, so the relationships read as content rather than as the resource the original design treats them as.',
   entries: [
-    { t: 'Digital Devil Story: Megami Tensei', short: 'Formula set', year: 1987, platform: 'Famicom',
+    { shot: { img: 'assets/games/shots/megami-tensei-entry-formula.webp', alt: 'Digital Devil Story: Megami Tensei (1987): a first-person view down a dungeon corridor under a Full Moon indicator, with Nakajima and Yumiko’s HP and MP listed below.', credit: { author: 'Atlus', url: 'https://www.igdb.com/games/digital-devil-story-megami-tensei/presskit', licence: 'press', source: 'IGDB press kit' } }, t: 'Digital Devil Story: Megami Tensei', short: 'Formula set', year: 1987, platform: 'Famicom',
       added: 'Introduced demon negotiation, created to set the game apart from Wizardry, alongside demon fusion and a first-person dungeon crawl.' },
-    { t: 'Shin Megami Tensei', short: 'Atlus’s own IP', year: 1992, platform: 'Super Famicom',
+    { shot: { img: 'assets/games/shots/megami-tensei-entry-smt1.webp', alt: 'Shin Megami Tensei (1992): a demon’s dialogue reads “Civilization as we know it has rotted to its very core!”, with the party list showing the recruited demon Jack Frost below.', credit: { author: 'Atlus', url: 'https://www.igdb.com/games/shin-megami-tensei/presskit', licence: 'press', source: 'IGDB press kit' } }, t: 'Shin Megami Tensei', short: 'Atlus’s own IP', year: 1992, platform: 'Super Famicom',
       added: 'Remade Megami Tensei II as the first entry Atlus published itself, with Law, Neutral and Chaos paths deciding the ending.' },
-    { t: 'Persona (Revelations: Persona)', short: 'Persona spin-off', year: 1996, platform: 'PlayStation',
+    { shot: { img: 'assets/games/shots/megami-tensei-entry-persona1.webp', alt: 'Revelations: Persona (1996): Igor, the tarot-shop fusion character introduced here, asks “What is your desire?” over a Fusion menu.', credit: { author: 'Atlus', url: 'https://www.igdb.com/games/revelations-persona/presskit', licence: 'press', source: 'IGDB press kit' } }, t: 'Persona (Revelations: Persona)', short: 'Persona spin-off', year: 1996, platform: 'PlayStation',
       added: 'Carried negotiation into a Japanese high school cast whose Personas are fused from tarot spell cards, then had its Japanese identity heavily rewritten for the West.' },
     { t: 'Shin Megami Tensei III: Nocturne', short: 'Press Turn', year: 2003, platform: 'PlayStation 2', ref: 'smt-iii-nocturne',
       added: 'Introduced Press Turn under director Katsura Hashino, who would carry its lessons into Persona three years later.',
@@ -7826,7 +7861,7 @@ SERIES({
       added: 'Kept Persona 3’s calendar and Arcana formula for a rural setting, and its 2012 Golden edition scored 93 on Metacritic, second only to Royal’s 95 in the spin-off.',
       shot: { img: 'assets/games/shots/megami-tensei-entry-p4.webp', alt: 'Persona 4 Golden: a Social Link rank-up screen showing the Lovers Arcana card turning over for Rise Kujikawa.',
         credit: { author: 'ATLUS', url: 'https://store.steampowered.com/app/1113000/Persona_4_Golden/', licence: 'store' } } },
-    { t: 'Shin Megami Tensei IV', short: 'Numbered return', year: 2013, platform: 'Nintendo 3DS',
+    { shot: { img: 'assets/games/shots/megami-tensei-entry-smt4.webp', alt: 'Shin Megami Tensei IV (2013): the protagonist casts the lightning spell Ziodyne against a demon on a night-time Tokyo street.', credit: { author: 'Atlus', url: 'https://www.igdb.com/games/shin-megami-tensei-iv/presskit', licence: 'press', source: 'IGDB press kit' } }, t: 'Shin Megami Tensei IV', short: 'Numbered return', year: 2013, platform: 'Nintendo 3DS',
       added: 'Returned to numbered entries a decade after Nocturne, adding the Smirk bonus to Press Turn and Masayuki Doi as main character designer after Kazuma Kaneko.' },
     { t: 'Persona 5 Royal', short: 'Royal expansion', year: 2019, platform: 'PlayStation 4', ref: 'persona-5-royal',
       added: 'Expanded Persona 5 (2016), which had brought negotiation back as Hold Up, with a new Palace, Kichijoji and a third semester; together they sold 10.46 million by August 2025.',
