@@ -9,7 +9,7 @@ const { DATA, DIAGRAM, FLOW, GRAPH } = require('./manifest.js');
 const { overlaps, diagramProblems } = require('./layout-core.js');
 const src = [...DATA, DIAGRAM, FLOW, GRAPH].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const window = {};
-const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,PATHS,REFERENCE_GAMES,contentTreeFlow,PLATFORMS,platformMatrix,stagesOf};')(window);
+const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,PATHS,REFERENCE_GAMES,contentTreeFlow,PLATFORMS,platformMatrix,stagesOf,ENGINES,GUIDE_LAYOUT};')(window);
 const G = window.PlayableGraph;
 const { states, problems, clipped } = overlaps(G, ctx.DOMAINS, ctx.TOPICS, ctx.CASE_STUDIES, window.PlayableFlow, ctx.PATHS, ctx.REFERENCE_GAMES);
 // Diagrams: every spec on a topic or a reference game, laid out as the app
@@ -20,6 +20,8 @@ Object.values(ctx.TOPICS).forEach(t => { if (t.diagram) specs.push(['topic:' + t
 specs.push(['diagnose:content-tree', ctx.contentTreeFlow()]);
 (ctx.PLATFORMS || []).forEach(p => { if (p.flow) specs.push(['platform:' + p.id, p.flow]); ctx.stagesOf(p).forEach(([k]) => { const d = p.stages[k] && p.stages[k].diagram; if (d) specs.push(['platform:' + p.id + '/' + k, d]); }); });
 if ((ctx.PLATFORMS || []).length) specs.push(['platforms:table', ctx.platformMatrix()]);
+if (ctx.GUIDE_LAYOUT) specs.push(['guide:layout', ctx.GUIDE_LAYOUT]);
+(ctx.ENGINES || []).forEach(e => { if (e.flow) specs.push(['engine:' + e.id, e.flow]); Object.entries(e.stages || {}).forEach(([k, s]) => { if (s.diagram) specs.push(['engine:' + e.id + '/' + k, s.diagram]); }); });
 (ctx.REFERENCE_GAMES || []).forEach(g => (g.diagrams || []).forEach((d, i) => specs.push([`game:${g.id}/${i}`, d])));
 problems.push(...diagramProblems(window.PlayableDiagram, window.PlayableFlow, specs));
 console.log(`states checked: ${states}; diagrams: ${specs.length}; overlaps: ${problems.length}; shortened labels: ${clipped.length}`);

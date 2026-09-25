@@ -86,7 +86,7 @@ ACTIONS['clear-tool'] = el => { if(confirm('Clear this tool?')){ localStorage.re
 const NAV = [
   { id:'paths', t:'Paths', views:[['paths','Learning paths'],['review','Review']] },
   { id:'map', t:'Map', views:[['map','Map'],['explore','List'],['concepts','Concept index']] },
-  { id:'library', t:'Library', views:[['games','Reference games'],['platforms','Platforms'],['checklists','Checklists'],['prompts','Prompts'],['sources','Sources']] },
+  { id:'library', t:'Library', views:[['games','Reference games'],['platforms','Platforms'],['engines','Engines'],['checklists','Checklists'],['prompts','Prompts'],['sources','Sources']] },
   { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
   { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
@@ -206,6 +206,8 @@ function render(view, parts){
     case 'sources': return renderSources();
     case 'games': return renderGames(parts[1]);
     case 'platforms': return renderPlatforms(parts[1]);
+    case 'engines': return renderEngines(parts[1]);
+    case 'guide': return renderGuide();
     case 'index': return renderIndex();
     default: return renderIndex(view);
   }
@@ -414,10 +416,10 @@ function libraryHTML(){
   const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
   const usedTags = GAME_TAGS.filter(t => REFERENCE_GAMES.some(g => (g.tags || []).includes(t)));
   const deepLenses = REFERENCE_GAMES.some(g => g.lens) ? [['analysed', 'Analysed through ten lenses']] : [];
-  const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${x.year} · ${esc(x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
+  const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${gameYears(x)} · ${esc(x.kind === 'series' ? 'series · ' + x.genre : x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
   const grid = xs => `<div class="reflib">${xs.map(card).join('')}</div>`;
   const body = !list.length ? '<div class="empty">No game matches these filters.</div>'
-    : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${x.year}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
+    : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${gameYears(x)}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
     : s.family || s.shelf ? grid(list)
     : GAME_FAMILIES.map(([f, label]) => { const xs = list.filter(x => x.family === f); return xs.length ? `<div class="section-head"><h2>${esc(label)}</h2><span class="muted">${xs.length}</span></div>${grid(xs)}` : ''; }).join('');
   return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed === REFERENCE_GAMES.length ? ', each read through ten lenses, from UI and art direction to business and lineage' : analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
@@ -465,14 +467,26 @@ function signatureHTML(g){
   const s = g.signature; if(!s) return '';
   return `<section class="card sigcard"><div class="overline">The idea worth stealing</div><h2>${esc(s.idea)}</h2>${SIGNATURE_PARTS.map(([k, label]) => `<h4>${esc(label)}</h4><p>${esc(s[k])}</p>`).join('')}</section>`;
 }
+// A series shows the span of its entries; a single game its release year.
+const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.entries[0].year}–${g.entries[g.entries.length - 1].year}` : String(g.year);
+// Series pages list their entries (linking any analysed on its own) and say
+// what the formula keeps and changes; a game in a series links back to it.
+function seriesHTML(g){
+  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist">${g.entries.map(e => `<li><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</li>`).join('')}</ol>
+    <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>`;
+  if(!g.series) return '';
+  const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);
+  return `<p class="small seriesnote">Part of ${S ? `<a href="#/games/${S.id}">${esc(g.series.t)}</a>` : esc(g.series.t)}: ${esc(g.series.n)}.</p>`;
+}
 function renderGames(id){
   const g = REFERENCE_GAMES.find(x => x.id === id);
   if(!g){ setView(libraryHTML()); return; }
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
-  setView(`${crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${g.year} · ${esc(g.genre)}</p>
+  setView(`${crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${gameYears(g)} · ${esc(g.kind === 'series' ? 'series · ' + g.genre : g.genre)}</p>${seriesHTML(g).startsWith('<p') ? seriesHTML(g) : ''}
     <div class="chips" style="margin:-4px 0 12px"><a class="chip dom lnk" href="#/games" data-action="lib-family" data-v="${esc(g.family)}">${esc(familyLabel(g.family))}</a>${(g.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>
     ${gameArt(g)}
     <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
+    ${g.kind === 'series' ? seriesHTML(g) : ''}
     ${signatureHTML(g)}
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
     ${lensesHTML(g)}
@@ -497,7 +511,7 @@ function gameLinks(){
 /* ---------- All pages: every section, view and collection ---------- */
 // Also where an unknown route lands, with a line saying so.
 function renderIndex(unknown){
-  const count = { '#/paths': PATHS.length + ' paths', '#/games': REFERENCE_GAMES.length + ' games', '#/platforms': PLATFORMS.length + ' guides', '#/checklists': CHECKLISTS.length + ' checklists', '#/prompts': PROMPT_TEMPLATES.length + ' templates', '#/explore': TOPIC_LIST.length + ' topics', '#/concepts': TOPIC_LIST.length + ' concepts', '#/diagnose/smells': SMELLS.length + ' smells', '#/build': TOOLS.length + ' tools', '#/experience': CASE_STUDIES.length + ' projects', '#/sources': SOURCES.length + ' sources' };
+  const count = { '#/paths': PATHS.length + ' paths', '#/games': REFERENCE_GAMES.length + ' games', '#/platforms': PLATFORMS.length + ' guides', '#/engines': ENGINES.length + ' guides', '#/checklists': CHECKLISTS.length + ' checklists', '#/prompts': PROMPT_TEMPLATES.length + ' templates', '#/explore': TOPIC_LIST.length + ' topics', '#/concepts': TOPIC_LIST.length + ' concepts', '#/diagnose/smells': SMELLS.length + ' smells', '#/build': TOOLS.length + ' tools', '#/experience': CASE_STUDIES.length + ' projects', '#/sources': SOURCES.length + ' sources' };
   const sections = [...new Set(PAGES.map(p => p[2]))];
   const item = p => `<a class="card clickable lnk blk idxcard" href="${p[0]}"><b>${esc(p[1])}</b>${count[p[0]] ? ` <span class="chip">${esc(count[p[0]])}</span>` : ''}<div class="small dim">${esc(p[3])}</div></a>`;
   const domains = `<div class="chips" style="margin-top:8px">${DOMAINS.map(d => `<a class="chip dom lnk" style="--dc:${d.color}" href="#/explore/${d.id}">${esc(d.t)}</a>`).join('')}</div>`;
@@ -523,12 +537,73 @@ function renderPlatforms(id){
       ${other.length ? `<div class="section-head"><h2>Other channels</h2></div><div class="grid auto">${other.map(card).join('')}</div>` : ''}${note}`);
     return;
   }
-  const stage = ([k, label]) => { const s = P.stages[k]; return `<section class="pstage"><h2>${label}</h2>${s.diagram ? diagramCard(s.diagram) : ''}${list(s.points)}${factItems(s.facts)}</section>`; };
+  const stage = ([k, label]) => guideStageHTML(P.stages[k], label);
   setView(`${crumbs([['Library','#/games'],['Platforms','#/platforms'],[P.t]])}<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
     ${P.nda ? `<div class="callout"><b>Under NDA.</b> ${esc(P.nda)}</div>` : ''}
     ${P.flow ? diagramCard(P.flow) : ''}
     ${stagesOf(P).map(stage).join('')}
     ${(P.topics || []).length ? `<p class="small">Topics: ${P.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`);
+}
+// One stage of a platform or engine guide: its diagram, points, a numbered
+// deploy walkthrough (a step may carry a credited image), images, dated
+// facts, and interview questions with answers behind a toggle.
+function guideStageHTML(s, label){
+  const deploy = (s.deploy || []).length ? `<ol class="deploysteps">${s.deploy.map(d => `<li><b>${esc(d.t)}</b> ${esc(d.d)}${d.shot ? shotHTML({}, d.shot) : ''}</li>`).join('')}</ol>` : '';
+  const iv = (s.iv || []).length ? `<div class="guideiv">${s.iv.map(x => `<details class="card"><summary><b>${esc(x.q)}</b></summary><p>${esc(x.a)}</p><p class="small"><b>Follow-up:</b> ${esc(x.follow)}</p><p class="small"><b>Red flag:</b> ${esc(x.red)}</p></details>`).join('')}</div>` : '';
+  return `<section class="pstage"><h2>${label}</h2>${s.diagram ? diagramCard(s.diagram) : ''}${s.points ? list(s.points) : ''}${deploy}${(s.shots || []).map(sh => shotHTML({}, sh)).join('')}${factItems(s.facts)}${iv}</section>`;
+}
+/* ---------- how to use the site ---------- */
+// One page that says what each section is for and which route fits which
+// reader, with a schematic of the screen. Linked from help, All pages,
+// empty search and the paths page.
+function renderGuide(){
+  const sec = (href, t, what, when) => `<a class="card clickable lnk blk" href="${href}"><b>${esc(t)}</b><div class="small" style="margin-top:4px">${esc(what)}</div><div class="small muted" style="margin-top:4px">${esc(when)}</div></a>`;
+  const route = (t, steps) => `<div class="card"><b>${esc(t)}</b><ol class="small" style="margin:6px 0 0;padding-left:20px">${steps.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
+  setView(`${crumbs([['How to use this site']])}<h1>How to use this site</h1>
+    <p class="dim" style="max-width:820px">A guide to making games, from design to engineering to shipping, built so you can follow a route or look one thing up. You do not need to use every feature: pick the route below that matches why you came, and ignore the rest until you need it.</p>
+    <div class="section-head"><h2>Pick your route</h2></div>
+    <div class="grid auto">
+      ${route('New to game design', ['Open <a href="#/paths">Learning paths</a> and answer the three questions, or start <a href="#/paths/game-designer-foundations">Game designer foundations</a>.', 'Follow one step at a time; each step opens a topic, a tool or a game.', 'At the end of each stage, answer the checkpoint or skip it if you already know it.'])}
+      ${route('Programming or shipping a game', ['Switch the index to <b>Engineering &amp; Career</b>, or pick an engineering path on <a href="#/paths">Learning paths</a>.', 'On most engineering and design topics, the <b>Godot</b> and <b>Unity</b> tabs show the idea in code.', 'For shipping, read <a href="#/platforms">Platforms</a> and <a href="#/engines">Engines and tools</a>.'])}
+      ${route('Preparing for an interview', ['Start an interview prep path on <a href="#/paths">Learning paths</a>.', 'Every topic has an <b>Interview</b> tab: questions, answers, follow-ups and red flags.', 'Mark questions for <a href="#/review">Review</a>; they come back after 1, 2, 4, 8 and 16 days.'])}
+      ${route('Stuck on a game you are making', ['Describe what players do in <a href="#/diagnose">Diagnose</a>: each symptom leads to causes, an experiment and a prompt.', 'Shape an idea in the <a href="#/lab">Idea Lab</a>, or a loop, canvas or hypothesis in <a href="#/build">Build tools</a>.', 'Compare it with the <a href="#/games">Reference games</a>, using <a href="#/build/dissect">Reference Dissection</a>.'])}
+      ${route('Looking one thing up', ['Press <kbd>Ctrl</kbd>/<kbd>⌘</kbd> <kbd>K</kbd> or <kbd>/</kbd> and type: pages, topics, games, platforms and interview questions all appear.', 'Or open <a href="#/index">All pages</a>, or the <a href="#/concepts">Concept index</a> for topics A to Z.'])}
+    </div>
+    <div class="section-head"><h2>Where things are</h2></div>
+    ${diagramCard(GUIDE_LAYOUT)}
+    <div class="section-head"><h2>The seven sections</h2><span class="muted">keys 1 to 7</span></div>
+    <div class="grid auto">
+      ${sec('#/paths', '1 · Paths', 'Guided routes through the guide, one visible next step at a time, with checkpoints and a spaced review queue.', 'When you want to learn a role, not one fact.')}
+      ${sec('#/map', '2 · Map', 'Every topic as a mind map, a list, or a concept index, in two lenses: Design, and Engineering & Career. A topic page has the same eight parts everywhere, plus engine and interview tabs.', 'When you want to see how ideas connect, or read a topic.')}
+      ${sec('#/games', '3 · Library', 'Reference games taken apart through ten lenses, on shelves and by genre; platform guides from access to release; engine and tool guides; checklists; prompt templates; sources.', 'When you want examples, a store’s rules, or a checklist.')}
+      ${sec('#/lab', '4 · Make', 'The Idea Lab and build tools: loop builder, core experience canvas, behaviour ladder, playtest hypothesis, AI delegation planner and more. Your answers stay in this browser.', 'When you are shaping your own game.')}
+      ${sec('#/diagnose', '5 · Diagnose', 'Start from what players do (“they quit early”, “combat feels floaty”) and get causes, an experiment and a prompt; plus a playtest question bank.', 'When something in your game is not working.')}
+      ${sec('#/ai', '6 · AI Workflow', 'How to work with AI on a game: where it helps, where it must not decide, how to prompt and how to check its output.', 'When you use AI tools in production.')}
+      ${sec('#/experience', '7 · Projects', 'Real shipped systems taken apart: architecture, workflows and interview questions for each part.', 'When you want to see the ideas in a working codebase.')}
+    </div>
+    <div class="section-head"><h2>Your progress</h2></div>
+    <div class="card"><ul class="small" style="margin:0">
+      <li>Opening a topic ticks it; the header shows how many you have read.</li>
+      <li>A path remembers your steps and stages; the banner above the page shows the next one, and <b>Leave path</b> hides it.</li>
+      <li>Everything is saved in this browser only. Export or import it from the help dialog (<kbd>?</kbd>), which also lists every keyboard shortcut.</li>
+    </ul></div>`);
+}
+/* ---------- engine and tool guides ---------- */
+function renderEngines(id){
+  const E = ENGINES.find(x => x.id === id);
+  const note = '<p class="small muted">Prices and licence terms change; every dated fact links its source. Images are credited with their licence; screens we cannot license are drawn as schematics.</p>';
+  if(!E){
+    const card = e => `<a class="card clickable lnk blk" href="#/engines/${e.id}"><b>${esc(e.t)}</b><div class="small dim">${esc(e.sub)}</div><p class="small" style="margin:6px 0 0">${esc(e.short)}</p><div class="chips" style="margin-top:6px">${e.glance.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div></a>`;
+    const groups = [['engine', 'Game engines'], ['web', 'The web stack'], ['tool', 'Tools']];
+    setView(`${crumbs([['Library','#/games'],['Engines']])}<h1>Engines and tools</h1><p class="dim" style="max-width:820px">What each engine is, how it is built, the editor, the content pipeline, how a build gets to each platform, what it costs, how it works with AI, and the questions interviews ask. Topic pages keep their Godot and Unity tabs; these guides cover the rest.</p>
+      ${ENGINES.length ? groups.map(([k, t]) => { const xs = ENGINES.filter(e => e.kind === k); return xs.length ? `<div class="section-head"><h2>${t}</h2></div><div class="grid auto">${xs.map(card).join('')}</div>` : ''; }).join('') : '<div class="empty">Engine guides are being written.</div>'}${note}`);
+    return;
+  }
+  setView(`${crumbs([['Library','#/games'],['Engines','#/engines'],[E.t]])}<h1>${esc(E.t)}</h1><p class="dim">${esc(E.sub)}</p><p style="max-width:820px">${esc(E.short)}</p>
+    <div class="chips" style="margin:-4px 0 12px">${E.glance.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div>
+    ${diagramCard(E.flow)}
+    ${ENGINE_STAGES.map(([k, label]) => guideStageHTML(E.stages[k], label)).join('')}
+    ${(E.topics || []).length ? `<p class="small">Topics: ${E.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`);
 }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
 function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
@@ -1732,7 +1807,11 @@ function pathsDoorHTML(){
     const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
     return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(p => pathCard(p, !!rec && rec.path === p)).join('')}</div>`;
   }).join('');
+  // A first visit gets one dismissible pointer to the guide; after that, a
+  // quiet link stays under the intro.
+  const hint = store.get('guideHint', true) ? `<div class="callout guidehint"><b>First time here?</b> <a href="#/guide">How to use this site</a> takes two minutes and shows which route fits you. <button type="button" class="btn sm ghost" data-action="guide-hint-close">Dismiss</button></div>` : `<p class="small"><a href="#/guide">How to use this site</a></p>`;
   return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
+    ${hint}
     ${continueCard}
     ${chooserHTML(ans, rec)}
     ${outcomes ? `<div class="section-head"><h2>What do you want to be able to do?</h2></div>${outcomes}` : ''}
@@ -1743,6 +1822,7 @@ function pathsDoorHTML(){
 // The three-question chooser. Answers are a per-browser convenience; the
 // pick itself is choosePath (50-paths.js), shared with the validator.
 const chooserAnswers = () => store.get('chooser', {});
+ACTIONS['guide-hint-close'] = () => { store.set('guideHint', false); keepScroll = true; renderPaths(); };
 ACTIONS.choose = el => { const a = chooserAnswers(); a[el.dataset.q] = el.dataset.v; store.set('chooser', a); keepScroll = true; renderPaths(); };
 function chooserHTML(ans, rec){
   const q = (key, label, opts) => `<div class="chooser-q"><div class="overline" id="cq-${key}">${label}</div><div class="dims" role="group" aria-labelledby="cq-${key}">${opts.map(([v, t]) => `<button type="button" data-action="choose" data-q="${key}" data-v="${v}" class="${ans[key] === v ? 'active' : ''}" aria-pressed="${ans[key] === v}">${esc(t)}</button>`).join('')}</div></div>`;
@@ -1876,14 +1956,16 @@ CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t
 CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
 PAGES.forEach(([href, t, section, purpose, aka]) => INDEX.push({ type:'page', t, snip:`${section} · ${purpose}`, href, text:[t, section, purpose, ...aka].join(' ').toLowerCase(), aka }));
-PLATFORMS.forEach(p => INDEX.push({ type:'platform', t:p.t, snip:p.short, href:'#/platforms/'+p.id, text:[p.t, p.sub, p.short, ...Object.values(p.stages).flatMap(s => [...s.points, ...(s.facts || []).map(f => f.claim)])].join(' ').toLowerCase() }));
+const guideText = stages => Object.values(stages).flatMap(s => [...(s.points || []), ...(s.facts || []).map(f => f.claim), ...(s.deploy || []).flatMap(d => [d.t, d.d]), ...(s.iv || []).map(x => x.q)]);
+PLATFORMS.forEach(p => INDEX.push({ type:'platform', t:p.t, snip:p.short, href:'#/platforms/'+p.id, text:[p.t, p.sub, p.short, ...guideText(p.stages)].join(' ').toLowerCase() }));
+ENGINES.forEach(e => INDEX.push({ type:'platform', t:e.t, snip:e.short, href:'#/engines/'+e.id, text:[e.t, e.sub, e.short, ...e.glance, ...guideText(e.stages)].join(' ').toLowerCase(), aka:['engine', e.kind] }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
 PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
-const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
-REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${g.year} · ${g.genre} · ${(g.signature ? g.signature.idea : g.lesson).slice(0,90)}…`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family)] }));
+const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), ...(g.series ? [g.series.t] : []), ...(g.entries || []).flatMap(e => [e.t, e.added]), g.constant, g.changed, g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
+REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${gameYears(g)} · ${g.genre} · ${(g.signature ? g.signature.idea : g.lesson).slice(0,90)}…`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family), ...(g.series ? [g.series.t] : []), ...(g.kind === 'series' ? ['series'] : [])] }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));
@@ -1940,7 +2022,7 @@ function search(q){
 // this browser, then the pages people look for most.
 let searchOpenGroups = new Set();
 ACTIONS['search-more'] = el => { searchOpenGroups.add(el.dataset.group); renderSearch(); };
-const COMMON_PAGES = ['#/paths', '#/games', '#/platforms', '#/map', '#/checklists', '#/index'];
+const COMMON_PAGES = ['#/guide', '#/paths', '#/games', '#/platforms', '#/map', '#/checklists', '#/index'];
 const recentPages = () => store.get('recent', []);
 function renderSearch(){
   const q = $('#searchInput').value.trim();

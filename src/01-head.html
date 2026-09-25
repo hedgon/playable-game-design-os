@@ -734,6 +734,11 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .libbar .libview{display:flex;gap:4px}
 .librow{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:6px 0 4px}
 .more-games summary{cursor:pointer;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.serieslist{margin:6px 0 10px;padding-left:22px}.serieslist li{margin:0 0 8px}
+.seriesnote{margin:-4px 0 10px}
+.deploysteps{margin:8px 0 12px;padding-left:24px}.deploysteps>li{margin:0 0 10px}.deploysteps .shot{margin-top:8px}
+.guideiv details{margin:0 0 8px}.guideiv summary{cursor:pointer}
+.guidehint{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 /* On a phone a row of filter chips scrolls sideways instead of wrapping
    into a wall of buttons above the grid. */
 @media (max-width:700px){.libscroll{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:4px;scrollbar-width:thin}.libscroll .chip{flex:0 0 auto}.libbar,.librow{flex-wrap:wrap}.libbar .libscroll,.librow .libscroll{flex:1 1 100%}}
@@ -1085,6 +1090,7 @@ details.comp .body{padding-top:6px}
 <div class="modal-bg help-modal" id="helpModal" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
   <div class="modal">
     <h2 tabindex="-1">Keyboard shortcuts</h2>
+    <p class="small">New here? <a href="#/guide" id="helpGuide">How to use this site</a> says what each section is for and which route fits you.</p>
     <table>
       <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> or <kbd>/</kbd></td><td>Search everything (an empty box lists recent and common pages; <a href="#/index">All pages</a> lists every page)</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>Close dialogs</td></tr>
@@ -1095,7 +1101,7 @@ details.comp .body{padding-top:6px}
       <tr><td><kbd>T</kbd></td><td>Toggle theme</td></tr>
       <tr><td><kbd>?</kbd></td><td>This help</td></tr>
     </table>
-    <label class="keys-toggle"><input type="checkbox" id="keysToggle"> Single-key shortcuts (1 to 6, [ ], E, M, T, / and ?)</label>
+    <label class="keys-toggle"><input type="checkbox" id="keysToggle"> Single-key shortcuts (1 to 7, [ ], E, M, T, / and ?)</label>
     <p class="muted small">Shortcuts are ignored while you are typing in a field. All your tool inputs, checklist states, stories and reading progress are saved in this browser (localStorage) and never leave your machine. A browser can clear that storage, so export a copy to keep it or to move it to another browser.</p>
     <div class="row"><button class="btn" id="helpClose">Close</button><button class="btn ghost" id="exportData">Export my data</button><button class="btn ghost" id="importData">Import…</button><button class="btn ghost danger" id="resetAll">Reset all saved data</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
   </div>

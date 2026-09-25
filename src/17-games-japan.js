@@ -3,7 +3,7 @@
    Whole entries added with GAME() (see 14-references.js for the frame).
    Facts checked against primary or well-established sources, 2026-09-24.
    ===================================================================== */
-GAME({ id:'valkyria-chronicles', img:'assets/games/valkyria-chronicles.jpg', dev:'SEGA', store:'https://store.steampowered.com/app/294860/Valkyria_Chronicles/',
+GAME({ id:'valkyria-chronicles', series:{ id:'valkyria', t:'Valkyria Chronicles', n:'the first game' }, img:'assets/games/valkyria-chronicles.jpg', dev:'SEGA', store:'https://store.steampowered.com/app/294860/Valkyria_Chronicles/',
   t:'Valkyria Chronicles', year:2008, genre:'tactical RPG', family:'strategy', tags:['japanese','turn-based','time-blend','premium'], aka:['vc', 'valkyria', 'blitz'],
   want:'Command a squad through a war that looks like a painting, and feel each soldier’s run under fire.',
   verb:'spend command points, then run one soldier in real time and take the shot',
@@ -137,7 +137,7 @@ GAME({ id:'valkyria-chronicles', img:'assets/games/valkyria-chronicles.jpg', dev
   ]
 });
 
-GAME({ id:'persona-5-royal', img:'assets/games/persona-5-royal.jpg', dev:'ATLUS', store:'https://store.steampowered.com/app/1687950/Persona_5_Royal/',
+GAME({ id:'persona-5-royal', series:{ id:'megami-tensei', t:'Megami Tensei', n:'the Persona branch, in the expanded edition of its fifth main entry' }, img:'assets/games/persona-5-royal.jpg', dev:'ATLUS', store:'https://store.steampowered.com/app/1687950/Persona_5_Royal/',
   t:'Persona 5 Royal', year:2019, genre:'social RPG', family:'rpg', tags:['japanese','turn-based','premium'], aka:['p5r', 'persona 5', 'royal'],
   want:'Live a whole school year as a masked thief who steals corrupted hearts by night, and never have enough afternoons for everyone who wants one.',
   verb:'spend a time slot on a Confidant or a Palace, then fight for One More and pass the turn on',
@@ -270,7 +270,7 @@ GAME({ id:'persona-5-royal', img:'assets/games/persona-5-royal.jpg', dev:'ATLUS'
   ]
 });
 
-GAME({ id:'smt-iii-nocturne', img:'assets/games/smt-iii-nocturne.jpg', dev:'ATLUS', store:'https://store.steampowered.com/app/1413480/Shin_Megami_Tensei_III_Nocturne_HD_Remaster/',
+GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:'the third main Shin Megami Tensei game' }, img:'assets/games/smt-iii-nocturne.jpg', dev:'ATLUS', store:'https://store.steampowered.com/app/1413480/Shin_Megami_Tensei_III_Nocturne_HD_Remaster/',
   t:'Shin Megami Tensei III: Nocturne', year:2003, genre:'dungeon RPG', family:'rpg', tags:['japanese','turn-based','premium'], aka:['smt3', 'smt iii', 'nocturne', 'shin megami tensei 3'],
   want:'Watch the world end on the way to a hospital visit, become half a demon, and fight my way to deciding what the next world is for.',
   verb:'spend Press Turn icons: hit a weakness for half a turn, talk a demon into joining you, or waste the whole pool on a bad guess',
@@ -403,7 +403,7 @@ GAME({ id:'smt-iii-nocturne', img:'assets/games/smt-iii-nocturne.jpg', dev:'ATLU
   ]
 });
 
-GAME({ id:'final-fantasy-xii', img:'assets/games/final-fantasy-xii.jpg', dev:'Square', store:'https://store.steampowered.com/app/595520/FINAL_FANTASY_XII_THE_ZODIAC_AGE/',
+GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n:'the twelfth main entry' }, img:'assets/games/final-fantasy-xii.jpg', dev:'Square', store:'https://store.steampowered.com/app/595520/FINAL_FANTASY_XII_THE_ZODIAC_AGE/',
   t:'Final Fantasy XII', year:2006, genre:'real-time RPG', family:'rpg', tags:['japanese','real-time','rules-as-objects','premium'], aka:['ff12', 'ffxii', 'zodiac age', 'tza'],
   want:'Command a party that fights on its own once you have told it how, in a world run by empires rather than heroes.',
   verb:'write a gambit: who to target, what to do, in what order, then watch the rule fire in a fight you never leave',
@@ -537,7 +537,7 @@ GAME({ id:'final-fantasy-xii', img:'assets/games/final-fantasy-xii.jpg', dev:'Sq
   ]
 });
 
-GAME({ id:'chrono-trigger', img:'assets/games/chrono-trigger.jpg', dev:'Square', store:'https://store.steampowered.com/app/613830/CHRONO_TRIGGER/',
+GAME({ id:'chrono-trigger', series:{ id:'chrono', t:'Chrono', n:'the first game; Chrono Cross followed in 1999' }, img:'assets/games/chrono-trigger.jpg', dev:'Square', store:'https://store.steampowered.com/app/613830/CHRONO_TRIGGER/',
   t:'Chrono Trigger', year:1995, genre:'RPG', family:'rpg', tags:['japanese','time-blend','premium'], aka:['ct', 'chrono'],
   want:'Watch one choice made centuries ago change the town in front of me right now, and fight without ever leaving the ground I am standing on.',
   verb:'walk into a visible enemy to fight it on the spot, then travel to another era and see what changed',
@@ -668,7 +668,7 @@ GAME({ id:'chrono-trigger', img:'assets/games/chrono-trigger.jpg', dev:'Square',
   ]
 });
 
-GAME({ id:'nier-automata', img:'assets/games/nier-automata.jpg', dev:'PlatinumGames', store:'https://store.steampowered.com/app/524220/NIERAutomata/',
+GAME({ id:'nier-automata', series:{ id:'drakengard-nier', t:'Drakengard and NieR', n:'the fifth game in their shared world, and the second NieR' }, img:'assets/games/nier-automata.jpg', dev:'PlatinumGames', store:'https://store.steampowered.com/app/524220/NIERAutomata/',
   t:'NieR: Automata', year:2017, genre:'action RPG', family:'action', tags:['japanese','real-time','premium'], aka:['nier', 'automata', '2b'],
   want:'Play a sad android who fights for a cause she is not told the whole truth about, and watch the same war look completely different from someone else’s eyes.',
   verb:'dodge and combo in real time, manage which chips run your body, then start the story over as somebody else',
@@ -801,7 +801,7 @@ GAME({ id:'nier-automata', img:'assets/games/nier-automata.jpg', dev:'PlatinumGa
   ]
 });
 
-GAME({ id:'dark-souls', img:'assets/games/dark-souls.jpg', dev:'FromSoftware', store:'https://store.steampowered.com/app/570940/DARK_SOULS_REMASTERED/',
+GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n:'the second, after Demon’s Souls' }, img:'assets/games/dark-souls.jpg', dev:'FromSoftware', store:'https://store.steampowered.com/app/570940/DARK_SOULS_REMASTERED/',
   t:'Dark Souls', year:2011, genre:'action RPG', family:'action', tags:['japanese','real-time','minimal-hud','asynchronous','premium'], aka:['ds1', 'dark souls remastered', 'souls'],
   want:'Push into a hostile, interlocking kingdom with almost nothing on screen to guide you, and slowly turn a place that keeps killing you into a place you understand better than the game explains.',
   verb:'explore cautiously, learn a space and an enemy by dying to them, then find the shortcut back',

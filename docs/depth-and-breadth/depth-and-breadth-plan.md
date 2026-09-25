@@ -1,4 +1,4 @@
----
+frame landed; pilot todo |landed |landed |landed |---
 status: active
 updated: 2026-09-25
 ---
@@ -37,6 +37,8 @@ scope; its findings are folded in below.
 | R13 | Coding: best practice, memory, performance, design patterns, clean code (still needed?), over-defensive code and its causes (missing context, schema), what still matters, teaching agents to avoid pitfalls | K1–K8 |
 | R14 | Improve old content and UI/UX along the way | U1–U4 |
 | R15 | Research in depth; a detailed todo list; organise one by one; nothing missed or drifting | 1.2 status column; the coverage check in 6(c) re-run every pass |
+| R16 | (2026-09-25, later) After everything, research and update the learning paths to match all the new content | L1–L4 |
+| R17 | (2026-09-25, later) A guide page on how to use the site: “kinda lost with so many features” | H1–H3 |
 
 The owner’s named examples are always included; “etc” candidates are listed
 with a verdict (add, or excluded with a reason) and confirmed in decision 2.
@@ -58,7 +60,7 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | G5.1–G5.6 | Casual and mobile: Candy Crush Saga, Angry Birds, Fruit Ninja, Plants vs. Zombies, Bejeweled (PopCap), Subway Surfers | todo |
 | G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | todo |
 | T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | todo |
-| F1 | Series frame, landed with one pilot (Mega Man): see Design | todo |
+| F1 | Series frame, landed with one pilot (Mega Man): see Design | frame landed; pilot todo |
 | G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | todo |
 | G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | todo |
 | G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | todo |
@@ -218,6 +220,23 @@ official documentation at writing time, as dated facts with sources.
 | C5 | The AI tooling market as a destination | todo |
 | C6 | The farmer, answered properly: agritech and simulation, and the honest version of leaving tech | todo |
 
+**Learning paths, after all content lands (R16)**
+
+| Id | Todo | Status |
+| --- | --- | --- |
+| L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | todo |
+| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo |
+| L3 | New paths from the plan: casual (I4), AI engineering (I7), plus any the L1 inventory shows are missing (for example engine and platform interview prep, pivoting out of games) | todo |
+| L4 | Chooser and the paths landing page updated so every path is reachable and the choice stays simple | todo |
+
+**How to use the site (R17)**
+
+| Id | Todo | Status |
+| --- | --- | --- |
+| H1 | A “How to use this site” page (): what each section is for (Paths, Map, Library, Make, Diagnose, AI Workflow, Projects), the fastest route for each kind of visitor (new designer, engineer, interview prep, looking something up), search, progress and review, keyboard keys; with small schematics of where things are | todo |
+| H2 | Reachable everywhere: from the header help button and dialog, All pages, empty search, the paths landing page, and a one-time dismissible first-visit hint | todo |
+| H3 | Kept true: written first with today’s features (so the owner has it now), revised at the end with engines, shelves, series and the new paths; smoke visits it | todo |
+
 **Old content and UI/UX**
 
 | Id | Todo | Status |
@@ -339,7 +358,9 @@ update the status column, then commit, and push only as decision 3 allows.
 19. K1–K4. 20. K5–K8.
 21. C1–C6.
 22. I4 casual path, I7 AI path, I6 map preference, I8 chooser.
-23. U3, U4, README, CONTRIBUTING, docs; the plan marked shipped.
+22a. H1–H2 guide page, first version (done early, since it helps now).
+22b. L1–L4 learning paths, after all content has landed.
+23. H3 guide revised, U3, U4, README, CONTRIBUTING, docs; the plan marked shipped.
 
 ## 5. Seed data the planner must provide
 

@@ -18,7 +18,7 @@
      stages:[{
        id:'', t:'', level:'', goal:'', hours:0,
        steps:[{
-         kind:'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'game'|'reflect',
+         kind:'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'game'|'engine'|'reflect',
          ref:'',                            // omitted for 'reflect'
          tab:'',                            // optional, topic only: 'overview'|'godot'|'unity'|'interview'
          why:'', do:'', min:0                // why now (1 sentence), the exercise (1-3 sentences), 10-60
@@ -53,7 +53,7 @@
    ===================================================================== */
 /**
  * @typedef {object} PathStep
- * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'game'|'reflect'} kind
+ * @property {'topic'|'tool'|'checklist'|'smell'|'diagnostic'|'part'|'flow'|'prompt'|'platform'|'game'|'engine'|'reflect'} kind
  * @property {string} [ref]   omitted for 'reflect'
  * @property {'overview'|'godot'|'unity'|'interview'} [tab]   topic steps only
  * @property {string} why
@@ -167,6 +167,7 @@ function stepTitle(step){
     case 'flow': { const { flow } = findCaseFlow(step.ref); return flow ? flow.t : step.ref; }
     case 'platform': { const x = PLATFORMS.find(p => p.id === step.ref); return x ? `${x.t} guide` : step.ref; }
     case 'game': { const x = REFERENCE_GAMES.find(g => g.id === step.ref); return x ? `${x.t}, taken apart` : step.ref; }
+    case 'engine': { const x = ENGINES.find(e => e.id === step.ref); return x ? `${x.t} guide` : step.ref; }
     case 'reflect': return 'Reflect and write it in your own words';
     default: return step.ref || step.kind;
   }
@@ -187,6 +188,7 @@ function stepHref(step, pathId, stageId){
     case 'prompt': return '#/prompts/' + step.ref;
     case 'platform': return '#/platforms/' + step.ref;
     case 'game': return '#/games/' + step.ref;
+    case 'engine': return '#/engines/' + step.ref;
     case 'part': { const { cs, sys, part } = findCasePart(step.ref); return cs && sys && part ? `#/experience/${cs.id}/${sys.id}/${part.id}` : '#/experience'; }
     case 'flow': { const { cs, flow } = findCaseFlow(step.ref); return cs && flow ? `#/experience/${cs.id}/flow/${flow.id}` : '#/experience'; }
     case 'reflect': return pathId ? '#/paths/' + pathId + (stageId ? '/' + stageId : '') : '#/paths';

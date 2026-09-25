@@ -873,7 +873,7 @@ GAME({ id:'disco-elysium', img:'assets/games/disco-elysium.jpg', dev:'ZA/UM', st
   ]
 });
 
-GAME({ id:'undertale', img:'assets/games/undertale.jpg', dev:'tobyfox', store:'https://store.steampowered.com/app/391540/UNDERTALE/',
+GAME({ id:'undertale', series:{ id:'undertale-deltarune', t:'Undertale and Deltarune', n:'the first game; Deltarune reuses its characters in a separate world' }, img:'assets/games/undertale.jpg', dev:'tobyfox', store:'https://store.steampowered.com/app/391540/UNDERTALE/',
   t:'Undertale', year:2015, genre:'RPG', family:'rpg', tags:['turn-based','time-blend','moral-choice','solo-developer','premium'], aka:['ut', 'undertale'],
   want:'Fall into a world of monsters that expects you to fight, and find out how far you can get by refusing to.',
   verb:'dodge inside the box, then fight, act, or spare',

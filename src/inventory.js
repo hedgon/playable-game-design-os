@@ -7,9 +7,9 @@
 const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA.map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SMELLS,CHECKLISTS,PROMPT_TEMPLATES,CASE_STUDIES,TOOLS,DIAGNOSTICS,PLATFORMS,REFERENCE_GAMES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SMELLS,CHECKLISTS,PROMPT_TEMPLATES,CASE_STUDIES,TOOLS,DIAGNOSTICS,PLATFORMS,REFERENCE_GAMES,ENGINES};';
 const ctx = new Function(src + RETURNS)();
-const { TOPICS, SMELLS, CHECKLISTS, PROMPT_TEMPLATES, CASE_STUDIES, TOOLS, PLATFORMS, REFERENCE_GAMES } = ctx;
+const { TOPICS, SMELLS, CHECKLISTS, PROMPT_TEMPLATES, CASE_STUDIES, TOOLS, PLATFORMS, REFERENCE_GAMES, ENGINES } = ctx;
 const DIAGNOSTICS = ctx.DIAGNOSTICS.map(([id]) => id);
 
 function section(title) { console.log('\n=== ' + title + ' ==='); }
@@ -37,6 +37,9 @@ PLATFORMS.forEach(p => console.log(`${p.id}\t${p.t}`));
 
 section("reference games (id  title) -> kind:'game'");
 REFERENCE_GAMES.forEach(g => console.log(`${g.id}\t${g.t}`));
+
+section("engine guides (id  title) -> kind:'engine'");
+ENGINES.forEach(e => console.log(`${e.id}	${e.t}`));
 
 section("project parts (cs/sys/part  title) -> kind:'part', ref:'cs/sys/part'");
 (CASE_STUDIES || []).forEach(c => (c.systems || []).forEach(s => (s.parts || []).forEach(p =>

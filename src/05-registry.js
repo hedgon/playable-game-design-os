@@ -46,6 +46,16 @@ const LENSES = [
 // index lists them, and the empty search box offers the common ones.
 // [route, title, section, purpose, synonyms]. validate.js checks each route
 // is one the router handles.
+// The screen, drawn for the guide page: where each part of the layout is.
+const GUIDE_LAYOUT = { kind:'screen', title:'Where things are on a wide screen', aspect:'16:9',
+  regions:[
+    { t:'Header', g:'list', d:'the seven sections, search, All pages, help and theme', x:0, y:0, w:1, h:0.1 },
+    { t:'Index', g:'list', d:'every domain and topic; a lens switch at the top', x:0, y:0.1, w:0.2, h:0.9 },
+    { t:'The map', g:'map', kind:'world', d:'topics as a mind map; on other pages, the page’s own diagram', x:0.2, y:0.1, w:0.43, h:0.9 },
+    { t:'Your path', g:'button', d:'when you follow a path: where you are and the next step', x:0.64, y:0.1, w:0.36, h:0.12 },
+    { t:'The page', g:'text', d:'what you are reading: a topic, a game, a guide or a tool', x:0.64, y:0.22, w:0.36, h:0.78 }
+  ],
+  note:'On a phone the index and the page open as drawers over the map; the close button shuts the top one.' };
 const PAGES = [
   ['#/paths', 'Learning paths', 'Paths', 'Guided sequences from beginner to expert, with a chooser that suggests one.', ['courses', 'curriculum', 'tutorial', 'learn', 'start here', 'roadmap']],
   ['#/review', 'Review queue', 'Paths', 'Questions you marked, brought back on a spaced schedule.', ['spaced repetition', 'flashcards', 'review later', 'practice', 'quiz']],
@@ -55,6 +65,8 @@ const PAGES = [
   ['#/games', 'Library', 'Library', 'The collections: reference games, platforms, checklists, prompts and sources.', ['collections', 'resources']],
   ['#/games', 'Reference games', 'Library', 'Successful games taken apart with one template, with loop and screen schematics.', ['game library', 'examples', 'games', 'reference', 'analysis', 'case studies', 'jrpg', 'teardown']],
   ['#/platforms', 'Platforms', 'Library', 'How to get onto each store, console and UGC platform, from access to release.', ['stores', 'publishing', 'steam', 'console', 'roblox', 'release', 'certification', 'shipping']],
+  ['#/guide', 'How to use this site', 'Start here', 'What each section is for, the fastest route for you, and where things are on screen.', ['help', 'guide', 'how to use', 'getting started', 'tutorial', 'start here', 'lost', 'features', 'manual']],
+  ['#/engines', 'Engines and tools', 'Library', 'Each engine and tool: how it is built, the editor, the pipeline, deploying, cost, AI and interview questions.', ['engines', 'unity', 'unreal', 'godot', 'gamemaker', 'three.js', 'blender', 'web', 'html5', 'deploy', 'build']],
   ['#/checklists', 'Checklists', 'Library', 'Practical reviews whose ticks are saved.', ['checklist', 'pre-submission', 'audit']],
   ['#/prompts', 'Prompts', 'Library', 'Reusable AI prompt templates built on the formula.', ['prompt library', 'templates', 'ai prompts']],
   ['#/sources', 'Sources and lineage', 'Library', 'The frameworks the guide draws on, and how solid each one is.', ['references', 'bibliography', 'citations', 'research', 'credits']],

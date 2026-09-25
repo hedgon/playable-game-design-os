@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,IMAGE_LICENCES,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,IMAGE_LICENCES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -226,6 +226,20 @@ function checkAnalysis(g){
   if ((g.shots || []).length > 4) errors.push(`${where}: ${g.shots.length} screenshots, keep it to four or fewer`);
 }
 for (const [id, , q] of (ctx.GAME_SHELVES || [])) if (q.tag && !TAG_IDS.has(q.tag)) errors.push(`shelf ${id}: tag ${q.tag} is not in GAME_TAGS`);
+// Series: the entry's own shape, and membership that agrees on both sides.
+const GAMES_BY_ID = new Map((ctx.REFERENCE_GAMES || []).map(g => [g.id, g]));
+for (const g of (ctx.REFERENCE_GAMES || [])) {
+  if (g.series !== undefined && (!g.series || !/^[a-z0-9-]+$/.test(g.series.id || '') || !String(g.series.t || '').trim() || !String(g.series.n || '').trim())) errors.push(`game ${g.id}: series needs id (kebab-case), t and n`);
+  if (g.kind === 'series') {
+    if (!Array.isArray(g.entries) || g.entries.length < 4 || g.entries.length > 9) errors.push(`series ${g.id}: needs 4 to 9 entries`);
+    else g.entries.forEach((e, i) => {
+      if (!String(e.t || '').trim() || typeof e.year !== 'number' || !String(e.platform || '').trim() || wordCount(e.added) < 8) errors.push(`series ${g.id}: entries[${i}] needs t, year, platform and what it added (8 words or more)`);
+      if (e.ref !== undefined) { const r = GAMES_BY_ID.get(e.ref); if (!r) errors.push(`series ${g.id}: entries[${i}] refers to unknown game ${e.ref}`); else if (!r.series || r.series.id !== g.id) errors.push(`series ${g.id}: ${e.ref} is listed but does not carry series.id '${g.id}'`); }
+    });
+    for (const k of ['constant', 'changed']) if (wordCount(g[k]) < 60) errors.push(`series ${g.id}: ${k} is ${wordCount(g[k])} words, expected 60 or more`);
+  }
+  if (g.series && g.kind !== 'series') { const S = GAMES_BY_ID.get(g.series.id); if (S && S.kind === 'series' && !(S.entries || []).some(e => e.ref === g.id)) errors.push(`game ${g.id}: series ${g.series.id} exists but does not list it as an entry with ref`); }
+}
 for (const g of (ctx.REFERENCE_GAMES || [])) {
   if (!FAMILY_IDS.has(g.family)) errors.push(`game ${g.id}: family must be one of ${[...FAMILY_IDS].join(', ')}`);
   for (const t of (g.tags || [])) if (!TAG_IDS.has(t)) errors.push(`game ${g.id}: unknown tag ${t}`);
@@ -254,6 +268,25 @@ console.log(`reference games: ${(ctx.REFERENCE_GAMES || []).length}, analysed: $
 // Platform guides: every guide walks all six stages, with dated facts where
 // rules change, a zero-to-live flow, and links to real topics.
 const platIds = new Set();
+// The parts a guide stage may carry beyond points and facts, shared by
+// platform and engine guides: a numbered deploy walkthrough, credited
+// images, and interview items.
+function checkGuideStage(s, where) {
+  if (s.deploy !== undefined) {
+    if (!Array.isArray(s.deploy) || s.deploy.length < 2) errors.push(`${where}: deploy needs 2 or more steps`);
+    else s.deploy.forEach((d, i) => { if (!String(d.t || '').trim() || wordCount(d.d) < 6) errors.push(`${where}: deploy[${i}] needs t and a d of 6 words or more`); if (d.shot) checkGuideShot(d.shot, `${where}: deploy[${i}].shot`); });
+  }
+  (s.shots || []).forEach((sh, i) => checkGuideShot(sh, `${where}: shots[${i}]`));
+  if (s.iv !== undefined) { if (!Array.isArray(s.iv) || !s.iv.length) errors.push(`${where}: iv must list interview items`); else checkIvItems(s.iv, `${where}: iv`, errors); }
+}
+function checkGuideShot(sh, where) {
+  for (const f of ['img', 'alt', 'caption']) if (!sh[f] || !String(sh[f]).trim()) errors.push(`${where}: ${f} empty`);
+  if (!sh.credit) errors.push(`${where}: a guide image needs a credit with its licence`); else checkCredit(sh.credit, where);
+  const file = sh.img && path.join(__dirname, '..', sh.img);
+  if (file && !fs.existsSync(file)) errors.push(`${where}: image ${sh.img} does not exist`);
+  else if (file && fs.statSync(file).size > 150 * 1024) errors.push(`${where}: image ${sh.img} is over 150 KB`);
+  (sh.callouts || []).forEach((c, j) => { if (!(c.x >= 0 && c.x <= 1 && c.y >= 0 && c.y <= 1) || !c.t) errors.push(`${where}: callout ${j} needs t and x, y in 0..1`); });
+}
 for (const p of (ctx.PLATFORMS || [])) {
   const where = `platform ${p.id}`;
   if (platIds.has(p.id)) errors.push(`${where}: duplicate id`); platIds.add(p.id);
@@ -269,12 +302,37 @@ for (const p of (ctx.PLATFORMS || [])) {
     if (!Array.isArray(s.points) || !s.points.length || s.points.some(x => !String(x).trim())) errors.push(`${where}: stage ${k} needs points`);
     if (s.facts !== undefined) checkFacts(s.facts, `${where}/${k}`);
     if (s.diagram !== undefined) checkDiagram(s.diagram, `${where}/${k}: diagram`, errors);
+    checkGuideStage(s, `${where}/${k}`);
   }
   if (p.flow !== undefined) checkDiagram(p.flow, `${where}: flow`, errors);
   if (p.kind !== 'open' && !p.flow) errors.push(`${where}: a store or console guide needs a zero-to-live flow`);
   for (const tid of (p.topics || [])) if (!TOPICS[tid]) errors.push(`${where}: names unknown topic ${tid}`);
 }
 if ((ctx.PLATFORMS || []).length) checkDiagram(ctx.platformMatrix(), 'platform comparison table', errors);
+if (ctx.GUIDE_LAYOUT) checkDiagram(ctx.GUIDE_LAYOUT, 'guide: layout schematic', errors);
+// Engine and tool guides: all eight stages, a build-to-release flow, dated
+// facts where terms change, interview items in the last stage.
+const engIds = new Set();
+for (const e of (ctx.ENGINES || [])) {
+  const where = `engine ${e.id}`;
+  if (engIds.has(e.id)) errors.push(`${where}: duplicate id`); engIds.add(e.id);
+  for (const k of ['t', 'sub', 'short']) if (!e[k] || !String(e[k]).trim()) errors.push(`${where}: ${k} empty`);
+  if (!['engine', 'web', 'tool'].includes(e.kind)) errors.push(`${where}: kind must be engine, web or tool`);
+  if (!Array.isArray(e.glance) || e.glance.length !== 3 || e.glance.some(g => !String(g).trim())) errors.push(`${where}: glance needs licence and cost, languages, and targets`);
+  const keys = (ctx.ENGINE_STAGES || []).map(s => s[0]);
+  for (const k of Object.keys(e.stages || {})) if (!keys.includes(k)) errors.push(`${where}: stage ${k} is not an engine stage`);
+  for (const k of keys) {
+    const s = (e.stages || {})[k];
+    if (!s) { errors.push(`${where}: stage ${k} missing`); continue; }
+    if (k === 'interview') { if (!s.iv || s.iv.length < 4) errors.push(`${where}: the interview stage needs 4 or more iv items`); }
+    else if (!Array.isArray(s.points) || s.points.length < 2 || s.points.some(x => wordCount(x) < 8)) errors.push(`${where}: stage ${k} needs 2 or more points of 8 words or more`);
+    if (s.facts !== undefined) checkFacts(s.facts, `${where}/${k}`);
+    if (s.diagram !== undefined) checkDiagram(s.diagram, `${where}/${k}: diagram`, errors);
+    checkGuideStage(s, `${where}/${k}`);
+  }
+  if (!e.flow) errors.push(`${where}: needs a build-to-release flow`); else checkDiagram(e.flow, `${where}: flow`, errors);
+  for (const tid of (e.topics || [])) if (!TOPICS[tid]) errors.push(`${where}: names unknown topic ${tid}`);
+}
 const SECTION_KEYS = new Set(SECTION_META.map(m => m[0]));
 for (const d of DOMAINS) if (d.titles) for (const k of Object.keys(d.titles)) {
   if (!SECTION_KEYS.has(k)) errors.push(`domain ${d.id}: titles key "${k}" is not a section`);
@@ -475,6 +533,7 @@ for (const pth of (PATHS || [])) {
         case 'part': if (!validPartKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown part ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'flow': if (!validFlowKeys.has(step.ref)) errors.push(`${stw}: ref -> unknown flow ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'platform': if (!(ctx.PLATFORMS || []).some(p => p.id === step.ref)) errors.push(`${stw}: ref -> unknown platform ${step.ref}`); runDomain = null; runLen = 0; break;
+        case 'engine': if (!(ctx.ENGINES || []).some(e => e.id === step.ref)) errors.push(`${stw}: ref -> unknown engine guide ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'game': if (!(ctx.REFERENCE_GAMES || []).some(g => g.id === step.ref)) errors.push(`${stw}: ref -> unknown reference game ${step.ref}`); runDomain = null; runLen = 0; break;
         case 'reflect': if (step.ref !== undefined) errors.push(`${stw}: reflect steps take no ref`); runDomain = null; runLen = 0; break;
         default: errors.push(`${stw}: unknown kind ${step.kind}`);
