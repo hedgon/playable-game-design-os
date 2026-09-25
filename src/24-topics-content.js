@@ -289,7 +289,7 @@ INTERVIEW('items-weapons-abilities',{
   ] });
 
 T('quests-and-events',{ d:'content', t:'Quests, events and structure', tag:'A quest is a goal plus a reason plus a situation. Without the situation it is a checklist.',
-  what:`Structured content that gives the player goals with narrative or systemic framing: quests, missions, contracts, events, challenges. Good quests create situations the systems make interesting. Bad quests are errands with text. Events are time-bound quests that change the world state.`,
+  what:`Structured content that gives the player goals with narrative or systemic framing: quests, missions, contracts, events, challenges. Good quests create situations the systems make interesting. Bad quests are errands with text. Events are time-bound quests that change the world state. Fallout: New Vegas’s Ghost Town Gunfight plays out differently depending on whether the player brings Speech, Barter, Medicine, Explosives or Sneak, so the quest a player remembers is shaped by their build, not the loot it paid out.`,
   why:[`Quests are how many games deliver goals at the session horizon and carry story into play.`,`Quest structure decides whether the player is directed or exploring. Over-direction erases discovery.`,`Quest content is consumed once (an arc). It is the most expensive content per minute of play.`],
   think:{ q:[`What situation does this quest put the player in that free play would not?`,`What decision does it contain? A quest with no choice is a tour.`,`What does completing it change in the world, the character or the player’s options?`,`Could the systems generate this situation without a script?`],
     trade:[`Scripted quests deliver reliable story beats and cost the most per minute.`,`Systemic quests scale and feel generic without hand-authored anchors.`],
@@ -387,7 +387,7 @@ T('procedural-content',{ d:'content', t:'Procedural and AI-generated content', t
     trade:[`More randomness yields more surprise and less mastery and readability.`,`More constraints yield more readability and more sameness.`],
     traps:[`Measuring the generator by combinatorial count.`,`Using AI generation to fill a system that has not been validated by hand.`,`Shipping the generator’s floor.`],
     good:[`Players describe individual runs or pieces with specifics.`,`Players learn to read generated content and plan around it.`],
-    bad:[`Players say “they all blend together”.`] },
+    bad:[`Players say “they all blend together”.`,`Players recognise a generated quest by its generic fetch, kill or clear phrasing, as they do Skyrim’s Radiant Story quests, long before the supply runs out.`] },
   how:[`Hand-author ten pieces first. Find what makes the best ones distinct. Those properties are what the generator must vary.`,`Build the generator to vary decisions, then constrain it with authored anchors.`,`Define a perceptual distinctness test: show players pairs and ask whether they are different and how.`,`Sample the generator’s worst outputs deliberately and raise the floor.`],
   ai:{ yes:[`Write and tune generators. Enumerate output spaces. Sample worst cases.`,`Generate candidates within explicit distinctness criteria for a human filter.`,`Score outputs against measurable proxies for distinctness you define.`],
        no:[`Judge perceptual distinctness. Players do that.`,`Generate content for an unvalidated system.`] },

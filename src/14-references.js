@@ -177,6 +177,7 @@ const GAME_AWARDS = {
   'balatro': [{ id:'gdca', year:2025, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
   'super-mario': [{ id:'bafta', year:2009, for:'Super Mario Galaxy', src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
   'zelda': [{ id:'tga', year:2017, for:'Breath of the Wild', src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2018, for:'Breath of the Wild', src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2018, for:'Breath of the Wild', src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
+  'skyrim': [{ id:'dice', year:2012, src:'https://www.interactive.org/awards/2012_15th_awards.asp' }, { id:'gdca', year:2012, src:'https://www.gamedeveloper.com/audio/-i-skyrim-i-wins-game-of-the-year-at-gdc-awards' }],
   'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
 };
 /** @param {any} g */
