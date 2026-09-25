@@ -141,7 +141,7 @@ REFERENCE_GAMES.forEach(g => {
                 attached to the lens it illustrates, callouts in 0..1
    --------------------------------------------------------------------- */
 const GAME_FAMILIES = [['rpg','RPG'],['strategy','Strategy and tactics'],['action','Action'],['roguelike','Roguelike'],['puzzle','Puzzle'],['narrative','Narrative and adventure'],['sim','Sim and sandbox'],['social','Social']];
-const GAME_TAGS = ['japanese','turn-based','real-time','time-blend','deduction','knowledge','systems','rules-as-objects','procedural','daily','multiplayer','asynchronous','cozy','precision','diegetic-ui','minimal-hud','narrative-choice','moral-choice','solo-developer','early-access','live-service','premium','free-to-play','open-world','casual','mobile','ads','hyper-casual','idle','old-school','visual-novel'];
+const GAME_TAGS = ['turn-based','real-time','time-blend','deduction','knowledge','systems','rules-as-objects','procedural','daily','multiplayer','asynchronous','cozy','precision','diegetic-ui','minimal-hud','narrative-choice','moral-choice','solo-developer','early-access','live-service','premium','free-to-play','open-world','casual','mobile','ads','hyper-casual','idle','old-school','visual-novel'];
 // Every image carries a credit whose licence is one of these: store art and
 // screenshots offered by the publisher, a free licence (named exactly), or
 // our own schematic. A share-alike image also says whether we changed it.
@@ -154,8 +154,7 @@ const GAME_SHELVES = /** @type {[string, string, {kind?: string, tag?: string}][
   ['open-world', 'Open worlds', { tag: 'open-world' }],
   ['casual', 'Casual and mobile', { tag: 'casual' }],
   ['old-school', 'Old-school fun', { tag: 'old-school' }],
-  ['visual-novel', 'Visual novels', { tag: 'visual-novel' }],
-  ['japanese', 'Japanese games', { tag: 'japanese' }]
+  ['visual-novel', 'Visual novels', { tag: 'visual-novel' }]
 ]);
 const onShelf = (g, id) => { const s = GAME_SHELVES.find(x => x[0] === id); if (!s) return true; const q = s[2]; return q.kind ? g.kind === q.kind : (g.tags || []).includes(q.tag); };
 // [key, label, default topics]: a lens links these unless it names its own.
@@ -180,6 +179,12 @@ function GAME(g){ g.diagrams = g.diagrams || []; REFERENCE_GAMES.push(g); }
 // series-wide; `first30` is the opening of the entry that set the formula.
 // A game analysed on its own carries `series:{id, t, n}` and appears here
 // as an entry with `ref`, so the two pages link each other.
+// `reception` (3 to 7 items) answers why entries built on the same core
+// game were received so differently: `{ entry, year, verdict, evidence,
+// why, src, ref? }`, verdict one of RECEPTION_VERDICTS, evidence sourced
+// (reviews, aggregate scores, sales, developer accounts), `why` what the
+// entry did differently, right or wrong. `receptionLesson` draws the lesson.
+const RECEPTION_VERDICTS = [['praised', 'Praised', 'ok'], ['mixed', 'Mixed', 'warn'], ['panned', 'Poorly received', 'bad']];
 function SERIES(g){
   g.kind = 'series';
   g.diagrams = g.diagrams || [];

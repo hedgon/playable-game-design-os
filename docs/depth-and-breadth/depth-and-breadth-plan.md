@@ -1,4 +1,4 @@
-frame landed; pilot todo |landed |landed |landed |---
+---
 status: active
 updated: 2026-09-25
 ---
@@ -39,6 +39,7 @@ scope; its findings are folded in below.
 | R15 | Research in depth; a detailed todo list; organise one by one; nothing missed or drifting | 1.2 status column; the coverage check in 6(c) re-run every pass |
 | R16 | (2026-09-25, later) After everything, research and update the learning paths to match all the new content | L1–L4 |
 | R17 | (2026-09-25, later) A guide page on how to use the site: “kinda lost with so many features” | H1–H3 |
+| R18 | (2026-09-25, later) In every series analysis: why entries built on the same core game were praised or received badly, which entries, what each did right or wrong, and the lesson | F1 (`reception`, `receptionLesson`), every series entry |
 
 The owner’s named examples are always included; “etc” candidates are listed
 with a verdict (add, or excluded with a reason) and confirmed in decision 2.
@@ -57,10 +58,10 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| G5.1–G5.6 | Casual and mobile: Candy Crush Saga, Angry Birds, Fruit Ninja, Plants vs. Zombies, Bejeweled (PopCap), Subway Surfers | todo |
-| G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | todo |
-| T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | todo |
-| F1 | Series frame, landed with one pilot (Mega Man): see Design | frame landed; pilot todo |
+| G5.1–G5.6 | Casual and mobile: Candy Crush Saga, Angry Birds, Fruit Ninja, Plants vs. Zombies, Bejeweled (PopCap), Subway Surfers | landed (in `18-games-casual.js`) |
+| G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | landed (Flappy Bird without images: no licensable screenshot of the 2013 original was found) |
+| T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | landed (`soft-launch-and-playable-ads`, product; a step in `ship-it` s4) |
+| F1 | Series frame, landed with one pilot (Mega Man): see Design | frame landed, with the R18 `reception` rule; Mega Man pilot drafted, in fact-check |
 | G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | todo |
 | G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | todo |
 | G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | todo |
@@ -75,7 +76,7 @@ belong to a series must fit the new series model:
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| F2 | Series membership: every single-game entry gains `series:{id, t, n}` (series id, name, place in it); a series entry lists its analysed games as `ref` entries, and each side links the other | todo |
+| F2 | Series membership: every single-game entry gains `series:{id, t, n}` (series id, name, place in it); a series entry lists its analysed games as `ref` entries, and each side links the other | landed |
 | F3 | Series entries for series the library already analyses a game from: Megami Tensei (Shin Megami Tensei III: Nocturne and Persona 5 Royal as its two analysed branches) and Final Fantasy (Final Fantasy XII) | todo |
 | F4 | Membership only (no series entry): Dark Souls (FromSoftware’s Souls games, with Elden Ring), Valkyria Chronicles, NieR (with Drakengard), Hades (Hades II), Chrono Trigger, Undertale (Deltarune), Slay the Spire (Slay the Spire 2), Hollow Knight (Silksong), Portal (Portal 2), Into the Breach, Celeste, Minecraft, Among Us: the lineage lens names the series and the entry carries `series` | todo |
 
@@ -127,7 +128,7 @@ Legends (the comparison inside Dota 2).
 | I1 | Every new game names the topics its lenses illustrate (at least two), enforced by validate.js on every build | per pass |
 | I2 | Topic prose cites a game where it is the clearest example (a sentence and a link) | per pass |
 | I3 | Path steps for new games where a game teaches best, re-balancing stage minutes and hours | per pass |
-| I4 | New path “Make a casual game people keep” (casual design, free-to-play economy, soft launch, playable ads, live ops) | todo |
+| I4 | New path “Make a casual game people keep” (casual design, free-to-play economy, soft launch, playable ads, live ops) | todo (queued from pass 5: the Subway Surfers and Bejeweled game steps, one new game step per existing stage being the cap) |
 | I5 | Series lessons feed `learning-from-success` and `genre-hybrids` (what a formula keeps and changes) | per pass |
 | I6 | Map game leaf prefers a game whose lens is about that topic: coded in `practiceLinks`, checked in validate.js | todo |
 | I7 | New path “AI engineering for game developers” over A, V, K and T1, with new checklists (agent rules file, where AI sits in an architecture, submission per platform family) | todo |
@@ -137,7 +138,7 @@ Legends (the comparison inside Dota 2).
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| E1 | `ENGINE_GUIDE()` frame, landed with the Godot pilot (open licence, real editor images allowed) | todo |
+| E1 | `ENGINE_GUIDE()` frame, landed with the Godot pilot (open licence, real editor images allowed) | frame landed; Godot pilot todo |
 | E2 | Unity (render pipelines, DOTS, the 2023 Runtime Fee announced and withdrawn as the licensing-risk lesson) | todo |
 | E3 | Unreal Engine (Blueprints versus C++, UAT and BuildGraph) | todo |
 | E4 | Godot (pilot, see E1) | todo |
@@ -233,8 +234,8 @@ official documentation at writing time, as dated facts with sources.
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| H1 | A “How to use this site” page (): what each section is for (Paths, Map, Library, Make, Diagnose, AI Workflow, Projects), the fastest route for each kind of visitor (new designer, engineer, interview prep, looking something up), search, progress and review, keyboard keys; with small schematics of where things are | todo |
-| H2 | Reachable everywhere: from the header help button and dialog, All pages, empty search, the paths landing page, and a one-time dismissible first-visit hint | todo |
+| H1 | A “How to use this site” page (): what each section is for (Paths, Map, Library, Make, Diagnose, AI Workflow, Projects), the fastest route for each kind of visitor (new designer, engineer, interview prep, looking something up), search, progress and review, keyboard keys; with small schematics of where things are | landed |
+| H2 | Reachable everywhere: from the header help button and dialog, All pages, empty search, the paths landing page, and a one-time dismissible first-visit hint | landed |
 | H3 | Kept true: written first with today’s features (so the owner has it now), revised at the end with engines, shelves, series and the new paths; smoke visits it | todo |
 
 **Old content and UI/UX**
@@ -272,7 +273,10 @@ with the existing `flow` diagram kind, which allows up to 9 steps). Base
 fields are read series-wide: `want`, `verb`, `why`, `complaints`, `lesson`,
 `misses`; `first30` is the first 30 seconds of the entry that defined the
 formula; `minute` the decision the series keeps asking. New fields:
-`constant` and `changed` paragraphs. `year` stays the first release; the card
+`constant` and `changed` paragraphs, and (R18) `reception`: 3 to 7 entries
+`{entry, year, verdict, evidence, why, src, ref?}` with at least one praised
+and one mixed or poorly received, each sourced, plus a `receptionLesson`
+paragraph; rendered as “Hits and misses” on the series page. `year` stays the first release; the card
 shows the range from `entries`. Images may carry their own `dev`, `store`
 and licence (the Xeno lineage spans Square, Namco and Monolith/Nintendo), so
 validate.js and the shot caption gain per-image credits. The dissect tool
@@ -401,6 +405,8 @@ Decisions 1 to 5 in section 7, including which “etc” candidates to take.
    entry, and the owner is asked before the budget passes 10 MB.
 5. Careers: a new domain of six topics (the recommended option, taken as
    the default; the owner can still move it into leadership).
+6. No Japanese shelf or tag (later the same day): every game is treated the
+   same, found by genre, family, series and design tags instead.
 
 Still open: `playable.html` grows to about 7 MB with Tier 1. If a phone
 load test in U1 shows it is too slow, lazy-loading game analyses is raised

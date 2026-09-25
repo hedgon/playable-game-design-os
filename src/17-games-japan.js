@@ -4,7 +4,7 @@
    Facts checked against primary or well-established sources, 2026-09-24.
    ===================================================================== */
 GAME({ id:'valkyria-chronicles', series:{ id:'valkyria', t:'Valkyria Chronicles', n:'the first game' }, img:'assets/games/valkyria-chronicles.jpg', dev:'SEGA', store:'https://store.steampowered.com/app/294860/Valkyria_Chronicles/',
-  t:'Valkyria Chronicles', year:2008, genre:'tactical RPG', family:'strategy', tags:['japanese','turn-based','time-blend','premium'], aka:['vc', 'valkyria', 'blitz'],
+  t:'Valkyria Chronicles', year:2008, genre:'tactical RPG', family:'strategy', tags:['turn-based','time-blend','premium'], aka:['vc', 'valkyria', 'blitz'],
   want:'Command a squad through a war that looks like a painting, and feel each soldier’s run under fire.',
   verb:'spend command points, then run one soldier in real time and take the shot',
   first30:'A storybook opens on its first chapter. After a short story scene comes a skirmish in a small town: you pick a soldier on the overhead map, the camera drops behind them, and they start to run as enemy rifles open up. Within a minute you have made a strategic choice and physically carried it out.',
@@ -138,7 +138,7 @@ GAME({ id:'valkyria-chronicles', series:{ id:'valkyria', t:'Valkyria Chronicles'
 });
 
 GAME({ id:'persona-5-royal', series:{ id:'megami-tensei', t:'Megami Tensei', n:'the Persona branch, in the expanded edition of its fifth main entry' }, img:'assets/games/persona-5-royal.jpg', dev:'ATLUS', store:'https://store.steampowered.com/app/1687950/Persona_5_Royal/',
-  t:'Persona 5 Royal', year:2019, genre:'social RPG', family:'rpg', tags:['japanese','turn-based','premium'], aka:['p5r', 'persona 5', 'royal'],
+  t:'Persona 5 Royal', year:2019, genre:'social RPG', family:'rpg', tags:['turn-based','premium'], aka:['p5r', 'persona 5', 'royal'],
   want:'Live a whole school year as a masked thief who steals corrupted hearts by night, and never have enough afternoons for everyone who wants one.',
   verb:'spend a time slot on a Confidant or a Palace, then fight for One More and pass the turn on',
   first30:'A casino escape that ends in arrest and interrogation opens the game, so you know Joker is caught before you have taken a step; the story then rewinds to his first day. On the first school day you meet Ryuji, see the calendar readout and stumble into a castle that should not exist. Within that first hour you have felt the shape of the whole game: a real place made strange, a fight system that rewards a good read, and a calendar that never stops moving.',
@@ -271,7 +271,7 @@ GAME({ id:'persona-5-royal', series:{ id:'megami-tensei', t:'Megami Tensei', n:'
 });
 
 GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:'the third main Shin Megami Tensei game' }, img:'assets/games/smt-iii-nocturne.jpg', dev:'ATLUS', store:'https://store.steampowered.com/app/1413480/Shin_Megami_Tensei_III_Nocturne_HD_Remaster/',
-  t:'Shin Megami Tensei III: Nocturne', year:2003, genre:'dungeon RPG', family:'rpg', tags:['japanese','turn-based','premium'], aka:['smt3', 'smt iii', 'nocturne', 'shin megami tensei 3'],
+  t:'Shin Megami Tensei III: Nocturne', year:2003, genre:'dungeon RPG', family:'rpg', tags:['turn-based','premium'], aka:['smt3', 'smt iii', 'nocturne', 'shin megami tensei 3'],
   want:'Watch the world end on the way to a hospital visit, become half a demon, and fight my way to deciding what the next world is for.',
   verb:'spend Press Turn icons: hit a weakness for half a turn, talk a demon into joining you, or waste the whole pool on a bad guess',
   first30:'A trip to visit your teacher in hospital turns into the end of the world: a cult’s ritual, the Conception, erases Tokyo while you watch from a hospital roof, and Lucifer infuses you with a Magatama. You wake as the Demi-fiend in a ruined, sphere-shaped city with a moon-like shape, Kagutsuchi, hanging over it. The first weak demon you meet can be fought or talked to, and the first real battle teaches the Press Turn icons the hard way: waste two on a nulled attack and you feel the turn vanish.',
@@ -404,7 +404,7 @@ GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:
 });
 
 GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n:'the twelfth main entry' }, img:'assets/games/final-fantasy-xii.jpg', dev:'Square', store:'https://store.steampowered.com/app/595520/FINAL_FANTASY_XII_THE_ZODIAC_AGE/',
-  t:'Final Fantasy XII', year:2006, genre:'real-time RPG', family:'rpg', tags:['japanese','real-time','rules-as-objects','premium'], aka:['ff12', 'ffxii', 'zodiac age', 'tza'],
+  t:'Final Fantasy XII', year:2006, genre:'real-time RPG', family:'rpg', tags:['real-time','rules-as-objects','premium'], aka:['ff12', 'ffxii', 'zodiac age', 'tza'],
   want:'Command a party that fights on its own once you have told it how, in a world run by empires rather than heroes.',
   verb:'write a gambit: who to target, what to do, in what order, then watch the rule fire in a fight you never leave',
   first30:'A royal wedding is cut short by invasion, and control opens with Reks, a young Dalmascan soldier, in a tutorial assault on Nalbina Fortress that ends with the king’s murder. Two years later it passes to his brother Vaan, a street thief in occupied Rabanastre. There is no menu screen for a fight: the first enemy is simply engaged where it stands, and the battle happens right there, in the same space.',
@@ -538,7 +538,7 @@ GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n
 });
 
 GAME({ id:'chrono-trigger', series:{ id:'chrono', t:'Chrono', n:'the first game; Chrono Cross followed in 1999' }, img:'assets/games/chrono-trigger.jpg', dev:'Square', store:'https://store.steampowered.com/app/613830/CHRONO_TRIGGER/',
-  t:'Chrono Trigger', year:1995, genre:'RPG', family:'rpg', tags:['japanese','time-blend','premium'], aka:['ct', 'chrono'],
+  t:'Chrono Trigger', year:1995, genre:'RPG', family:'rpg', tags:['time-blend','premium'], aka:['ct', 'chrono'],
   want:'Watch one choice made centuries ago change the town in front of me right now, and fight without ever leaving the ground I am standing on.',
   verb:'walk into a visible enemy to fight it on the spot, then travel to another era and see what changed',
   first30:'A fair is in full swing in 1000 AD: stalls, a race, a telepod exhibit. Within the first few minutes a chance bump with a stranger called Marle, a demonstration gone wrong, and a flash of light send Marle six hundred years into the past, and Crono jumps in after her. He lands alone in a canyon, and three Blue Imps attack at once. Lucca follows and explains only what she must; the player is simply there, and has to work out what to do next.',
@@ -669,7 +669,7 @@ GAME({ id:'chrono-trigger', series:{ id:'chrono', t:'Chrono', n:'the first game;
 });
 
 GAME({ id:'nier-automata', series:{ id:'drakengard-nier', t:'Drakengard and NieR', n:'the fifth game in their shared world, and the second NieR' }, img:'assets/games/nier-automata.jpg', dev:'PlatinumGames', store:'https://store.steampowered.com/app/524220/NIERAutomata/',
-  t:'NieR: Automata', year:2017, genre:'action RPG', family:'action', tags:['japanese','real-time','premium'], aka:['nier', 'automata', '2b'],
+  t:'NieR: Automata', year:2017, genre:'action RPG', family:'action', tags:['real-time','premium'], aka:['nier', 'automata', '2b'],
   want:'Play a sad android who fights for a cause she is not told the whole truth about, and watch the same war look completely different from someone else’s eyes.',
   verb:'dodge and combo in real time, manage which chips run your body, then start the story over as somebody else',
   first30:'A flight-unit sortie on an abandoned factory turns into a bullet-hell shoot ’em up in the game’s opening minutes, then drops into ordinary third-person swordplay the moment 2B lands. Within the first half hour the camera has gone top-down for a factory raid and side-on for a collapsing corridor, so the game has already taught its one rule: the genre can change under you at any time, but the fight stays yours to read.',
@@ -802,7 +802,7 @@ GAME({ id:'nier-automata', series:{ id:'drakengard-nier', t:'Drakengard and NieR
 });
 
 GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n:'the second, after Demon’s Souls' }, img:'assets/games/dark-souls.jpg', dev:'FromSoftware', store:'https://store.steampowered.com/app/570940/DARK_SOULS_REMASTERED/',
-  t:'Dark Souls', year:2011, genre:'action RPG', family:'action', tags:['japanese','real-time','minimal-hud','asynchronous','premium'], aka:['ds1', 'dark souls remastered', 'souls'],
+  t:'Dark Souls', year:2011, genre:'action RPG', family:'action', tags:['real-time','minimal-hud','asynchronous','premium'], aka:['ds1', 'dark souls remastered', 'souls'],
   want:'Push into a hostile, interlocking kingdom with almost nothing on screen to guide you, and slowly turn a place that keeps killing you into a place you understand better than the game explains.',
   verb:'explore cautiously, learn a space and an enemy by dying to them, then find the shortcut back',
   first30:'You wake in a stone cell in the Northern Undead Asylum with no map, no quest marker and a HUD of little more than health, stamina and equipped items. A knight drops you the key to your cell and, found dying later, gives the only real instruction: go to Lordran and ring the Bells of Awakening. Within the first area you have already died once to a lumbering demon, respawned at a bonfire, and come back at the demon from a ledge above for a plunging attack, so the game has taught its whole method before it has told you anything about its story.',

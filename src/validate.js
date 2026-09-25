@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,IMAGE_LICENCES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,RECEPTION_VERDICTS,IMAGE_LICENCES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -237,6 +237,22 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
       if (e.ref !== undefined) { const r = GAMES_BY_ID.get(e.ref); if (!r) errors.push(`series ${g.id}: entries[${i}] refers to unknown game ${e.ref}`); else if (!r.series || r.series.id !== g.id) errors.push(`series ${g.id}: ${e.ref} is listed but does not carry series.id '${g.id}'`); }
     });
     for (const k of ['constant', 'changed']) if (wordCount(g[k]) < 60) errors.push(`series ${g.id}: ${k} is ${wordCount(g[k])} words, expected 60 or more`);
+    // Hits and misses: the same core game, received differently, and why.
+    const verdicts = (ctx.RECEPTION_VERDICTS || []).map(v => v[0]);
+    if (!Array.isArray(g.reception) || g.reception.length < 3 || g.reception.length > 7) errors.push(`series ${g.id}: reception needs 3 to 7 entries (which entries landed, which did not, and why)`);
+    else {
+      g.reception.forEach((r, i) => {
+        const w = `series ${g.id}: reception[${i}]`;
+        if (!String(r.entry || '').trim() || typeof r.year !== 'number') errors.push(`${w} needs entry and year`);
+        if (!verdicts.includes(r.verdict)) errors.push(`${w}: verdict must be one of ${verdicts.join(', ')}`);
+        if (wordCount(r.evidence) < 25) errors.push(`${w}: evidence is ${wordCount(r.evidence)} words, expected 25 or more (scores, sales or critics’ words, with the source named)`);
+        if (wordCount(r.why) < 40) errors.push(`${w}: why is ${wordCount(r.why)} words, expected 40 or more`);
+        if (!Array.isArray(r.src) || !r.src.length || r.src.some(u => !/^https:\/\/\S+$/.test(u))) errors.push(`${w}: needs at least one https source`);
+        if (r.ref !== undefined && !GAMES_BY_ID.get(r.ref)) errors.push(`${w} refers to unknown game ${r.ref}`);
+      });
+      if (!g.reception.some(r => r.verdict === 'praised') || !g.reception.some(r => r.verdict === 'mixed' || r.verdict === 'panned')) errors.push(`series ${g.id}: reception needs at least one praised entry and one mixed or poorly received entry`);
+    }
+    if (wordCount(g.receptionLesson) < 60) errors.push(`series ${g.id}: receptionLesson is ${wordCount(g.receptionLesson)} words, expected 60 or more`);
   }
   if (g.series && g.kind !== 'series') { const S = GAMES_BY_ID.get(g.series.id); if (S && S.kind === 'series' && !(S.entries || []).some(e => e.ref === g.id)) errors.push(`game ${g.id}: series ${g.series.id} exists but does not list it as an entry with ref`); }
 }

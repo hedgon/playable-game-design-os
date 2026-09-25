@@ -80,6 +80,8 @@ the type check and the smoke test on every push and pull request.
 16-games-analysis.js      family, tags and aka for the first fifteen games, and their ANALYSIS()
 17-games-japan.js         whole GAME() entries: Japanese games and games that bend time and turns
 18-games-innovative.js    whole GAME() entries: innovative designs (Obra Dinn, Outer Wilds, Baba Is You...)
+18-games-casual.js        whole GAME() entries: casual and mobile games (Candy Crush Saga, Angry Birds...)
+19-engines.js             engine and tool guides: ENGINE_GUIDE(), ENGINES, the eight stages
 20-topics-player.js       one file per domain, in map order: the domain, then each topic
   ...                     with its TECH, ENGINE, INTERVIEW and FACTS
 39-topics-platforms.js
@@ -184,8 +186,8 @@ official art. The validator checks that every image file exists. Schematics are 
 drawings.
 
 Every game carries a full analysis (`ANALYSIS()` in `16-games-analysis.js` for the
-games above, `GAME()` with the analysis inline in `17-games-japan.js` and
-`18-games-innovative.js` for the rest): a `signature` (the
+games above, `GAME()` with the analysis inline in `17-games-japan.js`,
+`18-games-innovative.js` and `18-games-casual.js` for the rest): a `signature` (the
 one idea worth stealing, 380 to 700 words in six parts), all ten `lens` entries,
 and up to four `shots`. Each lens is an analysis, not a description, written to
 [docs/references/analysis-method.md](docs/references/analysis-method.md): a
@@ -202,6 +204,16 @@ fractions of the image). A shot from anywhere else carries its own
 images add `changed`). All of `assets/` has a 10 MB budget. Lenses link
 topics; the frame, the shelves and the lens-to-topic defaults are in
 `14-references.js`, and the validator enforces all of it.
+
+A long-running series is one `SERIES({...})` entry analysed across the whole
+series: the same fields and ten lenses, read series-wide, plus `entries` (4 to 9
+defining entries `{t, short, year, platform, added, ref?}`, drawn as a timeline),
+`constant` and `changed` (60+ words each), and `reception`: 3 to 7 entries
+`{entry, year, verdict, evidence, why, src, ref?}` saying which entries built on
+the same core game were praised or received badly and what each did
+differently, with at least one of each side and sources for every verdict, and
+a `receptionLesson`. A game analysed on its own carries `series:{id, t, n}` and
+the series lists it with `ref`; the validator checks both sides.
 
 ### Platform guides
 

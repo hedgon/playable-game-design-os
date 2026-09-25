@@ -404,7 +404,7 @@ function gameArt(g){
 const familyLabel = id => (GAME_FAMILIES.find(f => f[0] === id) || [id, id])[1];
 const lensLabel = key => (GAME_LENSES.find(l => l[0] === key) || [key, key])[1];
 // The library's view and filters are a per-browser convenience.
-const libState = () => store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'' });
+const libState = () => { const s = store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'' }); if (s.tag && !GAME_TAGS.includes(s.tag)) s.tag = ''; if (s.shelf && !GAME_SHELVES.some(x => x[0] === s.shelf)) s.shelf = ''; return s; };
 // From a game page: open the library showing that game's family.
 ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { shelf: '', family: el.dataset.v, tag: '', lens: '' }));
 ACTIONS['lib-set'] = el => { const s = libState(); s[el.dataset.k] = s[el.dataset.k] === el.dataset.v ? '' : el.dataset.v; if(el.dataset.k === 'view') s.view = el.dataset.v; store.set('library', s); keepScroll = true; renderGames(); };
@@ -473,10 +473,22 @@ const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.en
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
   if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist">${g.entries.map(e => `<li><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</li>`).join('')}</ol>
-    <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>`;
+    <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
   if(!g.series) return '';
   const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);
   return `<p class="small seriesnote">Part of ${S ? `<a href="#/games/${S.id}">${esc(g.series.t)}</a>` : esc(g.series.t)}: ${esc(g.series.n)}.</p>`;
+}
+// Hits and misses: entries built on the same core game, how each was
+// received, what it did differently, and the lesson across them.
+function receptionHTML(g){
+  if(!(g.reception || []).length) return '';
+  const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
+  const verdict = v => RECEPTION_VERDICTS.find(x => x[0] === v) || [v, v, ''];
+  return `<div class="card receptioncard"><div class="overline">Hits and misses</div><p class="small muted" style="margin:4px 0 10px">The same core game, received differently: which entries landed, which did not, and what each did to earn it.</p>
+    ${g.reception.map(r => { const [, label, cls] = verdict(r.verdict); return `<div class="recitem"><div class="rechead"><b>${r.ref ? `<a href="#/games/${esc(r.ref)}">${esc(r.entry)}</a>` : esc(r.entry)}</b> <span class="muted">${r.year}</span> <span class="chip ${cls}">${esc(label)}</span></div>
+      <p class="small"><b>How it was received.</b> ${esc(r.evidence)}</p><p class="small"><b>What it did differently.</b> ${esc(r.why)}</p>
+      <div class="small muted">Sources: ${r.src.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(host(u))}</a>`).join(' · ')}</div></div>`; }).join('')}
+    <h4>What the difference teaches</h4><p>${esc(g.receptionLesson)}</p></div>`;
 }
 function renderGames(id){
   const g = REFERENCE_GAMES.find(x => x.id === id);
@@ -1964,7 +1976,7 @@ SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/
 PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
-const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), ...(g.series ? [g.series.t] : []), ...(g.entries || []).flatMap(e => [e.t, e.added]), g.constant, g.changed, g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
+const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), ...(g.series ? [g.series.t] : []), ...(g.entries || []).flatMap(e => [e.t, e.added]), g.constant, g.changed, ...(g.reception || []).flatMap(r => [r.entry, r.why]), g.receptionLesson, g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
 REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${gameYears(g)} · ${g.genre} · ${(g.signature ? g.signature.idea : g.lesson).slice(0,90)}…`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family), ...(g.series ? [g.series.t] : []), ...(g.kind === 'series' ? ['series'] : [])] }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));

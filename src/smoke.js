@@ -91,11 +91,12 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       for (const v of ['paths', 'review', 'map', 'explore', 'concepts', 'games', 'platforms', 'checklists', 'prompts', 'sources', 'lab', 'build', 'diagnose', 'playtest', 'ai', 'experience'])
         if (!idx.includes(v)) failures.push(`All pages does not link #/${v}`);
     }
-    // Every reference card shows an image that actually loaded.
+    // Every reference card with art shows an image that actually loaded; a game
+    // with no licensable art shows its title tile instead, never an empty card.
     await page.evaluate(() => { location.hash = '#/games'; });
     await page.evaluate(() => document.querySelectorAll('#pane .refcard img').forEach(i => { i.loading = 'eager'; }));
     await page.waitForFunction(() => [...document.querySelectorAll('#pane .refcard img')].every(i => i.complete), null, { timeout: 8000 }).catch(() => {});
-    const art = await page.evaluate(() => { const cards = [...document.querySelectorAll('#pane .refcard')]; return { cards: cards.length, broken: cards.filter(c => { const i = c.querySelector('img'); return !i || !i.naturalWidth; }).map(c => c.querySelector('b').textContent) }; });
+    const art = await page.evaluate(() => { const cards = [...document.querySelectorAll('#pane .refcard')]; return { cards: cards.length, broken: cards.filter(c => { const i = c.querySelector('img'); return i ? !i.naturalWidth : !c.querySelector('.tile'); }).map(c => c.querySelector('b').textContent) }; });
     if (!art.cards || art.broken.length) failures.push(`${w}px #/games: cards without a loaded image: ${art.broken.join(', ') || 'no cards'}`);
     await ctx.close();
   }

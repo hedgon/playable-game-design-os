@@ -715,10 +715,11 @@ PATH('ship-it', {
         skip:['Is every review window in your plan a fixed date with resubmission buffer?','Do you know which of your storefronts use IARC and which do not?','Have you checked every SDK in your build for the data it collects?']
       } },
     { id:'s4', t:'Launch and keep it running', level:'advanced',
-      goal:'Put the store page up early, release on purpose, and patch without breaking a save.', hours:2,
+      goal:'Put the store page up early, release on purpose, and patch without breaking a save.', hours:2.25,
       steps:[
         { kind:'topic', ref:'store-presence', why:'The store page sells the game before the game does, and a Coming Soon page needs runway.', do:'Draft your store page asset list to one store’s exact specs, and pick the date the page goes up.', min:25 },
         { kind:'topic', ref:'launch-and-discoverability', why:'A launch is found through the store’s own surfaces first, so plan for them.', do:'Write the three store surfaces you will aim for at launch and what each needs from you.', min:15 },
+        { kind:'topic', ref:'soft-launch-and-playable-ads', why:'On mobile, a soft launch in a few markets decides whether a game gets a global launch at all, and a playable ad is often a player’s first contact with it.', do:'Write the retention and cost-per-install thresholds that would make you stop before a wider launch, and one playable-ad moment built only from gameplay a player will reach.', min:20 },
         { kind:'topic', ref:'release-and-updates', why:'Release is a button on some stores and a staged rollout on others, and the save has to survive every patch.', do:'Write the release runbook for each platform: who presses what, the rollout, and the day-one patch path, including a save-version check.', min:30 },
         { kind:'platform', ref:'xbox', why:'Xbox publishes its update certification times, which makes a realistic patch calendar possible.', do:'Read the Xbox guide’s release stage and plan your first patch against its update turnaround.', min:15 },
         { kind:'checklist', ref:'submit-mobile', why:'The last pass before release catches what the store will otherwise catch for you.', do:'Run the pre-submission checklist for your platform family on the release candidate.', min:20 },
