@@ -132,6 +132,8 @@ Tier 1 is committed, Tier 2 follows if the art and bundle budgets allow.
 
 Tier 1 is about 55 new entries (14 series, 41 games); Tier 2 adds 17.
 
+Tier 1 status (2026-09-26): the G1 to G5 rows above landed; shooters and battle royale landed (Doom, Half-Life 2 with its D.I.C.E., BAFTA and GDCA Game of the Year awards, Counter-Strike 2, Fortnite, whose screens are database captures because Epic’s press pages refuse automated access; Fortnite’s step is in Ship it “Pick your platforms”, the others queued in L2); strategy and MOBA (StarCraft, Age of Empires II, Dota 2) and sports and racing (Rocket League, Mario Kart 8) in progress; EA Sports FC, simulation, RPG, survival, MMO and horror to do.
+
 Excluded on purpose (named so the choice is visible): Dragon Quest, Sonic,
 Higurashi, Fate/stay night, Pac-Man, Earth Defense Force, merge games,
 Clash Royale (a comparison only), PUBG (lineage inside Fortnite), League of

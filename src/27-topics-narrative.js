@@ -190,7 +190,7 @@ INTERVIEW('ludonarrative-alignment',{
   ] });
 
 T('environmental-storytelling',{ d:'narrative', t:'Environmental storytelling', tag:'Let the space tell it. Players trust what they discover more than what they are told.',
-  what:`Story delivered through the arrangement of the world: a room that shows what happened, a path that implies who walked it, a landmark that promises a place. It respects the player’s attention and pace, and rewards observation with meaning. It overlaps level design and art direction.`,
+  what:`Story delivered through the arrangement of the world: a room that shows what happened, a path that implies who walked it, a landmark that promises a place. It respects the player’s attention and pace, and rewards observation with meaning. It overlaps level design and art direction. Half-Life 2’s opening stages its environmental storytelling as an order aimed at the player, a Civil Protection officer knocking a can off a bin and telling Gordon to pick it up.`,
   why:[`Discovered story feels owned. Told story feels imposed.`,`It costs no player time: the story is read while playing.`,`It makes the world feel authored and lived in, which supports both fantasy and immersion.`],
   think:{ q:[`What happened here, and what would the evidence of it look like?`,`Can the player read it in passing, or must they stop? Both are valid. Know which you want.`,`Does the environment promise something the systems deliver?`,`Is the story readable at the intended camera distance and pace?`],
     trade:[`Subtle storytelling rewards attentive players and is missed by most.`,`Explicit set dressing is legible and can feel staged.`],
