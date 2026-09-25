@@ -193,11 +193,15 @@ and up to four `shots`. Each lens is an analysis, not a description, written to
 `cost` and `principle`, an optional `context`, `topics`, and https `sources`;
 150 to 380 words in all. A lens that truly does not apply is `na`, with a
 paragraph arguing why. A shot is an official screenshot
-from the game's store page, saved as WebP under 150 KB in `assets/games/shots/`,
-attached to the lens it illustrates, with alt text, a caption naming what to look
-at, and optional numbered callouts (x, y as fractions of the image). The folder
-has a 5 MB budget. Lenses link topics; the frame and the lens-to-topic defaults
-are in `14-references.js`, and the validator enforces all of it.
+from the game's store page, saved as WebP under 150 KB (aim for 40 KB) in
+`assets/games/shots/`, attached to the lens it illustrates, with alt text, a
+caption naming what to look at, and optional numbered callouts (x, y as
+fractions of the image). A shot from anywhere else carries its own
+`credit:{author, url, licence}`, with the licence from `IMAGE_LICENCES`
+(store art, a named free licence, or `own` for our schematics; share-alike
+images add `changed`). All of `assets/` has a 10 MB budget. Lenses link
+topics; the frame, the shelves and the lens-to-topic defaults are in
+`14-references.js`, and the validator enforces all of it.
 
 ### Platform guides
 

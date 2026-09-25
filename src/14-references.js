@@ -141,7 +141,23 @@ REFERENCE_GAMES.forEach(g => {
                 attached to the lens it illustrates, callouts in 0..1
    --------------------------------------------------------------------- */
 const GAME_FAMILIES = [['rpg','RPG'],['strategy','Strategy and tactics'],['action','Action'],['roguelike','Roguelike'],['puzzle','Puzzle'],['narrative','Narrative and adventure'],['sim','Sim and sandbox'],['social','Social']];
-const GAME_TAGS = ['japanese','turn-based','real-time','time-blend','deduction','knowledge','systems','rules-as-objects','procedural','daily','multiplayer','asynchronous','cozy','precision','diegetic-ui','minimal-hud','narrative-choice','moral-choice','solo-developer','early-access','live-service','premium','free-to-play'];
+const GAME_TAGS = ['japanese','turn-based','real-time','time-blend','deduction','knowledge','systems','rules-as-objects','procedural','daily','multiplayer','asynchronous','cozy','precision','diegetic-ui','minimal-hud','narrative-choice','moral-choice','solo-developer','early-access','live-service','premium','free-to-play','open-world','casual','mobile','ads','hyper-casual','idle','old-school','visual-novel'];
+// Every image carries a credit whose licence is one of these: store art and
+// screenshots offered by the publisher, a free licence (named exactly), or
+// our own schematic. A share-alike image also says whether we changed it.
+const IMAGE_LICENCES = ['store', 'CC BY 4.0', 'CC BY 3.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
+// Curated shelves across genres: the groupings a reader looks for first
+// (a series, an open world, a casual game). A shelf is a kind or a tag, and
+// the library shows it only once it holds a game.
+const GAME_SHELVES = /** @type {[string, string, {kind?: string, tag?: string}][]} */ ([
+  ['series', 'Long-running series', { kind: 'series' }],
+  ['open-world', 'Open worlds', { tag: 'open-world' }],
+  ['casual', 'Casual and mobile', { tag: 'casual' }],
+  ['old-school', 'Old-school fun', { tag: 'old-school' }],
+  ['visual-novel', 'Visual novels', { tag: 'visual-novel' }],
+  ['japanese', 'Japanese games', { tag: 'japanese' }]
+]);
+const onShelf = (g, id) => { const s = GAME_SHELVES.find(x => x[0] === id); if (!s) return true; const q = s[2]; return q.kind ? g.kind === q.kind : (g.tags || []).includes(q.tag); };
 // [key, label, default topics]: a lens links these unless it names its own.
 const GAME_LENSES = [
   ['gameplay','Gameplay and systems',['core-loop','mechanics-and-rules']],

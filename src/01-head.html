@@ -732,6 +732,11 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .refcard .meta .credit{margin:4px 0 0;text-transform:none;letter-spacing:0}
 .libbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:6px 0 8px}
 .libbar .libview{display:flex;gap:4px}
+.librow{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:6px 0 4px}
+.more-games summary{cursor:pointer;font-size:.8rem;color:var(--fg2);margin-top:6px}
+/* On a phone a row of filter chips scrolls sideways instead of wrapping
+   into a wall of buttons above the grid. */
+@media (max-width:700px){.libscroll{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:4px;scrollbar-width:thin}.libscroll .chip{flex:0 0 auto}.libbar,.librow{flex-wrap:wrap}.libbar .libscroll,.librow .libscroll{flex:1 1 100%}}
 .chip.on{border-color:var(--accent);color:var(--fg);background:color-mix(in srgb,var(--accent) 14%,transparent)}
 .libfilters{margin:0 0 8px}
 .reflist td,.reflist th{padding:6px 10px;text-align:left;vertical-align:top}

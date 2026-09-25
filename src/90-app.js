@@ -402,13 +402,14 @@ function gameArt(g){
 const familyLabel = id => (GAME_FAMILIES.find(f => f[0] === id) || [id, id])[1];
 const lensLabel = key => (GAME_LENSES.find(l => l[0] === key) || [key, key])[1];
 // The library's view and filters are a per-browser convenience.
-const libState = () => store.get('library', { view:'grid', family:'', tag:'', lens:'' });
+const libState = () => store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'' });
 // From a game page: open the library showing that game's family.
-ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { family: el.dataset.v, tag: '', lens: '' }));
+ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { shelf: '', family: el.dataset.v, tag: '', lens: '' }));
 ACTIONS['lib-set'] = el => { const s = libState(); s[el.dataset.k] = s[el.dataset.k] === el.dataset.v ? '' : el.dataset.v; if(el.dataset.k === 'view') s.view = el.dataset.v; store.set('library', s); keepScroll = true; renderGames(); };
 function libraryHTML(){
   const s = libState(), analysed = REFERENCE_GAMES.filter(g => g.lens).length;
-  const pick = g => (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!g.lens);
+  const pick = g => (!s.shelf || onShelf(g, s.shelf)) && (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!g.lens);
+  const shelves = GAME_SHELVES.filter(([id]) => REFERENCE_GAMES.some(g => onShelf(g, id)));
   const list = REFERENCE_GAMES.filter(pick);
   const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
   const usedTags = GAME_TAGS.filter(t => REFERENCE_GAMES.some(g => (g.tags || []).includes(t)));
@@ -417,19 +418,30 @@ function libraryHTML(){
   const grid = xs => `<div class="reflib">${xs.map(card).join('')}</div>`;
   const body = !list.length ? '<div class="empty">No game matches these filters.</div>'
     : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${x.year}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
-    : s.family ? grid(list)
+    : s.family || s.shelf ? grid(list)
     : GAME_FAMILIES.map(([f, label]) => { const xs = list.filter(x => x.family === f); return xs.length ? `<div class="section-head"><h2>${esc(label)}</h2><span class="muted">${xs.length}</span></div>${grid(xs)}` : ''; }).join('');
-  return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
-    <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span><span class="chips">${GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => btn('family', f, t, s.family === f)).join('')}</span></div>
+  return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed === REFERENCE_GAMES.length ? ', each read through ten lenses, from UI and art direction to business and lineage' : analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
+    ${shelves.length ? `<div class="librow"><span class="overline">Shelves</span><span class="chips libscroll">${shelves.map(([id, t]) => btn('shelf', id, t, s.shelf === id)).join('')}</span></div>` : ''}
+    <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span><span class="overline">Genre</span><span class="chips libscroll">${GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => btn('family', f, t, s.family === f)).join('')}</span></div>
     <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag, or show only games analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
     <p class="small muted">${list.length} of ${REFERENCE_GAMES.length} games</p>${body}`;
 }
 // A screenshot attached to a lens: numbered callouts over the image, the
 // caption naming what to look at, and the developer's credit.
+// One credit line for every image: a publisher's store screenshot, a
+// free-licensed image named with its licence and source, or our schematic.
+function creditLine(c){
+  if(c.licence === 'own') return 'Our own schematic, not a screenshot.';
+  const link = (label) => c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>` : esc(label);
+  if(c.licence === 'store') return `Screenshot: ${esc(c.author || 'the developer')}, from the ${link('official store page')}.`;
+  let host = c.source || ''; if(!host && c.url){ try { host = new URL(c.url).hostname.replace(/^www\./, ''); } catch(e) {} }
+  return `Image: ${esc(c.author)}, ${esc(c.licence)}${c.changed ? ', cropped' : ''}, via ${link(host || 'source')}.`;
+}
 function shotHTML(g, s){
   const co = s.callouts || [];
+  const credit = s.credit || { author: g.dev, url: g.store, licence: 'store' };
   return `<figure class="shot"><div class="shotframe"><img src="${esc(s.img)}" alt="${esc(s.alt)}" loading="lazy">${co.map((c, i) => `<span class="calloutdot" style="left:${c.x * 100}%;top:${c.y * 100}%" aria-hidden="true">${i + 1}</span>`).join('')}</div>
-    <figcaption>${esc(s.caption)}${co.length ? `<ol class="calloutlist">${co.map(c => `<li>${esc(c.t)}</li>`).join('')}</ol>` : ''}<span class="small muted"> Screenshot: ${esc(g.dev || 'the developer')}${g.store ? `, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>` : ''}.</span></figcaption></figure>`;
+    <figcaption>${esc(s.caption)}${co.length ? `<ol class="calloutlist">${co.map(c => `<li>${esc(c.t)}</li>`).join('')}</ol>` : ''}<span class="small muted"> ${creditLine(credit)}</span></figcaption></figure>`;
 }
 function lensesHTML(g){
   if(!g.lens) return '';
@@ -741,7 +753,10 @@ function topicBody(id){
   // Rules and rulings that change, each with the day it was checked.
   const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h4>Dated facts</h4><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
   const inGames = gameLinks()[id] || [];
-  const gameFoot = inGames.length ? `<div class="dgm-foot"><span class="overline">In real games</span><span class="chips">${inGames.map(x => `<a class="chip lnk" href="#/games/${x.g.id}">${esc(x.g.t)}: ${esc(x.label.charAt(0).toLowerCase() + x.label.slice(1))}</a>`).join('')}</span></div>` : '';
+  // Six chips, then the rest behind a toggle: with sixty games a common
+  // topic would otherwise carry a wall of links above the article.
+  const gameChip = x => `<a class="chip lnk" href="#/games/${x.g.id}">${esc(x.g.t)}: ${esc(x.label.charAt(0).toLowerCase() + x.label.slice(1))}</a>`;
+  const gameFoot = inGames.length ? `<div class="dgm-foot"><span class="overline">In real games</span><span class="chips">${inGames.slice(0, 6).map(gameChip).join('')}</span>${inGames.length > 6 ? `<details class="more-games"><summary>${inGames.length - 6} more</summary><span class="chips">${inGames.slice(6).map(gameChip).join('')}</span></details>` : ''}</div>` : '';
   const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}
     ${secs}${techSec}${facts}
     <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>

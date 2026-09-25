@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,IMAGE_LICENCES,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -171,6 +171,17 @@ for (const t of topics) {
 // every game; signature, lenses and screenshots checked where written.
 const FAMILY_IDS = new Set((ctx.GAME_FAMILIES || []).map(f => f[0])), TAG_IDS = new Set(ctx.GAME_TAGS || []), LENS_KEYS = (ctx.GAME_LENSES || []).map(l => l[0]);
 const wordCount = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
+// An image credit: a licence from the closed list; an author and an https
+// source unless it is our own schematic; share-alike images say if changed.
+const LICENCE_SET = new Set(ctx.IMAGE_LICENCES || []);
+function checkCredit(c, where) {
+  if (!LICENCE_SET.has(c.licence)) { errors.push(`${where}: licence ${c.licence} is not one of ${[...LICENCE_SET].join(', ')}`); return; }
+  if (c.licence === 'own') return;
+  if (!c.author || !String(c.author).trim()) errors.push(`${where}: credit needs an author`);
+  let ok = false; try { ok = new URL(c.url).protocol === 'https:'; } catch (e) {}
+  if (!ok) errors.push(`${where}: credit needs an https source url`);
+  if (/SA/.test(c.licence) && typeof c.changed !== 'boolean') errors.push(`${where}: a share-alike image must say whether it was changed (changed: true or false)`);
+}
 // The fields of a lens analysis and their minimum words (analysis-method.md).
 const LENS_FIELDS = [['claim', 12], ['evidence', 30], ['mechanism', 25], ['effect', 18], ['compare', 18], ['cost', 15], ['principle', 10]];
 const LENS_FIELD_NAMES = new Set([...LENS_FIELDS.map(f => f[0]), 'context', 'topics', 'sources']);
@@ -209,10 +220,12 @@ function checkAnalysis(g){
     if (file && !fs.existsSync(file)) errors.push(`${sw}: image ${sh.img} does not exist`);
     else if (file && fs.statSync(file).size > 150 * 1024) errors.push(`${sw}: image ${sh.img} is ${Math.round(fs.statSync(file).size / 1024)} KB, limit 150 KB`);
     (sh.callouts || []).forEach((c, j) => { if (!(c.x >= 0 && c.x <= 1 && c.y >= 0 && c.y <= 1) || !c.t || !String(c.t).trim()) errors.push(`${sw}: callout ${j} needs t and x, y in 0..1`); });
-    if (!g.dev || !g.store) errors.push(`${sw}: a screenshot needs the game's developer credit and store page`);
+    if (sh.credit) checkCredit(sh.credit, sw);
+    else if (!g.dev || !g.store) errors.push(`${sw}: a screenshot needs the game's developer credit and store page`);
   });
   if ((g.shots || []).length > 4) errors.push(`${where}: ${g.shots.length} screenshots, keep it to four or fewer`);
 }
+for (const [id, , q] of (ctx.GAME_SHELVES || [])) if (q.tag && !TAG_IDS.has(q.tag)) errors.push(`shelf ${id}: tag ${q.tag} is not in GAME_TAGS`);
 for (const g of (ctx.REFERENCE_GAMES || [])) {
   if (!FAMILY_IDS.has(g.family)) errors.push(`game ${g.id}: family must be one of ${[...FAMILY_IDS].join(', ')}`);
   for (const t of (g.tags || [])) if (!TAG_IDS.has(t)) errors.push(`game ${g.id}: unknown tag ${t}`);
@@ -223,6 +236,7 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     for (const tid of (d.topics || [])) if (!TOPICS[tid]) errors.push(`game ${g.id}: diagram ${i} names unknown topic ${tid}`);
   });
   if (g.img && !fs.existsSync(path.join(__dirname, '..', g.img))) errors.push(`game ${g.id}: image file ${g.img} does not exist`);
+  if (g.artLicence && !LICENCE_SET.has(g.artLicence)) errors.push(`game ${g.id}: art licence ${g.artLicence} is not in IMAGE_LICENCES`);
   if (g.img && !g.drawn) {
     if (!g.dev || !String(g.dev).trim()) errors.push(`game ${g.id}: store art without a developer credit`);
     let host = ''; try { const u = new URL(g.store); if (u.protocol === 'https:') host = u.hostname; } catch (e) {}
@@ -232,9 +246,11 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
 // Third-party images live in one folder with a size budget, so the repo's
 // history does not grow without anyone deciding it should.
 const folderBytes = dir => fs.readdirSync(dir, { withFileTypes: true }).reduce((n, e) => n + (e.isDirectory() ? folderBytes(path.join(dir, e.name)) : fs.statSync(path.join(dir, e.name)).size), 0);
-const artBytes = folderBytes(path.join(__dirname, '..', 'assets', 'games'));
-if (artBytes > 5 * 1024 * 1024) errors.push(`assets/games is ${(artBytes / 1048576).toFixed(1)} MB, budget 5 MB`);
-console.log(`reference games: ${(ctx.REFERENCE_GAMES || []).length}, analysed: ${analysedGames}, art folder: ${Math.round(artBytes / 1024)} KB`);
+// The budget counts every image folder (games, platforms, engines), so no
+// new collection escapes it. Raised to 10 MB by owner decision (2026-09-25).
+const artBytes = folderBytes(path.join(__dirname, '..', 'assets'));
+if (artBytes > 10 * 1024 * 1024) errors.push(`assets is ${(artBytes / 1048576).toFixed(1)} MB, budget 10 MB`);
+console.log(`reference games: ${(ctx.REFERENCE_GAMES || []).length}, analysed: ${analysedGames}, assets: ${Math.round(artBytes / 1024)} KB of 10240`);
 // Platform guides: every guide walks all six stages, with dated facts where
 // rules change, a zero-to-live flow, and links to real topics.
 const platIds = new Set();
