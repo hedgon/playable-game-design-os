@@ -403,7 +403,7 @@ GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:
   ]
 });
 
-GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n:'the twelfth main entry' }, img:'assets/games/final-fantasy-xii.jpg', dev:'Square', store:'https://store.steampowered.com/app/595520/FINAL_FANTASY_XII_THE_ZODIAC_AGE/',
+GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n:'the twelfth main entry' }, img:'assets/games/final-fantasy-xii.jpg', dev:'Square Enix', store:'https://store.steampowered.com/app/595520/FINAL_FANTASY_XII_THE_ZODIAC_AGE/',
   t:'Final Fantasy XII', year:2006, genre:'real-time RPG', family:'rpg', tags:['real-time','rules-as-objects','premium'], aka:['ff12', 'ffxii', 'zodiac age', 'tza'],
   want:'Command a party that fights on its own once you have told it how, in a world run by empires rather than heroes.',
   verb:'write a gambit: who to target, what to do, in what order, then watch the rule fire in a fight you never leave',

@@ -735,9 +735,10 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .librow{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:6px 0 4px}
 .more-games summary{cursor:pointer;font-size:.8rem;color:var(--fg2);margin-top:6px}
 .serieslist{margin:6px 0 10px;padding-left:22px}.serieslist li{margin:0 0 8px}
-.serieslist li.hasshot{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}
+.serieslist.withshots{list-style:none;padding-left:0}.serieslist.withshots li{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}
+.entryshot.noshot{border:1px dashed var(--line);display:grid;place-items:center;min-height:60px;padding:6px;text-align:center}
 .entryshot{margin:0}.entryshot img{display:block;width:100%;height:auto;max-height:180px;object-fit:contain;background:var(--bg2,#0000);border:1px solid var(--line)}.entryshot figcaption{margin-top:2px;font-size:.72rem}
-@media (max-width:700px){.serieslist li.hasshot{grid-template-columns:1fr;gap:6px}}
+@media (max-width:700px){.serieslist.withshots li{grid-template-columns:1fr;gap:6px}.entryshot.noshot{display:none}}
 .seriesnote{margin:-4px 0 10px}
 .recitem{padding:10px 0;border-top:1px solid var(--line)}.rechead{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}.recitem p{margin:6px 0 0}
 .deploysteps{margin:8px 0 12px;padding-left:24px}.deploysteps>li{margin:0 0 10px}.deploysteps .shot{margin-top:8px}

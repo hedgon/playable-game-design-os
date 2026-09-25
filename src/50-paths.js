@@ -365,6 +365,7 @@ PATH('systems-designer', {
         { kind:'topic', ref:'builds-and-loadouts', why:'Builds and loadouts are where depth becomes visible to the player. A healthy build space is the clearest proof a system is working.', do:'List every viable build in your system today, and rank them by how often you would guess players pick each one.', min:25 },
         { kind:'smell', ref:'ignore-mechanics', why:'A mechanic nobody uses is not neutral. It is a cost the system pays for a decision players never make.', do:'Mark which of your mechanics you would bet is currently ignored, based on the “Players ignore half the mechanics” smell.', min:20 },
         { kind:'smell', ref:'features-not-better', why:'Adding a fix on top of a smell without testing it is how a system accumulates features that do not solve the actual problem.', do:'Check whether your last three system changes were tested or just shipped, based on the “We keep adding features but the game is not better” smell.', min:20 },
+        { kind:'game', ref:'megami-tensei', why:'Persona cut demon negotiation for two games and then restored it, and its staff said Social Links carried a disguised version of it: a rare natural experiment in removing a mechanic from a running series.', do:'Read its changed and reception text, then name one mechanic in your own system that players ignore, the payoff it delivers, where that payoff would go if you cut it, and the signal that would tell you the cut worked.', min:10 },
         { kind:'tool', ref:'hypothesis', why:'A fix without a signal and a kill criterion is an opinion wearing a plan’s clothes.', do:'Turn your fix for the one-build or ignored-mechanic problem into a hypothesis with a signal and a kill criterion, using the Hypothesis Builder.', min:30 },
         { kind:'reflect', why:'Writing the experiment in your own words is what makes you run it instead of just agreeing it sounds right.', do:'Write the exact change you will make, the signal that means it worked, and the signal that means you should revert it.', min:25 }
       ],
@@ -554,13 +555,14 @@ PATH('games-that-broke-the-mould', {
         skip:['Can you tell a knowledge gate from a lock in a game you are designing?','Have you already playtested a gate that depends on the player noticing something?','Can you explain how a game keeps players oriented without giving answers away?']
       } },
     { id:'s3', t:'Time and turns', level:'intermediate',
-      goal:'Compare the ways games structure time, and choose the one that makes your core decision matter.', hours:2,
+      goal:'Compare the ways games structure time, and choose the one that makes your core decision matter.', hours:2.25,
       steps:[
         { kind:'topic', ref:'time-and-turns', why:'Real time, turns and everything between them decide what kind of skill a game asks for: thinking, reacting, or both.', do:'Place five games you know on a line from pure turns to pure real time, and write what skill each one tests.', min:25 },
         { kind:'game', ref:'valkyria-chronicles', why:'Valkyria Chronicles puts real-time movement inside a turn, so a plan is tested by the player’s own run under fire.', do:'Read its gameplay lens and name the one rule that makes real-time movement risky rather than a slower way to click a tile.', min:25 },
         { kind:'game', ref:'smt-iii-nocturne', why:'Press Turn makes the turn itself a resource: hitting weaknesses earns extra actions and missing costs them.', do:'Read its analysis and explain how Press Turn changes what a player wants to do on their first action of a turn.', min:20 },
         { kind:'game', ref:'superhot', why:'Superhot slows time to a crawl whenever you stand still, turning an action game into a sequence of tiny decisions.', do:'Read its analysis and write what a player can do in Superhot that they cannot in a normal shooter.', min:20 },
-        { kind:'tool', ref:'loop', why:'The time structure sits inside the core loop; drawing it shows where the decision and the execution happen.', do:'Build your core loop in the Game Loop Builder and mark which steps happen in real time and which in turns.', min:30 }
+        { kind:'tool', ref:'loop', why:'The time structure sits inside the core loop; drawing it shows where the decision and the execution happen.', do:'Build your core loop in the Game Loop Builder and mark which steps happen in real time and which in turns.', min:30 },
+        { kind:'game', ref:'final-fantasy', why:'Final Fantasy changed its own answer to the time question five times, from menu turns to Active Time Battle, strictly turn-based CTB, gambit-driven real time and full action, while keeping its crisis and motifs constant.', do:'Read its timeline and its changed section, then name which of those time structures best suits your own game’s core decision, and what the others would cost it.', min:20 }
       ],
       review:['knowledge-as-progression'],
       check:{

@@ -44,6 +44,8 @@ scope; its findings are folded in below.
 | R20 | (2026-09-25, later) Shelves are not editable on the site, so only important ones: keep Long-running series; replace Casual and mobile (and the genre-like shelves) with an award-winners shelf for the very top games | X2 |
 | R21 | (2026-09-25, later) Flappy Bird has no image; real screens only, never drawn | X3 |
 | R22 | (2026-09-25, later) Always follow the checklist and the plan so nothing is missed | this table, every pass |
+| R23 | (2026-09-25, later) Mega Man X as well as the classic line: no new mainline entry since 2004, yet a large fan-game scene | X4 |
+| R24 | (2026-09-25, later) Touhou Project as a long-running series: a creator who lets fans use the IP freely, even commercially, and the IP still thrives | X5 |
 
 The owner’s named examples are always included; “etc” candidates are listed
 with a verdict (add, or excluded with a reason) and confirmed in decision 2.
@@ -59,6 +61,8 @@ with a verdict (add, or excluded with a reason) and confirmed in decision 2.
 | X1 | Series entry screenshots: `entries[].shot` (real screen, credited, at most 40 KB), required on at least half the entries and at least four; drawn in the timeline beside each entry; Mega Man first, then every series | frame landed; Mega Man in progress |
 | X2 | Shelves: Long-running series and Top award winners only. Awards are data (`awards:[{t, year, src}]` from a closed list of the top awards), shown on the game page; the shelf lists games with at least one. Open world, casual, old-school and visual-novel stay as tags in the tag filter | landed: nine games (Portal, Minecraft, Papers, Please, Outer Wilds, Return of the Obra Dinn, Hades, Vampire Survivors, Balatro, Clair Obscur); every new game checks the award lists |
 | X3 | Flappy Bird image: a real screen with a licence the site accepts (Commons, archived official listing), or none | landed: a CC BY 2.0 Commons photo of the licensed 2018 arcade cabinet, captioned as such (`CC BY 2.0` added to the licences) |
+| X4 | SERIES `mega-man-x` (X to X8, 1993 to 2004, plus collections and spin-offs where they explain it): the formula split from the classic line, the stall after X6, why fans keep making X games; linked both ways with `mega-man` | researching |
+| X5 | SERIES `touhou` (ZUN, from 1996): the main shooting games, the fan-work guidelines that allow commercial fan games, and fan games that reached Steam and consoles; reception from sourced evidence only | researching |
 
 **Games** (each: research, draft, fact-check, images where licensable,
 callouts checked on the rendered page; I1–I3 done in the same pass)
@@ -69,7 +73,7 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | landed (Flappy Bird without images: no licensable screenshot of the 2013 original was found; real screens only, never a drawing, so retry the Internet Archive copy of the original store listing, which answered HTTP 429 on 2026-09-25) |
 | T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | landed (`soft-launch-and-playable-ads`, product; a step in `ship-it` s4) |
 | F1 | Series frame, landed with one pilot (Mega Man): see Design | landed (`18-games-series.js`, with the R18 `reception` rule) |
-| G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | todo |
+| G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | researching (Fire Emblem, Pokémon) |
 | G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | todo |
 | G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | todo |
 | G2.3+ | Proposed: Zero Escape: 999, Danganronpa, Doki Doki Literature Club | todo |
@@ -84,7 +88,7 @@ belong to a series must fit the new series model:
 | Id | Todo | Status |
 | --- | --- | --- |
 | F2 | Series membership: every single-game entry gains `series:{id, t, n}` (series id, name, place in it); a series entry lists its analysed games as `ref` entries, and each side links the other | landed |
-| F3 | Series entries for series the library already analyses a game from: Megami Tensei (Shin Megami Tensei III: Nocturne and Persona 5 Royal as its two analysed branches) and Final Fantasy (Final Fantasy XII) | todo |
+| F3 | Series entries for series the library already analyses a game from: Megami Tensei (Shin Megami Tensei III: Nocturne and Persona 5 Royal as its two analysed branches) and Final Fantasy (Final Fantasy XII) | landed (Megami Tensei, Final Fantasy; entries with their own page lend its art to the timeline) |
 | F4 | Membership only (no series entry): Dark Souls (FromSoftware’s Souls games, with Elden Ring), Valkyria Chronicles, NieR (with Drakengard), Hades (Hades II), Chrono Trigger, Undertale (Deltarune), Slay the Spire (Slay the Spire 2), Hollow Knight (Silksong), Portal (Portal 2), Into the Breach, Celeste, Minecraft, Among Us: the lineage lens names the series and the entry carries `series` | todo |
 
 **Genre coverage (owner: “cover most popular genres as much as

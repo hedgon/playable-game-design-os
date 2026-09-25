@@ -474,7 +474,7 @@ const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.en
 // Series pages list their entries (linking any analysed on its own) and say
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
-  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist">${g.entries.map(e => `<li class="${e.shot ? 'hasshot' : ''}">${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : ''}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
+  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist${g.entries.some(e => e.shot) ? ' withshots' : ''}">${g.entries.map(e => `<li>${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : (g.entries.some(x => x.shot) ? entryRefArt(e) || `<div class="entryshot noshot small muted">No licensable screenshot of this entry</div>` : '')}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
     <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
   if(!g.series) return '';
   const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);
@@ -482,6 +482,12 @@ function seriesHTML(g){
 }
 // Hits and misses: entries built on the same core game, how each was
 // received, what it did differently, and the lesson across them.
+// A series entry analysed on its own page lends that page's header art to the timeline.
+function entryRefArt(e){
+  const r = e.ref && REFERENCE_GAMES.find(x => x.id === e.ref); if(!r || !r.img) return '';
+  const credit = r.imgCredit || { author: r.dev, url: r.store, licence: 'store' };
+  return `<figure class="entryshot"><a href="#/games/${esc(r.id)}"><img src="${esc(r.img)}" alt="${esc(r.t)}: header art from its own page in this library" loading="lazy"></a><figcaption class="small muted">${creditLine(credit)}</figcaption></figure>`;
+}
 function receptionHTML(g){
   if(!(g.reception || []).length) return '';
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
