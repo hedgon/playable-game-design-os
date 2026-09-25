@@ -16,6 +16,7 @@ const DATA = [
   '17-games-japan.js',
   '18-games-innovative.js',
   '18-games-casual.js',
+  '18-games-series.js',
   '19-engines.js',
   '20-topics-player.js',
   '21-topics-experience.js',

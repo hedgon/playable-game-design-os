@@ -59,9 +59,9 @@ callouts checked on the rendered page; I1–I3 done in the same pass)
 | Id | Todo | Status |
 | --- | --- | --- |
 | G5.1–G5.6 | Casual and mobile: Candy Crush Saga, Angry Birds, Fruit Ninja, Plants vs. Zombies, Bejeweled (PopCap), Subway Surfers | landed (in `18-games-casual.js`) |
-| G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | landed (Flappy Bird without images: no licensable screenshot of the 2013 original was found) |
+| G5.7–G5.8 | Proposed: Flappy Bird (hyper-casual), Cookie Clicker (idle) | landed (Flappy Bird without images: no licensable screenshot of the 2013 original was found; real screens only, never a drawing, so retry the Internet Archive copy of the original store listing, which answered HTTP 429 on 2026-09-25) |
 | T2 | Topic: playable ads and soft launch (a casual-mobile production practice) | landed (`soft-launch-and-playable-ads`, product; a step in `ship-it` s4) |
-| F1 | Series frame, landed with one pilot (Mega Man): see Design | frame landed, with the R18 `reception` rule; Mega Man pilot drafted, in fact-check |
+| F1 | Series frame, landed with one pilot (Mega Man): see Design | landed (`18-games-series.js`, with the R18 `reception` rule) |
 | G1.1–G1.6 | Fire Emblem, Pokémon, the Xeno lineage (Xenogears, Xenosaga, Xenoblade Chronicles; framed as a lineage across three publishers), Mega Man, Contra, Super Mario | todo |
 | G1.7+ | Proposed: Civilization (the “one-third old, improved, new” renewal rule), Street Fighter (the missing fighting genre), The Legend of Zelda, Monster Hunter | todo |
 | G2.1–G2.2 | Visual novels: Ace Attorney, Steins;Gate | todo |
@@ -344,9 +344,9 @@ update the status column, then commit, and push only as decision 3 allows.
 2. U1 sweep and quick fixes. Done: phone load 3.3 s cold at 4.2 MB uncompressed (4x CPU); no lazy loading needed yet.
 3. U2 library at scale. Done.
 4. Image credit model (one change for games, platforms and engines). Done.
-5. G5 casual and T2, with I1–I3.
+5. G5 casual and T2, with I1–I3. Done.
 6. F1 series frame with the Mega Man pilot, and F2 membership on the
-   existing games.
+   existing games. Done.
 7. F3 (Megami Tensei, Final Fantasy) and G1 remaining series, in passes of
    two or three.
 8. G2 visual novels. 9. G3 open world. 10. G4 old-school fun.

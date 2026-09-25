@@ -81,6 +81,7 @@ the type check and the smoke test on every push and pull request.
 17-games-japan.js         whole GAME() entries: Japanese games and games that bend time and turns
 18-games-innovative.js    whole GAME() entries: innovative designs (Obra Dinn, Outer Wilds, Baba Is You...)
 18-games-casual.js        whole GAME() entries: casual and mobile games (Candy Crush Saga, Angry Birds...)
+18-games-series.js        whole SERIES() entries: long-running series analysed across all their entries
 19-engines.js             engine and tool guides: ENGINE_GUIDE(), ENGINES, the eight stages
 20-topics-player.js       one file per domain, in map order: the domain, then each topic
   ...                     with its TECH, ENGINE, INTERVIEW and FACTS
