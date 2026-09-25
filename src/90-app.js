@@ -461,6 +461,7 @@ function libraryHTML(){
 function creditLine(c){
   if(c.licence === 'own') return 'Our own schematic, not a screenshot.';
   const link = (label) => c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>` : esc(label);
+  if(c.licence === 'capture') return `Screen capture of ${esc(c.author || 'the publisher')}’s game, via ${link(c.source || 'source')}.`;
   if(c.licence === 'press') return `Press screenshot: ${esc(c.author || 'the publisher')}, via ${link(c.source || (() => { try { return new URL(c.url).hostname.replace(/^www./, ''); } catch(e) { return 'source'; } })())}.`;
   if(c.licence === 'store') return `Screenshot: ${esc(c.author || 'the developer')}, from the ${link('official store page')}.`;
   let host = c.source || ''; if(!host && c.url){ try { host = new URL(c.url).hostname.replace(/^www\./, ''); } catch(e) {} }

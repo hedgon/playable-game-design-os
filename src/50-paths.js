@@ -250,6 +250,7 @@ PATH('game-designer-foundations', {
       steps:[
         { kind:'topic', ref:'depth-vs-complexity', why:'Complexity is what the player must learn. Depth is what they can do with it. You want to buy depth, not complexity.', do:'List ten rules in your current design and classify each as creating a decision, enabling an interaction, or load only.', min:20 },
         { kind:'topic', ref:'feedback-and-affordance', why:'Without feedback the player cannot learn from what they just did, no matter how good the decision was.', do:'Build a small feedback matrix for your three most common actions: what confirms the input, and what confirms the outcome. Find the empty cells.', min:20 },
+        { kind:'game', ref:'super-mario', why:'Super Mario’s 2D games teach the power-up ladder through Mario’s own body, with no text: small Mario, a taller Super Mario after a Mushroom, a white-and-red Fire Mario, so a watching player always knows what he can currently do.', do:'Read its art and gameplay lenses, then name one state in your own game a player currently has to open a menu or check a HUD to know, and sketch how the character or object itself could show it instead.', min:15 },
         { kind:'topic', ref:'onboarding', why:'The first minutes teach more than any tutorial text, and they are where most players are lost.', do:'Write the first three things a new player would have to learn, and for each say whether they would learn it by doing or by reading.', min:20 },
         { kind:'tool', ref:'feature', why:'Nine questions catch a feature that sounds good and does nothing, before you spend a week on it.', do:'Run one feature idea you are excited about through Should We Build This? and accept the verdict even if you do not like it.', min:20 },
         { kind:'checklist', ref:'design-review', why:'A design review forces every group, including AI, to answer instead of shrug, before you commit production time.', do:'Run the design review checklist on the same feature idea and write down what each group answered.', min:20 },
@@ -385,7 +386,8 @@ PATH('systems-designer', {
         { kind:'topic', ref:'risk-reward', why:'Every currency sink and every build choice is a risk-reward decision wearing different clothes. Naming it that way is what lets you tune it on purpose.', do:'Take your redesigned system and mark, for each major decision point, what the player risks and what they stand to gain. Flag any point with reward and no real risk.', min:30 },
         { kind:'tool', ref:'sysmap', why:'A full relationship map, built after the redesign, is the only way to see whether you fixed the loop or just moved the smell somewhere else.', do:'Rebuild your System Relationship Map for the redesigned system across every subsystem you touched, annotating each smell you found earlier directly on the map.', min:30 },
         { kind:'checklist', ref:'playtest-prep', why:'A redesigned system is still a guess until a player meets it. The session that tests it needs the same rigour as the redesign did.', do:'Run the playtest session preparation checklist for a session built specifically to probe the smell you targeted, not a general playtest.', min:25 },
-        { kind:'reflect', why:'The audit only counts as finished once someone else could pick it up and act on it without you in the room.', do:'Write the one-page audit: the smells you found, the experiment you ran or are about to run, and what you expect to see change.', min:30 }
+        { kind:'reflect', why:'The audit only counts as finished once someone else could pick it up and act on it without you in the room.', do:'Write the one-page audit: the smells you found, the experiment you ran or are about to run, and what you expect to see change.', min:30 },
+        { kind:'game', ref:'fire-emblem', why:'Fire Emblem’s weapon triangle turns a simple hit-and-damage roll into a second, positional risk: standing a unit on the wrong side of sword, axe and lance costs a hit bonus before any dice are rolled.', do:'Read its gameplay lens, then find one decision point in your own system where a roll alone decides the outcome, and design a positional or timing rule that lets the player change the odds before committing.', min:15 }
       ],
       review:['builds-and-loadouts'],
       check:{
@@ -409,14 +411,15 @@ PATH('level-and-ux-designer', {
   prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
-      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2,
+      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.25,
       steps:[
         { kind:'topic', ref:'level-structure', why:'Teach, test, twist, combine, master, rest is a sequence for a reason. Skip a step and the player either stalls or gets bored.', do:'Take a level you are building or know well, and label each section with one of the six beats. Mark any beat that is missing entirely.', min:25 },
         { kind:'topic', ref:'pacing', why:'Pacing is not just difficulty. It is the rhythm of intensity and rest, and a level with no rest beat exhausts players before it challenges them.', do:'Graph the intensity of your level over its length by hand, on paper, and mark the flattest and steepest sections.', min:25 },
         { kind:'topic', ref:'spatial-composition', why:'Where the player can see, and where they cannot, shapes the pacing graph you just drew as much as any encounter does.', do:'Mark on your level layout the three sightlines that most control what the player expects to happen next.', min:25 },
         { kind:'game', ref:'hollow-knight', why:'Hollow Knight makes being lost part of the design: regions with their own look and sound, few markers, and a map the player has to buy.', do:'Read its UI and world lenses and list the cues it gives a lost player instead of a marker.', min:15 },
         { kind:'checklist', ref:'design-review', why:'A pacing graph and a beat map are opinions until someone else is forced to check them against a real question.', do:'Run the design review checklist against your level’s pacing plan before you block anything out.', min:20 },
-        { kind:'smell', ref:'tutorial-too-long', why:'A tutorial that runs long is usually a pacing problem wearing a teaching-text costume.', do:'Check whether your first teach beat is one beat, or three beats pretending to be one, based on the “The tutorial is too long” smell.', min:15 }
+        { kind:'smell', ref:'tutorial-too-long', why:'A tutorial that runs long is usually a pacing problem wearing a teaching-text costume.', do:'Check whether your first teach beat is one beat, or three beats pretending to be one, based on the “The tutorial is too long” smell.', min:15 },
+        { kind:'game', ref:'mega-man-x', why:'Mega Man X hides Heart Tanks, Sub Tanks and armour capsules off the route through each stage, so one level carries a critical path and an optional one without ever blocking a player who finds nothing.', do:'Read its gameplay lens, then mark on your own level layout the critical path and one optional branch whose reward would change how the player tackles every later level.', min:15 }
       ],
       review:[],
       check:{
@@ -575,13 +578,14 @@ PATH('games-that-broke-the-mould', {
         skip:['Can you name four time structures between pure turns and pure real time with an example of each?','Can you say what skill your own game’s time structure tests?','Have you already changed a game’s time structure and seen what it did to players?']
       } },
     { id:'s4', t:'Genres blended', level:'intermediate',
-      goal:'Learn when two genres make one game and when they make two half-games, and test a blend of your own.', hours:2,
+      goal:'Learn when two genres make one game and when they make two half-games, and test a blend of your own.', hours:2.25,
       steps:[
         { kind:'topic', ref:'genre-hybrids', why:'A hybrid works when each loop feeds the other; otherwise the player plays one and tolerates the other.', do:'Pick a hybrid you know and draw an arrow from each loop to what it gives the other. Mark any arrow that is missing.', min:25 },
         { kind:'game', ref:'persona-5-royal', why:'Persona 5 Royal wraps a dungeon crawler in a school calendar, and each side makes the other stronger.', do:'Read its analysis and write the two arrows: what the calendar gives the dungeons, and what the dungeons give the calendar.', min:30 },
         { kind:'game', ref:'slay-the-spire', why:'Slay the Spire fused a deckbuilder with a roguelike so closely that it popularised a genre of its own.', do:'Read its analysis and name what each parent genre would lose if the other were removed.', min:20 },
         { kind:'tool', ref:'sysmap', why:'Mapping how systems feed each other shows whether a blend is one game or two.', do:'Map the two loops of your blend in the System Relationship Map and check that each has at least one arrow into the other.', min:25 },
-        { kind:'smell', ref:'features-not-better', why:'A second genre bolted on without a feedback arrow is a common way features stop making the game better.', do:'Check your blend against the smell’s causes and mark whether the second loop is a feature or a partner.', min:20 }
+        { kind:'smell', ref:'features-not-better', why:'A second genre bolted on without a feedback arrow is a common way features stop making the game better.', do:'Check your blend against the smell’s causes and mark whether the second loop is a feature or a partner.', min:20 },
+        { kind:'game', ref:'touhou', why:'Touhou Luna Nights carries the Touhou shooters’ graze system into a Metroidvania, so bullets become something to approach, not only avoid: a blend that works by taking one rule from the source genre into the new one.', do:'Read its entries and business lens, then write the arrow the graze system gives Luna Nights’ exploration loop, and say whether Touhou: Scarlet Curiosity, faulted for combat where no special beat the basic combo, carried any such arrow across.', min:20 }
       ],
       review:['time-and-turns'],
       check:{
@@ -772,13 +776,14 @@ PATH('technical-lead', {
         skip:['Can you write both a blame version and a systems version of your last incident, and see the difference?','Is your risk register ordered by actual damage, or by whatever was easiest to write down?','Can you point to a postmortem that produced a real rule, not just an apology?','Do you know the risk you are currently avoiding naming, and what would force your hand?']
       } },
     { id:'s4', t:'Scope, planning and quality', level:'advanced',
-      goal:'Make the cut on purpose, plan against a real milestone, and treat build health as a number you own, not an accident.', hours:2,
+      goal:'Make the cut on purpose, plan against a real milestone, and treat build health as a number you own, not an accident.', hours:2.25,
       steps:[
         { kind:'topic', ref:'pm-scoping-cuts', why:'A scope cut you make on purpose beats a scope cut that happens to you two weeks before a deadline.', do:'Look at your current plan and name the one item you would cut first if the deadline moved a month closer today.', min:25 },
         { kind:'topic', ref:'planning-and-milestones', why:'A milestone that only tracks dates hides the actual question, which is what has to be true for the next milestone to even make sense.', do:'For your next milestone, write the one thing that has to be true by then for the milestone after it to still make sense.', min:25 },
         { kind:'topic', ref:'quality-and-build-health', why:'Build health is a leading indicator, not a housekeeping task. A team that ignores it is reading the wrong dashboard.', do:'Check your team’s current build health signal (pass rate, flake rate, time to green) and write whether it is trending towards or away from the next milestone.', min:25 },
         { kind:'checklist', ref:'scope-sanity', why:'A scope check applied to the whole roadmap catches what a scope check on one feature never will.', do:'Run the scope sanity checklist against your team’s current roadmap, not just your own task list.', min:25 },
-        { kind:'reflect', why:'The cut you are avoiding making is usually costing the team more than the feature it is protecting is worth.', do:'Write the one cut you are avoiding making, and what it is currently costing the team by staying in scope.', min:20 }
+        { kind:'reflect', why:'The cut you are avoiding making is usually costing the team more than the feature it is protecting is worth.', do:'Write the one cut you are avoiding making, and what it is currently costing the team by staying in scope.', min:20 },
+        { kind:'game', ref:'xeno', why:'Xenogears ran out of schedule and told its second disc as narration, and Xenosaga’s six planned episodes became three, so its finale absorbed story cut from Episode II.', do:'Read its complaints and reception, then write the cut list Xenogears’ team could have made in its first year instead of its last months.', min:15 }
       ],
       review:['lead-incidents'],
       check:{

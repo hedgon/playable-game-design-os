@@ -146,8 +146,10 @@ const GAME_TAGS = ['turn-based','real-time','time-blend','deduction','knowledge'
 // screenshots offered by the publisher, a free licence (named exactly), or
 // our own schematic. A share-alike image also says whether we changed it.
 // 'press' is an official press screenshot, credited to its publisher and
-// linked to the page it was found on (a press kit or a news article).
-const IMAGE_LICENCES = ['store', 'press', 'CC BY 4.0', 'CC BY 3.0', 'CC BY 2.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
+// linked to the page it was found on (a press kit or a news article);
+// 'capture' is a real screen capture of the game from a games database,
+// used only when neither store nor press has one, credited the same way.
+const IMAGE_LICENCES = ['store', 'press', 'capture', 'CC BY 4.0', 'CC BY 3.0', 'CC BY 2.0', 'CC BY-SA 4.0', 'MIT', 'public domain', 'own'];
 // Curated shelves across genres: the groupings a reader looks for first
 // (a series, an open world, a casual game). A shelf is a kind or a tag, and
 // the library shows it only once it holds a game.
@@ -173,6 +175,7 @@ const GAME_AWARDS = {
   'hades': [{ id:'dice', year:2021, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2021, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2021, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
   'vampire-survivors': [{ id:'bafta', year:2023, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
   'balatro': [{ id:'gdca', year:2025, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
+  'super-mario': [{ id:'bafta', year:2009, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
   'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
 };
 /** @param {any} g */
