@@ -4638,3 +4638,102 @@ GAME({ id:'crusader-kings-iii', img:'assets/games/crusader-kings-iii.jpg', dev:'
       callouts:[{ x:0.70, y:0.16, t:'The point budget for a custom ruler' }, { x:0.90, y:0.46, t:'Traits chosen before play' }] }
   ]
 });
+
+GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'first entry' }, img:'assets/games/wii-sports.jpg', imgCredit:{ author:'Nintendo', url:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html', licence:'press', source:'Nintendo UK', alt:'Wii Sports: Nintendo’s promotional image, the Wii Sports logo and five sport icons beside a gold frame holding five Miis boxing, bowling, golfing, batting and playing tennis' }, dev:'Nintendo EAD', store:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html',
+  t:'Wii Sports', year:2006, genre:'motion-controlled sports collection', family:'sports', tags:['real-time','multiplayer','casual','premium'], aka:['wii sports','wiisports','wii tennis','wii bowling'],
+  want:'Pick up the remote, swing it the way you would swing a racket or roll a ball, and play a match with your family in the first minute.',
+  verb:'swing, roll, pitch and punch the Wii Remote as if it were the racket, ball, bat, club or glove, while the game handles the rest of the sport',
+  first30:'The player chooses a sport and a Mii, the cartoon avatar made on the console, and is on a grass tennis court within seconds. There is no movement to learn: the Mii runs to the ball by itself. The player waits, then swings the remote like a racket, and the ball goes back over the net. Friends on the sofa hold the other remotes and join the same doubles match.',
+  minute:'Swing early to angle the ball wide, or wait and hit it straight? In bowling, where to stand, how much to curve the ball and when to let go of the button? In golf, how far back to draw the club on this putt? In boxing, guard the face or throw a punch? And after the match, hand the remote to the next person?',
+  engines:['social','mastery','relief'],
+  why:'Wii Sports launched with the Wii in North America on 19 November 2006 and came in the box in every region except Japan and Korea. Its five sports, tennis, baseball, bowling, golf and boxing, are played by moving the Wii Remote as the real object would move. Nintendo EAD built it to show what the new controller could do, and by March 2021 it had sold 82.9 million copies, most of them bundled. Retirement homes formed bowling leagues around it, and it drew a Metacritic score of 76 while critics called its visuals dated.',
+  complaints:'Critics called the graphics dated, closer to earlier Nintendo consoles, and the sports shallow next to dedicated sports games, with no tournament mode. Players let go of remotes mid-swing and hit people and objects, and Nintendo replaced the wrist strap with a thicker one from December 2006. Doctors also described muscle and tendon strain from long sessions, reported as “Wii-itis”.',
+  lesson:'Borrow the input from the activity itself and a person who has never held a controller already knows how to play. Then remove every part of the sport the input cannot express, such as running around a court, so the borrowed motion is the whole task and nothing else stands between a first-time player and a match.',
+  misses:'Motion games that copy the gesture but keep full control schemes, with movement, menus and button combinations on top, lose the newcomer the gesture was meant to win. Copies that reward flailing instead of the real motion teach players that waving works, which empties the skill out of the game and shows the input as a gimmick.',
+  diagrams:[
+    { kind:'loop', title:'Wii Sports: pick up, swing, see, pass on', steps:[{t:'Pick a sport', d:'one of five, with your own Mii'},{t:'Make the motion', d:'swing, roll or punch the remote'},{t:'See the result', d:'the ball goes where the swing sent it'},{t:'Pass the remote', d:'the next person takes a turn'}] }
+  ],
+  signature: {
+    idea: 'Map a real gesture to each sport, then automate everything the gesture cannot say',
+    mechanism: 'Each sport keeps one physical action and hands the rest to the computer. In tennis the player only swings; the Mii runs to the ball by itself. In baseball the player bats and pitches while the computer fields and runs the bases. Bowling and golf are turn-based, so the player makes one motion at a time. The gesture is the whole input, and its timing and shape decide where the ball goes.',
+    teach: 'The input arrives already learned. Keizo Ohta told Iwata Asks that the rod shape of the remote suggested tennis first, and Katsuya Eguchi recalled testers tossing an imaginary ball with their free hand before a serve, a motion the game did not read. A player who has swung a racket or rolled a bowling ball has the basics, so the first match is also the tutorial, and a person who has played the real sport can start ahead.',
+    fair: 'Because the motion copies the real one, a miss has a cause the player can feel: a late swing or an early release. Takayuki Shimamura said bowling won the team over as soon as the ball rolled down the lane, a sign that the result looked like the throw. Automated movement removes the unfair part for newcomers, falling behind because they cannot steer, while leaving the part everyone can judge.',
+    escalate: 'Escalation comes from the player rather than new rules. Skill points rise or fall after each match against the computer, and 1,000 points marks a pro. Training mode adds three challenges per sport with bronze to platinum medals, and a daily fitness test turns three random challenges into a fitness age. Bowling spin, tennis angles and golf power reward finer control of the same motion.',
+    copies: 'The mapping only works because the sport around it was cut back to fit. Keep the gesture but add running, menus and button combinations, and the newcomer is lost again. Keep the simplicity but read any wave of the arm as a swing, and there is no skill left to discover. The sports were chosen for motions the remote could read and every audience knew; an airplane game shown at E3 2006 was dropped.',
+    prototype: 'Take one sport and list its actions. Keep the single action a real player makes with their arm, map it to a motion input or a phone’s gyroscope, and let the computer do all movement. Test it on three people who never play games and three who do, and time how long each takes to win a point without being told anything.'
+  },
+  lens: {
+    gameplay: {
+      claim: 'Wii Sports tennis is playable by non-players because it takes away the hardest part of the real sport, running to the ball, and leaves only the swing.',
+      evidence: 'Wikipedia notes that in tennis the computer moves the player’s Mii while the player swings, and in baseball the computer fields and runs the bases. Eguchi told Iwata Asks that testers mimed tossing an imaginary ball to serve, and Yoshikazu Yamashita saw players with real sporting experience do better, one man in his fifties or sixties drawing on his baseball.',
+      mechanism: 'In MDA terms the mechanics are cut down to one verb per sport, timed against the ball. The dynamic is a timing contest the player already understands, and the aesthetic is shared play: a grandparent and a child can be equal because neither has to learn movement.',
+      effect: 'New players can return a ball with their first swing, and real-world skill, not game skill, decides who wins, which puts people who play sports but not games ahead.',
+      compare: 'Virtua Tennis (1999) asks the player to steer with a stick and pick shots with buttons, so a real tennis player starts as a beginner; Wii Sports keeps only the part that transfers from the court.',
+      cost: 'Automated movement caps the depth, since positioning, half of real tennis, is out of the player’s hands, and critics called the sports shallow next to full sports games.',
+      principle: 'When an input is borrowed from life, cut every part of the activity that input cannot carry, even if it is half of the activity.',
+      topics: ['controls-and-friction','depth-vs-complexity','who-is-the-player'],
+      sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://iwataasks.nintendo.com/interviews/wii/wii_sports/0/2/', 'https://en.wikipedia.org/wiki/Virtua_Tennis_(video_game)'] },
+    ui: {
+      claim: 'Wii Sports’ fitness age turns a set of mini-games into one number anyone understands, because it measures play in years of life rather than points.',
+      evidence: 'Wikipedia describes the fitness test: three random training challenges, scored on balance, speed and stamina, give a fitness age from 20 to 80. It can be taken once a day per Mii, and the results are drawn as a graph over one, two or three months.',
+      mechanism: 'The interface translates game scores into a unit from outside games. A score of 4,000 means nothing to a non-player; an age of 35 against a real age of 50 is read at once. The daily limit and the graph make the number a trend to watch.',
+      effect: 'Players can compare their fitness age with their real one and with the family’s, and the daily limit gives a reason to come back tomorrow.',
+      compare: 'Brain Age (2005) on the Nintendo DS gave players a brain age from daily puzzles; Wii Sports applies the same everyday unit to motion, so the number describes the body, not puzzle speed.',
+      cost: 'A number dressed as a health measure invites more trust than a mini-game score deserves, and the fitness age is not a medical test.',
+      principle: 'Report progress in a unit the player already uses in daily life, and the least experienced player can still read it.',
+      topics: ['readability-and-hierarchy','feedback-and-affordance'],
+      sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://en.wikipedia.org/wiki/Brain_Age:_Train_Your_Brain_in_Minutes_a_Day!'] },
+    art: {
+      claim: 'Wii Sports uses plain, doll-like Miis so players see themselves in the game, which mattered more to its audience than the detailed looks critics missed.',
+      evidence: 'Wikipedia records that the early build used Super Mario characters, changed to Miis after feedback. In Iwata Asks Ohta said the plain, kokeshi-doll-like figures made the team feel they themselves were in the game, unlike Mario, and Yamashita said motion makes a simple figure feel real. Critics still called the graphics dated.',
+      mechanism: 'The Mii is an avatar the player builds on the console, so each figure in a match is someone in the room. Its simple face leaves detail to the player’s imagination, and the motion of their own arm on screen fills in the rest.',
+      effect: 'Families watch each other rather than a character; Yamashita described a whole family cheering a grandmother’s catch in testing.',
+      compare: 'Mario Tennis (2000) casts famous Nintendo characters, so players play as Mario’s cast; Wii Sports’ Miis make the players themselves the cast.',
+      cost: 'Plain figures and simple courts made the game look old: reviewers compared its graphics to GameCube and Nintendo 64 games and marked it down.',
+      principle: 'For play among people in one room, an avatar the players make of themselves can matter more than a detailed character the studio designed.',
+      topics: ['visual-language','fantasy','social-experience'],
+      sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://iwataasks.nintendo.com/interviews/wii/wii_sports/0/1/', 'https://en.wikipedia.org/wiki/Mario_Tennis'] },
+    sound: { na:'Sound does apply to Wii Sports, but this analysis cannot yet support a lens on it. The design point most often cited, the Wii Remote’s own speaker playing the hit of the racket or bat in the player’s hand, is described only in user reviews and in outlet reviews that could not be loaded to check, and the Nintendo interviews and pages read here do not mention it. Kazumi Totaka composed the music. Until a checkable source is found, the gameplay and art lenses carry the game’s design.' },
+    lore: { na:'Wii Sports has no story, setting or characters beyond Miis: the players’ own, and computer opponents built with the same Mii tools. Its fiction is the real sports themselves, which every player already knows, so the game spends no time explaining a world and the lore lens has nothing to analyse.' },
+    world: { na:'Wii Sports has no world to explore: each sport is a separate court, alley, stadium, course or ring chosen from a menu, and nothing links them. The venues exist to frame the gesture, which the gameplay lens covers; a shared setting, Wuhu Island, only arrived with Wii Sports Resort in 2009.' },
+    env: { na:'Wii Sports’ venues tell no stories: a tennis court, a bowling alley and a boxing ring hold no traces of past events. What changes is the crowd, filled with the Miis saved on the console and growing in tennis and boxing as skill points rise, which is score feedback rather than a story told by the space, so environmental storytelling does not apply.' },
+    business: {
+      claim: 'Wii Sports’ sales figure mostly measures how many consoles Nintendo sold, not how many people chose to buy it, and its value lay in what it sold around it.',
+      evidence: 'Wikipedia records 82.9 million copies by March 2021, counting copies packed with the Wii in every region except Japan and Korea, where it sold separately and topped Japan’s 2007 chart with 1.9 million. Reggie Fils-Aimé persuaded a hesitant Satoru Iwata and Shigeru Miyamoto to bundle it as key to the Wii’s success, and Eguchi told Iwata Asks it was the ideal game to show how fun the remote was.',
+      mechanism: 'A pack-in earns no separate sale; its return is the hardware it sells and the demand it builds for other software. Counted as a game, the figure puts Wii Sports near the top of all-time charts; counted as a demo, it is the reason buyers learned the controller.',
+      effect: 'Buyers had the game the day they unpacked the console, and Nintendo expected those who enjoyed it to spread it by word of mouth, selling more consoles.',
+      compare: 'Wii Sports Resort (2009) came boxed with the MotionPlus add-on and was later bundled with consoles too, passing 30 million by March 2020, a count that mixes sales and bundles.',
+      cost: 'Nintendo arguably gave up the revenue of a full-price hit in most markets, and the bundled count makes it hard to tell how many players valued the game itself.',
+      principle: 'Judge a bundled game by the hardware and later sales it creates, not by its own sales count.',
+      topics: ['business-model','metrics-and-success'],
+      sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://iwataasks.nintendo.com/interviews/wii/wii_sports/0/0/', 'https://en.wikipedia.org/wiki/Wii_Sports_Resort'] },
+    replay: {
+      claim: 'Wii Sports gets its replay from the people in the room rather than from unlocks, which is why it lasted in homes and care homes long after its content was seen.',
+      evidence: 'Bowling and golf are turn-based for several players on one screen. Wikipedia records bowling leagues formed at retirement homes and senior centres, and “Wiimbledon”, a 128-player tennis tournament in Brooklyn on 23 June 2007. Unlocks are few: reaching 1,000 skill points makes a Mii a pro, with a cosmetic reward in bowling and boxing.',
+      mechanism: 'With so little to unlock, the reason to play again is another person: a rematch, a league night or a new visitor to beat. Turn-based sports suit a group because one remote can be passed round.',
+      effect: 'Players organise their own events, from a living room match to a care home league, and the game becomes a social occasion rather than a solo task.',
+      compare: 'Nintendo Switch Sports (2022) tied its unlockable rewards to online play, which reviewers disliked; Wii Sports keeps every reason to return in the room.',
+      cost: 'A player alone has little to do once the skill points level off, and the game gives groups no tournament mode to structure their play.',
+      principle: 'If the audience plays together in one room, let the group supply the reasons to return.',
+      topics: ['return-and-quit','social-experience'],
+      sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://en.wikipedia.org/wiki/Nintendo_Switch_Sports'] },
+    lineage: {
+      claim: 'Wii Sports, the first entry of the Wii Sports series, arguably set its sequels a trap: they could add precision and sports, but not a new input to discover.',
+      evidence: 'Wii Sports Resort (2009) needed the MotionPlus add-on for finer motion and offered 12 sports; Wii Sports Club (2013 to 2014) remade the five sports in HD with online play. Nintendo Switch Sports (2022) moved to Joy-Con controllers and scored 72 on Metacritic against the original’s 76, with reviewers finding volleyball the hardest sport to pick up.',
+      mechanism: 'The first game’s appeal was the surprise of a motion anyone knew working on screen. Each sequel improved accuracy or added sports, but the surprise could only happen once, so each was judged on depth, where the formula is weakest.',
+      effect: 'Players who met motion control through Wii Sports came to later entries expecting that first feeling, and critics measured them against it.',
+      compare: 'Tony Hawk’s Pro Skater 2 kept its predecessor’s core and extended the combo chain; the Wii Sports sequels had no chain to extend, only the input to refine.',
+      cost: 'Better tracking arguably made each sequel more precise and less forgiving, raising the bar for the newcomers the series was built for.',
+      principle: 'A game whose appeal is a new input cannot sell that novelty twice; its sequels need a new reason to play.',
+      topics: ['learning-from-success','genre-hybrids'],
+      sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://en.wikipedia.org/wiki/Nintendo_Switch_Sports'] }
+  },
+  shots: [
+    { img:'assets/games/shots/wii-sports-tennis.webp', lens:'gameplay', alt:'Wii Sports: a doubles tennis match on a green court seen from behind the near player, a Mii holding a racket behind the baseline, a partner Mii at the net, two opponents on the far side and a Nintendo banner on the far wall.', caption:'Tennis, seen from behind the player’s Mii. The player only swings; the game moves the Mii to the ball.',
+      callouts:[{ x:0.40, y:0.82, t:'The player’s Mii' }, { x:0.42, y:0.18, t:'Opponents across the net' }],
+      credit:{ author:'Nintendo', url:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html', licence:'press', source:'Nintendo UK' } },
+    { img:'assets/games/shots/wii-sports-boxing.webp', lens:'art', alt:'Wii Sports: boxing, a long-haired Mii in red gloves faces the player’s Mii in blue gloves in a ring, with a crowd of Miis behind the ropes and a round timer reading 0:18.', caption:'Boxing between two Miis. The fighters and the crowd are all simple avatars made on the console.',
+      callouts:[{ x:0.34, y:0.12, t:'Opponent Mii' }, { x:0.80, y:0.10, t:'Crowd of Miis' }],
+      credit:{ author:'Nintendo', url:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html', licence:'press', source:'Nintendo UK' } }
+  ]
+});
