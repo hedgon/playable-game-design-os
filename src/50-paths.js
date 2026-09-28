@@ -659,7 +659,8 @@ PATH('idea-to-prototype-30-days', {
         { kind:'topic', ref:'core-experience', why:'The core experience statement is the target every later system exists to serve, and skipping it is how scope creeps in by day three.', do:'Write a one-paragraph core experience statement for your idea, and read it aloud to someone who has not heard the pitch yet.', min:35 },
         { kind:'tool', ref:'canvas', why:'The Core Experience Canvas forces every part of the idea to answer to the same statement in one sitting.', do:'Fill the Core Experience Canvas for your idea end to end, leaving no box blank even if the answer is a guess.', min:40 },
         { kind:'tool', ref:'loop', why:'A loop is the smallest thing you can build and test. Everything else is scope you have not earned yet.', do:'Build the smallest loop that could test your core experience statement, and mark its weakest link before you build anything.', min:40 },
-        { kind:'checklist', ref:'pre-prototype', why:'A prototype without a hypothesis, a scope cut and a way to observe it is a demo with extra steps.', do:'Run the pre-prototype checklist against the loop you just built, and fix whatever it fails before day one of the 30 days starts.', min:35 }
+        { kind:'checklist', ref:'pre-prototype', why:'A prototype without a hypothesis, a scope cut and a way to observe it is a demo with extra steps.', do:'Run the pre-prototype checklist against the loop you just built, and fix whatever it fails before day one of the 30 days starts.', min:35 },
+        { kind:'engine', ref:'gamemaker', why:'A 2D-first engine built on objects, events and rooms shows how little machinery a first playable prototype needs.', do:'Read the guide’s architecture and pipeline stages, then build one room with a player object and a Step event, and export it to the web.', min:15 }
       ],
       review:['finding-an-idea'],
       check:{

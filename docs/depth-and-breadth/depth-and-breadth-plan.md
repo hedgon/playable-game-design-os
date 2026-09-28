@@ -158,9 +158,9 @@ Legends (the comparison inside Dota 2).
 | --- | --- | --- |
 | E1 | `ENGINE_GUIDE()` frame, landed with the Godot pilot (open licence, real editor images allowed) | landed (Godot pilot on Godot 4.7.2, with two CC BY 3.0 editor screens from its documentation and a step in the Godot gameplay path’s first stage) |
 | E2 | Unity (render pipelines, DOTS, the 2023 Runtime Fee announced and withdrawn as the licensing-risk lesson) | landed (no screens: Unity’s docs and press images carry no licence the site accepts) |
-| E3 | Unreal Engine (Blueprints versus C++, UAT and BuildGraph) | todo |
+| E3 | Unreal Engine (Blueprints versus C++, UAT and BuildGraph) | landed (Unreal Engine 5.8; no screens: Epic's documentation images carry no licence the site accepts; the guide says topic tabs stay Godot and Unity) |
 | E4 | Godot (pilot, see E1) | landed |
-| E5 | GameMaker | todo |
+| E5 | GameMaker | landed (GameMaker LTS 2026.0; no screens, for the same reason) |
 | E6 | The web stack: HTML5 Canvas, WebGL and WebGPU, three.js, Babylon.js, Phaser, PlayCanvas; web portals (Poki, CrazyGames), itch.io, static hosts, wrappers | todo |
 | E7 | Blender as a game tool: modelling to engine export, the Python API, why it pairs with AI | todo |
 | E8 | Ren’Py (visual novels; plain-text scripts) and a note on RPG Maker | todo |
