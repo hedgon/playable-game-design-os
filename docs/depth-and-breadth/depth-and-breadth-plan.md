@@ -245,10 +245,12 @@ official documentation at writing time, as dated facts with sources.
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | todo |
+| L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | landed (inventory recorded under the table below) |
 | L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa, Elden Ring, The Witcher 3, Diablo II, Doom, Half-Life 2, Counter-Strike 2, StarCraft, Age of Empires II, Dota 2, Rocket League, Mario Kart 8, EA Sports FC, Cities: Skylines, Euro Truck Simulator 2, Baldur’s Gate 3, Subnautica, World of Warcraft) |
 | L3 | New paths from the plan: casual (I4), AI engineering (I7), plus any the L1 inventory shows are missing (for example engine and platform interview prep, pivoting out of games) | todo |
 | L4 | Chooser and the paths landing page updated so every path is reachable and the choice stays simple | todo |
+
+L1 inventory (2026-09-28, computed from the data, not estimated): 16 paths hold 454 steps. Not yet in any path: 76 topics (all six careers topics, nine of fourteen craft topics, six of fourteen models topics, and older gaps in narrative, experience, presentation, in-game AI and AI collaboration), 45 reference games, the Cocos guide, seven platform guides (PlayStation, Epic, web, Quest, itch.io, Roblox, Fortnite) and the PC submission checklist. What the paths should do with it, using the learning-design rules they already follow: a new topic enters the path where its idea is first needed, as a worked example (a game lens) beside the principle (a topic), and returns later as a `review` id, never earlier than the stage that taught it (retrieval and spacing); engineering paths interleave engine, craft and platform steps instead of blocking them by kind; interview paths reach the new topics through their interview tabs and the guides through their interview stages. What no existing path can absorb without losing its focus becomes a new path (L3): pivoting out of games (the careers domain), and engine and platform interview prep only if the interview paths cannot take the guides' questions within their hours.
 
 **How to use the site (R17)**
 
@@ -256,7 +258,7 @@ official documentation at writing time, as dated facts with sources.
 | --- | --- | --- |
 | H1 | A “How to use this site” page (): what each section is for (Paths, Map, Library, Make, Diagnose, AI Workflow, Projects), the fastest route for each kind of visitor (new designer, engineer, interview prep, looking something up), search, progress and review, keyboard keys; with small schematics of where things are | landed |
 | H2 | Reachable everywhere: from the header help button and dialog, All pages, empty search, the paths landing page, and a one-time dismissible first-visit hint | landed |
-| H3 | Kept true: written first with today’s features (so the owner has it now), revised at the end with engines, shelves, series and the new paths; smoke visits it | todo |
+| H3 | Kept true: written first with today’s features (so the owner has it now), revised at the end with engines, shelves, series and the new paths; smoke visits it | landed (routes for building with AI, casual mobile games and leaving games; the Map and Library cards name the new domains, series timelines, the award shelf, release walkthroughs and engine guides; smoke visits it) |
 
 **Old content and UI/UX**
 
