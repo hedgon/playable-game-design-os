@@ -3,7 +3,7 @@ const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -344,6 +344,18 @@ for (const p of (ctx.PLATFORMS || [])) {
   if (p.flow !== undefined) checkDiagram(p.flow, `${where}: flow`, errors);
   if (p.kind !== 'open' && !p.flow) errors.push(`${where}: a store or console guide needs a zero-to-live flow`);
   for (const tid of (p.topics || [])) if (!TOPICS[tid]) errors.push(`${where}: names unknown topic ${tid}`);
+}
+// Every guide walks a release step by step and carries interview items in its
+// last stage: release for stores and consoles, publish for UGC (plan row P5).
+for (const p of (ctx.PLATFORMS || [])) {
+  const last = (p.stages || {})[p.kind === 'ugc' ? 'publish' : 'release'] || {};
+  if (!Array.isArray(last.deploy) || last.deploy.length < 4) errors.push(`platform ${p.id}: the ${p.kind === 'ugc' ? 'publish' : 'release'} stage needs a deploy walkthrough of 4 or more steps`);
+  if (!Array.isArray(last.iv) || last.iv.length < 5) errors.push(`platform ${p.id}: the ${p.kind === 'ugc' ? 'publish' : 'release'} stage needs 5 or more interview items`);
+}
+for (const [i, n] of (ctx.PLATFORM_NOTES || []).entries()) {
+  const where = `platform note ${i} (${n.t || 'no title'})`;
+  if (!n.t || !String(n.t).trim() || wordCount(n.d) < 20) errors.push(`${where}: needs t and a d of 20 words or more`);
+  if (!n.excluded) { if (!n.facts) errors.push(`${where}: a note needs a dated fact, or excluded:true with the reason in d`); else checkFacts(n.facts, where); }
 }
 if ((ctx.PLATFORMS || []).length) checkDiagram(ctx.platformMatrix(), 'platform comparison table', errors);
 if (ctx.GUIDE_LAYOUT) checkDiagram(ctx.GUIDE_LAYOUT, 'guide: layout schematic', errors);

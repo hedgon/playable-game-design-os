@@ -581,7 +581,8 @@ function renderPlatforms(id){
       ${diagramCard(platformMatrix())}
       <div class="section-head"><h2>Stores and consoles</h2></div><div class="grid auto">${main.map(card).join('')}</div>
       ${ugc.length ? `<div class="section-head"><h2>UGC platforms</h2></div><p class="small dim" style="max-width:820px">You build inside the platform’s own editor, it runs the servers, and players find and pay for your game in its economy.</p><div class="grid auto">${ugc.map(card).join('')}</div>` : ''}
-      ${other.length ? `<div class="section-head"><h2>Other channels</h2></div><div class="grid auto">${other.map(card).join('')}</div>` : ''}${note}`);
+      ${other.length ? `<div class="section-head"><h2>Other channels</h2></div><div class="grid auto">${other.map(card).join('')}</div>` : ''}
+      ${PLATFORM_NOTES.length ? `<div class="section-head"><h2>Curated and regional channels</h2></div><p class="small dim" style="max-width:820px">Too closed or too small for a full guide: what each one is, and the fact that decides whether it fits you.</p><div class="grid auto">${PLATFORM_NOTES.map(n => `<div class="card"><b>${esc(n.t)}</b>${n.excluded ? ' <span class="chip">not covered</span>' : ''}<p class="small" style="margin:6px 0 0">${esc(n.d)}</p>${factItems(n.facts)}</div>`).join('')}</div>` : ''}${note}`);
     return;
   }
   const stage = ([k, label]) => guideStageHTML(P.stages[k], label);
