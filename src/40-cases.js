@@ -365,7 +365,7 @@ CASE({
   ],
   decisions:[
     { d:`Keep gameplay in the default assembly instead of splitting it into layered assemblies.`,
-      why:`The obfuscator protects one assembly by name. A tidy split would have left most of the game outside the protected set without any error, which for a binary that carries all its own game logic is the threat we were paid to care about.`,
+      why:`The obfuscator protects one assembly by name. A tidy split would have left most of the game outside the protected set without any error, which for a binary that carries all its own game logic is the threat we were paid to care about. Obfuscation here raises the cost of reverse engineering the logic; it is not where secrets were kept, and no secret shipped in the client.`,
       trade:`No compile-time layering and no incremental compile win, and test assemblies cannot reference the game, so the test harness resolves types by name through reflection. We centralised that reflection in one file and accepted it.` },
     { d:`Two independent obfuscation layers, asset name hashing and code renaming, each switchable per pipeline.`,
       why:`They defend against two different threats, datamining of shipped assets and reverse engineering of the binary, and being able to turn one off is what makes a failure diagnosable.`,

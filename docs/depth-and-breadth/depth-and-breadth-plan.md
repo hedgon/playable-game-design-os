@@ -60,7 +60,7 @@ with a verdict (add, or excluded with a reason) and confirmed in decision 2.
 | --- | --- | --- |
 | U1 | Headless screenshot sweep of every page type at 375, 1024 and 1440 px, both themes; issue list; quick fixes | landed |
 | U2 | Library at scale: curated shelves (Series, Open world, Casual and mobile, Old-school fun, Visual novels) alongside family groups; filter row that stays usable on a phone; “In real games” strip capped and grouped on topic pages | landed |
-| X1 | Series entry screenshots: `entries[].shot` (real screen, credited, at most 40 KB), required on at least half the entries and at least four; drawn in the timeline beside each entry; Mega Man first, then every series | frame landed; Mega Man in progress |
+| X1 | Series entry screenshots: `entries[].shot` (real screen, credited, at most 40 KB), required on at least half the entries and at least four; drawn in the timeline beside each entry; Mega Man first, then every series | landed (validate.js enforces at least half and at least four entry screens on every series) |
 | X2 | Shelves: Long-running series and Top award winners only. Awards are data (`awards:[{t, year, src}]` from a closed list of the top awards), shown on the game page; the shelf lists games with at least one. Open world, casual, old-school and visual-novel stay as tags in the tag filter | landed: nine games (Portal, Minecraft, Papers, Please, Outer Wilds, Return of the Obra Dinn, Hades, Vampire Survivors, Balatro, Clair Obscur); every new game checks the award lists |
 | X3 | Flappy Bird image: a real screen with a licence the site accepts (Commons, archived official listing), or none | landed: a CC BY 2.0 Commons photo of the licensed 2018 arcade cabinet, captioned as such (`CC BY 2.0` added to the licences) |
 | X4 | SERIES `mega-man-x` (X to X8, 1993 to 2004, plus collections and spin-offs where they explain it): the formula split from the classic line, the stall after X6, why fans keep making X games; linked both ways with `mega-man` | landed |
@@ -156,10 +156,10 @@ Legends (the comparison inside Dota 2).
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| E1 | `ENGINE_GUIDE()` frame, landed with the Godot pilot (open licence, real editor images allowed) | frame landed; Godot pilot todo |
+| E1 | `ENGINE_GUIDE()` frame, landed with the Godot pilot (open licence, real editor images allowed) | landed (Godot pilot on Godot 4.7.2, with two CC BY 3.0 editor screens from its documentation and a step in the Godot gameplay path’s first stage) |
 | E2 | Unity (render pipelines, DOTS, the 2023 Runtime Fee announced and withdrawn as the licensing-risk lesson) | todo |
 | E3 | Unreal Engine (Blueprints versus C++, UAT and BuildGraph) | todo |
-| E4 | Godot (pilot, see E1) | todo |
+| E4 | Godot (pilot, see E1) | landed |
 | E5 | GameMaker | todo |
 | E6 | The web stack: HTML5 Canvas, WebGL and WebGPU, three.js, Babylon.js, Phaser, PlayCanvas; web portals (Poki, CrazyGames), itch.io, static hosts, wrappers | todo |
 | E7 | Blender as a game tool: modelling to engine export, the Python API, why it pairs with AI | todo |
@@ -260,7 +260,7 @@ official documentation at writing time, as dated facts with sources.
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| U3 | Known leftovers: code snippets the last review left out of scope (a Godot snippet that blocks the main thread, Photon calls listed as Unity API, a Unity snippet that breaks its own threading warning); the obfuscator contradiction (owner decision) | todo |
+| U3 | Known leftovers: code snippets the last review left out of scope (a Godot snippet that blocks the main thread, Photon calls listed as Unity API, a Unity snippet that breaks its own threading warning); the obfuscator contradiction (owner decision) | landed (the Go-idioms Godot snippet now polls the task instead of blocking the frame; the crash-reporter Unity snippet reads Unity API on the main thread only and locks its ring; Photon was already named as a third-party SDK; obfuscation is framed in both places as raising the cost of reverse engineering, never as where a secret is kept) |
 | U4 | Final headless sweep; README, CONTRIBUTING, docs | todo |
 
 ## 2. Bối cảnh / Survey hiện trạng
@@ -434,6 +434,8 @@ Decisions 1 to 5 in section 7, including which “etc” candidates to take.
    the default; the owner can still move it into leadership).
 6. No Japanese shelf or tag (later the same day): every game is treated the
    same, found by genre, family, series and design tags instead.
+
+7. Tier 2 deferred (2026-09-28, under the standing instruction): at Tier 1’s end the art folder holds about 10.3 MB of the 12 MB budget, and the owner-named engine (E1–E9) and platform (X8, P1–P6) images come first. Tier 2 is revisited after P6 against what budget remains; the text-only passes (A, V, K, C) cost no art.
 
 Still open: `playable.html` grows to about 7 MB with Tier 1. If a phone
 load test in U1 shows it is too slow, lazy-loading game analyses is raised

@@ -494,7 +494,7 @@ INTERVIEW('infra-secrets',{
     { q:`Why can you not hide an API key inside a compiled game client?`,
       a:`Because the client is handed to the player. Compiled bytecode and ahead-of-time binaries are not encryption, and dumping the strings in a shipped build is trivial. Even encrypting the assets does not help, because the decryption key has to be in the binary. The client should hold a short-lived token it was issued by your server, not a long-lived key.`,
       follow:`Your third-party analytics SDK needs a key in the client. Now what?`,
-      red:`Proposes obfuscation as protection, or claims nobody would bother.` }
+      red:`Proposes obfuscation as the protection for the key, or claims nobody would bother. Obfuscation raises the cost of reading the code; it does not stop anyone lifting a string out of a running build.` }
   ],
   mid:[
     { q:`Walk me through building a credential inventory for a project you just joined.`,
@@ -764,17 +764,19 @@ func report(err: String) -> void:
     api:['Application.logMessageReceivedThreaded','Application.lowMemory','ProfilerRecorder.StartNew()','ProfilerCategory','Application.version','SystemInfo.deviceModel'],
     snippet:`public class ClientTelemetry : MonoBehaviour {
     readonly Queue<string> crumbs = new();
-    ProfilerRecorder mainThread;
+    string version, device;                  // read on the main thread
     void OnEnable() {
-        mainThread = ProfilerRecorder.StartNew(ProfilerCategory.Internal, "Main Thread", 15);
-        Application.logMessageReceivedThreaded += OnLog;   // background threads too
-        Application.lowMemory += () => Crumb("lowMemory");
+        version = Application.version; device = SystemInfo.deviceModel;
+        Application.logMessageReceivedThreaded += OnLog;
+        Application.lowMemory += OnLowMemory;
     }
-    void OnDisable() => Application.logMessageReceivedThreaded -= OnLog;
-    public void Crumb(string s) { crumbs.Enqueue(s); if (crumbs.Count > 32) crumbs.Dequeue(); }
-    void OnLog(string msg, string stack, LogType type) {
+    void OnDisable() { Application.logMessageReceivedThreaded -= OnLog; Application.lowMemory -= OnLowMemory; }
+    void OnLowMemory() => Crumb("lowMemory");
+    public void Crumb(string s) { lock (crumbs) { crumbs.Enqueue(s); if (crumbs.Count > 32) crumbs.Dequeue(); } }
+    void OnLog(string msg, string stack, LogType type) {  // any thread: no Unity API
         if (type != LogType.Exception) return;
-        Report(Application.version, SystemInfo.deviceModel, msg, stack, crumbs.ToArray());
+        string[] trail; lock (crumbs) trail = crumbs.ToArray();
+        Report(version, device, msg, stack, trail);
     }
 }`,
     pitfall:`Subscribing to Application.logMessageReceived instead of the threaded variant, then calling Unity API inside the handler. The non-threaded event misses exceptions raised off the main thread, and any UnityEngine call from a background thread throws inside your crash reporter, so the reporter is the thing that fails during the crash it exists to record.`,

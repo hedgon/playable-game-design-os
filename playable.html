@@ -26,6 +26,7 @@
   /* engineering and people domains: hues chosen to sit as far as possible
      from the fourteen above in CIELAB while keeping 5:1 contrast on this bg */
   --d-backend:#62da7e; --d-infra:#d4b89b; --d-server:#cb9bd4; --d-management:#d28e89; --d-leadership:#da62a6;--d-platforms:#5bb6e8;
+  --d-models:#6fdcd0; --d-craft:#e6c35c; --d-careers:#a7c95e;
 }
 html[data-theme="light"]{
   /* light: paper and ink. */
@@ -37,6 +38,7 @@ html[data-theme="light"]{
   --d-level:#0f766e; --d-ux:#0369a1; --d-narrative:#4338ca; --d-presentation:#7e22ce; --d-product:#b91c1c;
   --d-production:#b45309; --d-ai:#a21caf; --d-gameai:#2f5d8a; --d-studio:#475569;
   --d-backend:#14712a; --d-infra:#84572a; --d-server:#752a84; --d-management:#7a251f; --d-leadership:#711448;--d-platforms:#0b6a94;
+  --d-models:#0e6f74; --d-craft:#8a6300; --d-careers:#4f6f12;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
@@ -14559,6 +14561,58 @@ const ENGINES = [];
 /** @param {string} id @param {any} o */
 function ENGINE_GUIDE(id, o){ o.id = id; ENGINES.push(o); }
 
+ENGINE_GUIDE('godot', { t:'Godot', kind:'engine', sub:'Free, open-source 2D and 3D engine, 4.x line',
+  short:'An MIT-licensed engine with a small editor, text scene files and its own Python-like language. It suits indie teams, 2D games and anyone who wants to own the whole stack.',
+  glance:['MIT licence, free, no royalties','GDScript, C# (.NET), C++ via GDExtension','Windows, macOS, Linux, Android, iOS, web; consoles through third parties'],
+  stages:{
+    what:{ points:['Godot is a general 2D and 3D engine whose editor is itself a Godot application, downloaded as a single executable.','Its 2D is a real 2D pipeline with pixel units, not 3D seen through an orthographic camera.','It suits small teams, 2D and stylised 3D games, and people who want to read or patch the engine source.','Large open-world 3D and console-first projects need more engineering in Godot than in Unreal or Unity.'],
+      facts:[{ claim:'The current stable release is Godot 4.7.2, released on 18 August 2026.', asOf:'2026-09-28', src:'https://godotengine.org/download/windows/' }] },
+    architecture:{ diagram:{ kind:'stack', title:'Godot, from your script to the GPU', arrow:'calls flow down',
+        layers:[{t:'Your code', d:'GDScript, C# or GDExtension classes attached to nodes'},{t:'Scenes and nodes', d:'a tree of nodes, saved and instanced as scenes'},{t:'SceneTree', d:'main loop: process, physics, groups, signals'},{t:'Servers', d:'RenderingServer, PhysicsServer, AudioServer do the work'}] },
+      points:['A game is a tree of nodes; a scene is a saved branch of that tree which can be instanced inside other scenes like a prefab.','The SceneTree runs the main loop, calling _process every frame and _physics_process at a fixed physics tick on each node that defines them.','Signals are the observer pattern built in: a node emits a signal and connected callables run, so children never need references to their parents.','Nodes are a convenience layer over servers; RenderingServer and PhysicsServer can be called directly for thousands of objects without node overhead.','GDScript is the built-in, optionally typed scripting language; C# runs on .NET through a separate editor build; GDExtension loads native C++ libraries without recompiling the engine.'] },
+    editor:{ points:['The editor switches between 2D, 3D, Script, Game and AssetLib main screens from the top bar.','The Scene dock shows the node tree of the open scene, the FileSystem dock the res:// project folder, and the Inspector the selected node properties.','The built-in script editor has code completion and opens the class reference offline through Search Help.','The active renderer is shown and switched from the top-right corner, and changing it restarts the editor.'],
+      shots:[
+        { img:'assets/engines/godot-editor.webp', alt:'Godot editor showing a 3D level with the Scene, FileSystem and Inspector docks', caption:'The 3D main screen in a Godot 4.4 build: node tree top left, project files bottom left, properties on the right.', credit:{ author:'Juan Linietsky, Ariel Manzur and the Godot community', url:'https://docs.godotengine.org/en/stable/getting_started/introduction/first_look_at_the_editor.html', licence:'CC BY 3.0' },
+          callouts:[{x:0.105,y:0.29,t:'Scene dock: the node tree'},{x:0.10,y:0.68,t:'FileSystem dock: res://'},{x:0.93,y:0.5,t:'Inspector'}] },
+        { img:'assets/engines/godot-script.webp', alt:'Godot script editor with a GDScript CharacterBody3D movement script', caption:'The Script screen with a GDScript movement template for CharacterBody3D.', credit:{ author:'Juan Linietsky, Ariel Manzur and the Godot community', url:'https://docs.godotengine.org/en/stable/getting_started/introduction/first_look_at_the_editor.html', licence:'CC BY 3.0' },
+          callouts:[{x:0.12,y:0.4,t:'Open scripts'},{x:0.12,y:0.82,t:'Methods in this script'}] }
+      ] },
+    pipeline:{ points:['Files dropped into the project folder are imported automatically, and import settings live beside each file in a .import sidecar.','glTF 2.0 is the recommended 3D format; imported models become scenes you can inherit from and extend.','Textures get per-file compression settings; audio imports as WAV, Ogg Vorbis or MP3, with WAV suggested for short repeated effects, Ogg Vorbis for music and speech, and MP3 where CPU is tight on mobile and web.','Scenes save as .tscn and resources as .tres, both plain text, so they diff and merge in version control.','Imported data is cached in the .godot folder, which is regenerated and should not be committed.'] },
+    deploy:{ points:['Every platform needs export templates matching the exact editor version, downloaded from the editor or built from source.','Export presets per platform are saved in export_presets.cfg, and the command line can export a preset headless for CI.','Consoles are not public: the Godot Foundation ships no console templates, because console SDKs sit under NDA.'],
+      deploy:[
+        { t:'Install export templates', d:'Download the templates for your exact editor version from Editor, Manage Export Templates.' },
+        { t:'Create presets', d:'Add a preset per platform in Project, Export, and set features, icons and included files.' },
+        { t:'Desktop builds', d:'Export Windows, macOS and Linux binaries with a packed data file; macOS needs signing and notarisation to open cleanly.' },
+        { t:'Android', d:'Install the Android SDK and OpenJDK 17, sign the release with your own keystore, and turn on the Gradle build to export the AAB that Google Play requires.' },
+        { t:'iOS', d:'Export an Xcode project from a Mac with your Apple Team ID and bundle identifier, then archive and upload from Xcode.' },
+        { t:'Web', d:'Web builds use the Compatibility renderer only; thread support needs cross-origin isolation headers, and C# projects cannot export to web.' },
+        { t:'Consoles', d:'Get platform-holder approval, then port through a licensed vendor such as W4 Games under their NDA.' }
+      ],
+      facts:[
+        { claim:'Web export supports only the Compatibility renderer (WebGL 2), and Godot 4 C# projects cannot be exported to the web.', asOf:'2026-09-28', src:'https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html' },
+        { claim:'Threaded web builds need SharedArrayBuffer, which needs the Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: require-corp headers, or the PWA service-worker workaround.', asOf:'2026-09-28', src:'https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html' },
+        { claim:'iOS export must be done on macOS with Xcode installed, using an Apple developer Team ID and a unique bundle identifier.', asOf:'2026-09-28', src:'https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_ios.html' },
+        { claim:'The Godot Foundation maintains no official console ports; W4 Games offers Switch, Xbox Series and PlayStation 5 ports, and vendors such as RAWRLAB, Lone Wolf Technology and Pineapple Works also port.', asOf:'2026-09-28', src:'https://godotengine.org/consoles/' }
+      ] },
+    licence:{ points:['Godot is MIT-licensed: no royalties, no revenue threshold, no seat fees and no splash screen requirement.','You must include the Godot copyright and licence notice with your game, for example in the credits.','Your game content is yours; the engine licence does not cover your own assets or code.','The non-profit Godot Foundation stewards the project, and an MIT release you already use cannot be relicensed out from under you.'],
+      facts:[{ claim:'Godot is released under the MIT (Expat) licence, owes no royalties, and asks games to include its copyright and licence notice; the Godot Foundation hosts the project.', asOf:'2026-09-28', src:'https://godotengine.org/license/' },
+        { claim:'The renderers are Forward+ (Vulkan, Direct3D 12 or Metal, desktop), Mobile (same APIs, mobile and desktop) and Compatibility (OpenGL, low-end devices and the web).', asOf:'2026-09-28', src:'https://docs.godotengine.org/en/stable/tutorials/rendering/renderers.html' }] },
+    ai:{ points:['Scenes and resources are text (.tscn, .tres, project.godot), so an agent can read, diff and edit them, though hand-editing resource ids is fragile.','The class reference is complete and versioned, and the engine source is public, so an agent can check any API against the real code.','Godot 4 renamed much of the Godot 3 API (KinematicBody to CharacterBody, yield to await, new signal syntax), and models trained on old tutorials still write Godot 3 code.','The editor runs headless from the command line, so an agent can run scripts, imports, tests and exports in CI with --headless.','Laying out scenes, tuning in the inspector, animation curves and judging how the game feels stay editor work an agent cannot see.'] },
+    interview:{ iv:[
+      { q:'What is the difference between a node and a scene in Godot?', a:'A node is one object with one job, such as a sprite or a collision shape. A scene is a saved tree of nodes that can be instanced many times and nested inside other scenes, which is how Godot does prefabs and composition.', follow:'How would you share behaviour between two different enemy scenes?', red:'Saying they are the same thing, or inheriting classes for everything; it shows no feel for composition by scenes.' },
+      { q:'When do you use signals instead of direct method calls?', a:'Signals go up and across the tree: a child emits, and whoever cares connects, so the child never knows its parent. Direct calls go down to children you own. That keeps scenes reusable in isolation.', follow:'How do you avoid a dangling connection when a node is freed?', red:'Using get_parent() chains everywhere; scenes then break as soon as they move in the tree.' },
+      { q:'What is the difference between _process and _physics_process?', a:'_process runs once per rendered frame with a variable delta. _physics_process runs at the fixed physics tick, so movement and collision code belongs there to behave the same at any frame rate.', follow:'How would you smooth a physics-driven object on a 144 Hz display?', red:'Putting movement in _process without delta; speed then depends on frame rate.' },
+      { q:'Why might you choose GDScript over C#, or the reverse?', a:'GDScript is tightly integrated, reloads fast and exports everywhere, including the web. C# gives static typing, .NET libraries and faster heavy logic, but needs the .NET editor build and cannot export to the web in Godot 4.', follow:'Where would GDExtension fit instead?', red:'Claiming C# is always better; it ignores the web limitation and the integration cost.' },
+      { q:'A Godot web build hangs on a blank screen on itch.io. What do you check?', a:'Whether it was exported with threads, which are off by default since Godot 4.3, because a threaded build needs cross-origin isolation headers for SharedArrayBuffer. I would enable the host setting that sends them, use the PWA workaround, or export without threads. Then I read the browser console for errors.', follow:'What does exporting without threads cost you?', red:'Blaming the browser and re-uploading; it shows no knowledge of COOP and COEP.' },
+      { q:'How would you ship a Godot game on consoles?', a:'Godot has no public console templates because the SDKs are under NDA. You get approved by the platform holder, then work with a porting vendor such as W4 Games, and budget for certification like any other engine.', follow:'What in your codebase makes a port harder?', red:'Saying you just pick a console in the export dialog.' }
+    ] }
+  },
+  flow:{ kind:'flow', title:'godot: from project to a shipped build',
+    steps:[{id:'proj', t:'Create project', d:'pick a renderer'},{id:'scenes', t:'Build scenes', d:'nodes, scripts, signals'},{id:'import', t:'Import assets', d:'glTF, textures, audio'},{id:'tpl', t:'Install templates', d:'exact editor version'},{id:'preset', t:'Export presets', d:'one per platform'},{id:'sign', t:'Sign builds', d:'keystore, Apple team, notarise'},{id:'ship', t:'Upload to stores', d:'Steam, Play, App Store, web'}],
+    edges:[['proj','scenes'],['scenes','import'],['import','tpl'],['tpl','preset'],['preset','sign'],['sign','ship']] },
+  topics:['platform-choice','quality-and-build-health','prototyping','ai-for-implementation']
+});
+
 /* =====================================================================
    PLAYER
    Each topic is followed by its techniques (TECH), engine views (ENGINE)
@@ -22224,7 +22278,7 @@ T('ai-for-implementation',{ d:'ai', t:'AI for prototyping and implementation', t
   why:[`This is where AI most reliably saves time: prototypes in hours, simulations in minutes, tooling on demand.`,`Instrumented prototypes turn playtests into data.`,`Speed here is only valuable if it feeds more tests and more judgement, not more features.`],
   think:{ q:[`What question does this build answer? What must it log to answer it?`,`Which tuning values should be live so I can iterate during the test?`,`What must NOT be in this build? (Menus, saves, art, progression, unless the question needs them.)`,`What design decisions is the code making by default? Do I agree?`],
     trade:[`Fast builds encourage testing and encourage keeping code that should be thrown away.`],
-    traps:[`Prototypes that become the codebase.`,`Builds without logging, so the test yields only opinions.`,`Accepting the AI’s defaults (numbers, structures) as design decisions.`],
+    traps:[`Prototypes that become the codebase.`,`Builds without logging, so the test yields only opinions.`,`Accepting the AI’s defaults (numbers, structures) as design decisions.`,`Trusting AI-written Godot code without checking the version: Godot 4 renamed much of the Godot 3 API, so an assistant often writes calls that no longer exist; check them against the versioned class reference.`],
     good:[`A new prototype every few days, each with a hypothesis and logs.`],
     bad:[`One big build that keeps growing.`] },
   how:[`Write the brief: hypothesis, the minimal build, exposed tuning values, logged events, exclusions, and export format.`,`Ask for the embedded decisions before the build.`,`Run the test. Analyze the logs (AI can help).`,`Throw the prototype away or explicitly promote it with a refactor plan.`],
@@ -25773,15 +25827,18 @@ T('backend-go-idioms',{ d:'backend', t:'Go concurrency, lifecycle and module hyg
     {n:'Generics for utility shapes', how:`Constraint based helpers over numeric or comparable types, written once and used everywhere.`, fit:`Clamp, min and max, slice utilities, weighted selection, chunking.`, cost:`Harder signatures, worse error messages, and a standing temptation to genericize business rules.`, alt:`Concrete versions for the first two call sites. Reach for a generic at the third.`}] });
 ENGINE('backend-go-idioms',{
   godot:{ term:`Godot’s concurrency is coroutines over signals plus explicit threads. await suspends a function until a signal fires, WorkerThreadPool runs real work off the main thread, and anything touching the scene tree from a thread has to go back through call_deferred.`,
-    api:['await signal / await get_tree().create_timer()','WorkerThreadPool.add_task() / wait_for_task_completion()','Thread and Mutex','Object.call_deferred()','is_instance_valid()','Node.queue_free()'],
+    api:['await signal / await get_tree().create_timer()','WorkerThreadPool.add_task() / is_task_completed() / wait_for_task_completion()','Thread and Mutex','Object.call_deferred()','is_instance_valid()','Node.queue_free()'],
     snippet:`var _cancelled := false
 
 func load_and_show(path: String) -> void:
 \tvar id := WorkerThreadPool.add_task(_parse.bind(path))
-\tWorkerThreadPool.wait_for_task_completion(id)
+\twhile not WorkerThreadPool.is_task_completed(id):
+\t\tawait get_tree().process_frame               # the frame keeps running
+\t\tif _cancelled: break
+\tWorkerThreadPool.wait_for_task_completion(id)   # done or nearly: frees the task
 \tif _cancelled or not is_instance_valid(self):   # the screen may already be gone
 \t\treturn
-\t_apply.call_deferred(_result)                   # tree work back on the main thread
+\t_apply(_result)                                 # back on the main thread already
 
 func _exit_tree() -> void:
 \t_cancelled = true                               # the only way the task learns to stop`,
@@ -26338,7 +26395,7 @@ INTERVIEW('infra-secrets',{
     { q:`Why can you not hide an API key inside a compiled game client?`,
       a:`Because the client is handed to the player. Compiled bytecode and ahead-of-time binaries are not encryption, and dumping the strings in a shipped build is trivial. Even encrypting the assets does not help, because the decryption key has to be in the binary. The client should hold a short-lived token it was issued by your server, not a long-lived key.`,
       follow:`Your third-party analytics SDK needs a key in the client. Now what?`,
-      red:`Proposes obfuscation as protection, or claims nobody would bother.` }
+      red:`Proposes obfuscation as the protection for the key, or claims nobody would bother. Obfuscation raises the cost of reading the code; it does not stop anyone lifting a string out of a running build.` }
   ],
   mid:[
     { q:`Walk me through building a credential inventory for a project you just joined.`,
@@ -26608,17 +26665,19 @@ func report(err: String) -> void:
     api:['Application.logMessageReceivedThreaded','Application.lowMemory','ProfilerRecorder.StartNew()','ProfilerCategory','Application.version','SystemInfo.deviceModel'],
     snippet:`public class ClientTelemetry : MonoBehaviour {
     readonly Queue<string> crumbs = new();
-    ProfilerRecorder mainThread;
+    string version, device;                  // read on the main thread
     void OnEnable() {
-        mainThread = ProfilerRecorder.StartNew(ProfilerCategory.Internal, "Main Thread", 15);
-        Application.logMessageReceivedThreaded += OnLog;   // background threads too
-        Application.lowMemory += () => Crumb("lowMemory");
+        version = Application.version; device = SystemInfo.deviceModel;
+        Application.logMessageReceivedThreaded += OnLog;
+        Application.lowMemory += OnLowMemory;
     }
-    void OnDisable() => Application.logMessageReceivedThreaded -= OnLog;
-    public void Crumb(string s) { crumbs.Enqueue(s); if (crumbs.Count > 32) crumbs.Dequeue(); }
-    void OnLog(string msg, string stack, LogType type) {
+    void OnDisable() { Application.logMessageReceivedThreaded -= OnLog; Application.lowMemory -= OnLowMemory; }
+    void OnLowMemory() => Crumb("lowMemory");
+    public void Crumb(string s) { lock (crumbs) { crumbs.Enqueue(s); if (crumbs.Count > 32) crumbs.Dequeue(); } }
+    void OnLog(string msg, string stack, LogType type) {  // any thread: no Unity API
         if (type != LogType.Exception) return;
-        Report(Application.version, SystemInfo.deviceModel, msg, stack, crumbs.ToArray());
+        string[] trail; lock (crumbs) trail = crumbs.ToArray();
+        Report(version, device, msg, stack, trail);
     }
 }`,
     pitfall:`Subscribing to Application.logMessageReceived instead of the threaded variant, then calling Unity API inside the handler. The non-threaded event misses exceptions raised off the main thread, and any UnityEngine call from a background thread throws inside your crash reporter, so the reporter is the thing that fails during the crash it exists to record.`,
@@ -28352,7 +28411,7 @@ T('platform-choice',{ d:'platforms', t:'Choosing platforms', tag:'The platform d
   why:[`The platform sets the engine, the budget and the calendar before any feature does: an NDA, a dev kit and a certification queue are commitments made months before a review even starts.`,`Reach and gatekeeping trade off. Open platforms let anyone publish; consoles and curated stores add months of access work in exchange for a bigger or more curious audience.`,`A platform decided late reshapes input, save data and UI scaling, which is exactly the work a design should have budgeted from the start.`,`A platform the team cannot reach directly (a console with no first-party approval) is not automatically closed; middleware and porting partners exist for that gap.`],
   think:{ q:[`Does this platform’s input and session length match the core loop we already validated?`,`Can the team afford the dev kit, the NDA and the certification calendar of this platform before any revenue arrives?`,`What does porting to a second platform cost, in the engine we picked?`,`Is Steam Deck, handheld or a second-screen mode a day-one target, or a later port?`,`If direct access is out of reach, does a porting partner or console middleware close the gap at a cost we can carry?`],
     trade:[`PC first is cheap and open but caps reach on discoverability alone; console and mobile reach more players but gate access behind an NDA and a review queue.`,`One shared codebase saves engineering time and pulls every build down to the platform with the fewest features.`,`Committing to a console early buys a dev kit and support; committing late means designing around SDK limits the team never planned for.`],
-    traps:[`Choosing a platform because the name is prestigious, not because the validated audience is there.`,`Treating “we’ll port later” as free instead of as its own scoped task.`,`Designing controls for one input method and assuming touch or gamepad will just work.`,`Skipping the middleware or porting-partner option and concluding a console is simply closed.`],
+    traps:[`Choosing a platform because the name is prestigious, not because the validated audience is there.`,`Treating “we’ll port later” as free instead of as its own scoped task.`,`Designing controls for one input method and assuming touch or gamepad will just work.`,`Skipping the middleware or porting-partner option and concluding a console is simply closed.`,`Picking a web target late in Godot: its web export runs only on the Compatibility renderer, and threaded builds need cross-origin isolation headers, so a web target constrains renderer and language choice from day one.`],
     good:[`The platform list is scored against the audience already tested, not against ambition.`,`A second export target costs days of adaptation, not months of redesign.`],
     bad:[`The wrong input scheme forces a late redesign right before certification.`,`Nobody can say why this platform is first, only that it seemed obvious.`] },
   how:[`List the realistic platforms and score each on reach, cost, gatekeeping and effort against the audience already validated.`,`Pick PC-first, mobile-first or console-first based on the team’s actual capacity for an NDA, a dev kit and a certification calendar, not the pitch deck.`,`Design the core loop for the primary platform’s input, and scope a second platform’s input as its own port task rather than a checkbox.`,`Where direct console access is out of reach, evaluate a porting partner or console middleware before dropping the platform.`,`Decide whether Steam Deck, Mac and the primary PC target share one export, or need their own preset.`,`Write the export or build matrix (platforms times configurations) before content scales past what it covers.`,`Count creative freedom as part of a platform deal: Monolith Soft became a Nintendo subsidiary in 2007, accepting Nintendo-only development in exchange for the freedom it felt it had lost under Namco Bandai, and went on to make Xenoblade Chronicles.`],
@@ -29313,7 +29372,7 @@ CASE({
   ],
   decisions:[
     { d:`Keep gameplay in the default assembly instead of splitting it into layered assemblies.`,
-      why:`The obfuscator protects one assembly by name. A tidy split would have left most of the game outside the protected set without any error, which for a binary that carries all its own game logic is the threat we were paid to care about.`,
+      why:`The obfuscator protects one assembly by name. A tidy split would have left most of the game outside the protected set without any error, which for a binary that carries all its own game logic is the threat we were paid to care about. Obfuscation here raises the cost of reverse engineering the logic; it is not where secrets were kept, and no secret shipped in the client.`,
       trade:`No compile-time layering and no incremental compile win, and test assemblies cannot reference the game, so the test harness resolves types by name through reflection. We centralised that reflection in one file and accepted it.` },
     { d:`Two independent obfuscation layers, asset name hashing and code renaming, each switchable per pipeline.`,
       why:`They defend against two different threats, datamining of shipped assets and reverse engineering of the binary, and being able to turn one off is what makes a failure diagnosable.`,
@@ -33057,7 +33116,8 @@ PATH('gameplay-engineer-godot', {
         { kind:'topic', ref:'core-loop', tab:'godot', why:'The physics tick owns the verb. Drop the multiply-by-delta habit before it makes your character sixty times too slow.', do:'Write a CharacterBody2D script with _physics_process driving move_and_slide() and a signal emitted on the consequence. Do not multiply velocity by delta before move_and_slide.', min:30 },
         { kind:'tool', ref:'loop', why:'Building the loop as a diagram exposes the weak link your script hides inside one function.', do:'Build the same loop in the Loop Builder, run its weak-link check, and note which link the check flags that your script does not yet handle.', min:25 },
         { kind:'topic', ref:'decisions', tab:'overview', why:'A decision only counts if the player can make it. That is a design claim before it is an engine problem.', do:'List the three decisions your loop should offer the player and write the trade-off sentence for each.', min:20 },
-        { kind:'topic', ref:'decisions', tab:'godot', why:'A Control with the wrong mouse_filter swallows the click and turns a decision into a decision nobody made.', do:'Build a Button-per-option menu from an Array of option data, set the first option to grab_focus, and check every overlay above it uses mouse_filter IGNORE.', min:25 }
+        { kind:'topic', ref:'decisions', tab:'godot', why:'A Control with the wrong mouse_filter swallows the click and turns a decision into a decision nobody made.', do:'Build a Button-per-option menu from an Array of option data, set the first option to grab_focus, and check every overlay above it uses mouse_filter IGNORE.', min:25 },
+        { kind:'engine', ref:'godot', why:'Knowing where code lives in Godot, which node, which scene, which signal, is what turns a loop you understand into one you can build.', do:'Read the guide’s architecture and editor stages, then write down which node, scene and signal your core loop’s first version will use.', min:12 }
       ],
       review:[],
       check:{

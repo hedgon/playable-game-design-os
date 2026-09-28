@@ -1388,15 +1388,18 @@ T('backend-go-idioms',{ d:'backend', t:'Go concurrency, lifecycle and module hyg
     {n:'Generics for utility shapes', how:`Constraint based helpers over numeric or comparable types, written once and used everywhere.`, fit:`Clamp, min and max, slice utilities, weighted selection, chunking.`, cost:`Harder signatures, worse error messages, and a standing temptation to genericize business rules.`, alt:`Concrete versions for the first two call sites. Reach for a generic at the third.`}] });
 ENGINE('backend-go-idioms',{
   godot:{ term:`Godot’s concurrency is coroutines over signals plus explicit threads. await suspends a function until a signal fires, WorkerThreadPool runs real work off the main thread, and anything touching the scene tree from a thread has to go back through call_deferred.`,
-    api:['await signal / await get_tree().create_timer()','WorkerThreadPool.add_task() / wait_for_task_completion()','Thread and Mutex','Object.call_deferred()','is_instance_valid()','Node.queue_free()'],
+    api:['await signal / await get_tree().create_timer()','WorkerThreadPool.add_task() / is_task_completed() / wait_for_task_completion()','Thread and Mutex','Object.call_deferred()','is_instance_valid()','Node.queue_free()'],
     snippet:`var _cancelled := false
 
 func load_and_show(path: String) -> void:
 \tvar id := WorkerThreadPool.add_task(_parse.bind(path))
-\tWorkerThreadPool.wait_for_task_completion(id)
+\twhile not WorkerThreadPool.is_task_completed(id):
+\t\tawait get_tree().process_frame               # the frame keeps running
+\t\tif _cancelled: break
+\tWorkerThreadPool.wait_for_task_completion(id)   # done or nearly: frees the task
 \tif _cancelled or not is_instance_valid(self):   # the screen may already be gone
 \t\treturn
-\t_apply.call_deferred(_result)                   # tree work back on the main thread
+\t_apply(_result)                                 # back on the main thread already
 
 func _exit_tree() -> void:
 \t_cancelled = true                               # the only way the task learns to stop`,
