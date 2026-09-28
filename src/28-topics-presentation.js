@@ -208,7 +208,7 @@ T('audio-and-music',{ d:'presentation', t:'Audio and music', tag:'Sound is the f
     traps:[`Audio as the last hire.`,`Critical information in audio only, with no visual redundancy.`,`Music that plays the same during rest and peak.`],
     good:[`Players react to threats before they see them.`,`Players hum the music.`],
     bad:[`Players turn the music off or say they never noticed a warning.`] },
-  how:[`List critical signals. Give each a distinct sound and a visual backup.`,`Map music states to the intensity curve.`,`Mix by hierarchy: feedback over ambience, warnings over music.`,`Test muted and test with eyes closed for the key signals.`],
+  how:[`List critical signals. Give each a distinct sound and a visual backup.`,`Map music states to the intensity curve.`,`Mix by hierarchy: feedback over ambience, warnings over music.`,`Test muted and test with eyes closed for the key signals.`,`When a composed or licensed soundtrack is out of reach, consider piping in a real, live feed instead, as Euro Truck Simulator 2 does with internet radio, trading control over the mood for a free and constantly changing one.`],
   ai:{ yes:[`Map signals to audio cues and flag collisions.`,`Design music-state logic tied to game state.`,`Prototype audio systems and mixing rules.`],
        no:[`Compose the identity. Style and taste are authorship.`] },
   prompts:[{l:'Audio signal map',p:`Here are our critical signals and the moments they matter: [LIST]. For each, propose a distinct audio cue (character, duration, priority) and the visual redundancy. Then propose a music-state model with states tied to [GAME STATES] and transitions, matching this intensity curve: [CURVE]. Identify signals that would collide in the mix and a priority rule to resolve them.`}],

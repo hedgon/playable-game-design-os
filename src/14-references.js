@@ -182,6 +182,7 @@ const GAME_AWARDS = {
   'witcher-3': [{ id:'tga', year:2015, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'gdca', year:2016, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }],
   'diablo-ii': [{ id:'dice', year:2001, src: WIKI + '4th_Annual_Interactive_Achievement_Awards' }],
   'half-life-2': [{ id:'dice', year:2005, src: WIKI + '8th_Annual_Interactive_Achievement_Awards' }, { id:'bafta', year:2005, src: WIKI + '2nd_British_Academy_Games_Awards' }, { id:'gdca', year:2005, src: WIKI + '5th_Game_Developers_Choice_Awards' }],
+  'the-sims': [{ id:'dice', year:2000, src: WIKI + '3rd_Annual_Interactive_Achievement_Awards' }],
   'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
 };
 /** @param {any} g */
