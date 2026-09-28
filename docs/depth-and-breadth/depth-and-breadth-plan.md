@@ -177,7 +177,7 @@ MonoGame, CryEngine.
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| P1 | `deploy` walkthrough frame, landed with the Steam pilot: numbered steps through the real screens, each with a schematic of the screen | todo |
+| P1 | `deploy` walkthrough frame, landed with the Steam pilot: numbered steps through the real screens, each with a schematic of the screen | landed (the shared stage renderer draws `deploy` walkthroughs and `iv` items and search indexes them; Steam pilot: an eight-step SteamPipe walkthrough, six interview items, two Steamworks documentation screens) |
 | P2 | Walkthroughs for PC and web (Steam, itch.io, web, Epic), mobile (Google Play, Apple), consoles and VR (Nintendo, PlayStation, Xbox, Quest: public information only; dev kits, what is public and what is under NDA), UGC (Roblox, Fortnite) | todo |
 | P3 | Build automation to the store: SteamPipe and steamcmd, fastlane, Gradle Play Publisher, GameCI, Unreal BuildGraph; signing (Play App Signing, iOS certificates and provisioning); test tracks (TestFlight, Play testing tracks, Steam beta branches); staged rollout | todo |
 | P4 | Related knowledge: privacy prompts (iOS ATT, Play Data safety), alternative payments and the EU DMA, accessibility requirements (Xbox Accessibility Guidelines), store optimisation (ASO), crash reporting and analytics SDKs, patch sizes | todo |
