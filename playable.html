@@ -30775,6 +30775,327 @@ INTERVIEW('craft-teaching-agents',{
 
 
 /* =====================================================================
+   CAREERS BEYOND GAMES
+   Where game developers' skills are valued outside games and how to make
+   the move: transferable skills by discipline, the destinations people
+   actually go to, repositioning a portfolio and CV, interviewing outside
+   games, the AI tooling market, and the farmer question answered
+   properly. Written after the 2022 to 2025 layoffs, with figures as dated
+   facts. No engine views: nothing here is engine code.
+   ===================================================================== */
+DOMAINS.push({ id:'careers', lens:'eng', eng:'none', t:'Careers beyond games', short:'Transferable skills, destinations, portfolio, interviews, AI tooling, leaving tech', color:'var(--d-careers)',
+  sum:`Where game developers' skills are valued outside games, and how to make the move without starting over. The skills transfer better than the vocabulary does, so most of the work is translation: of a CV, a portfolio and an interview answer into the problems another industry pays to solve.`,
+  links:[['leadership','Hiring, one-to-ones and growth conversations are the same skills, seen from the other side of the table.'],['studio','How studios work explains which of your habits another industry will value and which it will not.'],['craft','The engineering habits that still pay travel with you to any industry.']] });
+
+T('careers-transferable-skills',{ d:'careers', t:'Transferable skills by discipline', tag:'Most of what a game developer knows transfers. The vocabulary does not, and a few things you are proud of matter to nobody outside games.',
+  what:`An honest inventory of what each game discipline carries into other industries and what stays behind. Engineers carry real-time performance, memory discipline, tooling and shipping under a hard date. Designers carry systems thinking, player research and interaction design. Producers carry scheduling under uncertainty and cross-discipline negotiation. QA carries test design, reproduction and risk-based coverage. Technical artists carry pipelines, shaders and the bridge between content and code. What rarely transfers is genre knowledge, engine-specific trivia and the assumption that the user wants to be entertained.`,
+  why:[`The 2022 to 2025 layoff cycle put thousands of experienced developers on the market at once, and in GDC’s 2026 survey 28 percent of respondents said they had been laid off in the previous two years. Knowing what transfers is arguably the difference between a targeted search and a scattered one.`,`Many hiring managers outside games will not know what a gameplay programmer or a live-ops designer does. If you cannot name the transferable part, do not count on them guessing it.`,`Some skills may be valued more highly outside games than inside: frame-budget engineering in automotive or simulation, test design in regulated software, tech-art pipelines in film and industrial 3D.`,`An inventory also shows the gaps honestly, which is cheaper to learn now than in an interview.`],
+  think:{ q:[`Which parts of my work would still exist if the product were not a game?`,`What did I measure or improve, and can I state it as a number?`,`Which of my skills are engine-specific, and which are the underlying technique?`,`Which industries have the same constraint I am good at: a frame budget, a fixed ship date, an unpredictable user?`,`What does the target role do daily that I have never done, such as compliance, formal requirements or B2B sales cycles?`,`Am I leaving because I want to, or because I have to? That changes how much retraining is worth.`],
+    trade:[`Leaning on the closest adjacent field (simulation, virtual production, HMI) gets you hired faster and keeps you near the engine market, which is exposed to the same cycles. A further move (backend, data, product) is slower and more diversified.`,`Generalist breadth tends to read as versatility in a small studio and can read as lack of depth to a large enterprise screener. Pick which one the target values.`],
+    traps:[`Listing engine features you used instead of problems you solved. "Unity DOTS" means little to an automotive recruiter; "held 60 fps on a mid-range phone with 4,000 moving agents" does.`,`Assuming "game design" maps to "UX design" one to one. UX roles expect research methods, accessibility standards and stakeholder work that many designers only did informally.`,`Treating QA as a dead end. Test design, automation and risk-based planning are core skills in fintech, medical and automotive software, where formal traceability is usually also expected.`,`Undervaluing production. Scheduling a milestone with unknown scope and five disciplines is project management in its hardest form.`,`Believing passion for the medium is a transferable skill. Outside games it can read as a sign you will go back at the first chance.`],
+    good:[`Each skill is stated as a technique plus an outcome, independent of the engine or genre.`,`The gap list is short, specific and has a plan: a course, a side project or a certification the target field actually asks for.`],
+    bad:[`A skill list that names engines and genres but no technique.`,`"I can do anything with a computer" instead of three sharp claims.`] },
+  how:[`Write down five things you did in the last two years that took the most skill. Strip the game noun from each and see what is left.`,`Map each to a target discipline. Engineering: real-time rendering, performance profiling, memory budgets, build tooling, networking. Design: systems and economy modelling, prototyping, playtest research, onboarding and interaction design. Production: scheduling with unknown scope, dependency management, vendor and outsourcing coordination. QA: test planning, reproduction, automation, certification against a platform checklist. Tech art: DCC to engine pipelines, shader authoring, asset validation tools, optimisation of content.`,`Find three job postings in the target field and highlight every requirement you meet. Posting language is the evidence of what they value, not your guess.`,`List the requirements you do not meet and classify them: learnable in a month, learnable in six, or a credential gate such as a licence or clearance.`,`Talk to two people who made the same move. Ask what they had to relearn, not what they already knew.`,`Keep engine skills but name them as the technique first and the tool second.`],
+  ai:{ yes:[`Rewrite a game-specific bullet into outcome language for a named industry, then check it against a real posting.`,`Extract the recurring requirements from a batch of pasted job postings.`,`Suggest which of your listed skills map to a named role, as a starting list to verify.`],
+       no:[`Tell you which industry is hiring. Its view of the market is out of date and unsourced.`,`Invent metrics for your bullets. Numbers you cannot defend in an interview are worse than none.`,`Judge whether a skill really transfers. People who hire in that field decide that.`] },
+  prompts:[{l:'Strip the game noun',p:`Act as a hiring manager in [TARGET INDUSTRY]. Here are five things I did as a [DISCIPLINE] in games: [PASTE]. For each, say what the underlying skill is without game vocabulary, whether your field values it, and what evidence you would want to see. Flag any that you would not care about at all. Do not add numbers I did not give you.`},
+    {l:'Gap list from postings',p:`Here are three job postings for [ROLE] in [INDUSTRY]: [PASTE]. And my background: [PASTE]. List every requirement, mark each as met, partly met or missing, and for missing ones say whether it is a skill, a domain knowledge gap or a credential. Quote the posting line for each.`}],
+  verify:[`Does every mapped skill trace to a line in a real posting, or only to the model’s opinion?`,`Are any numbers in the rewritten bullets ones you did not supply?`,`Did it treat a credential gate (security clearance, safety certification) as something a course fixes?`],
+  test:[`Give your rewritten skill list to someone in the target field. If they cannot say which role it fits, it is not translated yet.`,`Count how many postings in the target field you meet at least 70 percent of. If almost none qualify, treat it as a sign that the target or the list needs rethinking; the threshold is a judgement call, not a benchmark.`],
+  facts:[{claim:`Farhan Noor’s crowd-sourced tracker, which logs publicly reported layoffs and estimates where no number is given, recorded about 8,500 game industry layoffs in 2022, 10,500 in 2023 and 14,600 in 2024, as reported by Game Developer. The counts are a floor, not a census.`,asOf:'2026-09-28',src:'https://www.gamedeveloper.com/business/industry-layoffs-are-seemingly-slowing-but-the-damage-has-already-been-done'},
+    {claim:`GDC’s 2026 State of the Game Industry survey (more than 2,300 respondents) found 28 percent of respondents had been laid off in the previous two years, and 33 percent of those based in the United States.`,asOf:'2026-09-28',src:'https://gdconf.com/article/gdc-2026-state-of-the-game-industry-reveals-impact-of-layoffs-generative-ai-and-more/'}],
+  rel:[['careers-destinations','The skill map only matters once it is pointed at a destination.'],['careers-repositioning','Translating the skills into a CV is the next step.'],['lead-hiring','Seeing hiring from the other side shows what evidence a screener trusts.'],['playtesting','Player research is the design skill that transfers most directly to UX research.'],['planning-and-milestones','Scheduling under uncertainty is the producer skill other industries buy.']] });
+INTERVIEW('careers-transferable-skills',{
+  junior:[
+    { q:`You worked two years as a gameplay programmer. What would you tell a fintech backend team you can do?`,
+      a:`Name techniques, not features: profiling and fixing hot paths, reasoning about memory and allocation, writing deterministic code that can be tested, and shipping under a fixed date. Admit the gaps: no production database experience at scale, no experience with their compliance process. Give one concrete example with a number.`,
+      follow:`Which of those would you need to show them in code, not just claim?`,
+      red:`Lists the game genres and engines and expects them to infer the rest.` },
+    { q:`What from QA in games carries into regulated software testing?`,
+      a:`Writing reproducible bug reports, designing test plans that cover risk rather than everything, working against a checklist like platform certification, and automation if you did it. The difference is that regulated fields need traceability from requirement to test, which game QA often does not formalise.`,
+      follow:`How would you show traceability experience you only had informally?`,
+      red:`Says QA is just playing the game.` }],
+  mid:[
+    { q:`A game designer wants to move into UX. What maps and what does not?`,
+      a:`Maps: systems thinking, onboarding and feedback loops, prototyping, and playtesting as observational research. Does not map directly: formal research methods and reporting, accessibility standards, working with product owners on business metrics, and designing for users who want to finish a task quickly rather than be challenged.`,
+      follow:`What portfolio piece would close the biggest of those gaps?`,
+      red:`Claims game design is harder than UX so the move is trivial.` },
+    { q:`How do you decide whether a skill is engine-specific or transferable?`,
+      a:`Ask whether it survives changing the tool. Blueprint wiring is tool-specific; event-driven architecture is not. The Unity Profiler is a tool; finding the bottleneck by measurement is the skill. Then check postings in the target field for the technique name.`,
+      follow:`Give an example where you would keep the tool name on the CV anyway.`,
+      red:`Cannot separate the two for their own work.` }],
+  senior:[
+    { q:`You are a lead producer. Why would an engineering organisation outside games hire you?`,
+      a:`Because game production is scheduling where scope, quality and tech are all unknown at once, across art, code, design and audio, with a date set by marketing or a platform holder. That maps to programme management. Bring evidence: slips caught early, scope cuts negotiated, vendor pipelines run. Be ready to learn their frameworks and their vocabulary.`,
+      follow:`What would you change about how you report status to a non-games executive?`,
+      red:`Talks only about crunch survived as proof of commitment.` },
+    { q:`How do you advise someone on your team who was laid off and wants to leave games?`,
+      a:`Separate the decision from the grief, give them a realistic picture of the market with sourced numbers, help them write the skill inventory, and introduce them to people in adjacent fields. Do not promise the move is easy or that games will recover on a schedule.`,
+      follow:`What would you tell them about staying near game engines versus moving further away?`,
+      red:`Tells them to wait it out without evidence.` }] });
+
+T('careers-destinations',{ d:'careers', t:'Where game developers go', tag:'The nearest exits use the same engines and the same instincts. The furthest exits pay off in stability. Each one has a price of entry you should know before you apply.',
+  what:`A map of the fields that hire game developers, each with public evidence that the work exists and a plain list of what the move needs. Simulation and digital twins, film and virtual production, education and serious games, UX and product, automotive and embedded HMI, AR and VR, AI tooling, and backend and data. The nearest destinations still run Unreal or Unity; the furthest share only the engineering or research discipline.`,
+  why:[`Job boards do not label a role "good for ex-game developers". Knowing which industries use real-time 3D or game-style research saves months of blind applications.`,`Each destination has different gates: domain knowledge, safety standards, degrees, clearances. Seeing them up front lets you choose one you can actually cross.`,`Engine-adjacent fields are partly exposed to the same vendors and cycles as games. Knowing that is part of choosing.`],
+  think:{ q:[`Do I want to keep working in a real-time engine, or keep the discipline and drop the engine?`,`What is the price of entry here: a portfolio piece, a certification, a degree, a clearance?`,`Who are the actual employers? Name five and find their postings.`,`How exposed is this field to the same funding cycle as games?`,`Will the work still be interesting to me in three years, or is it just the nearest door?`],
+    trade:[`Adjacent real-time fields (virtual production, digital twins, HMI) value your engine skills directly, but some are small markets built on the same engine vendors.`,`Backend, data and product are large and stable markets where your game background is a curiosity rather than a qualification, so you compete on general skill.`],
+    traps:[`Reading a vendor’s case study as proof of a hiring market. A famous project may have employed a few dozen specialists.`,`Citing The Mandalorian as proof that film runs on Unreal. For season two ILM rendered the LED volume imagery with Helios, its own real-time engine.`,`Ignoring safety and process standards in automotive and medical work. Expect a heavier review and documentation culture than most studios run.`,`Quoting a market-size figure from a press release as if it were measured.`,`Moving into AR and VR, or AI tooling, at the peak of a hype cycle without checking who is still funded.`],
+    good:[`Each target destination has named employers, live postings and a stated gap you are closing.`,`The choice considers both entry cost and long-term stability.`],
+    bad:[`"I will apply to anything with 3D in it."`,`Choosing a field on the strength of one vendor keynote.`] },
+  how:[`Simulation and digital twins: industrial users build factory, city and training simulations on Unity Industry and NVIDIA Omniverse. You need CAD and BIM data handling, OpenUSD familiarity for Omniverse, and patience with enterprise sales cycles. Evidence: BMW’s Omniverse-based Virtual Factory and Unity Industry’s stated use cases.`,`Film and virtual production: LED volumes and previs use real-time engines. Needs camera and colour knowledge, on-set discipline, and Unreal’s virtual production tools. Evidence: ILM StageCraft on The Mandalorian, which used Unreal in season one.`,`Education, training and serious games: simulations for medicine, defence, safety and corporate training. Needs instructional design basics and a tolerance for procurement and accreditation. Design and prototyping skills are arguably the most direct fit.`,`UX and product: research, interaction design and product management. Needs formal research methods, accessibility knowledge and business metric fluency. It is a common move for designers and researchers.`,`Automotive and embedded HMI: digital cockpits built in Unreal and Unity. Needs embedded performance work, working to automotive process standards and long product cycles. Evidence: Epic says over 35 car models have shipped with Unreal Engine HMI, starting with the GMC Hummer EV and Rivian R1T; Mercedes-Benz chose Unity for its next in-car experiences.`,`AR and VR: enterprise training, medical and industrial visualisation. Engine skills transfer fully; the funding is volatile, so check who is shipping.`,`AI tooling: engineering and evaluation roles for content and simulation tools. Needs Python, data pipelines and evaluation methods; your content and tooling experience is an edge.`,`Backend and data: services, data engineering and analytics. Live-ops, telemetry and online services engineers arguably have the shortest step; you compete on general skill, so show it with non-game code.`],
+  ai:{ yes:[`List employers in a destination to check yourself, as a starting point for search.`,`Summarise a batch of job postings into common requirements.`,`Explain domain vocabulary (OpenUSD, ISO 26262, ADDIE) well enough to read the postings.`],
+       no:[`Report market sizes or hiring numbers. Those need a dated primary source.`,`Say which field is growing now. Its data is stale.`,`Replace a conversation with someone who works there.`] },
+  prompts:[{l:'Destination brief',p:`I am a [DISCIPLINE] with [N] years in games, skills: [LIST]. For the destination [FIELD], list the typical roles, the skills they require that I lack, any credential or standard gates, and the kinds of employers. Do not give market size figures. Mark anything you are unsure of.`},
+    {l:'Posting analysis',p:`Here are job postings from [FIELD]: [PASTE]. Group the requirements into must-have and nice-to-have, say which ones a game developer typically has, and quote the posting lines. Do not add requirements that are not in the text.`}],
+  verify:[`Is each named employer real and currently hiring? Check their careers page.`,`Did the model assert a market size or growth rate? Remove it unless you can source it.`,`Are the standards it named (such as ISO 26262 for automotive safety) actually mentioned in the postings you see?`],
+  test:[`For your chosen destination, find ten live postings. If you cannot, the market is smaller than the case studies suggest.`,`Ask one person in the field what a new hire from games usually gets wrong in the first three months.`],
+  facts:[{claim:`ILM states that over 50 percent of The Mandalorian season one was filmed in StageCraft, a 20 ft high, 270-degree LED volume with a 75 ft performance space, driven in real time by Unreal Engine.`,asOf:'2026-09-28',src:'https://www.ilm.com/groundbreaking-led-stage-production-technology-created-for-hit-lucasfilm-series-the-mandalorian/'},
+    {claim:`For season two, ILM enlarged the StageCraft volume, raised its resolution and introduced Helios, a real-time render engine built by ILM engineers, for the imagery shown on the LED walls.`,asOf:'2026-09-28',src:'https://www.ilm.com/vfx/the-mandalorian-season-2/'},
+    {claim:`Epic says the GMC Hummer EV became, in 2020, the first vehicle to feature Unreal Engine in its digital cockpit, as a proof of concept, and that over 35 car models have since shipped with Unreal Engine HMI.`,asOf:'2026-09-28',src:'https://www.unrealengine.com/news/five-years-35-car-models-how-unreal-engine-is-accelerating-hmi-innovation'},
+    {claim:`Epic describes the Rivian R1T as the first commercial vehicle to ship to the mass market with an Unreal Engine powered digital cockpit.`,asOf:'2026-09-28',src:'https://www.unrealengine.com/news/five-years-35-car-models-how-unreal-engine-is-accelerating-hmi-innovation'},
+    {claim:`In a Unity-hosted talk from November 2023, Mercedes-Benz’s director of MB.OS customer experience and design explains why the company selected Unity for its in-car experiences.`,asOf:'2026-09-28',src:'https://unity.com/resources/unite-mercedes-benz'},
+    {claim:`BMW Group says its Omniverse-based Virtual Factory covers more than 30 sites and projects up to a 30 percent reduction in production planning costs.`,asOf:'2026-09-28',src:'https://www.press.bmwgroup.com/global/article/detail/T0450699EN/bmw-group-scales-virtual-factory?language=en'},
+    {claim:`Unity lists 3D collaboration, immersive training, customer experiences and embedded HMI as Unity Industry uses, and says its Asset Transformer toolkit prepares data from 70+ file formats, including CAD and BIM.`,asOf:'2026-09-28',src:'https://unity.com/products/unity-industry'}],
+  rel:[['careers-transferable-skills','Pick a destination that uses the skills you actually have.'],['careers-repositioning','Each destination needs its own version of your portfolio.'],['platform-choice','Choosing an engine or platform is the same trade of reach against lock-in.'],['risk-and-dependencies','A career move has dependencies and exposure just like a project.'],['careers-the-farmer-answered','The furthest destination of all, leaving tech for the land, answered with real farm economics.']] });
+INTERVIEW('careers-destinations',{
+  junior:[
+    { q:`Why might a virtual production studio hire a junior Unreal developer from games?`,
+      a:`Because the daily work is building and optimising real-time scenes in Unreal, often with Blueprints and level tools. They would still need to learn camera tracking, colour pipelines and on-set timing.`,
+      follow:`What would you build as a portfolio piece to show that?`,
+      red:`Thinks the film industry uses Unreal for everything.` },
+    { q:`What is a digital twin, in one sentence, and what game skill does it use?`,
+      a:`A simulated model of a real system, such as a factory, fed by real data for planning or monitoring. It uses real-time 3D, importing heavy assets, performance work and simulation logic.`,
+      follow:`What is different about the data compared with game assets?`,
+      red:`Describes it as a game about a factory.` }],
+  mid:[
+    { q:`What changes when you move from games to automotive HMI?`,
+      a:`Safety and process standards, long product cycles, fixed hardware you cannot patch weekly, and much heavier documentation and review. The engine work (performance, UI, animation) transfers.`,
+      follow:`How would you show you can work to a process standard?`,
+      red:`Expects to ship updates like a live game.` },
+    { q:`How would you judge whether AR or VR is a safe destination this year?`,
+      a:`Check who is actually shipping and hiring now: live postings, recent funding, enterprise customers. Look at layoffs in that segment too. Do not rely on keynotes.`,
+      follow:`What signals would make you decide against it?`,
+      red:`Cites a market forecast as the reason.` }],
+  senior:[
+    { q:`As a senior engineer, would you pick an engine-adjacent field or backend services, and why?`,
+      a:`Depends on goals: adjacent fields value my engine depth immediately but share vendors and cycles with games; backend offers a larger, more stable market where I compete on general skill. State the trade and your choice with a reason.`,
+      follow:`What would you need to show a backend hiring manager?`,
+      red:`Has no view on market exposure.` },
+    { q:`How would you evaluate a vendor’s case study as evidence of jobs?`,
+      a:`A case study proves the work exists, not that many people are hired for it. Cross-check with postings, headcounts and the vendor’s own partner lists, and note if the customer later changed tools, as ILM did.`,
+      follow:`Where would you look for headcount?`,
+      red:`Treats marketing as labour market data.` }] });
+
+T('careers-repositioning',{ d:'careers', t:'Repositioning your portfolio and CV', tag:'Outside games nobody asks what you shipped. They ask what problem you solved for someone like them, and how you know it worked.',
+  what:`Rewriting a game CV and portfolio for another industry: translating game jargon into outcomes a non-games reader recognises, rebuilding portfolio pieces around the target domain’s problems, and reading what the target field asks for in its postings and published hiring guidance. The work is the same; the frame changes from titles and features to problems, measures and constraints.`,
+  why:[`The first read is short. Ladders’ 2018 eye-tracking study measured an average initial CV screen of 7.4 seconds, so an untranslated game term can cost you the whole read.`,`A portfolio of game clips proves craft but not fit. One piece built around the target domain’s problem arguably proves both.`,`Where hiring guidance is published, it asks for process and outcome rather than polish: Nielsen Norman Group, drawing on a survey of 204 UX hiring managers, says final screenshots only tell part of the story.`],
+  think:{ q:[`What problem did each project solve, and for whom?`,`What was measured before and after?`,`Which of my portfolio pieces would a hiring manager in the target field understand in thirty seconds?`,`What vocabulary does the target field use for what I did?`,`What do I need to build new, rather than rewrite?`],
+    trade:[`A single tailored CV per field reads well and costs time for each version. One generic CV costs nothing and reads as generic.`,`Keeping game work in the portfolio shows craft; leading with it can make you look like you want to go back.`],
+    traps:[`Jargon: "live ops", "vertical slice", "cert", "crunch", "DAU" left unexplained.`,`Listing titles instead of outcomes.`,`Portfolio pieces that need sound and a controller to understand.`,`Hiding the game background, which can make the gap in your history look worse than it is.`,`Numbers you cannot explain, or that belong to the whole team.`],
+    good:[`Each CV bullet states the problem, your action and a measured outcome in the target field’s words.`,`At least one portfolio piece solves a problem from the target field.`],
+    bad:[`A reel of trailers.`,`A CV that says "passionate about games" at the top.`] },
+  how:[`Build a translation table: game term on the left, plain outcome on the right. "Vertical slice" becomes "production-quality prototype that validated scope and cost". "Cert pass" becomes "met a platform holder’s compliance checklist first time". "Live ops" becomes "ran a weekly release and experiment cadence against retention and revenue metrics".`,`Rewrite each bullet as problem, action, result. Keep only numbers you can defend and say whose they are.`,`Rebuild one portfolio piece for the target domain: a small digital twin viewer from real CAD data, a car-dashboard UI prototype holding frame budget on modest hardware, a UX case study with research method and findings, a backend service with tests and a load benchmark.`,`Write a short case study for each piece. Nielsen Norman Group’s checklist is a sound template outside UX too: the problem, your role and who you worked with, how you reached the solution, the outcome, the challenges and discarded options, the effect on users and the business, and what you learned. Keep three to five pieces rather than everything.`,`Lay the CV out for a skim: simple layout, clear section headings, bold titles and bulleted accomplishments. Ladders found these did best, and cluttered layouts, multiple columns, long sentences and keyword stuffing did worst.`,`Keep the game work, framed as craft and scale, below the domain piece.`,`Ask two people in the target field to read the CV cold and say what role they think it is for.`],
+  ai:{ yes:[`Draft a jargon translation table from your CV for a named field.`,`Rewrite bullets into problem, action, result format, which you then correct.`,`Critique a case study for missing context or unclear measures.`],
+       no:[`Invent achievements or metrics.`,`Produce a portfolio piece you cannot explain in an interview.`,`Decide what a specific hiring manager values. Ask them or read their postings.`] },
+  prompts:[{l:'Translate the CV',p:`Here is my game industry CV: [PASTE]. The target role is [ROLE] in [INDUSTRY]. Rewrite each bullet as problem, action and result in that field’s vocabulary, keeping only numbers I gave. List every game term you removed and what you replaced it with, and flag any bullet with no outcome.`},
+    {l:'Portfolio piece plan',p:`I want one portfolio piece that shows a [INDUSTRY] hiring manager I can do [ROLE]. My skills: [LIST]. Propose three small projects (two weeks each) based on real problems in that field, with what to measure and what the case study should say. Say what data or tools I would need.`}],
+  verify:[`Is every rewritten bullet still true and yours?`,`Did the model keep any numbers you did not supply?`,`Would a non-games reader understand each line without a glossary?`],
+  test:[`Give the CV to someone outside games for thirty seconds and ask what you do. If they say "games", it is not repositioned.`,`Track the response rate to tailored versus generic applications over a month.`],
+  facts:[{claim:`Ladders’ 2018 eye-tracking study of recruiters found an average initial CV screen of 7.4 seconds; simple layouts with clear headings and bulleted accomplishments performed best.`,asOf:'2026-09-28',src:'https://www.prnewswire.com/news-releases/ladders-updates-popular-recruiter-eye-tracking-study-with-new-key-insights-on-how-job-seekers-can-improve-their-resumes-300744217.html'},
+    {claim:`Nielsen Norman Group, drawing on a survey of 204 UX hiring managers, recommends three to five detailed case studies, each covering the problem, your role, the process, the outcome and the business impact, and notes hiring managers rarely read a portfolio word for word.`,asOf:'2026-09-28',src:'https://www.nngroup.com/articles/ux-design-portfolios/'}],
+  rel:[['careers-transferable-skills','The skill inventory is the raw material the CV translates.'],['careers-destinations','The destination decides which vocabulary and which portfolio piece.'],['lead-hiring','Knowing how screeners read CVs tells you what to fix.'],['metrics-and-success','Outcome bullets need the same measurement habit as product metrics.']] });
+INTERVIEW('careers-repositioning',{
+  junior:[
+    { q:`How would you describe "vertical slice" to a non-games hiring manager?`,
+      a:`A production-quality prototype of a small part of the product, built to prove the approach and estimate the cost of the rest.`,
+      follow:`What outcome would you attach to it?`,
+      red:`Uses more game jargon to explain it.` },
+    { q:`What makes a good portfolio piece for a UX role coming from game design?`,
+      a:`A case study showing a user problem, the research method, the design iterations and a measured result, ideally outside games.`,
+      follow:`How would you show research if you only playtested informally?`,
+      red:`Shows only screenshots of a game.` }],
+  mid:[
+    { q:`Your biggest achievement was a team effort. How do you put it on a CV?`,
+      a:`State the team result and your specific part in it honestly, with the number owned by the team labelled as such.`,
+      follow:`What if the interviewer asks what you personally did?`,
+      red:`Claims the whole result.` },
+    { q:`Should you hide your game background?`,
+      a:`No. Frame it as craft, scale and delivery under pressure, and lead with the work that fits the target.`,
+      follow:`How would you answer "why are you leaving games"?`,
+      red:`Criticises the game industry in the interview.` }],
+  senior:[
+    { q:`What do hiring managers outside games look for in a senior hire from games?`,
+      a:`It varies by field, so check their postings, but published guidance such as Nielsen Norman Group’s survey of UX hiring managers stresses process, your specific role and business impact over polish. Expect them to probe collaboration with non-technical stakeholders, measurable outcomes and willingness to learn the domain, and whether you will work within their constraints rather than import studio habits such as crunch.`,
+      follow:`Which studio habit would you consciously drop?`,
+      red:`Assumes games seniority transfers automatically.` },
+    { q:`How would you rebuild a portfolio for automotive HMI in a month?`,
+      a:`Build one dashboard UI prototype in Unreal or Unity on modest hardware, hold a stated frame budget, document the constraints and measurements, and write a short case study. Keep game work below it.`,
+      follow:`What would you measure?`,
+      red:`Plans to show a game UI without changes.` }] });
+
+T('careers-interviewing-outside-games',{ d:'careers', t:'Interviewing outside games', tag:'Big-tech and product-company interviews test things game interviews rarely do. Learn the formats, rehearse your stories, and have a calm answer for why you are leaving games.',
+  what:`The interview formats a game developer meets when applying outside games, and how to prepare for each. Large tech companies run a loop: several separate interviews covering coding, system design, behavioural questions and, for product roles, product sense. Smaller companies often replace part of that with a take-home test or a paid trial task. Each format has a recognisable shape, and some companies publish what they assess. Arguably, many failures come from not knowing the shape. Game developers are also very likely to be asked one extra question: why are you leaving games? It needs a short, honest answer that looks forward.`,
+  why:[`Game interviews lean on portfolio, art tests and engine questions. A backend system-design round or a structured behavioural round is a different skill. Experienced developers fail these rounds for lack of practice, not lack of ability.`,`At companies such as Amazon, candidates are evaluated against published principles. Reading them and preparing stories against them costs nothing and can change the outcome.`,`Expect the "why leave games" question in some form. A defensive or bitter answer can lose an offer that the technical rounds had already won.`,`Knowing the format lets you ask the recruiter useful questions: how many rounds, which languages, and whether a take-home is timed or paid.`],
+  think:{ q:[`What does each round in this loop score, and has the company published it?`,`Which of my stories show ownership, conflict, a failure and a measurable result?`,`Can I talk through the design of a service with a database, a cache, a queue and a failure mode in 45 minutes?`,`For a product-sense round, can I start from a user and a metric instead of a feature?`,`Is this take-home a fair test or unpaid work, and how long am I willing to spend on it?`,`What is my honest reason for leaving games, and what am I moving towards?`],
+    trade:[`Grinding algorithm puzzles raises your pass rate in coding rounds and does nothing for system design or behavioural rounds, which arguably weigh most on the level you are offered at senior grades. Spend your time where you are weakest.`,`A take-home polished well past the stated time limit can impress, but it also signals that you ignore constraints. Stay near the limit and write down what you would do next.`,`Presenting yourself as a curious game developer makes you memorable. Presenting yourself as a generalist engineer is safer with screeners. Choose per company.`],
+    traps:[`Answering system design with an engine architecture, an update loop and an entity system, instead of requests, storage, consistency and scale.`,`Telling behavioural stories in the plural. "We shipped" hides what you did, and interviewers score the "I".`,`Using game-specific jargon, such as crunch, cert, gold master or live ops, without explaining it.`,`Complaining about crunch, layoffs or a former studio when asked why you are leaving.`,`Treating a product-sense question as a design pitch: features first, with no user, no metric and no trade-off.`,`Accepting an open-ended take-home with no time limit and no promise of feedback.`],
+    good:[`Six to eight rehearsed stories, each with a situation, your own action and a number, mapped to the company’s stated values.`,`A system-design answer that starts from requirements and load, draws the data path, then names the bottleneck and the failure mode.`,`A two-sentence answer to "why leave games" that names what the new work offers, not what the old work lacked.`],
+    bad:[`Improvising every behavioural answer.`,`Spending the whole design round on one component.`,`A take-home with no README and no note on trade-offs.`] },
+  how:[`Ask the recruiter about the loop: how many rounds, what each covers, which language you can use, and whether there is published prep material. Many large companies do.`,`Behavioural rounds: read the company’s stated principles. Amazon publishes its Leadership Principles and recommends the STAR structure (situation, task, action, result). Build a bank of stories from your game work: a missed milestone, a performance crisis, a disagreement with design, a mentoring win, a cut feature. Rewrite each in plain language.`,`System design: practise a standard set out loud with a timer, such as a URL shortener, a chat service, a leaderboard and a matchmaking service. The last two let you use game knowledge honestly. Always cover requirements, rough load numbers, the API, the data model, scaling, and what breaks first.`,`Coding: practise in the language the new job uses. Do not default to C# or C++ unless the role asks for them. Talk while you code, because your reasoning is scored.`,`Product sense (product manager roles and some design and engineering roles): pick a user, state their problem, propose two or three solutions, choose one, and name the metric you would watch. Game designers do well here once they lead with the user rather than the feature.`,`Take-home tests: confirm the time limit and stay close to it. Write a README covering how to run it, what you left out and why. Decline or negotiate a take-home that looks like real product work.`,`"Why are you leaving games?": say in one sentence what you are moving towards (the problem space, the users, the stability you want) and in another what you bring. If you were laid off, say so plainly. Layoffs across games since 2023 are widely known, and a plain answer is the one least likely to count against you.`,`After each interview, write down every question you were asked. Companies repeat the same kinds of question more than people expect.`],
+  ai:{ yes:[`Run a mock behavioural interview against a named company’s published principles and critique your STAR structure.`,`Play the interviewer in a system-design round and challenge your answers on bottlenecks.`,`Translate the game jargon in your stories into plain language.`],
+       no:[`Tell you the current interview loop at a specific company. Formats change, so ask the recruiter.`,`Write your stories. Invented detail falls apart at the first follow-up question.`,`Complete a take-home for you. Many companies ask you to explain it live, and some forbid AI help.`] },
+  prompts:[{l:'Behavioural mock',p:`You are interviewing me for [ROLE] at [COMPANY]. Their stated values are: [PASTE FROM THEIR SITE]. Ask me one behavioural question at a time. After each answer, score it on the situation, my own action and a measurable result. Point out any "we" that hides my part, and flag game jargon an outsider would not understand. Do not invent facts about me.`},
+    {l:'System design sparring',p:`Act as a senior backend interviewer. Ask me to design [SYSTEM, e.g. a global leaderboard for 10M daily users]. Let me lead. Interrupt only to ask about load, consistency, failure and cost. At the end, list what I missed in order of importance.`}],
+  verify:[`Is every value or format the model cited actually on the company’s own site?`,`Did the mock let you get away with "we" stories or unexplained jargon?`,`Did the design critique name a real bottleneck, or only give generic advice?`],
+  test:[`Record one mock behavioural answer and play it back. If it runs past two and a half minutes or has no number in it, rewrite it.`,`Give your answer to "why leave games" to a friend outside games. If they hear a complaint, rewrite it.`,`Do one timed system-design mock with someone who has passed that company’s loop.`],
+  facts:[{claim:`Amazon’s interview loop page says candidates meet several interviewers individually, that questions are behavioural and tied to its Leadership Principles, and it recommends the STAR method.`,asOf:'2026-09-28',src:'https://www.amazon.jobs/content/en/how-we-hire/interview-loop'}],
+  rel:[['careers-repositioning','The CV and stories prepared there are the raw material for behavioural rounds.'],['careers-destinations','Which loop you face depends on where you are going.'],['lead-hiring','Seeing how a hiring loop is built from the inside makes it easier to pass one.'],['team-and-collaboration','Stories about collaboration and conflict come from this work.'],['careers-ai-tooling-market','Some AI tooling companies add formats of their own, such as eval design exercises.']] });
+INTERVIEW('careers-interviewing-outside-games',{
+  junior:[
+    { q:`How would you structure an answer to "tell me about a time you disagreed with a teammate"?`,
+      a:`With STAR: the situation in one line, what was at stake, what I did (not the team), and the result, with a number or a clear outcome. End with what I would do differently.`,
+      follow:`What if the outcome was bad?`,
+      red:`Tells a story where the other person was simply wrong and nothing was learned.` },
+    { q:`Why are you leaving games?`,
+      a:`Looking forward: what the new role offers that I want, such as a problem space or its users, plus what I bring. If I was laid off, I say so plainly and without blame.`,
+      follow:`Would you go back if a studio offered you a job?`,
+      red:`Complains about crunch or a former employer.` },
+    { q:`A take-home says "about four hours". How do you approach it?`,
+      a:`Clarify the requirements, keep to roughly the stated time, ship a working core, and write a README on how to run it, the trade-offs and what I would add next.`,
+      follow:`What do you do if you finish the core in two hours?`,
+      red:`Spends a weekend polishing it.` }],
+  mid:[
+    { q:`Design a leaderboard for a mobile game with ten million daily users.`,
+      a:`Requirements first: global and friends boards, how often scores update, and read load. Use a sorted-set store for the top ranks, sharded or approximated for the long tail, with writes through a queue, cached reads and server-side anti-cheat checks. Name the hot key and the consistency trade-off.`,
+      follow:`How do you show a player their rank if they are 4,000,000th?`,
+      red:`Describes a single SQL ORDER BY and stops.` },
+    { q:`How do you translate a game story for a fintech interviewer?`,
+      a:`Remove the genre nouns and keep the constraint and the result. "Cut p99 frame time from 40 ms to 16 ms on low-end devices" becomes a story about latency and profiling.`,
+      follow:`Which game term do you find hardest to translate?`,
+      red:`Assumes the interviewer knows what cert or live ops means.` },
+    { q:`A product-sense round asks how you would improve a to-do app. Start.`,
+      a:`Pick a user segment and their problem, state a goal metric, propose a few options, choose one with a reason, and say how I would measure it and what could go wrong.`,
+      follow:`What metric would tell you it failed?`,
+      red:`Lists features with no user or metric.` }],
+  senior:[
+    { q:`How do you prepare for behavioural rounds that decide your level?`,
+      a:`Build a story bank with evidence of scope: decisions across teams, influence without authority, a failure I owned, and people I helped grow. Map each story to the company’s published principles and rehearse for follow-up questions two levels deep.`,
+      follow:`Which story shows your largest scope, and how do you prove it?`,
+      red:`Relies on job title rather than evidence of scope.` },
+    { q:`When would you decline a take-home?`,
+      a:`When it is open-ended, looks like real product work, or comes with no feedback. I offer a live exercise or a code sample instead, and weigh how much I want the role.`,
+      follow:`How do you say that without dropping out of the process?`,
+      red:`Either accepts everything or refuses all take-homes on principle.` },
+    { q:`Your game background is in engine code. How do you handle a distributed systems round?`,
+      a:`Learn the standard vocabulary honestly: replication, partitioning, consistency, queues and idempotency. Bring in real overlap such as netcode, state sync and latency hiding, and say plainly where my experience stops.`,
+      follow:`What is the parallel between rollback netcode and conflict resolution?`,
+      red:`Bluffs production experience with distributed databases.` }] });
+
+T('careers-ai-tooling-market',{ d:'careers', t:'The AI tooling market as a destination', tag:'AI companies hire for applied engineering, evaluation, developer tools and customer-facing engineering. Several game skills transfer well. The market is crowded and rises and falls with funding.',
+  what:`A map of the roles in the AI tooling market and where game experience is worth something. Four common role families are applied AI engineer (building products on top of models), evaluation engineer (designing tests that measure model and product quality), developer tools engineer (SDKs, IDE integrations and agents for programmers), and forward-deployed or solutions engineer (building with a customer inside their systems). Nearby work includes 3D and simulation for synthetic training data, real-time voice and avatar systems, and content pipelines. Titles vary by company, so read the posting, not the title.`,
+  why:[`Arguably it is one of the few areas still hiring engineers in large numbers, and the AI Index 2026 reports that private AI investment more than doubled in 2025. That matters after the game layoff cycle.`,`Game developers already have skills this market asks for: shipping interactive software where latency matters, building tools and pipelines for non-engineers, 3D and physics, and judging subjective quality through playtests.`,`It is also an unstable market. Understanding how exposed an employer is to funding and product churn helps you pick one that will still exist in two years.`],
+  think:{ q:[`Do I want to build on models, measure models, or help customers use them?`,`Which of my skills applies: real-time systems, tools and pipelines, 3D and simulation, or quality evaluation?`,`Can this company’s product survive if the model provider ships the same feature?`,`How much runway does it have, and who funds it?`,`Am I comfortable with a product that changes direction every quarter?`],
+    trade:[`A frontier model lab pays well and is selective. An application startup is easier to join and more exposed to both funding risk and platform risk.`,`Forward-deployed roles teach you the business fast, and they often bring travel, customer pressure and less deep engineering.`,`Evaluation work is less glamorous and arguably increasingly central. It rewards the patient test design that QA staff and designers already practise.`],
+    traps:[`Chasing the title "AI engineer" without a portfolio piece that uses a model API end to end.`,`Assuming you need model training experience. Many applied roles build products on hosted models.`,`Ignoring the hype cycle. A startup that raised money on a demo can shrink as fast as a studio after a cancelled project.`,`Quoting vendor benchmark claims as settled facts in interviews.`,`Treating a "game AI" background (behaviour trees, pathfinding) as the same field as machine learning. It is next door, and you should say so.`],
+    good:[`A small shipped project that calls a model, checks its output against a written test set, and reports latency and cost.`,`One clear sentence on which game skill you bring. "I built the content tools 40 designers used daily" maps straight to developer tools.`],
+    bad:[`A chatbot wrapper with no evaluation.`,`Claiming expertise in a field you learned last month.`] },
+  how:[`Pick one role family. Read ten postings for it and list the requirements that keep coming up.`,`Applied AI engineer: build one project that calls a model API, handles streaming, errors and cost, and ships as something people can use.`,`Evaluation: write an eval set for your project, with pass criteria, edge cases and a regression run. This is close to a test plan or a playtest rubric.`,`Developer tools: point to the editor tooling, build pipelines and asset validators you wrote. Engine tools experience maps directly.`,`Forward-deployed or solutions roles: stress your experience shipping with outside partners, such as platform holders, outsourcers and publishers, and debugging in someone else’s environment.`,`3D and simulation: synthetic data for robotics and computer vision is often produced with engines and simulators. Real-time rendering, procedural content and physics transfer here.`,`Check the employer: funding stage and date, named customers, and whether the product survives the model provider shipping the same feature.`],
+  ai:{ yes:[`Explain an unfamiliar term in a posting, such as RAG or evals, as a starting point you then check in the vendor docs.`,`Review your eval set for missing edge cases.`,`Critique your portfolio project’s README as a hiring manager would.`],
+       no:[`Tell you which AI startups are well funded. Check dated funding announcements from the companies or investors themselves.`,`Give current model prices or context sizes. Read the vendor documentation.`,`Predict whether the market will still be hiring next year.`] },
+  prompts:[{l:'Posting decoder',p:`Here are five postings for [ROLE FAMILY]: [PASTE]. List the requirements that keep coming up, what each means in plain words, and which of my game experiences [PASTE] is honest evidence for each. Mark any requirement I have no evidence for.`},
+    {l:'Eval set review',p:`Here is my project and my eval set: [PASTE]. Act as an evaluation engineer. What failure modes are missing? Which tests would pass even if the product were broken? Suggest at most five additions.`}],
+  verify:[`Does each term explanation match the vendor’s own documentation?`,`Did the model invent funding figures or company facts?`,`Does each skill you claim map to something you actually shipped?`],
+  test:[`Show your project to someone working in the role family. If they cannot see how you measured quality, add an eval.`,`For each target employer, find a dated source from the company or its investors for its last funding round or revenue. If there is none, move it down your list.`],
+  facts:[{claim:`The Stanford HAI AI Index 2026 reports global private AI investment of $344.7 billion in 2025, up 127.5% from 2024, with United States investment at $285.9 billion.`,asOf:'2026-09-28',src:'https://hai.stanford.edu/news/inside-the-ai-index-12-takeaways-from-the-2026-report'},
+    {claim:`The Stanford HAI AI Index 2026 reports that private investment in generative AI grew more than 200% in 2025 and took nearly half of all private AI funding.`,asOf:'2026-09-28',src:'https://hai.stanford.edu/ai-index/2026-ai-index-report/economy'}],
+  rel:[['careers-destinations','This is one destination among several, so compare it with the others.'],['careers-transferable-skills','The skill inventory decides which AI role family fits.'],['careers-interviewing-outside-games','Many AI companies use similar loops, and some add eval or product exercises.'],['quality-and-build-health','Test discipline is the foundation of evaluation work.']] });
+INTERVIEW('careers-ai-tooling-market',{
+  junior:[
+    { q:`What is an eval, and why does an AI product need one?`,
+      a:`A repeatable test set with pass criteria that measures output quality. Model outputs vary, so without evals you cannot tell whether a prompt or model change made things better or worse.`,
+      follow:`How is that like a playtest rubric?`,
+      red:`Says you just try it and see.` },
+    { q:`Which of your game skills fits an AI tooling company?`,
+      a:`One concrete claim with evidence, for example editor tools that designers used daily, mapped to developer tools.`,
+      follow:`What would you need to learn first?`,
+      red:`"I am passionate about AI."` }],
+  mid:[
+    { q:`You add a model call to a real-time product. What do you worry about?`,
+      a:`Latency and its tail, streaming, timeouts and fallbacks, cost per call, rate limits, and quality regressions when the provider updates a model. It is the same discipline as a frame budget.`,
+      follow:`What do you show the user while they wait?`,
+      red:`Ignores latency and cost.` },
+    { q:`How would game engine skills help with synthetic data?`,
+      a:`Engines render labelled scenes with controlled variation in lighting, materials and poses, and they simulate physics. Procedural generation gives coverage. The hard part is the gap between synthetic and real data.`,
+      follow:`How would you measure that gap?`,
+      red:`Assumes synthetic data is always as good as real data.` },
+    { q:`How do you judge whether an AI startup is a safe employer?`,
+      a:`Dated funding and runway, paying customers, whether the product survives the model provider shipping the same feature, and spending compared with revenue.`,
+      follow:`Where do you find that information?`,
+      red:`Goes by hype or the founder’s social media.` }],
+  senior:[
+    { q:`What does a forward-deployed engineer do, and would you enjoy it?`,
+      a:`Builds with a customer inside their systems, turning a general product into a working deployment and passing lessons back to the product team. It suits people who liked shipping with partners and debugging in unfamiliar environments. The cost is often travel and less engineering depth.`,
+      follow:`How is it like working with a publisher or platform holder?`,
+      red:`Thinks it is a sales role with no engineering.` },
+    { q:`A vendor benchmark says their model beats all others. How do you use that?`,
+      a:`As one lab’s claim. Check that the task matches mine, then run my own eval set on my own data before deciding.`,
+      follow:`What would make you trust a benchmark more?`,
+      red:`Quotes it as settled fact.` },
+    { q:`How do you present ten years of game work for an evals lead role?`,
+      a:`Show test strategy, rubric design for subjective quality, regression discipline and player behaviour data, plus one real eval project. Be open about the machine learning knowledge I am still building.`,
+      follow:`Which part of that is weakest?`,
+      red:`Overclaims machine learning research experience.` }] });
+
+T('careers-the-farmer-answered',{ d:'careers', t:'"Or just be a farmer", answered', tag:'The joke has two honest answers. Agritech and farm simulation use game skills directly. Leaving tech for the land works best if you are clear-eyed about the money.',
+  what:`A serious look at the half-joking plan to leave games and farm. There are two paths. One stays in software: agritech builds precision-agriculture tools, farm management software, robotics and digital twins, and farm simulation is a real game genre with a large studio behind it. The other leaves tech for small-scale farming, which in the United States usually means farming alongside off-farm income. Both are real options. The difference is knowing which one you want and what it costs.`,
+  why:[`When people are burned out after layoffs or crunch, "the farm" can stand for wanting work that is physical, local and finished at the end of the day. That wish deserves a real answer.`,`Agritech needs engineers who can handle real-time data, 3D, simulation and tools for non-technical users, all of which game developers already do.`,`USDA data shows that about two-thirds of residence farm households, small farms whose operators are retired or have another main job, lose money on farming. Knowing that before you buy land protects your savings.`],
+  think:{ q:[`Do I want to work in agriculture, or do I want to get away from screens?`,`Would a hobby farm alongside a remote job give me what I want at lower risk?`,`How will I cover health insurance and income through the first bad season?`,`Which agritech problems use my skills: sensing, simulation, robotics, or interfaces for people wearing work gloves?`,`Have I worked a full season on someone else’s farm?`],
+    trade:[`Agritech keeps a tech salary and puts you close to farming, but it can still feel like screen work.`,`Full-time farming gives you the physical, seasonal life, and very often a loss on the farm itself that off-farm income has to cover.`,`A part-time farm plus a remote job is a common real outcome, since most farm households rely on off-farm income, and it means holding two jobs.`],
+    traps:[`Planning from a romantic picture rather than a budget.`,`Buying land and equipment before working a season.`,`Assuming a farm simulator teaches farming. It teaches machines and schedules, not soil, weather, markets or debt.`,`Mocking the idea. For many people it is a real and well-considered choice.`,`Thinking agritech is only drones. Much of the work is data pipelines, field software and interfaces for machines.`],
+    good:[`A season of farm work or volunteering before any purchase.`,`A written budget that assumes the farm will lose money for several years.`,`For agritech, a portfolio piece that uses real field or sensor data.`],
+    bad:[`Quitting on a bad day without a season of experience.`,`Treating off-farm income as failure rather than the norm.`] },
+  how:[`Agritech path: look at precision agriculture (machine guidance, variable-rate application, yield mapping), farm management software, agricultural robotics, and digital twins of fields, greenhouses or machines. Game skills fit where the work needs real-time 3D, sensor fusion, simulation, and simple interfaces for use in the field.`,`Simulation path: farm simulation is an established genre. GIANTS Software, the Swiss studio behind Farming Simulator, builds on its own GIANTS Engine and licenses real machinery, with more than 150 brands in Farming Simulator 25. It is one place where game skills and an interest in agriculture meet.`,`Leaving-tech path: read the official numbers first. USDA ERS data for 2024 shows that the median farm household loses money on farming and depends on off-farm income.`,`Work a season, through a farm job, an apprenticeship programme or volunteering. Keep a log of hours, costs and what you enjoyed.`,`Start small and keep an income: a market garden or small livestock alongside remote work, then grow if the numbers and your body agree.`,`Bring what transfers: planning under uncertainty, logistics, spreadsheets and systems thinking, tool building, repair, and patience with a long production cycle.`,`Talk to your local agricultural extension service. It gives practical, local and often free advice.`],
+  ai:{ yes:[`Draft a first farm budget template that you fill in with local figures.`,`Explain agritech terms such as variable-rate application.`,`Suggest questions to ask a farmer before you work a season.`],
+       no:[`Give you local land prices, yields or subsidies. Use official and local sources.`,`Decide whether you are suited to farming. A season will tell you that.`,`Replace advice from an extension service or an experienced farmer.`] },
+  prompts:[{l:'Honest farm budget',p:`I am considering [TYPE OF FARM] on [ACREAGE] in [REGION]. Build a first-year budget template with lines for land, equipment, inputs, insurance, labour, marketing and living costs. Leave every figure blank for me to fill in from local sources. List the five costs new farmers most often forget.`},
+    {l:'Agritech fit',p:`My game experience is [PASTE]. Map it to agritech roles in precision agriculture, farm robotics, digital twins and farm software. For each, name the skill that transfers and the domain knowledge I would lack. Do not name specific companies as hiring.`}],
+  verify:[`Did the model fill in figures you asked it to leave blank?`,`Are any statistics given without an official source?`,`Did it treat farming as easy, or as a joke?`],
+  test:[`Work one full season before buying anything. If you still want it in the worst week, keep planning.`,`Build the budget with local figures and assume several years of farm losses. If your savings do not cover that, keep your off-farm income.`,`For agritech, build one small tool on real open field data and show it to a farmer.`],
+  facts:[{claim:`USDA ERS estimates that in 2024 the median farm household had farm income of -$1,830, off-farm income of $86,900 and total household income of $102,748.`,asOf:'2026-09-28',src:'https://www.ers.usda.gov/topics/farm-economy/farm-household-well-being/farm-household-income-estimates'},
+    {claim:`USDA ERS reports that in 2024 residence (small) farm households had median farm income of -$2,748 and median total household income of $120,848, and that 35 percent had positive farm income.`,asOf:'2026-09-28',src:'https://www.ers.usda.gov/topics/farm-economy/farm-household-well-being/farm-household-income-estimates'},
+    {claim:`GIANTS Software announced on 18 November 2025 that Farming Simulator 25 had sold 4 million copies since its launch on 12 November 2024, and that the series had sold more than 40 million.`,asOf:'2026-09-28',src:'https://www.giants-software.com/news.php?show=news-134'}],
+  rel:[['careers-destinations','Agritech and simulation sit alongside the other destinations.'],['careers-transferable-skills','The skill inventory shows what carries over into agriculture.'],['planning-and-milestones','Seasonal planning under uncertainty is the producer skill farming uses.'],['lead-one-on-ones','Burnout often shows up first in one-to-ones, long before anyone mentions farming.']] });
+INTERVIEW('careers-the-farmer-answered',{
+  junior:[
+    { q:`Where would a game programmer fit in agritech?`,
+      a:`Field and machine software, 3D visualisation of fields or machines, simulation, pipelines for sensor data, and interfaces for people working outdoors.`,
+      follow:`Which of those have you done something close to?`,
+      red:`Only mentions drones.` },
+    { q:`What does a farm simulator teach about real farming?`,
+      a:`Machinery, the order of tasks and seasonal scheduling. It does not teach soil, weather risk, markets, debt or physical labour.`,
+      follow:`What would you learn first on a real farm?`,
+      red:`Says it is good preparation for running a farm.` }],
+  mid:[
+    { q:`What is a digital twin in agriculture?`,
+      a:`A model of a field, greenhouse or machine that is kept up to date from sensor data and used to simulate decisions, such as irrigation or machine settings, before acting on them.`,
+      follow:`What game skill helps build one?`,
+      red:`Describes only a 3D model with no data behind it.` },
+    { q:`Someone says they will leave games and farm full time next year. What do you advise?`,
+      a:`Respect the choice, then suggest working a season first, a budget that assumes years of farm losses, and keeping off-farm income, since official data shows most farm households depend on it.`,
+      follow:`Which figure would you show them?`,
+      red:`Mocks the idea, or cheers it on without any numbers.` }],
+  senior:[
+    { q:`How would you evaluate an agritech employer?`,
+      a:`Whether farmers actually pay for the product, how seasonal and cyclical its revenue is, how it is funded, and whether its engineers spend time in the field.`,
+      follow:`Why does seasonality matter for a software company in this market?`,
+      red:`Judges it on the pitch deck alone.` },
+    { q:`Which leadership skills from games transfer to running a farm?`,
+      a:`Planning with uncertain inputs, managing a long production cycle, handling logistics and suppliers, budgeting, and leading small teams under deadline pressure.`,
+      follow:`Which one would not transfer?`,
+      red:`Claims everything transfers.` }] });
+
+
+/* =====================================================================
    EXPERIENCE: ANONYMISED CASE STUDIES
    Shipped work told as shape, decision, trade-off and lesson. Never a name:
    no product, codename, employer, host, schema, internal path, colleague or
@@ -38874,7 +39195,7 @@ function engPanel(lens){
   const n = doms.reduce((a, d) => a + d.topics.length, 0);
   return `${lensSwitchHTML()}<span class="overline">${esc(lens[1])} · ${n} topics · ${CASE_STUDIES.length} projects</span>
     <h1 style="margin:6px 0 8px">${esc(lens[2])}.</h1>
-    <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership, platforms and publishing, how the AI models the team now depends on work, and the code craft that still pays. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
+    <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership, platforms and publishing, how the AI models the team now depends on work, the code craft that still pays, and careers beyond games. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
     <div class="grid auto">${doms.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/d/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small" style="margin:0">${esc(d.short)}</p></a>`).join('')}</div>
     <div class="row" style="margin-top:14px"><a class="btn" href="#/experience">Projects</a><a class="btn ghost" href="#/paths">Engineering, leadership and interview paths</a></div>`;
 }

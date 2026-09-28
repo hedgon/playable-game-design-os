@@ -232,12 +232,12 @@ official documentation at writing time, as dated facts with sources.
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| C1 | Transferable skills from game development, by discipline | todo |
-| C2 | Where people go: simulation and digital twins, film and virtual production, education and training, UX and product, automotive and embedded HMI, AR and VR, AI tooling, backend and data; each with evidence | todo |
-| C3 | Repositioning a portfolio and CV for another industry | todo |
-| C4 | Interviewing outside games | todo |
-| C5 | The AI tooling market as a destination | todo |
-| C6 | The farmer, answered properly: agritech and simulation, and the honest version of leaving tech | todo |
+| C1 | Transferable skills from game development, by discipline | landed (`39c-topics-careers.js`, a new domain of six topics as decision 5 set; fact-checked, with dated layoff, GDC survey, AI Index and USDA figures) |
+| C2 | Where people go: simulation and digital twins, film and virtual production, education and training, UX and product, automotive and embedded HMI, AR and VR, AI tooling, backend and data; each with evidence | landed (`39c-topics-careers.js`, a new domain of six topics as decision 5 set; fact-checked, with dated layoff, GDC survey, AI Index and USDA figures) |
+| C3 | Repositioning a portfolio and CV for another industry | landed (`39c-topics-careers.js`, a new domain of six topics as decision 5 set; fact-checked, with dated layoff, GDC survey, AI Index and USDA figures) |
+| C4 | Interviewing outside games | landed (`39c-topics-careers.js`, a new domain of six topics as decision 5 set; fact-checked, with dated layoff, GDC survey, AI Index and USDA figures) |
+| C5 | The AI tooling market as a destination | landed (`39c-topics-careers.js`, a new domain of six topics as decision 5 set; fact-checked, with dated layoff, GDC survey, AI Index and USDA figures) |
+| C6 | The farmer, answered properly: agritech and simulation, and the honest version of leaving tech | landed (`39c-topics-careers.js`, a new domain of six topics as decision 5 set; fact-checked, with dated layoff, GDC survey, AI Index and USDA figures) |
 
 **Learning paths, after all content lands (R16)**
 

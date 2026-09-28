@@ -121,7 +121,7 @@ function engPanel(lens){
   const n = doms.reduce((a, d) => a + d.topics.length, 0);
   return `${lensSwitchHTML()}<span class="overline">${esc(lens[1])} · ${n} topics · ${CASE_STUDIES.length} projects</span>
     <h1 style="margin:6px 0 8px">${esc(lens[2])}.</h1>
-    <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership, platforms and publishing, how the AI models the team now depends on work, and the code craft that still pays. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
+    <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership, platforms and publishing, how the AI models the team now depends on work, the code craft that still pays, and careers beyond games. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
     <div class="grid auto">${doms.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/d/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small" style="margin:0">${esc(d.short)}</p></a>`).join('')}</div>
     <div class="row" style="margin-top:14px"><a class="btn" href="#/experience">Projects</a><a class="btn ghost" href="#/paths">Engineering, leadership and interview paths</a></div>`;
 }

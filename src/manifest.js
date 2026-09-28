@@ -41,6 +41,7 @@ const DATA = [
   '39-topics-platforms.js',
   '39a-topics-models.js',
   '39b-topics-craft.js',
+  '39c-topics-careers.js',
   '40-cases.js',
   '41-case-systems-a.js',
   '42-case-systems-b.js',
