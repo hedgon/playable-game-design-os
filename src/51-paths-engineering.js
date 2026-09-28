@@ -19,7 +19,7 @@ PATH('gameplay-engineer-godot', {
   track:'engineering', level:'beginner', hours:12,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
-  prereq:['game-designer-foundations'], next:['interview-prep-engineer'],
+  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs'],
   stages:[
     { id:'s1', t:'The loop, in Godot', level:'beginner',
       goal:'See the design idea of a core loop, then build it as a physics tick with a signal for the consequence.', hours:2,
@@ -128,7 +128,7 @@ PATH('gameplay-engineer-unity', {
   track:'engineering', level:'beginner', hours:13,
   audience:'Programmers new to Unity who already know how to code and want to implement a documented gameplay system end to end, in Unity 6.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Unity, and you can point at the Update/FixedUpdate split, the UnityEvent, and the ScriptableObject that make each one work.',
-  prereq:['game-designer-foundations'], next:['interview-prep-engineer'],
+  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs'],
   stages:[
     { id:'s1', t:'The loop, in Unity', level:'beginner',
       goal:'See the design idea of a core loop, then build it across Update and FixedUpdate with an event for the consequence.', hours:2,
@@ -741,6 +741,118 @@ PATH('ship-it', {
         ],
         build:'Write the release runbook for each platform (mechanism, owner, rollout, day-one patch path) and the save-version check your first patch relies on.',
         skip:['Is your store page planned with enough runway before launch?','Do you have a release runbook per platform with a named owner?','Does every save carry a version your code checks and migrates?']
+      } }
+  ]
+});
+
+PATH('ai-engineering-for-game-devs', {
+  t:'AI engineering for game developers', tag:'How models work, how to work with agents, and how to ship AI inside a game.',
+  pick:'Build and ship with AI, and ship AI in a game',
+  track:'engineering', level:'intermediate', hours:12.5,
+  audience:'Game programmers and technical designers who already ship code and now work with AI coding agents, or want a model inside a shipped game.',
+  outcome:'You can explain what a model does with your context, set an agent up with rules and checks it cannot talk its way past, verify its output, draw the boundary where AI sits in a game’s architecture, and get an AI-assisted build through each store’s review.',
+  prereq:[], next:['technical-lead','ship-it'],
+  stages:[
+    { id:'s1', t:'How models work', level:'intermediate',
+      goal:'Know what a model does with tokens, why it varies between runs, and why fluent output is not correct output.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'models-tokens-context', tab:'interview', why:'Every cost, limit and failure of a model starts with tokens and the context window.', do:'Answer the junior and mid questions aloud, then estimate the tokens in one source file and one design doc from your project.', min:30 },
+        { kind:'topic', ref:'models-sampling', why:'Temperature and sampling explain why the same prompt gives different answers, and when that matters.', do:'Run one prompt five times and write which differences would be acceptable in a tool and which in a shipped game.', min:25 },
+        { kind:'tool', ref:'prompt', why:'Writing a prompt in named parts shows what the model is actually given.', do:'Build one prompt for a real task in your project with the generator, and mark which part carries the most information.', min:20 },
+        { kind:'topic', ref:'models-hallucination-sycophancy', tab:'interview', why:'A model that agrees with you and invents an API sounds the same as one that is right.', do:'Answer the interview questions, then ask a model about an engine API you know well and list every claim you would need to check.', min:25 },
+        { kind:'topic', ref:'models-prompt-caching', why:'Caching changes what a long agent session costs, and it rewards a stable prompt prefix.', do:'Write which parts of your usual agent context never change between calls and could sit in a cached prefix.', min:25 },
+        { kind:'topic', ref:'verifying-ai-output', why:'The rest of the path assumes you check output rather than trust it.', do:'Pick one recent AI answer you used and write how you would have verified it in under five minutes.', min:25 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'Why does the same prompt give different answers?', a:'The model outputs a probability distribution over the next token and sampling picks from it. Temperature and top-k or top-p change how often low-probability tokens get picked, and one early difference changes everything after it. Even at temperature 0 a hosted endpoint is not fully deterministic, because server load changes the batch and the arithmetic, which can flip a near-tie; store outputs you must keep.' },
+          { q:'Why is fluent output not evidence of correct output?', a:'The model is trained to produce plausible text, evaluations have rewarded guessing over saying it does not know, and preference training rewards answers people like, including agreeable ones. An invented API or a wrong claim reads the same as a right one, so correctness has to come from a check outside the model.' },
+          { q:'What does prompt caching reward?', a:'A long, stable prefix (instructions, rules, reference files) that stays byte-identical across calls, with the changing part at the end.' }
+        ],
+        build:'Write a one-page note for your team: what a token is, what the context window holds in your agent sessions, and three claims a model made about your project that you checked.',
+        skip:['Can you explain temperature and why runs differ?','Can you estimate the token size of a file or doc?','Do you already check every API a model names against the docs?']
+      } },
+    { id:'s2', t:'Context and agents', level:'intermediate',
+      goal:'Give an agent the context it needs and the limits it cannot ignore.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'models-context-engineering', why:'What goes into the context, and in what order, decides an agent’s output more than the wording of the request.', do:'List what your agent loads at the start of a session (in Claude Code, /context shows it) and cut one thing it never uses.', min:30 },
+        { kind:'topic', ref:'models-agent-harnesses', tab:'interview', why:'An agent is a loop of model calls and tools, and the harness decides what it can see and do.', do:'Answer the interview questions, then draw the loop your agent runs for one task: calls, tools, stop condition.', min:25 },
+        { kind:'checklist', ref:'agent-rules-file', why:'The rules file is the context an agent loads every time, so it is where short and checkable pays most.', do:'Run the checklist on your CLAUDE.md or AGENTS.md, and move one rule into a hook or test.', min:20 },
+        { kind:'topic', ref:'craft-teaching-agents', why:'An agent repeats a mistake until a check stops it, not until a sentence asks it to.', do:'Take one mistake an agent made twice and write the check that would have failed on it.', min:25 },
+        { kind:'topic', ref:'models-tools-mcp-rag', why:'Tools and retrieval are how an agent reaches your engine, docs and data, and each one is a new input channel.', do:'List the tools and servers your agent can call, and mark which ones can write.', min:25 },
+        { kind:'topic', ref:'models-security-and-operations', why:'Any text an agent reads can try to instruct it, and a tool that writes makes that dangerous.', do:'Name one place untrusted text reaches your agent and the permission that limits what it can then do.', min:25 }
+      ],
+      review:['models-tokens-context','models-hallucination-sycophancy'],
+      check:{
+        recall:[
+          { q:'What belongs in an agent rules file, and what does not?', a:'The commands CI runs, where things live, conventions that cannot be inferred from code, and what to ask before doing. Anything a machine can check belongs in a linter, hook or test instead, and anything that must never happen belongs in a permission or hook.' },
+          { q:'Why is a tool that writes a security question?', a:'Text the agent reads (a web page, an issue, a file) can contain instructions. If the agent can also write or run things, injected text can act through it, so write access needs limits the model cannot override.' },
+          { q:'What is an agent harness responsible for?', a:'Running the loop: building the context for each call, offering tools, executing tool calls, enforcing permissions, and deciding when to stop.' }
+        ],
+        build:'Rewrite your agent rules file against the checklist, and add one hook or test that enforces a rule the file used to ask for.',
+        skip:['Is your rules file short enough to read in two minutes?','Is every must-never rule in your project enforced by a hook or permission?','Can you list every tool your agent can write through?']
+      } },
+    { id:'s3', t:'Craft and verification', level:'intermediate',
+      goal:'Make verification the core of the work, and pick tools that let an agent check itself.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'craft-verification-as-the-job', tab:'interview', why:'When an agent writes the code, the engineer’s job becomes proving it works.', do:'Answer the interview questions, then write the check you ran, or should have run, for your last AI-written change.', min:30 },
+        { kind:'topic', ref:'ai-evals', why:'An eval turns “it seemed fine” into a repeatable pass rate on cases you chose.', do:'Write five eval cases for one AI step in your pipeline from real inputs, including two adversarial ones (player text with instructions in it, an empty or very long field), and one hard-fail rule code can check.', min:25 },
+        { kind:'prompt', ref:'verify', why:'A verification prompt makes the model list its assumptions and the source for each claim, so you can check them.', do:'Run the template on one AI answer you acted on, and check every claim it marks as inferred, invented or unsourced.', min:20 },
+        { kind:'topic', ref:'craft-tools-that-work-with-ai', why:'Tools with text formats, a CLI and fast tests let an agent run the check itself.', do:'Mark which of your engine’s and pipeline’s tools an agent can run headless, and which need a person at a screen.', min:25 },
+        { kind:'topic', ref:'craft-over-defensive-code', why:'Agents add guards for states that cannot happen, which hides the real invariant.', do:'Find one redundant null check or fallback in AI-written code and trace the upstream guard that makes it dead.', min:25 },
+        { kind:'tool', ref:'delegate', why:'Deciding what to hand an agent is easier once you know what you can verify.', do:'Plan one feature with the delegation planner, giving each task an owner, and write the check you will run on each task you give to AI.', min:25 }
+      ],
+      review:['models-context-engineering'],
+      check:{
+        recall:[
+          { q:'What makes an eval useful rather than decorative?', a:'Real inputs across the spread plus adversarial ones, never the examples the prompt was tuned on; a rubric with hard fails, checked in code where code can; a model judge only where needed, compared against human labels; and a rerun on every prompt, model or data change, reading the outputs that changed rather than only the score.' },
+          { q:'Why prefer tools with text formats and a CLI when working with agents?', a:'The agent can read, diff and run them itself, so it can check its own work; a tool that needs a person at a screen puts every check back on you.' },
+          { q:'What is wrong with a guard for a state that cannot occur?', a:'It suggests the invariant is uncertain, it hides where the real guard is, and it rots when that guard moves. Trace the flow and rely on the upstream guarantee.' }
+        ],
+        build:'For one AI-assisted feature, write the verification plan: the eval cases, the tests an agent can run headless, and the one check only a person can do.',
+        skip:['Does every AI step in your pipeline have an eval with adversarial cases and hard fails?','Can your agent run your tests and build headless?','Do you review AI-written code for guards that duplicate an upstream guarantee?']
+      } },
+    { id:'s4', t:'AI inside a shipped game', level:'advanced',
+      goal:'Choose the right technique for in-game AI, and draw the boundary where a model can and cannot decide.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'choosing-ai-technique', tab:'interview', why:'Most in-game AI is still state machines, behaviour trees and utility scores, and a model is one option among them.', do:'Answer the interview questions, then pick the technique for one character in your game and write why a model is or is not it.', min:25 },
+        { kind:'tool', ref:'gameai', why:'The chooser forces the constraints (readability, budget, authoring) before the technique.', do:'Run one character through the chooser and keep the verdict.', min:20 },
+        { kind:'topic', ref:'generative-characters', why:'A model-driven character is where the probabilistic part meets players directly.', do:'Write what a generative character in your game may decide, and what stays in scripted rules.', min:25 },
+        { kind:'checklist', ref:'ai-architecture-boundary', why:'The boundary, validation, fallbacks and budgets decide whether a model feature survives real players.', do:'Run the checklist on one AI feature and write the fallback for each failure it names.', min:20 },
+        { kind:'topic', ref:'ai-budgets-and-debugging', why:'In-game AI has a frame budget, and a model call has a latency and cost budget on top.', do:'Set a millisecond budget for your AI per frame and a latency budget for any model call.', min:25 },
+        { kind:'engine', ref:'godot', why:'An engine guide shows the main loop a model call has to fit around, and which checks an agent can run headless.', do:'Read the Godot guide’s architecture and AI sections, then sketch how a model reply would reach the scene tree (a signal, not a wait) so _process never blocks on it.', min:20 },
+        { kind:'topic', ref:'readable-and-fair-ai', why:'Players judge AI by what they can read of it, and a model is harder to make readable.', do:'List the tells your AI character shows before it acts, and how a generated one would keep them.', min:15 }
+      ],
+      review:['craft-verification-as-the-job'],
+      check:{
+        recall:[
+          { q:'Where should the probabilistic and deterministic boundary sit in a game?', a:'The model proposes; deterministic code validates and applies. Rules the player can see, such as damage, prices and quest state, stay in code the model cannot change, and model output is parsed against a schema.' },
+          { q:'What must a model feature do when the service fails?', a:'Fall back to something playable (scripted lines, a default choice, cached content), tested by forcing each failure, and the game must still start and save without the service.' },
+          { q:'Why is a model rarely the first choice for enemy AI?', a:'It is hard to make readable, fair and tunable, it costs latency and money per decision, and state machines, behaviour trees and utility systems already give designers direct control.' }
+        ],
+        build:'Design one AI feature for your game with the boundary drawn: what the model decides, the schema, the validation, the fallback, and the latency and cost budgets.',
+        skip:['Does every model output in your game pass a schema and validation before use?','Does your game run with the AI service unreachable?','Do you have a latency and cost budget per model call?']
+      } },
+    { id:'s5', t:'Shipping it', level:'advanced',
+      goal:'Disclose AI use correctly and get an AI-assisted build through each store’s review.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'ai-disclosure-policy', tab:'interview', why:'Stores ask what AI made during development and what it generates while the game runs, and the answers have to stay true for each build.', do:'Answer the interview questions, then write your game’s AI disclosure for one store.', min:30 },
+        { kind:'topic', ref:'certification-and-review', why:'An AI feature goes through the same gates and clocks as any other.', do:'Add your AI features to the submission calendar, with the checks each review will run on them.', min:25 },
+        { kind:'checklist', ref:'ai-submission-by-platform', why:'An AI-assisted build skips particular checks, and they differ by platform family.', do:'Run the checklist for your platform families on the release candidate, next to the store checklist.', min:25 },
+        { kind:'topic', ref:'ugc-platforms', why:'On a UGC platform the moderation and the audience belong to someone else; Roblox, for one, requires generated and externally fetched text to pass its own filter.', do:'Write how generated text in your game would pass the platform’s filtering and content questionnaire, or why you do not ship there.', min:20 },
+        { kind:'topic', ref:'craft-source-control-for-games', why:'An agent in your repository meets the same traps as a person (binaries that cannot merge, regenerated folders), and shipped builds belong on a release branch, not in anyone’s workspace.', do:'Check that your release build comes from a release branch or tag through CI with regenerated folders ignored, and write the steps if it does not.', min:25 },
+        { kind:'reflect', why:'The habits from this path only last if you write down which ones you will keep.', do:'Write the three verification habits you will keep for AI work, and the one AI use you decided against and why.', min:25 }
+      ],
+      review:['generative-characters','ai-evals'],
+      check:{
+        recall:[
+          { q:'What does Steam ask about AI content?', a:'Whether the game ships pre-generated AI content, made with AI tools during development, and whether it generates content while running; for live-generated content, what guardrails stop it generating illegal content. Efficiency gains from AI development tools are not the focus.' },
+          { q:'What must mobile store forms and review rules say about an AI feature?', a:'Google Play’s Data safety form counts any player data sent off the device, including to a model provider, as collected; Apple’s privacy label counts data kept longer than the request needs. Apple’s Guideline 5.1.2(i) also requires disclosing where personal data goes to third-party AI and getting explicit permission first, and Google Play requires in-app reporting of offensive AI output.' },
+          { q:'Why must a model provider’s API key never ship in the client?', a:'Anything in the client can be extracted, so the key would let anyone run calls on your bill. Calls go through a server you control, which can also enforce limits.' }
+        ],
+        build:'Produce the AI disclosure for each store you ship on and a filled AI submission checklist for your release candidate.',
+        skip:['Have you filed AI disclosures for every store you ship on?','Is every model call routed through a server you control?','Is your release build made by CI from a tag?']
       } }
   ]
 });

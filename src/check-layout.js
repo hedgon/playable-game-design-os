@@ -24,6 +24,13 @@ if (ctx.GUIDE_LAYOUT) specs.push(['guide:layout', ctx.GUIDE_LAYOUT]);
 (ctx.ENGINES || []).forEach(e => { if (e.flow) specs.push(['engine:' + e.id, e.flow]); Object.entries(e.stages || {}).forEach(([k, s]) => { if (s.diagram) specs.push(['engine:' + e.id + '/' + k, s.diagram]); }); });
 (ctx.REFERENCE_GAMES || []).forEach(g => (g.diagrams || []).forEach((d, i) => specs.push([`game:${g.id}/${i}`, d])));
 problems.push(...diagramProblems(window.PlayableDiagram, window.PlayableFlow, specs));
+// A topic's game leaf on the map must come from a game whose lens is about
+// that topic whenever such a game exists, not from one whose diagram only
+// shows it (plan row I6).
+const lensTopics = new Set(); (ctx.REFERENCE_GAMES || []).forEach(g => Object.values(g.lens || {}).forEach(l => { if (l && !l.na) (l.topics || []).forEach(t => lensTopics.add(t)); }));
+const leaves = G.practiceLinks(ctx.CASE_STUDIES || [], 2, ctx.REFERENCE_GAMES || []).extra; let leafCount = 0;
+Object.entries(leaves).forEach(([tid, list]) => list.filter(([vid]) => vid.startsWith('game:')).forEach(([vid, why]) => { leafCount++; if (lensTopics.has(tid) && !/ lens$/.test(why)) problems.push(`map leaf for ${tid}: ${vid} is a diagram match although a game lens covers this topic`); }));
+console.log(`game leaves: ${leafCount}, lens-backed where a lens exists`);
 console.log(`states checked: ${states}; diagrams: ${specs.length}; overlaps: ${problems.length}; shortened labels: ${clipped.length}`);
 problems.slice(0, 40).forEach(p => console.log('  ' + p));
 if (process.argv.includes('--list')) clipped.forEach(c => console.log('  shortened: ' + c));

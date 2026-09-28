@@ -96,17 +96,18 @@ const TRACKS = [['design','Design'],['engineering','Engineering'],['production',
    the first candidate that fits it, or the shortest when none does.
    validate.js checks that every combination picks a real path. */
 const CHOOSER = {
-  goals: [['design','Design games'],['gameplay','Program gameplay'],['backend','Build backends and servers'],['ship','Ship a game'],['lead','Lead a team'],['iv-design','Interview for a design job'],['iv-eng','Interview for an engineering job']],
+  goals: [['design','Design games'],['gameplay','Program gameplay'],['backend','Build backends and servers'],['ship','Ship a game'],['lead','Lead a team'],['iv-design','Interview for a design job'],['iv-eng','Interview for an engineering job'],['ai','Build with AI']],
   levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
   times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
-    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','games-that-broke-the-mould'], senior:['systems-designer','level-and-ux-designer','games-that-broke-the-mould'] },
+    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'] },
     gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
-    ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer'] },
+    ship:{ new:['ship-it'], some:['ship-it','casual-game-people-keep','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
     lead:{ new:['technical-lead'], some:['technical-lead'], senior:['technical-lead'] },
     'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
-    'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] }
+    'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] },
+    ai:{ new:['ai-engineering-for-game-devs'], some:['ai-engineering-for-game-devs'], senior:['ai-engineering-for-game-devs'] }
   })
 };
 /** @param {string} goal @param {string} level @param {string} time */
@@ -632,7 +633,7 @@ PATH('idea-to-prototype-30-days', {
   track:'design', level:'beginner', hours:10,
   audience:'Solo or small-team builders who want a fast, motivating first win instead of a long syllabus.',
   outcome:'You end with a shaped idea, a tested core loop, a real hypothesis and playtest behind it, and a scoped 30-day plan you can run.',
-  prereq:[], next:['game-designer-foundations'],
+  prereq:[], next:['game-designer-foundations','casual-game-people-keep'],
   stages:[
     { id:'s1', t:'Find and shape an idea', level:'beginner',
       goal:'Go from a vague itch to one idea you can defend in a paragraph, using real games as evidence.', hours:2.5,
@@ -928,6 +929,120 @@ PATH('interview-prep-designer', {
         ],
         build:'Write and time your two-minute walk-through-your-process answer, and your one-sentence fun-diagnostic summary.',
         skip:['Can you answer what makes your game fun in one sentence, using a real dimension, not an adjective?','Can you state a design pillar that has killed a bad idea, with the story attached?','Do you have a concrete answer ready for how you use AI tools, with a named safeguard?','Can you deliver your full walk-through-your-process answer in under two minutes, timed?']
+      } }
+  ]
+});
+
+PATH('casual-game-people-keep', {
+  t:'Make a casual game people keep', tag:'From a one-thumb loop to a free-to-play game that survives soft launch and live ops.',
+  pick:'Make a casual mobile game people keep',
+  track:'design', level:'intermediate', hours:10,
+  audience:'Designers and small teams building a casual or hyper-casual mobile game who want it played on day 30, not just installed on day 1.',
+  outcome:'You can design a loop a new player understands in seconds, tie progression and a free-to-play economy to it without breaking trust, prove retention and install cost in a soft launch with playable ads, and plan a live-ops cadence the team can sustain.',
+  prereq:[], next:['systems-designer','ship-it'],
+  stages:[
+    { id:'s1', t:'A loop that works in seconds', level:'intermediate',
+      goal:'Build a core loop a player grasps without text and wants to repeat at a bus stop.', hours:2,
+      steps:[
+        { kind:'topic', ref:'core-loop', why:'Players spend most of their time in the core loop, and in a casual game there is little else to carry the session.', do:'Write your loop in five sentences from the player’s point of view, one per link: action, feedback, decision, consequence, new situation. Then time how long one cycle takes.', min:20 },
+        { kind:'game', ref:'flappy-bird', why:'Flappy Bird topped the free charts with exactly one input: a tap, a pipe gap, and a game-over panel one button press from the next try.', do:'Read its gameplay and ui lenses, then list every element on its play screen and mark which elements on your own play screen could move to the menus before and after a run.', min:15 },
+        { kind:'game', ref:'fruit-ninja', why:'Fruit Ninja’s swipe worked within days, and Halfbrick then spent two months on the slice sound and spraying juice that make a cut on flat glass feel like it connected.', do:'Read its sound lens and write the feedback that fires the moment a swipe lands, then note what that feedback cannot tell the player.', min:15 },
+        { kind:'topic', ref:'game-feel-and-juice', why:'Feel is the first thing players judge, but juice only amplifies feedback that already exists, so it goes on after the bare loop is replayed.', do:'Rank the outcomes of your main verb by importance, then plan emphasis for the top one in order (anticipation, impact, result), one channel at a time, and write how you will check it reads clearer rather than louder.', min:20 },
+        { kind:'topic', ref:'platform-and-session', why:'Session length, interruptions and posture are design constraints, and a loop that needs twenty minutes fails where sessions last five.', do:'Write your session profile (median length, interruption pattern, device, posture), then where a player stops a session and what they see when they come back after a phone call.', min:15 },
+        { kind:'topic', ref:'onboarding', why:'Players do not read, and the first session is where retention drops hardest.', do:'Storyboard your first 60 seconds with no text at all, and mark the first action, the first failure and the moment the player first succeeds.', min:20 },
+        { kind:'tool', ref:'loop', why:'The loop builder makes the chain from action to new situation explicit and checks it for a weak link before you build.', do:'Run your loop through the loop builder and keep the one weakest link it exposes.', min:15 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'What should a new player be doing in the first 30 seconds?', a:'Using the core verb with their hands, without reading: level design and feedback do the teaching and text is the fallback. The first-session timeline plans the first action, decision, failure, mastery moment, reward and reason to return.' },
+          { q:'When does juice go into a casual game, and what can it not do?', a:'After the bare loop is voluntarily replayed. Juice amplifies feedback that already exists and cannot manufacture meaning the design lacks; on a weak loop it only delays finding out the loop is weak.' },
+          { q:'How does the platform shape the session?', a:'You write a session profile (median length, interruptions, device, posture), build a satisfying unit that fits inside the median session, and treat saving and resuming as core features so an interruption loses nothing.' }
+        ],
+        build:'Build or paper-prototype one level or run that a stranger can play for 60 seconds with no explanation, and note where they hesitated.',
+        skip:['Can you write your core loop link by link and time one cycle?','Does your first minute need no text to be understood?','Can you name the feedback events on your main verb?']
+      } },
+    { id:'s2', t:'Levels and progression that pull players back', level:'intermediate',
+      goal:'Give the loop a horizon: levels, stars, meta goals and a difficulty curve that brings players back tomorrow.', hours:2,
+      steps:[
+        { kind:'game', ref:'angry-birds', why:'Angry Birds answers the stuck player and the finished player with one tool, the Mighty Eagle, and holds its three-star verdict until the level ends.', do:'Read its replay and ui lenses, then write what your game offers a player stuck on a level and a player who has already three-starred it, and whether either is paid.', min:15 },
+        { kind:'game', ref:'bejeweled', why:'Bejeweled 3 puts one board under three rules for failure: none in Zen, a soft end in Classic, a one-minute clock in Lightning.', do:'Read its gameplay and replay lenses, list the modes with the single rule each one changes, and write which mood your main mode serves.', min:20 },
+        { kind:'topic', ref:'progression', why:'Progression is the long-horizon goal and the reason to return, and it fails when steps only change numbers.', do:'List your first ten progression steps and write the new capability, decision or experience each unlocks; mark any step that only changes a number as a candidate to merge or cut.', min:20 },
+        { kind:'topic', ref:'difficulty', why:'Too hard too early churns players before they can see their own progress, and King tracks each Candy Crush Saga level’s time to quit and time to pass as two separate numbers.', do:'Plot the intended difficulty of your first 20 levels, mark where the first real challenge and the first rest level sit, and name the two numbers you will track per level.', min:20 },
+        { kind:'topic', ref:'goals-horizons', why:'Players stay when a short, a medium and a long goal are always in view.', do:'Name one goal of each horizon a player sees on your home screen after day three.', min:15 },
+        { kind:'game', ref:'plants-vs-zombies', why:'Plants vs. Zombies hands over roughly one new plant per level and makes its campaign its own tutorial, so its progression and its onboarding are the same system.', do:'Read its first 30 seconds and why it worked, then write how each of your first five unlocks would teach one idea.', min:15 },
+        { kind:'tool', ref:'ladder', why:'The Behavior Ladder works from a feature back to the behaviour it should produce and the smallest mechanic that gets it.', do:'Run one planned meta feature, such as stars or a level map, through the ladder and cut whatever the smallest mechanic does not need.', min:15 }
+      ],
+      review:['core-loop'],
+      check:{
+        recall:[
+          { q:'What two problems does Angry Birds’ Mighty Eagle solve with one tool, and at what cost?', a:'It clears a level a stuck player cannot beat, and on a beaten level it opens a second goal, Total Destruction. Because it was sold, it invites the suspicion that hard levels are tuned to sell the skip.' },
+          { q:'How do you tune casual difficulty from data?', a:'Plot the intended curve and overlay observed failure rates per level, fix spikes by teaching before lowering demands, and track time to quit and time to pass as two numbers, as King does, since a hard level can still be fun if it is short.' },
+          { q:'How can one board carry several modes?', a:'By changing only the rule for failure: none (Zen), a soft end when no move remains (Classic) or a clock (Lightning). Players then pick a mode by mood, with nothing new to learn.' }
+        ],
+        build:'Write a 20-level plan with the idea each level introduces, its intended difficulty and its star thresholds.',
+        skip:['Can you name your player’s goal at each of the three horizons?','Do you have a difficulty curve with planned rest levels?','Can you say what each of your first unlocks teaches?']
+      } },
+    { id:'s3', t:'A free-to-play economy players trust', level:'intermediate',
+      goal:'Choose a business model and build currencies, sinks and offers that fund the game without souring it.', hours:2,
+      steps:[
+        { kind:'topic', ref:'business-model', why:'The model decides what retention means and which metrics the team will be pushed to optimise, before any price is set.', do:'Pick your model, write which player behaviour it pays for, and list every system that exists only because of the model.', min:20 },
+        { kind:'game', ref:'candy-crush-saga', why:'Candy Crush Saga places its main purchase at the moment a player is about to fail: five extra moves, a life or a booster, under a five-life cap.', do:'Read its business lens, list each paid item it names with the failure it rescues, and write down the trust cost the lens records.', min:20 },
+        { kind:'topic', ref:'economy-and-resources', why:'Sources and sinks decide whether a resource still forces a decision at hour 20, and small imbalances compound into surplus or starvation.', do:'Draw your resources as nodes with every source and sink, and mark where one would pile up unused.', min:25 },
+        { kind:'game', ref:'cookie-clicker', why:'Cookie Clicker paces twenty buildings with one pricing rule, a 15% rise per copy owned, and its building list shows the game running out of straight-faced material.', do:'Read its gameplay and world lenses, then write the one pricing rule your own store could use, and mark the point in Cookie Clicker’s list where a new building stops feeling new.', min:15 },
+        { kind:'topic', ref:'ethics-and-responsibility', why:'Apple and Google require odds disclosure for paid random items, and the FTC’s Genshin Impact order bans selling loot boxes to US players under 16 without a parent’s consent.', do:'Audit your offers for fear-of-missing-out timers, undisclosed odds and paid skips for problems the design created, and remove or disclose each one.', min:20 },
+        { kind:'tool', ref:'sysmap', why:'A systems map shows how the economy loops back into progression and difficulty.', do:'Map currency, lives, boosters and level difficulty together, and mark any loop where selling harder levels becomes the incentive.', min:20 }
+      ],
+      review:['progression'],
+      check:{
+        recall:[
+          { q:'What is the difference between selling value and selling relief?', a:'Value is expression, content or convenience players did not need to be annoyed into wanting. Relief removes a pain the design created on purpose, such as timers to sell skips. The test: would the player value it if the game had no store?' },
+          { q:'Why does every source need a sink?', a:'Without sinks strong enough to keep a resource scarce, it piles up and stops forcing decisions: players hoard because nothing is worth buying, or spend without thinking because everything is affordable.' },
+          { q:'Name two monetisation patterns that damage trust.', a:'Undisclosed odds on paid random items, which Apple and Google both require to be shown, and fear of missing out used as the retention engine; a paid skip for a problem the design created is a third.' }
+        ],
+        build:'Write a one-page economy sheet: currencies, sources, sinks, the first three offers with prices, and the ethics check each passed.',
+        skip:['Have you picked ads, purchases or a hybrid and written what it rewards?','Does every currency in your game have a sink?','Have you checked your offers against dark patterns and odds disclosure?']
+      } },
+    { id:'s4', t:'Soft launch and playable ads', level:'advanced',
+      goal:'Test retention, monetisation and install cost in a limited market before paying for a global launch.', hours:2,
+      steps:[
+        { kind:'topic', ref:'soft-launch-and-playable-ads', why:'Soft launch is where retention and revenue guesses meet a small market before global acquisition spend, and a playable ad is the instrument that brings those players in.', do:'Write your kill, iterate and scale criteria before any test-market user arrives: the D1/D7/D30 line, the CPI ceiling and the LTV:CPI ratio needed to scale, plus the markets you would test in and why.', min:30 },
+        { kind:'topic', ref:'metrics-and-success', why:'A soft launch without agreed metrics produces arguments, not decisions.', do:'Define the funnel events your build must log, from install to first purchase, the baseline for each and the decision each one feeds.', min:20 },
+        { kind:'engine', ref:'defold', why:'Size is Defold’s main selling point: an empty HTML5 project is a compressed download of under 1 MB, which matters for a light casual game and for a playable ad under a network cap.', do:'Read the Defold guide and note its export targets and empty HTML5 build size, then set them against the 5 MB playable-ad caps listed in the soft-launch topic and estimate what your one-level ad’s art and sound could use.', min:20 },
+        { kind:'game', ref:'subway-surfers', why:'Subway Surfers shows its whole loop within seconds of the first run: the chase, three lanes and the first barrier, the material a playable ad is cut from.', do:'Read its first 30 seconds and gameplay lens, then storyboard a 15-second playable ad for your own game that shows only a moment a player really reaches, and mark the end-card moment.', min:20 },
+        { kind:'platform', ref:'google-play', why:'An Android soft launch goes through Google Play’s test tracks first, and a new personal account must run a 12-tester, 14-day closed test before production.', do:'Read the Google Play guide and plan which track each soft-launch build goes to, whether the closed-test rule applies to your account, and how you would halt a staged rollout of a bad update.', min:15 },
+        { kind:'tool', ref:'hypothesis', why:'Each soft-launch build should test one written guess, or the data will not tell you what changed.', do:'Write the hypothesis for your first soft-launch build and the metric that would disprove it.', min:15 }
+      ],
+      review:['business-model','onboarding'],
+      check:{
+        recall:[
+          { q:'Why soft launch in a few countries first?', a:'To measure real retention, monetisation and install cost at small spend, and fix or kill the game before the expensive global marketing push.' },
+          { q:'What makes a good playable ad?', a:'It is built from a real moment a player reaches in the current build, fits in one self-contained file under the network’s cap (5 MB at Unity, AppLovin, Google and Meta), routes its call to action through the network’s own click API, and is tested on strangers like the game itself.' },
+          { q:'Why write the kill criteria before the data arrives?', a:'Otherwise the team moves the bar once disappointing numbers come in. A hypothesis without a signal and a kill criterion is a hope, and soft launch is a real gate: Supercell has launched 5 hits and killed more than 30 games.' }
+        ],
+        build:'Write a soft-launch plan: markets, kill and scale gates for D1, D7 and D30 retention, install cost and LTV:CPI, the events to log, and a storyboard for one playable ad.',
+        skip:['Do you have numeric go and no-go gates for soft launch?','Can you list the funnel events your build logs?','Can you describe a playable ad’s limits and structure?']
+      } },
+    { id:'s5', t:'Live ops the team can sustain', level:'advanced',
+      goal:'Keep the game fresh after launch with events and updates on a cadence that does not burn out the team.', hours:2,
+      steps:[
+        { kind:'topic', ref:'live-operations', why:'Release is a milestone, not a finish line: Subway Surfers has changed its city every three or four weeks since 2013 while the run underneath stays the same.', do:'Plan your first ninety days after launch: what the first update fixes and adds, one event per cycle with the content it needs, and how that content pays for itself.', min:25 },
+        { kind:'topic', ref:'pm-liveops-cadence', why:'Teams burn out on cadence long before they burn out on any single feature, and store review adds days you do not control.', do:'Lay out three cycles (live, in QA, being authored), put store review, localisation and a buffer in as fixed blocks, and keep one quiet week per cycle.', min:20 },
+        { kind:'topic', ref:'quests-and-events', why:'Events are time-bound quests, and an event that only adds a timer and fear of missing out is the trap the topic names.', do:'Design one limited-time event using only mechanics your game already has: write its situation, its decision and what it changes.', min:20 },
+        { kind:'topic', ref:'server-liveops', why:'Balance and content shipped as versioned data turn a week-long release into a same-day change.', do:'List the values that must change without a client build on day one, such as level difficulty, prices and event dates, and check each against the client versions that will read it.', min:20 },
+        { kind:'topic', ref:'learning-from-success', why:'Copies fail on what they leave out, so a borrowed pattern needs the context it worked in.', do:'Pick one mechanic from Candy Crush Saga or Subway Surfers you want to borrow, and write the context that made it work there and whether it holds for your player.', min:15 },
+        { kind:'checklist', ref:'submit-mobile', why:'Every client update goes back through store review against the same checklist.', do:'Walk the mobile submission checklist against your next update and mark the items to re-check every release, such as the Data safety form and odds disclosure.', min:15 },
+        { kind:'reflect', why:'A path ends by deciding what to do next.', do:'Write which stage of this path your game is weakest at today and the one change you will make this week.', min:10 }
+      ],
+      review:['soft-launch-and-playable-ads','economy-and-resources'],
+      check:{
+        recall:[
+          { q:'What does Subway Surfers’ World Tour show about sustaining live content?', a:'Since 2013 it has changed the visible city every three or four weeks while the lane-and-swipe run never changes, so the game stays current without touching the mechanic that makes it playable.' },
+          { q:'What should be changeable without a client build at launch?', a:'Values you expect to tune often, such as level difficulty, prices and offers, and event dates and rewards, shipped as versioned data the installed clients can read, so changes do not wait on a store review.' },
+          { q:'How do you know a live-ops cadence is sustainable?', a:'Measure planned against delivered items per cycle over a quarter and build the next calendar on the delivered number, with review, localisation and a buffer as fixed blocks and one quiet week per cycle.' }
+        ],
+        build:'Write a first-quarter live-ops plan: the event calendar, the remote-config values it uses, team days per event, and the metric each event should move.',
+        skip:['Do you have an event calendar costed in team days?','Can you tune difficulty and prices without a store update?','Do your events reuse the existing core loop?']
       } }
   ]
 });

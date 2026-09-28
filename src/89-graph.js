@@ -336,12 +336,16 @@ window.PlayableGraph = (function(){
       if(list.length < cap) list.push([vid, why]);
     }))));
     const lensLabel = k => { const l = (typeof GAME_LENSES !== 'undefined' ? GAME_LENSES : []).find(x => x[0] === k); return l ? l[1] : k; };
+    // A topic's game leaf prefers a game whose lens is about that topic (the
+    // topic listed earliest in a lens wins), and falls back to a game whose
+    // loop or screen diagram only shows it.
+    const best = {};
+    const offer = (tid, g, rank, why) => { const b = best[tid]; if(!b || rank < b.rank) best[tid] = { g, rank, why }; };
     (games || []).forEach(g => {
-      const vid = `game:${g.id}`;
-      const pick = (tid, why) => { if(gameLeaf[tid]) return; gameLeaf[tid] = [vid, why]; views[vid] = [`#/games/${g.id}`, `◇ ${g.t}`, 'Reference game']; };
-      (g.diagrams || []).forEach(d => (d.topics || []).forEach(t => pick(t, `${g.t}: its ${d.kind === 'screen' ? 'screen' : 'loop'} shows this idea`)));
-      Object.entries(g.lens || {}).forEach(([k, l]) => { if(l && !l.na) (l.topics || []).forEach(t => pick(t, `${g.t}, through its ${lensLabel(k).toLowerCase()} lens`)); });
+      Object.entries(g.lens || {}).forEach(([k, l]) => { if(l && !l.na) (l.topics || []).forEach((t, i) => offer(t, g, i, `${g.t}, through its ${lensLabel(k).toLowerCase()} lens`)); });
+      (g.diagrams || []).forEach(d => (d.topics || []).forEach(t => offer(t, g, 100, `${g.t}: its ${d.kind === 'screen' ? 'screen' : 'loop'} shows this idea`)));
     });
+    Object.entries(best).forEach(([tid, b]) => { const vid = `game:${b.g.id}`; gameLeaf[tid] = [vid, b.why]; views[vid] = [`#/games/${b.g.id}`, `◇ ${b.g.t}`, 'Reference game']; });
     Object.entries(gameLeaf).forEach(([tid, leaf]) => (extra[tid] || (extra[tid] = [])).push(leaf));
     return { hits, views, extra };
   }

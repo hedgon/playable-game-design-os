@@ -148,11 +148,11 @@ Legends (the comparison inside Dota 2).
 | I1 | Every new game names the topics its lenses illustrate (at least two), enforced by validate.js on every build | per pass |
 | I2 | Topic prose cites a game where it is the clearest example (a sentence and a link) | per pass |
 | I3 | Path steps for new games where a game teaches best, re-balancing stage minutes and hours | per pass |
-| I4 | New path “Make a casual game people keep” (casual design, free-to-play economy, soft launch, playable ads, live ops) | todo (queued from pass 5: the Subway Surfers and Bejeweled game steps, one new game step per existing stage being the cap) |
+| I4 | New path “Make a casual game people keep” (casual design, free-to-play economy, soft launch, playable ads, live ops) | landed (`casual-game-people-keep`: five stages over all eight casual games, with Defold and Google Play steps; reviewed against the library) |
 | I5 | Series lessons feed `learning-from-success` and `genre-hybrids` (what a formula keeps and changes) | per pass |
-| I6 | Map game leaf prefers a game whose lens is about that topic: coded in `practiceLinks`, checked in validate.js | todo |
-| I7 | New path “AI engineering for game developers” over A, V, K and T1, with new checklists (agent rules file, where AI sits in an architecture, submission per platform family) | todo |
-| I8 | Path chooser updated so the new paths are reachable | todo |
+| I6 | Map game leaf prefers a game whose lens is about that topic: coded in `practiceLinks`, checked in validate.js | landed (a topic’s game leaf prefers the game whose lens lists it earliest, diagrams only as a fallback; check-layout.js fails otherwise) |
+| I7 | New path “AI engineering for game developers” over A, V, K and T1, with new checklists (agent rules file, where AI sits in an architecture, submission per platform family) | landed (`ai-engineering-for-game-devs`, five stages over the models, craft, AI and in-game AI domains, with three new checklists: agent rules file, the AI architecture boundary, AI-assisted submission per platform family) |
+| I8 | Path chooser updated so the new paths are reachable | landed (a Build with AI goal; the casual path under Design and Ship; the e2e check derives the combination count) |
 
 **Engines and tools** (a new Library collection, like platform guides)
 
@@ -246,7 +246,7 @@ official documentation at writing time, as dated facts with sources.
 | Id | Todo | Status |
 | --- | --- | --- |
 | L1 | Research: how the paths should change: an inventory of every new topic, game, series, engine guide and platform walkthrough against the 14 paths; learning-design evidence already used by the paths (retrieval practice, spacing, interleaving, worked examples) applied to the new material | todo |
-| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Subway Surfers, Bejeweled, Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa, Elden Ring, The Witcher 3, Diablo II, Doom, Half-Life 2, Counter-Strike 2, StarCraft, Age of Empires II, Dota 2, Rocket League, Mario Kart 8, EA Sports FC, Cities: Skylines, Euro Truck Simulator 2, Baldur’s Gate 3, Subnautica, World of Warcraft) |
+| L2 | Update existing paths: new topic and game steps where they teach best, stages re-balanced (3 to 8 steps, minutes within 10%), recall and skip questions revised, engineering paths linked to engine guides and deploy walkthroughs, interview paths to the new interview questions | todo (queued game steps held back by the one-new-step-per-stage rule: Pokémon, Civilization, Zelda, Monster Hunter, GTA V, Fallout: New Vegas, Dynasty Warriors, Worms Armageddon, Zero Escape: 999, Danganronpa, Elden Ring, The Witcher 3, Diablo II, Doom, Half-Life 2, Counter-Strike 2, StarCraft, Age of Empires II, Dota 2, Rocket League, Mario Kart 8, EA Sports FC, Cities: Skylines, Euro Truck Simulator 2, Baldur’s Gate 3, Subnautica, World of Warcraft) |
 | L3 | New paths from the plan: casual (I4), AI engineering (I7), plus any the L1 inventory shows are missing (for example engine and platform interview prep, pivoting out of games) | todo |
 | L4 | Chooser and the paths landing page updated so every path is reachable and the choice stays simple | todo |
 

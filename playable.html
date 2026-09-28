@@ -1933,6 +1933,27 @@ function featureVerdict(score, answers){
   return ['DEFER','Defer. It depends on things not yet validated or cannot be tested cheaply now. Put it on the list with the evidence that would unlock it.'];
 }
 
+CHECKLISTS.push(
+  { id:'agent-rules-file', t:'Agent rules file (CLAUDE.md, AGENTS.md)', desc:'Run when writing or pruning the rules file an AI coding agent loads every session. A line earns its place only if the agent would get it wrong without it and nothing else can enforce it.',
+    groups:[
+      ['What belongs in it',['The exact commands to build, test and lint, copied from the ones CI runs.','Where things live: the folders an agent must not guess about, such as generated code and engine-owned files.','Project conventions a reader cannot infer from the code, each stated once, with the reason.','The pitfalls that are expensive in this project (engine lifetime, save compatibility, platform APIs), each with a short example of the house pattern.','What the agent must ask before doing: deleting files, changing dependencies, touching save formats or build settings.']],
+      ['What should be a hook or a test instead',['Every rule that can be checked by a machine (formatting, forbidden APIs, file layout) is a linter, hook or test, not a sentence.','A rule the agent broke twice is moved into a check that fails, not repeated in bolder words.','Anything that must never happen (a push to main, a secret in a commit) is blocked by a hook or permission, not by a request.','Each hook was triggered on purpose: it blocks the case it was written for, including other spellings of the same command, and lets a legitimate command through.']],
+      ['Keeping it healthy',['The always-loaded file is short: Claude Code’s docs target under 200 lines per CLAUDE.md and say longer files are followed less.','No two rules contradict each other, and none restates what the code, the linter, the README or the engine docs already say.','Each rule names the incident or reason behind it, so a later reader can tell when it no longer applies.','There is one source of truth: where both files exist, CLAUDE.md imports AGENTS.md with @AGENTS.md, because by default Claude Code reads AGENTS.md only when there is no CLAUDE.md.','Rules that apply to some paths only load there (path-scoped .claude/rules files, nested AGENTS.md, Cursor rules by file pattern) and hold only what differs for those paths.','The files are reviewed for stale and contradictory entries on a schedule.']] ] },
+  { id:'ai-architecture-boundary', t:'AI in the architecture: the boundary', desc:'Run before a model call ships inside a game or its tools. Every group must say where the probabilistic part ends and what deterministic code does with its output.',
+    groups:[
+      ['Boundary',['The model’s output is data the game validates, never code or state it applies directly.','The rules a player can see (damage, prices, quest state) stay in deterministic code the model cannot change.','Output is constrained by a schema or a fixed set of choices, and parsed strictly.']],
+      ['Validation',['Every field is checked for type, range and allowed values before use.','Player-visible text passes the same content filter and length limit as any other user-generated text.','Prompt injection from player input is assumed: player text is never placed where it can change instructions or tool access.']],
+      ['Fallbacks',['A timeout, refusal, malformed reply or outage has a written fallback the player can still play through.','The fallback is tested by forcing each failure, not only by reading the code.','The game still starts and saves with the AI service unreachable.']],
+      ['Budgets',['A latency budget per call is set from the moment it serves (a line of dialogue, a loading screen, a tool run), and measured at a high percentile such as p95 or p99, not the average.','A cost budget per player per session exists, with a cap and an alert.','Caching, smaller models or precomputed content were considered for every call that repeats.']] ] },
+  { id:'ai-submission-by-platform', t:'Pre-submission: AI-assisted builds', desc:'Run alongside the store checklist for each platform family. An AI-assisted build passes review on the same terms as any other; these are the checks it is most likely to skip.',
+    groups:[
+      ['Every platform',['A person played the release candidate end to end; passing tests alone is not a playthrough.','Every AI-generated asset, text and line of code has a known tool and model, and the terms of use you rely on are on file.','The build was made by the CI pipeline from tagged source, not from an agent’s local workspace.']],
+      ['Desktop (PC stores)',['Steam’s content survey declares pre-generated AI content (made during development, shipped to players) and live-generated content (made while the game runs), and for the live kind describes the guardrails that stop it generating illegal content.','Store page screenshots and trailer show the actual build, not generated mock-ups.']],
+      ['Mobile',['The Data safety form and the App Store privacy label account for player data an AI feature sends off the device, including to a model provider: Google Play counts any off-device transfer as collection, and Apple counts data kept longer than the request needs, so check the provider’s retention terms.','An app that generates content with AI lets players report or flag offensive output without leaving the app, as Google Play’s AI-Generated Content policy requires.','The app says where personal data goes to a third-party AI service and gets the player’s explicit permission first, as App Review Guideline 5.1.2(i) requires.']],
+      ['Console',['The platform holder’s current policy on generative content was read under the NDA, and the build matches it.','Runtime AI features pass the same certification checks for network loss, suspend and parental controls as any online feature.']],
+      ['Web and UGC',['On Roblox, every player-visible string from a model goes through TextService:FilterStringAsync, as the text-filtering rules require for generated text and text fetched from external servers; on other UGC platforms, check the platform’s own text rules.','On itch.io, the project’s generative AI disclosure field is filled in; itch.io made it mandatory for asset pages in November 2024.','No API key for a model provider ships in client code; calls go through a server you control.']] ] }
+);
+
 ﻿/* =====================================================================
    REFERENCE LIBRARY - games that demonstrably succeeded, dissected with
    one template so an idea can be cross-referenced against them.
@@ -35044,17 +35065,18 @@ const TRACKS = [['design','Design'],['engineering','Engineering'],['production',
    the first candidate that fits it, or the shortest when none does.
    validate.js checks that every combination picks a real path. */
 const CHOOSER = {
-  goals: [['design','Design games'],['gameplay','Program gameplay'],['backend','Build backends and servers'],['ship','Ship a game'],['lead','Lead a team'],['iv-design','Interview for a design job'],['iv-eng','Interview for an engineering job']],
+  goals: [['design','Design games'],['gameplay','Program gameplay'],['backend','Build backends and servers'],['ship','Ship a game'],['lead','Lead a team'],['iv-design','Interview for a design job'],['iv-eng','Interview for an engineering job'],['ai','Build with AI']],
   levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
   times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
-    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','games-that-broke-the-mould'], senior:['systems-designer','level-and-ux-designer','games-that-broke-the-mould'] },
+    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'] },
     gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
-    ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer'] },
+    ship:{ new:['ship-it'], some:['ship-it','casual-game-people-keep','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
     lead:{ new:['technical-lead'], some:['technical-lead'], senior:['technical-lead'] },
     'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
-    'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] }
+    'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] },
+    ai:{ new:['ai-engineering-for-game-devs'], some:['ai-engineering-for-game-devs'], senior:['ai-engineering-for-game-devs'] }
   })
 };
 /** @param {string} goal @param {string} level @param {string} time */
@@ -35580,7 +35602,7 @@ PATH('idea-to-prototype-30-days', {
   track:'design', level:'beginner', hours:10,
   audience:'Solo or small-team builders who want a fast, motivating first win instead of a long syllabus.',
   outcome:'You end with a shaped idea, a tested core loop, a real hypothesis and playtest behind it, and a scoped 30-day plan you can run.',
-  prereq:[], next:['game-designer-foundations'],
+  prereq:[], next:['game-designer-foundations','casual-game-people-keep'],
   stages:[
     { id:'s1', t:'Find and shape an idea', level:'beginner',
       goal:'Go from a vague itch to one idea you can defend in a paragraph, using real games as evidence.', hours:2.5,
@@ -35880,6 +35902,120 @@ PATH('interview-prep-designer', {
   ]
 });
 
+PATH('casual-game-people-keep', {
+  t:'Make a casual game people keep', tag:'From a one-thumb loop to a free-to-play game that survives soft launch and live ops.',
+  pick:'Make a casual mobile game people keep',
+  track:'design', level:'intermediate', hours:10,
+  audience:'Designers and small teams building a casual or hyper-casual mobile game who want it played on day 30, not just installed on day 1.',
+  outcome:'You can design a loop a new player understands in seconds, tie progression and a free-to-play economy to it without breaking trust, prove retention and install cost in a soft launch with playable ads, and plan a live-ops cadence the team can sustain.',
+  prereq:[], next:['systems-designer','ship-it'],
+  stages:[
+    { id:'s1', t:'A loop that works in seconds', level:'intermediate',
+      goal:'Build a core loop a player grasps without text and wants to repeat at a bus stop.', hours:2,
+      steps:[
+        { kind:'topic', ref:'core-loop', why:'Players spend most of their time in the core loop, and in a casual game there is little else to carry the session.', do:'Write your loop in five sentences from the player’s point of view, one per link: action, feedback, decision, consequence, new situation. Then time how long one cycle takes.', min:20 },
+        { kind:'game', ref:'flappy-bird', why:'Flappy Bird topped the free charts with exactly one input: a tap, a pipe gap, and a game-over panel one button press from the next try.', do:'Read its gameplay and ui lenses, then list every element on its play screen and mark which elements on your own play screen could move to the menus before and after a run.', min:15 },
+        { kind:'game', ref:'fruit-ninja', why:'Fruit Ninja’s swipe worked within days, and Halfbrick then spent two months on the slice sound and spraying juice that make a cut on flat glass feel like it connected.', do:'Read its sound lens and write the feedback that fires the moment a swipe lands, then note what that feedback cannot tell the player.', min:15 },
+        { kind:'topic', ref:'game-feel-and-juice', why:'Feel is the first thing players judge, but juice only amplifies feedback that already exists, so it goes on after the bare loop is replayed.', do:'Rank the outcomes of your main verb by importance, then plan emphasis for the top one in order (anticipation, impact, result), one channel at a time, and write how you will check it reads clearer rather than louder.', min:20 },
+        { kind:'topic', ref:'platform-and-session', why:'Session length, interruptions and posture are design constraints, and a loop that needs twenty minutes fails where sessions last five.', do:'Write your session profile (median length, interruption pattern, device, posture), then where a player stops a session and what they see when they come back after a phone call.', min:15 },
+        { kind:'topic', ref:'onboarding', why:'Players do not read, and the first session is where retention drops hardest.', do:'Storyboard your first 60 seconds with no text at all, and mark the first action, the first failure and the moment the player first succeeds.', min:20 },
+        { kind:'tool', ref:'loop', why:'The loop builder makes the chain from action to new situation explicit and checks it for a weak link before you build.', do:'Run your loop through the loop builder and keep the one weakest link it exposes.', min:15 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'What should a new player be doing in the first 30 seconds?', a:'Using the core verb with their hands, without reading: level design and feedback do the teaching and text is the fallback. The first-session timeline plans the first action, decision, failure, mastery moment, reward and reason to return.' },
+          { q:'When does juice go into a casual game, and what can it not do?', a:'After the bare loop is voluntarily replayed. Juice amplifies feedback that already exists and cannot manufacture meaning the design lacks; on a weak loop it only delays finding out the loop is weak.' },
+          { q:'How does the platform shape the session?', a:'You write a session profile (median length, interruptions, device, posture), build a satisfying unit that fits inside the median session, and treat saving and resuming as core features so an interruption loses nothing.' }
+        ],
+        build:'Build or paper-prototype one level or run that a stranger can play for 60 seconds with no explanation, and note where they hesitated.',
+        skip:['Can you write your core loop link by link and time one cycle?','Does your first minute need no text to be understood?','Can you name the feedback events on your main verb?']
+      } },
+    { id:'s2', t:'Levels and progression that pull players back', level:'intermediate',
+      goal:'Give the loop a horizon: levels, stars, meta goals and a difficulty curve that brings players back tomorrow.', hours:2,
+      steps:[
+        { kind:'game', ref:'angry-birds', why:'Angry Birds answers the stuck player and the finished player with one tool, the Mighty Eagle, and holds its three-star verdict until the level ends.', do:'Read its replay and ui lenses, then write what your game offers a player stuck on a level and a player who has already three-starred it, and whether either is paid.', min:15 },
+        { kind:'game', ref:'bejeweled', why:'Bejeweled 3 puts one board under three rules for failure: none in Zen, a soft end in Classic, a one-minute clock in Lightning.', do:'Read its gameplay and replay lenses, list the modes with the single rule each one changes, and write which mood your main mode serves.', min:20 },
+        { kind:'topic', ref:'progression', why:'Progression is the long-horizon goal and the reason to return, and it fails when steps only change numbers.', do:'List your first ten progression steps and write the new capability, decision or experience each unlocks; mark any step that only changes a number as a candidate to merge or cut.', min:20 },
+        { kind:'topic', ref:'difficulty', why:'Too hard too early churns players before they can see their own progress, and King tracks each Candy Crush Saga level’s time to quit and time to pass as two separate numbers.', do:'Plot the intended difficulty of your first 20 levels, mark where the first real challenge and the first rest level sit, and name the two numbers you will track per level.', min:20 },
+        { kind:'topic', ref:'goals-horizons', why:'Players stay when a short, a medium and a long goal are always in view.', do:'Name one goal of each horizon a player sees on your home screen after day three.', min:15 },
+        { kind:'game', ref:'plants-vs-zombies', why:'Plants vs. Zombies hands over roughly one new plant per level and makes its campaign its own tutorial, so its progression and its onboarding are the same system.', do:'Read its first 30 seconds and why it worked, then write how each of your first five unlocks would teach one idea.', min:15 },
+        { kind:'tool', ref:'ladder', why:'The Behavior Ladder works from a feature back to the behaviour it should produce and the smallest mechanic that gets it.', do:'Run one planned meta feature, such as stars or a level map, through the ladder and cut whatever the smallest mechanic does not need.', min:15 }
+      ],
+      review:['core-loop'],
+      check:{
+        recall:[
+          { q:'What two problems does Angry Birds’ Mighty Eagle solve with one tool, and at what cost?', a:'It clears a level a stuck player cannot beat, and on a beaten level it opens a second goal, Total Destruction. Because it was sold, it invites the suspicion that hard levels are tuned to sell the skip.' },
+          { q:'How do you tune casual difficulty from data?', a:'Plot the intended curve and overlay observed failure rates per level, fix spikes by teaching before lowering demands, and track time to quit and time to pass as two numbers, as King does, since a hard level can still be fun if it is short.' },
+          { q:'How can one board carry several modes?', a:'By changing only the rule for failure: none (Zen), a soft end when no move remains (Classic) or a clock (Lightning). Players then pick a mode by mood, with nothing new to learn.' }
+        ],
+        build:'Write a 20-level plan with the idea each level introduces, its intended difficulty and its star thresholds.',
+        skip:['Can you name your player’s goal at each of the three horizons?','Do you have a difficulty curve with planned rest levels?','Can you say what each of your first unlocks teaches?']
+      } },
+    { id:'s3', t:'A free-to-play economy players trust', level:'intermediate',
+      goal:'Choose a business model and build currencies, sinks and offers that fund the game without souring it.', hours:2,
+      steps:[
+        { kind:'topic', ref:'business-model', why:'The model decides what retention means and which metrics the team will be pushed to optimise, before any price is set.', do:'Pick your model, write which player behaviour it pays for, and list every system that exists only because of the model.', min:20 },
+        { kind:'game', ref:'candy-crush-saga', why:'Candy Crush Saga places its main purchase at the moment a player is about to fail: five extra moves, a life or a booster, under a five-life cap.', do:'Read its business lens, list each paid item it names with the failure it rescues, and write down the trust cost the lens records.', min:20 },
+        { kind:'topic', ref:'economy-and-resources', why:'Sources and sinks decide whether a resource still forces a decision at hour 20, and small imbalances compound into surplus or starvation.', do:'Draw your resources as nodes with every source and sink, and mark where one would pile up unused.', min:25 },
+        { kind:'game', ref:'cookie-clicker', why:'Cookie Clicker paces twenty buildings with one pricing rule, a 15% rise per copy owned, and its building list shows the game running out of straight-faced material.', do:'Read its gameplay and world lenses, then write the one pricing rule your own store could use, and mark the point in Cookie Clicker’s list where a new building stops feeling new.', min:15 },
+        { kind:'topic', ref:'ethics-and-responsibility', why:'Apple and Google require odds disclosure for paid random items, and the FTC’s Genshin Impact order bans selling loot boxes to US players under 16 without a parent’s consent.', do:'Audit your offers for fear-of-missing-out timers, undisclosed odds and paid skips for problems the design created, and remove or disclose each one.', min:20 },
+        { kind:'tool', ref:'sysmap', why:'A systems map shows how the economy loops back into progression and difficulty.', do:'Map currency, lives, boosters and level difficulty together, and mark any loop where selling harder levels becomes the incentive.', min:20 }
+      ],
+      review:['progression'],
+      check:{
+        recall:[
+          { q:'What is the difference between selling value and selling relief?', a:'Value is expression, content or convenience players did not need to be annoyed into wanting. Relief removes a pain the design created on purpose, such as timers to sell skips. The test: would the player value it if the game had no store?' },
+          { q:'Why does every source need a sink?', a:'Without sinks strong enough to keep a resource scarce, it piles up and stops forcing decisions: players hoard because nothing is worth buying, or spend without thinking because everything is affordable.' },
+          { q:'Name two monetisation patterns that damage trust.', a:'Undisclosed odds on paid random items, which Apple and Google both require to be shown, and fear of missing out used as the retention engine; a paid skip for a problem the design created is a third.' }
+        ],
+        build:'Write a one-page economy sheet: currencies, sources, sinks, the first three offers with prices, and the ethics check each passed.',
+        skip:['Have you picked ads, purchases or a hybrid and written what it rewards?','Does every currency in your game have a sink?','Have you checked your offers against dark patterns and odds disclosure?']
+      } },
+    { id:'s4', t:'Soft launch and playable ads', level:'advanced',
+      goal:'Test retention, monetisation and install cost in a limited market before paying for a global launch.', hours:2,
+      steps:[
+        { kind:'topic', ref:'soft-launch-and-playable-ads', why:'Soft launch is where retention and revenue guesses meet a small market before global acquisition spend, and a playable ad is the instrument that brings those players in.', do:'Write your kill, iterate and scale criteria before any test-market user arrives: the D1/D7/D30 line, the CPI ceiling and the LTV:CPI ratio needed to scale, plus the markets you would test in and why.', min:30 },
+        { kind:'topic', ref:'metrics-and-success', why:'A soft launch without agreed metrics produces arguments, not decisions.', do:'Define the funnel events your build must log, from install to first purchase, the baseline for each and the decision each one feeds.', min:20 },
+        { kind:'engine', ref:'defold', why:'Size is Defold’s main selling point: an empty HTML5 project is a compressed download of under 1 MB, which matters for a light casual game and for a playable ad under a network cap.', do:'Read the Defold guide and note its export targets and empty HTML5 build size, then set them against the 5 MB playable-ad caps listed in the soft-launch topic and estimate what your one-level ad’s art and sound could use.', min:20 },
+        { kind:'game', ref:'subway-surfers', why:'Subway Surfers shows its whole loop within seconds of the first run: the chase, three lanes and the first barrier, the material a playable ad is cut from.', do:'Read its first 30 seconds and gameplay lens, then storyboard a 15-second playable ad for your own game that shows only a moment a player really reaches, and mark the end-card moment.', min:20 },
+        { kind:'platform', ref:'google-play', why:'An Android soft launch goes through Google Play’s test tracks first, and a new personal account must run a 12-tester, 14-day closed test before production.', do:'Read the Google Play guide and plan which track each soft-launch build goes to, whether the closed-test rule applies to your account, and how you would halt a staged rollout of a bad update.', min:15 },
+        { kind:'tool', ref:'hypothesis', why:'Each soft-launch build should test one written guess, or the data will not tell you what changed.', do:'Write the hypothesis for your first soft-launch build and the metric that would disprove it.', min:15 }
+      ],
+      review:['business-model','onboarding'],
+      check:{
+        recall:[
+          { q:'Why soft launch in a few countries first?', a:'To measure real retention, monetisation and install cost at small spend, and fix or kill the game before the expensive global marketing push.' },
+          { q:'What makes a good playable ad?', a:'It is built from a real moment a player reaches in the current build, fits in one self-contained file under the network’s cap (5 MB at Unity, AppLovin, Google and Meta), routes its call to action through the network’s own click API, and is tested on strangers like the game itself.' },
+          { q:'Why write the kill criteria before the data arrives?', a:'Otherwise the team moves the bar once disappointing numbers come in. A hypothesis without a signal and a kill criterion is a hope, and soft launch is a real gate: Supercell has launched 5 hits and killed more than 30 games.' }
+        ],
+        build:'Write a soft-launch plan: markets, kill and scale gates for D1, D7 and D30 retention, install cost and LTV:CPI, the events to log, and a storyboard for one playable ad.',
+        skip:['Do you have numeric go and no-go gates for soft launch?','Can you list the funnel events your build logs?','Can you describe a playable ad’s limits and structure?']
+      } },
+    { id:'s5', t:'Live ops the team can sustain', level:'advanced',
+      goal:'Keep the game fresh after launch with events and updates on a cadence that does not burn out the team.', hours:2,
+      steps:[
+        { kind:'topic', ref:'live-operations', why:'Release is a milestone, not a finish line: Subway Surfers has changed its city every three or four weeks since 2013 while the run underneath stays the same.', do:'Plan your first ninety days after launch: what the first update fixes and adds, one event per cycle with the content it needs, and how that content pays for itself.', min:25 },
+        { kind:'topic', ref:'pm-liveops-cadence', why:'Teams burn out on cadence long before they burn out on any single feature, and store review adds days you do not control.', do:'Lay out three cycles (live, in QA, being authored), put store review, localisation and a buffer in as fixed blocks, and keep one quiet week per cycle.', min:20 },
+        { kind:'topic', ref:'quests-and-events', why:'Events are time-bound quests, and an event that only adds a timer and fear of missing out is the trap the topic names.', do:'Design one limited-time event using only mechanics your game already has: write its situation, its decision and what it changes.', min:20 },
+        { kind:'topic', ref:'server-liveops', why:'Balance and content shipped as versioned data turn a week-long release into a same-day change.', do:'List the values that must change without a client build on day one, such as level difficulty, prices and event dates, and check each against the client versions that will read it.', min:20 },
+        { kind:'topic', ref:'learning-from-success', why:'Copies fail on what they leave out, so a borrowed pattern needs the context it worked in.', do:'Pick one mechanic from Candy Crush Saga or Subway Surfers you want to borrow, and write the context that made it work there and whether it holds for your player.', min:15 },
+        { kind:'checklist', ref:'submit-mobile', why:'Every client update goes back through store review against the same checklist.', do:'Walk the mobile submission checklist against your next update and mark the items to re-check every release, such as the Data safety form and odds disclosure.', min:15 },
+        { kind:'reflect', why:'A path ends by deciding what to do next.', do:'Write which stage of this path your game is weakest at today and the one change you will make this week.', min:10 }
+      ],
+      review:['soft-launch-and-playable-ads','economy-and-resources'],
+      check:{
+        recall:[
+          { q:'What does Subway Surfers’ World Tour show about sustaining live content?', a:'Since 2013 it has changed the visible city every three or four weeks while the lane-and-swipe run never changes, so the game stays current without touching the mechanic that makes it playable.' },
+          { q:'What should be changeable without a client build at launch?', a:'Values you expect to tune often, such as level difficulty, prices and offers, and event dates and rewards, shipped as versioned data the installed clients can read, so changes do not wait on a store review.' },
+          { q:'How do you know a live-ops cadence is sustainable?', a:'Measure planned against delivered items per cycle over a quarter and build the next calendar on the delivered number, with review, localisation and a buffer as fixed blocks and one quiet week per cycle.' }
+        ],
+        build:'Write a first-quarter live-ops plan: the event calendar, the remote-config values it uses, team days per event, and the metric each event should move.',
+        skip:['Do you have an event calendar costed in team days?','Can you tune difficulty and prices without a store update?','Do your events reuse the existing core loop?']
+      } }
+  ]
+});
+
 /* =====================================================================
    LEARNING PATHS, continued
    Second file for the same PATH()/PATHS registry defined in
@@ -35901,7 +36037,7 @@ PATH('gameplay-engineer-godot', {
   track:'engineering', level:'beginner', hours:12,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
-  prereq:['game-designer-foundations'], next:['interview-prep-engineer'],
+  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs'],
   stages:[
     { id:'s1', t:'The loop, in Godot', level:'beginner',
       goal:'See the design idea of a core loop, then build it as a physics tick with a signal for the consequence.', hours:2,
@@ -36010,7 +36146,7 @@ PATH('gameplay-engineer-unity', {
   track:'engineering', level:'beginner', hours:13,
   audience:'Programmers new to Unity who already know how to code and want to implement a documented gameplay system end to end, in Unity 6.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Unity, and you can point at the Update/FixedUpdate split, the UnityEvent, and the ScriptableObject that make each one work.',
-  prereq:['game-designer-foundations'], next:['interview-prep-engineer'],
+  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs'],
   stages:[
     { id:'s1', t:'The loop, in Unity', level:'beginner',
       goal:'See the design idea of a core loop, then build it across Update and FixedUpdate with an event for the consequence.', hours:2,
@@ -36623,6 +36759,118 @@ PATH('ship-it', {
         ],
         build:'Write the release runbook for each platform (mechanism, owner, rollout, day-one patch path) and the save-version check your first patch relies on.',
         skip:['Is your store page planned with enough runway before launch?','Do you have a release runbook per platform with a named owner?','Does every save carry a version your code checks and migrates?']
+      } }
+  ]
+});
+
+PATH('ai-engineering-for-game-devs', {
+  t:'AI engineering for game developers', tag:'How models work, how to work with agents, and how to ship AI inside a game.',
+  pick:'Build and ship with AI, and ship AI in a game',
+  track:'engineering', level:'intermediate', hours:12.5,
+  audience:'Game programmers and technical designers who already ship code and now work with AI coding agents, or want a model inside a shipped game.',
+  outcome:'You can explain what a model does with your context, set an agent up with rules and checks it cannot talk its way past, verify its output, draw the boundary where AI sits in a game’s architecture, and get an AI-assisted build through each store’s review.',
+  prereq:[], next:['technical-lead','ship-it'],
+  stages:[
+    { id:'s1', t:'How models work', level:'intermediate',
+      goal:'Know what a model does with tokens, why it varies between runs, and why fluent output is not correct output.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'models-tokens-context', tab:'interview', why:'Every cost, limit and failure of a model starts with tokens and the context window.', do:'Answer the junior and mid questions aloud, then estimate the tokens in one source file and one design doc from your project.', min:30 },
+        { kind:'topic', ref:'models-sampling', why:'Temperature and sampling explain why the same prompt gives different answers, and when that matters.', do:'Run one prompt five times and write which differences would be acceptable in a tool and which in a shipped game.', min:25 },
+        { kind:'tool', ref:'prompt', why:'Writing a prompt in named parts shows what the model is actually given.', do:'Build one prompt for a real task in your project with the generator, and mark which part carries the most information.', min:20 },
+        { kind:'topic', ref:'models-hallucination-sycophancy', tab:'interview', why:'A model that agrees with you and invents an API sounds the same as one that is right.', do:'Answer the interview questions, then ask a model about an engine API you know well and list every claim you would need to check.', min:25 },
+        { kind:'topic', ref:'models-prompt-caching', why:'Caching changes what a long agent session costs, and it rewards a stable prompt prefix.', do:'Write which parts of your usual agent context never change between calls and could sit in a cached prefix.', min:25 },
+        { kind:'topic', ref:'verifying-ai-output', why:'The rest of the path assumes you check output rather than trust it.', do:'Pick one recent AI answer you used and write how you would have verified it in under five minutes.', min:25 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'Why does the same prompt give different answers?', a:'The model outputs a probability distribution over the next token and sampling picks from it. Temperature and top-k or top-p change how often low-probability tokens get picked, and one early difference changes everything after it. Even at temperature 0 a hosted endpoint is not fully deterministic, because server load changes the batch and the arithmetic, which can flip a near-tie; store outputs you must keep.' },
+          { q:'Why is fluent output not evidence of correct output?', a:'The model is trained to produce plausible text, evaluations have rewarded guessing over saying it does not know, and preference training rewards answers people like, including agreeable ones. An invented API or a wrong claim reads the same as a right one, so correctness has to come from a check outside the model.' },
+          { q:'What does prompt caching reward?', a:'A long, stable prefix (instructions, rules, reference files) that stays byte-identical across calls, with the changing part at the end.' }
+        ],
+        build:'Write a one-page note for your team: what a token is, what the context window holds in your agent sessions, and three claims a model made about your project that you checked.',
+        skip:['Can you explain temperature and why runs differ?','Can you estimate the token size of a file or doc?','Do you already check every API a model names against the docs?']
+      } },
+    { id:'s2', t:'Context and agents', level:'intermediate',
+      goal:'Give an agent the context it needs and the limits it cannot ignore.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'models-context-engineering', why:'What goes into the context, and in what order, decides an agent’s output more than the wording of the request.', do:'List what your agent loads at the start of a session (in Claude Code, /context shows it) and cut one thing it never uses.', min:30 },
+        { kind:'topic', ref:'models-agent-harnesses', tab:'interview', why:'An agent is a loop of model calls and tools, and the harness decides what it can see and do.', do:'Answer the interview questions, then draw the loop your agent runs for one task: calls, tools, stop condition.', min:25 },
+        { kind:'checklist', ref:'agent-rules-file', why:'The rules file is the context an agent loads every time, so it is where short and checkable pays most.', do:'Run the checklist on your CLAUDE.md or AGENTS.md, and move one rule into a hook or test.', min:20 },
+        { kind:'topic', ref:'craft-teaching-agents', why:'An agent repeats a mistake until a check stops it, not until a sentence asks it to.', do:'Take one mistake an agent made twice and write the check that would have failed on it.', min:25 },
+        { kind:'topic', ref:'models-tools-mcp-rag', why:'Tools and retrieval are how an agent reaches your engine, docs and data, and each one is a new input channel.', do:'List the tools and servers your agent can call, and mark which ones can write.', min:25 },
+        { kind:'topic', ref:'models-security-and-operations', why:'Any text an agent reads can try to instruct it, and a tool that writes makes that dangerous.', do:'Name one place untrusted text reaches your agent and the permission that limits what it can then do.', min:25 }
+      ],
+      review:['models-tokens-context','models-hallucination-sycophancy'],
+      check:{
+        recall:[
+          { q:'What belongs in an agent rules file, and what does not?', a:'The commands CI runs, where things live, conventions that cannot be inferred from code, and what to ask before doing. Anything a machine can check belongs in a linter, hook or test instead, and anything that must never happen belongs in a permission or hook.' },
+          { q:'Why is a tool that writes a security question?', a:'Text the agent reads (a web page, an issue, a file) can contain instructions. If the agent can also write or run things, injected text can act through it, so write access needs limits the model cannot override.' },
+          { q:'What is an agent harness responsible for?', a:'Running the loop: building the context for each call, offering tools, executing tool calls, enforcing permissions, and deciding when to stop.' }
+        ],
+        build:'Rewrite your agent rules file against the checklist, and add one hook or test that enforces a rule the file used to ask for.',
+        skip:['Is your rules file short enough to read in two minutes?','Is every must-never rule in your project enforced by a hook or permission?','Can you list every tool your agent can write through?']
+      } },
+    { id:'s3', t:'Craft and verification', level:'intermediate',
+      goal:'Make verification the core of the work, and pick tools that let an agent check itself.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'craft-verification-as-the-job', tab:'interview', why:'When an agent writes the code, the engineer’s job becomes proving it works.', do:'Answer the interview questions, then write the check you ran, or should have run, for your last AI-written change.', min:30 },
+        { kind:'topic', ref:'ai-evals', why:'An eval turns “it seemed fine” into a repeatable pass rate on cases you chose.', do:'Write five eval cases for one AI step in your pipeline from real inputs, including two adversarial ones (player text with instructions in it, an empty or very long field), and one hard-fail rule code can check.', min:25 },
+        { kind:'prompt', ref:'verify', why:'A verification prompt makes the model list its assumptions and the source for each claim, so you can check them.', do:'Run the template on one AI answer you acted on, and check every claim it marks as inferred, invented or unsourced.', min:20 },
+        { kind:'topic', ref:'craft-tools-that-work-with-ai', why:'Tools with text formats, a CLI and fast tests let an agent run the check itself.', do:'Mark which of your engine’s and pipeline’s tools an agent can run headless, and which need a person at a screen.', min:25 },
+        { kind:'topic', ref:'craft-over-defensive-code', why:'Agents add guards for states that cannot happen, which hides the real invariant.', do:'Find one redundant null check or fallback in AI-written code and trace the upstream guard that makes it dead.', min:25 },
+        { kind:'tool', ref:'delegate', why:'Deciding what to hand an agent is easier once you know what you can verify.', do:'Plan one feature with the delegation planner, giving each task an owner, and write the check you will run on each task you give to AI.', min:25 }
+      ],
+      review:['models-context-engineering'],
+      check:{
+        recall:[
+          { q:'What makes an eval useful rather than decorative?', a:'Real inputs across the spread plus adversarial ones, never the examples the prompt was tuned on; a rubric with hard fails, checked in code where code can; a model judge only where needed, compared against human labels; and a rerun on every prompt, model or data change, reading the outputs that changed rather than only the score.' },
+          { q:'Why prefer tools with text formats and a CLI when working with agents?', a:'The agent can read, diff and run them itself, so it can check its own work; a tool that needs a person at a screen puts every check back on you.' },
+          { q:'What is wrong with a guard for a state that cannot occur?', a:'It suggests the invariant is uncertain, it hides where the real guard is, and it rots when that guard moves. Trace the flow and rely on the upstream guarantee.' }
+        ],
+        build:'For one AI-assisted feature, write the verification plan: the eval cases, the tests an agent can run headless, and the one check only a person can do.',
+        skip:['Does every AI step in your pipeline have an eval with adversarial cases and hard fails?','Can your agent run your tests and build headless?','Do you review AI-written code for guards that duplicate an upstream guarantee?']
+      } },
+    { id:'s4', t:'AI inside a shipped game', level:'advanced',
+      goal:'Choose the right technique for in-game AI, and draw the boundary where a model can and cannot decide.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'choosing-ai-technique', tab:'interview', why:'Most in-game AI is still state machines, behaviour trees and utility scores, and a model is one option among them.', do:'Answer the interview questions, then pick the technique for one character in your game and write why a model is or is not it.', min:25 },
+        { kind:'tool', ref:'gameai', why:'The chooser forces the constraints (readability, budget, authoring) before the technique.', do:'Run one character through the chooser and keep the verdict.', min:20 },
+        { kind:'topic', ref:'generative-characters', why:'A model-driven character is where the probabilistic part meets players directly.', do:'Write what a generative character in your game may decide, and what stays in scripted rules.', min:25 },
+        { kind:'checklist', ref:'ai-architecture-boundary', why:'The boundary, validation, fallbacks and budgets decide whether a model feature survives real players.', do:'Run the checklist on one AI feature and write the fallback for each failure it names.', min:20 },
+        { kind:'topic', ref:'ai-budgets-and-debugging', why:'In-game AI has a frame budget, and a model call has a latency and cost budget on top.', do:'Set a millisecond budget for your AI per frame and a latency budget for any model call.', min:25 },
+        { kind:'engine', ref:'godot', why:'An engine guide shows the main loop a model call has to fit around, and which checks an agent can run headless.', do:'Read the Godot guide’s architecture and AI sections, then sketch how a model reply would reach the scene tree (a signal, not a wait) so _process never blocks on it.', min:20 },
+        { kind:'topic', ref:'readable-and-fair-ai', why:'Players judge AI by what they can read of it, and a model is harder to make readable.', do:'List the tells your AI character shows before it acts, and how a generated one would keep them.', min:15 }
+      ],
+      review:['craft-verification-as-the-job'],
+      check:{
+        recall:[
+          { q:'Where should the probabilistic and deterministic boundary sit in a game?', a:'The model proposes; deterministic code validates and applies. Rules the player can see, such as damage, prices and quest state, stay in code the model cannot change, and model output is parsed against a schema.' },
+          { q:'What must a model feature do when the service fails?', a:'Fall back to something playable (scripted lines, a default choice, cached content), tested by forcing each failure, and the game must still start and save without the service.' },
+          { q:'Why is a model rarely the first choice for enemy AI?', a:'It is hard to make readable, fair and tunable, it costs latency and money per decision, and state machines, behaviour trees and utility systems already give designers direct control.' }
+        ],
+        build:'Design one AI feature for your game with the boundary drawn: what the model decides, the schema, the validation, the fallback, and the latency and cost budgets.',
+        skip:['Does every model output in your game pass a schema and validation before use?','Does your game run with the AI service unreachable?','Do you have a latency and cost budget per model call?']
+      } },
+    { id:'s5', t:'Shipping it', level:'advanced',
+      goal:'Disclose AI use correctly and get an AI-assisted build through each store’s review.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'ai-disclosure-policy', tab:'interview', why:'Stores ask what AI made during development and what it generates while the game runs, and the answers have to stay true for each build.', do:'Answer the interview questions, then write your game’s AI disclosure for one store.', min:30 },
+        { kind:'topic', ref:'certification-and-review', why:'An AI feature goes through the same gates and clocks as any other.', do:'Add your AI features to the submission calendar, with the checks each review will run on them.', min:25 },
+        { kind:'checklist', ref:'ai-submission-by-platform', why:'An AI-assisted build skips particular checks, and they differ by platform family.', do:'Run the checklist for your platform families on the release candidate, next to the store checklist.', min:25 },
+        { kind:'topic', ref:'ugc-platforms', why:'On a UGC platform the moderation and the audience belong to someone else; Roblox, for one, requires generated and externally fetched text to pass its own filter.', do:'Write how generated text in your game would pass the platform’s filtering and content questionnaire, or why you do not ship there.', min:20 },
+        { kind:'topic', ref:'craft-source-control-for-games', why:'An agent in your repository meets the same traps as a person (binaries that cannot merge, regenerated folders), and shipped builds belong on a release branch, not in anyone’s workspace.', do:'Check that your release build comes from a release branch or tag through CI with regenerated folders ignored, and write the steps if it does not.', min:25 },
+        { kind:'reflect', why:'The habits from this path only last if you write down which ones you will keep.', do:'Write the three verification habits you will keep for AI work, and the one AI use you decided against and why.', min:25 }
+      ],
+      review:['generative-characters','ai-evals'],
+      check:{
+        recall:[
+          { q:'What does Steam ask about AI content?', a:'Whether the game ships pre-generated AI content, made with AI tools during development, and whether it generates content while running; for live-generated content, what guardrails stop it generating illegal content. Efficiency gains from AI development tools are not the focus.' },
+          { q:'What must mobile store forms and review rules say about an AI feature?', a:'Google Play’s Data safety form counts any player data sent off the device, including to a model provider, as collected; Apple’s privacy label counts data kept longer than the request needs. Apple’s Guideline 5.1.2(i) also requires disclosing where personal data goes to third-party AI and getting explicit permission first, and Google Play requires in-app reporting of offensive AI output.' },
+          { q:'Why must a model provider’s API key never ship in the client?', a:'Anything in the client can be extracted, so the key would let anyone run calls on your bill. Calls go through a server you control, which can also enforce limits.' }
+        ],
+        build:'Produce the AI disclosure for each store you ship on and a filled AI submission checklist for your release candidate.',
+        skip:['Have you filed AI disclosures for every store you ship on?','Is every model call routed through a server you control?','Is your release build made by CI from a tag?']
       } }
   ]
 });
@@ -37568,12 +37816,16 @@ window.PlayableGraph = (function(){
       if(list.length < cap) list.push([vid, why]);
     }))));
     const lensLabel = k => { const l = (typeof GAME_LENSES !== 'undefined' ? GAME_LENSES : []).find(x => x[0] === k); return l ? l[1] : k; };
+    // A topic's game leaf prefers a game whose lens is about that topic (the
+    // topic listed earliest in a lens wins), and falls back to a game whose
+    // loop or screen diagram only shows it.
+    const best = {};
+    const offer = (tid, g, rank, why) => { const b = best[tid]; if(!b || rank < b.rank) best[tid] = { g, rank, why }; };
     (games || []).forEach(g => {
-      const vid = `game:${g.id}`;
-      const pick = (tid, why) => { if(gameLeaf[tid]) return; gameLeaf[tid] = [vid, why]; views[vid] = [`#/games/${g.id}`, `◇ ${g.t}`, 'Reference game']; };
-      (g.diagrams || []).forEach(d => (d.topics || []).forEach(t => pick(t, `${g.t}: its ${d.kind === 'screen' ? 'screen' : 'loop'} shows this idea`)));
-      Object.entries(g.lens || {}).forEach(([k, l]) => { if(l && !l.na) (l.topics || []).forEach(t => pick(t, `${g.t}, through its ${lensLabel(k).toLowerCase()} lens`)); });
+      Object.entries(g.lens || {}).forEach(([k, l]) => { if(l && !l.na) (l.topics || []).forEach((t, i) => offer(t, g, i, `${g.t}, through its ${lensLabel(k).toLowerCase()} lens`)); });
+      (g.diagrams || []).forEach(d => (d.topics || []).forEach(t => offer(t, g, 100, `${g.t}: its ${d.kind === 'screen' ? 'screen' : 'loop'} shows this idea`)));
     });
+    Object.entries(best).forEach(([tid, b]) => { const vid = `game:${b.g.id}`; gameLeaf[tid] = [vid, b.why]; views[vid] = [`#/games/${b.g.id}`, `◇ ${b.g.t}`, 'Reference game']; });
     Object.entries(gameLeaf).forEach(([tid, leaf]) => (extra[tid] || (extra[tid] = [])).push(leaf));
     return { hits, views, extra };
   }

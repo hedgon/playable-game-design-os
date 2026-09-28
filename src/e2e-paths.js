@@ -104,8 +104,8 @@ const server = http.createServer((req, res) => {
     for (const [q, v] of [['goal', 'ship'], ['level', 'new'], ['time', 'short']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
     const pick = await page.evaluate(() => ({ title: document.querySelector('#pane .chooser-pick h3')?.textContent, picked: [...document.querySelectorAll('#pane .card.picked')].map(c => c.dataset.pathCard), pressed: document.querySelectorAll('#pane .chooser [aria-pressed="true"]').length }));
     check(`${tag} the chooser suggests a path and marks its card`, pick.title === 'Ship a game on PC, console and mobile' && pick.picked.length === 1 && pick.picked[0] === 'ship-it' && pick.pressed === 3, JSON.stringify(pick));
-    const allCombos = await page.evaluate(() => { let n = 0, bad = []; for (const [g] of CHOOSER.goals) for (const [l] of CHOOSER.levels) for (const [t] of CHOOSER.times) { n++; const r = choosePath(g, l, t); if (!r || !PATHS.includes(r.path)) bad.push([g, l, t].join('/')); } return { n, bad }; });
-    check(`${tag} every chooser combination (${allCombos.n}) suggests a path`, allCombos.n === 63 && !allCombos.bad.length, JSON.stringify(allCombos.bad));
+    const allCombos = await page.evaluate(() => { let n = 0, bad = []; for (const [g] of CHOOSER.goals) for (const [l] of CHOOSER.levels) for (const [t] of CHOOSER.times) { n++; const r = choosePath(g, l, t); if (!r || !PATHS.includes(r.path)) bad.push([g, l, t].join('/')); } return { n, bad, expect: CHOOSER.goals.length * CHOOSER.levels.length * CHOOSER.times.length }; });
+    check(`${tag} every chooser combination (${allCombos.n}) suggests a path`, allCombos.n === allCombos.expect && !allCombos.bad.length, JSON.stringify(allCombos.bad));
 
     // --- checkpoint recall: answer outline, review later, coming up, remove
     await nav('#/paths/ship-it/s1');
