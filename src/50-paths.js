@@ -989,7 +989,7 @@ PATH('interview-prep-designer', {
 PATH('casual-game-people-keep', {
   t:'Make a casual game people keep', tag:'From a one-thumb loop to a free-to-play game that survives soft launch and live ops.',
   pick:'Make a casual mobile game people keep',
-  track:'design', level:'intermediate', hours:10,
+  track:'design', level:'intermediate', hours:10.25,
   audience:'Designers and small teams building a casual or hyper-casual mobile game who want it played on day 30, not just installed on day 1.',
   outcome:'You can design a loop a new player understands in seconds, tie progression and a free-to-play economy to it without breaking trust, prove retention and install cost in a soft launch with playable ads, and plan a live-ops cadence the team can sustain.',
   prereq:[], next:['systems-designer','ship-it'],
@@ -1077,7 +1077,7 @@ PATH('casual-game-people-keep', {
         skip:['Do you have numeric go and no-go gates for soft launch?','Can you list the funnel events your build logs?','Can you describe a playable ad’s limits and structure?']
       } },
     { id:'s5', t:'Live ops the team can sustain', level:'advanced',
-      goal:'Keep the game fresh after launch with events and updates on a cadence that does not burn out the team.', hours:2,
+      goal:'Keep the game fresh after launch with events and updates on a cadence that does not burn out the team.', hours:2.25,
       steps:[
         { kind:'topic', ref:'live-operations', why:'Release is a milestone, not a finish line: Subway Surfers has changed its city every three or four weeks since 2013 while the run underneath stays the same.', do:'Plan your first ninety days after launch: what the first update fixes and adds, one event per cycle with the content it needs, and how that content pays for itself.', min:25 },
         { kind:'topic', ref:'pm-liveops-cadence', why:'Teams burn out on cadence long before they burn out on any single feature, and store review adds days you do not control.', do:'Lay out three cycles (live, in QA, being authored), put store review, localisation and a buffer in as fixed blocks, and keep one quiet week per cycle.', min:20 },
@@ -1085,7 +1085,8 @@ PATH('casual-game-people-keep', {
         { kind:'topic', ref:'server-liveops', why:'Balance and content shipped as versioned data turn a week-long release into a same-day change.', do:'List the values that must change without a client build on day one, such as level difficulty, prices and event dates, and check each against the client versions that will read it.', min:20 },
         { kind:'topic', ref:'learning-from-success', why:'Copies fail on what they leave out, so a borrowed pattern needs the context it worked in.', do:'Pick one mechanic from Candy Crush Saga or Subway Surfers you want to borrow, and write the context that made it work there and whether it holds for your player.', min:15 },
         { kind:'checklist', ref:'submit-mobile', why:'Every client update goes back through store review against the same checklist.', do:'Walk the mobile submission checklist against your next update and mark the items to re-check every release, such as the Data safety form and odds disclosure.', min:15 },
-        { kind:'reflect', why:'A path ends by deciding what to do next.', do:'Write which stage of this path your game is weakest at today and the one change you will make this week.', min:10 }
+        { kind:'reflect', why:'A path ends by deciding what to do next.', do:'Write which stage of this path your game is weakest at today and the one change you will make this week.', min:10 },
+        { kind:'game', ref:'forza-horizon-5', why:'Forza Horizon 5 renews one shared map every Thursday by changing its season and publishing a new playlist of events, so years of live ops come mostly from altering ground players already know.', do:'Read its replay and business lenses, then list which parts of your weekly update reuse existing content and which need new work; cut one new-work item by re-using a space in a changed state instead.', min:15 }
       ],
       review:['soft-launch-and-playable-ads','economy-and-resources'],
       check:{
