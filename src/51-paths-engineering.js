@@ -16,7 +16,7 @@
 PATH('gameplay-engineer-godot', {
   t:'Gameplay engineer, Godot', tag:'Ship the core loop in Godot: signals, physics ticks, and a technique you can debug.',
   pick:'Build a gameplay system end to end in Godot 4',
-  track:'engineering', level:'beginner', hours:14,
+  track:'engineering', level:'beginner', hours:14.25,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
   prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs'],
@@ -44,13 +44,14 @@ PATH('gameplay-engineer-godot', {
         skip:['Can you write a CharacterBody2D script with _physics_process and a consequence signal without checking the docs?','Do you know why multiplying velocity by delta before move_and_slide() breaks the loop, and could you spot it in review?','Have you already fixed a UI click that a Control higher in the tree was swallowing?','Can you name the trade-off sentence for every decision in your current game right now?','Can you name the pattern each node, scene and signal in your loop plays, and write its state machine as an enum and a match?']
       } },
     { id:'s2', t:'Rules, in Godot', level:'beginner',
-      goal:'Turn a design mechanic into a Resource, and use failure and recovery to make retries fast and honest.', hours:2,
+      goal:'Turn a design mechanic into a Resource, and use failure and recovery to make retries fast and honest.', hours:2.25,
       steps:[
         { kind:'topic', ref:'challenge-failure-recovery', tab:'overview', why:'Recovery time is a design decision before it is a reload call: too slow, and a five-second lesson becomes a fifteen-second wait.', do:'Write what your player loses and keeps on failure, and the recovery time you are targeting, in seconds.', min:20 },
         { kind:'topic', ref:'challenge-failure-recovery', tab:'godot', why:'reload_current_scene() does not reset autoloads, so state from the failed run can leak into the retry.', do:'Write a die() function that times the reload with Time.get_ticks_msec(), calls an autoload Checkpoint.restore(), then reload_current_scene(). List every value the autoload must clear.', min:25 },
         { kind:'topic', ref:'mechanics-and-rules', tab:'overview', why:'A mechanic is only worth keeping if it feeds a decision. Sort your list before you turn any of it into data.', do:'List every mechanic your loop needs and cross out the ones that do not feed a decision you wrote in stage one.', min:20 },
         { kind:'topic', ref:'mechanics-and-rules', tab:'godot', why:'A Resource with a class_name puts the mechanic’s numbers in a .tres file a designer can open, instead of buried in code.', do:'Turn one surviving mechanic into a MechanicDef Resource with @export fields, and write the one-line decision_line() it can print.', min:25 },
-        { kind:'checklist', ref:'design-review', why:'A design review forces every question about the mechanic to get an actual answer before you spend more time coding it.', do:'Run the design review checklist against the mechanic you just turned into a Resource, and write down what each group answered.', min:30 }
+        { kind:'checklist', ref:'design-review', why:'A design review forces every question about the mechanic to get an actual answer before you spend more time coding it.', do:'Run the design review checklist against the mechanic you just turned into a Resource, and write down what each group answered.', min:30 },
+        { kind:'game', ref:'sonic', why:'Sonic makes one rule carry the game: the ground stores and spends speed, so a movement rule, not an effect layered on top, decides how fast play feels.', do:'Read the Sonic gameplay lens, then give a CharacterBody2D a slope that adds speed going down and costs it going up, using get_floor_normal(); compare how it feels against a flat run button.', min:20 }
       ],
       review:['core-loop'],
       check:{
@@ -168,7 +169,8 @@ PATH('gameplay-engineer-unity', {
         { kind:'topic', ref:'mechanics-and-rules', tab:'overview', why:'A mechanic is only worth keeping if it feeds a decision. Sort your list before you turn any of it into an asset.', do:'List every mechanic your loop needs and cross out the ones that do not feed a decision you wrote in stage one.', min:20 },
         { kind:'topic', ref:'mechanics-and-rules', tab:'unity', why:'A ScriptableObject asset per mechanic means a diff shows exactly which number moved and who moved it.', do:'Turn one surviving mechanic into a ScriptableObject with CreateAssetMenu and Range fields, and add a FormerlySerializedAs guard for the field you are most likely to rename.', min:30 },
         { kind:'part', ref:'cs-unity-mobile-client-ci/arch/arch-layering', why:'A real Unity codebase enforces mechanic and UI boundaries the same way: dependencies point one way, and nothing above core reaches back down.', do:'Say which of your own scripts would violate that rule today, based on how the client assembly stack keeps imports pointing one direction.', min:30 },
-        { kind:'checklist', ref:'design-review', why:'A design review forces every question about the mechanic to get an actual answer before you spend more time coding it.', do:'Run the design review checklist against the mechanic you just turned into a ScriptableObject, and write down what each group answered.', min:35 }
+        { kind:'checklist', ref:'design-review', why:'A design review forces every question about the mechanic to get an actual answer before you spend more time coding it.', do:'Run the design review checklist against the mechanic you just turned into a ScriptableObject, and write down what each group answered.', min:35 },
+        { kind:'game', ref:'crash-bandicoot', why:'The N. Sane Trilogy rebuilt Crash’s levels from the original meshes and footage, yet a capsule collision shape and a faster jump arc made the same jumps harder: the rules of movement, not the art, decide difficulty.', do:'Build one ledge jump in Unity with a box collider, then swap it for a capsule and replay it ten times; write down where the capsule slips off the edge and which value you would change.', min:15 }
       ],
       review:['core-loop'],
       check:{
@@ -698,7 +700,7 @@ PATH('interview-prep-engineer', {
 PATH('ship-it', {
   t:'Ship a game on PC, console and mobile', tag:'From choosing platforms to a release that survives its first patch.',
   pick:'Ship a game on PC, console and mobile',
-  track:'production', level:'intermediate', hours:9.75,
+  track:'production', level:'intermediate', hours:10,
   audience:'Producers, leads and developers taking a finished or nearly finished game to one or more stores for the first time.',
   outcome:'You can choose platforms on purpose, start access early, pass certification on a planned calendar, file ratings and disclosures correctly, and release and patch without breaking saves.',
   prereq:[], next:['build-and-release-engineer','technical-lead'],
@@ -748,14 +750,15 @@ PATH('ship-it', {
         skip:['Have you already started the entity and NDA steps for every console you target?','Does your build already survive suspend, resume and controller loss without losing data?','Is every platform’s player built by one pipeline from one entry point?','Could you upload a Quest build to a release channel and name the checks it faces?']
       } },
     { id:'s3', t:'Pass the gates', level:'intermediate',
-      goal:'Plan certification and store review as fixed dates, and file ratings and disclosures correctly the first time.', hours:2.25,
+      goal:'Plan certification and store review as fixed dates, and file ratings and disclosures correctly the first time.', hours:2.5,
       steps:[
         { kind:'topic', ref:'certification-and-review', why:'Every platform has a gate and a clock, and a rejection costs the turnaround twice.', do:'Build a submission calendar backwards from your launch date, with each platform’s review window and one resubmission of buffer.', min:30 },
         { kind:'topic', ref:'ratings-and-disclosures', why:'A missing or wrong rating or privacy answer blocks a release as hard as a crash does.', do:'List every storefront you ship on and whether it uses IARC, its own questionnaire or a direct board rating, and every SDK whose data collection you must declare.', min:25 },
         { kind:'platform', ref:'apple', why:'Apple runs its own age rating and privacy labels, so it shows the disclosure work at its most detailed.', do:'Read the Apple guide’s review and ratings stages and list what your privacy label must declare.', min:20 },
         { kind:'platform', ref:'playstation', why:'PlayStation’s gate is partnership and the TRC: registration, agreements and dev kits come before any build, and the requirements are under NDA.', do:'Walk the release stage’s deploy walkthrough, then write the order of steps from registration to submission and which ratings you need for your markets.', min:20 },
         { kind:'topic', ref:'pm-qa-release', why:'Review windows are calendar commitments that the release plan has to hold.', do:'Put your submission dates into the release plan as fixed milestones, each with an owner.', min:25 },
-        { kind:'checklist', ref:'submit-console', why:'A pre-submission pass catches the common rejections before the reviewer does.', do:'Run the submission checklist for your platform family (console here; PC and mobile are on the checklists page) and fix the first three failures.', min:20 }
+        { kind:'checklist', ref:'submit-console', why:'A pre-submission pass catches the common rejections before the reviewer does.', do:'Run the submission checklist for your platform family (console here; PC and mobile are on the checklists page) and fix the first three failures.', min:20 },
+        { kind:'game', ref:'dragon-quest', why:'Dragon Quest shows a release decision outweighing the game itself: the same core drew opposite verdicts in Japan and the West depending on when each market got it and in what edition, from Dragon Warrior’s late 1989 release to XI’s Definitive Edition.', do:'Read its reception and business lenses, then write for your own game which markets get which edition on which date, and what each market will compare it against on that day.', min:15 }
       ],
       review:['platform-access'],
       check:{
