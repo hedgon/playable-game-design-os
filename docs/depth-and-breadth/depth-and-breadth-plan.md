@@ -157,7 +157,7 @@ Legends (the comparison inside Dota 2).
 | Id | Todo | Status |
 | --- | --- | --- |
 | E1 | `ENGINE_GUIDE()` frame, landed with the Godot pilot (open licence, real editor images allowed) | landed (Godot pilot on Godot 4.7.2, with two CC BY 3.0 editor screens from its documentation and a step in the Godot gameplay path’s first stage) |
-| E2 | Unity (render pipelines, DOTS, the 2023 Runtime Fee announced and withdrawn as the licensing-risk lesson) | todo |
+| E2 | Unity (render pipelines, DOTS, the 2023 Runtime Fee announced and withdrawn as the licensing-risk lesson) | landed (no screens: Unity’s docs and press images carry no licence the site accepts) |
 | E3 | Unreal Engine (Blueprints versus C++, UAT and BuildGraph) | todo |
 | E4 | Godot (pilot, see E1) | landed |
 | E5 | GameMaker | todo |
@@ -188,20 +188,20 @@ MonoGame, CryEngine.
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| A1 | Tokens, embeddings, the context window | todo |
-| A2 | Attention, the KV cache, and why long context degrades (lost in the middle, context rot) | todo |
-| A3 | Sampling: temperature, top-p, determinism | todo |
-| A4 | Hallucination and sycophancy: causes, detection, reduction (extends, and links, `verifying-ai-output` and `ai-failure-modes`) | todo |
-| A5 | How models are made: pre-training, fine-tuning (LoRA and other parameter-efficient methods; when it beats prompting), RLHF and other feedback training, distillation, quantisation | todo |
-| A6 | Model architecture choices that matter to users: mixture of experts (total versus active parameters), multimodal models | todo |
-| A7 | Open-weight and closed models; small, on-device models; routing and cascades | todo |
-| A8 | Prompt caching: what a cache hit is, what breaks it, cost and latency (the KV cache from A2 as the mechanism) | todo |
-| A9 | Context engineering: what goes into the window, in what order, and why | todo |
-| A10 | Agent harnesses: the loop, tools, sub-agents, memory (extends `ai-agentic-implementation`) | todo |
-| A11 | What makes an agent capable: model, context, tools, instructions, feedback, evals, with evidence | todo |
-| A12 | Tool use, MCP, structured outputs and JSON schema; RAG (embeddings search, chunking, reranking) versus long context | todo |
-| A13 | Reasoning models and test-time compute; benchmarks, contamination, scaling laws (why capability moves fast) | todo |
-| A14 | Security and operations: prompt injection, cost control, evals in production (links `ai-evals`); LLMs inside games links the `gameai` domain | todo |
+| A1 | Tokens, embeddings, the context window | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A2 | Attention, the KV cache, and why long context degrades (lost in the middle, context rot) | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A3 | Sampling: temperature, top-p, determinism | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A4 | Hallucination and sycophancy: causes, detection, reduction (extends, and links, `verifying-ai-output` and `ai-failure-modes`) | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A5 | How models are made: pre-training, fine-tuning (LoRA and other parameter-efficient methods; when it beats prompting), RLHF and other feedback training, distillation, quantisation | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A6 | Model architecture choices that matter to users: mixture of experts (total versus active parameters), multimodal models | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A7 | Open-weight and closed models; small, on-device models; routing and cascades | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A8 | Prompt caching: what a cache hit is, what breaks it, cost and latency (the KV cache from A2 as the mechanism) | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A9 | Context engineering: what goes into the window, in what order, and why | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A10 | Agent harnesses: the loop, tools, sub-agents, memory (extends `ai-agentic-implementation`) | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A11 | What makes an agent capable: model, context, tools, instructions, feedback, evals, with evidence | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A12 | Tool use, MCP, structured outputs and JSON schema; RAG (embeddings search, chunking, reranking) versus long context | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A13 | Reasoning models and test-time compute; benchmarks, contamination, scaling laws (why capability moves fast) | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
+| A14 | Security and operations: prompt injection, cost control, evals in production (links `ai-evals`); LLMs inside games links the `gameai` domain | landed (`39a-topics-models.js`, fourteen topics, fact-checked, with dated facts from vendor docs and papers) |
 
 Model-specific facts (caching rules, context sizes, prices) come from current
 official documentation at writing time, as dated facts with sources.

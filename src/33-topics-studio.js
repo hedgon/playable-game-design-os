@@ -397,7 +397,7 @@ T('quality-and-build-health',{ d:'studio', t:'Quality assurance and build health
   why:[`A broken build stops the evidence loop, and the evidence loop is the design process.`,`Bugs that block the core loop matter more than cosmetic bugs, yet the opposite is often prioritised.`,`Regressions quietly erase work that was already validated.`],
   think:{ q:[`Can a designer get a playable build today?`,`Which bugs block the core loop or a specific test?`,`What regressed since the last known-good build, and which change caused it?`,`What technical debt is slowing iteration right now?`],
     trade:[`Cleaning everything is slow. Ignoring debt is slower.`,`Fixing and adding at once increases risk. A short freeze protects the next test.`],
-    traps:[`Prioritizing cosmetic bugs over blocking ones.`,`No build cadence, so testing waits on a lucky merge.`,`No regression check, so the same bug returns.`,`It works on my machine.`],
+    traps:[`Prioritizing cosmetic bugs over blocking ones.`,`No build cadence, so testing waits on a lucky merge.`,`No regression check, so the same bug returns.`,`It works on my machine.`,`Unity scenes reference assets by the GUID stored in each asset’s .meta file, so a missing or regenerated meta file breaks references across the project on the next pull.`],
     good:[`A playable build on a known cadence.`,`A known-broken list the testers understand.`],
     bad:[`Testers cannot reach the new system.`,`The same bug returns after every milestone.`] },
   how:[`Keep a named playable build and a cadence for producing it.`,`Triage bugs as blocker, loop, or cosmetic, and fix blockers first.`,`Log regressions with the change that caused them.`,`Budget debt paydown against iteration speed, not against taste.`],
