@@ -185,6 +185,7 @@ const GAME_AWARDS = {
   'the-sims': [{ id:'dice', year:2000, src: WIKI + '3rd_Annual_Interactive_Achievement_Awards' }],
   'baldurs-gate-3': [{ id:'tga', year:2023, src: WIKI + 'The_Game_Awards_2023' }, { id:'dice', year:2024, src: WIKI + '27th_Annual_D.I.C.E._Awards' }, { id:'gdca', year:2024, src: WIKI + '24th_Game_Developers_Choice_Awards' }, { id:'bafta', year:2024, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }],
   'god-of-war': [{ id:'tga', year:2018, src: WIKI + 'The_Game_Awards_2018' }, { id:'dice', year:2019, src: WIKI + '22nd_Annual_D.I.C.E._Awards' }, { id:'gdca', year:2019, src: WIKI + '19th_Game_Developers_Choice_Awards' }, { id:'bafta', year:2019, src: WIKI + '15th_British_Academy_Games_Awards' }],
+  'halo': [{ id:'dice', year:2002, src: WIKI + '5th_Annual_Interactive_Achievement_Awards' }],
   'clair-obscur': [{ id:'tga', year:2025, src: WIKI + 'The_Game_Award_for_Game_of_the_Year' }, { id:'dice', year:2026, src: WIKI + 'D.I.C.E._Award_for_Game_of_the_Year' }, { id:'gdca', year:2026, src: WIKI + 'Game_Developers_Choice_Award_for_Game_of_the_Year' }, { id:'bafta', year:2026, src: WIKI + 'British_Academy_Games_Award_for_Best_Game' }]
 };
 /** @param {any} g */
