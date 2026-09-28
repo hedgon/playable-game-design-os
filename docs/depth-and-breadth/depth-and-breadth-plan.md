@@ -161,7 +161,7 @@ Legends (the comparison inside Dota 2).
 | E3 | Unreal Engine (Blueprints versus C++, UAT and BuildGraph) | landed (Unreal Engine 5.8; no screens: Epic's documentation images carry no licence the site accepts; the guide says topic tabs stay Godot and Unity) |
 | E4 | Godot (pilot, see E1) | landed |
 | E5 | GameMaker | landed (GameMaker LTS 2026.0; no screens, for the same reason) |
-| E6 | The web stack: HTML5 Canvas, WebGL and WebGPU, three.js, Babylon.js, Phaser, PlayCanvas; web portals (Poki, CrazyGames), itch.io, static hosts, wrappers | todo |
+| E6 | The web stack: HTML5 Canvas, WebGL and WebGPU, three.js, Babylon.js, Phaser, PlayCanvas; web portals (Poki, CrazyGames), itch.io, static hosts, wrappers | landed (one MIT three.js example screen; Poki and CrazyGames terms as dated facts) |
 | E7 | Blender as a game tool: modelling to engine export, the Python API, why it pairs with AI | todo |
 | E8 | Ren’Py (visual novels; plain-text scripts) and a note on RPG Maker | todo |
 | E9 | Defold and Cocos Creator (casual mobile, playable ads, mini-game platforms) | todo |
@@ -210,23 +210,23 @@ official documentation at writing time, as dated facts with sources.
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| V1 | Research the owner-quoted claim: where evidence supports it, where it is already dated, where it fails | todo |
-| V2 | Draw the owner’s pipeline (question, interpretation, tool selection, structured input, computation, result, explanation, visualisation) as a flow diagram with the probabilistic and deterministic parts marked, and one worked game example (“is this economy inflating?”: model, simulation or spreadsheet, chart) | todo |
-| V3 | Test the owner’s own values as written (clarity, correctness, reasoning over over-engineering, completeness or polish, a clear line between probabilistic and deterministic parts); refine them into core values that hold as capability grows | todo |
-| V4 | What is expected of an engineer now: judgement, specification, verification, architecture; the interview angle. `bottleneck-shift` and the AI philosophy page link here instead of repeating it | todo |
+| V1 | Research the owner-quoted claim: where evidence supports it, where it is already dated, where it fails | landed (`39b-topics-craft.js`, fact-checked; the owner’s claim is tested against PAL, Toolformer and GSM-Symbolic, with the pipeline drawn as a flow) |
+| V2 | Draw the owner’s pipeline (question, interpretation, tool selection, structured input, computation, result, explanation, visualisation) as a flow diagram with the probabilistic and deterministic parts marked, and one worked game example (“is this economy inflating?”: model, simulation or spreadsheet, chart) | landed (`39b-topics-craft.js`, fact-checked; the owner’s claim is tested against PAL, Toolformer and GSM-Symbolic, with the pipeline drawn as a flow) |
+| V3 | Test the owner’s own values as written (clarity, correctness, reasoning over over-engineering, completeness or polish, a clear line between probabilistic and deterministic parts); refine them into core values that hold as capability grows | landed (`39b-topics-craft.js`, fact-checked; the owner’s claim is tested against PAL, Toolformer and GSM-Symbolic, with the pipeline drawn as a flow) |
+| V4 | What is expected of an engineer now: judgement, specification, verification, architecture; the interview angle. `bottleneck-shift` and the AI philosophy page link here instead of repeating it | landed (`39b-topics-craft.js`, fact-checked; the owner’s claim is tested against PAL, Toolformer and GSM-Symbolic, with the pipeline drawn as a flow) |
 
 **Code craft** (a new engineering domain; engine tabs where code helps)
 
 | Id | Todo | Status |
 | --- | --- | --- |
-| K1 | Best practice that still pays, and what changed with AI | todo |
-| K2 | Memory: garbage collection and allocation (C# in Unity and Godot 4, incremental GC, `new` in Update), pooling, value types, Godot reference counting, C++ ownership; links `backend-go-idioms` for servers | todo |
-| K3 | Performance: profile first, frame budgets, CPU and GPU, data-oriented design and ECS; links `backend-observability` | todo |
-| K4 | Design patterns in games (Nystrom’s Game Programming Patterns and others): which help, which are over-applied | todo |
-| K5 | Clean code in the age of AI: what still matters (readability for reviewers and agents, context size, naming), and what was always taste | todo |
-| K6 | Over-defensive code: why people and agents write it (missing context, unknown schemas, the unseen caller), its cost, the fix (guards at boundaries, trust upstream guarantees) | todo |
-| K7 | What matters most now: understanding over output, verification, simplicity | todo |
-| K8 | Teaching agents to avoid pitfalls: rules files, types and schemas, tests, linters, examples, review checklists (extends and links `lead-conventions`, `lead-code-review`, `ai-agentic-implementation`) | todo |
+| K1 | Best practice that still pays, and what changed with AI | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
+| K2 | Memory: garbage collection and allocation (C# in Unity and Godot 4, incremental GC, `new` in Update), pooling, value types, Godot reference counting, C++ ownership; links `backend-go-idioms` for servers | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
+| K3 | Performance: profile first, frame budgets, CPU and GPU, data-oriented design and ECS; links `backend-observability` | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
+| K4 | Design patterns in games (Nystrom’s Game Programming Patterns and others): which help, which are over-applied | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
+| K5 | Clean code in the age of AI: what still matters (readability for reviewers and agents, context size, naming), and what was always taste | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
+| K6 | Over-defensive code: why people and agents write it (missing context, unknown schemas, the unseen caller), its cost, the fix (guards at boundaries, trust upstream guarantees) | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
+| K7 | What matters most now: understanding over output, verification, simplicity | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
+| K8 | Teaching agents to avoid pitfalls: rules files, types and schemas, tests, linters, examples, review checklists (extends and links `lead-conventions`, `lead-code-review`, `ai-agentic-implementation`) | landed (`39b-topics-craft.js`, fact-checked, with Godot 4 and Unity 6 views where code shows the point) |
 
 **Careers** (a new domain, or folded into leadership: decision 5)
 

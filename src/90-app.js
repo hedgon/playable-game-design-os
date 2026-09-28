@@ -1352,7 +1352,7 @@ function aiPhilosophyView(){
     <div class="quotebig">AI can generate possibilities extremely cheaply. Humans must decide what is worth making.</div>
     <div class="quotebig" style="border-left-color:var(--bad)">A polished bad idea is still a bad game.</div>
     <div class="grid c2" style="margin-top:12px"><div class="box"><h4>Questions to ask yourself weekly</h4>${list(t.think.q)}</div><div class="box"><h4>Traps</h4>${list(t.think.traps)}</div></div>
-    <div class="row" style="margin-top:12px"><a class="btn" href="#/map/t/bottleneck-shift">Full topic: the bottleneck shift</a><a class="btn" href="#/map/t/scope-control">Scope control</a></div>
+    <div class="row" style="margin-top:12px"><a class="btn" href="#/map/t/bottleneck-shift">Full topic: the bottleneck shift</a><a class="btn" href="#/map/t/scope-control">Scope control</a><a class="btn" href="#/map/t/craft-engineer-in-the-ai-era">What is expected of an engineer now</a></div>
     <div class="callout" style="margin-top:14px"><b>Field note (2024 to 2026):</b> industry surveys and GDC talks in this period report designers using generative AI mostly for research, brainstorming, code assistance and prototyping rather than shipped assets, with widespread concern about generic output and volume over quality. The practitioners who report it working keep the first prototype, use AI to widen options rather than choose them, and validate with playtests. That is the pattern this guide encodes.</div></div>`;
 }
 function aiRolesView(arg){
