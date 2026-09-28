@@ -872,7 +872,7 @@ PATH('technical-lead', {
 PATH('interview-prep-designer', {
   t:'Interview prep: designer', tag:'The stories and the frameworks, rehearsed until they are fast.',
   pick:'Answer design interview questions with real stories',
-  track:'interview', level:'intermediate', hours:11.5,
+  track:'interview', level:'intermediate', hours:11.75,
   audience:'Designers preparing for a job interview who already have the fundamentals and need to turn them into fast, concrete answers.',
   outcome:'You can answer a question in any core design category in under two minutes, back it with a real story, and speak to at least one engineering constraint you have worked against.',
   prereq:['systems-designer','level-and-ux-designer'], next:[],
@@ -942,13 +942,14 @@ PATH('interview-prep-designer', {
         skip:['Can you describe one space that tells a story without text?','Can you name the structural beats in a level you have shipped or built, on the spot?','Do you have a specific line from an onboarding audit ready to quote?','Can you speak to a fairness or cheating question with a concrete example, not just a value statement?','Do you have a STAR story about a UX fix that came from watching, not asking?']
       } },
     { id:'s4', t:'Production judgement', level:'advanced',
-      goal:'Show you know when to stop prototyping, and that a playtest has changed your mind before.', hours:2,
+      goal:'Show you know when to stop prototyping, and that a playtest has changed your mind before.', hours:2.25,
       steps:[
         { kind:'topic', ref:'playtesting', tab:'interview', why:'Tell me about a playtest that surprised you tests whether you update on evidence, which is what the role is really asking about.', do:'Open the interview tab for Playtesting and answer its question about a surprising result out loud, using a real session if you have one.', min:25 },
         { kind:'topic', ref:'hypothesis-driven-design', tab:'interview', why:'How do you know when to stop prototyping rewards a structure, a hypothesis with a kill criterion, not a feeling about being done.', do:'Open the interview tab for Hypothesis-driven design and answer its hardest question, naming an actual kill criterion you have used.', min:25 },
         { kind:'checklist', ref:'pre-prototype', why:'Rehearsing this answer against a real checklist keeps it concrete instead of aspirational.', do:'Rehearse your answer to “How do you know when to stop prototyping?” using the pre-prototype checklist as your list of evidence, not your gut.', min:20 },
         { kind:'tool', ref:'dissect', why:'A second dissected game, in a genre you have not worked in, shows range beyond your one comfortable example.', do:'Dissect a second game, this time in a genre you have never worked in, and note the one thing that transfers to your own work.', min:25 },
-        { kind:'reflect', why:'A time I was wrong is one of the hardest interview questions to answer well without a story ready in advance.', do:'Write a STAR story about a time a playtest or a hypothesis proved you wrong, and exactly what you did differently afterwards.', min:25 }
+        { kind:'reflect', why:'A time I was wrong is one of the hardest interview questions to answer well without a story ready in advance.', do:'Write a STAR story about a time a playtest or a hypothesis proved you wrong, and exactly what you did differently afterwards.', min:25 },
+        { kind:'game', ref:'overwatch', why:'Overwatch changed its own team rules four times and cancelled the PvE mode its sequel was sold on, a public record of design judgement being revised under evidence.', do:'Read the Overwatch replay and lore lenses, then pick one of its changes, Role Queue, 5v5 or the PvE cancellation, and say in two minutes what evidence you would have wanted before making it.', min:15 }
       ],
       review:['level-structure'],
       check:{
