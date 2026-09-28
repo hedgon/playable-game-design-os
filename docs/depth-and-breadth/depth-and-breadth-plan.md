@@ -48,6 +48,7 @@ scope; its findings are folded in below.
 | R24 | (2026-09-25, later) Touhou Project as a long-running series: a creator who lets fans use the IP freely, even commercially, and the IP still thrives | X5 |
 | R25 | (2026-09-25, later) No “no licensable screenshot” placeholders: when a store page has no screenshot of an entry, find one in gaming news coverage | X6 |
 | R27 | (2026-09-28) Entries with wrong or duplicated images: check carefully and fix them all | X9 |
+| R28 | (2026-09-28) Parse an X post (a claimed Andrew Ng course on “graph engineering”) and integrate it into a learning course | I9 |
 | R26 | (2026-09-25, later) Recheck past work for anything left out for lack of a licensed image; view any image larger on click, phone compatible | X6, X7 |
 
 The owner’s named examples are always included; “etc” candidates are listed
@@ -152,6 +153,7 @@ Legends (the comparison inside Dota 2).
 | I5 | Series lessons feed `learning-from-success` and `genre-hybrids` (what a formula keeps and changes) | per pass |
 | I6 | Map game leaf prefers a game whose lens is about that topic: coded in `practiceLinks`, checked in validate.js | landed (a topic’s game leaf prefers the game whose lens lists it earliest, diagrams only as a fallback; check-layout.js fails otherwise) |
 | I7 | New path “AI engineering for game developers” over A, V, K and T1, with new checklists (agent rules file, where AI sits in an architecture, submission per platform family) | landed (`ai-engineering-for-game-devs`, five stages over the models, craft, AI and in-game AI domains, with three new checklists: agent rules file, the AI architecture boundary, AI-assisted submission per platform family) |
+| I9 | The X post’s video course: verify who made it and what it teaches from primary sources, then cite it where it teaches best (the agent-harness topics and the AI engineering path), or say plainly why not | researching |
 | I8 | Path chooser updated so the new paths are reachable | landed (a Build with AI goal; the casual path under Design and Ship; the e2e check derives the combination count) |
 
 **Engines and tools** (a new Library collection, like platform guides)
@@ -265,7 +267,7 @@ L1 inventory (2026-09-28, computed from the data, not estimated): 16 paths hold 
 | Id | Todo | Status |
 | --- | --- | --- |
 | U3 | Known leftovers: code snippets the last review left out of scope (a Godot snippet that blocks the main thread, Photon calls listed as Unity API, a Unity snippet that breaks its own threading warning); the obfuscator contradiction (owner decision) | landed (the Go-idioms Godot snippet now polls the task instead of blocking the frame; the crash-reporter Unity snippet reads Unity API on the main thread only and locks its ring; Photon was already named as a third-party SDK; obfuscation is framed in both places as raising the cost of reverse engineering, never as where a secret is kept) |
-| U4 | Final headless sweep; README, CONTRIBUTING, docs | todo |
+| U4 | Final headless sweep; README, CONTRIBUTING, docs | README and CONTRIBUTING updated (counts, the new domains, engine guides, walkthroughs, the image rule and the 12 MB budget); final sweep runs when the plan ships |
 
 ## 2. Bối cảnh / Survey hiện trạng
 

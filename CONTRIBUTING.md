@@ -87,6 +87,9 @@ the type check and the smoke test on every push and pull request.
 20-topics-player.js       one file per domain, in map order: the domain, then each topic
   ...                     with its TECH, ENGINE, INTERVIEW and FACTS
 39-topics-platforms.js
+39a-topics-models.js      how AI models work (no engine views)
+39b-topics-craft.js       code craft (engine views where code shows the point)
+39c-topics-careers.js     careers beyond games (no engine views)
 40-cases.js               the three anonymised projects: CASE, SYSTEMS, FLOWS, PROJECT_INTERVIEW
 41-case-systems-a.js      systems and parts of each project
 42-case-systems-b.js
@@ -181,11 +184,14 @@ layout for some) in `14-references.js`, and store art needs a developer
 credit and an https store link (`GAME_ART_CREDITS`). A game with no Steam
 page uses its publisher’s own store page, or a free-licensed image from
 Wikimedia Commons, whose credit entry adds the licence and the source name
-(`[author, url, licence, 'Wikimedia Commons']`) so the caption says both. Only
-when neither exists does a game get an original drawn tile (`drawn:true`, a
-file in `assets/games/drawn/`), captioned as our drawing, never passed off as
-official art. The validator checks that every image file exists. Schematics are our own
-drawings.
+(`[author, url, licence, 'Wikimedia Commons']`) so the caption says both. Real
+screens only (owner rule): after the store come the publisher’s press images,
+including official screens republished by a news outlet (`licence:'press'`
+with a `source`), then a games-database capture (`licence:'capture'`, source
+`LaunchBox Games Database`); never a drawing or a generated stand-in. If no real
+screen exists, the entry ships without one. The validator checks that every
+image file exists and that press and capture credits name their source.
+Schematics are our own drawings, for diagrams only.
 
 Every game carries a full analysis (`ANALYSIS()` in `16-games-analysis.js` for the
 games above, `GAME()` with the analysis inline in `17-games-japan.js`,
@@ -203,7 +209,7 @@ caption naming what to look at, and optional numbered callouts (x, y as
 fractions of the image). A shot from anywhere else carries its own
 `credit:{author, url, licence}`, with the licence from `IMAGE_LICENCES`
 (store art, a named free licence, or `own` for our schematics; share-alike
-images add `changed`). All of `assets/` has a 10 MB budget. Lenses link
+images add `changed`). All of `assets/` has a 12 MB budget. Lenses link
 topics; the frame, the shelves and the lens-to-topic defaults are in
 `14-references.js`, and the validator enforces all of it.
 
@@ -241,7 +247,22 @@ process; anything that can change (fees, rules, deadlines, turnaround) is a
 dated fact with its source, checked like topic facts. `nda` names what the
 platform keeps under NDA; never guess NDA content. Every guide except `open` ones
 needs a `flow` (a flow diagram from sign-up to release), and `topics` must
-name real topics.
+name real topics. The last stage (`release`, or `publish` for UGC) carries a
+numbered `deploy` walkthrough of four or more steps `{t, d, shot?}` and five or
+more interview items `iv:[{q, a, follow, red}]`; the validator requires both. A
+portal screenshot comes from the platform’s own public documentation, credited
+`licence:'press'` with its `source`, never from behind an NDA login.
+`PLATFORM_NOTES` holds a short note, with a dated fact, for a channel too small
+or too closed for a guide, or `excluded:true` with the reason.
+
+### Engine and tool guides
+
+`ENGINE_GUIDE('id', {...})` in `19-engines.js` adds a guide at `#/engines/id`:
+`t`, `sub`, `short`, `kind` (`engine`, `web` or `tool`), `glance` (licence and
+cost, languages, targets), all eight stages of `ENGINE_STAGES`, each with two or
+more `points` (the interview stage has four or more `iv` items instead), a
+`flow` from project to shipped build, and `topics`. Versions, prices and licence
+terms are dated facts. Engine tabs inside topics stay Godot and Unity only.
 
 ### Smells, tools and diagnostics
 
