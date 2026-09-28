@@ -2983,7 +2983,7 @@ SERIES({
 });
 
 SERIES({
-  id: 'ea-sports-fc', t: 'EA Sports FC / FIFA', year: 1993, genre: 'football (soccer) simulation', family: 'sim',
+  id: 'ea-sports-fc', t: 'EA Sports FC / FIFA', year: 1993, genre: 'football (soccer) simulation', family: 'sports',
   tags: ['multiplayer', 'live-service', 'premium', 'real-time'], aka: ['fifa', 'fifa soccer', 'ea sports fc', 'ea fc'],
   img: 'assets/games/ea-sports-fc.jpg', dev: 'EA Vancouver, EA Romania', store: 'https://store.steampowered.com/app/2195250/EA_SPORTS_FC_24/',
   want: 'Field the real season you already follow, the real leagues, clubs, players and stadiums, then beat another manager doing exactly the same thing with a squad of their own.',

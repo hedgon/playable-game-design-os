@@ -140,7 +140,7 @@ REFERENCE_GAMES.forEach(g => {
                 official screenshots, credited to the developer, each one
                 attached to the lens it illustrates, callouts in 0..1
    --------------------------------------------------------------------- */
-const GAME_FAMILIES = [['rpg','RPG'],['strategy','Strategy and tactics'],['action','Action'],['roguelike','Roguelike'],['puzzle','Puzzle'],['narrative','Narrative and adventure'],['sim','Sim and sandbox'],['social','Social']];
+const GAME_FAMILIES = [['rpg','RPG'],['strategy','Strategy and tactics'],['action','Action'],['roguelike','Roguelike'],['puzzle','Puzzle'],['narrative','Narrative and adventure'],['sim','Sim and sandbox'],['sports','Sports and racing'],['social','Social']];
 const GAME_TAGS = ['turn-based','real-time','time-blend','deduction','knowledge','systems','rules-as-objects','procedural','daily','multiplayer','asynchronous','cozy','precision','diegetic-ui','minimal-hud','narrative-choice','moral-choice','solo-developer','early-access','live-service','premium','free-to-play','open-world','casual','mobile','ads','hyper-casual','idle','old-school','visual-novel'];
 // Every image carries a credit whose licence is one of these: store art and
 // screenshots offered by the publisher, a free licence (named exactly), or

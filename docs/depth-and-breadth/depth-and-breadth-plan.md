@@ -48,6 +48,7 @@ scope; its findings are folded in below.
 | R24 | (2026-09-25, later) Touhou Project as a long-running series: a creator who lets fans use the IP freely, even commercially, and the IP still thrives | X5 |
 | R25 | (2026-09-25, later) No “no licensable screenshot” placeholders: when a store page has no screenshot of an entry, find one in gaming news coverage | X6 |
 | R27 | (2026-09-28) Entries with wrong or duplicated images: check carefully and fix them all | X9 |
+| R29 | (2026-09-28) Reverify tags: Tony Hawk and Rocket League filed under Action | X10 |
 | R28 | (2026-09-28) Parse an X post (a claimed Andrew Ng course on “graph engineering”) and integrate it into a learning course | I9 |
 | R26 | (2026-09-25, later) Recheck past work for anything left out for lack of a licensed image; view any image larger on click, phone compatible | X6, X7 |
 
@@ -63,6 +64,7 @@ with a verdict (add, or excluded with a reason) and confirmed in decision 2.
 | U1 | Headless screenshot sweep of every page type at 375, 1024 and 1440 px, both themes; issue list; quick fixes | landed |
 | U2 | Library at scale: curated shelves (Series, Open world, Casual and mobile, Old-school fun, Visual novels) alongside family groups; filter row that stays usable on a phone; “In real games” strip capped and grouped on topic pages | landed |
 | X1 | Series entry screenshots: `entries[].shot` (real screen, credited, at most 40 KB), required on at least half the entries and at least four; drawn in the timeline beside each entry; Mega Man first, then every series | landed (validate.js enforces at least half and at least four entry screens on every series) |
+| X10 | Sports and racing games filed under Action or Sim for want of a family: a `sports` family (Sports and racing) added, holding Rocket League, Mario Kart 8, Tony Hawk’s Pro Skater and EA Sports FC, and the Tier 2 sports and racing entries | landed |
 | X9 | Image audit: every header, lens shot and series entry screen checked by eye and by a perceptual hash, wrong and duplicated screens replaced | landed (406 images; 10 series entry screens replaced: Mega Man X1, X2, X3, X5 and X7, two Ace Attorney cases, The Wind Waker, a squeezed Touhou screen and the missing Sims Online screen; one alt corrected; two store headers with promotional banners replaced, Elden Ring and Euro Truck Simulator 2) |
 | X2 | Shelves: Long-running series and Top award winners only. Awards are data (`awards:[{t, year, src}]` from a closed list of the top awards), shown on the game page; the shelf lists games with at least one. Open world, casual, old-school and visual-novel stay as tags in the tag filter | landed: nine games (Portal, Minecraft, Papers, Please, Outer Wilds, Return of the Obra Dinn, Hades, Vampire Survivors, Balatro, Clair Obscur); every new game checks the award lists |
 | X3 | Flappy Bird image: a real screen with a licence the site accepts (Commons, archived official listing), or none | landed: a CC BY 2.0 Commons photo of the licensed 2018 arcade cabinet, captioned as such (`CC BY 2.0` added to the licences) |

@@ -2534,7 +2534,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
 });
 
 GAME({ id:'rocket-league', series:{ id:'rocket-league-series', t:'Rocket League', n:'the sequel to 2008’s Supersonic Acrobatic Rocket-Powered Battle-Cars' }, img:'assets/games/rocket-league.jpg', dev:'Psyonix', store:'https://store.steampowered.com/app/252950/Rocket_League/',
-  t:'Rocket League', year:2015, genre:'vehicular football', family:'action', tags:['multiplayer','free-to-play','live-service','precision'], aka:['rl', 'car soccer'],
+  t:'Rocket League', year:2015, genre:'vehicular football', family:'sports', tags:['multiplayer','free-to-play','live-service','precision'], aka:['rl', 'car soccer'],
   want:'Play a whole sport with just a car, a ball and physics, and find out how far a few moves can take me.',
   verb:'drive, jump and boost into the ball',
   first30:'A standard match spawns both teams on an enclosed pitch for a three-second kickoff countdown, with the ball resting at centre and every car holding a third of a boost meter. One car from each side usually boosts straight at it while teammates peel off for boost pads, and the first touch is often a scrappy collision: the ball squirts free towards a corner, a car gives chase, and a shot or a save can come within seconds.',
@@ -2651,7 +2651,7 @@ GAME({ id:'rocket-league', series:{ id:'rocket-league-series', t:'Rocket League'
 GAME({
   id: 'mario-kart-8', series: { id: 'mario-kart', t: 'Mario Kart', n: 'the eighth main game' },
   img: 'assets/games/mario-kart-8.jpg', dev: 'Nintendo', store: 'https://www.nintendo.com/us/store/products/mario-kart-8-deluxe-switch/',
-  t: 'Mario Kart 8', year: 2014, genre: 'kart racer', family: 'action',
+  t: 'Mario Kart 8', year: 2014, genre: 'kart racer', family: 'sports',
   tags: ['multiplayer', 'real-time', 'precision', 'premium'], aka: ['mario kart 8 deluxe', 'mk8', 'mk8d', 'mario kart'],
   want: 'Win a close race against people much better, or much worse, than me, and still feel it came down to my own driving.',
   verb: 'drift, draft, aim; hold an item to block, fire it to attack',
@@ -4388,7 +4388,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
 });
 
 GAME({ id:'tony-hawks-pro-skater', series:{ id:'tony-hawks', t:'Tony Hawk’s', n:'first entry' }, img:'assets/games/tony-hawks-pro-skater.jpg', imgCredit:{ author:'Vicarious Visions', url:'https://store.steampowered.com/app/2395210/', licence:'store', alt:'Tony Hawk’s Pro Skater 1 + 2: the store header, Tony Hawk grabbing his board in a sunlit warehouse above the remake’s logo' }, dev:'Neversoft', store:'https://store.steampowered.com/app/2395210/',
-  t:'Tony Hawk’s Pro Skater', year:1999, genre:'arcade skateboarding', family:'action', tags:['real-time','precision','premium','old-school'], aka:['thps','thps1','tony hawk 1','tony hawk pro skater 1 + 2','thps 1+2'],
+  t:'Tony Hawk’s Pro Skater', year:1999, genre:'arcade skateboarding', family:'sports', tags:['real-time','precision','premium','old-school'], aka:['thps','thps1','tony hawk 1','tony hawk pro skater 1 + 2','thps 1+2'],
   want:'Drop into a skate park with two minutes on the clock and leave with a score, a hidden tape and a line through the level nobody showed you.',
   verb:'ollie, grab, flip and grind, chain tricks into one combo, and land it before the clock or a bail takes the points away',
   first30:'A loading screen lists the level’s goals: two score targets, the letters S, K, A, T and E, five objects to break, and a hidden tape. The timer starts at two minutes and the skater is already rolling. Within seconds the player hits a quarter pipe, pulls a grab, lands, and sees the points appear in the middle of the screen, then looks around for the first floating letter.',
