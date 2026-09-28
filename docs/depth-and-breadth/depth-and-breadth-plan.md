@@ -162,9 +162,9 @@ Legends (the comparison inside Dota 2).
 | E4 | Godot (pilot, see E1) | landed |
 | E5 | GameMaker | landed (GameMaker LTS 2026.0; no screens, for the same reason) |
 | E6 | The web stack: HTML5 Canvas, WebGL and WebGPU, three.js, Babylon.js, Phaser, PlayCanvas; web portals (Poki, CrazyGames), itch.io, static hosts, wrappers | landed (one MIT three.js example screen; Poki and CrazyGames terms as dated facts) |
-| E7 | Blender as a game tool: modelling to engine export, the Python API, why it pairs with AI | todo |
-| E8 | Ren’Py (visual novels; plain-text scripts) and a note on RPG Maker | todo |
-| E9 | Defold and Cocos Creator (casual mobile, playable ads, mini-game platforms) | todo |
+| E7 | Blender as a game tool: modelling to engine export, the Python API, why it pairs with AI | landed (Blender 5.2; no screens: blender.org sits behind a bot check the site does not bypass; headless export with --python-exit-code before --python) |
+| E8 | Ren’Py (visual novels; plain-text scripts) and a note on RPG Maker | landed (Ren’Py 8.5.3, with RPG Maker MZ and Unite as a point and a fact; no screens: the docs carry no licence) |
+| E9 | Defold and Cocos Creator (casual mobile, playable ads, mini-game platforms) | landed (Defold and Cocos Creator, fact-checked; no screens) |
 | T1 | Topic “Tools that work well with AI”: text formats, open docs, scriptability, fast feedback, MCP servers, vision for 3D; the limits | todo |
 | T3 | Topic “Choosing an engine” (a comparison across E2–E9) | todo |
 | T4 | Topic “Source control for games” (Git LFS, Perforce, large binaries) | todo |

@@ -699,7 +699,8 @@ PATH('idea-to-prototype-30-days', {
         { kind:'topic', ref:'vertical-slice-mvp', why:'A vertical slice proves the whole loop works end to end at the smallest scope that still tells the truth about the idea.', do:'Cut your 30-day plan down to the smallest vertical slice that would still test your hypothesis, and list what you are deliberately leaving out.', min:35 },
         { kind:'topic', ref:'risk-and-dependencies', why:'The riskiest, least certain part of your plan is the part that should happen first, not last, while you still have time to change course.', do:'List the three riskiest assumptions in your 30-day plan, and reorder your plan so the riskiest one gets tested in week one.', min:25 },
         { kind:'checklist', ref:'scope-sanity', why:'A 30-day plan with no scope check is a wish list with dates on it.', do:'Run the scope sanity checklist against your 30-day plan now, before day one, not after you are already behind.', min:30 },
-        { kind:'reflect', why:'A plan you have written down in your own words is one you can be held to, including by yourself.', do:'Write your day-by-day 30-day plan in one page: what ships each week, and what you would cut first if you fall behind.', min:30 }
+        { kind:'reflect', why:'A plan you have written down in your own words is one you can be held to, including by yourself.', do:'Write your day-by-day 30-day plan in one page: what ships each week, and what you would cut first if you fall behind.', min:30 },
+        { kind:'engine', ref:'renpy', why:'If your idea is story-first, a script-only engine lets a vertical slice be a single scene and a menu, which makes the 30-day cut easy to see.', do:'Read the guide’s architecture and ai stages, then write one scene with a menu and two labels, and run Lint on it.', min:15 }
       ],
       review:['hypothesis-driven-design'],
       check:{
