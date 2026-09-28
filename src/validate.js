@@ -635,6 +635,9 @@ if (ctx.CHOOSER) for (const [g] of ctx.CHOOSER.goals) for (const [l] of ctx.CHOO
   if (!r) errors.push(`chooser: no path for ${g} / ${l} / ${t}`);
 }
 for (const [g, byLevel] of Object.entries(ctx.CHOOSER ? ctx.CHOOSER.paths : {})) for (const ids of Object.values(byLevel)) for (const id of ids) if (!pathIds.has(id)) errors.push(`chooser: ${g} names unknown path ${id}`);
+// ...and every path is reachable from it, so none is found only by browsing.
+const chosen = new Set(Object.values(ctx.CHOOSER ? ctx.CHOOSER.paths : {}).flatMap(o => Object.values(o).flat()));
+for (const p of (PATHS || [])) if (!chosen.has(p.id)) errors.push(`chooser: path ${p.id} is not offered for any answer`);
 if (recallNoAnswer) errors.push(`paths: ${recallNoAnswer} checkpoint recall questions have no answer outline`);
 console.log(`paths: ${(PATHS || []).length}, chooser combinations: ${chooserCombos}, stages: ${(PATHS || []).reduce((n, p) => n + (Array.isArray(p.stages) ? p.stages.length : 0), 0)}, steps: ${pathStepCount}`);
 
