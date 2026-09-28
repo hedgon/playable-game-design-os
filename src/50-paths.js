@@ -663,7 +663,7 @@ PATH('games-that-broke-the-mould', {
 PATH('idea-to-prototype-30-days', {
   t:'Idea to prototype in 30 days', tag:'A deliberately short path: one idea, one loop, one honest test.',
   pick:'Go from an idea to a tested prototype in 30 days',
-  track:'design', level:'beginner', hours:11,
+  track:'design', level:'beginner', hours:11.25,
   audience:'Solo or small-team builders who want a fast, motivating first win instead of a long syllabus.',
   outcome:'You end with a shaped idea, a tested core loop, a real hypothesis and playtest behind it, and a scoped 30-day plan you can run.',
   prereq:[], next:['game-designer-foundations','casual-game-people-keep'],
@@ -690,14 +690,15 @@ PATH('idea-to-prototype-30-days', {
         skip:['Can you name why the closest failed game in your space failed?','Can you name the exact gap your idea fills in under one paragraph, right now?','Have you already dissected a close reference game for this exact idea?','Can you state your idea’s one-line pitch without checking your notes?','Do you know the one thing every close reference to your idea gets wrong?']
       } },
     { id:'s2', t:'Core experience and the loop', level:'beginner',
-      goal:'Turn the idea into one experience statement and the smallest loop that could test it.', hours:3,
+      goal:'Turn the idea into one experience statement and the smallest loop that could test it.', hours:3.25,
       steps:[
         { kind:'topic', ref:'core-experience', why:'The core experience statement is the target every later system exists to serve, and skipping it is how scope creeps in by day three.', do:'Write a one-paragraph core experience statement for your idea, and read it aloud to someone who has not heard the pitch yet.', min:35 },
         { kind:'topic', ref:'feature-vs-experience', why:'“We need crafting” is a feature; the experience it serves is the goal, and a 30-day prototype only has room for the goal.', do:'List the three features you already picture in your idea, rewrite each as the observable player behaviour it is meant to produce, and keep only the one your statement needs.', min:20 },
         { kind:'tool', ref:'canvas', why:'The Core Experience Canvas forces every part of the idea to answer to the same statement in one sitting.', do:'Fill the Core Experience Canvas for your idea end to end, leaving no box blank even if the answer is a guess.', min:40 },
         { kind:'tool', ref:'loop', why:'A loop is the smallest thing you can build and test. Everything else is scope you have not earned yet.', do:'Build the smallest loop that could test your core experience statement, and mark its weakest link before you build anything.', min:40 },
         { kind:'checklist', ref:'pre-prototype', why:'A prototype without a hypothesis, a scope cut and a way to observe it is a demo with extra steps.', do:'Run the pre-prototype checklist against the loop you just built, and fix whatever it fails before day one of the 30 days starts.', min:35 },
-        { kind:'engine', ref:'gamemaker', why:'A 2D-first engine built on objects, events and rooms shows how little machinery a first playable prototype needs.', do:'Read the guide’s architecture and pipeline stages, then build one room with a player object and a Step event, and export it to the web.', min:15 }
+        { kind:'engine', ref:'gamemaker', why:'A 2D-first engine built on objects, events and rooms shows how little machinery a first playable prototype needs.', do:'Read the guide’s architecture and pipeline stages, then build one room with a player object and a Step event, and export it to the web.', min:15 },
+        { kind:'game', ref:'valheim', why:'Valheim shows a small team making gather-and-craft serve one clear goal, because each boss drop is the only key to the next material.', do:'Draw Valheim’s loop from gather to boss to unlock, then mark which step your own loop is missing: the thing that turns gathering into a goal.', min:15 }
       ],
       review:['finding-an-idea'],
       check:{
