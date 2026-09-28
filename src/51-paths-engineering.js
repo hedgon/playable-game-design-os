@@ -875,7 +875,8 @@ PATH('ai-engineering-for-game-devs', {
         { kind:'checklist', ref:'ai-architecture-boundary', why:'The boundary, validation, fallbacks and budgets decide whether a model feature survives real players.', do:'Run the checklist on one AI feature and write the fallback for each failure it names.', min:20 },
         { kind:'topic', ref:'ai-budgets-and-debugging', why:'In-game AI has a frame budget, and a model call has a latency and cost budget on top.', do:'Set a millisecond budget for your AI per frame and a latency budget for any model call.', min:25 },
         { kind:'engine', ref:'godot', why:'An engine guide shows the main loop a model call has to fit around, and which checks an agent can run headless.', do:'Read the Godot guide’s architecture and AI sections, then sketch how a model reply would reach the scene tree (a signal, not a wait) so _process never blocks on it.', min:20 },
-        { kind:'topic', ref:'readable-and-fair-ai', why:'Players judge AI by what they can read of it, and a model is harder to make readable.', do:'List the tells your AI character shows before it acts, and how a generated one would keep them.', min:15 }
+        { kind:'topic', ref:'readable-and-fair-ai', why:'Players judge AI by what they can read of it, and a model is harder to make readable.', do:'List the tells your AI character shows before it acts, and how a generated one would keep them.', min:15 },
+        { kind:'game', ref:'microsoft-flight-simulator', why:'Microsoft Flight Simulator shipped 1.5 billion buildings that a machine-learning model raised from satellite photos, and its makers accepted that about a fifth might be wrong.', do:'Pick one content type your game could generate with a model. Write down the error rate you would accept, how you would measure it, and which ten items a human checks by hand before launch.', min:12 }
       ],
       review:['craft-verification-as-the-job'],
       check:{
