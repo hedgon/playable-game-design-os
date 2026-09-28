@@ -202,7 +202,7 @@ T('items-weapons-abilities',{ d:'content', t:'Items, weapons and abilities', tag
   think:{ q:[`Does this item change what I consider doing, or only the outcome of what I was going to do anyway?`,`What does it interact with? A new verb that touches no system is a novelty.`,`What situation makes it the right choice? What situation makes it wrong?`,`Would the player recognise it as distinct from the last one after one use?`],
     trade:[`Verb items add depth and teaching cost. Stat items are instantly legible and forgettable.`,`Many items give collection pleasure and dilute each item.`],
     traps:[`Tier systems where higher tiers are strictly better, making earlier items trash.`,`Randomized affixes as a substitute for designed niches.`],
-    good:[`Players have favourite items and can explain why.`,`Players switch items by situation.`],
+    good:[`Players have favourite items and can explain why.`,`Players switch items by situation.`,`God of War’s Leviathan Axe shows a new verb with a price: a thrown axe hits a far enemy but leaves Kratos fighting with his fists until he recalls it.`],
     bad:[`Players equip the highest number and never look again.`] },
   how:[`Classify items: new verb, changed priority, changed parameter. Set a ratio you want and cut towards it.`,`For each item, write the situation it owns and the one that punishes it.`,`Test whether players recognise distinctness after one use.`,`Generate variations only within niches you have defined. Filter by distinctness of the decision, not by novelty of the name.`],
   ai:{ yes:[`Classify an item list by type and flag pure stat items.`,`Fill defined niches with candidates, given explicit distinctness criteria.`,`Simulate item choice across situations to find dominant items.`],
