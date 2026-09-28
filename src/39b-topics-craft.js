@@ -882,3 +882,179 @@ INTERVIEW('craft-teaching-agents',{
       follow:`How can a string-matching hook be bypassed?`,
       red:`Blocks so much that people disable hooks.` }] });
 
+T('craft-tools-that-work-with-ai',{ d:'craft', t:'Tools that work with AI', tag:'An agent can only change what it can read and only trust what it can run. Pick tools whose files are text, whose docs are versioned and whose checks run without a window.',
+  what:`Some tools are far easier for an AI agent to work in than others, and the difference is mostly mechanical. Five properties decide it. The project is stored as text the agent can read and diff. The documentation is open and versioned, so the agent can check an API against the version you run. The tool runs headless from a command line, so the agent can build, test and export without a person clicking. The feedback loop is fast, so a wrong change fails in seconds. And where the work is visual, there is a way to show the agent a picture: a screenshot, a render, an MCP server that exposes the editor. The engine guides compare this per engine. In their judgement, Godot and Ren’Py sit at the easy end, Unity is workable with the right settings, and Unreal’s binary assets are the hard case.`,
+  why:[`An agent that cannot read a scene file edits the code around it blind, and the scene is where the bug usually is.`,`Headless runs are how an agent verifies its own work. Without them every change waits for a human to press Play, and the agent’s speed is wasted.`,`Versioned docs are the cure for the most common agent error in game code: fluent use of an API from an older version of the engine.`,`Tool choice outlives any one model. A text-based, scriptable pipeline benefits every future agent; a binary, GUI-only one blocks all of them.`],
+  think:{ q:[`Can an agent read every file that defines behaviour, or only the scripts?`,`What is the one command that proves the game still builds and the tests still pass, and does it run without a display?`,`How long from a change to a failing signal: seconds, minutes, or the next playtest?`,`Which docs match the engine version you actually run, and can the agent reach them?`,`Which work is irreducibly visual (layout, lighting, feel), and how will a person or a vision model judge it?`,`If you add an MCP server that runs code in the editor, who approves each call and what can it touch?`],
+    trade:[`Text serialization diffs and merges, and it is larger and slower to load than binary. Unity’s Force Text default is arguably the right trade for almost every team.`,`An MCP bridge into the editor lets an agent act on scenes directly, and it is arbitrary code execution inside your project. Scripted, reviewed commands are slower and safer.`,`Vision models can check that a button exists and text fits. They are weak at judging feel, spacing a designer would accept, and anything that needs motion.`],
+    traps:[`Assuming text means editable. Godot’s .tscn is text, but hand-editing resource ids and ext_resource references breaks scenes in ways that load silently wrong. Prefer the engine’s own API or a headless script that saves through it.`,`Switching Unity to Force Text and forgetting the .meta files. The GUIDs in them are what references point at, and an agent that moves or recreates an asset without its .meta breaks every reference to it.`,`Letting an agent edit Unreal Blueprints or .uasset content through a file tool. They are binary; the realistic route is C++, Python editor scripting or commandlets, with the asset work left in the editor.`,`Trusting a screenshot check that passes on desktop headless Chrome. The web stack’s easy loop hides Safari on iOS audio unlock and mid-range phone frame rates.`,`Installing a community MCP server without reading what its tools do. Some expose a run-any-code tool with no scope at all.`,`Measuring agent fit on a sample project. The pain appears at project size: import caches, cold editor starts, and scenes too large for a context window.`],
+    good:[`One documented command builds, tests and exports headless, and the agent runs it before claiming a change works.`,`Every file that defines behaviour is text in version control, and merge conflicts in scenes are rare and readable.`],
+    bad:[`The agent writes the script and a person opens the editor to see whether it did anything.`,`Generated code uses an API removed two engine versions ago, and nothing fails until runtime.`] },
+  how:[`Make the project readable. Godot is text by default (.tscn, .tres, project.godot). In Unity keep Asset Serialization on Force Text and commit every .meta. In Unreal accept that assets are binary and move logic into C++ or Python where an agent can read it.`,`Write the one headless command: godot --headless with a test or export preset, Unity -batchmode -runTests or -executeMethod, Unreal RunUAT BuildCookRun, Ren’Py lint from the launcher’s command line, blender -b -P with --python-exit-code for Blender pipelines, a browser test runner for the web stack. Put it in the repository and in the agent’s rules file.`,`Pin the docs to the version. Point the agent at the versioned manual (Unity’s /6000.x/ path, Godot’s stable or version-tagged docs) and tell it which major version you run.`,`Shorten the loop. Fast unit tests for logic, a smoke scene that boots and exits, and a screenshot step for UI. A loop that takes ten minutes will be skipped.`,`Add vision where the work is visual. Capture a screenshot or render headlessly and let a model check concrete, stateable things: element present, text not clipped, no magenta missing-texture. Keep taste with a person.`,`Treat MCP servers as privileged code. Prefer servers with narrow tools, read the tool list, and approve calls that write. The MCP specification itself says tools represent arbitrary code execution.`,`Read the engine guides for the specifics: Godot, Unity, Unreal, GameMaker, Ren’Py, the web stack and Blender each have an AI-fit section.`],
+  ai:{ yes:[`Audit a repository for AI fit: list binary files that define behaviour, missing headless commands and version drift in the docs it would use.`,`Write the headless build-and-test script for your engine version and explain each flag.`,`Draft a rules file that tells an agent the engine version, the verification command and which files never to hand-edit.`,`Check screenshots against a list of concrete UI assertions.`],
+       no:[`Decide whether a scene feels right, or whether lighting reads. It sees a frame, not play.`,`Edit binary assets or hand-edit serialized ids safely.`,`Judge whether a community MCP server is safe to install. Read its tools yourself.`] },
+  prompts:[{l:'AI-fit audit',p:`Act as a build engineer. Our engine is [ENGINE AND EXACT VERSION]. Here is the repository tree and our current build notes: [PASTE]. List: files that define behaviour but are binary or unreadable to you; the headless command that would build and run tests, with flags for this exact version, or say that none exists; docs you would need and whether a versioned copy exists; and work you cannot verify without a person. Do not guess flags you are unsure of; mark them.`},
+    {l:'Screenshot assertions',p:`Here is a screenshot of [SCREEN] at [RESOLUTION], and the list of things that must be true: [LIST, e.g. all four buttons visible, no text truncated, health bar top left]. For each item answer pass, fail or cannot tell, and say what in the image you based it on. Do not comment on style.`}],
+  verify:[`Did the agent run the headless command, and did you see its output, or did it only say it would pass?`,`Is every API it used present in the versioned docs for your engine version?`,`Did it change a serialized file by hand, and does the scene still open and reference the same assets?`],
+  test:[`Time the loop: change one line, run the headless check, get a result. Track that number; it predicts how often agents and people will actually run it.`,`Break a test on purpose and confirm the headless command exits non-zero. A check that cannot fail proves nothing.`,`Give an agent a small task in each candidate tool and count how many of its claims you could verify without opening the editor.`],
+  facts:[
+    { claim:'Unity Asset Serialization Mode offers Mixed, Force Binary and Force Text, and Force Text is the default.', asOf:'2026-09-28', src:'https://docs.unity3d.com/6000.6/Documentation/Manual/class-EditorManager.html' },
+    { claim:'A Unity .meta file holds the asset’s unique ID and all its import settings, and must stay with the asset file it relates to.', asOf:'2026-09-28', src:'https://docs.unity3d.com/6000.6/Documentation/Manual/AssetMetadata.html' },
+    { claim:'Epic’s Perforce guide states .uasset files are binary and cannot be merged in a text-based tool.', asOf:'2026-09-28', src:'https://dev.epicgames.com/documentation/unreal-engine/using-perforce-as-source-control-for-unreal-engine' },
+    { claim:'Blender -b runs without its interface, -P runs a Python script, and --python-exit-code sets a non-zero exit code when a Python exception is raised.', asOf:'2026-09-28', src:'https://github.com/blender/blender/blob/v5.2.2/source/creator/creator_args.cc' },
+    { claim:'The MCP specification (revision 2026-07-28) uses stateless JSON-RPC requests; servers offer resources, prompts and tools, and elicitation is the only client feature; it says tools represent arbitrary code execution and that hosts must obtain explicit user consent before invoking any tool.', asOf:'2026-09-28', src:'https://modelcontextprotocol.io/specification/2026-07-28' },
+    { claim:'The mcp-for-blender community server exposes an execute_blender_code tool that runs arbitrary Python, and its README says to save your work before using it.', asOf:'2026-09-28', src:'https://github.com/ahujasid/mcp-for-blender' }],
+  diagram:{ kind:'matrix', title:'How readable and runnable each tool is for an agent', note:'The main limits are this site’s judgement, drawn from the engine guides.', rows:['Godot','Unity','Unreal','Ren’Py','Web stack','Blender'], cols:['Project files','Headless run','Main limit'],
+    cells:[['Text: .tscn, .tres','--headless scripts and exports','Hand-edited resource ids break scenes'],['YAML with Force Text, plus .meta','-batchmode, -runTests','GUIDs in .meta; Inspector wiring'],['Binary .uasset','RunUAT, commandlets','Blueprints and assets unreadable'],['Plain .rpy script','Launcher lint and build','Presentation still needs eyes'],['All text: code, JSON, glTF','Headless browser, screenshots','Desktop run hides phone behaviour'],['Binary .blend, Python bpy','blender -b -P','Scripts see data, not the look']] },
+  rel:[['craft-ai-orchestrates-tools-compute','The same split applies inside the tool: let the model decide, let the engine compute and check.'],['craft-verification-as-the-job','A headless check is the verification an agent can run for itself.'],['craft-teaching-agents','The rules file is where the headless command and the do-not-edit list live.'],['ai-agentic-implementation','Agentic implementation assumes the loop this topic sets up.'],['infra-ci-pipelines','The command the agent runs should be the one CI runs.']] });
+INTERVIEW('craft-tools-that-work-with-ai',{
+  junior:[
+    { q:`Why does it matter for AI tools whether a scene file is text or binary?`,
+      a:`Because the agent can only read and diff text. With a text scene it can see what a change did and a reviewer can see it in the diff. With binary it changes code around a scene it cannot see. Name an example: Godot .tscn or Unity with Force Text versus an Unreal .uasset.`,
+      follow:`Is a text scene safe to edit by hand?`,
+      red:`Says models can read anything, or has never looked inside a scene file.` },
+    { q:`What is a headless run and why would an agent need one?`,
+      a:`Running the engine or tool from the command line with no window, for tests, builds or exports. The agent needs it to check its own work and get an exit code. Give the flag for one engine, such as godot --headless or Unity -batchmode.`,
+      follow:`How do you know the headless run would fail if something broke?`,
+      red:`Thinks the agent checking is the same as the agent saying it checked.` }
+  ],
+  mid:[
+    { q:`An agent keeps writing Godot 3 code in a Godot 4 project. What do you change?`,
+      a:`Tell it the version in the rules file, point it at the versioned docs, and make the headless check catch it: a script parse fails fast. Mention the specific renames it gets wrong, such as KinematicBody and yield.`,
+      follow:`Which of those three fixes is the one that always works?`,
+      red:`Only rewords the prompt.` },
+    { q:`Would you install an MCP server that lets the agent control the editor?`,
+      a:`Possibly, after reading its tools. If it exposes a run-any-code tool, it is arbitrary execution in the project, so I would approve writes, keep the project in version control and prefer narrow tools. The protocol spec says hosts must get consent before tool calls.`,
+      follow:`What would you want in the repository before letting it run?`,
+      red:`Installs it because it is popular, or refuses all tools without weighing them.` },
+    { q:`Where do vision models help with game UI, and where do they not?`,
+      a:`They help with concrete checks on screenshots: element present, text not clipped, missing textures. They do not judge feel, animation or a designer’s spacing. Say you would write the assertions first.`,
+      follow:`How would you get screenshots without a person?`,
+      red:`Asks the model whether the UI looks good.` }
+  ],
+  senior:[
+    { q:`You lead a team choosing between Unity and Unreal, and one argument is AI fit. How do you weigh it?`,
+      a:`As one factor, measured, not assumed. Unity with Force Text is readable; Unreal’s assets are binary, so agents work in C++ and Python there. I would run a short trial of real tasks in each and count verifiable claims. Platform, team skills and licence usually dominate.`,
+      follow:`What would make AI fit the deciding factor?`,
+      red:`Makes it the whole decision, or dismisses it without evidence.` },
+    { q:`How would you make an existing binary-heavy pipeline friendlier to agents without rebuilding it?`,
+      a:`Move logic out of assets into code, add a headless build and test entry point, export readable reports from the editor (asset lists, reference graphs) and keep the binary content work with people. Change what gives the agent a signal, not everything.`,
+      follow:`Which of those would you do first and why?`,
+      red:`Proposes switching engines.` }
+  ] });
+
+T('craft-source-control-for-games',{ d:'craft', t:'Source control for games', tag:'Code merges; a texture does not. Game source control is Git for text, locking for binaries, and never committing what the engine can rebuild.',
+  what:`Game projects mix code, which merges, with large binary assets, which do not. The tools answer that differently. Git with Git LFS keeps large files out of the history and can lock them. Perforce P4 is centralised, handles huge repositories, locks binaries through its typemap, and is the tool Epic documents for Unreal teams. Unity Version Control, formerly Plastic SCM, sits between: branch-friendly, with locking and a simplified client for artists. Whichever you use, three rules hold. Lock what cannot merge. Ignore what the engine regenerates: Unity’s Library folder, Godot’s .godot folder, Unreal’s DerivedDataCache. Keep branches short, because long branches over binary assets end in someone’s work being thrown away.`,
+  why:[`Two people editing the same scene or texture at once means one of them loses the work. Locking is the only fix for files that cannot merge.`,`Committing caches bloats the repository, causes constant false conflicts, and makes every clone slow.`,`A game repository grows to tens or hundreds of gigabytes. The tool decides whether a new artist can get a working copy in an hour or a day.`,`Source control is also the undo button for the whole team, and the provenance for every build.`],
+  think:{ q:[`What fraction of the repository is binary, and how large will it be at ship?`,`Who works in it: programmers only, or artists and designers who will not use a command line?`,`Which files cannot merge and must be locked?`,`What does the engine regenerate, and is it all ignored?`,`Where is the server, what does hosting cost per seat and per gigabyte, and what does the free tier cover?`,`How long do branches live, and who merges scenes?`],
+    trade:[`Git with LFS is free to start, familiar to programmers and well integrated with CI; locking is opt-in and artists find it hard. Perforce scales and locks well; it costs seats past the free tier and programmers miss Git’s branching.`,`Text scenes (Godot, Unity Force Text) can merge, sometimes. Locking them too is safer for busy scenes and slower for everyone.`,`One repository keeps everything in step; splitting code from raw art sources keeps clones small and adds a sync problem.`],
+    traps:[`Committing Library, .godot or DerivedDataCache. They are large, machine-specific and regenerated.`,`Adding LFS after the history already holds gigabytes of binaries. Tracking new files does not shrink old history; that needs a rewrite.`,`Marking files lockable but never locking. Lockable files are read-only until locked, so people clear the flag by hand and the protection is gone.`,`Missing Unity .meta files, or ignoring them. They carry the GUIDs every reference uses.`,`Line-ending conversion rewriting every text scene on Windows, producing huge meaningless diffs.`,`Long-lived feature branches over shared scenes. The merge at the end is where work gets lost.`,`Hitting the host’s per-file or storage limits in the week before a milestone.`],
+    good:[`A new team member clones and opens the project in under an hour, with nothing regenerated committed.`,`Nobody has lost work to a binary conflict this quarter, because binaries are locked on edit.`],
+    bad:[`The repository is 80 GB and half of it is cache.`,`Artists email files to a programmer who commits them.`] },
+  how:[`Pick the tool by team and size. A small team of programmers: Git with LFS. Artists at scale or Unreal: Perforce P4. A Unity team wanting branching plus artist-friendly locking: Unity Version Control. Check free tiers against your seat count and storage.`,`Set up ignores on day one: Unity’s Library, Temp, Obj, Logs and UserSettings, from github/gitignore’s Unity template; Godot’s .godot/, from Godot’s docs; Unreal’s DerivedDataCache, Intermediate and Saved, from Epic’s guides, with Binaries ignored unless artists need prebuilt editor binaries.`,`Route binaries through LFS or the typemap before the first asset commit. Mark art sources, audio and binary scenes lockable.`,`Fix line endings in .gitattributes, not in each person’s config. Godot’s generated file forces LF.`,`For Unity, keep Force Text, commit .meta files, and configure UnityYAMLMerge as the merge tool for scenes and prefabs.`,`Keep branches short. Trunk-based with feature flags for code; lock, edit, commit quickly for content. Use release branches for shipped builds and patches.`,`Read the engine guides: the Unreal guide covers the Perforce typemap and One File Per Actor, the Unity guide covers .meta and serialization.`],
+  ai:{ yes:[`Generate a .gitignore and .gitattributes for your engine version and explain each line.`,`Audit a repository for committed caches, untracked binaries and missing .meta files.`,`Draft a branching and locking policy from your team size and release cadence.`,`Explain a merge conflict in a text scene and suggest which side to keep.`],
+       no:[`Resolve a conflict in a binary asset. Nobody can; someone redoes the work.`,`Rewrite history to move files into LFS without a backup and a team-wide plan.`,`Choose the hosting plan without the current vendor prices.`] },
+  prompts:[{l:'Repository audit',p:`Here is the output of listing our repository’s largest files and our current .gitignore and .gitattributes: [PASTE]. Engine: [ENGINE AND VERSION]. List files that are regenerated caches and should be ignored, binaries not tracked by LFS, text files at risk from line-ending conversion, and anything missing that the engine needs committed. For each, give the line to add. Do not suggest a history rewrite without saying what it costs.`},
+    {l:'Branching policy',p:`We are [N] programmers and [M] artists on [ENGINE], using [TOOL], shipping [CADENCE]. Draft a one-page policy: branch types and lifetimes, which file types are locked and when, who merges scenes, and how release branches are cut and patched. Flag the rule most likely to be ignored and how to enforce it with tooling instead of trust.`}],
+  verify:[`Does every ignore pattern match what the engine actually regenerates for this version?`,`Are binaries tracked before the first commit, not after?`,`Did the generated .gitattributes break Unity YAML files by treating them as binary, or leave binaries as text?`],
+  test:[`Clone fresh on a clean machine and time it to an open, working project.`,`Two people try to lock the same asset: the second lock must fail, and a push of an asset someone else has locked must be refused.`,`List the ten largest paths in the repository. Any cache there is a bug.`],
+  facts:[
+    { claim:'git lfs track with --lockable adds the lockable attribute; Git LFS makes lockable files read-only locally until locked with git lfs lock, and on push verifies you are not modifying a file another user locked; servers without the locking API give a warning instead.', asOf:'2026-09-28', src:'https://github.com/git-lfs/git-lfs/wiki/File-Locking' },
+    { claim:'GitHub’s Git LFS per-file limit is 2 GB on Free and Pro, 4 GB on Team and 5 GB on Enterprise Cloud.', asOf:'2026-09-28', src:'https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage' },
+    { claim:'Perforce P4 (Helix Core) is free for up to 5 users and 20 workspaces, with file locking and streams.', asOf:'2026-09-28', src:'https://www.perforce.com/products/helix-core/free-version-control' },
+    { claim:'Unity Version Control, formerly Plastic SCM, works with any engine including Unreal and offers file locking, Smart Locks and the Gluon client.', asOf:'2026-09-28', src:'https://unity.com/solutions/version-control' },
+    { claim:'Since 1 March 2026 the cloud-hosted Unity Version Control charges nothing for seats, and the first 25 GB of storage per organisation each month is free, measured as a monthly average in GB instead of GB-hours; on-premises terms may differ.', asOf:'2026-09-28', src:'https://support.unity.com/hc/en-us/articles/34748492914964-Understanding-Unity-DevOps-charges' },
+    { claim:'Godot’s docs say to exclude the .godot/ folder and *.translation files, and to use core.autocrlf input on Windows; generated metadata adds a .gitattributes that enforces LF.', asOf:'2026-09-28', src:'https://docs.godotengine.org/en/stable/tutorials/best_practices/version_control_systems.html' },
+    { claim:'UnityYAMLMerge merges scene and prefab files semantically; it ships with the Editor, under Data/Tools on Windows and Contents/Helpers on macOS, and the manual gives a Git mergetool configuration for it.', asOf:'2026-09-28', src:'https://docs.unity3d.com/6000.6/Documentation/Manual/SmartMerge.html' },
+    { claim:'Unreal’s DerivedDataCache is not committed to version control and can be regenerated from the .uasset files.', asOf:'2026-09-28', src:'https://dev.epicgames.com/documentation/unreal-engine/using-derived-data-cache-in-unreal-engine' },
+    { claim:'Since Godot 4.4 scripts and shaders get .uid files beside them, which must be committed; scenes and resources store their UID in the file header and imported assets in their .import file.', asOf:'2026-09-28', src:'https://godotengine.org/article/uid-changes-coming-to-godot-4-4/' }],
+  tech:[
+    {n:'Git with Git LFS', how:`Code in Git; large binaries replaced by pointers and stored on an LFS server; lockable patterns for files that cannot merge.`, fit:`Small and mid teams, programmer-heavy, Godot and Unity projects, web games.`, cost:`Locking is opt-in and needs server support; hosting limits per file and per storage; artists need a GUI client.`, alt:`Perforce once the repository or the art team outgrows it.`},
+    {n:'Perforce P4', how:`Centralised server; workspaces sync what they need; exclusive checkout for binaries via the typemap; streams for branching.`, fit:`Unreal studios, large art teams, repositories of hundreds of gigabytes.`, cost:`Seats past the free tier, a server to run, and less fluid branching for programmers.`, alt:`Unity Version Control for teams who want locking with lighter branching.`},
+    {n:'Unity Version Control', how:`Plastic SCM technology, cloud or on-premises; full branching for programmers, the Gluon client and locking for artists.`, fit:`Unity teams mixing programmers and artists; also usable with Unreal.`, cost:`Cloud storage billed past the free allowance, with on-premises terms separate; smaller ecosystem than Git for CI and hosting.`, alt:`Git with LFS for programmer-heavy teams.`}],
+  rel:[['team-and-collaboration','Locking and branch rules are team agreements expressed in tooling.'],['infra-artifacts-provenance','Every build should trace to one revision in source control.'],['infra-ci-pipelines','CI clones the repository on every run, so its size and ignores are CI costs.'],['quality-and-build-health','A clean clone that builds is the first build-health check.'],['craft-tools-that-work-with-ai','Text files in version control are what let agents read and diff the project.']] });
+ENGINE('craft-source-control-for-games',{
+  godot:{ term:`Scenes and resources are text and usually merge. The .godot folder is the import cache and is regenerated; the .import and, since 4.4, .uid files are committed; the project manager can generate a .gitattributes forcing LF line endings.`,
+    api:['.godot/ (import cache, ignored)','project.godot','*.tscn / *.tres (text)','*.import (committed)','*.uid (committed, 4.4+)','export_presets.cfg','git lfs track --lockable'],
+    snippet:`# .gitignore  (Godot 4)
+.godot/
+*.translation
+/android/
+# Godot 4.1+ keeps export credentials out of
+# export_presets.cfg, so it is safe to commit
+
+# .gitattributes
+* text=auto eol=lf
+*.png  filter=lfs diff=lfs merge=lfs -text
+*.jpg  filter=lfs diff=lfs merge=lfs -text
+*.wav  filter=lfs diff=lfs merge=lfs -text
+*.ogg  filter=lfs diff=lfs merge=lfs -text
+*.glb  filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text lockable
+*.psd  filter=lfs diff=lfs merge=lfs -text lockable`,
+    pitfall:`Ignoring the .import or .uid files next to each asset along with the .godot folder. The .import files hold import settings and UIDs, the .uid files hold script and shader UIDs, and both must be committed; only the .godot cache is regenerated. Without them every clone reimports with default settings and textures look wrong.`,
+    map:`Godot’s .godot folder is Unity’s Library folder; Godot’s .import files play the role of Unity’s .meta import settings, and its .uid files the role of .meta GUIDs for scripts.` },
+  unity:{ term:`With Force Text, scenes and prefabs are YAML and can merge with UnityYAMLMerge. Every asset has a .meta file with its GUID, which must be committed; Library is the regenerated cache.`,
+    api:['Library/ Temp/ Logs/ (ignored)','*.meta (committed)','Asset Serialization: Force Text','UnityYAMLMerge','ProjectSettings/','Packages/manifest.json'],
+    snippet:`# .gitignore  (Unity 6; a subset of
+# github/gitignore’s Unity.gitignore)
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+.vs/
+.idea/
+*.csproj
+*.sln
+*.slnx
+*.apk
+*.aab
+
+# .gitattributes
+* text=auto
+*.unity  merge=unityyamlmerge eol=lf
+*.prefab merge=unityyamlmerge eol=lf
+*.asset  merge=unityyamlmerge eol=lf
+*.meta   text eol=lf
+*.png filter=lfs diff=lfs merge=lfs -text
+*.fbx filter=lfs diff=lfs merge=lfs -text
+*.wav filter=lfs diff=lfs merge=lfs -text
+*.psd filter=lfs diff=lfs merge=lfs -text lockable`,
+    pitfall:`Declaring merge=unityyamlmerge in .gitattributes without defining the driver in each person’s git config. Git then falls back to a plain text merge on scenes. Define the merge driver in a shared setup script that points at UnityYAMLMerge in the Editor’s Data/Tools folder on Windows or Contents/Helpers on macOS.`,
+    map:`Unity’s Library folder is Godot’s .godot folder; Unity’s .meta GUIDs do what Godot’s UIDs do, stored in scene headers, .import files and, since 4.4, .uid files.` },
+  note:`Unreal teams usually use Perforce, where ignores live in a .p4ignore and binary handling in the typemap; the Unreal guide covers it. Whatever the tool, ignore DerivedDataCache, Intermediate and Saved; Epic’s Perforce guide lets teams submit Binaries for artists who do not compile.` });
+INTERVIEW('craft-source-control-for-games',{
+  junior:[
+    { q:`Why should the Unity Library folder not be committed?`,
+      a:`It is a cache Unity regenerates from Assets and the .meta files. It is large, machine-specific and changes constantly, so committing it bloats the repository and causes conflicts. Godot’s .godot folder is the same idea.`,
+      follow:`What in Unity must be committed that people sometimes forget?`,
+      red:`Thinks committing it saves import time for the team.` },
+    { q:`What does Git LFS do?`,
+      a:`It stores large files outside the Git history and keeps small pointer files in the repository, so clones stay fast. It can also lock files so two people do not edit the same binary.`,
+      follow:`What happens if you add LFS after committing large files?`,
+      red:`Thinks it compresses files, or that it merges binaries.` }
+  ],
+  mid:[
+    { q:`Two artists edited the same texture. How do you stop that happening again?`,
+      a:`Lock binaries: mark them lockable in LFS so they are read-only until locked, or use exclusive checkout in Perforce or Unity Version Control. Then editing requires taking the lock first. Also check the server supports locking.`,
+      follow:`What do people do when a lock is inconvenient, and how do you prevent it?`,
+      red:`Suggests merging the images.` },
+    { q:`Git with LFS or Perforce for a 12-person Unity team with five artists?`,
+      a:`Either can work. Git LFS if the team knows Git and the repository stays manageable, with a GUI client and locking. Perforce or Unity Version Control if art volume is large and artists need simple, reliable locking. Check free tiers and seat costs.`,
+      follow:`What number would change your answer?`,
+      red:`Answers with one tool as always right.` }
+  ],
+  senior:[
+    { q:`The repository is 150 GB and clones take a day. What do you do?`,
+      a:`Measure what is in it: caches committed by mistake, binaries in plain history, raw art sources. Ignore and remove caches, move binaries to LFS with a planned history rewrite or a fresh repository, and consider splitting raw sources. Or move to a system with partial sync.`,
+      follow:`How do you run the history rewrite without losing anyone’s work?`,
+      red:`Rewrites history without warning the team.` },
+    { q:`Design a branching model for a live game with weekly patches.`,
+      a:`Trunk-based main with feature flags, short-lived branches, and a release branch per shipped build for hotfixes cherry-picked back. Lock binaries on edit. Content locks are short so the trunk keeps moving.`,
+      follow:`What breaks when a feature branch lives three weeks?`,
+      red:`Uses long-lived branches per feature over shared scenes.` }
+  ] });

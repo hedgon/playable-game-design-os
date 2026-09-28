@@ -165,9 +165,9 @@ Legends (the comparison inside Dota 2).
 | E7 | Blender as a game tool: modelling to engine export, the Python API, why it pairs with AI | landed (Blender 5.2; no screens: blender.org sits behind a bot check the site does not bypass; headless export with --python-exit-code before --python) |
 | E8 | Ren’Py (visual novels; plain-text scripts) and a note on RPG Maker | landed (Ren’Py 8.5.3, with RPG Maker MZ and Unite as a point and a fact; no screens: the docs carry no licence) |
 | E9 | Defold and Cocos Creator (casual mobile, playable ads, mini-game platforms) | landed (Defold and Cocos Creator, fact-checked; no screens) |
-| T1 | Topic “Tools that work well with AI”: text formats, open docs, scriptability, fast feedback, MCP servers, vision for 3D; the limits | todo |
-| T3 | Topic “Choosing an engine” (a comparison across E2–E9) | todo |
-| T4 | Topic “Source control for games” (Git LFS, Perforce, large binaries) | todo |
+| T1 | Topic “Tools that work well with AI”: text formats, open docs, scriptability, fast feedback, MCP servers, vision for 3D; the limits | landed (`craft-tools-that-work-with-ai`, with a matrix of project formats across the guides) |
+| T3 | Topic “Choosing an engine” (a comparison across E2–E9) | landed (`platforms-choosing-an-engine`, with a licence-risk, fit and console-route matrix marked as judgement) |
+| T4 | Topic “Source control for games” (Git LFS, Perforce, large binaries) | landed (`craft-source-control-for-games`, with Godot and Unity ignore and attributes files) |
 
 Topic engine tabs stay Godot and Unity only; no Unreal tab is added to the
 existing topics (the Unreal guide says so). Excluded engines: Bevy, O3DE,
