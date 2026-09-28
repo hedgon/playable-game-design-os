@@ -453,6 +453,8 @@ Decisions 1 to 5 in section 7, including which “etc” candidates to take.
 
 7. Tier 2 deferred (2026-09-28, under the standing instruction): at Tier 1’s end the art folder holds about 10.3 MB of the 12 MB budget, and the owner-named engine (E1–E9) and platform (X8, P1–P6) images come first. Tier 2 is revisited after P6 against what budget remains; the text-only passes (A, V, K, C) cost no art.
 
+8. Image budget per page, not per folder (owner, 2026-09-28: a folder cap “makes it unscalable”, find a better way that does not compromise quality). Measured: every image on the site is lazy-loaded, so a visitor downloads only the page they open (the heaviest, Street Fighter’s series page, is 259 KB), and git delta-compresses the committed build, so the whole repository with its history packs to about 22 MB. The 12 MB folder cap is replaced by a 350 KB per-page image budget in validate.js (it flags 13 pages at a 200 KB test value, none at 350); per-image caps stay; the folder total is reported, not capped. No image was re-encoded, so nothing lost quality, and the build stays committed for GitHub Pages.
+
 Still open: `playable.html` grows to about 7 MB with Tier 1. If a phone
 load test in U1 shows it is too slow, lazy-loading game analyses is raised
 as a separate decision.

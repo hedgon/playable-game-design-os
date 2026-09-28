@@ -292,16 +292,31 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     if (!host) errors.push(`game ${g.id}: store art without an https store page`);
   }
 }
-// Third-party images live in one folder with a size budget, so the repo's
-// history does not grow without anyone deciding it should.
+// Image weight is budgeted per page, not per folder (owner decision,
+// 2026-09-28): every image is lazy-loaded, so a visitor pays only for the
+// page they open, and git stores the history compactly (the whole repo
+// packs to about 22 MB). Each image keeps its own cap (checked where the
+// image is declared); no single route may load more than PAGE_IMAGE_BUDGET.
+// The folder total is reported, not capped, so the library can keep growing.
+const PAGE_IMAGE_BUDGET = 350 * 1024;
 const folderBytes = dir => fs.readdirSync(dir, { withFileTypes: true }).reduce((n, e) => n + (e.isDirectory() ? folderBytes(path.join(dir, e.name)) : fs.statSync(path.join(dir, e.name)).size), 0);
-// The budget counts every image folder (games, platforms, engines), so no
-// new collection escapes it. Raised to 10 MB by owner decision (2026-09-25),
-// then to 12 MB for genre matrix Tier 1 under the owner’s standing
-// instruction to proceed without asking (2026-09-26).
 const artBytes = folderBytes(path.join(__dirname, '..', 'assets'));
-if (artBytes > 12 * 1024 * 1024) errors.push(`assets is ${(artBytes / 1048576).toFixed(1)} MB, budget 12 MB`);
-console.log(`reference games: ${(ctx.REFERENCE_GAMES || []).length}, analysed: ${analysedGames}, assets: ${Math.round(artBytes / 1024)} KB of 12288`);
+const imgBytes = p => { try { return fs.statSync(path.join(__dirname, '..', p)).size; } catch (e) { return 0; } };
+const pageImages = [];
+{
+  const games = ctx.REFERENCE_GAMES || [], byId = Object.fromEntries(games.map(g => [g.id, g]));
+  for (const g of games) pageImages.push([`#/games/${g.id}`, [g.img, ...(g.shots || []).map(s => s.img), ...(g.entries || []).map(e => e.shot ? e.shot.img : (e.ref && byId[e.ref] ? byId[e.ref].img : null))]]);
+  const guide = (route, x) => pageImages.push([route, Object.values(x.stages || {}).flatMap(s => [...(s.shots || []).map(t => t.img), ...(s.deploy || []).map(d => d.shot && d.shot.img)])]);
+  (ctx.ENGINES || []).forEach(e => guide(`#/engines/${e.id}`, e));
+  (ctx.PLATFORMS || []).forEach(p => guide(`#/platforms/${p.id}`, p));
+}
+let heaviest = ['', 0];
+for (const [route, list] of pageImages) {
+  const bytes = [...new Set(list.filter(Boolean))].reduce((n, p) => n + imgBytes(p), 0);
+  if (bytes > heaviest[1]) heaviest = [route, bytes];
+  if (bytes > PAGE_IMAGE_BUDGET) errors.push(`${route} loads ${Math.round(bytes / 1024)} KB of images, page budget ${PAGE_IMAGE_BUDGET / 1024} KB`);
+}
+console.log(`reference games: ${(ctx.REFERENCE_GAMES || []).length}, analysed: ${analysedGames}, assets: ${Math.round(artBytes / 1024)} KB in total; heaviest page ${heaviest[0]} at ${Math.round(heaviest[1] / 1024)} KB of ${PAGE_IMAGE_BUDGET / 1024}`);
 // Platform guides: every guide walks all six stages, with dated facts where
 // rules change, a zero-to-live flow, and links to real topics.
 const platIds = new Set();

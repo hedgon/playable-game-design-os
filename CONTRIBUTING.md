@@ -209,7 +209,7 @@ caption naming what to look at, and optional numbered callouts (x, y as
 fractions of the image). A shot from anywhere else carries its own
 `credit:{author, url, licence}`, with the licence from `IMAGE_LICENCES`
 (store art, a named free licence, or `own` for our schematics; share-alike
-images add `changed`). All of `assets/` has a 12 MB budget. Lenses link
+images add `changed`). Image weight is budgeted per page, not per folder: every image is lazy-loaded, so validate.js caps what one route loads (350 KB: header, shots and a series’ entry screens together) and only reports the folder total. Lenses link
 topics; the frame, the shelves and the lens-to-topic defaults are in
 `14-references.js`, and the validator enforces all of it.
 
