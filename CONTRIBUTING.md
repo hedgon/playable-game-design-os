@@ -196,20 +196,20 @@ Schematics are our own drawings, for diagrams only.
 Every game carries a full analysis (`ANALYSIS()` in `16-games-analysis.js` for the
 games above, `GAME()` with the analysis inline in `17-games-japan.js`,
 `18-games-innovative.js`, `18-games-casual.js` and `18-games-genres.js` for the rest): a `signature` (the
-one idea worth stealing, 380 to 700 words in six parts), all ten `lens` entries,
-and up to four `shots`. Each lens is an analysis, not a description, written to
+one idea worth stealing, 380 words or more in six parts, about 700 as a guide), all ten `lens` entries,
+and usually up to four `shots`. Each lens is an analysis, not a description, written to
 [docs/references/analysis-method.md](docs/references/analysis-method.md): a
 `claim` someone could dispute, then `evidence`, `mechanism`, `effect`, `compare`,
 `cost` and `principle`, an optional `context`, `topics`, and https `sources`;
-150 to 380 words in all. A lens that truly does not apply is `na`, with a
+150 words or more in all, about 380 as a guide. A lens that truly does not apply is `na`, with a
 paragraph arguing why. A shot is an official screenshot
-from the game's store page, saved as WebP under 150 KB (aim for 40 KB) in
+from the game's store page, saved as WebP (about 150 KB as a guide; readability comes first) in
 `assets/games/shots/`, attached to the lens it illustrates, with alt text, a
 caption naming what to look at, and optional numbered callouts (x, y as
 fractions of the image). A shot from anywhere else carries its own
 `credit:{author, url, licence}`, with the licence from `IMAGE_LICENCES`
 (store art, a named free licence, or `own` for our schematics; share-alike
-images add `changed`). Image weight is budgeted per page, not per folder: every image is lazy-loaded, so validate.js caps what one route loads (350 KB: header, shots and a series’ entry screens together) and only reports the folder total. Lenses link
+images add `changed`). Image weight is budgeted per page, not per folder: every image is lazy-loaded, so validate.js reports what one route loads against a 350 KB guide (header, shots and a series’ entry screens together) and the folder total. Lenses link
 topics; the frame, the shelves and the lens-to-topic defaults are in
 `14-references.js`, and the validator enforces all of it.
 
@@ -302,7 +302,7 @@ Add a path with `PATH('path-id', {...})` in `50-paths.js` or
 `51-paths-engineering.js`. A path orders existing content and never duplicates
 it; run `node src/inventory.js` first to see every id a step can reference. The
 shape and rules are documented in the header comment of `50-paths.js` and
-enforced by the validator: 4 to 6 stages, 3 to 8 steps per stage, at least one
+enforced by the validator: at least 4 stages and 3 steps per stage (about 6 and 8 as guides), at least one
 tool or checklist step per stage, a checkpoint on every stage, stage levels that
 never go down, step minutes within 10% of the stage hours, and stage hours within
 10% of the path hours. A topic step's optional `tab` (`godot`, `unity` or
@@ -316,7 +316,12 @@ checks that every combination of answers still picks a real path.
 Every topic, reference game, engine guide, platform guide and checklist must be
 a step in at least one path: validate.js fails the build and names anything no
 path reaches. A new game or topic therefore lands together with its path step, in
-a stage with room (3 to 8 steps, minutes within 10% of the stage hours).
+the stage where it teaches best, with the stage minutes kept within 10% of the stage hours.
+
+**No cap cuts content** (owner, 2026-09-29). Every upper number here and in
+validate.js is a guide: going over it prints a `LONG` line and never fails the
+build. Never shorten, drop or lower the quality of correct, sourced content to
+get under a number; minimums still apply, and so does editing for clarity.
 
 ## Writing style
 
