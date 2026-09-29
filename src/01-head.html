@@ -744,14 +744,14 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .serieslist{margin:6px 0 10px;padding-left:22px}.serieslist li{margin:0 0 8px}
 .serieslist.withshots{list-style:none;padding-left:0}.serieslist.withshots li{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}
 .entryshot.noshot{border:1px dashed var(--line);display:grid;place-items:center;min-height:60px;padding:6px;text-align:center}
-.entryshot{margin:0}.entryshot img{display:block;width:100%;height:auto;aspect-ratio:16/9;max-height:180px;object-fit:contain;background:var(--bg2,#0000);border:1px solid var(--line)}.entryshot figcaption{margin-top:2px;font-size:.72rem}
+.entryshot{margin:0}.entryshot img{display:block;width:100%;height:auto;aspect-ratio:16/9;max-height:180px;object-fit:contain;background:var(--bg2,#0000);border:1px solid var(--line)}.entryshot figcaption{margin-top:2px;font-size:.8rem}
 @media (max-width:700px){.serieslist.withshots li{grid-template-columns:1fr;gap:6px}.entryshot.noshot{display:none}}
 .seriesnote{margin:-4px 0 10px}
 .shotframe img,.entryshot img,.gameart img{cursor:zoom-in}
 .lightbox{align-items:center;padding:12px}
 .lbwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:96vw}
 .lbstage .shotframe{display:inline-block;max-width:none}#lightbox .lbstage img{display:block;max-width:none;max-height:none;border:1px solid var(--line);cursor:default}
-.lbcap{color:#fff;max-width:min(900px,92vw);text-align:center;line-height:1.45;max-height:18vh;overflow:auto}.lbcap a{color:#fff;text-decoration:underline}
+.lbcap{color:#fff;max-width:min(900px,92vw);text-align:center;line-height:1.45;max-height:18vh;overflow:auto}.lbcap a{color:#fff;text-decoration:underline}.lbcap ol,.lbcap ul{text-align:left;display:block;width:max-content;max-width:100%;margin:6px auto 4px;padding-left:24px}
 .lbclose{position:absolute;top:-14px;right:-14px;z-index:2;width:40px;height:40px;border-radius:50%;background:var(--panel);font-size:1.1rem}
 @media (max-width:700px){.lbclose{top:-10px;right:-4px}}
 .recitem{padding:10px 0;border-top:1px solid var(--line)}.rechead{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}.recitem p{margin:6px 0 0}
@@ -782,6 +782,7 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .shot figcaption{font-size:.88rem;color:var(--fg2);margin-top:4px}
 .gameart{margin:0 0 14px}
 .gameart img{display:block;width:100%;max-width:460px;height:auto;border:1px solid var(--line)}
+.gameart img{width:auto;max-width:min(100%,460px);max-height:min(60vh,480px);object-fit:contain}
 .gameart figcaption{font-size:.8rem;color:var(--fg2);margin-top:4px}
 .pstage{margin:18px 0 0;max-width:860px}
 .pstage h2{margin:0 0 6px}

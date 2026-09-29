@@ -71,8 +71,8 @@ Status: `todo`, `doing`, `done`, `n/a`.
 ### Phase 4: verification and close
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
-| V1 | validate, types, build, check-layout, smoke, e2e-paths | todo | |
-| V2 | Visual check of every changed image on the rendered page | todo | |
+| V1 | validate, types, build, check-layout, smoke, e2e-paths | doing | with the last display fixes |
+| V2 | Visual check of every changed image on the rendered page | done | 22 series at 375 and 1440 in both themes, viewer on 2-3 shots each, library, headers, editor shots: no blocking problem (findings-visual.md). Fixes queued: portrait headers fill a phone screen; legend alignment; small entry captions |
 | V3 | Report to the owner; archive this plan | todo | |
 
 ## Findings and decisions
