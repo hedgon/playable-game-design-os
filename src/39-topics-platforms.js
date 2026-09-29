@@ -474,7 +474,7 @@ TECH('release-and-updates',[
 ]);
 ENGINE('release-and-updates',{
   godot:{ term:`Godot keeps two version strings that matter to a release: the project’s own application/config/version, and the export preset’s own version fields (for example the Android export’s version code and name), which is what the store reads. Neither one tells you whether a player’s save file is still readable; that needs its own stored version, checked and migrated on load.`,
-    api:['ProjectSettings.get_setting("application/config/version")','ConfigFile.load / get_value','Export preset version fields (Android version code/name, etc.)'],
+    api:['ProjectSettings.get_setting("application/config/version")','ConfigFile.load / get_value','Export preset version fields (Android version code and version name)'],
     snippet:`extends Node
 const SAVE_VERSION := 3
 func _ready() -> void:
