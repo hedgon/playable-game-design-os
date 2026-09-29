@@ -31,14 +31,18 @@ window.PlayableGraph = (function(){
   const cut = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
   const fontOf = n => n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
   const lineGap = fs => Math.round(fs * 1.25);
-  // A label that does not fit one line wraps onto a second at a word break;
-  // only a label too long for two lines is shortened, on its second line.
+  // A label that does not fit one line wraps at word breaks onto as many
+  // lines as it needs; nothing is shortened (owner, 2026-09-29: no cap may
+  // cut content). A single word longer than a line is broken, not cut.
   const wrap = (s, n) => {
     if(s.length <= n) return [s];
-    const words = s.split(' '); let a = '';
-    while(words.length && (a ? a.length + 1 : 0) + words[0].length <= n) a += (a ? ' ' : '') + words.shift();
-    if(!a) return [cut(s, n)];
-    return [a, cut(words.join(' '), n)];
+    const lines = []; let a = '';
+    for(const w of s.split(' ')){
+      a = !a ? w : a.length + 1 + w.length <= n ? a + ' ' + w : (lines.push(a), w);
+      while(a.length > n){ lines.push(a.slice(0, n)); a = a.slice(n); }
+    }
+    if(a) lines.push(a);
+    return lines;
   };
   // Lines are fixed before layout, so a two-line card is taller and the tidy
   // tree spaces it like any other card.

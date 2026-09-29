@@ -31,12 +31,12 @@ const HAND_DRAWN = new Set([...(fs.readFileSync(path.join(__dirname, '90-app.js'
 function checkDiagram(g, where, errors) {
   const str = v => typeof v === 'string' && v.trim().length > 0;
   const unit = v => typeof v === 'number' && v >= 0 && v <= 1;
-  const count = (arr, lo, hi, name) => { if (!Array.isArray(arr) || arr.length < lo || arr.length > hi) { errors.push(`${where}: ${name} needs ${lo} to ${hi} entries`); return false; } return true; };
+  const count = (arr, lo, hi, name) => { if (!Array.isArray(arr) || arr.length < lo) { errors.push(`${where}: ${name} needs ${lo} or more entries`); return false; } if (arr.length > hi) longs.push(`${where}: ${name} has ${arr.length} entries (guide: ${hi})`); return true; };
   const ids = (arr, name) => { const s = new Set(); arr.forEach((x, i) => { if (!str(x.id)) errors.push(`${where}: ${name}[${i}].id empty`); else if (s.has(x.id)) errors.push(`${where}: duplicate ${name} id ${x.id}`); s.add(x.id); }); return s; };
   const edges = (list, known) => (list || []).forEach(e => { if (!Array.isArray(e) || !known.has(e[0]) || !known.has(e[1])) errors.push(`${where}: edge ${JSON.stringify(e)} names an unknown node`); else if (e[2] !== undefined && !str(e[2])) errors.push(`${where}: edge ${e[0]} -> ${e[1]} has an empty label`); });
   const KINDS = ['loop', 'stack', 'matrix', 'quad', 'curve', 'economy', 'state', 'screen', 'flow'];
   if (!g || !KINDS.includes(g.kind)) return errors.push(`${where}: kind must be one of ${KINDS.join(', ')}`);
-  if (!str(g.title) || g.title.length > 90) errors.push(`${where}: title must be 1 to 90 characters`);
+  if (!str(g.title)) errors.push(`${where}: title is empty`); else if (g.title.length > 90) longs.push(`${where}: title is ${g.title.length} characters (guide: 90)`);
   if (g.note !== undefined && !str(g.note)) errors.push(`${where}: note is empty`);
   switch (g.kind) {
     case 'loop': if (count(g.steps, 3, 7, 'steps')) g.steps.forEach((s, i) => { if (!str(s.t)) errors.push(`${where}: steps[${i}].t empty`); }); break;
@@ -94,6 +94,9 @@ function checkDiagram(g, where, errors) {
   }
 }
 const errors = [];
+// Upper bounds never fail the build (owner, 2026-09-29: no cap may cut content).
+// They are reported as "long" so an editor can look, and content stays whole.
+const longs = [];
 // A fact older than a year is a warning, not an error: the build must not
 // break because the calendar moved, but the line tells you what to recheck.
 const staleFacts = [];
@@ -149,7 +152,7 @@ for (const t of topics) {
       for (const k of ['term', 'pitfall', 'map']) if (!v[k] || !String(v[k]).trim()) errors.push(`${t.id}: eng.${e}.${k} empty`);
       if (!Array.isArray(v.api) || !v.api.length || v.api.some(a => !String(a).trim())) errors.push(`${t.id}: eng.${e}.api must be a non-empty array of non-empty strings`);
       if (!v.snippet || !String(v.snippet).trim()) errors.push(`${t.id}: eng.${e}.snippet empty`);
-      else if (v.snippet.length > 900) errors.push(`${t.id}: eng.${e}.snippet is ${v.snippet.length} chars, limit 900`);
+      else if (v.snippet.length > 900) longs.push(`${t.id}: eng.${e}.snippet is ${v.snippet.length} chars (guide: 900)`);
     }
   }
   // iv: every topic needs interview questions, 6 to 10 of them, all three levels used.
@@ -162,7 +165,7 @@ for (const t of topics) {
       total += arr.length;
       arr.forEach((x, i) => { for (const k of ['q', 'a', 'follow', 'red']) if (!x[k] || !String(x[k]).trim()) errors.push(`${t.id}: iv.${lvl}[${i}].${k} empty`); });
     }
-    if (total < 6 || total > 10) errors.push(`${t.id}: iv has ${total} questions, expected 6 to 10`);
+    if (total < 6) errors.push(`${t.id}: iv has ${total} questions, expected 6 or more`); else if (total > 10) longs.push(`${t.id}: iv has ${total} questions (guide: 10)`);
   }
 }
 // Reference games: every diagram has a valid shape, a screen layout names
@@ -193,7 +196,7 @@ function checkAnalysis(g){
   else {
     for (const k of ['idea', ...ctx.SIGNATURE_PARTS.map(p => p[0])]) if (!s[k] || !String(s[k]).trim()) errors.push(`${where}: signature.${k} empty`);
     const n = ctx.SIGNATURE_PARTS.reduce((m, [k]) => m + wordCount(s[k]), 0);
-    if (n < 380 || n > 700) errors.push(`${where}: signature is ${n} words, expected 400 to 650`);
+    if (n < 380) errors.push(`${where}: signature is ${n} words, expected 380 or more`); else if (n > 700) longs.push(`${where}: signature is ${n} words (guide: 700)`);
     for (const [k] of ctx.SIGNATURE_PARTS) if (wordCount(s[k]) < 55) errors.push(`${where}: signature.${k} is ${wordCount(s[k])} words, expected a paragraph of 60 or more`);
   }
   // The game's own summary fields are paragraphs too, once it is analysed.
@@ -207,7 +210,7 @@ function checkAnalysis(g){
     let total = 0;
     for (const [f, min] of LENS_FIELDS) { const n = wordCount(l[f]); total += n; if (!n) errors.push(`${where}: lens ${k} needs ${f}`); else if (n < min) errors.push(`${where}: lens ${k}.${f} is ${n} words, expected ${min} or more`); }
     total += wordCount(l.context);
-    if (total < 150 || total > 380) errors.push(`${where}: lens ${k} is ${total} words, expected 150 to 350`);
+    if (total < 150) errors.push(`${where}: lens ${k} is ${total} words, expected 150 or more`); else if (total > 380) longs.push(`${where}: lens ${k} is ${total} words (guide: 380)`);
     for (const f of Object.keys(l)) if (!LENS_FIELD_NAMES.has(f)) errors.push(`${where}: lens ${k} has unknown field ${f}`);
     for (const t of (l.topics || [])) if (!TOPICS[t]) errors.push(`${where}: lens ${k} names unknown topic ${t}`);
     for (const u of (l.sources || [])) { let ok = false; try { ok = new URL(u).protocol === 'https:'; } catch (e) {} if (!ok) errors.push(`${where}: lens ${k} source is not an https URL: ${u}`); }
@@ -219,12 +222,12 @@ function checkAnalysis(g){
     for (const f of ['img', 'alt', 'caption']) if (!sh[f] || !String(sh[f]).trim()) errors.push(`${sw}: ${f} empty`);
     const file = sh.img && path.join(__dirname, '..', sh.img);
     if (file && !fs.existsSync(file)) errors.push(`${sw}: image ${sh.img} does not exist`);
-    else if (file && fs.statSync(file).size > 150 * 1024) errors.push(`${sw}: image ${sh.img} is ${Math.round(fs.statSync(file).size / 1024)} KB, limit 150 KB`);
+    else if (file && fs.statSync(file).size > 150 * 1024) longs.push(`${sw}: image ${sh.img} is ${Math.round(fs.statSync(file).size / 1024)} KB (guide: 150 KB)`);
     (sh.callouts || []).forEach((c, j) => { if (!(c.x >= 0 && c.x <= 1 && c.y >= 0 && c.y <= 1) || !c.t || !String(c.t).trim()) errors.push(`${sw}: callout ${j} needs t and x, y in 0..1`); });
     if (sh.credit) checkCredit(sh.credit, sw);
     else if (!g.dev || !g.store) errors.push(`${sw}: a screenshot needs the game's developer credit and store page`);
   });
-  if ((g.shots || []).length > 4) errors.push(`${where}: ${g.shots.length} screenshots, keep it to four or fewer`);
+  if ((g.shots || []).length > 4) longs.push(`${where}: ${g.shots.length} screenshots (guide: 4)`);
 }
 for (const [id, , q] of (ctx.GAME_SHELVES || [])) if (q.tag && !TAG_IDS.has(q.tag)) errors.push(`shelf ${id}: tag ${q.tag} is not in GAME_TAGS`);
 { const awardIds = new Set((ctx.AWARDS || []).map(a => a[0])), gameIds = new Set((ctx.REFERENCE_GAMES || []).map(g => g.id));
@@ -240,14 +243,14 @@ const GAMES_BY_ID = new Map((ctx.REFERENCE_GAMES || []).map(g => [g.id, g]));
 for (const g of (ctx.REFERENCE_GAMES || [])) {
   if (g.series !== undefined && (!g.series || !/^[a-z0-9-]+$/.test(g.series.id || '') || !String(g.series.t || '').trim() || !String(g.series.n || '').trim())) errors.push(`game ${g.id}: series needs id (kebab-case), t and n`);
   if (g.kind === 'series') {
-    if (!Array.isArray(g.entries) || g.entries.length < 4 || g.entries.length > 9) errors.push(`series ${g.id}: needs 4 to 9 entries`);
+    if (!Array.isArray(g.entries) || g.entries.length < 4) errors.push(`series ${g.id}: needs 4 or more entries`); else if (g.entries.length > 9) longs.push(`series ${g.id}: ${g.entries.length} entries (guide: 9)`);
     else g.entries.forEach((e, i) => {
       if (!String(e.t || '').trim() || typeof e.year !== 'number' || !String(e.platform || '').trim() || wordCount(e.added) < 8) errors.push(`series ${g.id}: entries[${i}] needs t, year, platform and what it added (8 words or more)`);
       if (e.ref !== undefined) { const r = GAMES_BY_ID.get(e.ref); if (!r) errors.push(`series ${g.id}: entries[${i}] refers to unknown game ${e.ref}`); else if (!r.series || r.series.id !== g.id) errors.push(`series ${g.id}: ${e.ref} is listed but does not carry series.id '${g.id}'`); }
       if (e.shot !== undefined) {
         const w = `series ${g.id}: entries[${i}].shot`, s = e.shot || {};
         if (!String(s.img || '').trim() || !String(s.alt || '').trim()) errors.push(`${w} needs img and alt`);
-        else { const file = path.join(__dirname, '..', s.img); if (!fs.existsSync(file)) errors.push(`${w}: image ${s.img} does not exist`); else if (fs.statSync(file).size > 40 * 1024) errors.push(`${w}: image ${s.img} is over 40 KB`); }
+        else { const file = path.join(__dirname, '..', s.img); if (!fs.existsSync(file)) errors.push(`${w}: image ${s.img} does not exist`); else if (fs.statSync(file).size > 40 * 1024) longs.push(`${w}: image ${s.img} is ${Math.round(fs.statSync(file).size / 1024)} KB (guide: 40 KB)`); }
         if (!s.credit) errors.push(`${w} needs a credit`); else checkCredit(s.credit, w);
       }
     });
@@ -257,7 +260,7 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     for (const k of ['constant', 'changed']) if (wordCount(g[k]) < 60) errors.push(`series ${g.id}: ${k} is ${wordCount(g[k])} words, expected 60 or more`);
     // Hits and misses: the same core game, received differently, and why.
     const verdicts = (ctx.RECEPTION_VERDICTS || []).map(v => v[0]);
-    if (!Array.isArray(g.reception) || g.reception.length < 3 || g.reception.length > 7) errors.push(`series ${g.id}: reception needs 3 to 7 entries (which entries landed, which did not, and why)`);
+    if (!Array.isArray(g.reception) || g.reception.length < 3) errors.push(`series ${g.id}: reception needs 3 or more entries (which entries landed, which did not, and why)`); else if (g.reception.length > 7) longs.push(`series ${g.id}: reception has ${g.reception.length} entries (guide: 7)`);
     else {
       g.reception.forEach((r, i) => {
         const w = `series ${g.id}: reception[${i}]`;
@@ -314,7 +317,7 @@ let heaviest = ['', 0];
 for (const [route, list] of pageImages) {
   const bytes = [...new Set(list.filter(Boolean))].reduce((n, p) => n + imgBytes(p), 0);
   if (bytes > heaviest[1]) heaviest = [route, bytes];
-  if (bytes > PAGE_IMAGE_BUDGET) errors.push(`${route} loads ${Math.round(bytes / 1024)} KB of images, page budget ${PAGE_IMAGE_BUDGET / 1024} KB`);
+  if (bytes > PAGE_IMAGE_BUDGET) longs.push(`${route} loads ${Math.round(bytes / 1024)} KB of images (guide: ${PAGE_IMAGE_BUDGET / 1024} KB; images are lazy-loaded)`);
 }
 console.log(`reference games: ${(ctx.REFERENCE_GAMES || []).length}, analysed: ${analysedGames}, assets: ${Math.round(artBytes / 1024)} KB in total; heaviest page ${heaviest[0]} at ${Math.round(heaviest[1] / 1024)} KB of ${PAGE_IMAGE_BUDGET / 1024}`);
 // Platform guides: every guide walks all six stages, with dated facts where
@@ -336,7 +339,7 @@ function checkGuideShot(sh, where) {
   if (!sh.credit) errors.push(`${where}: a guide image needs a credit with its licence`); else checkCredit(sh.credit, where);
   const file = sh.img && path.join(__dirname, '..', sh.img);
   if (file && !fs.existsSync(file)) errors.push(`${where}: image ${sh.img} does not exist`);
-  else if (file && fs.statSync(file).size > 150 * 1024) errors.push(`${where}: image ${sh.img} is over 150 KB`);
+  else if (file && fs.statSync(file).size > 150 * 1024) longs.push(`${where}: image ${sh.img} is ${Math.round(fs.statSync(file).size / 1024)} KB (guide: 150 KB)`);
   (sh.callouts || []).forEach((c, j) => { if (!(c.x >= 0 && c.x <= 1 && c.y >= 0 && c.y <= 1) || !c.t) errors.push(`${where}: callout ${j} needs t and x, y in 0..1`); });
 }
 for (const p of (ctx.PLATFORMS || [])) {
@@ -424,7 +427,7 @@ for (const c of (CASE_STUDIES || [])) {
     // Too few systems is incompleteness, so lenient mode counts it as a warning
     // the way a missing eng tab is. Too many is over budget for the map and
     // always fails.
-    if (c.systems.length > 8) errors.push(`${where}: has ${c.systems.length} systems, expected 5 to 8`);
+    if (c.systems.length > 8) longs.push(`${where}: has ${c.systems.length} systems (guide: 8)`);
     else if (c.systems.length < 5) { if (STRICT) errors.push(`${where}: has ${c.systems.length} systems, expected 5 to 8`); else warns.few++; }
     const sysIds = new Set(), partIds = new Set();
     for (const s of c.systems) {
@@ -439,7 +442,8 @@ for (const c of (CASE_STUDIES || [])) {
       else checkIvItems(s.iv, `${sw}: iv`, errors);
       if (!Array.isArray(s.stack) || !s.stack.length || s.stack.some(x => !String(x).trim())) errors.push(`${sw}: stack must be a non-empty array of non-empty strings`);
       if (sysIds.has(s.id)) errors.push(`${sw}: duplicate system id`); else sysIds.add(s.id);
-      if (!Array.isArray(s.parts) || s.parts.length < 2 || s.parts.length > 5) { errors.push(`${sw}: has ${Array.isArray(s.parts) ? s.parts.length : 'no'} parts, expected 2 to 5`); continue; }
+      if (!Array.isArray(s.parts) || s.parts.length < 2) { errors.push(`${sw}: has ${Array.isArray(s.parts) ? s.parts.length : 'no'} parts, expected 2 or more`); continue; }
+      if (s.parts.length > 5) longs.push(`${sw}: has ${s.parts.length} parts (guide: 5)`);
       for (const p of s.parts) {
         const pw = `${sw} part ${p.id || '(no id)'}`;
         for (const k of ['id', 't', 'what', 'why', 'trade']) if (!p[k] || !String(p[k]).trim()) errors.push(`${pw}: ${k} empty`);
@@ -468,14 +472,15 @@ for (const c of (CASE_STUDIES || [])) {
   if (c.flows === undefined) { if (STRICT) errors.push(`${where}: missing flows`); else warns.flows++; }
   else if (!Array.isArray(c.flows)) errors.push(`${where}: flows must be an array`);
   else {
-    if (c.flows.length > 4) errors.push(`${where}: has ${c.flows.length} flows, expected 2 to 4`);
+    if (c.flows.length > 4) longs.push(`${where}: has ${c.flows.length} flows (guide: 4)`);
     else if (c.flows.length < 2) { if (STRICT) errors.push(`${where}: has ${c.flows.length} flows, expected 2 to 4`); else warns.fewFlows++; }
     const flowIds = new Set();
     for (const f of c.flows) {
       const fw = `${where} flow ${f.id || '(no id)'}`;
       for (const k of ['id', 't', 'sum']) if (!f[k] || !String(f[k]).trim()) errors.push(`${fw}: ${k} empty`);
       if (flowIds.has(f.id)) errors.push(`${fw}: duplicate flow id`); else flowIds.add(f.id);
-      if (!Array.isArray(f.steps) || f.steps.length < 4 || f.steps.length > 9) { errors.push(`${fw}: has ${Array.isArray(f.steps) ? f.steps.length : 'no'} steps, expected 4 to 9`); continue; }
+      if (!Array.isArray(f.steps) || f.steps.length < 4) { errors.push(`${fw}: has ${Array.isArray(f.steps) ? f.steps.length : 'no'} steps, expected 4 or more`); continue; }
+      if (f.steps.length > 9) longs.push(`${fw}: has ${f.steps.length} steps (guide: 9)`);
       const stepIds = new Set();
       for (const s of f.steps) {
         const sw = `${fw} step ${s.id || '(no id)'}`;
@@ -528,7 +533,7 @@ for (const c of (CASE_STUDIES || [])) {
       total += arr.length;
       checkIvItems(arr, `${where}: iv.${lvl}`, errors);
     }
-    if (total < 10 || total > 12) errors.push(`${where}: iv has ${total} questions, expected 10 to 12`);
+    if (total < 10) errors.push(`${where}: iv has ${total} questions, expected 10 or more`); else if (total > 12) longs.push(`${where}: iv has ${total} questions (guide: 12)`);
   }
 }
 // ---- learning paths ----
@@ -551,7 +556,7 @@ let pathStepCount = 0, recallNoAnswer = 0;
 for (const pth of (PATHS || [])) {
   const where = `path ${pth.id || '(no id)'}`;
   for (const k of ['t', 'tag', 'track', 'level', 'audience', 'outcome', 'pick']) if (!pth[k] || !String(pth[k]).trim()) errors.push(`${where}: ${k} empty`);
-  if (pth.pick && pth.pick.length >= 60) errors.push(`${where}: pick is ${pth.pick.length} characters, expected under 60`);
+  if (pth.pick && pth.pick.length >= 60) longs.push(`${where}: pick is ${pth.pick.length} characters (guide: under 60)`);
   if (pth.track && !TRACK_IDS.has(pth.track)) errors.push(`${where}: unknown track ${pth.track}`);
   if (pth.level && !LEVEL_IDS.has(pth.level)) errors.push(`${where}: unknown level ${pth.level}`);
   if (typeof pth.hours !== 'number' || pth.hours <= 0) errors.push(`${where}: hours must be a positive number`);
@@ -559,7 +564,8 @@ for (const pth of (PATHS || [])) {
     if (!Array.isArray(pth[k])) { errors.push(`${where}: ${k} must be an array (may be empty)`); continue; }
     for (const id of pth[k]) if (!pathIds.has(id)) errors.push(`${where}: ${k} -> unknown path ${id}`);
   }
-  if (!Array.isArray(pth.stages) || pth.stages.length < 4 || pth.stages.length > 6) { errors.push(`${where}: has ${Array.isArray(pth.stages) ? pth.stages.length : 'no'} stages, expected 4 to 6`); continue; }
+  if (!Array.isArray(pth.stages) || pth.stages.length < 4) { errors.push(`${where}: has ${Array.isArray(pth.stages) ? pth.stages.length : 'no'} stages, expected 4 or more`); continue; }
+  if (pth.stages.length > 6) longs.push(`${where}: has ${pth.stages.length} stages (guide: 6)`);
   const stageIds = new Set();
   let hoursSum = 0, prevLevelIdx = -1, levelDrop = false;
   pth.stages.forEach((st, si) => {
@@ -569,14 +575,15 @@ for (const pth of (PATHS || [])) {
     if (st.level && !LEVEL_IDS.has(st.level)) errors.push(`${sw}: unknown level ${st.level}`);
     if (typeof st.hours !== 'number' || st.hours <= 0) errors.push(`${sw}: hours must be a positive number`);
     if (st.level) { const idx = [...LEVEL_IDS].indexOf(st.level); const order = (LEVELS || []).map(l => l[0]); const oi = order.indexOf(st.level); if (oi < prevLevelIdx) levelDrop = true; prevLevelIdx = Math.max(prevLevelIdx, oi); }
-    if (!Array.isArray(st.steps) || st.steps.length < 3 || st.steps.length > 8) { errors.push(`${sw}: has ${Array.isArray(st.steps) ? st.steps.length : 'no'} steps, expected 3 to 8`); return; }
+    if (!Array.isArray(st.steps) || st.steps.length < 3) { errors.push(`${sw}: has ${Array.isArray(st.steps) ? st.steps.length : 'no'} steps, expected 3 or more`); return; }
+    if (st.steps.length > 8) longs.push(`${sw}: has ${st.steps.length} steps (guide: 8)`);
     let minSum = 0, hasToolOrChecklist = false, runDomain = null, runLen = 0;
     st.steps.forEach((step, i) => {
       pathStepCount++;
       const stw = `${sw} step ${i} (${step.kind || 'no kind'})`;
       if (!step.why || !String(step.why).trim()) errors.push(`${stw}: why empty`);
       if (!step.do || !String(step.do).trim()) errors.push(`${stw}: do empty`);
-      if (typeof step.min !== 'number' || step.min < 10 || step.min > 60) errors.push(`${stw}: min must be 10-60`);
+      if (typeof step.min !== 'number' || step.min < 10) errors.push(`${stw}: min must be 10 or more`); else if (step.min > 60) longs.push(`${stw}: min is ${step.min} (guide: 60)`);
       else minSum += step.min;
       if (step.kind === 'tool' || step.kind === 'checklist') hasToolOrChecklist = true;
       switch (step.kind) {
@@ -606,20 +613,20 @@ for (const pth of (PATHS || [])) {
     if (!hasToolOrChecklist) errors.push(`${sw}: needs at least one tool or checklist step`);
     const target = st.hours * 60;
     if (target > 0 && Math.abs(minSum - target) / target > 0.1) errors.push(`${sw}: step minutes sum to ${minSum}, expected close to ${target} (hours*60, within 10%)`);
-    if (Array.isArray(st.review)) { if (st.review.length > 2) errors.push(`${sw}: review names ${st.review.length} topics, expected 0 to 2`); for (const rid of st.review) if (!TOPICS[rid]) errors.push(`${sw}: review -> unknown topic ${rid}`); } else errors.push(`${sw}: review must be an array (may be empty)`);
+    if (Array.isArray(st.review)) { if (st.review.length > 2) longs.push(`${sw}: review names ${st.review.length} topics (guide: 2)`); for (const rid of st.review) if (!TOPICS[rid]) errors.push(`${sw}: review -> unknown topic ${rid}`); } else errors.push(`${sw}: review must be an array (may be empty)`);
     if (!st.check) errors.push(`${sw}: missing check`);
     else {
       const { recall, build, skip } = st.check;
-      if (!Array.isArray(recall) || recall.length < 2 || recall.length > 4) errors.push(`${sw}: check.recall has ${Array.isArray(recall) ? recall.length : 'no'} questions, expected 2 to 4`);
+      if (!Array.isArray(recall) || recall.length < 2) errors.push(`${sw}: check.recall has ${Array.isArray(recall) ? recall.length : 'no'} questions, expected 2 or more`); else if (recall.length > 4) longs.push(`${sw}: check.recall has ${recall.length} questions (guide: 4)`);
       else recall.forEach((x, i) => {
         const q = typeof x === 'string' ? x : x && x.q;
         if (!q || !String(q).trim()) errors.push(`${sw}: check.recall[${i}] empty`);
         if (typeof x === 'string') recallNoAnswer++;
         else if (!x.a || !String(x.a).trim()) errors.push(`${sw}: check.recall[${i}] has an empty answer outline`);
-        else if (x.a.length > 420) errors.push(`${sw}: check.recall[${i}] answer outline is ${x.a.length} characters, expected an outline under 420`);
+        else if (x.a.length > 420) longs.push(`${sw}: check.recall[${i}] answer outline is ${x.a.length} characters (guide: under 420)`);
       });
       if (!build || !String(build).trim()) errors.push(`${sw}: check.build empty`);
-      if (!Array.isArray(skip) || skip.length < 3 || skip.length > 5) errors.push(`${sw}: check.skip has ${Array.isArray(skip) ? skip.length : 'no'} questions, expected 3 to 5`);
+      if (!Array.isArray(skip) || skip.length < 3) errors.push(`${sw}: check.skip has ${Array.isArray(skip) ? skip.length : 'no'} questions, expected 3 or more`); else if (skip.length > 5) longs.push(`${sw}: check.skip has ${skip.length} questions (guide: 5)`);
       else skip.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.skip[${i}] empty`); });
     }
     hoursSum += (typeof st.hours === 'number' ? st.hours : 0);
@@ -693,5 +700,6 @@ const flowCount = (CASE_STUDIES || []).reduce((n, c) => n + (Array.isArray(c.flo
 console.log(`workflows: ${flowCount}, projects with an interview: ${(CASE_STUDIES || []).filter(c => c.iv).length}, systems with likely questions: ${sysCases.reduce((n, c) => n + c.systems.filter(s => s.iv).length, 0)}`);
 if (!STRICT) console.log(`WARN lenient mode: ${warns.eng} topics missing eng, ${warns.iv} topics missing iv, ${warns.sys} case studies with no systems, ${warns.few} with fewer than 5`);
 if (!STRICT) console.log(`WARN lenient mode: ${warns.flows} case studies with no flows, ${warns.fewFlows} with fewer than 2, ${warns.projIv} with no project interview, ${warns.sysIv} systems with no likely questions`);
+if (longs.length) console.log(`LONG (${longs.length}, reported, never an error):\n  ` + longs.join('\n  '));
 if (errors.length) { console.log('ERRORS:\n' + errors.join('\n')); process.exit(1); }
 console.log('OK: all cross-links resolve, all topics complete.');

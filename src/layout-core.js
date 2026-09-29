@@ -3,11 +3,11 @@
 // project and path state) and report any two node cards that overlap. The
 // renderer returns its placed nodes (x = left edge, y = vertical centre, w,
 // h), so the check reads that geometry directly instead of parsing the SVG.
-// Labels cannot escape their card: the renderer wraps a label onto a second
-// line and makes the card taller, shortening only what two lines cannot
-// hold, so a card-vs-card test covers label collisions too. Labels that were
-// still shortened are counted and reported (from the renderer's own lines),
-// because a clipped name is lost information even when nothing overlaps.
+// Labels cannot escape their card: the renderer wraps a label onto as many
+// lines as it needs and makes the card taller, so a card-vs-card test covers
+// label collisions too. A label that was still shortened is counted and
+// reported (from the renderer's own lines), because a clipped name is lost
+// information even when nothing overlaps.
 // Kept separate from check-layout.js so a synthetic dataset can be
 // exercised without the real data files.
 const fits = n => !n.label || (n.lines || [n.label]).join(' ') === n.label;
