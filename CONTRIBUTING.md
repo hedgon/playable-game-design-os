@@ -313,6 +313,11 @@ must list this path in its own `next`. If you add a path, place it in the
 chooser's `CHOOSER.paths` table in `50-paths.js` where it fits; the validator
 checks that every combination of answers still picks a real path.
 
+Every topic, reference game, engine guide, platform guide and checklist must be
+a step in at least one path: validate.js fails the build and names anything no
+path reaches. A new game or topic therefore lands together with its path step, in
+a stage with room (3 to 8 steps, minutes within 10% of the stage hours).
+
 ## Writing style
 
 Plain words, short sentences, active voice. Say what to do and why; no hype and

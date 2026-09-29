@@ -284,7 +284,7 @@ L1 inventory (2026-09-28, computed from the data, not estimated): 16 paths hold 
 | --- | --- | --- |
 | U3 | Known leftovers: code snippets the last review left out of scope (a Godot snippet that blocks the main thread, Photon calls listed as Unity API, a Unity snippet that breaks its own threading warning); the obfuscator contradiction (owner decision) | landed (the Go-idioms Godot snippet now polls the task instead of blocking the frame; the crash-reporter Unity snippet reads Unity API on the main thread only and locks its ring; Photon was already named as a third-party SDK; obfuscation is framed in both places as raising the cost of reverse engineering, never as where a secret is kept) |
 | U5 | Final cleanup, after every other row: list tracked files nothing references (assets, docs, scripts), archive finished plans under docs/_archive rather than deleting them, remove only what is provably unused, and show the owner the list before removing | todo (last) |
-| U4 | Final headless sweep; README, CONTRIBUTING, docs | README and CONTRIBUTING updated (counts, the new domains, engine guides, walkthroughs, the image rule and the 12 MB budget); final sweep runs when the plan ships |
+| U4 | Final headless sweep; README, CONTRIBUTING, docs | landed 2026-09-29 (README and CONTRIBUTING updated: 21 paths, 107 entries with 85 games and 22 series, the per-page image budget, and the rule that every item sits in a path; final sweep: validate, types, smoke 229 route visits, e2e-paths 44/44, 1396-route sweeps at 1440 and 375 px, all clean) |
 
 ## 2. Bối cảnh / Survey hiện trạng
 
