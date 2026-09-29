@@ -37834,7 +37834,7 @@ const CHOOSER = {
   levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
   times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
-    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'] },
+    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play'] },
     gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
     ship:{ new:['ship-it'], some:['ship-it','casual-game-people-keep','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
@@ -38039,7 +38039,7 @@ PATH('systems-designer', {
   track:'design', level:'intermediate', hours:12.5,
   audience:'Designers past the basics who want to own an economy, a progression curve, or any system with more than three moving parts.',
   outcome:'You can map a system’s parts and feedback loops, run a rule audit that separates decisions from load, and turn a design smell into a testable experiment instead of a guess.',
-  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer'],
+  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer','study-the-hits-play'],
   stages:[
     { id:'s1', t:'Systems and their pieces', level:'intermediate',
       goal:'See a system as parts and the relationships between them, not just a list of numbers.', hours:2.5,
@@ -38280,7 +38280,7 @@ PATH('games-that-broke-the-mould', {
   track:'design', level:'intermediate', hours:13,
   audience:'Designers who know the fundamentals and want to see how some of the most original games of the last twenty-five years solved problems the usual answers could not.',
   outcome:'You can take apart an unusual game through ten lenses, name the one idea it contributed, and adapt that idea to your own design without copying its surface.',
-  prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer'],
+  prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer','study-the-hits-play'],
   stages:[
     { id:'s1', t:'Rules that teach themselves', level:'intermediate',
       goal:'See how a game can teach its rules with no words, and design one rule that teaches itself.', hours:2.25,
@@ -38390,6 +38390,121 @@ PATH('games-that-broke-the-mould', {
         ],
         build:'Design one piece of presentation (a HUD element, a menu, a save screen or a voice) that carries a rule or theme of your game, and run it through the design review checklist.',
         skip:['Can you say what your most repeated action tells the player about your story?','Can you name a piece of interface in a game that is also a mechanic?','Have you already designed presentation that carries a rule, not just information?','Can you explain how presentation can make a moral or thematic argument?']
+      } }
+  ]
+});
+
+PATH('study-the-hits-play', {
+  t:'Study the hits: how play holds people', tag:'Why some games are played for years: the dimensions of fun, skill you can feel, content that keeps asking, systems that surprise, stakes and other people.',
+  pick:'Learn what keeps players playing from the hits',
+  track:'design', level:'intermediate', hours:12,
+  audience:'Designers who know the fundamentals and want to see, through fifteen well-known games, how play holds people past the first hour.',
+  outcome:'You can name the dimensions of fun a game runs on, say what the player is getting better at, judge whether content asks a new question, and find the rhythm and the other people your own design depends on.',
+  prereq:[], next:['games-that-broke-the-mould','systems-designer'],
+  stages:[
+    { id:'s1', t:'What fun is made of', level:'intermediate',
+      goal:'Split “fun” into named dimensions, and say what makes a player come back or leave.', hours:2.5,
+      steps:[
+        { kind:'topic', ref:'fun-dimensions', why:'“Make it more fun” cannot be acted on; naming which dimension is present or flat can.', do:'Pick a game you know and list the two or three dimensions it is mostly made of, and one it leaves out.', min:20 },
+        { kind:'game', ref:'vampire-survivors', why:'Vampire Survivors strips combat to one input, movement, and puts every decision in the level-up screen, so one dimension is easy to see.', do:'Read its gameplay lens and write what the player is deciding at each level-up and why the game needs no aim button.', min:25 },
+        { kind:'game', ref:'wordle', why:'Wordle keeps players returning after they have mastered the puzzle, which shows return coming from something other than challenge.', do:'Read its replay lens and write what the player has at stake by day two hundred, and how the puzzle’s difficulty relates to it.', min:25 },
+        { kind:'topic', ref:'return-and-quit', why:'Return and quit have causes you can name, and Wordle’s streak is one of them.', do:'Classify Wordle’s pull to return using the topic’s list of return forces, then name the force in your own game you would rely on.', min:20 },
+        { kind:'game', ref:'stardew-valley', why:'Stardew Valley plans a town around a calendar of festivals, which shows a game giving players a reason to come back on a particular day.', do:'Read its world lens and list two festival days and what each does to the shops and the clock, then say what a player plans around them.', min:20 },
+        { kind:'topic', ref:'mastery-discovery-expression', why:'Mastery, discovery and expression are three engines that keep play going once novelty fades.', do:'For each of the three games above, name which engine it runs on and how it would fail if that engine ran dry.', min:20 },
+        { kind:'tool', ref:'canvas', why:'A core experience needs its dimensions written down before a feature can be judged against them.', do:'Fill in the Core Experience Canvas for your game, naming its dominant dimension and its main return force.', min:25 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'Why is “make it more fun” not actionable?', a:'Fun is a bundle of dimensions, so the useful question is which dimension is flat or missing, such as mastery, discovery or tension.' },
+          { q:'What brings Wordle players back after they have mastered it?', a:'The streak counter: one puzzle a day, no replay, and one failed day resets the number to zero, so what is at stake is the unbroken streak, not a fresh challenge.' },
+          { q:'What are the three engines of long-term engagement?', a:'Mastery (getting better at something perceivable), discovery (finding what you did not know was there) and expression (shaping the game to reflect yourself). Most great games run on at least two.' }
+        ],
+        build:'Write your game’s core experience on the Core Experience Canvas: its dominant dimension, the engine that keeps play going after novelty, and the reason a player returns.',
+        skip:['Can you name the two or three dimensions your game is mostly made of?','Can you separate the causes of returning from the causes of quitting?','Can you say which of mastery, discovery or expression your game runs on?']
+      } },
+    { id:'s2', t:'Skill you can feel', level:'intermediate',
+      goal:'Say what a player gets better at in a game, how the game shows them, and why a loss feels fair or not.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'skill-and-mastery', why:'A skill has to be perceivable to reward the player, and this topic gives the vocabulary for what the game asks and how it shows growth.', do:'List the skills one game you know asks for, and mark each as taught, exercised, combined or shown back to the player.', min:20 },
+        { kind:'game', ref:'celeste', why:'Celeste hides forgiving timing windows under a punishing-looking platformer, so a death reads as the player’s mistake rather than the game’s.', do:'Read its gameplay lens and pick two of the timing windows it names, then write what a death would feel like without each.', min:25 },
+        { kind:'game', ref:'tetris', why:'Tetris shows how changing the piece generator changed what a high score measures, luck or skill.', do:'Read its replay lens and write what a high score measured before and after the seven-bag generator.', min:25 },
+        { kind:'game', ref:'into-the-breach', why:'Into the Breach shows every queued attack and removes chance from attacks, so a lost mech traces back to a misread.', do:'Read its gameplay lens and write the one misread that could lose a mech, then say how the game makes that misread visible.', min:25 },
+        { kind:'tool', ref:'hypothesis', why:'A claim that players can see their improvement is a hypothesis until a playtest shows it.', do:'Write a playtest hypothesis for one skill in your game: what players should get better at, and what you will observe to know they did.', min:25 },
+        { kind:'reflect', why:'Celeste, Tetris and Into the Breach each make a loss point at the player, and it helps to write your own answer down.', do:'Write what your game does so that a loss reads as “I misread that”, and what it does that makes a loss read as bad luck.', min:15 }
+      ],
+      review:['mastery-discovery-expression'],
+      check:{
+        recall:[
+          { q:'Why does Celeste feel kind though it is difficult?', a:'It hides forgiving timing windows such as coyote time and jump buffering, so a death reads as a mistimed jump rather than an unregistered input, and players keep retrying.' },
+          { q:'What did the seven-bag generator change in Tetris?', a:'It removed droughts of unlucky pieces by dealing every shape once before reshuffling, so a high score measures placement skill more than surviving bad luck.' },
+          { q:'Why is a lost mech in Into the Breach traceable to the player?', a:'Attacks never miss, damage is fixed and every queued Vek attack shows on the tile it will hit, so a loss traces to one ignored icon rather than to chance.' }
+        ],
+        build:'Take one skill in your game and write how it is taught, how the player sees themselves improve, and the hypothesis that would show players did improve.',
+        skip:['Can you list the skills your game asks for and say which one it never teaches?','Can you say whether a loss in your game reads as the player’s misread or as luck?','Have you already watched a new player and a veteran play the same level to compare?']
+      } },
+    { id:'s3', t:'Content that keeps asking', level:'intermediate',
+      goal:'Tell content that poses a new question from content that repeats one, and judge a generator by what it changes for the player.', hours:2.75,
+      steps:[
+        { kind:'topic', ref:'encounters-and-enemies', why:'Each enemy should pose a distinct question, and this topic gives the test for whether it does.', do:'Choose three enemies from a game you know and write the question each asks and the player verb that answers it.', min:20 },
+        { kind:'game', ref:'dynasty-warriors', why:'Dynasty Warriors builds a crowd that poses almost no question, so the few named officers are where the real decision sits.', do:'Read its gameplay lens and write which enemies in a stage are scenery and which are the question, and what the stage asks the player to decide.', min:25 },
+        { kind:'topic', ref:'items-weapons-abilities', why:'Items are the most common reward, and the best change what the player considers doing rather than a number.', do:'Classify five items from a game you know as new verb, changed priority or changed parameter.', min:20 },
+        { kind:'game', ref:'hades', why:'Hades makes its gods compete for five ability slots, so every boon taken is another refused and a build is a series of trade-offs.', do:'Read its gameplay lens and write two boons that compete for the same slot and what a player gives up by choosing one.', min:25 },
+        { kind:'topic', ref:'procedural-content', why:'A generator can produce endless content and still bury a game in sameness, so it has to be judged by what it changes for the player.', do:'For a generator you know, write what it varies that changes the player’s decision and what it varies only in appearance.', min:20 },
+        { kind:'game', ref:'minecraft', why:'Minecraft builds every world from a seed, which shows a small ruleset producing an effectively unlimited number of distinct places.', do:'Read its world lens and write how sharing a seed differs from sharing a hand-made map, and what a returning player gets from a fresh seed.', min:25 },
+        { kind:'tool', ref:'loop', why:'Content lives in a loop, and drawing it shows where a repeated question would wear the loop out.', do:'Build your core loop in the Game Loop Builder and mark the step where your content should pose a new question each time.', min:25 }
+      ],
+      review:['skill-and-mastery','mastery-discovery-expression'],
+      check:{
+        recall:[
+          { q:'What test does the encounters topic give an enemy?', a:'It should ask a distinct question that needs a distinct answer from the player’s verbs; an enemy that asks the same question with more health is a slower version of the same fight.' },
+          { q:'What makes a Hades build a series of trade-offs?', a:'Five ability slots (Attack, Special, Cast, Dash, Call) are contested by different gods, so taking one god’s boon for a slot means refusing or replacing another’s.' },
+          { q:'What does a Minecraft seed give players?', a:'A single value that reproduces a whole world, so the same ruleset gives an effectively unlimited number of distinct worlds and players can share a seed like a recipe.' },
+          { q:'How should a generator be judged?', a:'By whether it varies the player’s decision or only decoration; mathematically unique outputs that feel identical are oatmeal, not content.' }
+        ],
+        build:'List the enemies and items in your game with the question each asks, then mark any pair that asks the same question and say what you would change.',
+        skip:['Can you write the question each enemy in your game asks?','Can you classify your items as new verb, changed priority or changed parameter?','Can you tell what your generator varies for the player and what it varies for the eye?']
+      } },
+    { id:'s4', t:'Systems that surprise', level:'advanced',
+      goal:'See how rules that touch each other produce play nobody scripted, and connect two systems in your own design on purpose.', hours:2,
+      steps:[
+        { kind:'topic', ref:'agency-and-emergence', why:'Agency is the player causing things and emergence is the game surprising its designers, and both depend on systems reaching each other.', do:'For a game you know, write one story a player could tell that nobody on the team scripted, and the systems that produced it.', min:25 },
+        { kind:'game', ref:'factorio', why:'Factorio makes solving one shortage create the next, so the game never has to design a new problem by hand.', do:'Read its gameplay lens and write the chain from one shortage to the next, and what a player learns to ask instead of whether they have won.', min:25 },
+        { kind:'game', ref:'portal', why:'Portal gives the player one tool that edits space, so every puzzle is a question of where to place it rather than how to survive.', do:'Read its gameplay lens and write two different uses of the portal gun and what the player has to reason about each time.', min:25 },
+        { kind:'tool', ref:'sysmap', why:'Emergence needs systems that can affect each other, and a map shows which walls stand between them.', do:'Map the systems in your game in the System Relationship Map and find one pair with no arrow between them.', min:30 },
+        { kind:'smell', ref:'same-way', why:'When every player plays the same way, the systems are not reaching each other.', do:'Check the smell’s causes against your map and note which missing arrow would open a second way to play.', min:20 }
+      ],
+      review:['encounters-and-enemies','items-weapons-abilities'],
+      check:{
+        recall:[
+          { q:'What separates agency from emergence?', a:'Agency is the player perceiving that their choices cause outcomes; emergence is behaviour arising from rule interactions that were not individually authored. Together they produce stories players tell as their own.' },
+          { q:'Why does Factorio never run out of problems?', a:'Solving one shortage always exposes the next limit, such as furnaces then belts then inserters, so the player keeps diagnosing what is starved.' },
+          { q:'What does Portal’s one tool change about its puzzles?', a:'It edits which two points in a level are adjacent, so puzzles ask where the two ends must sit rather than whether the player survives what stands in the way.' }
+        ],
+        build:'Connect two systems in your game that share no arrow, prototype the link, and write down the strategy that surprised you.',
+        skip:['Can you point to a system in your game that cannot affect any other?','Can you say whether a strategy players found was one to celebrate, tune or remove?','Have you already watched players do something with your rules that you did not plan?']
+      } },
+    { id:'s5', t:'Stakes, rhythm and other people', level:'advanced',
+      goal:'Shape the rise and fall of stakes over a session, and design what your players do for, against and with each other.', hours:2.75,
+      steps:[
+        { kind:'topic', ref:'tension-release', why:'Emotion is a rhythm, and flat tension is boredom while constant tension is exhaustion.', do:'Draw the intended intensity curve for one session of a game you know, marking peaks, valleys and what causes each.', min:20 },
+        { kind:'game', ref:'dark-souls', why:'Dark Souls makes the bonfire the price of every resource, so each fork is weighed as a budget and finding a bonfire is a release.', do:'Read its gameplay lens and write what a bonfire refills and what it resets, then mark where the tension rises and falls on your curve.', min:25 },
+        { kind:'game', ref:'age-of-empires-ii', why:'Advancing an Age in Age of Empires II is paid up front and stops villager training, so it opens a window of risk the player chooses.', do:'Read its gameplay lens and write what an Age advance costs and what a rival can do while it runs.', min:25 },
+        { kind:'topic', ref:'social-experience', why:'Who a player matters to changes how long a game lives, and the topic asks what the social act inside the game is.', do:'Name the social act your game supports (compete, cooperate, show, share, teach or be seen) and what it makes visible.', min:20 },
+        { kind:'game', ref:'among-us', why:'Among Us turns busywork into evidence, so completing a chore is also how a player is believed.', do:'Read its gameplay lens and write how a witnessed task clears a player and how a common task lets a claim be checked.', min:25 },
+        { kind:'game', ref:'dota-2', why:'Dota 2 gives the same creep two opposite actions, last-hit and deny, so farming becomes open conflict between players.', do:'Read its gameplay lens and write what each action gives its player and what a lane opponent who only does one still loses.', min:25 },
+        { kind:'checklist', ref:'design-review', why:'A rhythm and a social act are still features, and they need the same review as any other.', do:'Run the design review checklist against the intensity curve or social act you designed, and note its weakest answer.', min:30 }
+      ],
+      review:['fun-dimensions','agency-and-emergence'],
+      check:{
+        recall:[
+          { q:'What are the failures of flat and constant tension?', a:'Flat tension is boredom and constant tension is exhaustion; release is what makes the next tension legible and lets a peak be felt.' },
+          { q:'How does Among Us turn busywork into evidence?', a:'Most tasks are meaningless chores, but some animate for anyone nearby and Impostors cannot do tasks, so one witnessed animation clears a player; common tasks let a claimed route be checked.' },
+          { q:'What do last-hitting and denying give in Dota 2?', a:'Last-hitting takes the gold from a creep for yourself and denying takes experience away from the enemy, so two opposite actions on the same creep make farming into conflict.' },
+          { q:'What does an Age of Empires II Age advance cost?', a:'A lump sum paid when it is queued, which empties the stockpile, and Town Centre time in which no villagers are trained, so a rival can raid while resources are sunk.' }
+        ],
+        build:'Design one rhythm beat and one social act for your game: the intensity curve of a session, and what players do for, against or with each other, then run the design review checklist on both.',
+        skip:['Can you draw the tension curve of a typical session of your game?','Can you name the social act your game supports and what it makes visible?','Have you watched a group play and seen where the falling-behind player ends up?']
       } }
   ]
 });
