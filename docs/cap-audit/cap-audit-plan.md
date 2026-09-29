@@ -56,16 +56,17 @@ Status: `todo`, `doing`, `done`, `n/a`.
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
 | T1 | Merge findings, drop false positives, decide an action per finding | done | decisions in the table below |
-| T2 | Debate unclear findings with a second agent | todo | |
+| T2 | Debate unclear findings with a second agent | done | D1 keep with 600 KB series page guide; D2 cover or blurred contain; D3 grow boxes to 5 lines |
 
 ### Phase 3: fixes
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
-| F1 | Images: re-source or re-encode at full quality; undo crops | todo | |
-| F2 | Text: restore cut content, plain and sourced | todo | |
-| F3 | Display: make cut labels and snippets reach the full text | todo | |
-| F4 | Rules: CONTRIBUTING and validate.js so no cap can cut content again | todo | |
-| F5 | Independent fact-check of restored text | todo | |
+| R0 | Screen every lens at 360+ words and signature at 660+ against the analysis method (F4) | done | 259 read: 238 ok, 15 thin, 6 squeezed, plus 3 copy defects; see findings-lens-screen.md |
+| R1 | Images: re-source or re-encode at full quality; undo crops | doing | batch b1 of 4 (6 series) |
+| R2 | Text: restore cut content, plain and sourced | todo | |
+| R3 | Display: make cut labels and snippets reach the full text | done | search shows every hit; map shows every smell; titles on clamped cards and builder nodes; graph sub-labels wrap; snippets cut on words; library cards crop or show the whole image over a blur; diagram and flow boxes grow to 5 lines |
+| R4 | Rules: CONTRIBUTING and validate.js so no cap can cut content again | done | CONTRIBUTING and analysis-method state minimums only; entry shots 150 KB guide; series pages 600 KB guide; flow cuts fail check-layout |
+| R5 | Independent fact-check of restored text | todo | |
 
 ### Phase 4: verification and close
 | # | Task | Status | Notes |
@@ -99,4 +100,7 @@ Full reports: [findings-images.md](findings-images.md) (I1 to I20) and [findings
 | F15 | About 12 "and so on" / "and more" tails | Name the items where the list is short and known; keep the rest |
 | LONG | 5 text items over their guides | Keep all; plain-word "In skill-atom terms" in StarCraft |
 
-**Debates (T2).** D1: series entry shot size against page weight (one 960 px file, or a small inline file plus a full file for the viewer). D2: library cards, crop or show the whole header. D3: diagram labels, fail the build or let the box grow.
+**Debates (T2).** A second agent argued against each proposal; outcomes:
+- D1, series entry shot size against page weight: **one file per shot, up to 960 px**, same 150 KB per-image guide as lens shots. A 960 px WebP of a game screen is typically 25 to 65 KB (median of the current shot folder), so a 9-entry series projects to about 315 KB and at worst about 580 KB. A second inline-size file would double the files and a pairing rule for little gain, and the viewer opens `src` anyway. Page guide: 600 KB for series routes, 350 KB elsewhere (report only). Lazy images get width and height so the page does not jump.
+- D2, library cards: **crop only when the header is within about 15% of the card shape; otherwise show the whole image over a blurred copy of itself**. Plain `contain` left portrait headers looking broken next to full-bleed cards. The class is set from the image's natural size on load, so no data field is needed.
+- D3, diagram labels: **let the box grow** with its line count up to 5 lines. Beyond that the label still fails the build, and overlaps still fail. The failure used to leave shortening the label as the only fix, which is a cut.

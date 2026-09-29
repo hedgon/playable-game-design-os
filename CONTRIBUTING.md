@@ -196,27 +196,27 @@ Schematics are our own drawings, for diagrams only.
 Every game carries a full analysis (`ANALYSIS()` in `16-games-analysis.js` for the
 games above, `GAME()` with the analysis inline in `17-games-japan.js`,
 `18-games-innovative.js`, `18-games-casual.js` and `18-games-genres.js` for the rest): a `signature` (the
-one idea worth stealing, 380 words or more in six parts, about 700 as a guide), all ten `lens` entries,
-and usually up to four `shots`. Each lens is an analysis, not a description, written to
+one idea worth stealing, 380 words or more in six parts), all ten `lens` entries,
+and as many `shots` as its lenses need. Each lens is an analysis, not a description, written to
 [docs/references/analysis-method.md](docs/references/analysis-method.md): a
 `claim` someone could dispute, then `evidence`, `mechanism`, `effect`, `compare`,
 `cost` and `principle`, an optional `context`, `topics`, and https `sources`;
-150 words or more in all, about 380 as a guide. A lens that truly does not apply is `na`, with a
+150 words or more in all. A lens that truly does not apply is `na`, with a
 paragraph arguing why. A shot is an official screenshot
-from the game's store page, saved as WebP (about 150 KB as a guide; readability comes first) in
+from the game's store page, saved as WebP (150 KB is a guide; readability comes first) in
 `assets/games/shots/`, attached to the lens it illustrates, with alt text, a
 caption naming what to look at, and optional numbered callouts (x, y as
 fractions of the image). A shot from anywhere else carries its own
 `credit:{author, url, licence}`, with the licence from `IMAGE_LICENCES`
 (store art, a named free licence, or `own` for our schematics; share-alike
-images add `changed`). Image weight is budgeted per page, not per folder: every image is lazy-loaded, so validate.js reports what one route loads against a 350 KB guide (header, shots and a series’ entry screens together) and the folder total. Lenses link
+images add `changed`). Image weight is budgeted per page, not per folder: every image is lazy-loaded, so validate.js reports what one route loads against a guide of 350 KB, or 600 KB on a series page (header, shots and a series’ entry screens together) and the folder total. Lenses link
 topics; the frame, the shelves and the lens-to-topic defaults are in
 `14-references.js`, and the validator enforces all of it.
 
 A long-running series is one `SERIES({...})` entry analysed across the whole
-series: the same fields and ten lenses, read series-wide, plus `entries` (4 to 9
+series: the same fields and ten lenses, read series-wide, plus `entries` (4 or more
 defining entries `{t, short, year, platform, added, ref?}`, drawn as a timeline),
-`constant` and `changed` (60+ words each), and `reception`: 3 to 7 entries
+`constant` and `changed` (60+ words each), and `reception`: 3 or more entries
 `{entry, year, verdict, evidence, why, src, ref?}` saying which entries built on
 the same core game were praised or received badly and what each did
 differently, with at least one of each side and sources for every verdict, and
@@ -318,10 +318,14 @@ a step in at least one path: validate.js fails the build and names anything no
 path reaches. A new game or topic therefore lands together with its path step, in
 the stage where it teaches best, with the stage minutes kept within 10% of the stage hours.
 
-**No cap cuts content** (owner, 2026-09-29). Every upper number here and in
-validate.js is a guide: going over it prints a `LONG` line and never fails the
-build. Never shorten, drop or lower the quality of correct, sourced content to
-get under a number; minimums still apply, and so does editing for clarity.
+**No cap cuts content** (owner, 2026-09-29). A number in this file is a
+minimum, or a guide that only reports: going over a guide prints a `LONG` line
+and never fails the build, and it is never a reason to cut (lens length, signature
+length, shots, reception, series entries, image size and page weight all follow
+this paragraph). Never shorten, drop or lower the quality of correct, sourced
+content to get under a number; minimums still apply, and so does editing for
+clarity. Restored or longer text must stay plain: length is earned by sourced
+detail, not by jargon or padding.
 
 ## Writing style
 

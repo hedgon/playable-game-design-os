@@ -725,7 +725,12 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .refcard{border:1px solid var(--line);border-radius:2px;background:var(--bg2);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s}
 .refcard:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--line2);border-color:var(--accent)}
 .refcard.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.refcard img,.refcard .tile{display:block;width:100%;aspect-ratio:460/215;object-fit:cover;background:var(--bg3)}
+.refcard .tile{display:block;width:100%;aspect-ratio:460/215;background:var(--bg3)}
+.refart{position:relative;overflow:hidden;aspect-ratio:460/215;background:var(--bg3)}
+.refart img{position:relative;display:block;width:100%;height:100%;object-fit:cover}
+/* A header far from the card shape shows whole, over a blurred copy of itself (set on load in 90-app.js) */
+.refart.fit img{object-fit:contain}
+.refart.fit::before{content:'';position:absolute;inset:-14px;background:var(--art) center/cover;filter:blur(14px)}
 .refcard .tile{display:flex;align-items:center;justify-content:center;padding:10px;text-align:center;font-family:var(--display);font-stretch:92%;font-weight:700;font-size:1rem;background-image:linear-gradient(135deg,color-mix(in srgb,var(--accent) 20%,var(--bg3)),var(--bg3))}
 .refcard .meta{padding:8px 10px}
 .refcard .meta b{display:block;font-size:.9rem;line-height:1.2}
@@ -739,7 +744,7 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .serieslist{margin:6px 0 10px;padding-left:22px}.serieslist li{margin:0 0 8px}
 .serieslist.withshots{list-style:none;padding-left:0}.serieslist.withshots li{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:12px;align-items:start;margin-bottom:14px}
 .entryshot.noshot{border:1px dashed var(--line);display:grid;place-items:center;min-height:60px;padding:6px;text-align:center}
-.entryshot{margin:0}.entryshot img{display:block;width:100%;height:auto;max-height:180px;object-fit:contain;background:var(--bg2,#0000);border:1px solid var(--line)}.entryshot figcaption{margin-top:2px;font-size:.72rem}
+.entryshot{margin:0}.entryshot img{display:block;width:100%;height:auto;aspect-ratio:16/9;max-height:180px;object-fit:contain;background:var(--bg2,#0000);border:1px solid var(--line)}.entryshot figcaption{margin-top:2px;font-size:.72rem}
 @media (max-width:700px){.serieslist.withshots li{grid-template-columns:1fr;gap:6px}.entryshot.noshot{display:none}}
 .seriesnote{margin:-4px 0 10px}
 .shotframe img,.entryshot img,.gameart img{cursor:zoom-in}

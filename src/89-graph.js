@@ -28,7 +28,6 @@ window.PlayableGraph = (function(){
   const SIZE = { root:{ w:330, h:74 }, domain:{ w:262, h:46 }, topic:{ w:300, h:34 }, leaf:{ w:236, h:30 } };
   const COL = 340, VGAP = 30, PAD = 40;
 
-  const cut = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
   const fontOf = n => n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
   const lineGap = fs => Math.round(fs * 1.25);
   // A label that does not fit one line wraps at word breaks onto as many
@@ -48,6 +47,7 @@ window.PlayableGraph = (function(){
   // tree spaces it like any other card.
   const fitLabels = n => {
     if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
+    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w, 9.5)); n.h += (n.subLines.length - 1) * lineGap(9.5); }
     n.children.forEach(fitLabels);
   };
   // Longest label that fits the node's inner width. Derived from the same
@@ -134,7 +134,8 @@ window.PlayableGraph = (function(){
     const x = n.x, y = n.y - n.h / 2, left = n.side < 0, dc = n.color ? ` style="--dc:${n.color}"` : '';
     const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : n.kind === 'topic' ? (n.seen ? 'topic seen' : 'topic') : ('leaf ' + n.kind);
     const fs = fontOf(n), lines = n.lines || [n.label], extra = (lines.length - 1) * lineGap(fs);
-    const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 2 : n.y + 4) - extra / 2, anchor = left ? 'end' : 'start';
+    const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(9.5) : 0;
+    const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 2 : n.y + 4) - (extra + subExtra) / 2, anchor = left ? 'end' : 'start';
     const why = n.why ? ` data-why="${esc(n.why)}"` : '';
     const sc = scope ? ` data-scope="${scope}"` : '';
     // The accessible name is the full label even when the card shortens it.
@@ -144,7 +145,7 @@ window.PlayableGraph = (function(){
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
     g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${lines.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(fs)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + extra / 2}" text-anchor="${anchor}" font-size="9.5">${esc(cut(n.sub, maxFor(n.w, 9.5)))}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + (extra - subExtra) / 2}" text-anchor="${anchor}" font-size="9.5">${subs.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(9.5)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
     g += `</g>`;
     return g;
   }
@@ -187,7 +188,7 @@ window.PlayableGraph = (function(){
         if(rt) sel.children.push({ kind:'leaf', id:rid, label:rt.t, color:dcolor(rt.d), why, home:rt.d, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] });
         else sel.children.push({ kind:'view', id:rid, label:(views[rid] ? views[rid][1] : rid), why, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] });
       });
-      SMELLS.filter(s => s.causes.some(c => c.top === state.topic)).slice(0, 4)
+      SMELLS.filter(s => s.causes.some(c => c.top === state.topic))
         .forEach(s => sel.children.push({ kind:'smell', id:s.id, label:`! ${s.t}`, color:'var(--bad)', why:s.sym, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] }));
       (state.extra || []).forEach(([vid, why]) => sel.children.push({ kind:'view', id:vid, label:(views[vid] ? views[vid][1] : vid), why, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] }));
     }

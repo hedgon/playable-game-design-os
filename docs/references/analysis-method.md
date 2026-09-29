@@ -37,8 +37,9 @@ of a mechanism.
 | Context (optional) | A constraint that explains the choice; only if it explains something. |
 | Sources | Links behind the evidence. |
 
-Target 150 to 330 words per lens. If a lens is genuinely thin for a game (Tetris
-has no lore), the entry argues why in a short paragraph instead.
+A lens is at least 150 words, and there is no upper target: it is as long as
+its evidence needs. If a lens is genuinely thin for a game (Tetris has no
+lore), the entry argues why in a short paragraph instead.
 
 ## Frameworks per lens
 

@@ -15,8 +15,9 @@
    Size. Every kind is laid out on a 380 unit wide canvas, so on a 375px
    phone the chart scales to about 0.8 and its 13px labels stay legible; the
    "diagram as text" list under each chart carries the same content.
-   A text that does not fit its box is not silently cut: `layout` reports
-   it in `cut`, and the layout checker fails the build on it.
+   A box grows with its text up to five lines. Beyond that the text is not
+   silently cut: `layout` reports it in `cut`, and the layout checker fails
+   the build on it.
 
    `layout(spec)` returns { w, h, boxes, cut } and is what the checker
    calls; `render(spec)` returns the SVG string; `describe(spec)` returns
@@ -29,8 +30,10 @@ window.PlayableDiagram = (function(){
   const perChar = fs => fs === FS ? FS * 0.56 : fs * 0.6;
   const hash = s => { let x = 5381; for (let i = 0; i < s.length; i++) x = ((x << 5) + x + s.charCodeAt(i)) | 0; return (x >>> 0).toString(36); };
 
-  // Greedy word wrap into at most `max` lines of `width` units. A text that
-  // needs more lines keeps an ellipsis and is reported in `cut`.
+  // Greedy word wrap into at most `max` lines of `width` units. A box grows
+  // with its lines (up to MAXL); a text that needs more keeps an ellipsis and
+  // is reported in `cut`.
+  const MAXL = 5;
   function wrap(text, width, fs, max, cut){
     const chars = Math.max(3, Math.floor(width / perChar(fs)));
     const words = String(text || '').split(/\s+/).filter(Boolean), out = [];
@@ -50,8 +53,8 @@ window.PlayableDiagram = (function(){
 
   // A card: number, title lines, sub lines. Height follows the text.
   function card(w, t, d, cut, opt = {}){
-    const tl = wrap(t, w - 20, FS, opt.tLines || 2, cut);
-    const dl = d ? wrap(d, w - 20, SFS, opt.dLines || 2, cut) : [];
+    const tl = wrap(t, w - 20, FS, MAXL, cut);
+    const dl = d ? wrap(d, w - 20, SFS, MAXL, cut) : [];
     const tag = opt.tag ? 1 : 0;
     const h = 12 + tag * SLH + tl.length * LH + dl.length * SLH + 6;
     return { w, h, tl, dl, tag: opt.tag || '' };
@@ -121,7 +124,7 @@ window.PlayableDiagram = (function(){
   // self-transition.
   L.state = spec => {
     const cut = [], cw = 128, top = 30, gapY = 46;
-    const items = spec.states.map(s => card(cw, s.t, s.d, cut, { dLines: 1 }));
+    const items = spec.states.map(s => card(cw, s.t, s.d, cut));
     const ch = Math.max(...items.map(c => c.h)), lx = PAD, rx = W - PAD - cw;
     const nodes = items.map((c, i) => Object.assign({}, c, { h: ch, x: i % 2 ? rx : lx, y: top + Math.floor(i / 2) * (ch + gapY) }));
     const rows = Math.ceil(nodes.length / 2);
@@ -163,7 +166,7 @@ window.PlayableDiagram = (function(){
     let y = PAD + (spec.arrow ? 16 : 0);
     const nodes = spec.layers.map((l, i) => {
       const w = spec.taper ? full * (1 - 0.34 * (n > 1 ? i / (n - 1) : 0)) : full;
-      const c = card(w, l.t, l.d, cut, { dLines: 3 });
+      const c = card(w, l.t, l.d, cut);
       const node = Object.assign(c, { x: PAD + gutter, y });
       y += c.h + 10;
       return node;
@@ -232,7 +235,7 @@ window.PlayableDiagram = (function(){
   L.economy = spec => {
     const cut = [], cw = 104, gap = 14, vgap = 42;
     const defRow = { source: 0, pool: 1, converter: 2, sink: 3 };
-    const nodes = spec.nodes.map(n => Object.assign(card(cw, n.t, n.d, cut, { tag: n.type, dLines: 1 }), { id: n.id, type: n.type, row: n.row ?? defRow[n.type], shape: n.type }));
+    const nodes = spec.nodes.map(n => Object.assign(card(cw, n.t, n.d, cut, { tag: n.type }), { id: n.id, type: n.type, row: n.row ?? defRow[n.type], shape: n.type }));
     const rows = [...new Set(nodes.map(n => n.row))].sort((a, b) => a - b);
     let y = PAD;
     rows.forEach(r => {

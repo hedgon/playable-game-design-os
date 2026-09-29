@@ -66,6 +66,8 @@ document.addEventListener('click', e => {
   const act = ACTIONS[el.dataset.action];
   if(act) act(el, e);
 });
+// Library card art: near the card shape it fills the card; otherwise it shows whole over a blurred copy of itself.
+document.addEventListener('load', e => { const i = e.target, a = i.tagName === 'IMG' && i.parentNode.classList && i.parentNode.classList.contains('refart') ? i.parentNode : null; if(!a || !i.naturalHeight) return; if(Math.abs(i.naturalWidth / i.naturalHeight / (460 / 215) - 1) > 0.15){ a.style.setProperty('--art', `url("${i.currentSrc}")`); a.classList.add('fit'); } }, true);
 document.addEventListener('keydown', e => { if(e.target.closest && e.target.closest('.topictabs [role="tab"]')) tabKey(e); });
 document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.story; if(k) store.set(k, e.target.value); });
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
@@ -442,7 +444,7 @@ function libraryHTML(){
   const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
   const usedTags = GAME_TAGS.filter(t => REFERENCE_GAMES.some(g => (g.tags || []).includes(t)));
   const deepLenses = REFERENCE_GAMES.some(g => g.lens) ? [['analysed', 'Analysed through ten lenses']] : [];
-  const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<img src="${x.img}" alt="" loading="lazy">` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${gameYears(x)} · ${esc(x.kind === 'series' ? 'series · ' + x.genre : x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
+  const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<div class="refart"><img src="${x.img}" alt="" loading="lazy"></div>` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${gameYears(x)} · ${esc(x.kind === 'series' ? 'series · ' + x.genre : x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
   const grid = xs => `<div class="reflib">${xs.map(card).join('')}</div>`;
   const body = !list.length ? '<div class="empty">No game matches these filters.</div>'
     : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${gameYears(x)}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
@@ -1152,7 +1154,7 @@ function toolSysmap(el){
     const labelPos = (g,i) => { const t=[0.5,0.34,0.66][i%3], u=1-t; const px=u*u*g.sx+2*u*t*g.mx+t*t*g.ex, py=u*u*g.sy+2*u*t*g.my+t*t*g.ey; const tx=2*u*(g.mx-g.sx)+2*t*(g.ex-g.mx), ty=2*u*(g.my-g.sy)+2*t*(g.ey-g.my); const tl=Math.hypot(tx,ty)||1; const off=14*g.side; return [px - (ty/tl)*off, py + (tx/tl)*off]; };
     const edgePath = (e,i) => { const g=geo(e,i); return `<path class="se ${e[1]}" d="M${g.sx.toFixed(1)},${g.sy.toFixed(1)} Q${g.mx.toFixed(1)},${g.my.toFixed(1)} ${g.ex.toFixed(1)},${g.ey.toFixed(1)}" marker-end="url(#arr)"/>`; };
     const edgeLabel = (e,i) => { const g=geo(e,i); const p=labelPos(g,i); const lx=p[0], ly=p[1]; const w = e[1].length*5.8+8; return `<g><rect x="${(lx-w/2).toFixed(1)}" y="${(ly-8).toFixed(1)}" width="${w.toFixed(1)}" height="13" rx="2" fill="var(--bg2)" stroke="var(--line)" stroke-width="0.5"/><text class="se-label" x="${lx.toFixed(1)}" y="${(ly+1).toFixed(1)}" text-anchor="middle">${e[1]}</text></g>`; };
-    const nodeG = n => { const [x,y]=pos[n.n]; const deg = E.filter(e => e[0]===n.n||e[2]===n.n).length; const lines = wrapName(n.n); const first = lines.length>1 ? -(lines.length-1)*6.5 : 3; return `<g class="sn" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><circle r="${NR}" fill="${col[n.t]||'var(--accent)'}" opacity="${deg?0.25:0.08}" stroke="${deg?col[n.t]:'var(--bad)'}" stroke-width="${deg?2:1.5}" stroke-dasharray="${deg?'':'4 3'}"/><text text-anchor="middle" font-size="11">${lines.map((l,k)=>`<tspan x="0" dy="${k===0?first:13}">${esc(l)}</tspan>`).join('')}</text><text text-anchor="middle" y="${NR+13}" style="font-size:9px;fill:var(--fg3);font-weight:400">${esc(n.t)}</text></g>`; };
+    const nodeG = n => { const [x,y]=pos[n.n]; const deg = E.filter(e => e[0]===n.n||e[2]===n.n).length; const lines = wrapName(n.n); const first = lines.length>1 ? -(lines.length-1)*6.5 : 3; return `<g class="sn" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(n.n)}</title><circle r="${NR}" fill="${col[n.t]||'var(--accent)'}" opacity="${deg?0.25:0.08}" stroke="${deg?col[n.t]:'var(--bad)'}" stroke-width="${deg?2:1.5}" stroke-dasharray="${deg?'':'4 3'}"/><text text-anchor="middle" font-size="11">${lines.map((l,k)=>`<tspan x="0" dy="${k===0?first:13}">${esc(l)}</tspan>`).join('')}</text><text text-anchor="middle" y="${NR+13}" style="font-size:9px;fill:var(--fg3);font-weight:400">${esc(n.t)}</text></g>`; };
     $('#sm_svg').innerHTML = `<svg viewBox="0 0 ${W} ${H}"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg3)"/></marker></defs>${E.map(edgePath).join('')}${E.map((e,i)=>edgeLabel(e,i)).join('')}${N.map(nodeG).join('')}</svg>`;
     // analysis
     const isolated = N.filter(n => !E.some(e => e[0]===n.n||e[2]===n.n));
@@ -1456,7 +1458,7 @@ function renderPrompts(id){
   const sel = PROMPT_TEMPLATES.find(p => p.id === id);
   setView(`${crumbs([['Library','#/games'],['Prompts']])}<h1>Prompt library</h1><p class="dim">Reusable patterns built on the formula. Fill the variables. The prompt updates live. Every template ends with a stop or critique instruction so the AI does not decide for you.</p>
     <div class="split"><aside class="side sticky"><button class="btn side-toggle" data-action="toggle-parent"><span>☰ Browse templates</span><span class="car">▸</span></button>${cats.map(c => `<div class="dom open"><button style="cursor:default"><span class="dot" style="background:var(--d-ai)"></span>${c}</button><div class="topics">${PROMPT_TEMPLATES.filter(p => p.cat===c).map(p => `<button class="${p.id===id?'active':''}" data-href="#/prompts/${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}</aside>
-    <div id="promptMain">${sel ? '' : `<div class="grid auto">${PROMPT_TEMPLATES.map(p => `<a class="card clickable lnk blk" href="#/prompts/${p.id}"><span class="chip ai">${p.cat}</span><h3 style="margin-top:6px">${esc(p.t)}</h3><p class="small dim" style="margin:0">${esc(p.p.slice(0,140))}…</p></a>`).join('')}</div><div class="callout" style="margin-top:14px">Want to compose your own? The <a href="#/build/prompt">Prompt Generator</a> walks the eight terms. Topic pages each carry prompts specific to that concept.</div>`}</div></div>`);
+    <div id="promptMain">${sel ? '' : `<div class="grid auto">${PROMPT_TEMPLATES.map(p => `<a class="card clickable lnk blk" href="#/prompts/${p.id}"><span class="chip ai">${p.cat}</span><h3 style="margin-top:6px">${esc(p.t)}</h3><p class="small dim" style="margin:0">${esc(snip(p.p, 140))}</p></a>`).join('')}</div><div class="callout" style="margin-top:14px">Want to compose your own? The <a href="#/build/prompt">Prompt Generator</a> walks the eight terms. Topic pages each carry prompts specific to that concept.</div>`}</div></div>`);
   if(sel){
     const saved = store.get('promptVars.'+sel.id, {});
     const main = $('#promptMain');
@@ -1528,7 +1530,9 @@ function renderSources(){
 /* =====================================================================
    EXPERIENCE: anonymised case studies
    ===================================================================== */
-function caseCard(c){ return `<a class="card clickable tint lnk blk" style="--dc:var(--accent2)" href="#/experience/${c.id}"><h3>${esc(c.t)}</h3>${c.sub ? `<div class="casesub">${esc(c.sub)}</div>` : ''}<div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0">${esc(c.context.slice(0, 180))}${c.context.length > 180 ? '…' : ''}</p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></a>`; }
+// A snippet cut on a word boundary; "…" only when text was actually cut.
+function snip(s, n){ s = String(s); if(s.length <= n) return s; const c = s.slice(0, n), i = c.lastIndexOf(' '); return (i > n * 0.6 ? c.slice(0, i) : c).replace(/[s,;:.-–—]+$/, '') + '…'; }
+function caseCard(c){ return `<a class="card clickable tint lnk blk" style="--dc:var(--accent2)" href="#/experience/${c.id}"><h3>${esc(c.t)}</h3>${c.sub ? `<div class="casesub">${esc(c.sub)}</div>` : ''}<div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0">${esc(snip(c.context, 180))}</p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></a>`; }
 // The head is separate from the body because the project page puts a tab
 // strip between them: the codename, its description and the chips stay put
 // while Overview, Workflows and Interview swap underneath.
@@ -1840,7 +1844,7 @@ function pathCard(p, picked){
   return `<a class="card clickable tint lnk blk ${picked ? 'picked' : ''}" style="--dc:var(--accent2)" href="#/paths/${p.id}" data-path-card="${p.id}">
     <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span>${picked ? '<span class="chip ok">Suggested for you</span>' : ''}</div>
     <b>${esc(p.t)}</b><div class="small dim">${esc(p.tag)}</div>
-    <div class="small clamp2" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
+    <div class="small clamp2" title="${esc(p.audience)}" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
     <div class="small muted">${p.prereq.length ? `After ${p.prereq.map(id => esc(pathTitle(id))).join(', ')}` : 'No prerequisites'}</div>
     <div class="progress" style="margin-top:8px"><span class="small muted">${pct}%</span><span class="bar"><i style="width:${pct}%"></i></span></div></a>`;
 }
@@ -2012,11 +2016,11 @@ PLATFORMS.forEach(p => INDEX.push({ type:'platform', t:p.t, snip:p.short, href:'
 ENGINES.forEach(e => INDEX.push({ type:'platform', t:e.t, snip:e.short, href:'#/engines/'+e.id, text:[e.t, e.sub, e.short, ...e.glance, ...guideText(e.stages)].join(' ').toLowerCase(), aka:['engine', e.kind] }));
 const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
 SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
-PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+p.p.slice(0,100)+'…', href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
+PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+snip(p.p, 100), href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
 ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
-SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:s[1].slice(0,110)+'…', href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
+SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:snip(s[1], 110), href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
 const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), ...(g.series ? [g.series.t] : []), ...(g.entries || []).flatMap(e => [e.t, e.added]), g.constant, g.changed, ...(g.reception || []).flatMap(r => [r.entry, r.why]), g.receptionLesson, g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
-REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${gameYears(g)} · ${g.genre} · ${(g.signature ? g.signature.idea : g.lesson).slice(0,90)}…`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family), ...(g.series ? [g.series.t] : []), ...(g.kind === 'series' ? ['series'] : [])] }));
+REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${gameYears(g)} · ${g.genre} · ${snip(g.signature ? g.signature.idea : g.lesson, 90)}`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family), ...(g.series ? [g.series.t] : []), ...(g.kind === 'series' ? ['series'] : [])] }));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));
@@ -2066,7 +2070,7 @@ function search(q){
     if(it.type === 'page') score += 5;
     hits.push([score, it]);
   }
-  return hits.sort((a, b) => b[0] - a[0]).slice(0, 80).map(x => x[1]);
+  return hits.sort((a, b) => b[0] - a[0]).map(x => x[1]);
 }
 // The results list, grouped by kind; each group shows its first six and can
 // be opened in full. With an empty box it is a jump list: pages visited in

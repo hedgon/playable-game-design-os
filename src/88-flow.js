@@ -38,8 +38,10 @@ window.PlayableFlow = (function(){
   // only broken or shortened when it would really not fit the card.
   const charsFor = W => Math.floor((W - 24) / (FS * 0.56));
 
-  // Break a title into at most two lines on a word boundary, shortening the
-  // second line rather than letting it run past the card.
+  // Break a title into up to MAXL lines on a word boundary. Cards grow with the
+  // line count; only a title that needs more keeps a "…" on its last line and
+  // is flagged `cut` (the layout checker fails the build on it).
+  const MAXL = 5, LH = 14;
   function lines(t, chars){
     const words = String(t || '').split(/\s+/).filter(Boolean);
     const out = [''];
@@ -47,11 +49,13 @@ window.PlayableFlow = (function(){
       const line = out[out.length - 1];
       const next = line ? line + ' ' + word : word;
       if(next.length <= chars || !line) out[out.length - 1] = next;
-      else if(out.length < 2) out.push(word);
-      else out[1] = out[1] + ' ' + word;
+      else if(out.length < MAXL) out.push(word);
+      else out[out.length - 1] += ' ' + word;
     }
-    out.forEach((l, i) => { if(l.length > chars) out[i] = l.slice(0, chars - 1).trimEnd() + '…'; });
-    return out.filter(Boolean);
+    const res = out.filter(Boolean);
+    res.cut = res.some(l => l.length > chars);
+    res.forEach((l, i) => { if(l.length > chars) res[i] = l.slice(0, chars - 1).trimEnd() + '…'; });
+    return res;
   }
 
   // Rank of every step: the longest path from steps[0]. On an acyclic graph
@@ -72,12 +76,17 @@ window.PlayableFlow = (function(){
 
   function layout(flow, dir){
     dir = dir === 'h' ? 'h' : 'v';
-    const D = DIM[dir];
+    const D0 = DIM[dir];
     const steps = (flow && flow.steps) || [], edges = (flow && flow.edges) || [];
     const known = {};
     steps.forEach(s => { known[s.id] = true; });
     const live = edges.filter(([a, b]) => known[a] && known[b] && a !== b);
     const groups = ranks(steps, live);
+    // Every card is as tall as the longest title needs, so ranks keep an even pitch.
+    const chars = charsFor(D0.W), cut = [], ls = {};
+    steps.forEach(s => { ls[s.id] = lines(s.t, chars); if(ls[s.id].cut) cut.push(String(s.t)); });
+    const CH = D0.H + Math.max(0, Math.max(2, ...steps.map(s => ls[s.id].length)) - 2) * LH;
+    const D = Object.assign({}, D0, { H:CH });
     const widest = groups.reduce((n, g) => Math.max(n, g ? g.length : 0), 0);
     // "main" runs along the reading direction, "cross" across it.
     const mainPitch = dir === 'v' ? D.H + D.VGAP : D.W + D.HGAP;
@@ -94,7 +103,7 @@ window.PlayableFlow = (function(){
       list.forEach((s, i) => {
         const along = D.PAD + r * mainPitch;
         const across = start + i * crossPitch;
-        const n = { id:s.id, t:s.t, d:s.d, sys:s.sys || null, rank:r, at:i,
+        const n = { id:s.id, t:s.t, d:s.d, lines:ls[s.id], sys:s.sys || null, rank:r, at:i,
           x: dir === 'v' ? across : along, y: dir === 'v' ? along : across, w:D.W, h:D.H };
         n.cx = n.x + D.W / 2; n.cy = n.y + D.H / 2;
         nodes.push(n); byId[s.id] = n;
@@ -115,7 +124,7 @@ window.PlayableFlow = (function(){
       dir,
       w: D.PAD * 2 + (dir === 'v' ? crossSize : mainSize),
       h: D.PAD * 2 + (dir === 'v' ? mainSize : crossSize),
-      chars: charsFor(D.W), nodes, edges: out, byId
+      chars, cut, nodes, edges: out, byId
     };
   }
 
@@ -139,10 +148,8 @@ window.PlayableFlow = (function(){
     (flow.steps || []).forEach((s, i) => { order[s.id] = i + 1; });
     const cards = g.nodes.map(n => {
       const dc = (colorOf && colorOf(n.sys)) || 'var(--accent2)';
-      const ls = lines(n.t, g.chars);
-      const text = ls.length > 1
-        ? `<text class="flbl" x="${n.cx}" y="${(n.cy - 3).toFixed(1)}" text-anchor="middle" font-size="${FS}"><tspan x="${n.cx}">${esc(ls[0])}</tspan><tspan x="${n.cx}" dy="14">${esc(ls[1])}</tspan></text>`
-        : `<text class="flbl" x="${n.cx}" y="${(n.cy + 4.5).toFixed(1)}" text-anchor="middle" font-size="${FS}">${esc(ls[0] || '')}</text>`;
+      const ls = n.lines;
+      const text = `<text class="flbl" x="${n.cx}" y="${(n.cy + 4.5 - (ls.length - 1) * LH / 2).toFixed(1)}" text-anchor="middle" font-size="${FS}">${ls.map((l, i) => `<tspan x="${n.cx}"${i ? ` dy="${LH}"` : ''}>${esc(l)}</tspan>`).join('') || ''}</text>`;
       return `<g class="flownode" data-step="${esc(n.id)}" style="--dc:${dc}"><title>${esc(n.d)}</title>`
         + `<rect class="fdisc" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="3"/>`
         + `<text class="fnum" x="${n.x + 8}" y="${(n.y + 13).toFixed(1)}" font-size="9.5">${order[n.id] || ''}</text>`

@@ -13,8 +13,9 @@ const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,
 const G = window.PlayableGraph;
 const { states, problems, clipped } = overlaps(G, ctx.DOMAINS, ctx.TOPICS, ctx.CASE_STUDIES, window.PlayableFlow, ctx.PATHS, ctx.REFERENCE_GAMES);
 // Diagrams: every spec on a topic or a reference game, laid out as the app
-// draws it. A shortened text is a failure here, not a count: diagram labels
-// are short by design, so a cut one means the data needs rewording.
+// draws it. A label is a name: a box grows with its text up to five lines, and
+// explanation belongs in the node description and "Diagram as text". A text
+// that would need more than five lines is a failure here, not a count.
 const specs = [];
 Object.values(ctx.TOPICS).forEach(t => { if (t.diagram) specs.push(['topic:' + t.id, t.diagram]); });
 specs.push(['diagnose:content-tree', ctx.contentTreeFlow()]);

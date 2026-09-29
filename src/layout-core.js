@@ -26,13 +26,14 @@ function cardOverlaps(nodes, name, problems) {
 // The direction has to be the one the app renders, because the two
 // directions have different card sizes and gaps.
 const FLOW_DIR = 'v';
-function flowOverlaps(F, CASE_STUDIES, problems) {
+function flowOverlaps(F, CASE_STUDIES, problems, clipped) {
   let states = 0;
   for (const c of (CASE_STUDIES || [])) for (const f of (c.flows || [])) {
     states++;
     const name = `flow:${c.id}/${f.id}`;
     const g = F.layout(f, FLOW_DIR);
     const nodes = g.nodes;
+    for (const t of g.cut) { problems.push(`${name}: step title does not fit in 5 lines: "${t}"`); if (clipped) clipped.push(t); }
     // a card outside the viewBox would be clipped rather than merely ugly.
     for (const n of nodes) if (n.x < 0 || n.y < 0 || n.x + n.w > g.w + 1e-6 || n.y + n.h > g.h + 1e-6) problems.push(`${name}: card "${n.id}" falls outside the chart box`);
     for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
@@ -93,7 +94,7 @@ function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F, PATHS, GAMES) {
       for (const st of pth.stages) scan(G.buildPath(pth, { stage: st.id, oneSided }, { steps: {}, stages: {} }), `${tag}path:${pth.id}/${st.id}`);
     }
   }
-  if (F) states += flowOverlaps(F, CASE_STUDIES, problems);
+  if (F) states += flowOverlaps(F, CASE_STUDIES, problems, clipped);
   return { states, problems, clipped: [...clipped.keys()] };
 }
 // Diagrams (87-diagrams.js). Each spec is laid out exactly as the app draws
