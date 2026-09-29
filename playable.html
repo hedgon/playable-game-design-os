@@ -37948,7 +37948,7 @@ const CHOOSER = {
   levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
   times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
-    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play'] },
+    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
     gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
     ship:{ new:['ship-it'], some:['ship-it','casual-game-people-keep','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
@@ -38274,7 +38274,7 @@ PATH('level-and-ux-designer', {
   track:'design', level:'intermediate', hours:12,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
-  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer'],
+  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer','study-the-hits-worlds'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
       goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.5,
@@ -38717,6 +38717,118 @@ PATH('idea-to-prototype-30-days', {
   ]
 });
 
+PATH('study-the-hits-worlds', {
+  t:'Study the hits: worlds, stories and audiences', tag:'How fifteen well-known games build a place, let a story land, look and sound like themselves, and tell an audience who they are for.',
+  pick:'Learn how hits build worlds, stories and audiences',
+  track:'design', level:'intermediate', hours:11.25,
+  audience:'Designers who know the fundamentals and want to see, through fifteen well-known games, how a world, a story and a presentation are built and pitched.',
+  outcome:'You can state a premise a system backs up, make a choice leave a mark the player connects to it, place story beats on the play timeline, give sights and sounds a fixed grammar, and say who your game is for and what changes between markets.',
+  prereq:[], next:['interview-prep-designer'],
+  stages:[
+    { id:'s1', t:'A premise the world backs up', level:'intermediate',
+      goal:'Write a premise sentence and say which of your world’s rules a system also enforces.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'premise-and-world', why:'A premise gives the stakes and a world gives the systems somewhere to live, and this topic keeps the two apart so each can be tested.', do:'Write the premise sentence for a game you know, with the player’s role and the stakes, then list two world rules that a system also enforces.', min:20 },
+        { kind:'game', ref:'viewfinder', why:'Viewfinder splits its world into five hubs, four of them built by a named scientist, so moving to the next hub is meeting someone new.', do:'Read its world lens and write how a hub shows whose workspace it is, and what a player who hurries through the puzzles misses.', min:25 },
+        { kind:'game', ref:'subnautica', why:'Subnautica runs several unrelated groups’ histories across one hand-built map, so the world is one place with many pasts.', do:'Read its world lens and list the groups that leave remains on the map, then write what nothing in the game makes the player read in order.', min:25 },
+        { kind:'game', ref:'baldurs-gate-3', why:'Baldur’s Gate 3 borrows a published tabletop setting whole, which shows what a world costs when it is borrowed rather than built.', do:'Read its world lens and write what a player who knows the lore gets, what a new player is given, and what the writers cannot change.', min:20 },
+        { kind:'tool', ref:'canvas', why:'A premise sentence stays a slogan until the fantasy and what the game is not are written beside it.', do:'Fill in the Core Experience Canvas for your game and check that its fantasy line agrees with the premise sentence you wrote.', min:25 },
+        { kind:'reflect', why:'Three worlds built from people, from one shared map and from a borrowed setting are easier to compare once your own is written down.', do:'Write whether your world is built, borrowed or bought in part, and name one piece of its lore that no system or decision touches.', min:15 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'How is Viewfinder’s world organised?', a:'Into five hubs: the first four belong to the simulation’s researchers, Aharon, Hiraya, Chi Leung and Mirren, each themed to its owner, and the fifth holds the finale. Their quirks show through Post-it notes and journals, which is easy to miss.' },
+          { q:'How does Subnautica hold several stories on one map?', a:'The Aurora’s crew, the Sunbeam, the Degasi and the Precursors all leave physical remains on the same fixed map, and the player reconstructs each fate independently, in whatever order their descent takes them.' },
+          { q:'What does Baldur’s Gate 3 gain and give up by borrowing the Forgotten Realms?', a:'It gains a setting that feels complete at once to anyone who knows Dungeons & Dragons; it gives up freedom to retire or contradict factions, gods or endings, because the canon belongs to a licensor, Wizards of the Coast.' }
+        ],
+        build:'Write the premise sentence for your game, list three world rules with the system that enforces each, and cut or mark optional any lore no system or decision touches.',
+        skip:['Can you say your game’s premise in one sentence to someone who has not seen it?','Can you name the system behind each of your world’s rules?','Is there lore in your game that nothing the player does can reach?']
+      } },
+    { id:'s2', t:'Choices that leave a mark', level:'intermediate',
+      goal:'Say what the player sees change after a choice, and how a game earns a story that nobody wrote in advance.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'narrative-agency', why:'Agency in story is perceived consequence, so the question is what the player sees change and whether they connect it to their choice.', do:'List three choices in a game you know, with the consequence, when it is seen and how the player connects it to the cause.', min:20 },
+        { kind:'game', ref:'fallout-new-vegas', why:'New Vegas lets Caesar argue his own case in person, so choosing who rules the Mojave is a judgement and not a scoreboard.', do:'Read its lore lens and write the argument Caesar makes, who argues back, and what the schedule cost the Legion’s content.', min:25 },
+        { kind:'game', ref:'gta-v', why:'Grand Theft Auto V condemns chasing money in its story and pays the player cash for it in play, so the story and the reward loop disagree.', do:'Read its lore lens and write what the plot says about wealth, what every heist pays, and why some reviewers read the gap as emptiness.', min:25 },
+        { kind:'game', ref:'the-sims', why:'The Sims writes no plot at all, so a household’s story is only what its aspirations and its memory log leave behind.', do:'Read its lore lens and write what a Sim rolls or logs that a story can be told from, and what the game has in reserve when a stretch is dull.', min:20 },
+        { kind:'game', ref:'crusader-kings-iii', why:'Crusader Kings III makes acting against a ruler’s nature cost stress, so the player’s choices produce a story of breakdowns and compromises.', do:'Read its lore lens and write one act that would stress a chaste ruler, what follows, and what it costs to play against type.', min:25 },
+        { kind:'tool', ref:'hypothesis', why:'A consequence only counts if players connect it to its cause, and that can be tested.', do:'Write a playtest hypothesis for one choice in your game: what changes, when the player sees it, and what recalling the cause would sound like.', min:25 }
+      ],
+      review:['premise-and-world'],
+      check:{
+        recall:[
+          { q:'Why is choosing a faction in New Vegas a judgement?', a:'Caesar voices a coherent argument for order, and companions such as Boone argue back from lived experience, so the player weighs a case against testimony instead of picking the winner of a scoreboard.' },
+          { q:'What gap do some reviewers see in Grand Theft Auto V’s story?', a:'The plot frames the pursuit of wealth as corrosive, yet every heist pays the player in cash and nothing docks a character for succeeding at crime, so some read emptiness rather than critique.' },
+          { q:'Where do the stories in The Sims and Crusader Kings III come from?', a:'In The Sims from aspirations and a memory log with no authored plot, so a dull stretch has nothing scripted in reserve; in Crusader Kings III from stress gained by acting against a ruler’s personality.' }
+        ],
+        build:'Take three choices in your game and write each one’s consequence, when the player sees it and what shows the link to its cause, then replace one invisible branch with a visible acknowledgment.',
+        skip:['Can you name a consequence in your game that a player can trace back to their choice?','Can you say which of your branches a player would never notice?','Does your reward loop agree with what your story says?']
+      } },
+    { id:'s3', t:'When the story arrives', level:'intermediate',
+      goal:'Put story beats and play beats on one timeline, and pick where a reveal lands.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'narrative-pacing', why:'Story beats are pacing beats, so they belong on the same timeline as the play curve and not in a separate document.', do:'Draw the beats of a game you know on one timeline, story and play together, and mark the longest stretch with no play.', min:20 },
+        { kind:'game', ref:'chrono-trigger', why:'Chrono Trigger lets the player walk back to a familiar place and find the change already there, so the story lands as a discovery and not a speech.', do:'Read its lore lens and write one place you revisit across eras and what the player notices before any character says it.', min:25 },
+        { kind:'game', ref:'final-fantasy-xii', why:'Final Fantasy XII sends the player after nethicite for the whole game and makes the turning point giving it up.', do:'Read its lore lens and write what the player expects the last fight to use, what Ashe does instead, and how the hours of chasing shards read afterwards.', min:25 },
+        { kind:'game', ref:'witcher-3', why:'The Witcher 3 gives a side quest the craft of its main plot, so a quiet quest is not a rest from the story.', do:'Read its lore lens and write what Family Matters turns into and why a player stops skipping notice-board contracts.', min:25 },
+        { kind:'tool', ref:'loop', why:'Story is the best rest-beat content, and the loop shows where a beat would land in play.', do:'Build your core loop in the Game Loop Builder and mark the step where a story beat can arrive as the answer to a question the play raised.', min:25 },
+        { kind:'reflect', why:'Chrono Trigger reveals by consequence, Final Fantasy XII by reversal and The Witcher 3 by its side content, and your own timing needs a choice too.', do:'Write the one story beat in your game you would move later, and the play that should come before it.', min:15 }
+      ],
+      review:['premise-and-world','narrative-agency'],
+      check:{
+        recall:[
+          { q:'How does Chrono Trigger tell the player the past has changed?', a:'It rarely says so: the player revisits a familiar place across eras and finds the change already there, and the payoff is noticing it before any character comments.' },
+          { q:'What is the turning point of Final Fantasy XII’s plot?', a:'Ashe rejects the Occuria’s revenge plan and has the Sun-cryst destroyed rather than use nethicite, which recasts the hunt for shards as a story about restraint.' },
+          { q:'What does the Bloody Baron questline show about side content?', a:'That a side quest can carry main-plot craft: Family Matters becomes a story about the Baron’s drinking and violence towards his family, so players stop treating contracts as a lesser tier.' },
+          { q:'Where does the topic put exposition?', a:'After the first meaningful play, delivered as answers to questions the play raised, with the longest cutscenes converted to in-play delivery where possible.' }
+        ],
+        build:'Put your game’s story beats and its intensity beats on one timeline, move one exposition scene after the first meaningful play, and convert the longest cutscene to in-play delivery if you can.',
+        skip:['Can you see your story beats and play beats on one timeline?','Can you find the longest stretch of your game with no play in it?','Is there a reveal in your game that the player could notice before anyone says it?']
+      } },
+    { id:'s4', t:'What the eye and ear are told', level:'intermediate',
+      goal:'Give the important things in your game one look and one sound each, and keep them consistent.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'visual-language', why:'Players read the world before the HUD, so a consistent visual grammar teaches by seeing.', do:'List five meanings the player must read in a game you know, and the shape, colour or motion that signals each.', min:20 },
+        { kind:'game', ref:'elden-ring', why:'Elden Ring gives grace one colour, gold, so a player learns to follow a glow before reading what it does.', do:'Read its art lens and write the gold things it names, and what a player who has never seen the Guidance of Grace does with it.', min:25 },
+        { kind:'topic', ref:'audio-and-music', why:'Sound reaches the player while their eyes are busy, and music sets the felt intensity without changing a rule.', do:'List a game’s critical signals and give each a sound and a visual backup, then map its music states to its intensity curve.', min:20 },
+        { kind:'game', ref:'animal-crossing-nh', why:'New Horizons scores every hour of the real day differently, so the music tells the time with no HUD element.', do:'Read its sound lens and write what the hourly score tells a player, and what the season and weather variations add.', min:25 },
+        { kind:'game', ref:'euro-truck-simulator-2', why:'Euro Truck Simulator 2 hands its mood to live internet radio, which shows what a team gains and gives up when it does not score the drive.', do:'Read its sound lens and write what the player controls through the radio and what the designers give up against a fixed score.', min:20 },
+        { kind:'checklist', ref:'playtest-prep', why:'A visual grammar and a sound plan are claims about what players notice, and a session is how you find out.', do:'Run the checklist for a session with one written question: whether new players read your danger signal and your key sounds, and note what you expect to watch for.', min:25 }
+      ],
+      review:['narrative-pacing'],
+      check:{
+        recall:[
+          { q:'How does Elden Ring teach a player to trust the Guidance of Grace?', a:'It shares the warm gold of the Sites of Grace and the Erdtree, so a player follows the glow on sight, before reading the optional tip that explains it.' },
+          { q:'What does New Horizons’ hourly score do?', a:'A distinct piece plays for each hour of the real day, with variations for season and weather, so an experienced player can tell roughly what time it is by music alone.' },
+          { q:'What trade does Euro Truck Simulator 2 make with its radio?', a:'It streams real internet stations and the player’s own files, giving up control of the mood in exchange for a soundtrack that is free and always changing.' }
+        ],
+        build:'List the meanings and critical signals in your game, give each a look and a sound with a backup in the other channel, then watch one session to see which the players missed.',
+        skip:['Can you list what a player must read in your game and its signal for each?','Does the same signal ever mean two things in your game?','Have you played your game muted and with the screen squinted?']
+      } },
+    { id:'s5', t:'Who it is for, and where', level:'advanced',
+      goal:'Write the sentence that tells a stranger who your game is for, and list what changes when it crosses a market.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'audience-and-positioning', why:'A finished game nobody can describe is a game nobody recommends, so the promise has to be said for someone who has not played.', do:'Write your positioning sentence, then test it on one stranger and write what they expected.', min:20 },
+        { kind:'game', ref:'ea-sports-fc', why:'FIFA builds its world by licensing the real one, and the fictional names Pro Evolution Soccer needed show what an unlicensed football game costs its player.', do:'Read its world lens and write what a licensed name saves a player compared with “Man Red”, and what licence FIFA 19 added.', min:25 },
+        { kind:'game', ref:'clair-obscur', why:'Expedition 33 chose a Belle Époque France over a familiar Victorian steampunk so its look would be identifiably its makers’.', do:'Read its art lens and write what the team rejected and chose, and what players read before any exposition.', min:25 },
+        { kind:'topic', ref:'localization-and-culture', why:'Text, layout and meaning change between languages and markets, and adapting a game removes things as well as smoothing them.', do:'List the strings, images and icons in your game that would break or change meaning in another market, and one thing adapting them would remove.', min:20 },
+        { kind:'tool', ref:'dissect', why:'A differentiator is only real against the games it is compared to.', do:'Run your game through the Reference Dissection against two games players would compare it to, and note the difference you could show in ten seconds.', min:25 },
+        { kind:'reflect', why:'A licence and a national look are both ways to say who a game is for, and your own way needs writing down.', do:'Write one thing in your game that says who it is for in the first ten minutes, and one thing that would need to change for another market.', min:15 }
+      ],
+      review:['visual-language','narrative-pacing'],
+      check:{
+        recall:[
+          { q:'What does FIFA’s licensed world buy over Pro Evolution Soccer’s?', a:'A player does not have to decode fictional stand-ins such as “Man Red” or “West London Blue” back to real clubs, and FIFA added the Champions League and Europa League licences in FIFA 19 once Konami’s UEFA deal expired.' },
+          { q:'Why did Clair Obscur choose Belle Époque France?', a:'The team weighed a Steampunk Victorian England and chose a look tied to Sandfall’s French origin, so players read Lumière as a particular place before exposition and feel the impossible geometry as a break from it.' },
+          { q:'What does the localization topic ask you to budget for?', a:'Externalised strings, text expansion in the longest language, translator context, locale-aware formats and early platform and rating checks, and to weigh what an adaptation removes as well as what it smooths.' }
+        ],
+        build:'Write your game’s positioning sentence and test it on three strangers, then list what would change for a second market: strings, images, icons and any rating or platform requirement.',
+        skip:['Can you say who your game is for in one sentence?','Is your differentiator visible in the first ten minutes and in one screenshot?','Can you list the text baked into your images or voice?']
+      } }
+  ]
+});
+
 PATH('technical-lead', {
   t:'Technical lead', tag:'Delegation, review and the incident that becomes a rule instead of a scar.',
   pick:'Lead a small team and make its work better',
@@ -38838,7 +38950,7 @@ PATH('interview-prep-designer', {
   track:'interview', level:'intermediate', hours:11.75,
   audience:'Designers preparing for a job interview who already have the fundamentals and need to turn them into fast, concrete answers.',
   outcome:'You can answer a question in any core design category in under two minutes, back it with a real story, and speak to at least one engineering constraint you have worked against.',
-  prereq:['systems-designer','level-and-ux-designer'], next:[],
+  prereq:['systems-designer','level-and-ux-designer'], next:['study-the-hits-worlds'],
   stages:[
     { id:'s1', t:'Player, motivation and the story you tell', level:'intermediate',
       goal:'Rehearse the player and experience questions out loud, and have one game you can dissect on demand.', hours:2.25,
