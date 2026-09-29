@@ -4693,7 +4693,16 @@ GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'firs
       principle: 'For play among people in one room, an avatar the players make of themselves can matter more than a detailed character the studio designed.',
       topics: ['visual-language','fantasy','social-experience'],
       sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://iwataasks.nintendo.com/interviews/wii/wii_sports/0/1/', 'https://en.wikipedia.org/wiki/Mario_Tennis'] },
-    sound: { na:'Sound does apply to Wii Sports, but this analysis cannot yet support a lens on it. The design point most often cited, the Wii Remote’s own speaker playing the hit of the racket or bat in the player’s hand, is described only in user reviews and in outlet reviews that could not be loaded to check, and the Nintendo interviews and pages read here do not mention it. Kazumi Totaka composed the music. Until a checkable source is found, the gameplay and art lenses carry the game’s design.' },
+    sound: {
+      claim: 'Wii Sports plays the moment of contact from the Wii Remote’s own speaker, so a hit sounds in the player’s hand rather than only from the television.',
+      evidence: 'Writing after E3 2006, Nintendo World Report’s Jonathan Metts described the Wii Sports tennis demo as one where “the speaker emits the sound of your virtual tennis racket hitting the ball”. Games Asylum’s review of the released game, in January 2007, singled out the “clunk” from the remote’s speaker when the bat meets the ball in baseball as “really satisfying”.',
+      mechanism: 'The swing is the only input, so the sound that matters most is the one confirming the swing connected. Playing that one sound from the controller puts it where the player’s arm is, while the court and the crowd stay on the television.',
+      effect: 'The hit lands as something happening in the room. Metts read it as a cheap stand-in for surround sound in a game built on several people moving around the room, and Games Asylum found the clunk more satisfying still on a home run.',
+      compare: 'The Zelda game Nintendo showed at the same E3 moved the creak of a drawn bowstring from the television to the remote, then sent the arrow’s whistle back to the television on release; Wii Sports uses the speaker to fix a single impact in the player’s hand rather than to move a sound between the two.',
+      cost: 'Metts noted that what the speaker can do depends on its quality, and a small speaker in a controller arguably carries a short cue better than rich sound, so the effect rests on one brief noise per swing.',
+      principle: 'When the input is a physical gesture, play the sound that confirms it from the device in the player’s hand.',
+      topics: ['audio-and-music', 'feedback-and-affordance'],
+      sources: ['https://www.nintendoworldreport.com/editorial/11815/depth-of-sound', 'https://www.gamesasylum.com/2007/01/21/wii-sports/'] },
     lore: { na:'Wii Sports has no story, setting or characters beyond Miis: the players’ own, and computer opponents built with the same Mii tools. Its fiction is the real sports themselves, which every player already knows, so the game spends no time explaining a world and the lore lens has nothing to analyse.' },
     world: { na:'Wii Sports has no world to explore: each sport is a separate court, alley, stadium, course or ring chosen from a menu, and nothing links them. The venues exist to frame the gesture, which the gameplay lens covers; a shared setting, Wuhu Island, only arrived with Wii Sports Resort in 2009.' },
     env: { na:'Wii Sports’ venues tell no stories: a tennis court, a bowling alley and a boxing ring hold no traces of past events. What changes is the crowd, filled with the Miis saved on the console and growing in tennis and boxing as skill points rise, which is score feedback rather than a story told by the space, so environmental storytelling does not apply.' },
@@ -4729,9 +4738,9 @@ GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'firs
       sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://en.wikipedia.org/wiki/Nintendo_Switch_Sports'] }
   },
   shots: [
-    { img:'assets/games/shots/wii-sports-tennis.webp', lens:'gameplay', alt:'Wii Sports: a doubles tennis match on a green court seen from behind the near player, a Mii holding a racket behind the baseline, a partner Mii at the net, two opponents on the far side and a Nintendo banner on the far wall.', caption:'Tennis, seen from behind the player’s Mii. The player only swings; the game moves the Mii to the ball.',
-      callouts:[{ x:0.40, y:0.82, t:'The player’s Mii' }, { x:0.42, y:0.18, t:'Opponents across the net' }],
-      credit:{ author:'Nintendo', url:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html', licence:'press', source:'Nintendo UK' } },
+    { img:'assets/games/shots/wii-sports-tennis.webp', lens:'gameplay', alt:'Wii Sports: a doubles tennis match on a grass court seen from behind the near player, a Mii holding a racket behind the baseline, a partner Mii at the net, two opponents on the far side and a “2nd Bounce” call above the far court.', caption:'Tennis, seen from behind the player’s Mii. The player only swings; the game moves the Mii to the ball.',
+      callouts:[{ x:0.40, y:0.80, t:'The player’s Mii' }, { x:0.34, y:0.21, t:'Opponents across the net' }],
+      credit:{ author:'Nintendo', url:'https://gamesdb.launchbox-app.com/games/images/3126-wii-sports', licence:'capture', source:'LaunchBox Games Database' } },
     { img:'assets/games/shots/wii-sports-boxing.webp', lens:'art', alt:'Wii Sports: boxing, a long-haired Mii in red gloves faces the player’s Mii in blue gloves in a ring, with a crowd of Miis behind the ropes and a round timer reading 0:18.', caption:'Boxing between two Miis. The fighters and the crowd are all simple avatars made on the console.',
       callouts:[{ x:0.34, y:0.12, t:'Opponent Mii' }, { x:0.80, y:0.10, t:'Crowd of Miis' }],
       credit:{ author:'Nintendo', url:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html', licence:'press', source:'Nintendo UK' } }
