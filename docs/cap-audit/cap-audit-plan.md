@@ -62,11 +62,11 @@ Status: `todo`, `doing`, `done`, `n/a`.
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
 | R0 | Screen every lens at 360+ words and signature at 660+ against the analysis method (F4) | done | 259 read: 238 ok, 15 thin, 6 squeezed, plus 3 copy defects; see findings-lens-screen.md |
-| R1 | Images: re-source or re-encode at full quality; undo crops | doing | b1, bx, b2, b3 done (b3: 39 recut or scaled, 8 source-limited); b4 running |
-| R2 | Text: restore cut content, plain and sourced | doing | ta done; series proposals (F2, F3) being researched; tb (series text) after b4 |
+| R1 | Images: re-source or re-encode at full quality; undo crops | done | 176 entry shots: 157 at full detail (960 px, native, or integer-scaled pixel art), 19 source-limited; 13 headers restored or re-saved; Godot shot re-cut; logs log-img-*.md |
+| R2 | Text: restore cut content, plain and sourced | doing | ta done; tb1 (series lenses, 8 reception items) and tb2 (11 new entries with shots) running |
 | R3 | Display: make cut labels and snippets reach the full text | done | search shows every hit; map shows every smell; titles on clamped cards and builder nodes; graph sub-labels wrap; snippets cut on words; library cards crop or show the whole image over a blur; diagram and flow boxes grow to 5 lines |
 | R4 | Rules: CONTRIBUTING and validate.js so no cap can cut content again | done | CONTRIBUTING and analysis-method state minimums only; entry shots 150 KB guide; series pages 600 KB guide; flow cuts fail check-layout |
-| R5 | Independent fact-check of restored text | doing | ta checked: 20 ok, 3 fixed, 0 removed (factcheck-ta.md); tb to come |
+| R5 | Independent fact-check of restored text | doing | ta: 20 ok, 3 fixed; tb1: about 19 ok, 6 fixed, 2 removed (Wikipedia-only scores noted); tb2 next |
 
 ### Phase 4: verification and close
 | # | Task | Status | Notes |
