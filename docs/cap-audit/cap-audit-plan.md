@@ -62,7 +62,7 @@ Status: `todo`, `doing`, `done`, `n/a`.
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
 | R0 | Screen every lens at 360+ words and signature at 660+ against the analysis method (F4) | done | 259 read: 238 ok, 15 thin, 6 squeezed, plus 3 copy defects; see findings-lens-screen.md |
-| R1 | Images: re-source or re-encode at full quality; undo crops | doing | b1 done (47 shots: 41 recut, 1 pixel-scaled, 5 source-limited); bx (headers, engines) running; b2 to b4 next |
+| R1 | Images: re-source or re-encode at full quality; undo crops | doing | b1 done (47: 41 recut, 1 pixel-scaled, 5 source-limited); bx done (headers and engines: 2 restored, 11 recut, 6 source-limited); b2 and b3 running; b4 next |
 | R2 | Text: restore cut content, plain and sourced | doing | ta done (21 items, 3 partial for lack of a source); tb (series) after the image batches |
 | R3 | Display: make cut labels and snippets reach the full text | done | search shows every hit; map shows every smell; titles on clamped cards and builder nodes; graph sub-labels wrap; snippets cut on words; library cards crop or show the whole image over a blur; diagram and flow boxes grow to 5 lines |
 | R4 | Rules: CONTRIBUTING and validate.js so no cap can cut content again | done | CONTRIBUTING and analysis-method state minimums only; entry shots 150 KB guide; series pages 600 KB guide; flow cuts fail check-layout |
