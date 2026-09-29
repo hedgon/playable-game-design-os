@@ -134,8 +134,7 @@ assets/games/           reference-game art used by the reference library
 src/                    sources and maintenance scripts (not needed to use the guide)
 README.md               this file
 CONTRIBUTING.md         how to edit content, the data schema, build and checks
-DESIGN-AUDIT.md         what the guide covers, its mental models, tools and limits
-DESIGN-SECOND-BRAIN.md  the architecture, the ideation method and the AI model
+docs/                   the analysis method, and finished plans and design notes in docs/_archive/
 ```
 
 `playable.html` is complete on its own; you can delete `src/` and keep the one
