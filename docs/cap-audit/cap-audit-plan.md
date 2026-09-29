@@ -62,8 +62,8 @@ Status: `todo`, `doing`, `done`, `n/a`.
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
 | R0 | Screen every lens at 360+ words and signature at 660+ against the analysis method (F4) | done | 259 read: 238 ok, 15 thin, 6 squeezed, plus 3 copy defects; see findings-lens-screen.md |
-| R1 | Images: re-source or re-encode at full quality; undo crops | doing | b1 done (47: 41 recut, 1 pixel-scaled, 5 source-limited); bx done (headers and engines: 2 restored, 11 recut, 6 source-limited); b2 and b3 running; b4 next |
-| R2 | Text: restore cut content, plain and sourced | doing | ta done (21 items, 3 partial for lack of a source); tb (series) after the image batches |
+| R1 | Images: re-source or re-encode at full quality; undo crops | doing | b1, bx, b2, b3 done (b3: 39 recut or scaled, 8 source-limited); b4 running |
+| R2 | Text: restore cut content, plain and sourced | doing | ta done; series proposals (F2, F3) being researched; tb (series text) after b4 |
 | R3 | Display: make cut labels and snippets reach the full text | done | search shows every hit; map shows every smell; titles on clamped cards and builder nodes; graph sub-labels wrap; snippets cut on words; library cards crop or show the whole image over a blur; diagram and flow boxes grow to 5 lines |
 | R4 | Rules: CONTRIBUTING and validate.js so no cap can cut content again | done | CONTRIBUTING and analysis-method state minimums only; entry shots 150 KB guide; series pages 600 KB guide; flow cuts fail check-layout |
 | R5 | Independent fact-check of restored text | doing | ta checked: 20 ok, 3 fixed, 0 removed (factcheck-ta.md); tb to come |
@@ -99,6 +99,11 @@ Full reports: [findings-images.md](findings-images.md) (I1 to I20) and [findings
 | F13, F14 | Quiz lists and code snippets at their guides | None; quiz items, not teaching content |
 | F15 | About 12 "and so on" / "and more" tails | Name the items where the list is short and known; keep the rest |
 | LONG | 5 text items over their guides | Keep all; plain-word "In skill-atom terms" in StarCraft |
+
+**Series additions (F2, F3).** A research pass drafted every omitted mainline entry and reception item. I checked each draft against what the series already lists; three drafts duplicated an existing entry or item. The additions below each show a step the listed entries do not:
+- Entries: Final Fantasy IV (Active Time Battle) and VIII (Junction); Pokémon Sun and Moon (island trials in place of gyms) and Let's Go (catching taken from Pokémon Go); Super Mario Bros. 2 (a reskinned Doki Doki Panic), New Super Mario Bros. (the 2D revival) and Super Mario Maker (player-built courses); Zelda's Link's Awakening (first handheld), Majora's Mask (three-day loop) and A Link Between Worlds (item rental, free dungeon order); Sonic 3 & Knuckles (lock-on cartridge).
+- Reception: Fire Emblem: Three Houses; Nocturne and Persona 5; Mega Man 5 (mixed); A Link Between Worlds and Majora's Mask; Sonic Heroes and Sonic Lost World (mixed).
+- Left out: Final Fantasy V and IX, Neo Contra, further Touhou entries, and other Fire Emblem remakes. Each repeats a step already listed. XIV and X6 were already present.
 
 **Debates (T2).** A second agent argued against each proposal; outcomes:
 - D1, series entry shot size against page weight: **one file per shot, up to 960 px**, same 150 KB per-image guide as lens shots. A 960 px WebP of a game screen is typically 25 to 65 KB (median of the current shot folder), so a 9-entry series projects to about 315 KB and at worst about 580 KB. A second inline-size file would double the files and a pairing rule for little gain, and the viewer opens `src` anyway. Page guide: 600 KB for series routes, 350 KB elsewhere (report only). Lazy images get width and height so the page does not jump.
