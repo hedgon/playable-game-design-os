@@ -679,14 +679,15 @@ const partCount = sysCases.reduce((n, c) => n + c.systems.reduce((m, s) => m + (
 console.log(`case studies: ${(CASE_STUDIES || []).length}, engine views: ${topics.filter(t => t.eng).length}, interview views: ${topics.filter(t => t.iv).length}`);
 console.log(`projects with systems: ${sysCases.length}, systems: ${sysCases.reduce((n, c) => n + c.systems.length, 0)}, parts: ${partCount}`);
 if (orphans.length) console.log('WARN topics with no inbound links:', orphans.join(', '));
-// Coherence (plan row L5): what no learning path reaches yet. A report, not
-// an error, while the pass is under way; the list is the pass's worklist.
+// Coherence (plan row L5, owner 2026-09-28): the site is one system of
+// lessons, so every topic, game, engine guide, platform guide and checklist
+// is a step in at least one learning path. A new entry lands with its step.
 {
   const inPath = new Set((PATHS || []).flatMap(p => (p.stages || []).flatMap(st => (st.steps || []).map(s => s.kind + ':' + s.ref))));
   const miss = (kind, ids) => ids.filter(id => !inPath.has(kind + ':' + id));
   const cov = [['topic', Object.keys(TOPICS)], ['game', (ctx.REFERENCE_GAMES || []).map(g => g.id)], ['engine', (ctx.ENGINES || []).map(e => e.id)], ['platform', (ctx.PLATFORMS || []).map(p => p.id)], ['checklist', (ctx.CHECKLISTS || []).map(c => c.id)]];
   console.log('path coverage: ' + cov.map(([k, ids]) => `${k}s ${ids.length - miss(k, ids).length}/${ids.length}`).join(', '));
-  if (process.argv.includes('--coverage')) cov.forEach(([k, ids]) => { const m = miss(k, ids); if (m.length) console.log(`  not in a path (${k}): ${m.join(', ')}`); });
+  cov.forEach(([k, ids]) => { const m = miss(k, ids); if (m.length) errors.push(`not in any learning path (${k}): ${m.join(', ')}`); });
 }
 const flowCount = (CASE_STUDIES || []).reduce((n, c) => n + (Array.isArray(c.flows) ? c.flows.length : 0), 0);
 console.log(`workflows: ${flowCount}, projects with an interview: ${(CASE_STUDIES || []).filter(c => c.iv).length}, systems with likely questions: ${sysCases.reduce((n, c) => n + c.systems.filter(s => s.iv).length, 0)}`);

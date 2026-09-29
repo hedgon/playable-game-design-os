@@ -101,10 +101,10 @@ const CHOOSER = {
   times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
     design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
-    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
+    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
     ship:{ new:['ship-it'], some:['ship-it','casual-game-people-keep','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
-    lead:{ new:['technical-lead'], some:['technical-lead'], senior:['technical-lead'] },
+    lead:{ new:['technical-lead'], some:['technical-lead','studio-practice-ai-era'], senior:['technical-lead','studio-practice-ai-era'] },
     'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
     'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] },
     ai:{ new:['ai-engineering-for-game-devs'], some:['ai-engineering-for-game-devs'], senior:['ai-engineering-for-game-devs'] },
@@ -987,7 +987,7 @@ PATH('technical-lead', {
   track:'leadership', level:'advanced', hours:10.75,
   audience:'Senior designers or engineers stepping into leading a small team, who already do the work and now have to make other people’s work better too.',
   outcome:'You can delegate and say no on purpose, run a review that improves the thing being reviewed, and turn an incident or a cut into a rule the team keeps.',
-  prereq:['systems-designer','level-and-ux-designer'], next:[],
+  prereq:['systems-designer','level-and-ux-designer'], next:['studio-practice-ai-era'],
   stages:[
     { id:'s1', t:'What a lead does', level:'advanced',
       goal:'Separate what only you can do from what you are doing out of habit, and practice saying no on purpose.', hours:2.25,

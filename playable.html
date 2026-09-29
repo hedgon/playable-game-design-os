@@ -37949,10 +37949,10 @@ const CHOOSER = {
   times: /** @type {[string, string, number][]} */ ([['short','A few evenings',10],['medium','A few weeks',14],['long','No time limit',Infinity]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
     design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
-    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity'], senior:['gameplay-engineer-godot','gameplay-engineer-unity'] },
+    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
     ship:{ new:['ship-it'], some:['ship-it','casual-game-people-keep','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
-    lead:{ new:['technical-lead'], some:['technical-lead'], senior:['technical-lead'] },
+    lead:{ new:['technical-lead'], some:['technical-lead','studio-practice-ai-era'], senior:['technical-lead','studio-practice-ai-era'] },
     'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
     'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] },
     ai:{ new:['ai-engineering-for-game-devs'], some:['ai-engineering-for-game-devs'], senior:['ai-engineering-for-game-devs'] },
@@ -38835,7 +38835,7 @@ PATH('technical-lead', {
   track:'leadership', level:'advanced', hours:10.75,
   audience:'Senior designers or engineers stepping into leading a small team, who already do the work and now have to make other people’s work better too.',
   outcome:'You can delegate and say no on purpose, run a review that improves the thing being reviewed, and turn an incident or a cut into a rule the team keeps.',
-  prereq:['systems-designer','level-and-ux-designer'], next:[],
+  prereq:['systems-designer','level-and-ux-designer'], next:['studio-practice-ai-era'],
   stages:[
     { id:'s1', t:'What a lead does', level:'advanced',
       goal:'Separate what only you can do from what you are doing out of habit, and practice saying no on purpose.', hours:2.25,
@@ -39289,7 +39289,7 @@ PATH('gameplay-engineer-godot', {
   track:'engineering', level:'beginner', hours:14.25,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
-  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs'],
+  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer'],
   stages:[
     { id:'s1', t:'The loop, in Godot', level:'beginner',
       goal:'See the design idea of a core loop, then build it as a physics tick with a signal for the consequence.', hours:2.5,
@@ -39409,7 +39409,7 @@ PATH('gameplay-engineer-unity', {
   track:'engineering', level:'beginner', hours:15,
   audience:'Programmers new to Unity who already know how to code and want to implement a documented gameplay system end to end, in Unity 6.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Unity, and you can point at the Update/FixedUpdate split, the UnityEvent, and the ScriptableObject that make each one work.',
-  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs'],
+  prereq:['game-designer-foundations'], next:['interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer'],
   stages:[
     { id:'s1', t:'The loop, in Unity', level:'beginner',
       goal:'See the design idea of a core loop, then build it across Update and FixedUpdate with an event for the consequence.', hours:2.5,
@@ -39877,6 +39877,101 @@ PATH('build-and-release-engineer', {
   ]
 });
 
+PATH('game-ai-programmer', {
+  t:'Program game AI players can read', tag:'Build agents, allies and directors that read as intent, stay affordable, and use the cheapest mechanism that works.',
+  pick:'Build readable, fair, affordable game AI',
+  track:'engineering', level:'intermediate', hours:9.9,
+  audience:'Programmers who can already build a gameplay loop in Godot or Unity and now own enemies, companions or a pacing system, and want to judge AI by what the player reads rather than by how clever it is.',
+  outcome:'You can write an agent’s job and tells before choosing a technique, pick the cheapest mechanism that reads right, make it perceive and telegraph fairly, keep allies and directors in support of the player, and put a budget, a debug view and a fallback around anything smarter.',
+  prereq:['gameplay-engineer-godot','gameplay-engineer-unity'], next:['interview-prep-engineer'],
+  stages:[
+    { id:'s1', t:'What the AI is for', level:'beginner',
+      goal:'Write one agent’s job and its tells, then name the cheapest mechanism that produces the behaviour a player would read.', hours:2.15,
+      steps:[
+        { kind:'topic', ref:'ingame-ai-purpose', tab:'overview', why:'Players experience behaviour, not architecture, so the job of the agent has to be fixed before any technique is picked.', do:'Write one agent’s job in one sentence tied to the fantasy and the loop, then write the player-facing tell for each important state: wind-up, patrol, flee, flank.', min:20 },
+        { kind:'game', ref:'pac-man', why:'Pac-Man’s four ghosts share one steering rule and differ only in their target, so a coordinated pack comes out of almost no code.', do:'Read the Pac-Man gameplay lens, then write each ghost’s target as a one-line rule and note where a player breaks the trap by turning early.', min:20 },
+        { kind:'topic', ref:'scripted-vs-simulated', tab:'overview', why:'Simulation is a permanent cost in performance, balance and debugging, so the cheapest mechanism that reads right is the default.', do:'Pick three behaviours from your game, label each authored, faked or emergent, and write the cheapest mechanism that would produce the readable moment.', min:20 },
+        { kind:'tool', ref:'gameai', why:'The chooser turns which technique into an answer with trade-offs, checked against the behaviours you just labelled.', do:'Run one of those agents through the In-game AI Technique Chooser and compare its answer to the mechanism you named.', min:20 },
+        { kind:'topic', ref:'scripted-vs-simulated', tab:'godot', why:'The cheap rung is a trigger and an authored animation, and building it once shows how little runtime decision-making a memorable beat needs.', do:'Build a one-shot trigger with Area3D.body_entered connected with CONNECT_ONE_SHOT that plays an AnimationPlayer beat. In Unity, do the same with a trigger collider and a Timeline played by a PlayableDirector.', min:25 },
+        { kind:'engine', ref:'godot', why:'In Godot an agent is a scene, so knowing where nodes, scenes and the SceneTree main loop sit tells you where its behaviour will live.', do:'Read the Godot guide’s architecture stage and write which scene and nodes your first agent will use.', min:12 },
+        { kind:'engine', ref:'unity', why:'In Unity an agent is a GameObject with components, so the player loop callbacks decide where its behaviour runs.', do:'Read the Unity guide’s architecture stage and write which components and which callback your first agent will use.', min:12 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'What is in-game AI for, and what is the test that it works?', a:'Its job is to create a legible, fair, interesting situation and keep the fantasy alive, not to be smart. The test is that players narrate the agent’s intent, for example that it was trying to flank them.' },
+          { q:'How do Pac-Man’s ghosts feel like a team when none of them knows where the others are going?', a:'All four use one steering rule, turn towards a target tile at each junction, and each has a different target. The pincer comes from four different goals, with no communication between them.' },
+          { q:'What is the order of escalation in scripted vs simulated, and why default to the cheap end?', a:'Script it, fake it, constrain it, then simulate it, in ascending order of cost, risk and emergence. Simulation is a permanent cost in performance, balance surface, debug time and exploits, so escalate only with a testable reason the cheap version fails.' }
+        ],
+        build:'Export the In-game AI Technique Chooser result for one agent, and attach the one-sentence job, the tell list and the one-shot trigger scene.',
+        skip:['Can you state an agent’s job in one sentence tied to the fantasy, without naming a technique?','Can you list the tell for every important state of an enemy you have already shipped?','Have you already replaced a simulated behaviour with a script or a timer because it read the same?','Can you say which of your behaviours are authored, faked and emergent, right now?']
+      } },
+    { id:'s2', t:'Readable, fair and aware', level:'intermediate',
+      goal:'Give an agent senses, memory and tells so every loss can be explained, and choose a technique by the decision it has to make.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'readable-and-fair-ai', tab:'overview', why:'Fairness is explainability: a hard fight is fair if the player can say why they lost and what they would do differently.', do:'List every place your AI breaks the player’s rules, such as knowing the hidden player or seeing off-screen, and decide for each whether to remove it, reveal it or compensate for it.', min:20 },
+        { kind:'game', ref:'metal-gear-solid', why:'Metal Gear Solid makes being seen a phase of play with a visible exit, so a mistake changes the situation instead of ending it.', do:'Read the gameplay lens and the UI lens, then write your stealth agent as infiltration, alert and evasion states with an evasion timer, and decide what the player’s map shows and when the game withholds it.', min:20 },
+        { kind:'topic', ref:'perception-and-awareness', tab:'overview', why:'Perception is where fairness is decided: an agent that knows too much feels omniscient and one that knows too little feels deaf.', do:'Define your agent’s senses and parameters, then write how it loses the player: a last-known position with decay and a search behaviour that uses it.', min:20 },
+        { kind:'topic', ref:'choosing-ai-technique', tab:'overview', why:'The technique decides what is easy and impossible later, and it is picked by the shape of the decision, the authoring cost and how easily it is debugged.', do:'For the agent from stage one, name whether a finite state machine, a behaviour tree, utility scoring or a planner fits its decision, and write one sentence on authoring cost and one on debugging.', min:25 },
+        { kind:'topic', ref:'readable-and-fair-ai', tab:'godot', why:'When the wind-up is an animation, its length is the reaction window, so tuning fairness means editing a clip rather than a damage number.', do:'Make an attack’s wind-up an AnimationPlayer clip, keep the hitbox Area3D off until the sequence opens it with set_deferred, and tune the reaction window by changing the clip length. In Unity, drive the same window from an Animator state and your own timing.', min:25 },
+        { kind:'checklist', ref:'design-review', why:'A design review forces every question about the behaviour to get an answer before you tune it further.', do:'Run the design review checklist against your agent’s most important behaviour and write down what each group answered.', min:25 }
+      ],
+      review:['ingame-ai-purpose'],
+      check:{
+        recall:[
+          { q:'What makes an AI loss fair, and what is a readability failure?', a:'Fairness is explainability: the player can say why they lost and what to do differently. It comes from telegraphing, committing to actions, showing tells and revealing or removing rule-breaking cheats. If testers answer that they are not sure why they lost, that is a readability failure.' },
+          { q:'Why should sensing write to memory and behaviour read the memory, instead of reading the world?', a:'Separating them keeps what the agent knows explicit: it can lose the player, remember a last-known position and search, and testers can be asked what it should have known. An agent reading the world directly is omniscient and reads as unfair.' },
+          { q:'How does Metal Gear Solid turn being seen into a recoverable phase, and what is the cost?', a:'A three-state machine with a timer: a guard’s sight starts alert mode, hiding starts evasion, and when its counter reaches zero the game returns to infiltration. The cost is that a forgiving alert can take away the fear of being seen.' },
+          { q:'Which three things decide the technique for an agent?', a:'The shape of decision it expresses well, how cheap it is to author and change, and how easy it is to debug when the agent does something stupid.' }
+        ],
+        build:'Export the design review results for one agent behaviour, and attach its state list, its senses and memory rules, and one wind-up timing.',
+        skip:['Can you name the places your AI breaks the player’s rules and what you decided for each?','Have you already modelled losing the player, with a last-known position and a search?','Can you justify a state machine or a tree for an agent in one sentence, out loud?','Can you change an attack’s reaction window without touching its damage?','Have you asked testers why they lost and treated not sure as a defect?']
+      } },
+    { id:'s3', t:'Directors, allies and squads', level:'intermediate',
+      goal:'Add a pacing director or a companion that supports the player without taking the win, and keep it from getting stuck.', hours:2.6,
+      steps:[
+        { kind:'topic', ref:'adaptive-and-director-ai', tab:'overview', why:'A director decides pacing where the designer cannot foresee every player’s tempo, and it only multiplies an encounter system that already works.', do:'Write the rhythm you want in tension and relief, choose the one or two least noisy signals such as deaths per encounter, and write the indirect response: frequency, composition or support rather than hidden power.', min:25 },
+        { kind:'game', ref:'halo', why:'Halo’s Covenant squads react to the player and to each other, a small case to test before a director sits on top, since a director is a multiplier on pacing that must already work.', do:'Read the Halo signature (mechanism, fair and prototype) and the gameplay lens, then build one arena with a shielded leader, three followers who flee when it dies and cover, play it ten times, and change only the terrain or the weapon on the floor to see whether the fight feels new.', min:25 },
+        { kind:'topic', ref:'allies-and-companions', tab:'overview', why:'An ally’s hard part is restraint: useful, legible and never stuck, without taking the agency or the moment that belongs to the player.', do:'Write the ally’s contribution as a fraction of the player’s agency: what it may do and what it must leave to the player, such as the kill or the decision.', min:25 },
+        { kind:'topic', ref:'allies-and-companions', tab:'godot', why:'A companion that paths to a slot beside the player and has a leash and a recovery is one that stays out of the way.', do:'Give a CharacterBody3D companion a NavigationAgent3D that targets a slot behind the player, gate its barks with a Timer, and recover with NavigationServer3D.map_get_closest_point() when it is left behind. In Unity, use a NavMeshAgent chasing a slot transform with Warp as the recovery.', min:30 },
+        { kind:'topic', ref:'navigation-and-pathfinding', tab:'overview', why:'A perfect decision is worthless if the agent gets stuck on a doorframe, and players read pathing failures as stupidity.', do:'Add stuck detection with a recovery order: sidestep, repath, then teleport as a last resort, and log every stuck event in a playtest.', min:25 },
+        { kind:'tool', ref:'hypothesis', why:'A change to a director or an ally is a claim about how sessions feel, and it is not a fact until you name the signal that would show it.', do:'Write a hypothesis for one director response or one ally change, naming the signal and the kill criterion, and include a test with a skilled player and a struggling one.', min:25 }
+      ],
+      review:['perception-and-awareness'],
+      check:{
+        recall:[
+          { q:'Why should a director respond by changing frequency, composition or support instead of hidden power?', a:'Indirect responses are readable and hard to catch. Strong hidden adjustments get noticed by experts and produce complaints that the game let them win or cheated them.' },
+          { q:'What is the risk of building a director before the encounters are validated?', a:'A director is a multiplier on a system that must already work. Built first, it thrashes on noisy signals and hides whether the base pacing is any good.' },
+          { q:'What are the two failure modes of an ally, and how do you tune against them?', a:'Over-effective allies make the player a passenger and under-effective ones are babysitting chores. Tune against a solo baseline and measure the player’s felt contribution, not the ally’s damage, with a never-stuck and never-blocking follow behaviour.' },
+          { q:'What does a stuck-recovery order look like, and why teleport last?', a:'Sidestep, then repath, then teleport as a last resort. Teleporting avoids stuck states but breaks immersion, while strict pathing preserves immersion but fails on awkward geometry.' }
+        ],
+        build:'Export the hypothesis for your director or ally change, and attach the follow-and-recovery script or the director’s signal list.',
+        skip:['Can you name the signals your director reads and the response it gives, without opening the code?','Have you already made an ally that never blocks a doorway and never gets left behind?','Do you know how often your agents get stuck in a playtest, from a log?','Can you test your director with a very skilled player and a struggling one?','Can you say what your ally is not allowed to do for the player?']
+      } },
+    { id:'s4', t:'Budgets, learning and shipping', level:'advanced',
+      goal:'Put a frame budget, a debug view and a fallback around your AI, and decide where a learned or generative component may sit.', hours:2.9,
+      steps:[
+        { kind:'topic', ref:'ai-budgets-and-debugging', tab:'overview', why:'AI that is unaffordable or unexplainable does not ship, so the budget and the debug view come before the smarts.', do:'Set a per-frame AI budget and a worst-case agent count, then list the debug view’s contents: current state, decision reason, target and last-known positions.', min:25 },
+        { kind:'topic', ref:'ai-budgets-and-debugging', tab:'unity', why:'A named timeline marker and a read-back at runtime turn the AI cost into a number instead of a suspicion.', do:'Wrap the AI work in a ProfilerMarker, read it back with a ProfilerRecorder, and slice your agents by frame index so thirty of them never think on the same frame. In Godot, use Engine.get_physics_frames() modulo a slice count and Performance.add_custom_monitor.', min:30 },
+        { kind:'topic', ref:'learning-based-ai', tab:'overview', why:'Learning is strongest off the player-facing path, and shipping a learned opponent is a different job from training one.', do:'Write which of your agents would be a learned policy, mark each as on or off the shipping path, and write the fairness envelope and non-learned fallback for any on it.', min:25 },
+        { kind:'checklist', ref:'pre-prototype', why:'A learned bot or a sweep is a prototype, and it needs a hypothesis and a scope cut before it costs weeks.', do:'Run the pre-prototype checklist against your learned-bot idea and fix whatever it fails, or write down that the authored version is enough.', min:25 },
+        { kind:'topic', ref:'learning-based-ai', tab:'godot', why:'In Godot the honest place for learning is a headless training or sweep environment, and what ships is the tuned table the sweep produced.', do:'Sketch a headless run with godot --headless -s that runs the game as an environment with a seeded RandomNumberGenerator and quits with an exit code, and write what tuned table it would hand back. In Unity, the same job is ML-Agents against a built player.', min:30 },
+        { kind:'topic', ref:'generative-characters', tab:'overview', why:'A language model can voice a character, but the game still decides what it may do, how long a reply may take and what happens when it fails.', do:'Write the action list and reply format for one character, then the authored line it falls back to on a timeout or an illegal action.', min:20 },
+        { kind:'reflect', why:'Choosing the cheapest rung across the whole system is the judgement every earlier stage was practising.', do:'For your game’s AI as a whole, write which behaviour you would cut or downgrade to a cheaper mechanism, and the one player-read moment you would protect.', min:20 }
+      ],
+      review:['adaptive-and-director-ai','scripted-vs-simulated'],
+      check:{
+        recall:[
+          { q:'Why set an AI budget and build the debug view first?', a:'Cost and balance grow with agents and capability, so a budget and worst-case agent count keep the design affordable, and a debug view of state, target and decision reason turns the AI is dumb into a specific, fixable cause.' },
+          { q:'Where does learned AI fit today, and what must surround it when it is player-facing?', a:'It is strongest off the shipping path: testing bots, balance sweeps and animation or control. On the shipping path it needs a fairness envelope, determinism and replay plans, and a non-learned fallback.' },
+          { q:'What does a generative character’s game code have to check?', a:'It parses every reply, checks the action against a fixed list, checks length and banned terms, moderates player-visible text, and falls back to an authored line on timeout or failure. The model proposes and the game decides.' }
+        ],
+        build:'Attach your AI budget and debug-view list, your pre-prototype checklist result, and the fairness envelope and fallback for any learned or generative component.',
+        skip:['Can you say your game’s per-frame AI budget and worst-case agent count from memory?','Can a bug report of your AI be replayed from a logged seed and inputs?','Have you already put a fallback under a learned or generative component?','Can you say why your best AI moment is the cheapest mechanism that produces it?']
+      } }
+  ]
+});
+
 PATH('interview-prep-engineer', {
   t:'Interview prep, engineering', tag:'Turn layering, authority, and build health into answers with a real trade-off in them.',
   pick:'Answer engineering interview questions with examples',
@@ -39970,6 +40065,142 @@ PATH('interview-prep-engineer', {
         ],
         build:'Write and time your final sixty-second answer combining the build-health or metrics story with the one habit you named as least confident.',
         skip:['Can you state your own core-loop-blocking triage rule on the spot?','Do you have a real metric and revert threshold ready from your own work?','Can you name the one rung you would add to your team’s verification ladder?','Have you named the habit you are least confident defending, and a concrete fix for it?','Can you walk the UEFN publishing flow from private version to release without notes?']
+      } }
+  ]
+});
+
+PATH('studio-practice-ai-era', {
+  t:'Run a game team in the AI era', tag:'Who owns what, what code is worth now, how models behave, and how to plan and ship when building is cheap.',
+  pick:'Run a game team when AI writes half the code',
+  track:'leadership', level:'advanced', hours:13,
+  audience:'Leads, producers and senior developers whose team now works with AI tools and who have to decide what the humans own, what standard the code is held to, and how the plan changes.',
+  outcome:'You can split ownership between people and AI on purpose, hold agent-written work to a review standard, explain what a model does with its context and where it runs, and plan, cut, polish and submit a game on evidence.',
+  prereq:[], next:['technical-lead','ship-it'],
+  stages:[
+    { id:'s1', t:'Who owns what', level:'advanced',
+      goal:'Decide, before the work starts, which tasks belong to a person, which to the AI and which to both, and brief the AI so the split holds.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'bottleneck-shift', why:'Everything else in this path follows from one change: production got cheap, so judgment is now the scarce thing your team has to protect.', do:'Write where your team spent its time last week as a split between producing and judging or testing, and say whether the ratio has flipped yet.', min:20 },
+        { kind:'topic', ref:'ai-roles', why:'Asking for a role instead of for ideas gives you a stance you can check the output against, and keeps the AI out of the decider seat.', do:'Pick one task your team gives an AI today and name the role it should have been cast in, and the role you should have kept away from it.', min:20 },
+        { kind:'topic', ref:'responsibility-matrix', why:'Without an owner named in advance, whoever produces the artifact owns the decision by default, and that is usually the AI.', do:'List five recurring tasks on your team and mark each human, AI or shared, and note any where you cannot say who owns it.', min:20 },
+        { kind:'tool', ref:'delegate', why:'The Delegation Planner forces the ownership call for your own tasks instead of leaving it as a feeling.', do:'Run three of your five tasks through the planner and change the owner of any one where its answer differs from yours.', min:25 },
+        { kind:'topic', ref:'prompting-framework', why:'Framing is the human’s most valuable contribution, and a brief that states context, evidence and the decision is how a delegated task stays yours.', do:'Rewrite one vague request you gave an AI recently so it states context, intent, constraints, evidence, role, task, output format and a critique step.', min:20 },
+        { kind:'tool', ref:'prompt', why:'Filling in the generator shows which of the eight parts you usually leave blank.', do:'Build that same rewritten request in the generator and write down which part you had left out before.', min:20 },
+        { kind:'reflect', why:'Naming the judgment you refuse to hand over is what turns the matrix from a table into a rule.', do:'Write the one decision on your team that no AI output should be able to settle, and how a reviewer would notice it had.', min:15 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'Why does a task with no named owner usually end up with the AI?', a:'Whoever produces the artifact owns the decision by default, and the AI produces most of the artifacts. Naming the owner in advance is what makes AI should not decide this a rule instead of a feeling.' },
+          { q:'What does casting the AI in a role give you?', a:'A stance, an output shape and something to check the output against. An unrolled request gets the average of all stances, and none of the nine roles is decider.' },
+          { q:'What has moved from production to judgment as the bottleneck?', a:'Taste, framing, prioritisation, understanding players, recognising fun, separating signal from noise, trade-offs and knowing what not to build.' }
+        ],
+        build:'Write a one-page ownership table for your team’s five recurring tasks, with the role the AI plays in each and the brief it is given.',
+        skip:['Can you say who owns each recurring task on your team, human or AI, without checking?','Do your requests to an AI name a role and a decision?','Can you name the last thing you decided that an AI could not have?','Do you know which parts of the prompting framework you usually leave out?']
+      } },
+    { id:'s2', t:'Working with AI, and how it fails', level:'advanced',
+      goal:'Use AI where it saves the most time, spot its characteristic failures early, and keep player evidence between an AI output and a commitment.', hours:2.33,
+      steps:[
+        { kind:'topic', ref:'ai-failure-modes', why:'The failures are systematic, so a team that knows the symptoms catches them at the cadence of a playtest instead of at a milestone.', do:'Pick three failure modes from the list and write the symptom each would show in your current project.', min:20 },
+        { kind:'topic', ref:'ai-for-implementation', why:'This is where AI most reliably saves time, and only if the prototype is instrumented and treated as disposable.', do:'Write a brief for one prototype that states the question it answers, what it must log, what tuning values stay live and what it leaves out.', min:20 },
+        { kind:'prompt', ref:'verify', why:'A fixed verification pass turns is this right into a list of assumptions, sources and kill criteria you can check.', do:'Run the verification prompt on the last AI output your team acted on, and mark which assumptions were invented.', min:20 },
+        { kind:'topic', ref:'ai-for-playtest-analysis', why:'AI is fast and consistent at coding evidence and lacks the context that interpretation needs, so the split of labour matters.', do:'List what context you would add to an AI summary of your last playtest, and the pattern in it that rests on only two testers.', min:20 },
+        { kind:'checklist', ref:'playtest-prep', why:'Analysis is only as good as the evidence given to it, and this checklist fixes the session before the players arrive.', do:'Run the playtest preparation checklist on your next session and write the hypothesis you will give the AI with the notes.', min:20 },
+        { kind:'topic', ref:'ai-loop', why:'The loop puts player evidence between exploration and commitment, which is the discipline that prevents most AI-era failures.', do:'Mark which of the twelve steps your team is on, which step it skipped to get there, and when a player last touched the build.', min:25 },
+        { kind:'reflect', why:'The failure you can name in your own team is the one you can set a detector for.', do:'Write the failure mode most likely on your team now, and the cadence or check that would catch it.', min:15 }
+      ],
+      review:['responsibility-matrix'],
+      check:{
+        recall:[
+          { q:'Why are AI failure modes systematic rather than random?', a:'They follow from AI’s strengths (fluency, volume, plausibility) meeting human weaknesses (deference, impatience, fear of deciding), so each has a symptom, a cause, a detector and a correction.' },
+          { q:'What makes AI-written prototype code worth having?', a:'Precise briefs on what to build, what to expose and what to log, instrumentation, and treating the prototype as disposable.' },
+          { q:'Where in the AI-era loop does player evidence sit?', a:'Between exploration and commitment: prototype, play, measure and interpret come before decide and implement, and polish is the setup for the next hypothesis.' }
+        ],
+        build:'Take one AI-produced artifact from your project and run the verification prompt on it, then write the decision you made from the result.',
+        skip:['Can you name three AI failure modes and the symptom each would show on your team?','Do your prototype briefs say what the build must log?','Do you give an AI analysis the hypothesis and the context it lacks?','Do you know how many iterations your team has run without player contact?']
+      } },
+    { id:'s3', t:'Craft that survives cheap code', level:'advanced',
+      goal:'Say which engineering values still hold when a model writes the code, and turn them into review rules for people and agents.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'craft-core-values-that-last', why:'A value that only held while code was slow is a habit, and testing each against cheap code shows what to keep.', do:'Write your team’s top five engineering values and mark each as still matters, matters more, or was only a habit.', min:20 },
+        { kind:'topic', ref:'craft-what-matters-now', why:'Understanding, verification and simplicity are the scarce things once output is abundant.', do:'Take the last change your team merged and write whether anyone could explain it and what check would have shown it failing.', min:20 },
+        { kind:'topic', ref:'craft-best-practice-now', why:'Reading and verifying are the bottleneck now, so small diffs, honest names and tests beside the code became the way review still works.', do:'Find your largest recent diff, and write how it could have been split into changes reviewable in one sitting.', min:20 },
+        { kind:'checklist', ref:'ai-verify', why:'A checklist that must be ticked before acting makes the verification habit something a reviewer can ask for.', do:'Run this checklist on one AI-written change from your project and note which box you could not tick.', min:20 },
+        { kind:'topic', ref:'craft-clean-code-ai-era', why:'The next reader is often an agent with a context budget and a grep, which sharpens some rules and exposes others as taste.', do:'Pick five names in your codebase and check whether each is distinctive enough to be found in one search.', min:20 },
+        { kind:'topic', ref:'craft-ai-orchestrates-tools-compute', why:'Splitting the pipeline into what the model guesses and what code computes tells you where verification has to go.', do:'Draw one numeric question your team asks an AI as a pipeline and mark which steps are deterministic and which are sampled.', min:20 },
+        { kind:'reflect', why:'A rule you can state in one line is one you can put in a review comment or an agent instruction.', do:'Write one review rule for agent-written changes on your team in a single sentence, with the check that enforces it.', min:15 }
+      ],
+      review:['ai-failure-modes'],
+      check:{
+        recall:[
+          { q:'What changed about correctness when models write the code?', a:'Its value is unchanged and its method changed: correctness is now shown by checks, not by the author’s care.' },
+          { q:'Why do small diffs matter more than before?', a:'Typing got cheap so a large diff costs nothing to produce, but reviewing it costs as much as ever, and a reviewer’s attention runs out before the diff does.' },
+          { q:'Which parts of a pipeline that uses a model are deterministic?', a:'Only the computation and the rendering. Interpretation, tool choice and arguments are sampled guesses that can be checked but not assumed.' },
+          { q:'Why do distinctive names help an agent?', a:'An agent navigates by searching names, so a distinctive consistent name is found in one search and a generic or inconsistent one is missed.' }
+        ],
+        build:'Write the short list of review rules your team holds agent-written changes to, each with the check that enforces it.',
+        skip:['Can you explain every line of the last change you merged?','Are your typical diffs small enough to review in one sitting?','Do your key names survive a single search?','Do you know which steps of your AI pipelines are deterministic?','Have you put your review rules in a formatter, a test or an agent instruction rather than a conversation?']
+      } },
+    { id:'s4', t:'What the model is doing', level:'advanced',
+      goal:'Explain what a model does with its context, how it was made and where it runs, so tool and architecture choices rest on more than a leaderboard.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'models-attention-long-context', why:'A large window is a capacity, not a promise, and an agent deep in a session is working in the degraded zone.', do:'Write where the most important instruction sits in your longest agent session and how far it is from where the answer is generated.', min:25 },
+        { kind:'topic', ref:'models-how-models-are-made', why:'Most surprising behaviour traces to a training stage, which tells you whether a better prompt or a fine-tune is the fix.', do:'Match three odd model behaviours your team has seen to the stage that most likely produced each.', min:20 },
+        { kind:'topic', ref:'models-architecture-choices', why:'Active versus total parameters decides what fits your hardware, and vendor size claims mix the two.', do:'Take one model you use or considered and write its total and active parameters, and whether your target machine holds it.', min:20 },
+        { kind:'checklist', ref:'ai-architecture-boundary', why:'If a model call ships inside a game, this checklist says where the probabilistic part ends and what code validates its output.', do:'Run the checklist on one AI feature you have or plan and write the first group it fails.', min:25 },
+        { kind:'topic', ref:'models-open-and-closed', why:'Closed, open-weight and on-device models trade capability against control, cost and offline play, and licences carry clauses that can block shipping.', do:'For one AI feature, write which of closed, open-weight or on-device it needs and the licence clause you would check first.', min:20 },
+        { kind:'topic', ref:'models-reasoning-and-scaling', why:'Capability keeps moving, so plans need a review date and your own tasks are the test that counts.', do:'Write three tasks from your own project that you would use to test a new model, and a date to re-run them.', min:20 },
+        { kind:'reflect', why:'Picking the assumption you would revisit first is what keeps a plan from freezing today’s capability.', do:'Write the workaround on your team that a stronger model might make dead weight, and the date you will check.', min:15 }
+      ],
+      review:['craft-ai-orchestrates-tools-compute'],
+      check:{
+        recall:[
+          { q:'Why can stuffing a whole document into a prompt make answers worse?', a:'Models use the start and end of their context better than the middle and degrade as input grows, and near-duplicate content acts as a distractor. Retrieving the relevant passages can be more faithful.' },
+          { q:'What is the difference between total and active parameters?', a:'Memory scales with total parameters because every expert must be loaded, while compute per token scales with active parameters in a mixture-of-experts model.' },
+          { q:'What does open weights not guarantee?', a:'Many open-weight licences are custom and may cap company size, require attribution or bind you to an acceptable use policy, and open weights alone fall short of an open-source definition.' }
+        ],
+        build:'Write a one-page model choice note for one AI feature covering context use, size and hardware fit, hosting type and licence, and the tasks you will re-test.',
+        skip:['Do you know where your key instruction sits in a long session?','Can you say whether a behaviour comes from pre-training, feedback training or quantisation?','Do you know total versus active parameters for the models you rely on?','Have you read the licence of any open-weight model you plan to ship?']
+      } },
+    { id:'s5', t:'Plan on evidence', level:'advanced',
+      goal:'Choose the engine, the documents and the working rhythm on purpose, and keep scope tied to what players have validated.', hours:2.25,
+      steps:[
+        { kind:'topic', ref:'design-documents', why:'A document exists to make a decision stick, and the right size prevents both theater and undocumented decisions.', do:'List your team’s current documents and write, for each, the reader and the decision it helps them make.', min:20 },
+        { kind:'topic', ref:'platforms-choosing-an-engine', why:'The engine is close to irreversible, and it is decided by platforms, people and licence terms before features.', do:'Answer the seven questions in the topic for your project and write which one would change your engine if the answer moved.', min:20 },
+        { kind:'topic', ref:'pm-agile-gamedev', why:'Sprints suit committed work and flow suits arriving work, and most game teams are both at once.', do:'Sort your team’s current work into planned and arriving, and write how much capacity is reserved for iteration on feel.', min:20 },
+        { kind:'topic', ref:'pm-cross-discipline', why:'Most delay is in the gap between two people who each believe the other is next, so each seam needs an artifact.', do:'Pick one handoff on your team and write what ready means on each side and what artifact carries the intent.', min:20 },
+        { kind:'topic', ref:'scope-control', why:'Cheap implementation removes the natural brake on scope, so the brake has to be deliberate.', do:'Write your game’s not-this-game list and the validated evidence behind each item still in scope.', min:25 },
+        { kind:'checklist', ref:'scope-sanity', why:'A monthly review is what makes the brake a habit rather than a reaction to trouble.', do:'Run the scope sanity checklist on this month and mark the first box your team fails.', min:20 },
+        { kind:'reflect', why:'The feature you would cut first shows how much of your scope rests on imagination.', do:'Write the one feature built because it was cheap to build, and what cutting it would cost the player.', min:15 }
+      ],
+      review:['bottleneck-shift','models-reasoning-and-scaling'],
+      check:{
+        recall:[
+          { q:'What should a design document be judged on?', a:'The shared decisions it forces and the memory it keeps, not the page count. Match it to the reader and the decision, or write nothing.' },
+          { q:'Why does AI make scope control harder?', a:'Implementation is cheap enough that a lot of mediocre content can be produced before anyone asks whether the core is fun, so scope must follow validated value, not what could be built.' },
+          { q:'What does a handoff need that a collaboration does not?', a:'A handoff needs an artifact that carries intent and a shared definition of ready on both sides. A collaboration needs a room.' }
+        ],
+        build:'Write a one-page plan with your engine choice and its reasons, the working rhythm, the not-this-game list and the artifact for your riskiest handoff.',
+        skip:['Can you say what decision each of your documents helps make?','Did you choose your engine from platforms, people and licence terms?','Can you say how much capacity your plan reserves for iteration on feel?','Is there a written not-this-game list?']
+      } },
+    { id:'s6', t:'Iterate, polish and submit', level:'advanced',
+      goal:'Change one thing at a time on evidence, polish only what has been validated, and run the store checklist against the actual build.', hours:1.83,
+      steps:[
+        { kind:'topic', ref:'iteration-and-evidence', why:'AI makes iterations cheap, which only helps if each is informed by evidence, and fast wandering is still wandering.', do:'Count the iterations since a player last touched your build, and write the one change most likely to move the signal.', min:20 },
+        { kind:'tool', ref:'hypothesis', why:'Writing the kill criterion in advance is what lets the next test say no.', do:'Build one hypothesis for your next playtest with what you will see and the result that would make you drop the change.', min:25 },
+        { kind:'topic', ref:'polish-when', why:'Polish amplifies a validated loop and hides a weak one, so the timing is a production decision.', do:'Sort your open polish items into legibility for tests and emphasis for shipping, and write which the loop justifies today.', min:20 },
+        { kind:'checklist', ref:'submit-pc', why:'Every item is checkable against the actual build and page, which is what catches the promise the build does not keep.', do:'Run the PC store checklist against your latest build and page and write the first item that fails.', min:25 },
+        { kind:'reflect', why:'A shipping decision made in writing is one the team can review afterwards.', do:'Write the one thing that would make you delay submission, and who has the authority to call it.', min:20 }
+      ],
+      review:['scope-control','craft-what-matters-now'],
+      check:{
+        recall:[
+          { q:'Why change one important thing per iteration?', a:'Changing many things at once makes the result unattributable, so you learn nothing even when it improves.' },
+          { q:'What separates legibility from polish?', a:'Feel basics such as latency and clear feedback are legibility that testers need. Polish is emphasis, and belongs after the loop is voluntarily replayed.' },
+          { q:'What is the point of the PC store checklist?', a:'Every item is checked against the actual build and store page, not against the plan for them.' }
+        ],
+        build:'Run the PC submission checklist on your build and write the fix list, ordered by which item would block submission first.',
+        skip:['Do you know how many iterations you have run without player contact?','Does every playtest you plan have a written kill criterion?','Can you tell legibility from emphasis in your polish backlog?','Have you run the store checklist against the real build rather than the plan?']
       } }
   ]
 });
@@ -40080,7 +40311,7 @@ PATH('ai-engineering-for-game-devs', {
   track:'engineering', level:'intermediate', hours:12.5,
   audience:'Game programmers and technical designers who already ship code and now work with AI coding agents, or want a model inside a shipped game.',
   outcome:'You can explain what a model does with your context, set an agent up with rules and checks it cannot talk its way past, verify its output, draw the boundary where AI sits in a game’s architecture, and get an AI-assisted build through each store’s review.',
-  prereq:[], next:['technical-lead','ship-it'],
+  prereq:[], next:['technical-lead','ship-it','studio-practice-ai-era'],
   stages:[
     { id:'s1', t:'How models work', level:'intermediate',
       goal:'Know what a model does with tokens, why it varies between runs, and why fluent output is not correct output.', hours:2.5,
