@@ -1651,12 +1651,12 @@ ANALYSIS('minecraft', {
 
 ANALYSIS('animal-crossing-nh', {
   shots: [
-    { img: 'assets/games/shots/animal-crossing-nookphone.webp', lens: 'ui', alt: 'Animal Crossing: New Horizons: the player character holds the NookPhone, its Camera app menu open showing icons for Photos, DIY Recipes, Nook Miles, Map, Passport and Airport, beside their tent.', caption: 'Every system, the map, tasks, the camera, lives on one in-fiction object the character visibly holds, not a menu overlay.',
-      callouts: [{ x: 0.338, y: 0.554, t: 'Map app: check the island without leaving the fiction' }, { x: 0.65, y: 0.647, t: 'The character visibly holds and reads the phone' }],
-      credit: { author: 'Nintendo', url: 'https://www.imore.com/animal-crossing-new-horizons-what-nookphone-and-what-it', licence: 'press', source: 'iMore' } },
-    { img: 'assets/games/shots/animal-crossing-museum.webp', lens: 'world', alt: 'Animal Crossing: New Horizons: Blathers the owl, the museum’s curator, startled awake in the museum’s entrance hall, his dialogue reading “Hoooo… WHO?!”.', caption: 'Blathers, the curator, is the island’s natural-history teacher: the museum he runs shows real fossils, fish and insects, the setting’s one factual layer beside an invented villager cast.',
-      callouts: [{ x: 0.575, y: 0.349, t: 'Blathers, the museum’s curator' }],
-      credit: { author: 'Nintendo', url: 'https://www.nintendo.com/us/store/products/animal-crossing-new-horizons-switch/', licence: 'store' } }
+    { img: 'assets/games/shots/animal-crossing-nookphone-menu.webp', lens: 'ui', alt: 'Animal Crossing: New Horizons: at the Resident Services counter the player character holds a small green NookPhone, whose Camera app menu, a grid of nine app icons with a hand pointer on the camera, fills the left of the screen while Isabelle sits behind the desk.', caption: 'Every system, the map, tasks, the camera, lives on one in-fiction object the character visibly holds, not a menu overlay.',
+      callouts: [{ x: 0.35, y: 0.735, t: 'Map app: check the island without leaving the fiction' }, { x: 0.62, y: 0.52, t: 'The character visibly holds and reads the phone' }],
+      credit: { author: 'Nintendo', url: 'https://nookipedia.com/wiki/File:NH_Player_NookPhone_Interface.jpg', licence: 'capture', source: 'Nookipedia' } },
+    { img: 'assets/games/shots/animal-crossing-museum-hall.webp', lens: 'world', alt: 'Animal Crossing: New Horizons: Blathers the owl, the museum’s curator, stands in the museum’s entrance hall at the foot of a double staircase, with a golden butterfly, ammonite fossil and fish mounted as plaques on the walls.', caption: 'Blathers, the curator, is the island’s natural-history teacher: the museum he runs shows real fossils, fish and insects, the setting’s one factual layer beside an invented villager cast.',
+      callouts: [{ x: 0.607, y: 0.63, t: 'Blathers, the museum’s curator' }, { x: 0.507, y: 0.384, t: 'Ammonite plaque: the real-world fossil exhibits start here' }, { x: 0.07, y: 0.45, t: 'Butterfly plaque: the insect wing' }],
+      credit: { author: 'Nintendo', url: 'https://nookipedia.com/wiki/File:NH_Museum_Interior_Upgrade.jpg', licence: 'capture', source: 'Nookipedia' } }
   ],
   signature: {
     idea: 'Run the game on the real calendar, and let the player be the only goal',
