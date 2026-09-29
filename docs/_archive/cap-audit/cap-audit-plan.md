@@ -1,5 +1,5 @@
 ---
-status: active
+status: shipped
 updated: 2026-09-29
 ---
 
@@ -15,7 +15,7 @@ The owner asked on 2026-09-29 for an audit of every piece of content and every i
 - Workers never run git. The orchestrator exports git history for them, reviews their output and commits.
 - Commit and push to main after each phase once validation passes.
 - Update this checklist after every task.
-- Restored text follows CONTRIBUTING's writing style and the [analysis method](../references/analysis-method.md): plain words, sourced, fact-checked.
+- Restored text follows CONTRIBUTING's writing style and the [analysis method](../../references/analysis-method.md): plain words, sourced, fact-checked.
 - Images follow the image rules in CONTRIBUTING: real screens, credited, readability first.
 
 ## Caps in scope
@@ -56,7 +56,7 @@ Status: `todo`, `doing`, `done`, `n/a`.
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
 | T1 | Merge findings, drop false positives, decide an action per finding | done | decisions in the table below |
-| T2 | Debate unclear findings with a second agent | done | D1 keep with 600 KB series page guide; D2 cover or blurred contain; D3 grow boxes to 5 lines |
+| T2 | Debate unclear findings with a second agent | done | D1 one 960 px file per shot (series page guide later set to 1300 KB from real weights); D2 cover or blurred contain; D3 grow boxes to 5 lines |
 
 ### Phase 3: fixes
 | # | Task | Status | Notes |
@@ -65,15 +65,15 @@ Status: `todo`, `doing`, `done`, `n/a`.
 | R1 | Images: re-source or re-encode at full quality; undo crops | done | 176 entry shots: 157 at full detail (960 px, native, or integer-scaled pixel art), 19 source-limited; 13 headers restored or re-saved; Godot shot re-cut; logs log-img-*.md |
 | R2 | Text: restore cut content, plain and sourced | done | ta (14 games, copy defects, tails), tb1 (series lenses, 8 reception items), tb2 (11 new series entries with real screens) |
 | R3 | Display: make cut labels and snippets reach the full text | done | search shows every hit; map shows every smell; titles on clamped cards and builder nodes; graph sub-labels wrap; snippets cut on words; library cards crop or show the whole image over a blur; diagram and flow boxes grow to 5 lines |
-| R4 | Rules: CONTRIBUTING and validate.js so no cap can cut content again | done | CONTRIBUTING and analysis-method state minimums only; entry shots 150 KB guide; series pages 600 KB guide; flow cuts fail check-layout |
+| R4 | Rules: CONTRIBUTING and validate.js so no cap can cut content again | done | CONTRIBUTING and analysis-method state minimums only; entry shots 150 KB guide; series pages 1300 KB guide (raised from 600 after the pass); flow cuts fail check-layout |
 | R5 | Independent fact-check of restored text | done | ta 20 ok, 3 fixed; tb1 about 19 ok, 6 fixed, 2 removed; tb2 8 ok, 4 fixed |
 
 ### Phase 4: verification and close
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
-| V1 | validate, types, build, check-layout, smoke, e2e-paths | doing | with the last display fixes |
+| V1 | validate, types, build, check-layout, smoke, e2e-paths | done | validate 0 errors (44 LONG, report only); check-layout 0 overlaps, 0 shortened labels; tsc clean; contrast 0 below 4.5:1; smoke 229 visits 0 failures; e2e-paths 44/44 |
 | V2 | Visual check of every changed image on the rendered page | done | 22 series at 375 and 1440 in both themes, viewer on 2-3 shots each, library, headers, editor shots: no blocking problem (findings-visual.md). Fixes queued: portrait headers fill a phone screen; legend alignment; small entry captions |
-| V3 | Report to the owner; archive this plan | todo | |
+| V3 | Report to the owner; archive this plan | done | reported 2026-09-29; archived to docs/_archive/cap-audit |
 
 ## Findings and decisions
 
@@ -109,3 +109,10 @@ Full reports: [findings-images.md](findings-images.md) (I1 to I20) and [findings
 - D1, series entry shot size against page weight: **one file per shot, up to 960 px**, same 150 KB per-image guide as lens shots. A 960 px WebP of a game screen is typically 25 to 65 KB (median of the current shot folder), so a 9-entry series projects to about 315 KB and at worst about 580 KB. A second inline-size file would double the files and a pairing rule for little gain, and the viewer opens `src` anyway. Page guide: 600 KB for series routes, 350 KB elsewhere (report only). Lazy images get width and height so the page does not jump.
 - D2, library cards: **crop only when the header is within about 15% of the card shape; otherwise show the whole image over a blurred copy of itself**. Plain `contain` left portrait headers looking broken next to full-bleed cards. The class is set from the image's natural size on load, so no data field is needed.
 - D3, diagram labels: **let the box grow** with its line count up to 5 lines. Beyond that the label still fails the build, and overlaps still fail. The failure used to leave shortening the label as the only fix, which is a cut.
+
+## Outcome
+
+- **Images.** 157 of 176 series entry shots are now at full detail: 960 px, native size, or pixel art scaled by whole numbers. The other 19 have no larger original anywhere reachable. Candy Crush Saga and Fruit Ninja headers are back to their fuller pictures. Twelve low-quality headers were re-saved from store originals, and the Godot editor shot was re-cut at 960 px. Library cards show off-shape headers whole over a blurred copy. Portrait headers show whole at up to 480 px tall.
+- **Text.** 21 thinned lens and signature items were restored with sourced detail. 3 copy defects were fixed. 12 "and so on" tails now name their items. The series gained 11 entries and 8 reception items that the old 9-entry and 7-item caps had kept out. Every addition was independently fact-checked; unsupported lines were removed.
+- **Display and rules.** Search keeps every hit and the map shows every smell. Diagram and workflow boxes grow to 5 lines instead of cutting labels. Snippets cut on a word and show an ellipsis only when cut. CONTRIBUTING and the analysis method state minimums only, and say that longer text must earn its length with sourced detail, not jargon.
+- **Left open.** `assets/games/shots/zelda-e-lttp.webp` is now unreferenced: A Link to the Past uses `zelda-e-lttp-new.webp`. A worker's command to overwrite the old file was blocked by a permission check, so the rename and the removal are left to the owner. Five Nintendo headers (Mario Kart 8, Fire Emblem, Super Mario, Xeno, Overwatch) and World of Warcraft have no better official copy that could be reached. Some review scores rest on Wikipedia because Metacritic and GameSpot blocked direct fetches (listed in factcheck-tb1.md).
