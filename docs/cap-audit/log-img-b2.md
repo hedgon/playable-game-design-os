@@ -54,3 +54,23 @@
 
 {'pixel-scaled': 4, 'recut': 29, 'source-limited': 16}
 bytes before 897820, after 2661048
+## Retry round (13 no-original shots)
+
+| image | old KB | new WxH, KB | source url | status | note |
+|---|---|---|---|---|---|
+| fire-emblem-e-engage.webp | 14.7 | 960x540, 70.0 | https://assets.nintendo.com/image/upload/store/software/switch/70010000058802/8ea8da13c2c3b36bb409d2224e63546b28fbfd4697876374bd1004011c34bd45 (from https://www.nintendo.com/us/store/products/fire-emblem-engage-switch/) | recut | same picture, 1280x720 original |
+| fire-emblem-e-threehouses.webp | 12.3 | 960x540, 83.6 | https://assets.nintendo.com/image/upload/store/software/switch/70010000007606/5feaf8b63474d05e568b61fc9dddf7ea4e50f374020e292ab415c661d0ec5760 (from https://www.nintendo.com/us/store/products/fire-emblem-three-houses-switch/) | recut | same picture, 1280x720 original |
+| final-fantasy-xiv-1-0.webp | 13.9 | 590x332, 34.9 | https://cdn.mos.cms.futurecdn.net/80cbf8ff54f6335e0a234017976fc57c.jpg (image on https://www.pcgamer.com/final-fantasy-xiv-review/) | recut | same picture, full 590x332 (only larger copy on the page) |
+| fire-emblem-e-awakening.webp | 17.3 | 600x360, 41.8 | https://archive.org/download/fire-emblem-press-kits (Fire Emblem Awakening/screenshots/1_FEA_battle.jpg) | recut | same picture, 600x360 press file (was 480x288) |
+| fire-emblem-e-radiantdawn.webp | 24.7 | 790x451, 81.4 | https://archive.org/download/fire-emblem-press-kits (Fire_Emblem_Radiant_Dawn_Wii/Screen_Shots/40160_Wii_FE_SCR_NOA_P16_01/img-0005.png) | recut | same picture, 790x451 press file (was 480x274) |
+| fire-emblem-e-shadowdragon.webp | 12.4 | 768x672, 25.3 | https://gamesdb.launchbox-app.com/games/images/7599-fire-emblem-shadow-dragon-and-the-blade-of-light | pixel-scaled | different capture, same moment type (pirate v paladin forecast), NES native x3; old file was a smooth Switch Online crop |
+| fire-emblem-e-genealogy.webp | 23.5 | 768x672, 19.6 | https://gamesdb.launchbox-app.com/games/images/3443-fire-emblem-seisen-no-keifu | pixel-scaled | different capture: SFC native x3 river battle map (old: commander dialogue, smooth) |
+| fire-emblem-e-blazing.webp | 17.5 | 960x640, 14.5 | https://gamesdb.launchbox-app.com/games/images/3259-fire-emblem | pixel-scaled | different capture: GBA native x4 battle animation (old: Lyn close-up) |
+| megami-tensei-entry-formula.webp | 22.8 | 768x672, 4.5 | https://gamesdb.launchbox-app.com/games/images/20856-digital-devil-story-megami-tensei | pixel-scaled | different capture: Famicom native x3 dungeon view with Full Moon and party list |
+| megami-tensei-entry-smt1.webp | 13.2 | 768x672, 5.7 | https://gamesdb.launchbox-app.com/games/images/14288-shin-megami-tensei | pixel-scaled | I11: full 256x224 frame incl. party list, x3 |
+| megami-tensei-entry-persona1.webp | 15.4 | 960x720, 59.8 | https://gamesdb.launchbox-app.com/games/images/110262-revelations-persona | recut | different capture: 1440x1080 dialogue scene (old: Igor fusion menu) |
+| mega-man-2-airman.webp | 12.1 | 768x672, 4.3 | https://gamesdb.launchbox-app.com/games/images/343-mega-man-2 | pixel-scaled | different capture: NES native x3, Bubble Man stage (Air Man stage not on LaunchBox) |
+| fire-emblem-e-fates.webp | 16.1 | unchanged | archive.org fire-emblem-press-kits | source-limited | not found among ~1000 press files; 3DS top screen is natively 400x240, current 480x294 already above it |
+| megami-tensei-entry-smt4.webp | 10.9 | unchanged | LaunchBox 16693 | source-limited | IGDB 403; LaunchBox has box art only; no gameplay screen |
+| (JP Nintendo Classics pages a-3744_j, s-2028_j, clv-p-haakj) | | | | | pages hold no images without JS/age gate; replaced by LaunchBox native captures |
+Orchestrator review: mega-man-2-airman.webp renamed mega-man-2-bubbleman.webp to match its new picture.
