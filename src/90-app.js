@@ -751,21 +751,22 @@ function renderPlatforms(id){
   }
   const stage = ([k, label]) => guideStageHTML(P.stages[k], label);
   const pTopics = (P.topics || []).length ? `<p class="small wdup">Topics: ${P.topics.map(t => topicLink(t)).join(', ')}</p>` : '';
-  const side = guideSide(stagesOf(P), (P.topics || []).map(t => topicLink(t)), null);
+  const next = nextBlocks([['Checklists', chipLinks((P.checklists || []).map(id => CHECKLISTS.find(c => c.id === id)).filter(Boolean).map(c => ['#/checklists/' + c.id, c.t]))], ['Part of paths', pathsBlock('platform:' + P.id)]]);
+  const side = guideSide(stagesOf(P), (P.topics || []).map(t => topicLink(t)), null, next);
   setView(crumbs([['Library','#/games'],['Platforms','#/platforms'],[P.t]]) + wide2(`<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
     ${P.nda ? `<div class="callout"><b>Under NDA.</b> ${esc(P.nda)}</div>` : ''}
     ${P.flow ? diagramCard(P.flow) : ''}
     ${stagesOf(P).map(stage).join('')}
-    ${pTopics}${note}`, side, 'This platform'));
+    ${pTopics}${next.main}${note}`, side, 'This platform'));
 }
 // One stage of a platform or engine guide: its diagram, points, a numbered
 // deploy walkthrough (a step may carry a credited image), images, dated
 // facts, and interview questions with answers behind a toggle.
 // Side column of an engine or platform page: its stages, what it is at a glance, its topics.
-function guideSide(stages, topics, glance){
+function guideSide(stages, topics, glance, extra){
   return wideJump(stages.map(([, label]) => [label, `data-to="wj-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"`])) +
     wideBlock('At a glance', (glance || []).length ? `<div class="chips">${glance.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div>` : '') +
-    wideBlock('Topics', topics.length ? `<ul>${topics.map(t => `<li>${t}</li>`).join('')}</ul>` : '');
+    wideBlock('Topics', topics.length ? `<ul>${topics.map(t => `<li>${t}</li>`).join('')}</ul>` : '') + (extra ? extra.side : '');
 }
 function guideStageHTML(s, label){
   const deploy = (s.deploy || []).length ? `<ol class="deploysteps">${s.deploy.map(d => `<li><b>${esc(d.t)}</b> ${esc(d.d)}${d.shot ? shotHTML({}, d.shot) : ''}</li>`).join('')}</ol>` : '';
@@ -790,8 +791,14 @@ function renderGuide(){
       ${route('Building with AI', ['Start <a href="#/paths/ai-engineering-for-game-devs">AI engineering for game developers</a>, or read the <b>How AI models work</b> and <b>Code craft</b> domains on the <a href="#/map">Map</a> under Engineering &amp; Career.', 'The checklists include an agent rules file, the AI architecture boundary and AI-assisted submission per platform.', 'Every vendor number (prices, cache rules, context sizes) is a dated fact with its source.'])}
       ${route('Making a casual mobile game', ['Start <a href="#/paths/casual-game-people-keep">Make a casual game people keep</a>: the loop, levels, a fair economy, soft launch and live ops.', 'The casual games in the <a href="#/games">Library</a> are taken apart lens by lens; Defold and Cocos in <a href="#/engines">Engines</a> cover playable ads and mini games.'])}
       ${route('Thinking of leaving games', ['Start <a href="#/paths/game-skills-elsewhere">Take your game skills somewhere else</a>: transferable skills, where people go, the CV and the interview, and the farmer question answered properly.'])}
-      ${route('Looking one thing up', ['Press <kbd>Ctrl</kbd>/<kbd>⌘</kbd> <kbd>K</kbd> or <kbd>/</kbd> and type: pages, topics, games, platforms and interview questions all appear.', 'Or open <a href="#/index">All pages</a>, or the <a href="#/concepts">Concept index</a> for topics A to Z.'])}
+      ${route('Looking one thing up', ['Press <kbd>Ctrl</kbd>/<kbd>⌘</kbd> <kbd>K</kbd> or <kbd>/</kbd> and type: pages, topics, games, platforms, engines, paths, tools, checklists, prompts, smells, projects and interview questions all appear. UK and US spellings both work.', 'Or open <a href="#/index">All pages</a>, or the <a href="#/concepts">Concept index</a> for topics A to Z.'])}
     </div>
+    <div class="section-head"><h2>All ${PATHS.length} learning paths</h2><span class="muted">by track</span></div>
+    <div class="grid auto">${TRACKS.map(([tid, tl]) => { const ps = PATHS.filter(p => p.track === tid); return ps.length ? `<div class="card"><b>${esc(tl)}</b><ul class="small" style="margin:6px 0 0;padding-left:18px">${ps.map(p => `<li><a href="#/paths/${p.id}">${esc(p.t)}</a></li>`).join('')}</ul></div>` : ''; }).join('')}</div>
+    <p class="small muted"><a href="#/paths">Open Learning paths</a> to answer the three questions and get a suggestion.</p>
+    <div class="section-head"><h2>How the parts connect</h2></div>
+    <div class="card"><p class="small" style="margin:0 0 6px">A topic is the idea. Everything else is a place to use it, and the pages link both ways, so you can start from either end. The same rows are built from the data on every topic page:</p>
+    <ul class="small" style="margin:0"><li><b>In real games</b>: reference games whose lenses list the topic.</li><li><b>Seen in practice</b>: a part of a shipped project that is this idea in the field.</li><li><b>Part of paths</b>: the learning paths and stages that walk through it. Tools, checklists, prompts, guides, smells and projects show the same row.</li><li><b>Tools</b>: build tools made for the idea.</li><li><b>Guides</b>: engine and platform guides that cite it.</li><li><b>Checklists</b> and <b>Prompts</b>: the reviews and prompt templates that name it.</li></ul></div>
     <div class="section-head"><h2>Where things are</h2></div>
     ${diagramCard(GUIDE_LAYOUT)}
     <div class="section-head"><h2>The seven sections</h2><span class="muted">keys 1 to 7</span></div>
@@ -822,12 +829,13 @@ function renderEngines(id){
       ${ENGINES.length ? groups.map(([k, t]) => { const xs = ENGINES.filter(e => e.kind === k); return xs.length ? `<div class="section-head"><h2>${t}</h2></div><div class="grid auto">${xs.map(card).join('')}</div>` : ''; }).join('') : '<div class="empty">Engine guides are being written.</div>'}${note}`);
     return;
   }
-  const side = guideSide(ENGINE_STAGES, (E.topics || []).map(t => topicLink(t)), E.glance);
+  const next = nextBlocks([['Part of paths', pathsBlock('engine:' + E.id)]]);
+  const side = guideSide(ENGINE_STAGES, (E.topics || []).map(t => topicLink(t)), E.glance, next);
   setView(crumbs([['Library','#/games'],['Engines','#/engines'],[E.t]]) + wide2(`<h1>${esc(E.t)}</h1><p class="dim">${esc(E.sub)}</p><p style="max-width:820px">${esc(E.short)}</p>
     <div class="chips wdup" style="margin:-4px 0 12px">${E.glance.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div>
     ${diagramCard(E.flow)}
     ${ENGINE_STAGES.map(([k, label]) => guideStageHTML(E.stages[k], label)).join('')}
-    ${(E.topics || []).length ? `<p class="small wdup">Topics: ${E.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`, side, 'This engine'));
+    ${(E.topics || []).length ? `<p class="small wdup">Topics: ${E.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${next.main}${note}`, side, 'This engine'));
 }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
 function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
@@ -909,7 +917,7 @@ function sectionBody(key, t){
     case 'tech': return `<p class="small dim">Techniques that solve this, compared on how they work, when they fit, and what they cost. Pick one to prototype, not all of them.</p><div class="think-grid">${(t.tech||[]).map(x => `<div class="box"><h4>${esc(x.n)}</h4><div class="small"><b>How it works.</b> ${esc(x.how)}</div><div class="small" style="margin-top:4px"><b>Fits when.</b> ${esc(x.fit)}</div><div class="small" style="margin-top:4px"><b>Cost / risk.</b> ${esc(x.cost)}</div><div class="small muted" style="margin-top:4px"><b>Watch out / instead.</b> ${esc(x.alt)}</div></div>`).join('')}</div>`;
     case 'ai': return `<div class="ai-split"><div class="box yes"><h4 style="color:var(--d-ai)">AI is good at</h4>${list(t.ai.yes)}</div><div class="box no"><h4 style="color:var(--d-player)">AI should not decide</h4>${list(t.ai.no)}</div></div>`;
     case 'prompts': return (t.prompts||[]).map(p => promptBox(p.l, p.p)).join('') + `<p class="small muted" style="margin-top:8px">Every prompt assumes you filled the brackets with your real player, fantasy, loop, constraints and evidence. Unfilled brackets produce genre averages. See ${topicLink('prompting-framework')} and the <a href="#/build/prompt">Prompt Generator</a>.</p>`;
-    case 'verify': return list(t.verify) + `<details><summary>Universal verification questions (apply to every AI output)</summary><div class="body">${list(['What assumptions are you making? Mark each as given, inferred, or invented.','What evidence supports this?','What could make this fail?','What player behavior would prove this wrong?','Is this solving the actual problem or producing more content?','Is this complexity necessary?','What is the smallest prototype that tests this?','What alternatives did we reject?','What tradeoff are we making?'])}<a class="btn sm" href="#/checklists/ai-verify">Open the verification checklist</a></div></details>`;
+    case 'verify': return list(t.verify) + `<details><summary>Universal verification questions (apply to every AI output)</summary><div class="body">${list(['What assumptions are you making? Mark each as given, inferred, or invented.','What evidence supports this?','What could make this fail?','What player behaviour would prove this wrong?','Is this solving the actual problem or producing more content?','Is this complexity necessary?','What is the smallest prototype that tests this?','What alternatives did we reject?','What tradeoff are we making?'])}<a class="btn sm" href="#/checklists/ai-verify">Open the verification checklist</a></div></details>`;
     case 'test': return list(t.test) + `<div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/playtest">Playtest question bank</a></div>`;
   }
   return '';
@@ -939,6 +947,19 @@ function topicContexts(t){
     steps: LOOP_STEPS.filter(s => (s.top||[]).includes(t.id))
   };
 }
+// Every part of the site that uses a topic, read from the data: the tools it motivates, the engine and
+// platform guides that cite it, the checklists and prompt templates that name it.
+function topicParts(id){
+  const guides = [...PLATFORMS.map(g => ['platforms', g]), ...ENGINES.map(g => ['engines', g])].filter(([, g]) => (g.topics || []).includes(id));
+  return [
+    ['Tools', TOOLS.filter(x => x[4] === id).map(x => ['#/build/' + x[0], x[1]])],
+    ['Guides', guides.map(([k, g]) => [`#/${k}/${g.id}`, g.t])],
+    ['Checklists', CHECKLISTS.filter(c => (c.topics || []).includes(id)).map(c => ['#/checklists/' + c.id, c.t])],
+    ['Prompts', PROMPT_TEMPLATES.filter(p => (p.topics || []).includes(id)).map(p => ['#/prompts/' + p.id, p.t])]
+  ].filter(r => r[1].length);
+}
+const PART_NOTE = { Tools:'build tools made for this idea', Guides:'engine and platform guides that cite it', Checklists:'reviews that check it', Prompts:'prompt templates for it' };
+const partsRowsHTML = id => topicParts(id).map(([label, items]) => `<div class="small" style="margin-top:8px"><b>${label}:</b> ${PART_NOTE[label]}.</div><div class="chips" style="margin-top:5px">${items.map(([h, t]) => `<a class="chip lnk" href="${h}">${esc(t)}</a>`).join('')}</div>`).join('');
 function contextsPanel(t){
   const c = topicContexts(t);
   const chips = [`<span class="chip dom" style="--dc:${c.home.color}">${esc(c.home.t)} · home</span>`]
@@ -948,7 +969,7 @@ function contextsPanel(t){
     ${c.smells.length ? `<div class="small" style="margin-top:8px"><b>Diagnoses smells:</b> ${c.smells.map(s => `<a href="#/smell/${s.id}">${esc(s.t)}</a>`).join(', ')}</div>` : ''}
     ${c.loops.length ? `<div class="small" style="margin-top:4px"><b>Core-loop links:</b> ${c.loops.map(p => esc(p.t)).join(', ')}</div>` : ''}
     ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(s => `<a href="#/ai/loop/${s.n}">${s.n}</a>`).join(', ')}</div>` : ''}
-    ${practiceChips(t.id)}${pathChips(t.id)}</div>`;
+    ${practiceChips(t.id)}${partsRowsHTML(t.id) ? `<div class="wdup">${partsRowsHTML(t.id)}</div>` : ''}${pathChips(t.id) ? `<div class="wdup">${pathChips(t.id)}</div>` : ''}</div>`;
 }
 function renderConcepts(){
   const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));
@@ -1073,6 +1094,7 @@ function topicBody(id){
   const secKeys = [...SECTION_META.map(m => m[0]), ...(t.tech && t.tech.length ? ['tech'] : [])];
   const side = wideJump(secKeys.map(k => [k === 'tech' ? 'Techniques to compare' : secTitle(k), `data-sec="${k}"`])) +
     wideBlock('In real games', inGames.length ? gameFoot.replace(' wdup', '').replace('<span class="overline">In real games</span>', '') : '') +
+    topicParts(id).map(([label, items]) => wideBlock(label, chipLinks(items))).join('') + wideBlock('Part of paths', pathsBlock(id)) +
     wideBlock('Related concepts', `<div class="related">${rel}</div>`) + (smells.length ? wideBlock('Design smells this topic helps diagnose', smellChips) : '');
   const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : wide2(overview, side);
   return `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
@@ -1107,6 +1129,8 @@ function renderDiagnose(sub='smells', arg){
   else if(sub === 'unfair') body = unfairView();
   else if(sub === 'depth') body = depthView();
   else if(sub === 'content') body = contentTreeView();
+  // The other diagnostics end in topics and paths as well, so no tab is a dead end.
+  if(sub !== 'smells') body =withNext(body, [['Topics to read next', topicChipLinks(diagTopics(sub))], ['Part of paths', pathsBlock('diagnostic:' + sub)]], 'This diagnostic');
   setView(head + body);
   if(sub === 'smells') wireSmellSearch();
   if(sub === 'unfair') wireUnfair();
@@ -1114,6 +1138,13 @@ function renderDiagnose(sub='smells', arg){
   if(sub === 'content') wireContentTree();
 }
 
+// The topics a diagnostic tab leans on, read from its own data.
+function diagTopics(sub){
+  if(sub === 'loop') return LOOP_PARTS.flatMap(p => p.top || []);
+  if(sub === 'unfair') return UNFAIR_CAUSES.map(c => c.top);
+  if(sub === 'fun' || sub === 'smells') return SMELLS.filter(s => sub === 'smells' || s.fun).flatMap(s => s.causes.map(c => c.top)).slice(0, 12);
+  return [];
+}
 function smellCard(s){ return `<a class="smell lnk blk" href="#/smell/${s.id}"><h3>${esc(s.t)}</h3><div class="small dim">${esc(s.sym)}</div><div class="chips" style="margin-top:6px">${s.dom.map(domChip).join('')}</div></a>`; }
 // Games that show a smell's causes: those whose lenses list the topics its causes
 // name, best match first, each with the lens that lists the topic.
@@ -1130,14 +1161,16 @@ function smellGamesHTML(s){
 function smellsView(id){
   const s = SMELLS.find(x => x.id === id);
   if(s){
-    return `<div class="row between"><button class="btn ghost" data-href="#/diagnose/smells">← All smells</button><div class="chips">${s.dom.map(domChip).join('')}</div></div>
+    const { tops, games } = smellGames(s);
+    return withNext(`<div class="row between"><button class="btn ghost" data-href="#/diagnose/smells">← All smells</button><div class="chips">${s.dom.map(domChip).join('')}</div></div>
       <h2 style="margin-top:10px">${esc(s.t)}</h2><p class="dim">${esc(s.sym)}</p>
       ${s.dims ? `<div class="chips" style="margin-bottom:10px"><span class="small muted">Fun dimensions implicated:</span>${s.dims.map(d => `<a class="chip lnk" style="cursor:pointer" href="#/diagnose/fun/${d}">${d}</a>`).join('')}</div>` : ''}
       <h3>Likely causes and the experiment for each</h3>
       ${s.causes.map((c, i) => `<div class="cause"><div class="t"><span class="badge-num" style="--dc:var(--accent)">${i+1}</span>${esc(c.c)} <span class="chip">${topicLink(c.top)}</span></div><div class="exp"><b>Experiment:</b> ${esc(c.exp)}</div></div>`).join('')}
       ${smellGamesHTML(s)}
       <h3 style="margin-top:16px">Ask AI to help diagnose</h3>${promptBox('Diagnostic prompt', s.prompt)}
-      <div class="callout"><b>Then:</b> write the hypothesis for the cause you believe most, in the <a href="#/build/hypothesis">Hypothesis Builder</a>. Test the cheapest experiment. Change one important variable. Test again.</div>`;
+      <div class="callout"><b>Then:</b> write the hypothesis for the cause you believe most, in the <a href="#/build/hypothesis">Hypothesis Builder</a>. Test the cheapest experiment. Change one important variable. Test again.</div>`,
+      [['Topics behind the causes', topicChipLinks(tops)], ['Games that show it', games.length ? chipLinks([...games.slice(0, 6).map(e => ['#/games/' + e.g.id + (e.lens ? '/' + e.lens : ''), e.g.t]), ['#/games/topic/' + tops.join('+'), `All ${games.length} games`]]) : ''], ['Part of paths', pathsBlock('smell:' + s.id)]], 'This smell');
   }
   return `<div class="field"><input id="smellSearch" placeholder="Filter smells: repetitive, build, tutorial, unfair, return…"></div>
     <div class="pill-tabs" id="smellDomFilter"><button class="active" data-d="">All</button>${DOMAINS.filter(d => SMELLS.some(s => s.dom.includes(d.id))).map(d => `<button data-d="${d.id}">${esc(d.t)}</button>`).join('')}</div>
@@ -1161,7 +1194,7 @@ function funView(dim){
     ${active ? `<div class="card" style="margin-top:12px"><h3>${active[0]}</h3><p>${esc(active[1])}</p><p><b>Playtest question:</b> ${esc(active[2])}</p><h4>Smells where ${active[0]} goes flat</h4><div class="smell-list">${funSmells.filter(s => s.dims && s.dims.includes(active[0])).map(smellCard).join('') || '<div class="empty">No smell tagged with this dimension yet.</div>'}</div></div>` : ''}
     <div class="section-head"><h2>Symptom → dimensions → causes → experiments</h2></div>
     <div class="smell-list">${funSmells.map(s => `<a class="smell lnk blk" href="#/smell/${s.id}"><h3>${esc(s.t)}</h3><div class="chips">${(s.dims||[]).map(d => `<span class="chip">${d}</span>`).join('')}</div></a>`).join('')}</div>
-    ${promptBox('Ask AI to tag a playtest by fun dimension', `Here are timestamped observer notes from a playtest: [NOTES]. Tag each moment of visible engagement or disengagement with the fun dimension involved (${FUN_DIMS.map(d=>d[0]).join(', ')}). Summarize the distribution, compare it to our intended mix ([INTENDED]), and identify the largest gap. Propose one change to an existing interaction, not a new system, that would close it.`)}`;
+    ${promptBox('Ask AI to tag a playtest by fun dimension', `Here are timestamped observer notes from a playtest: [NOTES]. Tag each moment of visible engagement or disengagement with the fun dimension involved (${FUN_DIMS.map(d=>d[0]).join(', ')}). Summarise the distribution, compare it to our intended mix ([INTENDED]), and identify the largest gap. Propose one change to an existing interaction, not a new system, that would close it.`)}`;
 }
 
 function loopView(part){
@@ -1266,7 +1299,7 @@ function renderBuild(tool){
     <p class="small toolwhen"><b>Use this when</b> ${esc(cur[3])} ${TOPICS[cur[4]] ? `<a href="#/map/t/${cur[4]}">Why: ${esc(TOPICS[cur[4]].t)}</a>` : ''}</p>
     <div class="toolgroups">${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="overline">${esc(gt)}</span><div class="tool-nav">${ids.map(id => { const [, t, s] = TOOLS.find(x => x[0] === id); return `<button class="${id === tool ? 'active' : ''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
   const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt, gameai: toolGameAI }[tool] || toolIdea;
-  setView(head + `<div class="tool" id="tool"></div>`);
+  setView(head + withNext(`<div class="tool" id="tool"></div>`, [['Topic behind this tool', topicChipLinks([cur[4]])], ['Part of paths', pathsBlock('tool:' + cur[0])]], 'This tool'));
   fn($('#tool'));
 }
 function field(id, label, hint, val, rows){ return `<div class="field"><label for="${id}">${esc(label)}</label>${rows ? `<textarea id="${id}" rows="${rows}">${esc(val||'')}</textarea>` : `<input id="${id}" value="${esc(val||'')}">`}${hint ? `<div class="hint">${esc(hint)}</div>` : ''}</div>`; }
@@ -1277,7 +1310,7 @@ function toolHead(t, p, key){ return `<div class="toolhead"><div><h2>${esc(t)}</
 function toolLoop(el){
   const parts = [['action','Action','What does the player physically do, most often? Is it the fantasy verb?'],['feedback','Feedback','How does the game tell them what happened and why, within ~100 ms?'],['decision','Decision','What choice do they face next, and what is the tradeoff?'],['consequence','Consequence and reward','What changes because of the choice, visibly, now?'],['situation','New situation','How is the next iteration different from this one?']];
   el.innerHTML = toolHead('Game Loop Builder', 'Write the loop from the player’s point of view, one sentence per link. Then answer the weak-link question for each. If you cannot answer it, that link is where to look first.', 'loopTool') +
-    `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="loopEx">Load a worked example</button></div><div class="grid c2"><div>${parts.map(([id, l, h]) => field('lb_'+id, l, h, '', 2) + field('lb_'+id+'_ev', 'How would a playtest show this link is strong?', 'Observable behavior, not opinion.', '', 1)).join('')}</div><div id="lb_out"></div></div>`;
+    `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="loopEx">Load a worked example</button></div><div class="grid c2"><div>${parts.map(([id, l, h]) => field('lb_'+id, l, h, '', 2) + field('lb_'+id+'_ev', 'How would a playtest show this link is strong?', 'Observable behaviour, not opinion.', '', 1)).join('')}</div><div id="lb_out"></div></div>`;
   bindForm('loopTool', parts.flatMap(([id]) => ['lb_'+id, 'lb_'+id+'_ev']), d => {
     const weak = parts.filter(([id]) => !(d['lb_'+id]||'').trim() || !(d['lb_'+id+'_ev']||'').trim());
     const md = `# Core loop\n\n${parts.map(([id, l]) => `**${l}:** ${d['lb_'+id]||'(blank)'}\n  - Evidence it is strong: ${d['lb_'+id+'_ev']||'(blank)'}`).join('\n')}\n\n## Diagnosis\n${weak.length ? `Weak or untested links: ${weak.map(w=>w[1]).join(', ')}. Fix these before multiplying the loop with content or progression.` : 'All links described with evidence. Now build the bare loop in grey boxes and test whether players repeat it voluntarily.'}\n\n## Prompt\nAct as a skeptical systems designer. Here is our core loop as the player experiences it:\n${parts.map(([id,l]) => `- ${l}: ${d['lb_'+id]||''}`).join('\n')}\nFor each link, rate its strength using only my description, name the playtest symptom if weak, and propose 3 mechanically distinct fixes for the weakest link with the decision created, intended emotion, failure mode and validating signal. Do not recommend one.`;
@@ -1299,12 +1332,12 @@ function toolCanvas(el){
 
 function toolLadder(el){
   const rungs = [['feature','Feature idea','The noun someone proposed. "Crafting." "A pet system." "Daily quests."'],['behavior','Desired player behavior','Observable in a playtest. What would they DO differently?'],['experience','Experience','What they feel while doing it.'],['system','System','The situation that produces the behavior: constraints, information, consequences.'],['mechanic','Smallest mechanic','The least rule that implements the system.'],['refeature','Feature, revisited','Now: which feature, if any? Is it the one you started with?']];
-  el.innerHTML = toolHead('Behavior Ladder', 'Feature thinking: feature → implementation → justification. Experience thinking: behavior → experience → system → mechanic → feature. Start at the top with the noun you were handed, climb to the behavior, then descend.', 'ladderTool') +
+  el.innerHTML = toolHead('Behaviour Ladder', 'Feature thinking: feature → implementation → justification. Experience thinking: behaviour → experience → system → mechanic → feature. Start at the top with the noun you were handed, climb to the behaviour, then descend.', 'ladderTool') +
     `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="ladderEx">Load the crafting example</button></div><div class="grid c2"><div class="ladder">${rungs.map(([id,l,h]) => `<div class="rung"><b>${esc(l)}</b><div>${field('ld_'+id, '', h, '', 2)}</div></div>`).join('')}</div><div id="ld_out"></div></div>`;
   const d = bindForm('ladderTool', rungs.map(r => 'ld_'+r[0]), d => {
     const same = (d.ld_feature||'').trim() && (d.ld_refeature||'').trim() && d.ld_feature.trim().toLowerCase() === d.ld_refeature.trim().toLowerCase();
-    const md = `# Behavior ladder\n\n${rungs.map(([id,l]) => `**${l}:** ${d['ld_'+id]||'(blank)'}`).join('\n\n')}\n\n## Prompt\nSomeone proposed the feature "${d.ld_feature||'[FEATURE]'}". The behavior we actually want is: ${d.ld_behavior||'[BEHAVIOR]'}. Propose 5 mechanics, smallest first, that would produce this behavior. For each, the rule in one sentence, the decision it creates, what it interacts with, and how we would observe the behavior in a 15-minute test. Then argue that an existing system could be changed to produce it without any new mechanic.`;
-    $('#ld_out').innerHTML = `<h4>Live output</h4>${outputBox(md)}${same ? '<div class="callout warn">You landed on the same feature you started with. Fine if the ladder really led there. Suspicious if you wrote the behavior to justify the noun.</div>' : ''}<div class="row"><a class="btn sm" href="#/build/feature">Now run: Should we build this?</a><a class="btn sm" href="#/map/t/feature-vs-experience">Read: experience thinking</a></div>`;
+    const md = `# Behaviour ladder\n\n${rungs.map(([id,l]) => `**${l}:** ${d['ld_'+id]||'(blank)'}`).join('\n\n')}\n\n## Prompt\nSomeone proposed the feature "${d.ld_feature||'[FEATURE]'}". The behaviour we actually want is: ${d.ld_behavior||'[BEHAVIOR]'}. Propose 5 mechanics, smallest first, that would produce this behaviour. For each, the rule in one sentence, the decision it creates, what it interacts with, and how we would observe the behaviour in a 15-minute test. Then argue that an existing system could be changed to produce it without any new mechanic.`;
+    $('#ld_out').innerHTML = `<h4>Live output</h4>${outputBox(md)}${same ? '<div class="callout warn">You landed on the same feature you started with. Fine if the ladder really led there. Suspicious if you wrote the behaviour to justify the noun.</div>' : ''}<div class="row"><a class="btn sm" href="#/build/feature">Now run: Should we build this?</a><a class="btn sm" href="#/map/t/feature-vs-experience">Read: experience thinking</a></div>`;
   });
   $('#ladderEx').onclick = () => { const ex = LADDER_EXAMPLE; const map = {feature:ex.feature, behavior:ex.behavior, experience:ex.experience, system:ex.system, mechanic:ex.mechanic, refeature:ex.refeature}; Object.entries(map).forEach(([k,v]) => { const i = $('#ld_'+k); i.value = v; i.dispatchEvent(new Event('input')); }); };
 }
@@ -1318,34 +1351,34 @@ function toolFeature(el){
     $$('#ft_qs .opts button').forEach(b => b.onclick = () => { saved.answers[b.dataset.q] = +b.dataset.o; store.set('featureTool', saved); render(); });
     if(done === FEATURE_TREE.length){ const [v, text] = featureVerdict(score, a); const label = v==='PROTOTYPE' ? 'PROTOTYPE FIRST' : v;
       const md = `# Feature review: ${saved.name||'(unnamed)'}\n\nVerdict: **${label}** (score ${score})\n\n${FEATURE_TREE.map((q,i) => `${i+1}. ${q.q}\n   → ${q.opts[a[q.id]][0]}`).join('\n')}\n\n${text}`;
-      $('#ft_verdict').innerHTML = `<div class="verdict ${v}"><h2>${label}</h2><p>${esc(text)}</p><div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/map/t/scope-control">Read: scope control</a><a class="btn sm" href="#/build/ladder">Climb the behavior ladder</a></div></div>${outputBox(md)}`; }
+      $('#ft_verdict').innerHTML = `<div class="verdict ${v}"><h2>${label}</h2><p>${esc(text)}</p><div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/map/t/scope-control">Read: scope control</a><a class="btn sm" href="#/build/ladder">Climb the behaviour ladder</a></div></div>${outputBox(md)}`; }
     else $('#ft_verdict').innerHTML = `<div class="empty">${FEATURE_TREE.length-done} question${FEATURE_TREE.length-done>1?'s':''} left</div>`; };
   $('#ft_name').addEventListener('input', e => { saved.name = e.target.value; store.set('featureTool', saved); });
   render();
 }
 
 function toolHypothesis(el){
-  const f = [['who','We believe [PLAYER]','Which player, specifically? Not "players": the sketch.'],['will','will [BEHAVIOR]','Observable in a 15-minute session. What they do, not what they feel.'],['because','because [REASON]','The mechanism. Why would the design cause the behavior?'],['signal','We will know it is working when [SIGNAL]','A rate, a count, a repeated behavior. Something you could log.'],['kill','We will kill or change it if [KILL CRITERION]','The result that ends the idea. If you cannot write one, you are hoping, not testing.'],['smallest','Smallest experiment','Paper? Spreadsheet? Grey boxes? How long to build? How many players?'],['alt','Alternative explanation','What else would produce the signal even if the hypothesis is false?']];
-  el.innerHTML = toolHead('Playtest Hypothesis Builder', 'Every significant design decision, expressible as a claim about player behavior with a signal and a kill criterion, written before the build.', 'hypTool') + `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="hyEx">Load a worked example</button></div><div class="grid c2"><div>${f.map(([id,l,h]) => field('hy_'+id, l, h, '', 2)).join('')}</div><div id="hy_out"></div></div>`;
+  const f = [['who','We believe [PLAYER]','Which player, specifically? Not "players": the sketch.'],['will','will [BEHAVIOR]','Observable in a 15-minute session. What they do, not what they feel.'],['because','because [REASON]','The mechanism. Why would the design cause the behaviour?'],['signal','We will know it is working when [SIGNAL]','A rate, a count, a repeated behaviour. Something you could log.'],['kill','We will kill or change it if [KILL CRITERION]','The result that ends the idea. If you cannot write one, you are hoping, not testing.'],['smallest','Smallest experiment','Paper? Spreadsheet? Grey boxes? How long to build? How many players?'],['alt','Alternative explanation','What else would produce the signal even if the hypothesis is false?']];
+  el.innerHTML = toolHead('Playtest Hypothesis Builder', 'Every significant design decision, expressible as a claim about player behaviour with a signal and a kill criterion, written before the build.', 'hypTool') + `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="hyEx">Load a worked example</button></div><div class="grid c2"><div>${f.map(([id,l,h]) => field('hy_'+id, l, h, '', 2)).join('')}</div><div id="hy_out"></div></div>`;
   bindForm('hypTool', f.map(x => 'hy_'+x[0]), d => {
     const st = `We believe ${d.hy_who||'[PLAYER]'} will ${d.hy_will||'[BEHAVIOR]'} because ${d.hy_because||'[REASON]'}. We will know this is working when ${d.hy_signal||'[SIGNAL]'}. We will kill or change it if ${d.hy_kill||'[KILL CRITERION]'}.`;
-    const md = `# Hypothesis\n\n> ${st}\n\n**Smallest experiment:** ${d.hy_smallest||'(blank)'}\n\n**Alternative explanation to rule out:** ${d.hy_alt||'(blank)'}\n\n## Prototype brief (paste to AI)\nAct as a prototype engineer. Hypothesis: ${st} Build the smallest playable test in [ENGINE]: only the mechanics needed, shapes only, no menus or saves. Expose [VALUES] as live sliders. Log with timestamps every input, decision point with the option chosen, failure with cause, and session start/end. Export CSV. Before coding, list the design decisions the code will embed and wait for my choices.\n\n## Observation protocol (paste to AI)\nDesign a silent observation protocol for this hypothesis with [N] players for [MINUTES]: what to log, a non-leading interview guide ordered from behavior to opinion, a coding scheme, and a results template that separates behavior from self-report.`;
-    const warn = []; if(/feel|enjoy|like|fun/i.test(d.hy_will||'')) warn.push('The behavior mentions feeling or fun. Rewrite it as something observable.'); if(!(d.hy_kill||'').trim()) warn.push('No kill criterion yet.');
+    const md = `# Hypothesis\n\n> ${st}\n\n**Smallest experiment:** ${d.hy_smallest||'(blank)'}\n\n**Alternative explanation to rule out:** ${d.hy_alt||'(blank)'}\n\n## Prototype brief (paste to AI)\nAct as a prototype engineer. Hypothesis: ${st} Build the smallest playable test in [ENGINE]: only the mechanics needed, shapes only, no menus or saves. Expose [VALUES] as live sliders. Log with timestamps every input, decision point with the option chosen, failure with cause, and session start/end. Export CSV. Before coding, list the design decisions the code will embed and wait for my choices.\n\n## Observation protocol (paste to AI)\nDesign a silent observation protocol for this hypothesis with [N] players for [MINUTES]: what to log, a non-leading interview guide ordered from behaviour to opinion, a coding scheme, and a results template that separates behaviour from self-report.`;
+    const warn = []; if(/feel|enjoy|like|fun/i.test(d.hy_will||'')) warn.push('The behaviour mentions feeling or fun. Rewrite it as something observable.'); if(!(d.hy_kill||'').trim()) warn.push('No kill criterion yet.');
     $('#hy_out').innerHTML = `<h4>Hypothesis</h4><div class="quotebig sm">${esc(st)}</div>${warn.length ? `<div class="callout warn">${warn.map(esc).join('<br>')}</div>` : ''}${outputBox(md)}<div class="row"><a class="btn sm" href="#/map/t/hypothesis-driven-design">Read: hypothesis-driven design</a><a class="btn sm" href="#/playtest">Playtest question bank</a></div>`;
   });
   $('#hyEx').onclick = () => { const ex = { who:'a commuter who plays 30-minute Slay the Spire runs and quits when a run feels lost by minute five', will:'replan their deck before the first fight instead of taking the first card offered', because:'the reward screen shows the long-run consequence of each card before they commit', signal:'6 of 10 testers read the preview twice or more in their first three runs', kill:'fewer than 3 of 10 ever read the preview, or they read it and still pick at random', smallest:'a paper deck with printed consequence cards, 15 minutes per tester, 8 matched players', alt:'players read the preview because it is novel, not because it changes the card they pick' }; Object.entries(ex).forEach(([k,v]) => { const i = $('#hy_'+k); if(i){ i.value = v; i.dispatchEvent(new Event('input')); } }); };
 }
 
 function toolDelegate(el){
-  const saved = store.get('delegateTool', {tasks:[{t:'Define the player fantasy', w:'Human'},{t:'Generate five loop variations', w:'AI'},{t:'Decide whether the loop is fun', w:'Player evidence required'},{t:'Analyze playtest logs for choice variance', w:'Human + AI'}]});
+  const saved = store.get('delegateTool', {tasks:[{t:'Define the player fantasy', w:'Human'},{t:'Generate five loop variations', w:'AI'},{t:'Decide whether the loop is fun', w:'Player evidence required'},{t:'Analyse playtest logs for choice variance', w:'Human + AI'}]});
   const opts = ['Human','AI','Human + AI','Player evidence required'];
   el.innerHTML = toolHead('AI Delegation Planner', 'For each task in your current cycle, decide the owner before the work starts. Compare with the responsibility matrix. "Player evidence required" means nobody can own it yet.', 'delegateTool') +
     `<div class="grid c2"><div><div id="dl_rows"></div><div class="row" style="margin-top:8px"><input id="dl_new" placeholder="Add a task…" style="flex:1"><button class="btn" id="dl_add">Add</button></div><p class="small muted" style="margin-top:8px">Suggestions come from the <a href="#/ai/matrix">responsibility matrix</a> by keyword and are only a starting point.</p></div><div id="dl_out"></div></div>`;
   const suggest = t => { const l = t.toLowerCase(); const hit = MATRIX.find(m => m[0].toLowerCase().split(' ').filter(w=>w.length>4).some(w => l.includes(w))); if(!hit) return null; const h = hit[1], a = hit[2]; if(h==='PRIMARY' && a!=='PRIMARY') return 'Human'; if(a==='PRIMARY' && h!=='PRIMARY') return 'AI'; return 'Human + AI'; };
   const render = () => { $('#dl_rows').innerHTML = saved.tasks.map((x, i) => { const s = suggest(x.t); return `<div class="plan-row"><div><input value="${esc(x.t)}" data-i="${i}" class="dl_t">${s && s!==x.w ? `<div class="small muted">matrix suggests: ${s}</div>` : ''}</div><select data-i="${i}" class="dl_w">${opts.map(o => `<option ${o===x.w?'selected':''}>${o}</option>`).join('')}</select><button class="btn sm ghost danger dl_del" data-i="${i}">✕</button></div>`; }).join('') || '<div class="empty">No tasks.</div>';
     const counts = Object.fromEntries(opts.map(o => [o, saved.tasks.filter(x => x.w===o).length]));
-    const md = `# Delegation plan\n\n${saved.tasks.map(x => `- [${x.w}] ${x.t}`).join('\n')}\n\n## Balance\n${opts.map(o => `- ${o}: ${counts[o]}`).join('\n')}\n\n## Checks\n- Every AI task: what decisions will the work embed, and which human owns them?\n- Every "player evidence required" task: what is the smallest test?\n- Human tasks: are these judgment, or production you could delegate?`;
-    $('#dl_out').innerHTML = `<h4>Balance</h4><div class="chips" style="margin-bottom:8px">${opts.map(o => `<span class="chip ${o==='Human'?'human':o==='AI'?'ai':o==='Human + AI'?'shared':'evidence'}">${o}: ${counts[o]}</span>`).join('')}</div>${counts['Player evidence required']===0 && saved.tasks.length>3 ? '<div class="callout warn">Nothing needs player evidence? Either the cycle has no design risk, or judgment calls are being assigned to humans or AI that only players can settle.</div>' : ''}${outputBox(md)}`;
+    const md = `# Delegation plan\n\n${saved.tasks.map(x => `- [${x.w}] ${x.t}`).join('\n')}\n\n## Balance\n${opts.map(o => `- ${o}: ${counts[o]}`).join('\n')}\n\n## Checks\n- Every AI task: what decisions will the work embed, and which human owns them?\n- Every "player evidence required" task: what is the smallest test?\n- Human tasks: are these judgement, or production you could delegate?`;
+    $('#dl_out').innerHTML = `<h4>Balance</h4><div class="chips" style="margin-bottom:8px">${opts.map(o => `<span class="chip ${o==='Human'?'human':o==='AI'?'ai':o==='Human + AI'?'shared':'evidence'}">${o}: ${counts[o]}</span>`).join('')}</div>${counts['Player evidence required']===0 && saved.tasks.length>3 ? '<div class="callout warn">Nothing needs player evidence? Either the cycle has no design risk, or judgement calls are being assigned to humans or AI that only players can settle.</div>' : ''}${outputBox(md)}`;
     $$('.dl_t').forEach(i => i.oninput = () => { saved.tasks[+i.dataset.i].t = i.value; store.set('delegateTool', saved); });
     $$('.dl_w').forEach(s => s.onchange = () => { saved.tasks[+s.dataset.i].w = s.value; store.set('delegateTool', saved); render(); });
     $$('.dl_del').forEach(b => b.onclick = () => { saved.tasks.splice(+b.dataset.i, 1); store.set('delegateTool', saved); render(); }); };
@@ -1393,12 +1426,12 @@ function toolSysmap(el){
 }
 
 function toolPrompt(el){
-  const parts = [['context','CONTEXT','Player, fantasy, core loop, systems. The situation as it is.',3],['intent','INTENT','The experience you want and the decision you need to make.',2],['constraints','CONSTRAINTS','Platform, scope, team, what is off the table.',2],['evidence','EVIDENCE','Playtest results, telemetry, known problems. If none, say so. The task should then be a test design.',2],['role','ROLE','Skeptical systems designer? UX researcher? Devil’s advocate? Pick one stance.',1],['task','TASK','Analyze, generate, compare, build, simulate, code. Specific verbs, specific counts.',2],['output','OUTPUT FORMAT','Table columns, ranked list, code with logging, a hypothesis in standard form.',1],['critique','CRITIQUE','What the AI should attack in its own output, and what it must not do (recommend, decide, add scope).',2]];
+  const parts = [['context','CONTEXT','Player, fantasy, core loop, systems. The situation as it is.',3],['intent','INTENT','The experience you want and the decision you need to make.',2],['constraints','CONSTRAINTS','Platform, scope, team, what is off the table.',2],['evidence','EVIDENCE','Playtest results, telemetry, known problems. If none, say so. The task should then be a test design.',2],['role','ROLE','Skeptical systems designer? UX researcher? Devil’s advocate? Pick one stance.',1],['task','TASK','Analyse, generate, compare, build, simulate, code. Specific verbs, specific counts.',2],['output','OUTPUT FORMAT','Table columns, ranked list, code with logging, a hypothesis in standard form.',1],['critique','CRITIQUE','What the AI should attack in its own output, and what it must not do (recommend, decide, add scope).',2]];
   el.innerHTML = toolHead('AI Prompt Generator', 'The formula: CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT FORMAT + CRITIQUE. Fill what you know. Blanks are shown as brackets so you notice what you have not decided yet.', 'promptTool') +
     `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="pgEx">Load a worked example</button><a class="btn sm ghost" href="#/ai/ladder">See the prompt ladder</a></div><div class="formula">${parts.map(p => `<button data-action="focus" data-target="pg_${p[0]}">${p[1]}</button>`).join('<span class="plus">+</span>')}</div><div class="grid c2"><div>${parts.map(([id,l,h,r]) => field('pg_'+id, l, h, '', r)).join('')}</div><div id="pg_out"></div></div>`;
   bindForm('promptTool', parts.map(p => 'pg_'+p[0]), d => {
     const v = k => (d['pg_'+k]||'').trim();
-    const txt = `CONTEXT: ${v('context')||'[player, fantasy, loop, systems]'}\n\nINTENT: ${v('intent')||'[the experience we want. The decision I must make]'}\n\nCONSTRAINTS: ${v('constraints')||'[platform, scope, team, off-limits]'}\n\nEVIDENCE: ${v('evidence')||'[playtest results, telemetry, known problems. Or "none yet"]'}\n\nROLE: Act as a skeptical ${v('role')||'[role]'}.\n\nTASK: ${v('task')||'Analyze the design space, identify the assumptions in the current design, generate mechanically distinct alternatives, compare their tradeoffs, and propose the smallest experiments that would distinguish between them.'}\n\nOUTPUT FORMAT: ${v('output')||'[table columns / ranked list / code with logging]'}\n\nCRITIQUE: ${v('critique')||'Finally, attack your own output: what assumptions did you make (mark given, inferred, invented), what could make each alternative fail, what player behavior would prove it wrong, and what did you leave out? Do not recommend a final choice. I will decide.'}`;
+    const txt = `CONTEXT: ${v('context')||'[player, fantasy, loop, systems]'}\n\nINTENT: ${v('intent')||'[the experience we want. The decision I must make]'}\n\nCONSTRAINTS: ${v('constraints')||'[platform, scope, team, off-limits]'}\n\nEVIDENCE: ${v('evidence')||'[playtest results, telemetry, known problems. Or "none yet"]'}\n\nROLE: Act as a skeptical ${v('role')||'[role]'}.\n\nTASK: ${v('task')||'Analyse the design space, identify the assumptions in the current design, generate mechanically distinct alternatives, compare their tradeoffs, and propose the smallest experiments that would distinguish between them.'}\n\nOUTPUT FORMAT: ${v('output')||'[table columns / ranked list / code with logging]'}\n\nCRITIQUE: ${v('critique')||'Finally, attack your own output: what assumptions did you make (mark given, inferred, invented), what could make each alternative fail, what player behaviour would prove it wrong, and what did you leave out? Do not recommend a final choice. I will decide.'}`;
     const missing = parts.filter(p => !v(p[0])).map(p => p[1]);
     $('#pg_out').innerHTML = `<h4>Generated prompt</h4>${outputBox(txt)}${missing.length ? `<div class="callout warn"><b>Unfilled:</b> ${missing.join(', ')}. ${missing.includes('EVIDENCE') ? 'No evidence: consider making the task "design the test" instead of "design the feature".' : ''} ${missing.includes('INTENT') ? 'No intent: the AI will pick the decision for you.' : ''}</div>` : '<div class="callout ok">All eight terms filled. After the output, run the verification pass.</div>'}<div class="row"><a class="btn sm" href="#/prompts/verify">Verification pass prompt</a><a class="btn sm" href="#/ai/roles">Choose a role</a><a class="btn sm" href="#/prompts">Prompt library</a></div>`;
   });
@@ -1546,7 +1579,7 @@ function toolIdea(el){
    ===================================================================== */
 function renderAI(sub='loop', arg){
   const tabs = [['loop','The 12-step loop'],['ladder','Prompt ladder'],['philosophy','Bottleneck shift'],['roles','AI roles'],['matrix','Responsibility matrix'],['framework','Prompting framework'],['failures','When AI makes it worse']];
-  const head = `${crumbs([['AI Workflow']])}<h1>AI Workflow</h1><p class="dim">How to delegate design work to AI without delegating design judgment.</p><div class="tabs">${tabs.map(([id,t]) => `<button class="${id===sub?'active':''}" data-href="#/ai/${id}">${t}</button>`).join('')}</div>`;
+  const head = `${crumbs([['AI Workflow']])}<h1>AI Workflow</h1><p class="dim">How to delegate design work to AI without delegating design judgement.</p><div class="tabs">${tabs.map(([id,t]) => `<button class="${id===sub?'active':''}" data-href="#/ai/${id}">${t}</button>`).join('')}</div>`;
   let body = '';
   if(sub==='loop') body = aiLoopView(arg);
   else if(sub==='ladder') body = aiLadderView();
@@ -1577,8 +1610,8 @@ function aiPhilosophyView(){
   const t = TOPICS['bottleneck-shift'];
   return `<div class="card"><h2>AI changes the bottleneck</h2>
     <div class="workflow-compare"><div><h4>Traditional</h4>${chainHTML([['Human thinks','#/map/t/bottleneck-shift','human'],['Human designs','#/map/t/bottleneck-shift','human'],['Human documents','#/map/t/bottleneck-shift','human'],['Human implements','#/map/t/bottleneck-shift','human']])}</div>
-    <div><h4>AI era</h4>${chainHTML([['Human frames','#/map/t/prompting-framework','human'],['AI expands, searches, analyzes','#/map/t/ai-roles','ai'],['Human judges','#/map/t/verifying-ai-output','human'],['AI prototypes, implements','#/map/t/ai-for-implementation','ai'],['Players provide evidence','#/map/t/playtesting','evidence'],['Human decides','#/map/t/iteration-and-evidence','human'],['AI iterates','#/ai/loop','ai']])}</div></div>
-    <div class="bottleneck" style="margin-top:14px"><div class="col"><h4>No longer the bottleneck</h4><ul><li class="strike">writing</li><li class="strike">coding</li><li class="strike">generating content</li><li class="strike">producing variations</li><li class="strike">documentation</li></ul></div><div class="mid">→</div><div class="col"><h4>The bottleneck now</h4><ul><li>taste</li><li>judgment</li><li>problem framing</li><li>prioritization</li><li>understanding players</li><li>recognizing fun</li><li>separating signal from noise</li><li>making tradeoffs</li><li>knowing what NOT to build</li></ul></div></div>
+    <div><h4>AI era</h4>${chainHTML([['Human frames','#/map/t/prompting-framework','human'],['AI expands, searches, analyses','#/map/t/ai-roles','ai'],['Human judges','#/map/t/verifying-ai-output','human'],['AI prototypes, implements','#/map/t/ai-for-implementation','ai'],['Players provide evidence','#/map/t/playtesting','evidence'],['Human decides','#/map/t/iteration-and-evidence','human'],['AI iterates','#/ai/loop','ai']])}</div></div>
+    <div class="bottleneck" style="margin-top:14px"><div class="col"><h4>No longer the bottleneck</h4><ul><li class="strike">writing</li><li class="strike">coding</li><li class="strike">generating content</li><li class="strike">producing variations</li><li class="strike">documentation</li></ul></div><div class="mid">→</div><div class="col"><h4>The bottleneck now</h4><ul><li>taste</li><li>judgement</li><li>problem framing</li><li>prioritisation</li><li>understanding players</li><li>recognising fun</li><li>separating signal from noise</li><li>making tradeoffs</li><li>knowing what NOT to build</li></ul></div></div>
     <div class="quotebig">AI can generate possibilities extremely cheaply. Humans must decide what is worth making.</div>
     <div class="quotebig" style="border-left-color:var(--bad)">A polished bad idea is still a bad game.</div>
     <div class="grid c2" style="margin-top:12px"><div class="box"><h4>Questions to ask yourself weekly</h4>${list(t.think.q)}</div><div class="box"><h4>Traps</h4>${list(t.think.traps)}</div></div>
@@ -1591,7 +1624,7 @@ function aiRolesView(arg){
     <div class="section-head"><h2>A good sequence</h2></div>${chainHTML([['Brainstormer','#/ai/roles/brainstormer','ai'],['Critic','#/ai/roles/critic','ai'],['Systems designer','#/ai/roles/systems','ai'],['Human decides what to test','#/map/t/hypothesis-driven-design','human'],['Prototype engineer','#/ai/roles/engineer','ai'],['Players','#/map/t/playtesting','evidence'],['Playtest analyst','#/ai/roles/analyst','ai'],['Human interprets and decides','#/ai/loop/9','human'],["Devil's advocate before commit",'#/ai/roles/devil','ai'],['Content generator, after validation','#/ai/roles/content','ai']])}`;
 }
 function aiMatrixView(){
-  return `<div class="callout">Decide who owns each task before the work starts. <span class="chip human">PRIMARY human</span> <span class="chip ai">PRIMARY AI</span> <span class="chip shared">Shared</span> Click a row for the reason. Filter to see the pattern: judgment stays human, volume, simulation and production go to AI.</div>
+  return `<div class="callout">Decide who owns each task before the work starts. <span class="chip human">PRIMARY human</span> <span class="chip ai">PRIMARY AI</span> <span class="chip shared">Shared</span> Click a row for the reason. Filter to see the pattern: judgement stays human, volume, simulation and production go to AI.</div>
     <div class="pill-tabs" id="mxFilter"><button class="active" data-f="">All</button><button data-f="human">Human primary</button><button data-f="ai">AI primary</button><button data-f="shared">Shared</button></div>
     <div class="tablewrap"><table class="matrix"><thead><tr><th>Task</th><th>Human</th><th>AI</th></tr></thead><tbody id="mxBody">${MATRIX.map((m, i) => { const cls = m[1]==='PRIMARY'&&m[2]!=='PRIMARY' ? 'human' : m[2]==='PRIMARY'&&m[1]!=='PRIMARY' ? 'ai' : 'shared'; return `<tr data-f="${cls}" data-i="${i}" style="cursor:pointer"><td>${esc(m[0])}</td><td class="who"><span class="chip ${m[1]==='PRIMARY'?'human':''}">${m[1]}</span></td><td class="who"><span class="chip ${m[2]==='PRIMARY'?'ai':''}">${m[2]}</span></td></tr><tr class="why hidden" data-for="${i}"><td colspan="3" class="small dim" style="background:var(--bg2)">${esc(m[3])}</td></tr>`; }).join('')}</tbody></table></div>
     <div class="row" style="margin-top:12px"><a class="btn" href="#/build/delegate">Plan your own tasks in the Delegation Planner</a><a class="btn" href="#/map/t/responsibility-matrix">Read the topic</a></div>`;
@@ -1602,14 +1635,14 @@ function wireMatrix(){
 }
 function aiFrameworkView(){
   const terms = FORMULA_TERMS;
-  return `<div class="callout">The best prompt is rarely "give me ideas". It is: <i>here is the player, fantasy, current loop, constraints, evidence and known problems, analyze the design space, identify assumptions, generate alternatives, compare tradeoffs, and propose the smallest experiments that distinguish between them.</i></div>
+  return `<div class="callout">The best prompt is rarely "give me ideas". It is: <i>here is the player, fantasy, current loop, constraints, evidence and known problems, analyse the design space, identify assumptions, generate alternatives, compare tradeoffs, and propose the smallest experiments that distinguish between them.</i></div>
     <div class="formula" id="fmla">${terms.map((t,i) => `<button data-i="${i}" class="${i===0?'active':''}">${t[0]}</button>`).join('<span class="plus">+</span>')}</div>
     <div class="card" id="fmlaInfo"><h3>${terms[0][0]}</h3><p>${esc(terms[0][1])}</p></div>
     <div class="grid c2" style="margin-top:14px"><div class="card" style="border-color:color-mix(in srgb,var(--bad) 50%,transparent)"><h4 style="color:var(--bad)">Weak</h4><pre>Design a fun combat system.</pre><p class="small dim">No player, no fantasy, no constraint, no evidence, no role, no output shape. You will get the genre average with confidence.</p></div>
     <div class="card" style="border-color:color-mix(in srgb,var(--ok) 50%,transparent)"><h4 style="color:var(--ok)">Strong</h4>${promptBox('', `Act as a skeptical systems designer. Here is the intended player fantasy, target skill level, desired decision density, and current prototype: [CONTEXT]. Generate 5 mechanically distinct solutions. For each, identify the player decision created, intended emotion, likely failure mode, implementation complexity, and what evidence would validate or invalidate the hypothesis. Do not recommend a solution yet.`)}${promptBox('Then', `Now challenge these concepts. Assume the game feels repetitive after 20 minutes. Identify which underlying decisions are too shallow and propose the smallest experiments that could test your diagnosis.`)}</div></div>
     <div class="row" style="margin-top:12px"><a class="btn primary" href="#/build/prompt">Open the Prompt Generator</a><a class="btn" href="#/prompts">Prompt library</a><a class="btn" href="#/map/t/prompting-framework">Read the topic</a></div>`;
 }
-const FORMULA_TERMS = [['CONTEXT','Player, fantasy, core loop, systems. The world as it is. Without it you get the genre average.'],['INTENT','The experience you want and the decision you need to make. Without it the AI picks the decision.'],['CONSTRAINTS','Platform, scope, team, off-limits. Without them you get the biggest plausible answer.'],['EVIDENCE','Playtest results, telemetry, known problems. Without it the task should be "design the test", not "design the feature".'],['ROLE','The stance: skeptical systems designer, UX researcher, devil’s advocate. Without it you get mild everything.'],['TASK','Analyze, generate N, compare, simulate, build with logging. Specific verbs and counts.'],['OUTPUT FORMAT','A table, a ranked list, code with an exposed tuning panel, a hypothesis in standard form. How you will consume it.'],['CRITIQUE','What the AI must attack in its own output and what it must not do: recommend, decide, add scope.']];
+const FORMULA_TERMS = [['CONTEXT','Player, fantasy, core loop, systems. The world as it is. Without it you get the genre average.'],['INTENT','The experience you want and the decision you need to make. Without it the AI picks the decision.'],['CONSTRAINTS','Platform, scope, team, off-limits. Without them you get the biggest plausible answer.'],['EVIDENCE','Playtest results, telemetry, known problems. Without it the task should be "design the test", not "design the feature".'],['ROLE','The stance: skeptical systems designer, UX researcher, devil’s advocate. Without it you get mild everything.'],['TASK','Analyse, generate N, compare, simulate, build with logging. Specific verbs and counts.'],['OUTPUT FORMAT','A table, a ranked list, code with an exposed tuning panel, a hypothesis in standard form. How you will consume it.'],['CRITIQUE','What the AI must attack in its own output and what it must not do: recommend, decide, add scope.']];
 function wireFramework(){ $$('#fmla button').forEach(b => b.onclick = () => { $$('#fmla button').forEach(x => x.classList.remove('active')); b.classList.add('active'); const t = FORMULA_TERMS[+b.dataset.i]; $('#fmlaInfo').innerHTML = `<h3>${esc(t[0])}</h3><p>${esc(t[1])}</p>`; }); }
 const LADDER = [
   { n:1, stage:'Observe', role:'Observer', you:'Collect what players actually do: reviews, forums, streams, patch-note reactions, mods, spreadsheets, third-party tools.', ai:'Structure the raw artefacts, cluster recurring behaviour, and mark each claim fact, inference or speculation.', caution:'AI must never invent evidence. If it cannot cite the artefact, it is speculation.', prompt:`Here are raw player artefacts (reviews, forum posts, clips, tool descriptions): [PASTE]. Extract the recurring behaviours. For each, give the artefact it came from and label it fact, inference or speculation. Do not propose game ideas.` },
@@ -1622,7 +1655,7 @@ const LADDER = [
   { n:8, stage:'Critique to hypothesis', role:'Hypothesis framer', you:'Commit to a claim you are willing to kill.', ai:'Help write it in standard form: we believe [player] will [behaviour] because [reason]. Signal. Kill criterion.', caution:'If the kill criterion is missing, it is hope, not a hypothesis.', prompt:`Chosen direction: [DIRECTION]. Write it as: we believe [PLAYER] will [OBSERVABLE BEHAVIOUR] because [MECHANISM]. We will know it works when [SIGNAL]. We will kill it if [CRITERION]. Then name the alternative explanation that would produce the same signal.` },
   { n:9, stage:'Hypothesis to prototype', role:'Prototype designer', you:'Accept the scope. The prototype proves one thing.', ai:'Design the smallest test: only the mechanics needed, exposed tuning values, full logging, exclusions.', caution:'If the prototype answers more than the hypothesis, it is too big.', prompt:`Hypothesis: [HYPOTHESIS]. Build the smallest playable test in [ENGINE] that could disprove it. Only the mechanics needed, grey boxes, no menus or saves, expose [VALUES] as live sliders, log every input, decision, failure and session boundary with timestamps. List the design decisions the code will embed before writing it.` },
   { n:10, stage:'Player evidence', role:'Playtest analyst', you:'Watch the players. Interpret the context only you have.', ai:'Find patterns in notes, transcripts and logs. Separate behaviour from self-report. Surface contradictions.', caution:'Simulation is not evidence. Only real players count.', prompt:`Here are observer notes, transcripts and logs: [DATA]. Cluster behaviour, mark patterns present in 3 or more players versus outliers, align notes to telemetry by time, and separate what players did from what they said. State what the evidence does and does not support. Do not interpret causes or recommend changes.` },
-  { n:11, stage:'Evidence to decision', role:'You, the human', you:'Kill, iterate, prototype again, or commit. Nobody else can make this call.', ai:'Summarize the evidence and the open questions. Nothing more.', caution:'If AI is choosing whether to continue, the process has failed.', prompt:`Here is the evidence: [EVIDENCE]. Summarize what it shows, what it cannot show, and the open questions. Present the options kill, iterate, prototype again, or commit, with the tradeoffs of each. Recommend nothing.` },
+  { n:11, stage:'Evidence to decision', role:'You, the human', you:'Kill, iterate, prototype again, or commit. Nobody else can make this call.', ai:'Summarise the evidence and the open questions. Nothing more.', caution:'If AI is choosing whether to continue, the process has failed.', prompt:`Here is the evidence: [EVIDENCE]. Summarise what it shows, what it cannot show, and the open questions. Present the options kill, iterate, prototype again, or commit, with the tradeoffs of each. Recommend nothing.` },
   { n:12, stage:'Decision to Idea Card', role:'Concept editor', you:'Own the final words.', ai:'Compress the chain into the Idea Card: player, promise, mechanism, core verb, fantasy, constraints, hypothesis, biggest risk, cheapest test, evidence level.', caution:'Compression, not creation. If the card contains a claim the chain does not, delete it.', prompt:`Here is the full reasoning chain: [CHAIN]. Compress it into an Idea Card with: player, desire, tension, opportunity, promise, core verb, mechanism, differentiation, fantasy, constraints, hypothesis, biggest risk, cheapest test, and the evidence level of each claim. Do not add anything that is not in the chain.` }
 ];
 function aiLadderView(){
@@ -1650,28 +1683,28 @@ function renderPlaytest(){
   setView(`${crumbs([['Diagnose','#/diagnose'],['Playtest']])}<h1>Playtest: the truth machine</h1><p class="dim">Observe players instead of defending your design. Turn hypotheses into experiments, and keep AI in analysis while humans interpret and decide.</p>
     <div class="quotebig">What players say is useful. What players do is evidence. Neither should be interpreted without context.</div>
     <div class="grid c3">
-      <div class="card"><h3>Say</h3><p class="small">Interviews, surveys, think-aloud. Reveals intent and mental models. Biased by politeness, memory and what they think you want. Ask open questions, after play, from behavior to opinion.</p></div>
+      <div class="card"><h3>Say</h3><p class="small">Interviews, surveys, think-aloud. Reveals intent and mental models. Biased by politeness, memory and what they think you want. Ask open questions, after play, from behaviour to opinion.</p></div>
       <div class="card"><h3>Do</h3><p class="small">Silent observation, logs, replays, retention. Reveals what actually happened. Silent about why. Log hesitation, repetition, drift, experimentation, quits, with timestamps.</p></div>
-      <div class="card"><h3>Context</h3><p class="small">What was intended, what changed since last time, who the tester is, what the room felt like. Only the human in the room has it. It is why AI analyzes and humans interpret.</p></div>
+      <div class="card"><h3>Context</h3><p class="small">What was intended, what changed since last time, who the tester is, what the room felt like. Only the human in the room has it. It is why AI analyses and humans interpret.</p></div>
     </div>
     <div class="section-head"><h2>Question bank</h2><span class="muted">Not "is it fun?" These.</span></div>
     <div class="grid c2">${bank.map(([g, qs]) => `<div class="card"><h4>${g}</h4>${list(qs)}</div>`).join('')}</div>
     <div class="section-head"><h2>Methods and what each is for</h2></div>
     <div class="tablewrap"><table><thead><tr><th>Method</th><th>Reveals</th><th>Blind to</th><th>AI can</th></tr></thead><tbody>
-      <tr><td>Silent observation</td><td>Behavior, hesitation, confusion, replay</td><td>Intent, feeling</td><td>Code timestamped notes into clusters</td></tr>
-      <tr><td>Think-aloud</td><td>Mental model, intent</td><td>Distorts behavior and pace</td><td>Transcribe. Extract model statements</td></tr>
+      <tr><td>Silent observation</td><td>Behaviour, hesitation, confusion, replay</td><td>Intent, feeling</td><td>Code timestamped notes into clusters</td></tr>
+      <tr><td>Think-aloud</td><td>Mental model, intent</td><td>Distorts behaviour and pace</td><td>Transcribe. Extract model statements</td></tr>
       <tr><td>Task-based usability</td><td>Whether specific things can be done</td><td>Engagement</td><td>Design tasks. Compute success and time</td></tr>
       <tr><td>Interview</td><td>Memory, meaning, what stuck</td><td>Accuracy. Politeness bias</td><td>Draft non-leading guides. Code answers</td></tr>
       <tr><td>Telemetry</td><td>Choices, retries, session ends at scale</td><td>Why</td><td>Correlate with observed events. Find distributions</td></tr>
       <tr><td>Replay analysis</td><td>Strategies, unintended approaches</td><td>What the player was thinking</td><td>Classify approaches. Count variety</td></tr>
-      <tr><td>Retention</td><td>Whether they came back</td><td>Everything else</td><td>Segment by first-session behavior</td></tr></tbody></table></div>
+      <tr><td>Retention</td><td>Whether they came back</td><td>Everything else</td><td>Segment by first-session behaviour</td></tr></tbody></table></div>
     <div class="section-head"><h2>Session flow</h2></div>
-    ${chainHTML([['Write the question and hypothesis','#/build/hypothesis','human'],['Recruit matched players','#/map/t/who-is-the-player','human'],['Silent observation, timestamped notes','#/map/t/playtesting','evidence'],['Tasks if needed','#/map/t/ux-as-design','evidence'],['Open interview, behavior first','#/map/t/playtesting','evidence'],['AI codes and clusters','#/map/t/ai-for-playtest-analysis','ai'],['Human adds context, interprets','#/ai/loop/8','human'],['Decide one or two changes','#/ai/loop/9','human'],['Log it','#/map/t/iteration-and-evidence','human']])}
+    ${chainHTML([['Write the question and hypothesis','#/build/hypothesis','human'],['Recruit matched players','#/map/t/who-is-the-player','human'],['Silent observation, timestamped notes','#/map/t/playtesting','evidence'],['Tasks if needed','#/map/t/ux-as-design','evidence'],['Open interview, behaviour first','#/map/t/playtesting','evidence'],['AI codes and clusters','#/map/t/ai-for-playtest-analysis','ai'],['Human adds context, interprets','#/ai/loop/8','human'],['Decide one or two changes','#/ai/loop/9','human'],['Log it','#/map/t/iteration-and-evidence','human']])}
     <div class="grid c2" style="margin-top:12px"><div class="card"><h3>Hypothesis first</h3><p class="dim small">Write it before the session so the observation cannot be rationalized afterwards.</p><a class="btn primary" href="#/build/hypothesis">Open the Hypothesis Builder</a></div><div class="card"><h3>Prepare the session</h3><p class="dim small">Question, players, protocol, and what happens after.</p><a class="btn" href="#/checklists/playtest-prep">Open the preparation checklist</a> <a class="btn" href="#/checklists/onboarding-audit">Silent onboarding audit</a></div></div>
     <div class="section-head"><h2>Prompts</h2></div>
-    ${promptBox('Observation protocol', PROMPT_TEMPLATES.find(p=>p.id==='playtest-analysis') ? `We are testing the hypothesis "[HYPOTHESIS]" with [N] players matching [PLAYER MODEL] for [MINUTES]. Design a silent observation protocol: what to log with timestamps (hesitations, repeats, drift, experiments, quits, speech), a task list if needed, and an interview guide of open, non-leading questions ordered from behavior to opinion. Include a coding scheme and a results template that separates behavior from self-report.` : '')}
+    ${promptBox('Observation protocol', PROMPT_TEMPLATES.find(p=>p.id==='playtest-analysis') ? `We are testing the hypothesis "[HYPOTHESIS]" with [N] players matching [PLAYER MODEL] for [MINUTES]. Design a silent observation protocol: what to log with timestamps (hesitations, repeats, drift, experiments, quits, speech), a task list if needed, and an interview guide of open, non-leading questions ordered from behaviour to opinion. Include a coding scheme and a results template that separates behaviour from self-report.` : '')}
     ${promptBox('Analysis without recommendations', PROMPT_TEMPLATES.find(p=>p.id==='playtest-analysis').p.replace(/\{\{(\w+)\}\}/g, '[$1]'))}
-    <div class="callout warn"><b>The rule:</b> ask AI to analyze in one pass and, only afterwards and separately, to hypothesize causes. Never let the analysis output become the change list. Read ${topicLink('ai-for-playtest-analysis')} and ${topicLink('playtesting')}.</div>`);
+    <div class="callout warn"><b>The rule:</b> ask AI to analyse in one pass and, only afterwards and separately, to hypothesize causes. Never let the analysis output become the change list. Read ${topicLink('ai-for-playtest-analysis')} and ${topicLink('playtesting')}.</div>`);
 }
 
 /* =====================================================================
@@ -1686,8 +1719,10 @@ function renderPrompts(id){
   if(sel){
     const saved = store.get('promptVars.'+sel.id, {});
     const main = $('#promptMain');
-    main.innerHTML = `<span class="chip ai">${sel.cat}</span><h2 style="margin-top:6px">${esc(sel.t)}</h2>${sel.vars.length ? `<div class="grid c2">${sel.vars.map(v => `<div class="field"><label>${v.replace(/_/g,' ')}</label><textarea rows="2" data-v="${v}">${esc(saved[v]||'')}</textarea></div>`).join('')}</div>` : '<p class="small muted">No variables: paste this as a follow-up to any AI output.</p>'}<h4>Prompt</h4><div id="pOut"></div>
-      <div class="callout"><b>After the output:</b> run the <a href="#/prompts/verify">verification pass</a>. Then write the <a href="#/build/hypothesis">hypothesis</a> for what you will test.</div>`;
+    const others = PROMPT_TEMPLATES.filter(p => p.id !== sel.id && p.cat === sel.cat).map(p => ['#/prompts/' + p.id, p.t]);
+    main.innerHTML = withNext(`<span class="chip ai">${sel.cat}</span><h2 style="margin-top:6px">${esc(sel.t)}</h2>${sel.vars.length ? `<div class="grid c2">${sel.vars.map(v => `<div class="field"><label>${v.replace(/_/g,' ')}</label><textarea rows="2" data-v="${v}">${esc(saved[v]||'')}</textarea></div>`).join('')}</div>` : '<p class="small muted">No variables: paste this as a follow-up to any AI output.</p>'}<h4>Prompt</h4><div id="pOut"></div>
+      <div class="callout"><b>After the output:</b> run the <a href="#/prompts/verify">verification pass</a>. Then write the <a href="#/build/hypothesis">hypothesis</a> for what you will test.</div>`,
+      [['Topics behind this prompt', topicChipLinks(sel.topics)], ['Part of paths', pathsBlock('prompt:' + sel.id)], ['More in this group', chipLinks(others)]], 'This prompt');
     const update = () => { $$('textarea[data-v]', main).forEach(t => saved[t.dataset.v] = t.value); store.set('promptVars.'+sel.id, saved); const txt = sel.p.replace(/\{\{(\w+)\}\}/g, (m, v) => (saved[v]||'').trim() || `[${v.replace(/_/g,' ')}]`); $('#pOut').innerHTML = outputBox(txt); };
     main.addEventListener('input', update); update();
   }
@@ -1702,8 +1737,9 @@ function renderChecklists(id){
   const tabs = CHECKLISTS.map(c => `<button class="${c.id===sel.id?'active':''}" data-href="#/checklists/${c.id}">${esc(c.t)}</button>`).join('');
   setView(`${crumbs([['Library','#/games'],['Checklists']])}<h1>Checklists</h1><p class="dim">Practical reviews. Checkbox state is saved per checklist. Reset when you start a new feature or session.</p>
     <div class="pill-tabs cktabs">${tabs}</div>
-    <div class="card"><div class="row between"><div><h2>${esc(sel.t)}</h2><p class="dim" style="margin:0">${esc(sel.desc)}</p></div><div class="row"><span class="chip" id="ckCount"></span><button class="btn sm" id="ckExport">Export Markdown</button><button class="btn sm ghost danger" id="ckReset">Reset</button></div></div>
-      <div class="grid c2 fill" style="margin-top:12px">${sel.groups.map(([g, items], gi) => `<div class="checklist"><h4>${esc(g)}</h4>${items.map((it, ii) => { const k = gi+'.'+ii; return `<label class="${state[k]?'done':''}"><input type="checkbox" data-k="${k}" ${state[k]?'checked':''}><span>${esc(it)}</span></label>`; }).join('')}</div>`).join('')}</div></div>`);
+    ${withNext(`<div class="card"><div class="row between"><div><h2>${esc(sel.t)}</h2><p class="dim" style="margin:0">${esc(sel.desc)}</p></div><div class="row"><span class="chip" id="ckCount"></span><button class="btn sm" id="ckExport">Export Markdown</button><button class="btn sm ghost danger" id="ckReset">Reset</button></div></div>
+      <div class="grid c2 fill" style="margin-top:12px">${sel.groups.map(([g, items], gi) => `<div class="checklist"><h4>${esc(g)}</h4>${items.map((it, ii) => { const k = gi+'.'+ii; return `<label class="${state[k]?'done':''}"><input type="checkbox" data-k="${k}" ${state[k]?'checked':''}><span>${esc(it)}</span></label>`; }).join('')}</div>`).join('')}</div></div>`,
+      [['Topics behind this checklist', topicChipLinks(sel.topics)], ['Platform guides', chipLinks((sel.platforms || []).map(id => PLATFORMS.find(p => p.id === id)).filter(Boolean).map(p => ['#/platforms/' + p.id, p.t]))], ['Part of paths', pathsBlock('checklist:' + sel.id)]], 'This checklist')}`);
   const total = sel.groups.reduce((n,g) => n+g[1].length, 0);
   const count = () => { const n = Object.values(state).filter(Boolean).length; $('#ckCount').textContent = `${n} / ${total}`; $('#ckCount').className = 'chip ' + (n===total ? 'ok' : ''); };
   $$('input[data-k]').forEach(i => i.onchange = () => { state[i.dataset.k] = i.checked; i.closest('label').classList.toggle('done', i.checked); store.set('check.'+sel.id, state); count(); });
@@ -1721,21 +1757,21 @@ const SOURCES = [
   ['Self-Determination Theory in games','Ryan, Rigby and Przybylski (2006) and Rigby and Ryan, Glued to Games (2011): enjoyment and continued play track satisfaction of competence, autonomy and relatedness. One of the few research-backed models here.','Used in: Player motivation, Return and quit, Social experience.','research'],
   ['Flow and player-steered difficulty','Csikszentmihalyi’s flow (challenge matching skill). Jenova Chen’s thesis Flow in Games (2006) argues for letting players steer difficulty through play rather than hidden adjustment. Flow-channel literalism is contested. Some games live outside the band on purpose.','Used in: Difficulty, Fun dimensions.','contested'],
   ['Interesting decisions','Sid Meier (GDC 2012): a game is a series of interesting decisions, interesting ones involve tradeoffs, depend on the situation, and express the player. Decisions need visible consequences and enough information to reason.','Used in: Meaningful decisions, Risk and reward, Core loop diagnostic.','heuristic'],
-  ['Depth versus complexity. Elegance','Popularized by Extra Credits (2013) and widely used since: complexity is what the player must learn, depth is the meaningful decisions that result, elegance is depth per rule. Soren Johnson’s Water Finds a Crack (2011): players exploit every hole. No agreed metric. Use as a lens.','Used in: Depth vs complexity, Rule audit tool.','heuristic'],
+  ['Depth versus complexity. Elegance','Popularised by Extra Credits (2013) and widely used since: complexity is what the player must learn, depth is the meaningful decisions that result, elegance is depth per rule. Soren Johnson’s Water Finds a Crack (2011): players exploit every hole. No agreed metric. Use as a lens.','Used in: Depth vs complexity, Rule audit tool.','heuristic'],
   ['A Theory of Fun','Raph Koster (2004): fun is the pleasure of learning and mastering patterns, boredom arrives when the pattern is exhausted, trivial, or too noisy to perceive.','Used in: Fun dimensions, Skill and mastery, Repetitive smell.','heuristic'],
   ['The Art of Game Design','Jesse Schell (2008): the elemental tetrad (mechanics, story, aesthetics, technology) and the lenses, question-sets that force one viewpoint at a time. This guide’s eight-part topic structure is in that spirit.','Used in: the topic structure, Narrative and Presentation domains.','heuristic'],
-  ['Game Feel and the Art of Screenshake','Steve Swink (2008): real-time control of virtual objects, in a simulated space, emphasized by polish, response within about 100 ms. Jan Willem Nijman (Vlambeer, 2013): a live demo of how much perceived quality comes from layered feedback.','Used in: Game feel and juice, Feedback, Floaty combat smell.','heuristic'],
+  ['Game Feel and the Art of Screenshake','Steve Swink (2008): real-time control of virtual objects, in a simulated space, emphasised by polish, response within about 100 ms. Jan Willem Nijman (Vlambeer, 2013): a live demo of how much perceived quality comes from layered feedback.','Used in: Game feel and juice, Feedback, Floaty combat smell.','heuristic'],
   ['Kishōtenketsu level structure','Koichi Hayashida (Nintendo, 2012 interview on Super Mario 3D Land): introduce, develop, twist, conclude, each level a short lesson about one idea. Celeste (Maddy Thorson, GDC 2017): one movement idea per room, failure kept cheap.','Used in: Level structure (teach, test, twist, combine, master, rest).','heuristic'],
   ['Ludonarrative dissonance','Clint Hocking (2007), on a game whose mechanics rewarded self-interest while its story preached altruism. Sometimes a deliberate expressive tool, not always a defect.','Used in: Ludonarrative alignment.','heuristic'],
   ['Ten thousand bowls of oatmeal','Kate Compton (2016): a generator can make endless mathematically unique outputs that all read as the same thing. Perceptual uniqueness is the real bar. Perceptual differentiation the minimum.','Used in: Procedural and AI-generated content, Content spam failure mode.','heuristic'],
   ['Game UX: usability and engage-ability','Celia Hodent, The Gamer’s Brain (2017): usability (signs and feedback, clarity, form follows function, consistency, minimum workload, error recovery, flexibility) versus engage-ability. Don Norman’s affordances and signifiers. Nielsen’s heuristics adapted for games.','Used in: the whole UX domain.','research'],
-  ['Playtesting as empiricism','Mike Ambinder (Valve, GDC 2009): designs are hypotheses, playtests are experiments, observe behavior and weigh self-report against it. Richard Lemarchand, A Playful Production Process (2021): concentric development, vertical slice, regular structured playtesting. Dan Cook: skill atoms, loops and arcs.','Used in: Playtesting, Hypothesis-driven design, Vertical slice, Content multiplies.','practice'],
-  ['Designing Games','Tynan Sylvester (2013): games are systems for generating experiences, target emotion, design for emergence, and maximize emotional power while minimizing burden on players and team.','Used in: Core experience, Systemic design, Agency and emergence.','heuristic'],
+  ['Playtesting as empiricism','Mike Ambinder (Valve, GDC 2009): designs are hypotheses, playtests are experiments, observe behaviour and weigh self-report against it. Richard Lemarchand, A Playful Production Process (2021): concentric development, vertical slice, regular structured playtesting. Dan Cook: skill atoms, loops and arcs.','Used in: Playtesting, Hypothesis-driven design, Vertical slice, Content multiplies.','practice'],
+  ['Designing Games','Tynan Sylvester (2013): games are systems for generating experiences, target emotion, design for emergence, and maximise emotional power while minimizing burden on players and team.','Used in: Core experience, Systemic design, Agency and emergence.','heuristic'],
   ['Studio maxims, read carefully','Jaime Griesemer’s “30 seconds of fun” (Bungie) meant nested loops of roughly 3 seconds, 30 seconds and 3 minutes, not one repeated loop. “Easy to learn, hard to master” is Bushnell’s Law (Atari), adopted by Blizzard. A slogan, not a method.','Used in: Core loop, Goals at three horizons.','contested'],
   ['Hypothesis-driven design','The “We believe X will Y because Z. We will know when W” template comes from Lean Startup (Eric Ries) and Lean UX (Gothelf and Seiden), not from a game-specific source. Its game analogue is Ambinder’s and Lemarchand’s practice of testing with a written question.','Used in: Hypothesis Builder, the 12-step loop.','practice'],
   ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
   ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation spread in 2023. Zheng et al. (2023) found that a strong model judge agreed with people about as often as people agree with each other, and documented its biases toward answer position, answer length and its own answers. From 2025, coding agents that edit files, run commands and iterate against tests came into regular use. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
-  ['Postmortems that generalize','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
+  ['Postmortems that generalise','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
   ['Game art and images','The reference games are shown with our own schematics of their loops and screens. Store art and a few official screenshots appear small, credited to the developer and linked to the official store page, each screenshot attached to the point it teaches, with no claim of endorsement. Games with no store page we can credit show an original drawing of ours, labelled as such. Any generated image would be marked as generated beside it. If you hold the rights to an image here and want it removed, open an issue on the guide’s repository (github.com/hedgon/playable-game-design-os) and it will be taken down.','Used in: Reference games, Reference Dissection.','practice'],
   ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work treats motivations as continuous scales: Nick Yee’s Quantic Foundry model measures twelve motivations in six pairs (Action, Social, Mastery, Achievement, Immersion, Creativity) from player surveys. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
   ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
@@ -1743,12 +1779,40 @@ const SOURCES = [
   ['Game AI as experience, not optimality','A long-standing practitioner position (Mick West on Killer Instinct’s readable AI, Richard Evans on The Sims, the “AI is a lie” thread in Game AI Pro) holds that in-game AI is judged by the experience it creates, not by how smart it is. Faked, scripted and telegraphed behaviour often reads better than simulation.','Used in: What in-game AI is for, Readable and fair AI, Scripted vs simulated.','practice'],
   ['Learning-based game AI','Yannakakis and Togelius, Artificial Intelligence and Games (2018), plus headline results (DeepMind AlphaStar, OpenAI Five): learned policies reach superhuman play, but shipping constraints (determinism, debuggability, cost, unfair-but-strong play) keep most production wins in testing, balance, animation and control rather than shipped opponents.','Used in: Learning-based and ML-driven AI.','contested'],
   ['Language models as characters','Park et al., Generative Agents (2023): characters driven by a language model with memory and planning produce believable social behaviour in a sandbox. Shipping them adds what research demos skip: the OWASP Top 10 for LLM applications ranks prompt injection first, and latency, cost, moderation and age ratings apply to every line. The guide keeps the game in charge of actions and falls back to authored lines.','Used in: Generative characters.','contested'],
+  ['Gaffer on Games','Glenn Fiedler (from 2004): articles on the fixed timestep, deterministic simulation and network state synchronisation, written by an engine programmer for other programmers. The site takes the fixed-step loop and the vocabulary of snapshots, inputs and determinism.','Used in: The game loop and fixed timestep, Rollback netcode and lockstep.','practice'],
+  ['GGPO and rollback netcode','Tony Cannon (GGPO, 2006): predict the remote player’s input, run the frame at once, and rewind and replay when the guess was wrong. Fighting games made it the standard. The site takes the idea that latency can be hidden by guessing, and the cost: a game that can save, restore and re-simulate its state exactly.','Used in: Rollback netcode and lockstep.','practice'],
+  ['Game Programming Patterns','Robert Nystrom (2014, free online): the classic patterns (game loop, update method, component, state, object pool, command) explained with game code and their trade-offs. The site takes the names and the warning that a pattern is a tool with a cost, not a goal.','Used in: Design patterns in games, The game loop and fixed timestep, Entities, scenes and ECS.','practice'],
+  ['Game Engine Architecture','Jason Gregory (3rd edition, 2018, from his work at Naughty Dog): a tour of what a whole engine contains, from memory and the main loop to resources and the runtime object model. The site uses it as a map of the engine, not as a rulebook for any one of them.','Used in: engine and craft topics that explain how an engine is put together (loop, scenes, memory).','practice'],
+  ['Game Mechanics: Advanced Game Design','Ernest Adams and Joris Dormans (2012): a game economy is a network of sources, sinks, converters and feedback loops, drawn and simulated in the Machinations tool. The site takes the habit of modelling an economy before tuning numbers.','Used in: Economy modelling and balance.','practice'],
+  ['Radical Candor','Kim Scott (2017): feedback works when you care personally and challenge directly. A popular framework rather than research, and directness norms vary by culture and power. The site uses it as one lens on giving feedback, next to written expectations and the law.','Used in: Feedback and performance management.','contested'],
   ['Rules that change','Store rules, laws and court rulings on AI disclosure, loot boxes, payments and children’s data change every year. Topics that depend on them carry dated facts, each with its source and the day it was checked, and the build warns when one is a year old. They are a starting point for your own check, not legal advice.','Used in: Ethics and responsibility, Business model, Launch and discoverability, Disclosure and platform rules, Generative assets, Generative characters.','practice']
 ];
+// Every dated fact in the data, grouped by the page that cites it: [title, href, facts] for topics, platform
+// and engine guides, and the curated channels.
+const hostOf = src => { try { return new URL(src).hostname.replace(/^www\./, ''); } catch(e) { return src; } };
+function citedSources(){
+  const groups = [];
+  const add = (t, href, facts) => { const f = (facts || []).filter(x => x && x.src); if(f.length) groups.push([t, href, f]); };
+  TOPIC_LIST.forEach(t => add(t.t, '#/map/t/' + t.id, t.facts));
+  PLATFORMS.forEach(p => add(p.t + ' (platform guide)', '#/platforms/' + p.id, Object.values(p.stages).flatMap(st => st.facts || [])));
+  ENGINES.forEach(e => add(e.t + ' (engine guide)', '#/engines/' + e.id, Object.values(e.stages).flatMap(st => st.facts || [])));
+  add('Curated and regional channels', '#/platforms', PLATFORM_NOTES.flatMap(n => n.facts || []));
+  return groups;
+}
+function citedHTML(){
+  const groups = citedSources(), n = groups.reduce((k, g) => k + g[2].length, 0), hosts = new Set(groups.flatMap(g => g[2].map(f => hostOf(f.src))));
+  if(!n) return '';
+  const item = f => `<li><a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(hostOf(f.src))}</a> <span class="small muted">checked ${esc(f.asOf)}</span></li>`;
+  return `<div class="section-head"><h2>Cited across the site</h2><span class="muted">${n} dated facts, ${hosts.size} sites</span></div>
+    <details class="card cited"><summary><b>Every source behind a dated fact</b>, grouped by the page that cites it</summary>
+    <p class="small dim">Built from the data, so it cannot drift from the pages. Each line is the site and the day the fact was last checked. Open the source before you rely on a number.</p>
+    <div class="citedlist">${groups.map(([t, href, facts]) => `<details class="citedgroup"><summary><a href="${href}">${esc(t)}</a> <span class="muted small">${facts.length}</span></summary><ul class="pfacts">${facts.map(item).join('')}</ul></details>`).join('')}</div></details>`;
+}
 function renderSources(){
   const tag = k => ({research:'<span class="chip ok">research-backed</span>', heuristic:'<span class="chip">practitioner heuristic</span>', contested:'<span class="chip warn">contested</span>', practice:'<span class="chip shared">practice</span>'})[k];
-  setView(`${crumbs([['Library','#/games'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesizes established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres. A few items rest on research. Several are contested and marked as such. Verify against your players.</p>
+  setView(`${crumbs([['Library','#/games'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesises established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres. A few items rest on research. Several are contested and marked as such. Verify against your players.</p>
     <div class="grid c2 fill">${SOURCES.map(s => `<div class="card"><div class="row between"><h3 style="margin:0">${esc(s[0])}</h3>${tag(s[3])}</div><p style="margin:8px 0 6px">${esc(s[1])}</p><div class="small muted">${esc(s[2])}</div></div>`).join('')}</div>
+    ${citedHTML()}
     <div class="callout" style="margin-top:14px"><b>How the synthesis was done.</b> Frameworks were checked for attribution and date. Where a maxim is routinely misquoted, the guide states the original intent. Where a template has no game-specific origin (the hypothesis form), the guide says so. Where ideas conflict (definitions of fun, flow literalism, player types), they are presented as lenses and the reader is told to test against players.</div>`);
 }
 
@@ -1864,7 +1928,7 @@ function projectPage(c){
   const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Project views">${tabs.map(([k, label]) => `<button role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" data-action="proj-tab" data-case="${c.id}">${label}</button>`).join('')}</div>` : '';
   const body = tab === 'workflows' ? workflowsBody(c)
     : tab === 'interview' ? interviewBody(c.iv, 'var(--accent2)', 'story.' + c.id)
-    : casePage(c);
+    : withNext(casePage(c), [['Related topics', topicChipLinks((c.rel || []).map(r => r[0]))], ['Part of paths', pathsBlock('case:' + c.id)]], 'This project');
   return `${caseHead(c)}${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
 }
 function flowPage(c, f){
@@ -2214,14 +2278,16 @@ function pathPageHTML(pth, stageIdParam){
   const curStage = (stageIdParam && pth.stages.some(s => s.id === stageIdParam)) ? stageIdParam : currentStageId(pth);
   const { prog, total, done, doneStages, pct } = pathProgressCounts(pth);
   const next = pathNextStep(pth.id);
-  return `<div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
+  const main = `<div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
     ${hasPrereq(pth) ? `<p class="small muted">Prereq: ${prereqHtml(pth, pathLinkChip, ', ')}</p>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
     <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
-    ${pth.next.length ? `<div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : ''}`;
+    ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`;
+  const side = wideBlock('Stages', `<ol>${pth.stages.map(st => `<li><a class="lnk" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></li>`).join('')}</ol>`) + wideBlock('Where to go next', pth.next.length ? `<div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : '');
+  return wide2(main, side, 'This path');
 }
 function renderPaths(id, stageId){
   if(id === 'review') return location.replace('#/review');
@@ -2251,21 +2317,37 @@ let _PATH_LINKS = null;
 function pathLinks(){
   if(!_PATH_LINKS){
     _PATH_LINKS = {};
-    // Topics key by id, reference games by 'game:' + id.
+    // Topics key by id, every other kind by kind + ':' + ref (an engine step with an alternative also counts
+    // for the alternative; a case part or workflow also counts for its project as 'case:' + id).
+    const add = (key, pth, st) => { const l = _PATH_LINKS[key] || (_PATH_LINKS[key] = []); if(!l.some(h => h.path === pth && h.stage === st)) l.push({ path:pth, stage:st }); };
     PATHS.forEach(pth => pth.stages.forEach(st => st.steps.forEach(step => {
-      if(step.kind !== 'topic' && step.kind !== 'game') return;
-      const key = step.kind === 'game' ? 'game:' + step.ref : step.ref;
-      (_PATH_LINKS[key] || (_PATH_LINKS[key] = [])).push({ path:pth, stage:st });
+      if(step.kind === 'reflect') return;
+      if(step.kind === 'topic') return add(step.ref, pth, st);
+      add(step.kind + ':' + step.ref, pth, st);
+      if(step.alt) add(step.kind + ':' + step.alt, pth, st);
+      if(step.kind === 'part' || step.kind === 'flow'){ const { cs } = step.kind === 'part' ? findCasePart(step.ref) : findCaseFlow(step.ref); if(cs) add('case:' + cs.id, pth, st); }
     })));
   }
   return _PATH_LINKS;
 }
+const pathChipList = key => (pathLinks()[key] || []).map(h => `<a class="chip prac lnk" href="#/paths/${h.path.id}/${h.stage.id}">${esc(h.path.t)} · ${esc(h.stage.t)}</a>`).join('');
 function pathChips(topicId, what){
   const hits = pathLinks()[topicId] || [];
   if(!hits.length) return '';
   return `<div class="small" style="margin-top:8px"><b>Part of paths:</b> a guided sequence that walks through this ${what || 'topic'}.</div>
-    <div class="chips" style="margin-top:5px">${hits.map(h => `<a class="chip prac lnk" href="#/paths/${h.path.id}/${h.stage.id}">${esc(h.path.t)} · ${esc(h.stage.t)}</a>`).join('')}</div>`;
+    <div class="chips" style="margin-top:5px">${pathChipList(topicId)}</div>`;
 }
+// The next-step rows of a page that has no other way on: [title, html] pairs. In the wide layout the side
+// column carries them and the copies in the page are hidden (.wdup); narrower, the page carries them.
+function nextBlocks(rows){
+  rows = rows.filter(r => r[1]);
+  return { main: rows.map(([t, h]) => `<div class="wdup nextblock"><div class="section-head"><h2>${t}</h2></div>${h}</div>`).join(''), side: rows.map(([t, h]) => wideBlock(t, h)).join('') };
+}
+const chipLinks = items => items.length ? `<div class="chips">${items.map(([href, label]) => `<a class="chip lnk" href="${href}">${esc(label)}</a>`).join('')}</div>` : '';
+const topicChipLinks = ids => chipLinks([...new Set(ids || [])].filter(id => TOPICS[id] || VIEW_LINKS[id]).map(id => [TOPICS[id] ? '#/map/t/' + id : VIEW_LINKS[id][0], TOPICS[id] ? TOPICS[id].t : VIEW_LINKS[id][1]]));
+const pathsBlock = key => { const h = pathChipList(key); return h ? `<div class="chips">${h}</div>` : ''; };
+// A wide page: `main` beside its next-step rows.
+const withNext = (main, rows, label) => { const b = nextBlocks(rows); return wide2(main + b.main, b.side, label); };
 
 /* =====================================================================
    SEARCH
@@ -2275,7 +2357,7 @@ function buildIndex(){
   const INDEX = [];
 const engText = t => t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k].term, ...(t.eng[k].api||[]), t.eng[k].pitfall, t.eng[k].map] : []) : [];
 const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map(x => x.q)) : [];
-TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
+TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...(t.facts||[]).map(f=>f.claim), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
 TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.sub ? c.sub + ' · ' : ''}${c.role} · ${c.period}`, href:'#/experience/'+c.id, text:(c.t+' '+(c.sub||'')+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).forEach(s => (s.parts||[]).forEach(p => INDEX.push({ type:'experience', t:c.t+' · '+p.t, snip:`${s.t} · ${p.why}`, href:`#/experience/${c.id}/${s.id}/${p.id}`, text:(c.t+' '+s.t+' '+s.kind+' '+(s.stack||[]).join(' ')+' '+p.t+' '+p.what+' '+(p.how||[]).join(' ')+' '+p.why+' '+p.trade+' '+(p.story||'')).toLowerCase() }))));
@@ -2316,7 +2398,22 @@ let searchSel = 0, searchResults = [];
 // titles and synonyms only. Results come back grouped, pages first.
 const STOP_WORDS = new Set(['a', 'an', 'the', 'of', 'to', 'and', 'or', 'for', 'in', 'on', 'with', 'how', 'what', 'is', 'my', 'i', 'do', 'about']);
 const foldWord = w => w.length > 4 && /ies$/.test(w) ? w.slice(0, -3) + 'y' : w.length > 3 && /[^s]s$/.test(w) ? w.slice(0, -1) : w;
-const searchWords = s => (String(s).toLowerCase().match(/[a-z0-9]+/g) || []).map(foldWord);
+// Spelling and phrasing are folded the same way in the index and in the query, so a reader who types
+// "license" finds "licence", "monetization" finds "monetisation", and "one on one" finds "1:1s".
+// Terms that mean the same thing to a learner become one token (gacha and loot box; netcode and networking).
+const SEARCH_PHRASES = [
+  [/\b1\s*:\s*1s?\b|\bone[\s-]+on[\s-]+ones?\b|\b1[\s-]+on[\s-]+1s?\b/g, ' oneonone '],
+  [/\bloot[\s-]*box(?:es)?\b|\bgachas?\b/g, ' lootbox '],
+  [/\bnet[\s-]?code\b|\bnetworking\b/g, ' netcode '],
+  [/\bfree[\s-]to[\s-]play\b|\bf2p\b/g, ' f2p '],
+  [/\buser experience\b/g, ' ux ']
+];
+const SPELLING_STEMS = 'monet|optim|local|cultural|personal|priorit|organ|summar|minim|maxim|custom|normal|general|special|character|categor|util|real|visual|initial|recogn|synchron|stabil|emphas|author|capital|fantas|standard';
+const SPELLING_IS = new RegExp('^(' + SPELLING_STEMS + ')is(e|es|ed|ing|ation|ations|er|ers)$');
+const SPELLING_WORDS = { licence:'license', licences:'licenses', licenced:'licensed', centre:'center', centres:'centers', artefact:'artifact', artefacts:'artifacts', catalogue:'catalog', defence:'defense', offence:'offense', judgement:'judgment', grey:'gray', cancelled:'canceled', programme:'program', analyse:'analyze', analyses:'analyzes', analysed:'analyzed', analysing:'analyzing', sceptical:'skeptical', ageing:'aging' };
+const SPELLING_OUR = /^(col|behavi|favo|hon|flav|neighb|lab|humo|rumo|savo|valo|endeavo|harbo)our/;
+const spellFold = w => SPELLING_WORDS[w] || w.replace(SPELLING_OUR, m => m.slice(0, -3) + 'or').replace(SPELLING_IS, '$1iz$2');
+const searchWords = s => (SEARCH_PHRASES.reduce((x, [re, to]) => x.replace(re, to), String(s).toLowerCase()).match(/\d+(?:\.\d+)+|[a-z0-9]+/g) || []).map(w => foldWord(spellFold(w)));
 // True when a and b differ by one insertion, deletion, substitution or swap.
 function oneEdit(a, b){
   if(a === b || Math.abs(a.length - b.length) > 1) return a === b;
@@ -2476,6 +2573,6 @@ document.addEventListener('keydown', e => {
 // What the later files import from this one.
 Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION });
+  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search });
 })(window.PlayableApp = {});
 

@@ -118,6 +118,25 @@ const server = http.createServer((req, res) => {
     for (const [q, v] of [['goal', 'gameplay'], ['level', 'some'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
     const exp = await page.evaluate(() => document.querySelector('#pane .chooser-pick h3')?.textContent);
     check(`${tag} an engineer with some experience is taken straight to the engine path`, exp === 'Gameplay engineer, Godot', exp);
+    // the advanced design path: an experienced designer is taken straight to it, and its five stages render
+    for (const [q, v] of [['goal', 'design'], ['level', 'senior'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+    const sen = await page.evaluate(() => ({ h: document.querySelector('#pane .chooser-pick h3')?.textContent, picked: [...document.querySelectorAll('#pane .card.picked')].map(c => c.dataset.pathCard) }));
+    check(`${tag} an experienced designer is taken first to the senior design path`, sen.h === 'Senior game designer' && sen.picked.length === 1 && sen.picked[0] === 'senior-game-designer', JSON.stringify(sen));
+    await nav('#/paths/senior-game-designer'); await page.waitForTimeout(300);
+    const senStages = await page.evaluate(() => [...document.querySelectorAll('#pane .pathstage')].map(e => e.dataset.stage));
+    check(`${tag} the senior design path page renders its five stages`, senStages.length === 5 && senStages.join() === 's1,s2,s3,s4,s5', senStages.join());
+    // the advanced developer path: an experienced gameplay, backend or AI learner is taken first to it, and its six stages render
+    await nav('#/paths'); await page.waitForTimeout(200);
+    for (const [q, v] of [['level', 'senior'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+    for (const g of ['gameplay', 'backend', 'ai']) {
+      for (const [q, v] of [['goal', g]]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+      const dev = await page.evaluate(() => ({ h: document.querySelector('#pane .chooser-pick h3')?.textContent, picked: [...document.querySelectorAll('#pane .card.picked')].map(c => c.dataset.pathCard) }));
+      check(`${tag} an experienced ${g} learner is taken first to the senior developer path`, dev.h === 'Senior game developer in the AI era' && dev.picked.length === 1 && dev.picked[0] === 'senior-game-developer-ai-era', JSON.stringify(dev));
+    }
+    await nav('#/paths/senior-game-developer-ai-era'); await page.waitForTimeout(300);
+    const devStages = await page.evaluate(() => [...document.querySelectorAll('#pane .pathstage')].map(e => e.dataset.stage));
+    check(`${tag} the senior developer path page renders its six stages`, devStages.join() === 's1,s2,s3,s4,s5,s6', devStages.join());
+    await nav('#/paths'); await page.waitForTimeout(200);
     // a one-of prerequisite (prereqAny) never forces a detour: the pick is direct, with the good bases named
     for (const [q, v] of [['goal', 'iv-eng'], ['level', 'new'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
     const anyOf = await page.evaluate(() => ({ h: document.querySelector('#pane .chooser-pick h3')?.textContent, over: document.querySelector('#pane .chooser-pick .overline')?.textContent, txt: document.querySelector('#pane .chooser-pick p')?.textContent }));

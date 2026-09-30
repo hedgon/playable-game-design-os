@@ -24,7 +24,7 @@ T('design-documents',{ d:'studio', t:'Design documents and communication', tag:'
   prompts:[{l:'One-pager',p:`Here is our concept, audience, pillars and current prototype: [CONTEXT]. Draft a one-page design summary with: the hook in one sentence, the player, the core loop, the differentiator, the constraints, and the biggest open question. Mark anything you had to invent as invented.`},{l:'Contradiction hunt',p:`Here are our design documents: [DOCUMENTS]. List every place two of them disagree, every claim the prototype contradicts, and the three decisions this set of documents fails to make.`}],
   verify:[`Could a new reader make a correct decision from this alone?`,`Does this document state the decision it is meant to support?`],
   test:[`Give the documents to someone who has not worked on the game. Can they describe the loop and the pillars back to you?`],
-  rel:[['design-pillars','The one-pager carries the pillars to people who were not in the room.'],['audience-and-positioning','The one-pager is positioning plus the loop.'],['team-and-collaboration','Documents are the artifacts that handoffs depend on.'],['prototyping','Prototypes often answer what a document was about to specify.']] });
+  rel:[['design-pillars','The one-pager carries the pillars to people who were not in the room.'],['audience-and-positioning','The one-pager is positioning plus the loop.'],['team-and-collaboration','Documents are the artifacts that handoffs depend on.'],['prototyping','Prototypes often answer what a document was about to specify.'],['design-critique-and-feedback','The intent statement a design review starts from.']] });
 TECH('design-documents',[
   {n:'One-pager', how:`A single page: player, fantasy, pillars, hook, comparables, biggest open question.`, fit:`Pitches, alignment, and any new collaborator.`, cost:`Forces every claim to be short enough to be testable.`, alt:`A pitch deck when a live audience is expected.`},
   {n:'Living design doc', how:`The current rules and intent, updated when a decision changes, never a write-once bible.`, fit:`An active team that needs one truth.`, cost:`Needs an owner or it goes stale.`, alt:`A decision log plus the prototype for small teams.`},
@@ -119,7 +119,7 @@ T('metrics-and-success',{ d:'studio', t:'Metrics, telemetry and success criteria
   prompts:[{l:'Instrumentation plan',p:`Our hypothesis is: [HYPOTHESIS]. Our game states and actions are: [LIST]. Propose the smallest set of events and properties that would let us measure the expected behaviour and its alternatives. For each event, give the trigger, the properties, and the decision it informs. Include the confounds the data cannot separate.`},{l:'Result read',p:`Here are the results before and after a change: [DATA]. Baseline: [BASELINE]. For each metric, state whether the change is within noise, what behaviour it suggests, and what would make that reading false. Do not tell me the cause. Give me the two experiments that would separate the candidate explanations.`}],
   verify:[`Does each metric connect to a stated decision?`,`Is a baseline present for every claimed change?`,`Has the proxy-versus-goal risk been named?`],
   test:[`Name the one behaviour that would prove the design works and check whether the build can measure it.`,`Report one number and the decision it changed. If there is no decision, the number was a vanity metric.`],
-  rel:[['hypothesis-driven-design','A hypothesis is only testable if its signal is captured.'],['iteration-and-evidence','Metrics are one evidence channel beside observation.'],['playtesting','Behaviour metrics and observed playtest behaviour should agree.'],['return-and-quit','Retention is the lagging signal of the whole loop.'],['soft-launch-and-playable-ads','Soft launch is where a written kill criterion first has to survive contact with real cohort data.']] });
+  rel:[['hypothesis-driven-design','A hypothesis is only testable if its signal is captured.'],['iteration-and-evidence','Metrics are one evidence channel beside observation.'],['playtesting','Behaviour metrics and observed playtest behaviour should agree.'],['return-and-quit','Retention is the lagging signal of the whole loop.'],['soft-launch-and-playable-ads','Soft launch is where a written kill criterion first has to survive contact with real cohort data.'],['live-design-seasons-and-data','Reading the metrics without fooling yourself, and the decisions data does not make.']] });
 TECH('metrics-and-success',[
   {n:'Leading indicators', how:`Behaviour inside a session, such as completion, retries, and time to first decision.`, fit:`Changes you need to read within a week.`, cost:`Do not directly show retention.`, alt:`Pair each leading signal with the lagging outcome it predicts.`},
   {n:'Cohort analysis', how:`Compare groups by when they joined rather than one blended average.`, fit:`Retention and any change that ships to everyone over time.`, cost:`Needs enough players per cohort to read.`, alt:`Use matched test groups for small samples.`},
@@ -503,4 +503,112 @@ INTERVIEW('quality-and-build-health',{
       a:`Against iteration speed rather than taste. Measure what is slowing the team: build times, how long a tuning change takes to see in play, how often a change breaks something unrelated. Pay down the debt that sits on that path, in a standing share of each milestone, and leave ugly code that costs nobody anything.`,
       follow:`An engineer wants to rewrite a system that is ugly but not slowing anyone down. How do you respond?`,
       red:`Schedules a refactoring milestone with no measure of what it buys.` }
+  ] });
+
+T('design-critique-and-feedback',{ d:'studio', t:'Design critique and feedback', tag:'Critique the design against its intent, in a room that keeps the owner in charge, and give designers feedback they can act on.',
+  what:`Design critique is a structured conversation about a design, held to make the design better while the owner still owns it. It covers three jobs: running a review of a feature or a build, critiquing a game someone else made so a team can learn from it, and giving feedback to a designer you mentor. The common rule is to critique the design against its stated intent, not the person and not your taste. A review with no stated intent is an argument about preferences. Pixar's Braintrust, described by Ed Catmull in Harvard Business Review, is a well-known model of the room: a group of directors gives notes on work in progress, the notes are not mandatory and the group has no authority, so the director decides what to do with them. Use that as a lens for the room, not a law. The observation, inference and preference split, the teardown sheet and the order of mentee feedback below are this site's own working method. It sits next to the design-review checklist, which lists what to check, and to lead-feedback-performance, which covers feedback and performance management in general. This topic is the design-specific craft between them.`,
+  why:[`A review without a stated intent turns into taste. The loudest or most senior opinion wins and the designer learns nothing they can reuse.`,`If critics can order changes, the owner stops owning the design. The design becomes the average of the room and nobody is accountable for it.`,`Feedback can backfire. Kluger and DeNisi (Psychological Bulletin, 1996) pooled 607 effects from 131 papers (23,663 observations). Feedback raised performance on average (d = .41), yet over 38 percent of the effects were negative. Effects shrank as attention moved from the task toward the self: feedback that threatened self-esteem averaged d = .08 in the top quartile against .47 in the bottom, and praise averaged .09 against .34 without it. Feedback that gave the correct solution or showed the rate of progress (velocity) helped. Effects were also weaker on complex tasks (.03 against .55) and stronger with a goal set (.51 against .30), though those two were only near significance. Lab and workplace tasks, not design work.`,`A junior designer who hears only "not great" or only "looks good" cannot improve. Specific feedback tied to the goal is how a design skill is passed on.`,`Teardowns of shipped games are cheap teaching when the critique is a method. Without one, the team collects opinions about a game and reuses none of them.`],
+  think:{ q:[`What is this design trying to do? Say it in a sentence the owner agrees with before any critique.`,`What do I observe, what do I infer, and what do I prefer? Are they kept apart in what I say?`,`Is this a problem with the design, the build, or the test?`,`What would change my mind? What would the owner need to see?`,`Who decides? Am I giving a note or an order?`,`Does this note point at the work or at the person? Would it read the same about someone else's design?`,`For a mentee: what is the one habit worth changing this week?`],
+    trade:[`Candid review finds problems early and hurts if the room is not safe. A gentle one is safe and lets problems ship.`,`Owner-decides keeps accountability and means good notes are sometimes ignored.`],
+    traps:[`Solutioneering: proposing a fix before the problem is agreed. The owner defends the design instead of understanding the problem.`,`Reviewing in a meeting with ten people and no written intent.`,`Praise sandwiches that hide the point.`,`Critiquing a mentee's design by rewriting it. They learn your answer, not the reasoning.`,`Copying a hit's features in a teardown without saying which of its decisions your game can afford.`,`Feedback to a mentee only when something has gone wrong.`],
+    good:[`The owner leaves with a short list of problems, each tied to the intent, and decides what to do with them.`,`A mentee can say what they will do differently next time and why.`],
+    bad:[`The review ends with the loudest person's preference as the new plan.`,`The notes cannot be told from taste.`] },
+  how:[`Before the review, the owner writes the intent: the goal, the player, the pillar it serves, what a success looks like. Circulate it with the build or document.`,`Reviewers play or read alone first and write notes in three columns: what I saw, what I think it means, what I would try. Write every note about the work and its effect on the player, in the third person about the design. Send the notes before the meeting.`,`Open the meeting by having the owner restate the intent, then take the problems one at a time. Ask questions before offering fixes: what were you hoping the player would do here?`,`Keep fixes for the end and offer them as options. The owner decides, and writes down what they will change, what they will test, and what they will leave.`,`For a teardown of another game, use a fixed sheet: the core loop, the pillars you can infer, three decisions that work and why, three that cost the game and why, and what you would steal, adapt or avoid for your game.`,`For a mentee, compare this piece of work with their own earlier version so they see the direction of progress (in the meta-analysis feedback showing the rate of change raised performance). Do not write the assessment as a verdict on them: feedback that threatened self-esteem, and generic praise, had the weakest effects. When you praise, name the specific choice and what it did for the player.`,`For a mentee, give feedback near the moment, about one thing, in this order: the goal they had, what you saw, the effect on the player, and a question about what they would try. Then agree one habit to watch.`,`Note the pattern across reviews. If three designs miss for the same reason, teach that reason to the team, not to one person.`,`Track the outcome. Did the change made after a review fix the problem? Reviews that never check this drift into ritual.`],
+  ai:{ yes:[`Draft an intent statement from a design doc, for the owner to correct.`,`Reformat raw notes into observation, inference and suggestion, and flag the ones that are only preference.`,`Produce a teardown sheet from your notes on a game.`,`Rehearse a hard feedback conversation and suggest clearer wording.`],
+       no:[`Decide whether the design meets its intent. That needs playing it.`,`Give a mentee the feedback for you. It has to come from someone who knows the work.`] },
+  prompts:[{l:'Notes cleaner',p:`Here are my raw review notes on a design whose intent is: [INTENT]. Sort every note into observation, inference or preference. For each inference, say what evidence in the build would support it. Rewrite the preferences as questions. Mark any note that proposes a fix without naming the problem.`},{l:'Feedback rehearsal',p:`I need to give feedback to a designer I mentor. Their goal was [GOAL]. I saw [OBSERVATIONS]. The effect on the player was [EFFECT]. Draft the conversation as four steps: goal, what I saw, the effect, and a question for them to answer. Keep it under 150 words, and make the question one that cannot be answered with yes.`}],
+  verify:[`Is the intent written and agreed before the critique starts?`,`Are notes separated into observation, inference and preference?`,`Did the owner leave with their own decision list, not the room's?`,`Was the outcome of the last review checked?`,`Does every note name the design or the player's experience, and none the designer's ability?`],
+  test:[`After a review, ask the owner to say the top three problems and their reasons. If they cannot, the review did not land.`,`Read your last ten notes. How many describe what a player would do, and how many describe what you like?`,`Score your last ten notes: how many are about the work, and how many are about the person or generic praise? The meta-analysis links the second kind to worse results.`,`Ask a mentee what they took from the last feedback. A different answer from yours shows a gap in what you said.`],
+  rel:[['lead-feedback-performance','The general craft of feedback; this topic applies it to designs.'],['lead-one-on-ones','The place where a mentee\'s growth is followed up between reviews.'],['design-documents','The intent statement and the decision record the review reads and writes.'],['learning-from-success','The teardown method for critiquing a shipped game.']],
+  facts:[{claim:`In Ed Catmull's Harvard Business Review article How Pixar Fosters Collective Creativity (2008), a brain trust of directors offers advice on works in progress; the production's leaders decide what to use, there are no mandatory notes, and the brain trust has no authority.`,asOf:'2026-09-30',src:'https://hbr.org/2008/09/how-pixar-fosters-collective-creativity'},{claim:`Kluger and DeNisi (Psychological Bulletin 119, 254-284, 1996) meta-analysed 607 effect sizes from 131 papers (23,663 observations). Feedback interventions raised performance on average (weighted d = .41) but over 38 percent of effects were negative, a spread not explained by sampling error. They propose that effects fall as feedback moves attention from the task to the self. Moderators: discouraging feedback, praise and threats to self-esteem weakened effects; feedback giving the correct solution or a rate of change strengthened them. Mostly lab and workplace tasks, not design work, and some moderators were significant only after exclusions. The study does not test critique of games, and the Braintrust practice has no controlled test.`,asOf:'2026-09-30',src:'https://scholars.huji.ac.il/node/1802'}] });
+TECH('design-critique-and-feedback',[
+  {n:'Intent statement', how:`The owner writes the goal, player, pillar served and success measure before the review and circulates it.`, fit:`Every design review.`, cost:`Forces the owner to be clear about a design that may not be.`, alt:`A one-line goal for a small change.`},
+  {n:'Observation, inference, preference notes', how:`Each note is tagged as what was seen, what it means, or what the reviewer likes.`, fit:`Any critique with more than two reviewers.`, cost:`Slower than free-form talk.`, alt:`Ask reviewers to phrase preferences as questions.`},
+  {n:'Teardown sheet', how:`A fixed sheet for a shipped game: loop, inferred pillars, three decisions that work, three that cost, and what to steal, adapt or avoid.`, fit:`Learning from another game together.`, cost:`Can become a list of features without your own constraints.`, alt:`One decision studied in depth.`},
+  {n:'Feedback to a mentee', how:`Goal, what you saw, the effect on the player, a question. One habit at a time.`, fit:`Regular mentoring.`, cost:`Needs time and observation close to the work.`, alt:`A written note after playing their build together.`}
+]);
+ENGINE('design-critique-and-feedback',{
+  godot:{ term:`Critique needs moments, not memories. A hotkey that stamps the build version, the scene and the time into a file means the note "the second room felt slow" points at a place anyone can return to.`,
+    api:['Node with _unhandled_input()','InputEventKey','FileAccess.open() and store_csv_line()','ProjectSettings.get_setting()','Time.get_ticks_msec()','SceneTree.current_scene'],
+    snippet:`extends Node   # autoload: ReviewStamp. F8 marks a moment for the review.
+const PATH := "user://review_notes.csv"
+
+func _unhandled_input(event: InputEvent) -> void:
+\tvar k := event as InputEventKey
+\tif k and k.pressed and not k.echo and k.keycode == KEY_F8:
+\t\tstamp()
+
+func stamp() -> void:
+\tvar mode := FileAccess.READ_WRITE if FileAccess.file_exists(PATH) else FileAccess.WRITE
+\tvar f := FileAccess.open(PATH, mode)
+\tif f == null:
+\t\treturn
+\tf.seek_end()
+\tvar scene := get_tree().current_scene
+\tf.store_csv_line(PackedStringArray([
+\t\tstr(ProjectSettings.get_setting("application/config/version", "dev")),
+\t\tscene.scene_file_path if scene else "none",
+\t\tstr(Time.get_ticks_msec() / 1000)]))`,
+    pitfall:`Opening the notes file with FileAccess.WRITE every time. WRITE truncates, so each stamp erases the last and the file always holds one row. Use READ_WRITE on an existing file and seek to the end, or the file is lost as the reviewer works.`,
+    map:`A Godot autoload with an F8 hotkey is a Unity MonoBehaviour that reads the Input System each frame and appends to a file.` },
+  unity:{ term:`The same stamp as a small component. It appends a row with the version, scene and time when F8 is pressed, so a reviewer can note a moment without breaking play.`,
+    api:['UnityEngine.InputSystem.Keyboard.current','wasPressedThisFrame','File.AppendAllText()','Application.persistentDataPath','Application.version','SceneManager.GetActiveScene()'],
+    snippet:`using System.IO;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+
+public class ReviewStamp : MonoBehaviour {
+    void Update() {
+        var kb = Keyboard.current;
+        if (kb != null && kb.f8Key.wasPressedThisFrame) Stamp();
+    }
+
+    public static void Stamp() {
+        string path = Path.Combine(Application.persistentDataPath, "review_notes.csv");
+        string row = $"{Application.version},{SceneManager.GetActiveScene().name},{Time.realtimeSinceStartup:F0}\\n";
+        File.AppendAllText(path, row);
+    }
+}`,
+    pitfall:`Reading Input.GetKeyDown in a project set to the Input System package only. Many Unity 6 project templates use the new package, and when Active Input Handling is set to it alone the old Input class throws an InvalidOperationException every frame. Use Keyboard.current, and null-check it because there is no keyboard on a phone.`,
+    map:`A Unity component with Keyboard.current is a Godot autoload with _unhandled_input, and File.AppendAllText is FileAccess in READ_WRITE mode at the end.` },
+  note:`A stamp is only a pointer. The review still needs the intent and the notes. What the file gives you is a way to say "version 0.4, the second room, six minutes in" and have every reviewer look at the same thing.` });
+INTERVIEW('design-critique-and-feedback',{
+  junior:[
+    { q:`What is the difference between critiquing a design and giving an opinion?`,
+      a:`A critique measures the design against its stated intent and points to what the player would do. An opinion is what you like. Both can be useful, but they must be told apart so the owner knows which one to weigh.`,
+      follow:`Give an example of the same comment written both ways.`,
+      red:`Says a critique is just being honest about what you think.` },
+    { q:`Someone says your feature is confusing. What do you do?`,
+      a:`Ask what they were trying to do and where they got stuck, then check whether others get stuck at the same point. Treat it as data about the design, not an attack. Decide after you have seen it more than once.`,
+      follow:`What if only one person found it confusing?`,
+      red:`Defends the design before hearing where they got stuck.` }
+  ],
+  mid:[
+    { q:`How do you run a design review so the owner stays in charge?`,
+      a:`The owner writes the intent first. Reviewers send notes beforehand, sorted into observation, inference and preference. In the room the owner restates the goal and the group deals with problems before fixes. The owner ends by saying what they will change, test and leave.`,
+      follow:`What do you do when a senior person starts giving orders?`,
+      red:`Lets the meeting settle on whatever the most senior person says.` },
+    { q:`You review a junior's design and see a serious flaw. How do you give the feedback?`,
+      a:`Start from their goal, say what you saw and the effect on the player, then ask what they would try. Give the flaw in one sentence, not a list. Do not rewrite it for them. Agree on one habit and look at the next design for it.`,
+      follow:`They disagree. What next?`,
+      red:`Fixes the design themselves to save time.` },
+    { q:`How do you critique a shipped game for a team without producing a list of features to copy?`,
+      a:`Use a fixed sheet: the loop, the pillars you can infer, three decisions that work and three that cost, then what to steal, adapt or avoid for our game given our constraints. The last step is the point, because it forces the team to say what they can afford.`,
+      follow:`Which game do you find hardest to tear down, and why?`,
+      red:`Lists what the hit game has and recommends adding it.` }
+  ],
+  senior:[
+    { q:`Your team's reviews have become polite and nothing changes. What do you do?`,
+      a:`Look for why. Is the intent unclear, so there is nothing to test against? Is it unsafe, so people hold back? Do notes ever change a design? Fix the cause: written intent, notes sent beforehand, a rule that the owner decides and reports what they did. Check the outcome of last month's reviews in the next one.`,
+      follow:`How do you tell safe from soft?`,
+      red:`Adds more meetings.` },
+    { q:`How do you grow designers through feedback without making them dependent on you?`,
+      a:`Give the reasoning, not the answer. Ask what they would try before saying what you would. Name the pattern across their work so they can spot it themselves. Move from telling to asking as they grow, and let them run reviews and give feedback to others.`,
+      follow:`How do you know it is working?`,
+      red:`Considers being the person everyone brings designs to a success.` },
+    { q:`Two senior designers give you opposite critiques of the same feature. What now?`,
+      a:`Return to the intent. Which critique is about the goal, and which about taste? Ask each what they saw players do. If both are about the goal, that is a real trade-off, and the owner decides with the evidence. If it is taste, say so and let it go.`,
+      follow:`When does it become a pillar question?`,
+      red:`Averages the two opinions.` }
   ] });

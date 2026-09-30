@@ -19,7 +19,7 @@ PATH('gameplay-engineer-godot', {
   track:'engineering', level:'beginner', hours:18.25,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4. Game designer foundations is optional: steps marked as refreshers repeat its ideas in a few minutes.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
-  prereq:[], next:['interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
+  prereq:[], next:['senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
   stages:[
     { id:'s1', t:'The loop, in Godot', level:'beginner',
       goal:'See the design idea of a core loop, then build it as a physics tick with a signal for the consequence.', hours:2.5,
@@ -161,7 +161,7 @@ PATH('gameplay-engineer-unity', {
   track:'engineering', level:'beginner', hours:18.5,
   audience:'Programmers new to Unity who already know how to code and want to implement a documented gameplay system end to end, in Unity 6. Game designer foundations is optional: steps marked as refreshers repeat its ideas in a few minutes.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Unity, and you can point at the Update/FixedUpdate split, the UnityEvent, and the ScriptableObject that make each one work.',
-  prereq:[], next:['interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
+  prereq:[], next:['senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
   stages:[
     { id:'s1', t:'The loop, in Unity', level:'beginner',
       goal:'See the design idea of a core loop, then build it across Update and FixedUpdate with an event for the consequence.', hours:2.5,
@@ -305,7 +305,7 @@ PATH('live-game-backend-engineer', {
   track:'engineering', level:'intermediate', hours:15.5,
   audience:'Backend or Go engineers moving into games, who already ship services (the exercises are in Go) and want the constraints unique to a live game: state that must survive a crash, a client that lies, and players who do not stop playing while you ship.',
   outcome:'You can design and defend a request path, a caching and migration strategy, and a live-ops rollout for a game backend, and verify what an AI assistant wrote for you before it ships.',
-  prereq:[], next:['netcode-server-engineer','interview-prep-engineer','technical-lead'],
+  prereq:[], next:['netcode-server-engineer','senior-game-developer-ai-era','interview-prep-engineer','technical-lead'],
   stages:[
     { id:'s1', t:'Shape the service', level:'intermediate',
       goal:'Decide which way dependencies point, how one binary can boot as many roles, and which protocol fits your client, then build the skeleton that proves it.', hours:2.75,
@@ -422,7 +422,7 @@ PATH('netcode-server-engineer', {
   track:'engineering', level:'advanced', hours:16.25,
   audience:'Backend engineers specialising in real-time multiplayer, who already run a service in production and want to reason about latency, authority, and reconciliation with the same rigour as a request handler.',
   outcome:'You can choose an authority model and defend it, hide latency with prediction, reconciliation, interpolation and rollback, design a wire protocol and a fan-out layer, and explain why a client’s result is never trusted by itself.',
-  prereq:['live-game-backend-engineer'], next:['interview-prep-engineer'],
+  prereq:['live-game-backend-engineer'], next:['senior-game-developer-ai-era','interview-prep-engineer'],
   stages:[
     { id:'s1', t:'Authority and truth', level:'advanced',
       goal:'Decide who is right when two machines disagree, judge a shot fairly despite latency, and see what bit-for-bit costs to guarantee.', hours:3.25,
@@ -553,7 +553,7 @@ PATH('build-and-release-engineer', {
   track:'engineering', level:'intermediate', hours:15.5,
   audience:'Engineers responsible for CI/CD, build pipelines, and the release process for a game team, who have a project to build (the hands-on steps use a Unity project) and want a release that is boring by design rather than a fire drill every time.',
   outcome:'You can define and run a release checklist, build a player from a single parameterised entry point, and identify a pipeline smell before it costs a release.',
-  prereq:[], next:['technical-lead'],
+  prereq:[], next:['senior-game-developer-ai-era','technical-lead'],
   stages:[
     { id:'s1', t:'Pin the environment', level:'intermediate',
       goal:'Make the dev stack and the CI stack the same description, and replace near-identical pipeline jobs with one table.', hours:2.5,
@@ -671,7 +671,7 @@ PATH('game-ai-programmer', {
   track:'engineering', level:'intermediate', hours:10.05,
   audience:'Programmers who can already build a gameplay loop in Godot or Unity and now own enemies, companions or a pacing system, and want to judge AI by what the player reads rather than by how clever it is.',
   outcome:'You can write an agent’s job and tells before choosing a technique, pick the cheapest mechanism that reads right, make it perceive and telegraph fairly, keep allies and directors in support of the player, and put a budget, a debug view and a fallback around anything smarter.',
-  prereq:[], prereqAny:['gameplay-engineer-godot','gameplay-engineer-unity'], next:['interview-prep-engineer','technical-lead'],
+  prereq:[], prereqAny:['gameplay-engineer-godot','gameplay-engineer-unity'], next:['senior-game-developer-ai-era','interview-prep-engineer','technical-lead'],
   stages:[
     { id:'s1', t:'What the AI is for', level:'intermediate',
       goal:'Write one agent’s job and its tells, then name the cheapest mechanism that produces the behaviour a player would read.', hours:2.15,
@@ -874,9 +874,146 @@ PATH('interview-prep-engineer', {
   ]
 });
 
+PATH('senior-game-developer-ai-era', {
+  t:'Senior game developer in the AI era', tag:'Own the architecture, the checks and the team’s growth when agents write much of the code, and measure whether it helps.',
+  pick:'Own the architecture, checks and team when AI codes',
+  track:'engineering', level:'advanced', hours:23,
+  audience:'Working developers with shipped work, who have led features and whose role is shifting as AI takes over much of the typing: less writing modules, more owning boundaries, specifications, checks, review and other engineers’ growth.',
+  outcome:'You can hold an architecture together under frame and memory budgets, turn a feature into a spec and an eval suite an agent or a colleague can be checked against, review AI-written changes for correctness, security and performance, budget the cost and latency of an AI feature, and plan a local measurement of whether AI helps your team. The evidence does not promise a speedup, so the path teaches you to measure it on your own code and to keep juniors learning.',
+  prereq:[], prereqAny:['gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','netcode-server-engineer','build-and-release-engineer','game-ai-programmer'], next:['technical-lead','studio-practice-ai-era','interview-prep-engineer'],
+  stages:[
+    { id:'s1', t:'Architecture and boundaries', level:'advanced',
+      goal:'Keep a codebase reviewable when changes arrive fast, by owning the module map, the data and the budgets.', hours:4,
+      steps:[
+        { kind:'topic', ref:'craft-engineer-in-the-ai-era', why:'One analysis of AI-assisted repositories found a large but short-lived jump in lines added and a lasting rise in warnings and complexity, which is why the module map is now the senior’s job.', do:'Draw the module map of a system you know, mark who may depend on whom, and write the three files an agent must never edit without you.', min:45 },
+        { kind:'topic', ref:'craft-design-patterns', why:'Patterns are the shared names that let a reviewer see in seconds whether a fast change fits the structure or bends it.', do:'Pick two patterns your codebase uses and write for each the mistake a generated change is most likely to make against it.', min:30 },
+        { kind:'topic', ref:'craft-entities-and-scenes', why:'Where data lives and who owns it decides whether many quick changes tangle or stay local.', do:'Write who owns the data for one entity type, and which systems may read or write it.', min:30 },
+        { kind:'topic', ref:'craft-performance', why:'A frame and memory budget is a check that a plausible-looking change cannot talk its way past.', do:'Write the frame budget and memory budget for your target device and the measured cost of the most expensive system against them.', min:45 },
+        { kind:'topic', ref:'lead-conventions', why:'Short rules stamped with their date and origin, kept next to the work, are what a reader, human or agent, meets before making the wrong call.', do:'Write three short rules for your repository in the imperative, each with the date and the incident behind it, and mark which of them a machine could check instead.', min:40 },
+        { kind:'reflect', why:'A boundary you cannot state in a page is not one that an agent or a new hire can keep.', do:'Write an architecture decision record for one system (save or entity, say) against your frame and memory budgets, with the rejected option, the measured cost and the files an agent may touch. Solo: use your own project.', min:50 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'Why does the module map matter more when AI writes the code?', a:'Changes arrive faster than a person can read them, so structure is the only check that scales. One study of AI-assisted repositories found a short lived speed gain and a lasting rise in complexity and warnings.' },
+          { q:'What goes in a decision record for a boundary?', a:'The choice, the rejected option and why, the measured cost against the frame and memory budget, and the date to revisit. It also names which files an agent may touch.' },
+          { q:'Why state a frame and memory budget before reviewing a change?', a:'A budget turns "seems fine" into a number. A change that passes review by reading can still blow the budget, and only a capture on the target device shows it.' }
+        ],
+        build:'Write an architecture decision record for one system (a save or entity system, for example) against a frame budget and a memory budget: the rejected option, the measured cost, and the files an agent may touch. Solo: use your own project.',
+        skip:['Can you draw your module map and say who may depend on whom?','Do you have a written frame and memory budget for your target device?','Do you keep decision records with the rejected option in them?','Can you name the files an agent may not edit without review?']
+      } },
+    { id:'s2', t:'Specify and verify', level:'advanced',
+      goal:'Turn a feature into a spec an agent or a colleague can build, and prove the result with checks you wrote first.', hours:5,
+      steps:[
+        { kind:'topic', ref:'ai-agentic-implementation', why:'An agent edits files and runs commands until a check passes, so the unit of work is a task with a scope and a command that proves it done, and a green build alone proves little.', do:'Take one feature and write its task brief: goal, files in scope, acceptance command, and what the agent must not touch.', min:45 },
+        { kind:'topic', ref:'craft-verification-as-the-job', why:'Generation is cheap and checking is human-paced, and the survey data on "almost right" code and debugging time points to verification as where the cost lands.', do:'List the checks that would fail a wrong version of your feature, and mark which run in seconds and which only in review.', min:45 },
+        { kind:'topic', ref:'craft-tools-that-work-with-ai', why:'An agent can only use checks it can run, so fast tests and readable failures are part of the tooling.', do:'Time your test loop, and cut or split the slowest check an agent would have to wait for.', min:30 },
+        { kind:'prompt', ref:'verify', why:'The pass puts a fixed set of questions to the model about its own output (assumptions, sources, what would prove it wrong); it exposes claims to check, and the checks you run in the other steps still do the proving.', do:'Run the pass on one AI-written change and write which step caught the first problem.', min:20 },
+        { kind:'topic', ref:'ai-evals', why:'An eval is a fixed set of your own cases with a pass rule, so a change to a model or a prompt shows up as a number instead of a feeling.', do:'Write a starter set of ten cases for one model-backed feature, five expected and five hostile, with a pass rule, and decide which run on every change (the topic advises 50 to 200 inputs for a real set).', min:60 },
+        { kind:'checklist', ref:'agent-rules-file', why:'The rules file is where the boundaries from the last stage become something an agent reads every time.', do:'Write the rules file for one repository, and cut every line you cannot check in a review.', min:20 },
+        { kind:'topic', ref:'craft-teaching-agents', why:'Each repeated mistake is a rule or a test you have not written yet.', do:'Take the last three mistakes an agent made in your code and turn each into a rule or a failing test.', min:30 },
+        { kind:'topic', ref:'craft-game-loop-timestep', why:'A fixed timestep with a seed makes gameplay replayable, which turns "it felt wrong" into a check an agent can run.', do:'Record a short input replay with a fixed seed and assert the end state, so a refactor that changes behaviour fails.', min:50 }
+      ],
+      review:['craft-engineer-in-the-ai-era'],
+      check:{
+        recall:[
+          { q:'What must an agent-ready spec contain?', a:'The goal, the files in scope, an acceptance command that fails on a wrong result, and what must not change. Without the command, the agent and the reviewer disagree about done.' },
+          { q:'Why write the failing tests before asking an agent to build?', a:'They define done in a way the agent cannot argue with, and they catch a change that edits the test to pass. Reviewers must also watch for deleted tests and loosened thresholds.' },
+          { q:'What can a benchmark score not tell you?', a:'Whether the tool works on your code. Benchmarks have been found flawed (OpenAI reported flawed tests in a large share of audited SWE-bench Verified problems), so an eval built from your own cases is the check that counts.' },
+          { q:'How does a replayable seed help verification?', a:'A fixed timestep and seed give the same run every time, so a behaviour change becomes a failing assertion instead of a feeling.' }
+        ],
+        build:'Write an agent-ready spec and an eval suite for one game feature: failing tests first, a property check with a replayable seed, and a golden set if the feature uses a model. Run it against an agent (or a colleague) and record what it got wrong. Solo: use a recorded agent session on your own project.',
+        skip:['Do your tasks name an acceptance command before the work starts?','Can you replay a run from a seed and assert the end state?','Do you have a written list of cases for the feature that touches a model?','Do you check that tests were not changed to pass?','Do you convert repeated agent mistakes into rules or tests?']
+      } },
+    { id:'s3', t:'Review and security', level:'advanced',
+      goal:'Review an AI-written change for correctness, security and performance, and say what you would block.', hours:4,
+      steps:[
+        { kind:'topic', ref:'lead-code-review', why:'Reviews that read only the new code miss deletions, changed tests and moved thresholds, which is where an AI change hides its problems.', do:'Review a recent change from the bottom up: tests and thresholds first, then deletions, then the new code.', min:40 },
+        { kind:'topic', ref:'craft-what-matters-now', why:'If typing is cheap, reading and judging are where a senior’s time should go, and this topic names what to still care about.', do:'Write the five things you would check first in an unfamiliar AI-written module, in order.', min:25 },
+        { kind:'topic', ref:'craft-security-review-of-generated-code', why:'In a controlled study, participants with an assistant wrote less secure code and were more confident in it, and vendor scans find a large share of generated samples with a flaw.', do:'List every place your game takes untrusted input (save, mod, network, model output) and review one generated handler for it.', min:60 },
+        { kind:'topic', ref:'models-security-and-operations', why:'Model output that reaches a tool or a player is untrusted input, and prompt injection is the way it gets in.', do:'Trace one path from model output to an action in your project and write the check that sits between them.', min:40 },
+        { kind:'topic', ref:'craft-over-defensive-code', why:'Generated code tends to guard everything, which hides real failures and costs every later reader time.', do:'Find one broad try-catch or null guard in generated code that would hide a real bug, and replace it with a fail-fast check.', min:20 },
+        { kind:'topic', ref:'craft-save-systems', why:'A save file is untrusted input that outlives the build, so it is where a security and a compatibility review meet.', do:'Review a save loader for bounds, version handling and what happens on a corrupt file, and write one failing test.', min:35 },
+        { kind:'checklist', ref:'ai-verify', why:'The checklist tests the claims around an AI change (sources, whether it solves the problem you stated, what would prove it wrong, who owns the decisions) in a fixed order, next to the code checks above.', do:'Run it on the AI-written change or its description that you reviewed, and note the first claim it flags that you could not check.', min:20 }
+      ],
+      review:['ai-evals'],
+      check:{
+        recall:[
+          { q:'Why review tests and deletions before new code in an AI change?', a:'A model can make a check pass by editing it, loosening a threshold or deleting the failing case. The new code often looks fine while the safety net has moved.' },
+          { q:'What does the evidence say about the security of AI-written code?', a:'In a controlled study, participants with an assistant wrote less secure code and were more confident. Scans of generated samples found a large share with flaws, and results come from older models, so treat the finding as a direction, not a rate.' },
+          { q:'Which inputs to a game are untrusted?', a:'Saves, mods, network messages, user content and model output. Each needs bounds, versioning and a rule for corrupt input, with the server never trusting the client.' },
+          { q:'Why check performance in a review?', a:'Plausible code can allocate every frame or scan a list per entity. Only a capture on the target device against the budget shows it.' }
+        ],
+        build:'Write a review of an AI-written change (yours or a public repository’s) with a security checklist covering untrusted input, save or mod loading and server trust, and a performance check on a device capture. State what you would block and what test would unblock it. Solo: review a public pull request.',
+        skip:['Do you read tests and thresholds before the new code in a diff?','Can you list your game’s untrusted inputs?','Do you capture on the target device before approving a hot-path change?','Do you fail fast instead of guarding everything?','Can you say what you would block and why?']
+      } },
+    { id:'s4', t:'Measure, budget and choose', level:'advanced',
+      goal:'Decide from your own measurements where AI helps, and work out what an AI feature costs and how slow it can be.', hours:4,
+      steps:[
+        { kind:'topic', ref:'craft-measuring-ai-uplift', why:'A randomised trial found tasks 19% slower while the developers believed they were 20% faster, and other studies found gains, so only your own comparison answers for your team.', do:'Write a paired-task plan: task types, how tasks are assigned, the baseline, and metrics that include review time and stability.', min:60 },
+        { kind:'topic', ref:'models-reasoning-and-scaling', why:'Vendor and benchmark claims move quickly, so a senior needs to know what a benchmark number can and cannot say.', do:'Take one benchmark claim from a tool you use and write what it does not show about your work: is the benchmark saturated, public long enough to be contaminated, or a mismatch with your task?', min:30 },
+        { kind:'topic', ref:'models-prompt-caching', why:'Caching is often the largest cost lever on the input side, and it changes what a prompt should look like.', do:'Take one prompt with a large fixed prefix, write it in the order the topic gives with everything dynamic below the cache point, and work out the saving using the cache-read and cache-write multipliers from your vendor’s pricing page (note its date).', min:25 },
+        { kind:'topic', ref:'craft-ai-cost-latency-budget', why:'A feature that works in a demo can lose money per player or miss a frame budget at p95, so the budget comes before the build.', do:'Work out cost per request, per player and per day for one AI feature, and the slowest response you will accept.', min:60 },
+        { kind:'topic', ref:'models-open-and-closed', why:'Routing and self-hosting trade cost against quality, licence terms and control, so the choice needs a measured eval, not a guess.', do:'Say which of your requests could go to a cheaper model and what eval would prove it.', min:25 },
+        { kind:'checklist', ref:'ai-architecture-boundary', why:'The boundary checklist keeps the model from becoming a dependency the game cannot run without.', do:'Run it on one AI feature and write the fallback for when the model is slow or off.', min:20 },
+        { kind:'topic', ref:'ai-budgets-and-debugging', why:'In-game AI (perception, pathfinding, decisions) has a per-frame cost that scales with agent count and has to fit the same budgets as everything else; the topic covers game AI, not model calls.', do:'Set a per-frame time cap and a worst-case agent count for one AI system in your game (pathfinding, perception or a model-driven NPC) and write the worst-case test at that count.', min:20 }
+      ],
+      review:['craft-verification-as-the-job'],
+      check:{
+        recall:[
+          { q:'Why not rely on a published study to decide whether AI helps your team?', a:'The studies disagree: one randomised trial found a slowdown on mature code, others found gains, and each covers narrow tasks and older tools. Developers also misjudge their own speed, so only a local comparison answers.' },
+          { q:'What should an uplift measurement count besides task time?', a:'Review time, defects and stability after release. An early jump in lines or throughput can fade once complexity and instability show up.' },
+          { q:'What goes into a cost and latency budget for an AI feature?', a:'Cost per request, per player and per day, caching and batch effects, a cap per player, the p95 latency you will accept, a fallback, and a date to re-check because prices and models change.' }
+        ],
+        build:'Write (a) a paired-task plan to measure AI uplift for your team, with a baseline and metrics that include review time and stability, and (b) a per-player cost and p95 latency budget for one AI-assisted feature, with caps and a re-check date. Solo: plan the comparison on your own tasks over a month.',
+        skip:['Have you ever measured AI uplift on your own tasks against a baseline?','Do you count review time and stability, not only speed?','Can you state cost per player per day for an AI feature you run?','Do you have a fallback when the model is slow or off?','Do you re-check prices and limits on a date?']
+      } },
+    { id:'s5', t:'Grow the team', level:'advanced',
+      goal:'Keep juniors learning while the team ships faster, so skills still form.', hours:3,
+      steps:[
+        { kind:'topic', ref:'lead-junior-skill-formation-with-ai', why:'In one experiment, learners who delegated the whole task to an assistant scored lower on a later quiz, and the groups were small, so treat it as a warning to design for, not a rate.', do:'Write which tasks a junior does with the assistant on, which with it off, and how you check they can explain the result.', min:55 },
+        { kind:'topic', ref:'lead-onboarding', why:'Onboarding is where a new hire’s map of the system forms, and the topic builds it with a real first change and pairing, not a talk.', do:'Write a first-week path for a new engineer that includes a real first change, pairing on the first review, and reading one system unaided and explaining it back.', min:25 },
+        { kind:'topic', ref:'lead-one-on-ones', why:'The 1:1 is the recurring place to ask, with feedback tied to a recent event both people remember.', do:'Write three 1:1 questions that reveal understanding rather than output.', min:30 },
+        { kind:'topic', ref:'lead-conflict-growth', why:'Delegating well means giving work that stretches, and disagreements about AI use need a way to be settled.', do:'Write how you would decide a disagreement over whether a junior may use an agent for a task.', min:30 },
+        { kind:'topic', ref:'craft-clean-code-ai-era', why:'Code that names one concept one way and states its contract can be read by a reviewer, an agent and a junior alike, and generated code often does not.', do:'Take a generated function and rewrite it for a maintainer using the topic’s rules: one distinctive name per concept, a contract comment, and a comment for the why.', min:25 },
+        { kind:'reflect', why:'A plan for a junior is only credible if it names what you will observe.', do:'Write the milestone that would show a junior has skill, not output, and what you will do if it does not appear.', min:15 }
+      ],
+      review:['craft-security-review-of-generated-code'],
+      check:{
+        recall:[
+          { q:'What did the skill-formation experiment suggest?', a:'Learners who delegated the whole task to the assistant scored lower on a later quiz than those who asked it for explanations. The groups were small, so it is a warning that the usage pattern matters, not a measured rate.' },
+          { q:'How do you check a junior’s skill rather than their output?', a:'Ask for a cold explanation without the tool, assign some tasks with the assistant off, and review by asking why. Output alone can be produced without understanding.' },
+          { q:'Why keep no-assistant practice at all?', a:'The risk seems to lie in the mode that skips understanding, and unaided work keeps a baseline and gives you something to check. The payback is plausible but unproven, since it rests on one small study, and you still need people who can debug and review what the agent writes.' }
+        ],
+        build:'Write a mentoring plan for one junior: explain-first assistant use, no-assistant reps, a review by cold explanation, and a milestone that shows skill, not output. Solo: write it for yourself learning a new area.',
+        skip:['Do juniors on your team have tasks with the assistant off?','Do you review by asking them to explain?','Can you name the milestone that shows a junior can work unaided?','Do you know which tasks you would never delegate to the tool?']
+      } },
+    { id:'s6', t:'Incidents and technical direction', level:'advanced',
+      goal:'Run the bad day when an AI-assisted change breaks a live build, and argue trade-offs with design and production.', hours:3,
+      steps:[
+        { kind:'topic', ref:'lead-incidents', why:'An incident needs roles, a rollback and a blameless review, and the review can ask whether an AI-assisted change contributed and whether the rollback had been rehearsed.', do:'Write the incident plan for a bad build: who decides, the rollback step, and the first message to players.', min:40 },
+        { kind:'topic', ref:'pm-postmortems', why:'A postmortem turns one failure into a rule, and only if it finds a cause you can change.', do:'Write a postmortem for a past bug: timeline, cause, and one check that would have caught it.', min:30 },
+        { kind:'topic', ref:'quality-and-build-health', why:'A regular playable build, blocker triage and regressions traced to a change are the early signals that a fast stream of changes is breaking the project.', do:'List three build-health signals you would watch weekly and the threshold that triggers a stop.', min:30 },
+        { kind:'topic', ref:'lead-saying-no', why:'A senior is asked for expensive things, and a reasoned no with options is a part of the job.', do:'Write the reply to a design request that is expensive to build: cost, options and what to cut.', min:30 },
+        { kind:'topic', ref:'pm-cross-discipline', why:'Cost has to be stated in units that design and production can compare.', do:'Restate the cost of that request in each discipline’s own units (engineer-weeks, art-days, QA cases) with a range, and what each would drop to fit.', min:30 },
+        { kind:'reflect', why:'A short note forces a technical direction to be stated, not implied.', do:'Write a one-page technical direction note for a design request that is expensive to build: cost, options, the cut, and the rollback plan if an AI-assisted change breaks a live build.', min:20 }
+      ],
+      review:['craft-measuring-ai-uplift'],
+      check:{
+        recall:[
+          { q:'What should an incident plan settle before an incident?', a:'Who decides, the rollback step, who talks to players, and how the review will be blameless. Deciding those during the incident costs time you do not have.' },
+          { q:'What makes a postmortem useful?', a:'A cause you can change and a check that would have caught it. A list of what went wrong without a rule changes nothing.' },
+          { q:'How do you make a technical no fair to design?', a:'State the cost in units they can compare, offer options including a cut, and say what you would need to say yes.' }
+        ],
+        build:'Write a one-page technical direction note for a design request that is expensive to build: the cost, the options, the cut, and the rollback plan if an AI-assisted change breaks a live build. Solo: use a feature you have wanted to add to your own project.',
+        skip:['Do you have a written rollback for your live build?','Can you say who decides during an incident?','Do you turn postmortems into checks?','Do you state costs in units other disciplines can compare?']
+      } }
+  ]
+});
+
 PATH('studio-practice-ai-era', {
   t:'Run a game team in the AI era', tag:'Who owns what, what code is worth now, how models behave, and how to plan and ship when building is cheap.',
-  pick:'Run a game team when AI writes half the code',
+  pick:'Run a game team when AI writes much of the code',
   track:'leadership', level:'advanced', hours:13,
   audience:'Leads, producers and senior developers (or solo developers, since every team step has a solo variant) whose team now works with AI tools and who have to decide what the humans own, what standard the code is held to, and how the plan changes.',
   outcome:'You can split ownership between people and AI on purpose, hold agent-written work to a review standard, explain what a model does with its context and where it runs, and plan, cut, polish and submit a game on evidence.',
@@ -907,7 +1044,7 @@ PATH('studio-practice-ai-era', {
       goal:'Use AI where it saves the most time, spot its characteristic failures early, and keep player evidence between an AI output and a commitment.', hours:2.33,
       steps:[
         { kind:'topic', ref:'ai-failure-modes', why:'The failures are systematic, so a team that knows the symptoms catches them at the cadence of a playtest instead of at a milestone.', do:'Pick three failure modes from the list and write the symptom each would show in your current project.', min:20 },
-        { kind:'topic', ref:'ai-for-implementation', why:'This is where AI most reliably saves time, and only if the prototype is instrumented and treated as disposable.', do:'Write a brief for one prototype that states the question it answers, what it must log, what tuning values stay live and what it leaves out.', min:20 },
+        { kind:'topic', ref:'ai-for-implementation', why:'This is where the evidence for AI saving time is best (bounded, greenfield work), and it pays only if the prototype is instrumented, treated as disposable and the saving is measured.', do:'Write a brief for one prototype that states the question it answers, what it must log, what tuning values stay live and what it leaves out.', min:20 },
         { kind:'prompt', ref:'verify', why:'A fixed verification pass turns is this right into a list of assumptions, sources and kill criteria you can check.', do:'Run the verification prompt on the last AI output your team acted on, and mark which assumptions were invented. Solo: use your own project and the people or AI tools you work with in place of a team.', min:20 },
         { kind:'topic', ref:'ai-for-playtest-analysis', why:'AI is fast and consistent at coding evidence and lacks the context that interpretation needs, so the split of labour matters.', do:'List what context you would add to an AI summary of your last playtest, and the pattern in it that rests on only two testers.', min:20 },
         { kind:'checklist', ref:'playtest-prep', why:'Analysis is only as good as the evidence given to it, and this checklist fixes the session before the players arrive.', do:'Run the playtest preparation checklist on your next session and write the hypothesis you will give the AI with the notes.', min:20 },

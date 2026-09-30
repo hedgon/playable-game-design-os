@@ -112,14 +112,14 @@ const CHOOSER = {
   levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
   times: /** @type {[string, string, number][]} */ ([['2','2 hours a week',2],['5','5 hours a week',5],['10','10 hours a week or more',10]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
-    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
-    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['game-ai-programmer','gameplay-engineer-godot','gameplay-engineer-unity'] },
-    backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
+    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['senior-game-designer','systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
+    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['senior-game-developer-ai-era','game-ai-programmer','gameplay-engineer-godot','gameplay-engineer-unity'] },
+    backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['senior-game-developer-ai-era','netcode-server-engineer','live-game-backend-engineer'] },
     ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer','casual-game-people-keep'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
-    lead:{ new:['technical-lead'], some:['technical-lead','studio-practice-ai-era'], senior:['technical-lead','studio-practice-ai-era'] },
+    lead:{ new:['technical-lead'], some:['technical-lead','studio-practice-ai-era'], senior:['technical-lead','senior-game-developer-ai-era','studio-practice-ai-era','senior-game-designer'] },
     'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
     'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] },
-    ai:{ new:['ai-engineering-for-game-devs'], some:['ai-engineering-for-game-devs'], senior:['ai-engineering-for-game-devs'] },
+    ai:{ new:['ai-engineering-for-game-devs'], some:['ai-engineering-for-game-devs'], senior:['senior-game-developer-ai-era','ai-engineering-for-game-devs'] },
     elsewhere:{ new:['game-skills-elsewhere'], some:['game-skills-elsewhere'], senior:['game-skills-elsewhere'] }
   })
 };
@@ -257,11 +257,11 @@ PATH('game-designer-foundations', {
         recall:[
           { q:'What makes a design pillar more than a slogan?', a:'A pillar can say no: it is specific enough that it forbids a feature someone wants, so the team can settle an argument by checking it instead of asking the director.' },
           { q:'What is the difference between a want and a fantasy sentence?', a:'A want is the underlying motivation driving play, like competence or autonomy. A fantasy sentence turns that want into the identity the player gets to inhabit, phrased as “I get to be someone who...”. The want explains why; the fantasy states the promise as a verb.' },
-          { q:'Why does experience thinking start from a behaviour instead of a feature?', a:'A feature is a solution guessed too early. Starting from the behaviour you want the player to perform, then climbing the Behavior Ladder through experience, system and mechanic, keeps the design serving the player instead of just implementing whatever came to mind first.' },
+          { q:'Why does experience thinking start from a behaviour instead of a feature?', a:'A feature is a solution guessed too early. Starting from the behaviour you want the player to perform, then climbing the Behaviour Ladder through experience, system and mechanic, keeps the design serving the player instead of just implementing whatever came to mind first.' },
           { q:'What breaks if you skip straight from a feature idea to a feature?', a:'You build the first implementation you imagined instead of the smallest mechanic that produces the intended behaviour, so the result is often bigger or more complex than what the ladder would have found, or aimed at the wrong experience.' }
         ],
         build:'Write your player sketch, your chosen fantasy sentence and your one-paragraph core experience statement on one page. Read it aloud to someone who has not seen the project.',
-        skip:['Can you name a feature one of your pillars would forbid?','Can you write a player sketch and a fantasy sentence for a new idea in under ten minutes?','Can you explain why “a roguelike deckbuilder” names a genre, not an experience?','Have you already run the Behavior Ladder on a real feature idea and changed the plan because of it?','Can you name what your player wants from a session without describing a feature?']
+        skip:['Can you name a feature one of your pillars would forbid?','Can you write a player sketch and a fantasy sentence for a new idea in under ten minutes?','Can you explain why “a roguelike deckbuilder” names a genre, not an experience?','Have you already run the Behaviour Ladder on a real feature idea and changed the plan because of it?','Can you name what your player wants from a session without describing a feature?']
       } },
     { id:'s2', t:'The loop and its variables', level:'beginner',
       goal:'Turn the fantasy into a loop the player repeats, and find its weakest link before you add anything else.', hours:2.5,
@@ -339,7 +339,7 @@ PATH('systems-designer', {
   track:'design', level:'intermediate', hours:12.5,
   audience:'Designers past the basics who want to own an economy, a progression curve, or any system with more than three moving parts.',
   outcome:'You can map a system’s parts and feedback loops, run a rule audit that separates decisions from load, and turn a design smell into a testable experiment instead of a guess.',
-  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer','study-the-hits-play'],
+  prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-play'],
   stages:[
     { id:'s1', t:'Systems and their pieces', level:'intermediate',
       goal:'See a system as parts and the relationships between them, not just a list of numbers.', hours:2.5,
@@ -460,7 +460,7 @@ PATH('level-and-ux-designer', {
   track:'design', level:'intermediate', hours:12,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
-  prereq:['game-designer-foundations'], next:['technical-lead','interview-prep-designer','study-the-hits-worlds'],
+  prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-worlds'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
       goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.5,
@@ -580,7 +580,7 @@ PATH('games-that-broke-the-mould', {
   track:'design', level:'intermediate', hours:14,
   audience:'Designers who know the fundamentals and want to see how some of the most original games of the last twenty-five years solved problems the usual answers could not.',
   outcome:'You can take apart an unusual game through ten lenses, name the one idea it contributed, and adapt that idea to your own design without copying its surface.',
-  prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer','study-the-hits-play'],
+  prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer','senior-game-designer','study-the-hits-play'],
   stages:[
     { id:'s1', t:'Rules that teach themselves', level:'intermediate',
       goal:'See how a game can teach its rules with no words, and design one rule that teaches itself.', hours:2.25,
@@ -1019,13 +1019,132 @@ PATH('study-the-hits-worlds', {
   ]
 });
 
+PATH('senior-game-designer', {
+  t:'Senior game designer', tag:'Own the vision, the numbers, the live calendar and the team’s designs, and make the case for all of it.',
+  pick:'Own the vision, the numbers and the team’s designs',
+  track:'design', level:'advanced', hours:22,
+  audience:'Working designers with a few shipped features or a shipped game, who own a feature and its outcome and now have to own a pillar set, an economy, a season or other designers’ work.',
+  outcome:'You can write pillars a team decides by, model and tune an economy, plan a live season with pre-registered metrics and guardrails, run a design review that keeps the owner in charge, and pitch the result with a cut list behind it.',
+  prereq:[], prereqAny:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'], next:['technical-lead','studio-practice-ai-era','interview-prep-designer'],
+  stages:[
+    { id:'s1', t:'Vision', level:'advanced',
+      goal:'Turn a game’s intent into pillars that settle real arguments, and defend or change them on purpose.', hours:4,
+      steps:[
+        { kind:'topic', ref:'design-pillars', why:'At this level the pillars are a team’s decision tool, so they need forbidden things, a rank for the pairs that collide, an owner and a written change rule.', do:'Take a game you know well and write three pillars, what each forbids, the tie-break for the pair most likely to collide, and who may change them and on what evidence.', min:40 },
+        { kind:'topic', ref:'core-experience', why:'Pillars are the core experience turned into decisions, so a vague experience gives vague pillars.', do:'Write the core experience of the same game in three sentences, and mark which sentence each pillar came from.', min:30 },
+        { kind:'tool', ref:'canvas', why:'One page that holds player, fantasy, emotions and what the game is not gives reviewers something to hold a feature against.', do:'Fill in the Core Experience Canvas for the same game and check that its “what it is not” box matches your pillars’ forbidden lists.', min:30 },
+        { kind:'game', ref:'hades', lens:'gameplay', why:'The lens shows one rule held on purpose: boons are a small, legible choice at a door, never a random pickup mid-fight, and that shows what a built pillar forbids and costs.', do:'Read the gameplay lens and write the rule Hades holds (what it forbids), the player experience that rule protects, and the cost the lens names for it. Then phrase the rule as a pillar with its forbidden thing.', min:25 },
+        { kind:'topic', ref:'audience-and-positioning', why:'A pillar set has to survive contact with a market, and the positioning sentence is where pillars meet the audience.', do:'Write the one-sentence promise your pillars would let you make, and the player it excludes.', min:30 },
+        { kind:'smell', ref:'pillars-are-slogans', why:'The most common failure is a pillar that sounds good and cannot decide anything, and this smell is the test.', do:'Run the smell on your three pillars, then take five decisions the team is debating and mark which pillars settle them. Rewrite any pillar that settles none.', min:25 },
+        { kind:'game', ref:'celeste', lens:'gameplay', why:'A second game read for the same question, what rule does it hold on purpose, keeps the first one from looking like a special case.', do:'Read the gameplay lens and list three of the grace windows Celeste builds in, the difficulty style it refuses by doing so, and the pillar you infer they protect.', min:20 },
+        { kind:'reflect', why:'The hardest part of owning a vision is the moment someone senior asks for something that breaks it.', do:'Write the reply you would give a publisher or a lead who asks for a feature that breaks your top pillar: what it costs in the pillar’s terms and an alternative that meets their need.', min:40 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'What makes a pillar more than a slogan?', a:'It forbids something and can settle a real, debated decision. A pillar with no cost, or one that settles none of five live arguments, is decoration and must be rewritten.' },
+          { q:'Why write a tie-break and a change rule for the pillar set?', a:'Pillars collide and drift. A rank or tie-break decides the collision before a deadline does, and an owner plus an evidence rule for change, with each change logged, makes a change a decision instead of drift.' },
+          { q:'How do you know the pillars are being used rather than owned by one person?', a:'A team member can cite one to reject a feature, including against the owner, and a new joiner can say them and what each forbids. Silent exceptions mean they are eroding. No study shows pillars improve outcomes, so the tests are the evidence.' }
+        ],
+        build:'Write a vision doc for a shipped game: three pillars with what each forbids, non-goals, the tie-break for the colliding pair, the change rule, and five debated decisions resolved by the pillars alone.',
+        skip:['Can you give the tie-break between your two most likely colliding pillars?','Did your last pillar set settle at least five real debates in writing?','Could a new joiner name each pillar and what it forbids?','Do you know who may change a pillar and what evidence they need?']
+      } },
+    { id:'s2', t:'Economies', level:'advanced',
+      goal:'Model an economy as numbers you can run, find its hole before players do, and check the model against what they did.', hours:5,
+      steps:[
+        { kind:'topic', ref:'economy-and-resources', why:'The parts come first: sources, sinks, converters and what each does to pacing.', do:'List every resource in a game you know with its sources and sinks, and mark which resource piles up first.', min:40 },
+        { kind:'topic', ref:'economy-modelling-and-balance', why:'This is the method: an anchor, rates per archetype, sweeps and a check against logs, so design and monetisation can argue about numbers.', do:'Build your economy in a spreadsheet with a balance anchor and three archetypes, sweep each input by 10 percent, and mark any where time-to-target moves by more than 30 percent as fragile.', min:60 },
+        { kind:'topic', ref:'progression', why:'Progression is paid for through the economy, and its pacing is the archetype’s time-to-target.', do:'Write the hours each archetype needs to reach your anchor item, and say which one your progression is really built for.', min:35 },
+                { kind:'tool', ref:'sysmap', why:'Two economies that touch each other are where the hidden loops live, and the map asks the collision questions.', do:'Map your resources as nodes with typed edges and answer the collision questions the tool generates for the loop that inflates.', min:35 },
+        { kind:'game', ref:'cookie-clicker', lens:'gameplay', why:'An economy stripped to one price rule shows what a single growth curve does on its own, before any anchor is added.', do:'Read the gameplay lens, write its price rule as a formula, then compute the price of the 1st, 10th and 50th copy of a 100-cookie building and say what that does to the value of buying more of it.', min:30 },
+        { kind:'game', ref:'hearthstone', lens:'business', why:'A converter with a fixed loss shows an economy model meeting the business: the loss is what keeps pack sales necessary.', do:'Read the business lens and write what a free player and a spender each get from dust, and what the lossy conversion (a fixed loss of three-quarters or more) does for pack sales.', min:40 },
+        { kind:'reflect', why:'A model is a hypothesis, and writing the failure it exposed is what proves you ran it. Moving it to a script with a fixed seed is what lets others rerun it.', do:'Port your model to a small script with a fixed random seed and make one flat reward a drop rate, then rerun the three archetypes. Write the hole your model found, the input change that fixed it, and what real log you would compare it with at day seven.', min:60 }
+      ],
+      review:['design-pillars'],
+      check:{
+        recall:[
+          { q:'What is a balance anchor and why use one?', a:'A single fixed number, such as hours of play to earn a standard item, against which every price and reward is expressed. Without it each price is a separate opinion and the catalogue drifts into contradictions.' },
+          { q:'Why simulate archetypes rather than the average player?', a:'The average earns at a speed nobody plays at. Casual and heavy players can differ by an order of magnitude in time-to-target, and only separate archetypes show who hits a wall or a surplus.' },
+          { q:'What should you do when a model and the live logs disagree?', a:'Treat the model as a hypothesis. Find the first week they part, reconcile the totals from separate data sources before trusting either, then fix the model, and change the game only after that.' },
+          { q:'What does an input sweep tell you?', a:'Which numbers are levers and which are safe. If a 10 percent change in one source moves time-to-target by more than about 30 percent (this site’s rule of thumb), the economy is fragile there and needs a stabilising sink.' }
+        ],
+        build:'Build a balanced economy in a spreadsheet, port it to a small script with three archetypes and a fixed seed, and write up the failure it exposed and the change that fixed it.',
+        skip:['Can you state your economy’s anchor in one sentence and read any price against it?','Have you run at least three archetypes, not just an average?','Have you swept each input and named the fragile ones?','Can you say how you would compare the model with real balances at day seven?','Have you reconciled flow totals from two data sources before?']
+      } },
+    { id:'s3', t:'Live', level:'advanced',
+      goal:'Plan a season from cohorts, pre-registered metrics and guardrails, and know which questions data cannot answer.', hours:4.5,
+      steps:[
+        { kind:'topic', ref:'live-design-seasons-and-data', why:'Live design is a judgement about which cohort to trust and when a test result is real, and the topic gives the checks that stop a result being chosen afterwards.', do:'Take a season plan and write its goal as one question, two guardrails, the smallest effect worth shipping, the sample size and the end date, before you look at any data.', min:60 },
+        { kind:'topic', ref:'metrics-and-success', why:'A season goal is only as good as the metric definitions under it.', do:'Define the goal metric and both guardrails precisely: population, window and what counts as an event.', min:35 },
+        { kind:'topic', ref:'live-operations', why:'The 90-day plan and the calendar set how much a season can hold with slack.', do:'Set the season length from your last three releases and mark the release you would have missed.', min:45 },
+        { kind:'game', ref:'candy-crush-saga', lens:'business', why:'A game whose revenue sits on one moment of failure shows why a goal metric needs guardrails set against each other: easier levels convert less, and retention is the counterweight.', do:'Read the business lens and name the moment it turns into a purchase, then write the goal metric and the retention guardrail you would set for a season that makes levels easier.', min:25 },
+        { kind:'topic', ref:'monetisation-design', why:'A season plan has to say what it sells, and monetisation is where a metric can start eating the fun.', do:'List what your season sells and mark any offer that depends on a few heavy spenders.', min:30 },
+        { kind:'topic', ref:'ethics-and-responsibility', why:'Guardrails are ethical as well as commercial, and a senior designer should hand the decision record to a lawyer or a journalist without embarrassment.', do:'Write a decision record for one monetisation choice in the season: the pattern, who approved it, the guardrail and the date to revisit.', min:45 },
+        { kind:'game', ref:'fortnite', lens:'business', why:'A game that pays creators from an engagement pool shows what a season metric rewards, and what it does not.', do:'Read the business lens and write what the engagement pool pays for, what it does not, and which guardrail metric would show a shallow, endlessly replayed island beating a deeper one.', min:30 }
+      ],
+      review:['economy-modelling-and-balance'],
+      check:{
+        recall:[
+          { q:'Why pre-register the metric, the guardrails and the end date?', a:'Writing the goal metric, two guardrails, the smallest effect worth shipping, the sample size and the end date before the data arrives stops a result from being chosen afterwards, and stops peeking from inflating false positives.' },
+          { q:'What does a split check do, and when do you run it?', a:'It counts players per arm and tests the counts against the planned ratio before any result is read. A failure means the split was not random, so you find the cause before reading the result. About 6 percent of Microsoft experiments failed it.' },
+          { q:'What can data not decide in a live game?', a:'What the game should be, which players you want, and whether a profitable pattern is one you are willing to run. Guardrails and a named owner of player-facing risk cover those, not a metric.' },
+          { q:'How do you keep novelty from fooling you after shipping a winner?', a:'Keep a small long-term holdout and compare it later, split by how long players had played. If the lift fades it was partly novelty. That is Runge’s advice, and no published decay rate exists.' }
+        ],
+        build:'From a data sheet of cohort retention and revenue (your own game’s, or six cohorts of invented numbers that you label as invented), write a one-season plan: the goal question, two guardrails, the pre-registered test design, the content list with cadence, and one thing you would refuse to run even if it lifted revenue.',
+        skip:['Do you write the metric, guardrails and stopping rule down before a test starts?','Have you checked a split for a sample ratio mismatch?','Do you read cohorts by install week rather than one blended average?','Do you keep a holdout after shipping a winner?','Can you name a monetisation pattern you would refuse to run?']
+      } },
+    { id:'s4', t:'Reviewing and growing designers', level:'advanced',
+      goal:'Review a design against its intent and give feedback that keeps the owner in charge and helps the designer improve.', hours:4,
+      steps:[
+        { kind:'topic', ref:'design-critique-and-feedback', why:'A review without a stated intent is an argument about taste, and feedback aimed at the person can lower performance instead of raising it.', do:'Write your notes on a design in three columns, what I saw, what it means and what I would try, keep every note about the work, then rewrite any note that describes the person or is generic praise.', min:60 },
+        { kind:'checklist', ref:'design-review', why:'The checklist says what to check, so the critique can spend its time on the intent.', do:'Run the design review checklist on a feature of a shipped game or a design you did not write, and list where its questions found something your gut reaction had missed.', min:35 },
+        { kind:'topic', ref:'learning-from-success', why:'A dissection of comparables is the cheapest critique practice, and a fixed template keeps you from collecting opinions.', do:'Dissect one shipped game on the topic’s template (want served, core verb, first 30 seconds, decision per minute, why it worked, complaints), then fill the teardown sheet from the critique topic: core loop, inferred pillars, three decisions that work, three that cost, and what to steal, adapt or avoid.', min:40 },
+        { kind:'topic', ref:'design-documents', why:'The review and the decisions it produces only outlive the meeting if they are written down.', do:'Write the decision log entry for your review: the top three problems, the owner’s choices and the date you will check the result.', min:30 },
+        { kind:'topic', ref:'lead-one-on-ones', why:'The 1:1 is where feedback to a designer lands or is lost.', do:'Write three questions for your next 1:1 with a designer you mentor (or would mentor) that are not status updates.', min:25 },
+        { kind:'topic', ref:'lead-feedback-performance', why:'Good feedback separates what you saw from a judgement and names its effect, and it has a fair, written next step when it fails.', do:'Write a feedback note to a sample junior design in this order: their goal, what you saw, the effect on the player, a question, one habit to watch. Compare it with their earlier version so they see progress, and name what specifically worked.', min:25 },
+        { kind:'topic', ref:'team-and-collaboration', why:'Reviews fail at the seams between owners, so who decides has to be clear before anyone critiques.', do:'Write who owns each decision your review touches and who has only advice to give.', min:25 }
+      ],
+      review:['metrics-and-success'],
+      check:{
+        recall:[
+          { q:'What does a critique compare a design against?', a:'Its stated intent: the goal, the player and the pillar it serves. Without an intent the review is an argument between tastes, and the loudest opinion wins.' },
+          { q:'Why keep the owner in charge of a review?', a:'If critics can order changes, the design becomes the average of the room and nobody is accountable. The Braintrust model gives notes that are not mandatory, and the owner decides.' },
+          { q:'What does the feedback research warn about?', a:'Kluger and DeNisi pooled 607 effects and found feedback helped on average but over a third of effects were negative. It did worst when attention moved to the self, so aim feedback at the task and the goal.' }
+        ],
+        build:'Run a design review of a shipped game on the teardown sheet, then write a feedback note in the goal, observation, effect, question order on a design from your own early work, treated as a junior’s.',
+        skip:['Does each review start from a written intent?','Can the owner name their top three problems after a review?','Do you sort your notes into saw, meant and would try?','Do you check later whether a review’s changes fixed the problem?']
+      } },
+    { id:'s5', t:'Scope, pitch and trade-offs', level:'advanced',
+      goal:'Cost a design with the people who build it, cut it on purpose and pitch the result for a decision.', hours:4.5,
+      steps:[
+        { kind:'topic', ref:'scope-control', why:'Cheap implementation makes scope the risk, so the senior designer decides what stays out.', do:'List what your design has to leave out and the adjacent experiences you refuse.', min:30 },
+        { kind:'topic', ref:'pm-scoping-cuts', why:'A cut you make on purpose is a design decision, and one made under a deadline is damage control.', do:'Write a cut list for your design with the reason, the cost to the player and what each cut frees.', min:35 },
+        { kind:'topic', ref:'pm-cross-discipline', why:'A design nobody who builds it has costed is a wish, and ownership at the seams predicts where the work breaks.', do:'Get a rough range from engineering, art and audio for each item (from colleagues, or your own labelled guesses if you work alone), and give the version that fits, the cheaper version that keeps the pillar, and the cut.', min:45 },
+        { kind:'checklist', ref:'scope-sanity', why:'A check over the whole plan catches what a check on one feature never will.', do:'Run scope sanity over the full plan and mark what it forces you to cut.', min:30 },
+        { kind:'topic', ref:'pitching-and-stakeholders', why:'A pitch is a decision request, and the evidence rung and the answer to each kind of no decide whether it lands.', do:'Write the ask with a date, name each listener’s need, pick the cheapest evidence rung, list three objections and rehearse a ten-minute pitch with a sceptic.', min:60 },
+        { kind:'topic', ref:'lead-saying-no', why:'The pitch topic taught you to sort the noes you hear; this one is about the noes you give, which only stay fair when they name what would leave and offer a smaller shape.', do:'Write three requests you would get on your design (a publisher, a lead, a player). For each, state what it is for, what it would displace and a smaller version you could say yes to. Then sort the noes your pitch rehearsal drew into not now, not this, not this way or not you.', min:30 },
+        { kind:'reflect', why:'A pitch only becomes a decision when it is followed by a written memo.', do:'Write the decision memo that would follow your rehearsed pitch, as if the sceptic had decided: what was decided, by whom, what changes and the date of the next check.', min:40 }
+      ],
+      review:['design-pillars','live-design-seasons-and-data'],
+      check:{
+        recall:[
+          { q:'What must a pitch contain?', a:'An ask with a date, the claim tied to a pillar or goal, evidence at the cheapest rung that removes the doubt, the main risk and the answers to likely objections.' },
+          { q:'How do you cost a design as a senior?', a:'In each discipline’s own units, asking engineering, art, audio and QA for ranges and what they would drop. Offer the full, the cheaper that keeps the pillar, and the cut, with the player cost of each.' },
+          { q:'What are the four kinds of no?', a:'Not now (timing, ask for a date), not this (fit, ask what would fit), not this way (method, offer options), not you (trust, find a sponsor). Write down which one it was.' }
+        ],
+        build:'Write a cut list with reasoning for your vision, season and economy work, then pitch the whole in ten minutes or less to a sceptic (a colleague, or an AI role-playing one) and record their objections.',
+        skip:['Can your pitch state its ask and date in one sentence?','Have you costed your design with those who build it?','Do you offer options, not one demand?','Do you send a decision memo the same day?']
+      } }
+  ]
+});
+
 PATH('technical-lead', {
   t:'Technical lead', tag:'Delegation, review and the incident that becomes a rule instead of a scar.',
   pick:'Lead a small team and make its work better',
   track:'leadership', level:'advanced', hours:12.25,
   audience:'Senior designers or engineers stepping into leading a small team, who already do the work and now have to make other people’s work better too.',
   outcome:'You can delegate and say no on purpose, run a review that improves the thing being reviewed, and turn an incident or a cut into a rule the team keeps.',
-  prereq:[], prereqAny:['systems-designer','level-and-ux-designer','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer'], next:['studio-practice-ai-era'],
+  prereq:[], prereqAny:['systems-designer','level-and-ux-designer','senior-game-designer','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer'], next:['studio-practice-ai-era'],
   stages:[
     { id:'s1', t:'What a lead does', level:'advanced',
       goal:'Separate what only you can do from what you are doing out of habit, and practice saying no on purpose.', hours:3.75,
@@ -1259,7 +1378,7 @@ PATH('casual-game-people-keep', {
   track:'design', level:'intermediate', hours:12.5,
   audience:'Designers and small teams building a casual or hyper-casual mobile game who want it played on day 30, not just installed on day 1.',
   outcome:'You can design a loop a new player understands in seconds, tie progression and a free-to-play economy to it without breaking trust, plan a soft launch with playable ads, with kill and scale thresholds and a worked LTV:CPI calculation, so retention and install cost can be judged, and plan a live-ops cadence the team can sustain.',
-  prereq:[], next:['systems-designer','ship-it'],
+  prereq:[], next:['systems-designer','senior-game-designer','ship-it'],
   stages:[
     { id:'s1', t:'A loop that works in seconds', level:'intermediate',
       goal:'Build a core loop a player grasps without text and wants to repeat at a bus stop.', hours:2.75,
@@ -1292,7 +1411,7 @@ PATH('casual-game-people-keep', {
         { kind:'topic', ref:'difficulty', why:'Too hard too early churns players before they can see their own progress, and King tracks each Candy Crush Saga level’s time to quit and time to pass as two separate numbers.', do:'Plot the intended difficulty of your first 20 levels, mark where the first real challenge and the first rest level sit, and name the two numbers you will track per level.', min:20 },
         { kind:'topic', ref:'goals-horizons', why:'Players stay when a short, a medium and a long goal are always in view.', do:'Name one goal of each horizon a player sees on your home screen after day three.', min:15 },
         { kind:'game', ref:'plants-vs-zombies', why:'Plants vs. Zombies hands over roughly one new plant per level and makes its campaign its own tutorial, so its progression and its onboarding are the same system.', do:'Read its first 30 seconds and why it worked, then write how each of your first five unlocks would teach one idea.', min:15 },
-        { kind:'tool', ref:'ladder', why:'The Behavior Ladder works from a feature back to the behaviour it should produce and the smallest mechanic that gets it.', do:'Run one planned meta feature, such as stars or a level map, through the ladder and cut whatever the smallest mechanic does not need.', min:15 }
+        { kind:'tool', ref:'ladder', why:'The Behaviour Ladder works from a feature back to the behaviour it should produce and the smallest mechanic that gets it.', do:'Run one planned meta feature, such as stars or a level map, through the ladder and cut whatever the smallest mechanic does not need.', min:15 }
       ],
       review:['core-loop'],
       check:{

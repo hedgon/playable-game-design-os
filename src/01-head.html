@@ -1155,7 +1155,7 @@ details.comp .body{padding-top:6px}
    Layout rule: grids and lists fill the pane (more columns, same card size);
    prose keeps a reading measure; diagrams, the map, tables and images may use
    the full width. From 1600px of pane width a topic, game, series, engine,
-   platform or checklist page gets a sticky side column (.wide2) built from
+   platform, checklist, prompt, smell, diagnostic, tool, path or project page gets a sticky side column (.wide2) built from
    blocks the page already has. Below that nothing here applies. */
 .pane{container:pane/inline-size}
 .cfull{display:none}
@@ -1178,6 +1178,10 @@ details.comp .body{padding-top:6px}
 }
 .gamesum{display:block}.gamesum .sumtext{min-width:0}
 .wside{display:none}
+.cited > summary,.citedgroup > summary{cursor:pointer}
+.citedlist{margin-top:8px}
+.citedgroup{border-top:1px solid var(--line);padding:6px 0}
+.citedgroup .pfacts{margin:6px 0 0}
 @container pane (min-width:1540px){
   .wide2{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,460px);gap:0 36px;align-items:start;justify-content:start}
   .wside{display:block;position:sticky;top:calc(var(--hdr,60px) + var(--pbH,0px) + 14px);max-height:calc(100vh - var(--hdr,60px) - var(--pbH,0px) - 28px);overflow:auto;font-size:.9rem}

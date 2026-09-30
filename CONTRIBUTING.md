@@ -353,3 +353,5 @@ Plain words, short sentences, active voice. Say what to do and why; no hype and
 no filler. Present frameworks as lenses to test, not laws, and mark contested
 ones as contested on the sources page. Anything that can change goes in dated
 facts with a source.
+
+Cross-links are built from data, never by hand. A tool, guide, checklist or prompt shows on a topic page when its own data names the topic; a page shows "Part of paths" when a path step names it. The sources page lists every dated fact's source in "Cited across the site". Search folds UK and US spelling in the index and in the query, so write UK spelling in text and either works when typing.

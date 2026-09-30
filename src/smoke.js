@@ -291,7 +291,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       if (!m) failures.push(`1920px ${r}: no ${sel}`);
       else if (m.grid < m.view * 0.9) failures.push(`1920px ${r}: the grid is ${Math.round(m.grid)}px of a ${Math.round(m.view)}px column`);
     }
-    const two = await page.evaluate(() => { const g = REFERENCE_GAMES.find(x => x.kind !== 'series'); return ['#/map/t/core-loop/overview', '#/games/' + g.id, '#/engines/' + ENGINES[0].id, '#/platforms/' + PLATFORMS[0].id]; });
+    const two = await page.evaluate(() => { const g = REFERENCE_GAMES.find(x => x.kind !== 'series'); return ['#/map/t/core-loop/overview', '#/games/' + g.id, '#/engines/' + ENGINES[0].id, '#/platforms/' + PLATFORMS[0].id, '#/prompts/' + PROMPT_TEMPLATES[0].id, '#/checklists/' + CHECKLISTS[0].id, '#/smell/' + SMELLS[0].id, '#/build/' + TOOLS[0][0]]; });   // project and path pages keep the map beside them, so their pane is too narrow for a side column
     for (const r of two) {
       await go(r);
       const m = await page.evaluate(() => { const s = document.querySelector('#pane .wside'); return { shown: !!s && getComputedStyle(s).display !== 'none' && s.getBoundingClientRect().width > 250, right: s ? s.getBoundingClientRect().right : 0, wide: document.documentElement.scrollWidth > innerWidth + 1 }; });
@@ -301,6 +301,61 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       visits++;
     }
     if (errors.length) failures.push('1920px page errors: ' + errors.slice(0, 3).join(' | '));
+    await ctx.close();
+  }
+  // Cross-links: a topic page lists the tools and prompts that use it, no page kind is a dead end, and search folds spelling and phrasing.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    await page.goto(base);
+    await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
+    const go = async r => { await page.evaluate(h => { location.hash = '#/paths'; }); await page.evaluate(h => { location.hash = h; }, r); await page.waitForTimeout(250); };
+    const data = await page.evaluate(() => {
+      const first = (a, f) => a.find(f), cs = CASE_STUDIES[0];
+      const toolTopic = TOOLS.map(t => t[4]).find(id => TOPICS[id]), promptTopic = (PROMPT_TEMPLATES.find(p => (p.topics || []).some(id => TOPICS[id])) || { topics: [] }).topics.find(id => TOPICS[id]);
+      const checklist = CHECKLISTS.find(c => (c.topics || []).length), platform = PLATFORMS.find(p => (p.checklists || []).length);
+      return { toolTopic, promptTopic, kinds: [
+        ['prompt', '#/prompts/' + PROMPT_TEMPLATES.find(p => (p.topics || []).length).id], ['checklist', '#/checklists/' + checklist.id],
+        ['platform guide', '#/platforms/' + platform.id], ['engine guide', '#/engines/' + ENGINES[0].id], ['smell', '#/smell/' + SMELLS[0].id],
+        ['diagnostic', '#/diagnose/loop'], ['diagnostic', '#/diagnose/unfair'], ['tool', '#/build/' + TOOLS[0][0]], ['project', '#/experience/' + cs.id],
+        ['path', '#/paths/' + PATHS[0].id], ['topic', '#/map/t/' + (toolTopic || 'core-loop')], ['game', '#/games/' + REFERENCE_GAMES[0].id], ['guide', '#/guide'], ['sources', '#/sources']] };
+    });
+    for (const [what, id, label] of [['Tools', data.toolTopic, 'a tool'], ['Prompts', data.promptTopic, 'a prompt template']]) {
+      if (!id) { failures.push(`cross-links: no topic is named by ${label}`); continue; }
+      await go('#/map/t/' + id + '/overview');
+      const has = await page.evaluate(w => [...document.querySelectorAll('#pane .contexts b')].some(b => b.textContent.trim() === w + ':'), what);
+      if (!has) failures.push(`cross-links: topic ${id} does not show a ${what} row`);
+    }
+    for (const [kind, r] of data.kinds) {
+      await go(r); visits++;
+      const n = await page.evaluate(() => {
+        const skip = '.tabs,.pill-tabs,.crumbs,.tool-nav,.toolgroups,.makejobs,.pathbar,.topic-nav,.subnav';
+        return [...document.querySelectorAll('#pane .view a[href^="#/"]')].filter(a => !a.closest(skip)).length;
+      });
+      if (!n) failures.push(`cross-links: ${kind} page ${r} is a dead end (no link to another part)`);
+    }
+    // Every new-style row on those pages links to something that exists.
+    await go('#/sources');
+    if (!(await page.evaluate(() => !!document.querySelector('#pane details.cited .citedgroup a[href^="http"]')))) failures.push('sources: no "Cited across the site" list');
+    await go('#/guide');
+    const gp = await page.evaluate(() => PATHS.filter(p => !document.querySelector('#pane a[href="#/paths/' + p.id + '"]')).map(p => p.id));
+    if (gp.length) failures.push('guide: paths not reachable from the guide: ' + gp.join(', '));
+    const found = await page.evaluate(() => {
+      const search = PlayableApp.search, hrefs = q => search(q).map(r => r.href);
+      return { license: search('license').filter(r => r.type === 'topic').length, licence: search('licence').filter(r => r.type === 'topic').length,
+        oneOnOne: hrefs('one on one').includes('#/map/t/lead-one-on-ones'), oneToOne: hrefs('1:1').includes('#/map/t/lead-one-on-ones'),
+        rules: hrefs('3.1.1 loot boxes').includes('#/map/t/monetisation-design'), n311: search('3.1.1').length,
+        gacha: hrefs('gacha').includes('#/map/t/monetisation-design'), netcode: hrefs('networking').includes('#/map/t/server-rollback-netcode') };
+    });
+    if (!found.license || found.license !== found.licence) failures.push(`search: "license" finds ${found.license} topics, "licence" ${found.licence}`);
+    if (!found.oneOnOne || !found.oneToOne) failures.push('search: "one on one" / "1:1" does not find lead-one-on-ones');
+    if (!found.rules) failures.push('search: "3.1.1 loot boxes" does not find monetisation-design');
+    if (!found.n311) failures.push('search: "3.1.1" finds nothing');
+    if (!found.gacha) failures.push('search: "gacha" does not find monetisation-design');
+    if (!found.netcode) failures.push('search: "networking" does not find server-rollback-netcode');
+    if (errors.length) failures.push('cross-links page errors: ' + errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
   await browser.close(); server.close();

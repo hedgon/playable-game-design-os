@@ -295,7 +295,7 @@ T('economy-and-resources',{ d:'systems', t:'Economy and resources', tag:'Sources
   prompts:[{l:'Economy simulation',p:`Here is our economy: resources, sources with rates, sinks with costs, converters: [SPEC]. Write a simulation over [N] hours of play for a cautious, an average and an aggressive spender. Report balance curves, the hour at which each resource reaches surplus (more than 3x the largest sink) or starvation (cannot afford the smallest sink for more than 10 minutes), and the decisions that collapse as a result. Propose the smallest rate or cost changes that keep every resource decision live through hour [N].`}],
   verify:[`Does the simulation match observed telemetry at the points you have data for?`,`Did it model player behaviour, or assume optimal play?`],
   test:[`Log balances over time. Where does a resource become irrelevant?`,`Ask players what they are saving for. No answer means no sink.`,`Do players understand exchange rates? Ask them to estimate a cost.`],
-  rel:[['systemic-design','Economy is systemic design applied to quantities.'],['progression','Progression is usually paid for through the economy.'],['business-model','Monetization pressures the design economy.'],['decisions','Spending is the most frequent decision in many games.']] });
+  rel:[['systemic-design','Economy is systemic design applied to quantities.'],['progression','Progression is usually paid for through the economy.'],['business-model','Monetization pressures the design economy.'],['decisions','Spending is the most frequent decision in many games.'],['economy-modelling-and-balance','The method for tuning an economy with anchors, archetypes and telemetry.']] });
 TECH('economy-and-resources',[
   {n:'Sinks-and-faucets balance sheet', how:`List every source (faucet) and drain (sink) of each resource, then compute net flow per session and per hour.`, fit:`Any economy. The first instrument to build.`, cost:`Only as good as the data. Ignores player behaviour until measured.`, alt:`Start here before touching numbers.`},
   {n:'Cost and reward curves', how:`Define prices and rewards as functions (linear, polynomial, exponential) of progress or power.`, fit:`Pricing upgrades, pacing unlocks, scaling rewards.`, cost:`A bad curve is invisible until late-game. Exponential costs can wall players, flat costs can trivialize.`, alt:`Fit the curve to intended time-to-goal, then test against real play sessions.`},
@@ -773,3 +773,116 @@ INTERVIEW('knowledge-as-progression',{
   ] });
 DIAGRAM('knowledge-as-progression', { kind:'matrix', title:'What the gate is, and what proves you passed it', rows:['Stat or item progression','Knowledge progression'], cols:['What the gate is','What proves passage','Spoiler cost'],
   cells:[['A locked door or item','Holding the key or stat','Low, the grind repeats'],['A puzzle needing insight','Recognising the fact','Can erase the reward']] });
+
+T('economy-modelling-and-balance',{ d:'systems', t:'Economy modelling and balance', tag:'Turn the economy into numbers you can run: anchors, rates, archetypes and a check against telemetry, before players find the hole.',
+  what:`Economy modelling is writing an economy down as a small model you can run: each resource, its sources with rates, its sinks with costs, and a few player archetypes that earn and spend at different speeds. You then ask the model questions: how many hours to the first big purchase, when does a currency pile up, what happens if a reward is doubled. It builds on economy-and-resources, which teaches the parts; this topic is the method for tuning them. Three ideas carry it. A balance anchor is one fixed number everything else is measured against, for example hours of play to earn a standard item. Time-to-target is the hours an archetype needs to reach a goal, and it is the number players feel. Inflation is what happens when sources outpace sinks, so the same reward buys less and less status. Machinations, the diagram tool that Joris Dormans devised and that he and Ernest Adams describe in their book, is one way to draw and run such a model. A spreadsheet is another. The model is a lens: it finds structural holes, it cannot tell you how the economy feels. Anchor, time-to-target and archetype are this site's working words for the method; Woodward's talk uses balance anchors, and the rest is common practice, not one author's framework.`,
+  why:[`Economies fail slowly. A reward that is too high compounds. As an illustration, not a measured figure, a source 10 percent above plan can look fine in week one and outrun the sinks by month three, when it is expensive to fix.`,`Without an anchor, every price is a separate opinion. Designers tune items one by one and the catalogue drifts into contradictions.`,`Averages hide the players who matter. A casual and a heavy player can differ by an order of magnitude in time-to-target, and only archetypes show it.`,`In a live game the economy is shared with the business. A model lets design, economy and monetisation argue about numbers instead of feelings.`],
+  think:{ q:[`What is the anchor? Which single number, such as hours to a standard item, do all other prices scale from?`,`For each resource: sources per hour, sinks per hour, net. Is net positive, zero or negative for each archetype?`,`Which archetype is the model blind to: the one who never spends, the one who trades, the one who quits at hour three?`,`Which of your logged flows come from separate data sources, and do they add up to the same money supply?`,`Which two big numbers are you subtracting? A small net between two large flows is where a five percent change flips the result.`,`What would inflation look like here, and which sink removes it?`],
+    trade:[`A simple model is quick and finds structural errors. A detailed model tracks reality better and takes long enough to build that nobody updates it.`,`Tuning from the model is fast and consistent. Tuning from telemetry is true but late, and by then players have already built habits.`],
+    traps:[`Modelling the average player. The average earns at a speed nobody actually plays at.`,`Tuning prices item by item with no anchor, then discovering the catalogue is inconsistent.`,`Assuming players will not turn game money into real money. Castronova's 2001 study of EverQuest found a real-money exchange rate and hourly value for the in-game currency, so a price you set is also a wage someone can compare with a job. Adding a sink after inflation has started, when the surplus is already in players' hands. Removing it later feels like a tax.`,`Trusting the model after launch without comparing it to what players did. The model is a hypothesis.`,`A model that assumes the player always spends optimally, when real players hoard, gamble and misjudge.`],
+    good:[`The designer can say in one sentence what the anchor is and read any price against it.`,`The model predicts which resource will pile up, and telemetry later confirms the hour it did.`],
+    bad:[`Prices were tuned by feel and only one person knows why.`,`The model and the live game disagree and nobody can say which is wrong.`] },
+  how:[`Pick the anchor. Choose the number that matches the experience you want, such as a standard piece of gear in about 20 hours for a core player, and write it down.`,`List every resource with its sources, sinks and converters. Give each a rate per hour for one archetype.`,`Build the first model in a spreadsheet: one row per hour or per session, columns for income, sinks and balance. Read the net.`,`Define three or four archetypes (casual, core, grinder, and one who trades or hoards). Run each and record time-to-target.`,`Sweep one input at a time: double a reward, halve a sink, add a new item at the top. Record which outputs move and by how much. Inputs that move everything are the levers.`,`Move to a script once randomness or choices matter (drops, crafting outcomes, trading). Fix the random seed so two runs of the same numbers give the same answer.`,`Look for inflation: does the average balance per player grow faster than the price of the standard item? If so, add or strengthen a sink, or slow the source.`,`Copy the routine of live economies that publish their books. CCP's monthly EVE Online report tracks price indices (the February 2026 report has the mineral index down about 52 percent over a year), how fast ISK changes hands (velocity, falling), the value of production and destruction, and ISK sinks and faucets by source, and releases the raw data. Track the same handful every week or month. Reconcile totals from two sources before you trust either: CCP has said its sinks-and-faucets plot and its money-supply plot disagree for that reason. Ship with logging that matches the model's columns. After launch compare the archetypes to real players, fix the model where it is wrong, and change the game only after that.`],
+  ai:{ yes:[`Turn a spec of sources, sinks and prices into a spreadsheet or script and run it across archetypes.`,`Sweep an input and report which outputs move.`,`Flag where a small net flow makes the result fragile.`,`Compare telemetry to the model and list the columns that diverge.`],
+       no:[`Choose how scarce the game should feel. That is an experience decision.`,`Decide the anchor or the monetisation policy.`] },
+  prompts:[{l:'Archetype run',p:`Here is our economy: resources, sources with rates per hour, sinks with costs, and our anchor ([ANCHOR], for example a standard item in about [N] hours for a core player): [SPEC]. Build a script that simulates casual, core and grinder archetypes, plus one hoarder. Report hours to the anchor for each, the hour each resource first exceeds three times the largest sink, and the input whose 10 percent change moves time-to-target most. List what the model assumes about player behaviour so we can check it.`},{l:'Inflation check',p:`Here is a table of average balances per player by week of play and the price of our standard item: [DATA]. Say whether the currency is inflating, how fast, and which sources and sinks explain it. Propose the smallest sink or source change, and say what evidence would show the change worked.`}],
+  verify:[`Does the model reproduce a point you already have telemetry for, such as balance at day 7?`,`Is every price expressed against the anchor, so a reviewer can check it?`,`Has each archetype's time-to-target been run, not just the average?`,`Are the model and the logs compared from one data source, or do two sources give different totals? CCP reports that its EVE Online sinks-and-faucets plot and money-supply plot disagree because they use separate sources, which shows how a mismatch hides in plain sight.`],
+  test:[`Change one source by 10 percent in the model. If time-to-target moves by more than 30 percent, treat the economy as fragile and look for a stabilising sink (30 percent is this site's rule of thumb, not a standard).`,`Give the model to a designer who did not write it and ask them to predict the effect of a change before running it. A wrong prediction shows what the model teaches.`,`After launch, plot real balances against the model per week. The first week they part is the finding. Then add up the sinks and faucets you log and compare the result with the money supply you log; if they differ, find out which source is wrong before tuning anything.`],
+  rel:[['economy-and-resources','That topic teaches the parts of an economy; this one is how to tune them with numbers.'],['craft-gameplay-math','The curves and probabilities inside sources and sinks.'],['progression','Progression is paid for through the economy, so its pacing is time-to-target.'],['metrics-and-success','Telemetry is how the model is checked against players.']],
+  facts:[{claim:`Matt Woodward's GDC 2017 talk on balancing the economy of Albion Online, a market-driven MMO, walks through balance anchors, core balance relationships and constraint-driven design using examples from that game.`,asOf:'2026-09-30',src:'https://gdcvault.com/play/1024070'},{claim:`Edward Castronova's 2023 GDC session, presented by Machinations.io, covers establishing currencies, distributing resources, trading, pricing and inflation, and using data and iterative testing to maintain an economy in live operation.`,asOf:'2026-09-30',src:'https://gdcvault.com/play/1028982'},{claim:`Ernest Adams and Joris Dormans, Game Mechanics: Advanced Game Design (New Riders, 2012), has chapters on the internal economy of a game and on Machinations, a tool for drawing, simulating and testing that economy.`,asOf:'2026-09-30',src:'https://www.peachpit.com/store/adamsgame-mechanics-p1-9780321820273'},{claim:`Edward Castronova's 2001 working paper Virtual Worlds: A First-Hand Account of Market and Society on the Cyberian Frontier estimated from EverQuest trades that Norrath's currency traded at about USD 0.0107 per unit and its nominal hourly wage was about USD 3.42, giving a GNP per capita between Russia and Bulgaria. It is a one-game estimate from 2001 (secondary reports of the figures); it does not show how to tune an economy.`,asOf:'2026-09-30',src:'https://www.cesifo.org/en/publications/2001/working-paper/virtual-worlds-first-hand-account-market-and-society-cyberian'},{claim:`CCP Games publishes a Monthly Economic Report for EVE Online. The February 2026 report (eveonline.com news) states that destruction value rose while mining and production value fell, that the velocity of ISK keeps decreasing, and that the mineral, ship and module price indices were down about 52, 21 and 13 percent over the past year. Raw data is downloadable. CCP has said in an EVE forum report thread (secondary to the article) that its sinks-and-faucets and money-supply plots differ because they use two data sources. This shows what a live economy measures and that public books get reconciled; it does not show that the reports improve balance.`,asOf:'2026-09-30',src:'https://www.eveonline.com/news/view/monthly-economic-report-february-2026'}] });
+TECH('economy-modelling-and-balance',[
+  {n:'Balance anchor', how:`Fix one number (hours to a standard item, or price of one unit of progress) and express every price and reward as a multiple of it.`, fit:`Any economy with more than a handful of prices.`, cost:`A wrong anchor is wrong everywhere. Revisit it when the audience shifts.`, alt:`Anchor on a session instead of an hour for short-session mobile games.`},
+  {n:'Archetype simulation', how:`Run the same model for three or four player types that earn and spend at different speeds and compare time-to-target.`, fit:`Finding who a price wall or a surplus hits.`, cost:`Archetypes are guesses until telemetry replaces them.`, alt:`A spreadsheet with one column per archetype.`},
+  {n:'Input sweep', how:`Change one rate or price at a time by a fixed percentage and record how far each output moves.`, fit:`Learning which numbers are levers and which are safe.`, cost:`Misses interactions between inputs changed together.`, alt:`A random sweep of several inputs at once in a script.`},
+  {n:'Model against telemetry', how:`Log balances and purchases in the same columns as the model, then plot both per week.`, fit:`Any live economy.`, cost:`Needs logging built before launch.`, alt:`Sample a few hundred accounts for a first read.`}
+]);
+ENGINE('economy-modelling-and-balance',{
+  godot:{ term:`The model is a headless script. It runs the same rates for each archetype and prints hours to the anchor, so a balance change becomes a number you can read before anyone opens the game.`,
+    api:['extends SceneTree','godot --headless --script','Dictionary iteration','range()','INF','String formatting with %','SceneTree.quit()'],
+    snippet:`# godot --headless --script res://tools/econ_sim.gd
+extends SceneTree
+
+const TARGET := 5000.0          # price of the anchor item
+const SINK_PER_HOUR := 300.0    # repairs, consumables
+
+func hours_to_target(income: float, max_hours: int = 9600) -> float:
+\tvar gold := 0.0
+\tfor h in range(1, max_hours + 1):
+\t\tgold += income - SINK_PER_HOUR
+\t\tif gold >= TARGET:
+\t\t\treturn float(h)
+\treturn INF
+
+func _init() -> void:
+\tvar archetypes := {"casual": 320.0, "core": 450.0, "grinder": 700.0}
+\tfor who in archetypes:
+\t\tprint("%s: %.0f h" % [who, hours_to_target(archetypes[who])])
+\tquit()`,
+    pitfall:`Tuning inside a running scene and eyeballing the result. A scene is affected by frame rate, input and whichever save was loaded, so two runs of the same numbers disagree. Keep the model in a headless script with no scene, so the same inputs always give the same output and it can run in CI.`,
+    map:`A Godot headless SceneTree script is a Unity editor menu method or an EditMode test that runs the same pure function.` },
+  unity:{ term:`The model is a plain static function with no scene dependence, called from a context menu or a test, so a balance question is answered in the console without building a level.`,
+    api:['[ContextMenu]','Debug.Log()','value tuples and deconstruction','float.PositiveInfinity','string interpolation with format specifiers','EditMode test with NUnit'],
+    snippet:`using UnityEngine;
+
+public class EconSim : MonoBehaviour {
+    const float Target = 5000f, SinkPerHour = 300f;
+    static readonly (string who, float income)[] Archetypes =
+        { ("casual", 320f), ("core", 450f), ("grinder", 700f) };
+
+    static float HoursToTarget(float income, int maxHours = 9600) {
+        float gold = 0f;
+        for (int h = 1; h <= maxHours; h++) {
+            gold += income - SinkPerHour;
+            if (gold >= Target) return h;
+        }
+        return float.PositiveInfinity;
+    }
+
+    [ContextMenu("Run")]
+    void Run() {
+        foreach (var (who, income) in Archetypes)
+            Debug.Log($"{who}: {HoursToTarget(income):F0} h");
+    }
+}`,
+    pitfall:`Keeping the model's numbers in a separate constant block from the ones the game reads. The two drift, the model says 20 hours and the shipped build says 30, and nobody notices until players do. Put the inputs in one asset or data file that both the model and the game load.`,
+    map:`A Unity ContextMenu on a component is a Godot @tool button or a headless SceneTree script, and the pure function is the same in both.` },
+  note:`Both snippets show the same lesson in their output: casual nets 20 an hour after the sink, the grinder 400, so time-to-target spans 250 hours to 13. A small change in the sink moves the casual result far more than the grinder's. That is what a net of two big numbers looks like, and the model shows it before players do.` });
+INTERVIEW('economy-modelling-and-balance',{
+  junior:[
+    { q:`What is inflation in a game economy?`,
+      a:`Sources outpace sinks, so players hold more and more currency and the same price feels cheaper. Rewards lose their status, and designers respond by raising prices, which then punishes new players. The fix is a sink or a slower source, not just new prices.`,
+      follow:`Name a sink that removes currency without feeling like a tax.`,
+      red:`Says inflation is when prices go up and does not connect it to sources and sinks.` },
+    { q:`Why simulate an economy in a spreadsheet before building it?`,
+      a:`Because arithmetic errors are cheap to find on paper and expensive to find in play. A spreadsheet answers how many hours to a target, and when a resource piles up, for each type of player, in minutes.`,
+      follow:`What can a spreadsheet not tell you?`,
+      red:`Believes a spreadsheet proves the economy is fun.` }
+  ],
+  mid:[
+    { q:`What is a balance anchor and why use one?`,
+      a:`One number that everything else is measured against, such as hours of play to a standard item. Every price and reward becomes a multiple of it, so a reviewer can check the catalogue is consistent and a change to the anchor scales the whole thing on purpose.`,
+      follow:`How do you choose the anchor for a game with no shipped data?`,
+      red:`Tunes each item on its own with no shared reference.` },
+    { q:`Why run archetypes instead of an average player?`,
+      a:`The average earns at a speed no one actually plays. A casual and a heavy player can differ by an order of magnitude in time-to-target, and the price wall or the surplus hits one of them. Archetypes show who breaks.`,
+      follow:`How do you replace guessed archetypes with real ones after launch?`,
+      red:`Says a single average player is enough for balancing.` },
+    { q:`Your model predicted a surplus at hour 30 and telemetry shows it at hour 18. What do you do?`,
+      a:`Find which column parts first: source rate, sink rate or player behaviour. Correct the model, not the game, until it reproduces the data. Then decide whether the game should change. Changing the game to fit a wrong model just moves the error.`,
+      follow:`What if the divergence is a behaviour you did not imagine, such as trading?`,
+      red:`Changes prices immediately without finding why the model was wrong.` }
+  ],
+  senior:[
+    { q:`A live event doubled a reward for a week. How do you judge its effect on the economy?`,
+      a:`Model it as an extra source: how much extra currency entered, for which archetypes, against which sinks. Then check telemetry for balances a few weeks later, because the currency is still in players' hands. If it is not sunk, the event is permanent inflation. Plan the sink before the event.`,
+      follow:`What do you do if the event was already run without a sink?`,
+      red:`Judges an event only by its week of revenue and engagement.` },
+    { q:`Design, economy and monetisation disagree about a price. How does the model help and where does it stop?`,
+      a:`It gives all three the same numbers: time-to-target for each archetype under each proposal, and what each does to surplus. It stops at what players will accept and how the economy feels. Those go to playtests and the product owner. The model narrows the argument, not ends it.`,
+      follow:`What would you put on the table besides the model?`,
+      red:`Treats the model output as the decision.` },
+    { q:`How do you keep a model alive across a two-year live game?`,
+      a:`Keep the inputs in one file the game also reads, log with the model's columns, and compare per season. Any new resource or sink gets added to the model in the same change that ships it. A model that lags the game becomes a story nobody trusts.`,
+      follow:`Who owns it when the designer who built it leaves?`,
+      red:`Builds the model once at launch and treats it as done.` }
+  ] });

@@ -13,7 +13,7 @@ const TOOLS = [
   ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded','You have an idea and want to know whether it is good before you build it.','learning-from-success'],
   ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check','Your idea is a list of features and you cannot tell whether it repeats.','core-loop'],
   ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not','You need one page that says who it is for and what it should feel like.','core-experience'],
-  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic','Someone asks for a feature and you need the behavior it should cause.','feature-vs-experience'],
+  ['ladder','Behaviour Ladder','From a feature idea to the behavior and back to the smallest mechanic','Someone asks for a feature and you need the behavior it should cause.','feature-vs-experience'],
   ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE','A feature is on the table and the team is about to commit.','scope-control'],
   ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…','You are about to run a playtest and want it to settle a question.','hypothesis-driven-design'],
   ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required','You are deciding which parts of the work to hand to an AI.','ai-roles'],
