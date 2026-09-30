@@ -939,8 +939,6 @@ details.comp .body{padding-top:6px}
   .shell.work.hide-left,.shell.nomap.hide-left,.shell.work.norail{grid-template-columns:0 0 0 0 minmax(0,1fr)}
   .shell.work > .mapstage,.shell.work > #splitR,.shell.nomap > .mapstage,.shell.nomap > #splitR{display:none}
   .shell.work > #pane,.shell.nomap > #pane{display:block}
-  .shell.work .view{max-width:1100px}
-  .shell.nomap .view{max-width:900px}
   /* a section with no list of its own gives the column back */
   .shell.norail > .rail,.shell.norail > #splitL{display:none}
 }
@@ -1152,6 +1150,60 @@ details.comp .body{padding-top:6px}
   .pane.nopill::before{height:14px}
   /* a topic or path is a page of its own here, with the map one tap away */
   .pane{width:100vw;border-left:0}
+}
+/* ---------- wide screens ----------
+   Layout rule: grids and lists fill the pane (more columns, same card size);
+   prose keeps a reading measure; diagrams, the map, tables and images may use
+   the full width. From 1600px of pane width a topic, game, series, engine,
+   platform or checklist page gets a sticky side column (.wide2) built from
+   blocks the page already has. Below that nothing here applies. */
+.pane{container:pane/inline-size}
+.cfull{display:none}
+@media (min-width:1300px){
+  .shell.work .view,.shell.nomap .view{max-width:none}
+  .shell.work .view > :is(p,ul,ol,dl,.callout,.tabs,.pill-tabs,.chips,.section-head,.row,details){max-width:1100px}
+  .wide2 > .wmain{max-width:1240px}
+  .pstage{max-width:none}
+  .pstage :is(ul,ol,p){max-width:900px}
+  .shell.work .view > .pill-tabs,.shell.work .view > .tabs{max-width:none}
+  .shell.nomap .view > :is(.topic-head,.tabs,.tabbody){max-width:1000px}
+  .shell:not(.hide-left) .view > .cktabs{display:none}
+  .view > .paths{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:0 14px}
+  .toolgrid,.grid.fit{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+  .csnip{display:none}.cfull{display:inline}
+  .grid.fill{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+  .reflib{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .shell.work .view :is(.card,.callout,.sec) p,.shell.nomap .view :is(.card,.sec) p{max-width:800px}
+  .shell.work .view .diagram-card p,.shell.nomap .view .diagram-card p{max-width:none}
+}
+.gamesum{display:block}.gamesum .sumtext{min-width:0}
+.wside{display:none}
+@container pane (min-width:1540px){
+  .wide2{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,460px);gap:0 36px;align-items:start;justify-content:start}
+  .wside{display:block;position:sticky;top:calc(var(--hdr,60px) + var(--pbH,0px) + 14px);max-height:calc(100vh - var(--hdr,60px) - var(--pbH,0px) - 28px);overflow:auto;font-size:.9rem}
+  .shell.nomap .view > :is(.topic-head,.tabs,.tabbody){max-width:none}
+  .wide2 > .wmain{max-width:none}
+  .wide2 .wdup{display:none}
+  .gamesum{display:flex;gap:18px;align-items:flex-start}
+  .gamesum .gameart{flex:0 1 460px;margin:0}
+  .gamesum .sumtext{flex:1 1 0}
+  .gamesum .sumtext > .card:first-child:last-child{margin-top:0}
+  .wside .overline{display:block;margin:0 0 6px}
+  .wside .wblock{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px;margin-bottom:12px}
+  .wside .wblock > :last-child{margin-bottom:0}
+  .wside ol,.wside ul{list-style:none;margin:0;padding:0}
+  .wside li{margin:0}
+  .wside li > :is(a,button){display:block;width:100%;text-align:left;background:none;border:0;padding:5px 6px;border-radius:var(--r3);color:var(--fg2);font:inherit;cursor:pointer}
+  .wside li > :is(a,button):hover{background:var(--bg3);color:var(--fg)}
+  .wside .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .wside .dgm-foot{border:0;margin:0;padding:0}
+  .wside .rel{display:block;padding:6px 10px;margin:0 0 6px}
+  .wside .related{grid-template-columns:1fr;gap:0}
+  .wside .rel .why{display:none}
+  .wide2 .sec{scroll-margin-top:calc(var(--hdr,60px) + var(--pbH,0px) + 12px)}
+  .wide2 .card:has(> .wdup:only-child){display:none}
+  .wside .pill-tabs{flex-direction:column;flex-wrap:nowrap;margin:0}
+  .wside .pill-tabs button{text-align:left;border-radius:var(--r3)}
 }
 </style>
 </head>

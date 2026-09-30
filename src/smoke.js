@@ -272,8 +272,36 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     visits++;
     await ctx.close();
   }
+  // A 1920px screen: grids fill their column (more columns, not a capped strip) and a
+  // two-column page leaves no big blank beside its content.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    await page.goto(base);
+    await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
+    const go = async r => { await page.evaluate(h => { location.hash = '#/paths'; }); await page.evaluate(h => { location.hash = h; }, r); await page.waitForTimeout(250); };
+    for (const [r, sel] of [['#/games', '.reflib'], ['#/platforms', '.grid.auto'], ['#/engines', '.grid.auto'], ['#/paths', '.grid.auto'], ['#/prompts', '.grid.auto'], ['#/build', '.toolgrid'], ['#/experience', '.grid.auto']]) {
+      await go(r);
+      const m = await page.evaluate(sel => { const g = document.querySelector('#pane .view ' + sel), v = g && g.parentElement; return g && { grid: g.getBoundingClientRect().width, view: v.getBoundingClientRect().width }; }, sel);
+      if (!m) failures.push(`1920px ${r}: no ${sel}`);
+      else if (m.grid < m.view * 0.9) failures.push(`1920px ${r}: the grid is ${Math.round(m.grid)}px of a ${Math.round(m.view)}px column`);
+    }
+    const two = await page.evaluate(() => { const g = REFERENCE_GAMES.find(x => x.kind !== 'series'); return ['#/map/t/core-loop/overview', '#/games/' + g.id, '#/engines/' + ENGINES[0].id, '#/platforms/' + PLATFORMS[0].id]; });
+    for (const r of two) {
+      await go(r);
+      const m = await page.evaluate(() => { const s = document.querySelector('#pane .wside'); return { shown: !!s && getComputedStyle(s).display !== 'none' && s.getBoundingClientRect().width > 250, right: s ? s.getBoundingClientRect().right : 0, wide: document.documentElement.scrollWidth > innerWidth + 1 }; });
+      if (!m.shown) failures.push(`1920px ${r}: no side column`);
+      else if (1920 - m.right > 1920 * 0.25) failures.push(`1920px ${r}: ${Math.round(1920 - m.right)}px empty beside the content`);
+      if (m.wide) failures.push(`1920px ${r}: horizontal scroll`);
+      visits++;
+    }
+    if (errors.length) failures.push('1920px page errors: ' + errors.slice(0, 3).join(' | '));
+    await ctx.close();
+  }
   await browser.close(); server.close();
-  console.log(`smoke: ${visits} route visits at 3 widths; failures: ${failures.length}`);
+  console.log(`smoke: ${visits} route visits at 4 widths; failures: ${failures.length}`);
   failures.slice(0, 40).forEach(f => console.log('  ' + f));
   process.exit(failures.length ? 1 : 0);
 })().catch(e => { console.error(e); server.close(); process.exit(1); });

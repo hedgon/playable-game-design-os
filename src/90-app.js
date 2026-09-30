@@ -501,6 +501,18 @@ function syncBarCompact(){
   else { bar.classList.remove('compact'); bar.style.marginBottom = ''; }
 }
 ACTIONS['bar-expand'] = el => { const bar = el.closest('.pathbar'); bar.dataset.pinned = '1'; syncBarCompact(); };
+// A wide screen gives a reading page a partner column: `side` is a sticky column
+// beside `main` (see .wide2 in the CSS). Blocks the side repeats carry .wdup in the
+// main column and are hidden there while the side shows. Under 1600px of pane
+// width the side is not shown and the page reads exactly as before.
+const wide2 = (main, side, label) => side ? `<div class="wide2"><div class="wmain">${main}</div><aside class="wside" aria-label="${label || 'On this page'}">${side}</aside></div>` : main;
+const wideBlock = (title, inner) => inner ? `<div class="wblock">${title ? `<span class="overline">${title}</span>` : ''}${inner}</div>` : '';
+const wideJump = items => wideBlock('On this page', `<ol>${items.map(([label, attrs]) => `<li><button type="button" data-action="wide-jump" ${attrs}>${esc(label)}</button></li>`).join('')}</ol>`);
+ACTIONS['wide-jump'] = el => {
+  const sec = el.dataset.sec && document.querySelector(`.wmain .sec[data-key="${el.dataset.sec}"]`);
+  if(sec && !sec.classList.contains('open')) ACTIONS['toggle-sec'](sec.querySelector('.sec-btn'));
+  const t = sec || document.getElementById(el.dataset.to); if(t) t.scrollIntoView({ block: 'start' });
+};
 function setView(html){
   ensureShell(); const pane = $('#pane'), keep = keepScroll, y = window.scrollY, py = pane.scrollTop; keepScroll = false;
   pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail();
@@ -622,7 +634,7 @@ function lensesHTML(g){
       ${topicChips(l, k)}${src(l)}</section>`; }).join('')}`;
 }
 // A compact contents strip under the summary: each lens is a link that opens the page on it.
-const lensContents = g => `<nav class="lensnav chips lenscontents" aria-label="Lenses on this page"><span class="small muted">Jump to</span>${GAME_LENSES.filter(([k]) => g.lens[k]).map(([k, label]) => `<a class="chip lnk" href="#/games/${g.id}/${k}">${esc(label)}</a>`).join('')}</nav>`;
+const lensContents = g => `<nav class="lensnav chips lenscontents wdup" aria-label="Lenses on this page"><span class="small muted">Jump to</span>${GAME_LENSES.filter(([k]) => g.lens[k]).map(([k, label]) => `<a class="chip lnk" href="#/games/${g.id}/${k}">${esc(label)}</a>`).join('')}</nav>`;
 ACTIONS['lens-jump'] = el => { const c = document.getElementById('lens-' + el.dataset.lens); if(c) c.scrollIntoView({ block: 'start' }); };
 function signatureHTML(g){
   const s = g.signature; if(!s) return '';
@@ -663,19 +675,26 @@ function renderGames(id, lensId){
   const g = REFERENCE_GAMES.find(x => x.id === id);
   if(!g){ setView(libraryHTML()); return; }
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
-  setView(`${crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]])}<h1>${esc(g.t)}</h1><p class="dim">${gameYears(g)} · ${esc(g.kind === 'series' ? 'series · ' + g.genre : g.genre)}</p>${seriesHTML(g).startsWith('<p') ? seriesHTML(g) : ''}
+  // The side column (wide screens only) repeats the lens list and adds the series and the topics shown.
+  const lensList = g.lens ? GAME_LENSES.filter(([k]) => g.lens[k]) : [];
+  const shown = g.lens ? [...new Set(lensList.flatMap(([k]) => lensTopics(g.lens[k], k)).filter(t => TOPICS[t]))].slice(0, 12) : [];
+  const side = wideBlock('Lenses on this page', lensList.length ? `<ol>${lensList.map(([k, label]) => `<li><button type="button" data-action="wide-jump" data-to="lens-${k}">${esc(label)}</button></li>`).join('')}</ol>` : '') +
+    (g.kind === 'series' ? wideBlock('The series, entry by entry', `<ol>${g.entries.map(e => `<li>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : `<span class="small dim" style="display:block;padding:5px 6px">${esc(e.t)}</span>`}</li>`).join('')}</ol>`) : '') +
+    wideBlock('Topics it shows', shown.length ? `<div class="chips">${shown.map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</div>` : '') +
+    wideBlock('', `<a class="btn" href="#/build/dissect">Dissect your idea against it</a>`);
+  setView(crumbs([['Library','#/games'],['Reference games','#/games'],[g.t]]) + wide2(`<h1>${esc(g.t)}</h1><p class="dim">${gameYears(g)} · ${esc(g.kind === 'series' ? 'series · ' + g.genre : g.genre)}</p>${seriesHTML(g).startsWith('<p') ? seriesHTML(g) : ''}
     <div class="chips" style="margin:-4px 0 12px"><a class="chip dom lnk" href="#/games" data-action="lib-family" data-v="${esc(g.family)}">${esc(familyLabel(g.family))}</a>${(g.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>
     ${gameAwards(g).length ? `<p class="small gameawards"><b>Awards.</b> ${gameAwards(g).map(a => `<a href="${esc(a.src)}" target="_blank" rel="noopener noreferrer">${esc((AWARDS.find(x => x[0] === a.id) || [, a.id])[1])} (${a.year}${a.for ? ', ' + esc(a.for) : ''})</a>`).join(' · ')}</p>` : ''}
-    ${gameArt(g)}
+    <div class="gamesum">${gameArt(g)}<div class="sumtext">
     ${g.kind === 'series' && g.lesson ? `<section class="card sigcard seriestake"><div class="overline">The takeaway across the series</div><p><b>${esc(g.lesson)}</b></p></section>` : ''}
-    <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
+    <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div></div></div>
     ${g.lens ? lensContents(g) : ''}
     ${g.kind === 'series' ? seriesHTML(g) : ''}
     ${signatureHTML(g)}
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
     ${lensesHTML(g)}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}${pathChips('game:' + g.id, 'game')}</div>
-    <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+    <div class="row wdup"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`, side, 'This game'));
   // #/games/<id>/<lens> lands on that lens.
   // Runs once the route has settled its layout; pictures above the lens load late and
   // move it, so it re-aligns until the reader scrolls.
@@ -731,19 +750,27 @@ function renderPlatforms(id){
     return;
   }
   const stage = ([k, label]) => guideStageHTML(P.stages[k], label);
-  setView(`${crumbs([['Library','#/games'],['Platforms','#/platforms'],[P.t]])}<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
+  const pTopics = (P.topics || []).length ? `<p class="small wdup">Topics: ${P.topics.map(t => topicLink(t)).join(', ')}</p>` : '';
+  const side = guideSide(stagesOf(P), (P.topics || []).map(t => topicLink(t)), null);
+  setView(crumbs([['Library','#/games'],['Platforms','#/platforms'],[P.t]]) + wide2(`<h1>${esc(P.t)}</h1><p class="dim">${esc(P.sub)}</p><p style="max-width:820px">${esc(P.short)}</p>
     ${P.nda ? `<div class="callout"><b>Under NDA.</b> ${esc(P.nda)}</div>` : ''}
     ${P.flow ? diagramCard(P.flow) : ''}
     ${stagesOf(P).map(stage).join('')}
-    ${(P.topics || []).length ? `<p class="small">Topics: ${P.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`);
+    ${pTopics}${note}`, side, 'This platform'));
 }
 // One stage of a platform or engine guide: its diagram, points, a numbered
 // deploy walkthrough (a step may carry a credited image), images, dated
 // facts, and interview questions with answers behind a toggle.
+// Side column of an engine or platform page: its stages, what it is at a glance, its topics.
+function guideSide(stages, topics, glance){
+  return wideJump(stages.map(([, label]) => [label, `data-to="wj-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"`])) +
+    wideBlock('At a glance', (glance || []).length ? `<div class="chips">${glance.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div>` : '') +
+    wideBlock('Topics', topics.length ? `<ul>${topics.map(t => `<li>${t}</li>`).join('')}</ul>` : '');
+}
 function guideStageHTML(s, label){
   const deploy = (s.deploy || []).length ? `<ol class="deploysteps">${s.deploy.map(d => `<li><b>${esc(d.t)}</b> ${esc(d.d)}${d.shot ? shotHTML({}, d.shot) : ''}</li>`).join('')}</ol>` : '';
   const iv = (s.iv || []).length ? `<div class="guideiv">${s.iv.map(x => `<details class="card"><summary><b>${esc(x.q)}</b></summary><p>${esc(x.a)}</p><p class="small"><b>Follow-up:</b> ${esc(x.follow)}</p><p class="small"><b>Red flag:</b> ${esc(x.red)}</p></details>`).join('')}</div>` : '';
-  return `<section class="pstage"><h2>${label}</h2>${s.diagram ? diagramCard(s.diagram) : ''}${s.points ? list(s.points) : ''}${deploy}${(s.shots || []).map(sh => shotHTML({}, sh)).join('')}${factItems(s.facts)}${iv}</section>`;
+  return `<section class="pstage" id="wj-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}"><h2>${label}</h2>${s.diagram ? diagramCard(s.diagram) : ''}${s.points ? list(s.points) : ''}${deploy}${(s.shots || []).map(sh => shotHTML({}, sh)).join('')}${factItems(s.facts)}${iv}</section>`;
 }
 /* ---------- how to use the site ---------- */
 // One page that says what each section is for and which route fits which
@@ -795,11 +822,12 @@ function renderEngines(id){
       ${ENGINES.length ? groups.map(([k, t]) => { const xs = ENGINES.filter(e => e.kind === k); return xs.length ? `<div class="section-head"><h2>${t}</h2></div><div class="grid auto">${xs.map(card).join('')}</div>` : ''; }).join('') : '<div class="empty">Engine guides are being written.</div>'}${note}`);
     return;
   }
-  setView(`${crumbs([['Library','#/games'],['Engines','#/engines'],[E.t]])}<h1>${esc(E.t)}</h1><p class="dim">${esc(E.sub)}</p><p style="max-width:820px">${esc(E.short)}</p>
-    <div class="chips" style="margin:-4px 0 12px">${E.glance.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div>
+  const side = guideSide(ENGINE_STAGES, (E.topics || []).map(t => topicLink(t)), E.glance);
+  setView(crumbs([['Library','#/games'],['Engines','#/engines'],[E.t]]) + wide2(`<h1>${esc(E.t)}</h1><p class="dim">${esc(E.sub)}</p><p style="max-width:820px">${esc(E.short)}</p>
+    <div class="chips wdup" style="margin:-4px 0 12px">${E.glance.map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div>
     ${diagramCard(E.flow)}
     ${ENGINE_STAGES.map(([k, label]) => guideStageHTML(E.stages[k], label)).join('')}
-    ${(E.topics || []).length ? `<p class="small">Topics: ${E.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`);
+    ${(E.topics || []).length ? `<p class="small wdup">Topics: ${E.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${note}`, side, 'This engine'));
 }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
 function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
@@ -1023,15 +1051,16 @@ function topicBody(id){
   // Rules and rulings that change, each with the day it was checked.
   const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h4>Dated facts</h4><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
   const inGames = gameLinks()[id] || [];
+  const smellChips = `<div class="chips">${smells.map(s => `<a class="chip lnk" style="cursor:pointer;padding:6px 10px" href="#/smell/${s.id}">${esc(s.t)}</a>`).join('')}</div>`;
   // Six chips, then the rest behind a toggle: with sixty games a common
   // topic would otherwise carry a wall of links above the article.
   const gameChip = x => `<a class="chip lnk" href="#/games/${x.g.id}">${esc(x.g.t)}: ${esc(x.label.charAt(0).toLowerCase() + x.label.slice(1))}</a>`;
-  const gameFoot = inGames.length ? `<div class="dgm-foot"><span class="overline">In real games</span><span class="chips">${inGames.slice(0, 6).map(gameChip).join('')}</span>${inGames.length > 6 ? `<details class="more-games"><summary>${inGames.length - 6} more</summary><span class="chips">${inGames.slice(6).map(gameChip).join('')}</span></details>` : ''}</div>` : '';
+  const gameFoot = inGames.length ? `<div class="dgm-foot wdup"><span class="overline">In real games</span><span class="chips">${inGames.slice(0, 6).map(gameChip).join('')}</span>${inGames.length > 6 ? `<details class="more-games"><summary>${inGames.length - 6} more</summary><span class="chips">${inGames.slice(6).map(gameChip).join('')}</span></details>` : ''}</div>` : '';
   const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}
     ${secs}${techSec}${facts}
-    <div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
-    <div class="related">${rel}</div>
-    ${smells.length ? `<div class="section-head"><h2>Design smells this topic helps diagnose</h2></div><div class="chips">${smells.map(s => `<a class="chip lnk" style="cursor:pointer;padding:6px 10px" href="#/smell/${s.id}">${esc(s.t)}</a>`).join('')}</div>` : ''}
+    <div class="wdup"><div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
+    <div class="related">${rel}</div></div>
+    ${smells.length ? `<div class="wdup"><div class="section-head"><h2>Design smells this topic helps diagnose</h2></div>${smellChips}</div>` : ''}
     ${contextsPanel(t)}
     <div class="readmark">${readMarkHTML(id)}</div>
     <div class="topic-nav">${prev ? `<button class="btn" data-href="#/map/t/${prev}">← ${esc(TOPICS[prev].t)}</button>` : `<button class="btn ghost" data-href="#/map/d/${d.id}">← ${esc(d.t)} overview</button>`}<button class="btn ghost" data-href="#/explore/${d.id}">List view</button>${next ? `<button class="btn" data-href="#/map/t/${next}">${esc(TOPICS[next].t)} →</button>` : `<button class="btn" data-href="#/map/home">All domains →</button>`}</div>`;
@@ -1039,7 +1068,13 @@ function topicBody(id){
   const tab = tabs.some(x => x[0] === topicTab) ? topicTab : 'overview';
   // One tab means there is nothing to choose, so the strip is not drawn at all.
   const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Topic views">${tabs.map(([k, label]) => `<button role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" data-action="topic-tab" data-topic="${id}">${label}</button>`).join('')}</div>` : '';
-  const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : overview;
+  // On a wide screen the overview keeps its sections in one column and the page's
+  // contents, real games, related concepts and smells in a sticky column beside it.
+  const secKeys = [...SECTION_META.map(m => m[0]), ...(t.tech && t.tech.length ? ['tech'] : [])];
+  const side = wideJump(secKeys.map(k => [k === 'tech' ? 'Techniques to compare' : secTitle(k), `data-sec="${k}"`])) +
+    wideBlock('In real games', inGames.length ? gameFoot.replace(' wdup', '').replace('<span class="overline">In real games</span>', '') : '') +
+    wideBlock('Related concepts', `<div class="related">${rel}</div>`) + (smells.length ? wideBlock('Design smells this topic helps diagnose', smellChips) : '');
+  const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : wide2(overview, side);
   return `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       ${tab === 'overview' ? `<div class="row"><button class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
@@ -1664,10 +1699,11 @@ function renderPrompts(id){
 function renderChecklists(id){
   const sel = CHECKLISTS.find(c => c.id === id) || CHECKLISTS[0];
   const state = store.get('check.'+sel.id, {});
+  const tabs = CHECKLISTS.map(c => `<button class="${c.id===sel.id?'active':''}" data-href="#/checklists/${c.id}">${esc(c.t)}</button>`).join('');
   setView(`${crumbs([['Library','#/games'],['Checklists']])}<h1>Checklists</h1><p class="dim">Practical reviews. Checkbox state is saved per checklist. Reset when you start a new feature or session.</p>
-    <div class="pill-tabs">${CHECKLISTS.map(c => `<button class="${c.id===sel.id?'active':''}" data-href="#/checklists/${c.id}">${esc(c.t)}</button>`).join('')}</div>
+    <div class="pill-tabs cktabs">${tabs}</div>
     <div class="card"><div class="row between"><div><h2>${esc(sel.t)}</h2><p class="dim" style="margin:0">${esc(sel.desc)}</p></div><div class="row"><span class="chip" id="ckCount"></span><button class="btn sm" id="ckExport">Export Markdown</button><button class="btn sm ghost danger" id="ckReset">Reset</button></div></div>
-      <div class="grid c2" style="margin-top:12px">${sel.groups.map(([g, items], gi) => `<div class="checklist"><h4>${esc(g)}</h4>${items.map((it, ii) => { const k = gi+'.'+ii; return `<label class="${state[k]?'done':''}"><input type="checkbox" data-k="${k}" ${state[k]?'checked':''}><span>${esc(it)}</span></label>`; }).join('')}</div>`).join('')}</div></div>`);
+      <div class="grid c2 fill" style="margin-top:12px">${sel.groups.map(([g, items], gi) => `<div class="checklist"><h4>${esc(g)}</h4>${items.map((it, ii) => { const k = gi+'.'+ii; return `<label class="${state[k]?'done':''}"><input type="checkbox" data-k="${k}" ${state[k]?'checked':''}><span>${esc(it)}</span></label>`; }).join('')}</div>`).join('')}</div></div>`);
   const total = sel.groups.reduce((n,g) => n+g[1].length, 0);
   const count = () => { const n = Object.values(state).filter(Boolean).length; $('#ckCount').textContent = `${n} / ${total}`; $('#ckCount').className = 'chip ' + (n===total ? 'ok' : ''); };
   $$('input[data-k]').forEach(i => i.onchange = () => { state[i.dataset.k] = i.checked; i.closest('label').classList.toggle('done', i.checked); store.set('check.'+sel.id, state); count(); });
@@ -1712,7 +1748,7 @@ const SOURCES = [
 function renderSources(){
   const tag = k => ({research:'<span class="chip ok">research-backed</span>', heuristic:'<span class="chip">practitioner heuristic</span>', contested:'<span class="chip warn">contested</span>', practice:'<span class="chip shared">practice</span>'})[k];
   setView(`${crumbs([['Library','#/games'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesizes established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres. A few items rest on research. Several are contested and marked as such. Verify against your players.</p>
-    <div class="grid c2">${SOURCES.map(s => `<div class="card"><div class="row between"><h3 style="margin:0">${esc(s[0])}</h3>${tag(s[3])}</div><p style="margin:8px 0 6px">${esc(s[1])}</p><div class="small muted">${esc(s[2])}</div></div>`).join('')}</div>
+    <div class="grid c2 fill">${SOURCES.map(s => `<div class="card"><div class="row between"><h3 style="margin:0">${esc(s[0])}</h3>${tag(s[3])}</div><p style="margin:8px 0 6px">${esc(s[1])}</p><div class="small muted">${esc(s[2])}</div></div>`).join('')}</div>
     <div class="callout" style="margin-top:14px"><b>How the synthesis was done.</b> Frameworks were checked for attribution and date. Where a maxim is routinely misquoted, the guide states the original intent. Where a template has no game-specific origin (the hypothesis form), the guide says so. Where ideas conflict (definitions of fun, flow literalism, player types), they are presented as lenses and the reader is told to test against players.</div>`);
 }
 
@@ -1721,7 +1757,7 @@ function renderSources(){
    ===================================================================== */
 // A snippet cut on a word boundary; "…" only when text was actually cut.
 function snip(s, n){ s = String(s); if(s.length <= n) return s; const c = s.slice(0, n), i = c.lastIndexOf(' '); return (i > n * 0.6 ? c.slice(0, i) : c).replace(/[s,;:.-–—]+$/, '') + '…'; }
-function caseCard(c){ return `<a class="card clickable tint lnk blk" style="--dc:var(--accent2)" href="#/experience/${c.id}"><h3>${esc(c.t)}</h3>${c.sub ? `<div class="casesub">${esc(c.sub)}</div>` : ''}<div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0">${esc(snip(c.context, 180))}</p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></a>`; }
+function caseCard(c){ return `<a class="card clickable tint lnk blk" style="--dc:var(--accent2)" href="#/experience/${c.id}"><h3>${esc(c.t)}</h3>${c.sub ? `<div class="casesub">${esc(c.sub)}</div>` : ''}<div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0"><span class="csnip">${esc(snip(c.context, 180))}</span><span class="cfull">${esc(c.context)}</span></p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></a>`; }
 // The head is separate from the body because the project page puts a tab
 // strip between them: the codename, its description and the chips stay put
 // while Overview, Workflows and Interview swap underneath.
@@ -1872,7 +1908,7 @@ function renderExperience(id, a, b){
     return renderTree(p ? 'part' : 'sys');
   }
   setView(`${crumbs([['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
-    ${CASE_STUDIES.length ? `<div class="grid auto">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/40-cases.js and appear here as soon as one is written.</div>'}`);
+    ${CASE_STUDIES.length ? `<div class="grid auto fit">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/40-cases.js and appear here as soon as one is written.</div>'}`);
 }
 
 /* =====================================================================

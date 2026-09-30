@@ -38,9 +38,9 @@ Status: `todo`, `doing`, `done`.
 
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
-| P1 | Paths audit: all 21 paths and the chooser's 81 combinations | doing | |
-| K1 | Curriculum audit: coverage against established curricula, gaps, overlaps, level progression, domain structure | todo | starts when a slot frees |
-| T1 | Topics: player, experience, core, systems, content, level (39) | todo | |
+| P1 | Paths audit: all 21 paths and the chooser's 81 combinations | done | 32 findings (6 high, 15 medium, 11 low) in [findings-paths.md](findings-paths.md); 6 chooser rows a mentor would not give |
+| K1 | Curriculum audit: coverage against established curricula, gaps, overlaps, level progression, domain structure | done | 10 gaps (K-1 to K-10: gameplay math and algorithms, client engine architecture, rollback, physics, save systems, audio, economy and monetisation depth, multiplayer design), 6 overlap clusters, 3 orphan topics; games show 82 of 186 topics (orchestrator recount) |
+| T1 | Topics: player, experience, core, systems, content, level (39) | doing | |
 | T2 | Topics: ux, narrative, presentation, product, production (32) | todo | |
 | T3 | Topics: ai, gameai, studio (29) | todo | |
 | T4 | Topics: backend, infra, server (27) | todo | |
