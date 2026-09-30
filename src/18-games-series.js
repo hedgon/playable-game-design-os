@@ -954,7 +954,7 @@ SERIES({
 SERIES({
   id: 'fire-emblem', t: 'Fire Emblem', year: 1990, genre: 'tactical RPG', family: 'strategy',
   tags: ['turn-based', 'premium', 'old-school'], aka: ['fe', 'fire emblem series'],
-  img: 'assets/games/fire-emblem.jpg', dev: 'Intelligent Systems', store: 'https://www.nintendo.com/us/store/products/fire-emblem-engage-switch/',
+  img: 'assets/games/fire-emblem.jpg', cardPos: '50% 100%', dev: 'Intelligent Systems', store: 'https://www.nintendo.com/us/store/products/fire-emblem-engage-switch/',
   want: 'Lead a small, named army through a war where every fight is a bet on a weapon match-up, and a bad bet costs a soldier for the rest of the file.',
   verb: 'move units on a grid, weigh the weapon triangle, then live with who falls',
   first30: 'Fire Emblem: Shadow Dragon and the Blade of Light (1990) sets the formula in its first chapter: Prince Marth, already exiled from Altea and sheltering on the island of Talys, leads a handful of named soldiers against a small band of pirates raiding the coast. The map is a plain grid with light cover, the enemies are weak, and the only instruction beyond the manual is which unit the cursor currently highlights; losing a unit here already means losing them for the rest of the file.',
@@ -3942,7 +3942,7 @@ SERIES({
 SERIES({
   id: 'super-smash-bros', t: 'Super Smash Bros.', year: 1999, genre: 'platform fighter', family: 'action',
   tags: ['multiplayer', 'casual', 'premium'], aka: ['smash', 'smash bros', 'dairantou smash brothers'],
-  img: 'assets/games/super-smash-bros.jpg', dev: 'Bandai Namco Studios, Sora Ltd.', store: 'https://www.nintendo.com/us/store/products/super-smash-bros-ultimate-switch/',
+  img: 'assets/games/super-smash-bros.jpg', cardPos: '50% 100%', dev: 'Bandai Namco Studios, Sora Ltd.', store: 'https://www.nintendo.com/us/store/products/super-smash-bros-ultimate-switch/',
   want: 'Knock a friend’s favourite Nintendo character off the stage with your own favourite, in a fight anyone on the sofa can join without learning a move list.',
   verb: 'run, jump, attack and recover; build up an opponent’s damage, then launch them past the edge of the screen',
   first30: 'Super Smash Bros. (1999) opens on a child’s room where toy dolls of Nintendo characters come to life, then drops four players onto a stage such as Hyrule Castle. Each fighter’s readout at the bottom shows 0%. The first hits land and the numbers climb; nobody’s health goes down. Then a smash attack at 90% sends Donkey Kong flying off the top of the screen, a stock icon disappears, and every player has already learned the rule without reading it: the higher your number, the further you fly.',

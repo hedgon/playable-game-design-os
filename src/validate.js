@@ -1,6 +1,26 @@
 // Data integrity check: run with `node src/validate.js`
 const fs = require('fs'), path = require('path');
 const { DATA } = require('./manifest.js');
+// Pixel size of a JPEG, PNG or WebP file (enough to check a card image's shape); null when unreadable.
+function imageSize(file) {
+  const b = fs.readFileSync(file);
+  if (b.readUInt32BE(0) === 0x89504e47) return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+  if (b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP') {
+    const t = b.toString('ascii', 12, 16);
+    if (t === 'VP8 ') return { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff };
+    if (t === 'VP8L') { const v = b.readUInt32LE(21); return { w: (v & 0x3fff) + 1, h: ((v >> 14) & 0x3fff) + 1 }; }
+    if (t === 'VP8X') return { w: b.readUIntLE(24, 3) + 1, h: b.readUIntLE(27, 3) + 1 };
+  }
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    for (let i = 2; i < b.length - 9;) {
+      if (b[i] !== 0xff) { i++; continue; }
+      const m = b[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return { w: b.readUInt16BE(i + 7), h: b.readUInt16BE(i + 5) };
+      i += 2 + b.readUInt16BE(i + 2);
+    }
+  }
+  return null;
+}
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
@@ -287,6 +307,13 @@ for (const g of (ctx.REFERENCE_GAMES || [])) {
     for (const tid of (d.topics || [])) if (!TOPICS[tid]) errors.push(`game ${g.id}: diagram ${i} names unknown topic ${tid}`);
   });
   if (g.img && !fs.existsSync(path.join(__dirname, '..', g.img))) errors.push(`game ${g.id}: image file ${g.img} does not exist`);
+  if (g.card) {
+    const cf = path.join(__dirname, '..', g.card);
+    if (!g.img) errors.push(`game ${g.id}: card without img`);
+    if (!fs.existsSync(cf)) errors.push(`game ${g.id}: card file ${g.card} does not exist`);
+    else { const d = imageSize(cf); if (!d || Math.abs(d.w / d.h / (460 / 215) - 1) > 0.1) errors.push(`game ${g.id}: card ${g.card} is not close to 460:215`); }
+  }
+  if (g.cardPos && !/^(\d{1,3}%|left|right|center)( (\d{1,3}%|top|bottom|center))?$/.test(g.cardPos)) errors.push(`game ${g.id}: cardPos "${g.cardPos}" is not an object-position value`);
   if (g.artLicence && !LICENCE_SET.has(g.artLicence)) errors.push(`game ${g.id}: art licence ${g.artLicence} is not in IMAGE_LICENCES`);
   if (g.imgCredit) { if (!g.img) errors.push(`game ${g.id}: imgCredit without img`); checkCredit(g.imgCredit, `game ${g.id}: header image`); }
   if (g.img && !g.drawn && !g.imgCredit) {

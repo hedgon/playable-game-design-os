@@ -226,6 +226,14 @@ the series looked as it evolved. A game analysed on its own carries
 `series:{id, t, n}` and the series lists it with `ref`; the validator checks both
 sides.
 
+Library cards always crop the header to fill the card (`object-fit: cover`). When
+the default centre crop cuts a logo or face, set `cardPos:'50% 30%'` (a CSS
+object-position); when the header is far from the card shape (portrait, 4:3),
+give `card:'assets/games/cards/<id>.jpg'`, a landscape image within 10% of
+460:215 (for example 920x430) from the same store listing or press kit. The
+game page keeps showing the full `img` header, and the header's credit covers
+the card.
+
 A game whose header is not store art credits it with `imgCredit:{author, url,
 licence, changed?, alt}`. Top awards live in `GAME_AWARDS` in `14-references.js`
 (ids from `AWARDS`: the four industry Game of the Year awards and the IGF grand

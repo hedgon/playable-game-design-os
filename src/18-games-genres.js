@@ -1071,7 +1071,7 @@ GAME({ id:'doki-doki-literature-club', img:'assets/games/doki-doki-literature-cl
   ]
 });
 
-GAME({ id:'elden-ring', img:'assets/games/elden-ring.jpg', dev:'FromSoftware', store:'https://store.steampowered.com/app/1245620/ELDEN_RING/',
+GAME({ id:'elden-ring', img:'assets/games/elden-ring.jpg', cardPos:'50% 0%', dev:'FromSoftware', store:'https://store.steampowered.com/app/1245620/ELDEN_RING/',
   t:'Elden Ring', year:2022, genre:'action RPG', family:'action', tags:['open-world','real-time','minimal-hud','asynchronous','premium'], aka:['er', 'eldenring'],
   want:'Wake in a shattered kingdom with no quest marker to trust, and decide for yourself which demigod’s wall you are ready to test today, on foot or on horseback.',
   verb:'read the skyline for a landmark worth chasing, then fight, flee on Torrent, or come back later with a spirit at your side',
@@ -4639,7 +4639,7 @@ GAME({ id:'crusader-kings-iii', img:'assets/games/crusader-kings-iii.jpg', dev:'
   ]
 });
 
-GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'first entry' }, img:'assets/games/wii-sports.jpg', imgCredit:{ author:'Nintendo', url:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html', licence:'press', source:'Nintendo UK', alt:'Wii Sports: Nintendo’s promotional image, the Wii Sports logo and five sport icons beside a gold frame holding five Miis boxing, bowling, golfing, batting and playing tennis' }, dev:'Nintendo EAD', store:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html',
+GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'first entry' }, img:'assets/games/wii-sports.jpg', card:'assets/games/cards/wii-sports.jpg', imgCredit:{ author:'Nintendo', url:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html', licence:'press', source:'Nintendo UK', alt:'Wii Sports: Nintendo’s promotional image, the Wii Sports logo and five sport icons beside a gold frame holding five Miis boxing, bowling, golfing, batting and playing tennis' }, dev:'Nintendo EAD', store:'https://www.nintendo.com/en-gb/Games/Wii/Wii-Sports-283971.html',
   t:'Wii Sports', year:2006, genre:'motion-controlled sports collection', family:'sports', tags:['real-time','multiplayer','casual','premium'], aka:['wii sports','wiisports','wii tennis','wii bowling'],
   want:'Pick up the remote, swing it the way you would swing a racket or roll a ball, and play a match with your family in the first minute.',
   verb:'swing, roll, pitch and punch the Wii Remote as if it were the racket, ball, bat, club or glove, while the game handles the rest of the sport',
@@ -5666,7 +5666,7 @@ GAME({ id:'deus-ex', series:{ id:'deus-ex-series', t:'Deus Ex', n:'first entry' 
   ]
 });
 
-GAME({ id:'hearthstone', img:'assets/games/hearthstone.jpg', dev:'Blizzard Entertainment', store:'https://play.google.com/store/apps/details?id=com.blizzard.wtcg.hearthstone',
+GAME({ id:'hearthstone', img:'assets/games/hearthstone.jpg', card:'assets/games/cards/hearthstone.jpg', dev:'Blizzard Entertainment', store:'https://play.google.com/store/apps/details?id=com.blizzard.wtcg.hearthstone',
   t:'Hearthstone', year:2014, genre:'free-to-play digital collectible card game', family:'strategy', tags:['turn-based','multiplayer','free-to-play','live-service','mobile'], aka:['hearthstone heroes of warcraft','hs','battlegrounds'],
   want:'Out-think another person with a deck I built, in a ten-minute match I can play on the sofa.',
   verb:'spend this turn’s mana on cards, then drag minions onto targets',

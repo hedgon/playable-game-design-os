@@ -141,7 +141,7 @@ GAME({ id:'plants-vs-zombies', series:{ id:'pvz', t:'Plants vs. Zombies', n:'the
   ]
 });
 
-GAME({ id:'subway-surfers', img:'assets/games/subway-surfers.jpg', dev:'SYBO Games', store:'https://play.google.com/store/apps/details?id=com.kiloo.subwaysurf',
+GAME({ id:'subway-surfers', img:'assets/games/subway-surfers.jpg', card:'assets/games/cards/subway-surfers.jpg', dev:'SYBO Games', store:'https://play.google.com/store/apps/details?id=com.kiloo.subwaysurf',
   t:'Subway Surfers', year:2012, genre:'endless runner', family:'action', tags:['casual','mobile','free-to-play','ads','live-service'], aka:['subway surfer', 'subway surf', 'ss'],
   want:'Outrun the inspector down an endless three-lane track, one clean swipe at a time, for just one more run.',
   verb:'swipe to switch lanes, jump or roll, and grab coins while the run keeps accelerating',
@@ -267,7 +267,7 @@ GAME({ id:'subway-surfers', img:'assets/games/subway-surfers.jpg', dev:'SYBO Gam
   ]
 });
 
-GAME({ id:'candy-crush-saga', img:'assets/games/candy-crush-saga.jpg', dev:'King', store:'https://play.google.com/store/apps/details?id=com.king.candycrushsaga',
+GAME({ id:'candy-crush-saga', img:'assets/games/candy-crush-saga.jpg', card:'assets/games/cards/candy-crush-saga.jpg', dev:'King', store:'https://play.google.com/store/apps/details?id=com.king.candycrushsaga',
   t:'Candy Crush Saga', year:2012, genre:'free-to-play match-3 puzzle', family:'puzzle', tags:['casual','mobile','free-to-play','live-service','asynchronous','ads'], aka:['candy crush','ccs'],
   want:'A five-minute puzzle that always feels almost solved, on a map I am walking with everyone I know.',
   verb:'swap adjacent candies to match three. Spend lives, moves and boosters to clear each level’s goal',
@@ -621,7 +621,7 @@ GAME({ id:'angry-birds', series:{ id:'angry-birds', t:'Angry Birds', n:'the orig
   ]
 });
 
-GAME({ id:'fruit-ninja', img:'assets/games/fruit-ninja.jpg', dev:'Halfbrick Studios', store:'https://apps.apple.com/us/app/fruit-ninja-classic/id362949845',
+GAME({ id:'fruit-ninja', img:'assets/games/fruit-ninja.jpg', card:'assets/games/cards/fruit-ninja.jpg', dev:'Halfbrick Studios', store:'https://apps.apple.com/us/app/fruit-ninja-classic/id362949845',
   t:'Fruit Ninja', year:2010, genre:'arcade slicer', family:'action', tags:['casual','mobile'], aka:['fruit ninja'],
   want:'Feel like a blade-wielding master doing exactly one thing, swiping at whatever flies past, in sessions that last a minute or two.',
   verb:'swipe the screen to slice; never touch a bomb',
