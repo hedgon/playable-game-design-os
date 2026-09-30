@@ -27,6 +27,9 @@ const store = {
 };
 const seen = new Set(store.get('seen', []));
 function markSeen(id){ if(!seen.has(id)){ seen.add(id); store.set('seen', [...seen]); updateProgress(); } }
+// Opening a topic does not count it: a topic is read once the learner marks it read
+// at the foot of the page, or marks its path step done. Stored marks stay as they were.
+function unmarkSeen(id){ if(seen.delete(id)){ store.set('seen', [...seen]); updateProgress(); } }
 function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `Topics read ${s}/${n}`; $('#progressBar').style.width = (100*s/n)+'%'; }
 
 /* ---------- theme ---------- */
@@ -203,7 +206,7 @@ function render(view, parts){
   switch(view){
     case 'paths': return renderPaths(parts[1], parts[2]);
     case 'map': return renderMap(parts[1], parts[2], parts[3]);
-    case 'lab': return renderLab();
+    case 'lab': renderLab(); return addMakeJobs();
     case 'explore': return renderExplore(parts[1]);
     case 'concepts': return renderConcepts();
     case 'topic': return location.replace(TOPICS[parts[1]] ? '#/map/t/'+parts[1] : '#/map');
@@ -280,12 +283,28 @@ function wireShell(){
   // The drawers are layers: whichever opened last sits on top, and the close
   // button (or a tap on the scrim) closes only that one, like going back.
   const drawerOrder = [];
+  // A closed drawer is inert (no Tab stop, no reading order); opening one moves focus
+  // into it and closing it hands focus back to the control that opened it.
+  const openers = new Map();
   const trackDrawer = el => new MutationObserver(() => {
     const i = drawerOrder.indexOf(el); if(i >= 0) drawerOrder.splice(i, 1);
-    if(el.classList.contains('open')) drawerOrder.push(el);
+    const isOpen = el.classList.contains('open');
+    if(isOpen) drawerOrder.push(el);
+    el.inert = isNarrow() && !isOpen;
+    if(isNarrow()){
+      if(isOpen && !el.contains(document.activeElement)){
+        const op = document.activeElement; if(op && op !== document.body) openers.set(el, op);
+        if(el.id === 'rail') (el.querySelector('#railSearch') || el.querySelector('button, a[href]'))?.focus({ preventScroll: true });
+      } else if(!isOpen && openers.has(el)){
+        const op = openers.get(el); openers.delete(el);
+        const a = document.activeElement;
+        if((!a || a === document.body || el.contains(a)) && op.isConnected) op.focus({ preventScroll: true });
+      }
+    }
     drawerOrder.forEach((d, k) => { d.style.zIndex = isNarrow() ? String(80 + k) : ''; });
   }).observe(el, { attributes: true, attributeFilter: ['class'] });
   trackDrawer($('#rail')); trackDrawer($('#pane'));
+  syncInert();
   const closeTopDrawer = () => { const top = drawerOrder[drawerOrder.length - 1]; if(top) top.classList.remove('open'); syncScrim(); };
   scrim.onclick = closeTopDrawer;
   $('#drawerClose').onclick = closeTopDrawer;
@@ -352,12 +371,19 @@ function railActive(){
 // On a phone the content opens as a full page: no dimmed map behind it, and the
 // way out is a labelled "Map" button instead of a round close mark.
 const phoneMQ = window.matchMedia('(max-width: 700px)');
+// Off-canvas panels are unreachable while closed; wide screens show them in the layout.
+function syncInert(){ ['#rail', '#pane'].forEach(s => { const el = $(s); if(el) el.inert = isNarrow() && !el.classList.contains('open'); }); }
 function syncScrim(){
+  syncInert();
   const railOpen = $('#rail').classList.contains('open'), paneOpen = $('#pane').classList.contains('open'), narrow = isNarrow();
   $('#scrim').classList.toggle('show', narrow && (railOpen || (paneOpen && !phoneMQ.matches)));
   const dc = $('#drawerClose'); if(!dc) return;
   const page = narrow && paneOpen && !railOpen && phoneMQ.matches;
-  dc.classList.toggle('show', narrow && (railOpen || paneOpen)); dc.classList.toggle('text', page);
+  // The "Map" pill belongs to pages whose content is part of the map (topics, domains,
+  // smells, a project's systems), not to full pages, and not under a path bar.
+  const parts = currentParts(), pill = page && (mapReading(parts) || (parts[0] === 'experience' && !!parts[1])) && !$('#pane .pathbar');
+  $('#pane').classList.toggle('nopill', page && !pill);
+  dc.classList.toggle('show', narrow && (railOpen || (paneOpen && (!page || pill)))); dc.classList.toggle('text', page);
   dc.textContent = page ? '◂ Map' : '✕'; dc.setAttribute('aria-label', page ? 'Back to the map' : 'Close panel');
 }
 function closeRailDrawer(r){ if(isNarrow()){ r.classList.remove('open'); syncScrim(); } }
@@ -461,11 +487,30 @@ document.addEventListener('click', e => {
   const lb = e.target.closest && e.target.closest('#lightbox'); if(lb && (e.target === lb || e.target.closest('[data-lbclose]'))) closeModals();
 });
 document.addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches(ZOOMABLE)){ e.preventDefault(); openLightbox(e.target); } });
+let pbWatch = null;
+// On a phone, once the page is scrolled the path bar shrinks to one line (stage, task, Done);
+// tapping the task line, or scrolling back to the top, shows the whole bar again.
+const BAR_MINI = 44;
+function syncBarCompact(){
+  const pane = $('#pane'), bar = $('.pathbar', pane); if(!bar) return;
+  const phone = window.matchMedia('(max-width: 700px)').matches, y = pane.scrollTop, on = bar.classList.contains('compact');
+  if(y < 20) delete bar.dataset.pinned;
+  const want = phone && !bar.dataset.pinned && (on ? y > 20 : y > 90);
+  if(want === on) return;
+  if(want){ bar.dataset.full = bar.offsetHeight; bar.classList.add('compact'); bar.style.marginBottom = Math.max(14, bar.dataset.full - BAR_MINI + 14) + 'px'; }
+  else { bar.classList.remove('compact'); bar.style.marginBottom = ''; }
+}
+ACTIONS['bar-expand'] = el => { const bar = el.closest('.pathbar'); bar.dataset.pinned = '1'; syncBarCompact(); };
 function setView(html){
   ensureShell(); const pane = $('#pane'), keep = keepScroll, y = window.scrollY, py = pane.scrollTop; keepScroll = false;
   pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail();
   // Every picture can be opened larger, by click, tap or keyboard.
   $$(ZOOMABLE, pane).forEach(i => { i.tabIndex = 0; i.setAttribute('role', 'button'); i.setAttribute('aria-label', 'View larger: ' + (i.alt || 'image')); });
+  // The sticky path bar's height, so an anchor or lens link lands below it (see #pane [id] in the CSS).
+  if(pbWatch) pbWatch.disconnect();
+  const bar = $('.pathbar', pane); pane.style.setProperty('--pbH', bar ? bar.offsetHeight + 'px' : '0px');
+  if(!pane.dataset.barScroll){ pane.dataset.barScroll = '1'; pane.addEventListener('scroll', syncBarCompact, { passive: true }); }
+  if(bar){ pbWatch = new ResizeObserver(() => pane.style.setProperty('--pbH', bar.offsetHeight + 'px')); pbWatch.observe(bar); }
   // A new page starts at its top, in the window and in the pane's own scroll.
   if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else { window.scrollTo({ top: 0 }); pane.scrollTop = 0; }
 }
@@ -500,6 +545,8 @@ const libState = () => { const s = store.get('library', { view:'grid', shelf:'',
 // From a game page: open the library showing that game's family.
 ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { shelf: '', family: el.dataset.v, tag: '', lens: '', topic: '', lensk: '' }));
 ACTIONS['lib-set'] = el => { const s = libState(); s[el.dataset.k] = s[el.dataset.k] === el.dataset.v ? '' : el.dataset.v; if(el.dataset.k === 'view') s.view = el.dataset.v; store.set('library', s); keepScroll = true; renderGames(); };
+ACTIONS['lib-more'] = () => { store.set('libMore', !store.get('libMore', false)); keepScroll = true; renderGames(); };
+document.addEventListener('change', e => { const el = e.target.closest && e.target.closest('select[data-lib]'); if(!el) return; const s = libState(); s[el.dataset.lib] = el.value; store.set('library', s); keepScroll = true; renderGames(); });
 // The games whose lenses name a topic (see gameLinks), as a set of game ids.
 const topicGameIds = tid => new Set((gameLinks()[tid] || []).map(x => x.g.id));
 // What a game teaches, for the chips at the top of the library: the topics that
@@ -527,12 +574,14 @@ function libraryHTML(){
     : s.family || s.shelf ? grid(list)
     : GAME_FAMILIES.map(([f, label]) => { const xs = list.filter(x => x.family === f); return xs.length ? `<div class="section-head"><h2>${esc(label)}</h2><span class="muted">${xs.length}</span></div>${grid(xs)}` : ''; }).join('');
   const topics = libraryTopics();
-  const teaches = `<div class="librow libteach"><span class="overline">What it teaches</span><span class="chips libscroll">${wantTopics.length > 1 ? btn('topic', s.topic, 'Topics of one smell (clear)', true) : ''}${topics.map(([t, c]) => btn('topic', t, `${shortTopic(t)} ${c}`, s.topic === t)).join('')}</span></div>
-    <div class="librow libteach"><span class="overline">Read by lens</span><span class="chips libscroll">${GAME_LENSES.map(([k, t]) => btn('lensk', k, t, s.lensk === k)).join('')}</span></div>`;
-  return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed === REFERENCE_GAMES.length ? ', each read through ten lenses, from UI and art direction to business and lineage' : analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
+  // One row of the most common topics, the rest behind "More topics"; a chosen topic always shows.
+  const moreOpen = store.get('libMore', false), LIB_TOPICS_SHOWN = 8;
+  const shownTopics = moreOpen ? topics : topics.filter(([t], i) => i < LIB_TOPICS_SHOWN || t === s.topic);
+  const sel = (k, label, opts, cur) => `<label class="libsel"><span class="overline">${label}</span><select data-lib="${k}" aria-label="${label}"><option value="">Any</option>${opts.map(([v, t]) => `<option value="${esc(v)}"${cur === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
+  const teaches = `<div class="librow libteach"><span class="overline">What it teaches</span><span class="chips libscroll">${wantTopics.length > 1 ? btn('topic', s.topic, 'Topics of one smell (clear)', true) : ''}${shownTopics.map(([t, c]) => btn('topic', t, `${shortTopic(t)} ${c}`, s.topic === t)).join('')}${topics.length > LIB_TOPICS_SHOWN ? `<button type="button" class="chip lnk libmore" data-action="lib-more" aria-expanded="${moreOpen}">${moreOpen ? 'Fewer topics' : `More topics (${topics.length - shownTopics.length})`}</button>` : ''}</span></div>`;
+  return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim libintro" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed === REFERENCE_GAMES.length ? ', each read through ten lenses, from UI and art direction to business and lineage' : analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
     ${teaches}
-    ${shelves.length ? `<div class="librow"><span class="overline">Shelves</span><span class="chips libscroll">${shelves.map(([id, t]) => btn('shelf', id, t, s.shelf === id)).join('')}</span></div>` : ''}
-    <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span><span class="overline">Genre</span><span class="chips libscroll">${GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => btn('family', f, t, s.family === f)).join('')}</span></div>
+    <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span>${sel('lensk', 'Read by lens', GAME_LENSES.map(([k, t]) => [k, t]), s.lensk)}${shelves.length ? sel('shelf', 'Shelf', shelves.map(([id, t]) => [id, t]), s.shelf) : ''}${sel('family', 'Genre', GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => [f, t]), s.family)}</div>
     <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag, or show only games analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
     <p class="small muted">${list.length} of ${REFERENCE_GAMES.length} games</p>${body}`;
 }
@@ -957,7 +1006,6 @@ function topicInterviewBody(t){
 function topicBody(id){
   const t = TOPICS[id];
   if(!t){ return `<div class="empty">Unknown topic: ${esc(id)}</div>`; }
-  markSeen(id);
   const d = DOM[t.d];
   const idx = d.topics.indexOf(id);
   const prev = idx > 0 ? d.topics[idx-1] : null, next = idx < d.topics.length-1 ? d.topics[idx+1] : null;
@@ -985,6 +1033,7 @@ function topicBody(id){
     <div class="related">${rel}</div>
     ${smells.length ? `<div class="section-head"><h2>Design smells this topic helps diagnose</h2></div><div class="chips">${smells.map(s => `<a class="chip lnk" style="cursor:pointer;padding:6px 10px" href="#/smell/${s.id}">${esc(s.t)}</a>`).join('')}</div>` : ''}
     ${contextsPanel(t)}
+    <div class="readmark">${readMarkHTML(id)}</div>
     <div class="topic-nav">${prev ? `<button class="btn" data-href="#/map/t/${prev}">← ${esc(TOPICS[prev].t)}</button>` : `<button class="btn ghost" data-href="#/map/d/${d.id}">← ${esc(d.t)} overview</button>`}<button class="btn ghost" data-href="#/explore/${d.id}">List view</button>${next ? `<button class="btn" data-href="#/map/t/${next}">${esc(TOPICS[next].t)} →</button>` : `<button class="btn" data-href="#/map/home">All domains →</button>`}</div>`;
   const tabs = tabsFor(t);
   const tab = tabs.some(x => x[0] === topicTab) ? topicTab : 'overview';
@@ -995,6 +1044,14 @@ function topicBody(id){
       ${tab === 'overview' ? `<div class="row"><button class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
 }
+const readMarkHTML = id => seen.has(id)
+  ? '<span class="chip ok">Read</span> <button type="button" class="btn sm ghost" data-action="topic-read" data-topic="' + id + '" data-on="0">Mark as not read</button>'
+  : '<button type="button" class="btn sm" data-action="topic-read" data-topic="' + id + '" data-on="1">Mark as read</button> <span class="small muted">Counts toward "Topics read".</span>';
+ACTIONS['topic-read'] = el => {
+  const id = el.dataset.topic; if(el.dataset.on === '1') markSeen(id); else unmarkSeen(id);
+  const box = el.closest('.readmark'); if(box) box.innerHTML = readMarkHTML(id);
+  const rt = document.querySelector('#rail .railtopic[data-topic="' + id + '"]'); if(rt) rt.classList.toggle('seen', seen.has(id));
+};
 ACTIONS['toggle-sec'] = el => { const sec = el.closest('.sec'), open = sec.classList.toggle('open'); sec.querySelector('.sec-btn').setAttribute('aria-expanded', open); store.set('openSecs', $$('.sec.open').map(s => s.dataset.key)); };
 // No-op when no sections are on screen (an engine or interview tab), so the
 // head buttons and the E shortcut cannot silently wipe the overview's state.
@@ -1149,6 +1206,13 @@ function wireContentTree(){
 function toolPathStep(id){
   for(const p of PATHS) for(const st of p.stages){ const step = st.steps.find(s => s.kind === 'tool' && s.ref === id); if(step) return { p, st, step }; }
   return null;
+}
+// On a phone the left column is a drawer, so the tools-by-job list is also part of the Make page itself.
+function addMakeJobs(){
+  const view = $('#pane .view'); if(!view) return;
+  const h1 = view.querySelector('h1');
+  const html = `<nav class="makejobs card" aria-label="Tools by job"><div class="overline">Tools by job</div>${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="small muted">${esc(gt)}</span><span class="chips">${ids.map(id => { const x = TOOLS.find(y => y[0] === id); return `<a class="chip lnk${id === TOOL_START ? ' ok' : ''}" href="#/build/${id}">${esc(x[1])}${id === TOOL_START ? ' · Start here' : ''}</a>`; }).join('')}</span></div>`).join('')}</nav>`;
+  (h1 || view).insertAdjacentHTML(h1 ? 'afterend' : 'afterbegin', html);
 }
 function toolCardHTML(id){
   const [, t, pitch, when, topic] = TOOLS.find(x => x[0] === id), ps = toolPathStep(id);
@@ -1839,21 +1903,29 @@ ACTIONS['review-grade'] = el => {
   r.due = today() + REVIEW_DAYS[r.box];
   store.set('review', items); renderReview();
 };
+// "Practise now": a run through questions that are not due yet, soonest first. It never
+// touches their schedule, so the spacing stays what the rules say.
+let practiseOn = false; const practiseDone = new Set();
+ACTIONS['review-practise'] = () => { practiseOn = true; practiseDone.clear(); renderReview(); };
+ACTIONS['review-practise-next'] = el => { practiseDone.add(el.dataset.key); renderReview(); };
+ACTIONS['review-practise-end'] = () => { practiseOn = false; practiseDone.clear(); renderReview(); };
 ACTIONS['review-remove'] = el => { const items = reviewItems(); delete items[el.dataset.key]; store.set('review', items); renderReview(); };
 function renderReview(){
   const all = Object.entries(reviewItems()), due = reviewDue(), later = all.length - due.length;
   const upcoming = all.filter(([, r]) => r.due > today()).sort((a, b) => a[1].due - b[1].due);
   const next = upcoming.length ? upcoming[0][1].due : undefined;
+  const practise = practiseOn && !due.length ? upcoming.slice(0, 5).filter(([k]) => !practiseDone.has(k)) : [];
   const inDays = n => `in ${n} day${n === 1 ? '' : 's'}`;
-  const card = ([k, r]) => `<details class="ivq review-item"><summary>${esc(r.q)}</summary><div class="body">
+  const card = ([k, r], practice) => `<details class="ivq review-item"><summary>${esc(r.q)}</summary><div class="body">
       <h4>Answer outline</h4><p>${esc(r.a)}</p>
-      <div class="row"><button type="button" class="btn sm" data-action="review-grade" data-key="${esc(k)}" data-grade="got">I recalled it</button><button type="button" class="btn sm ghost" data-action="review-grade" data-key="${esc(k)}" data-grade="again">Not yet</button><a class="btn sm ghost" href="${esc(r.src)}">Open the source</a><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></div></div></details>`;
+      <div class="row">${practice ? `<button type="button" class="btn sm" data-action="review-practise-next" data-key="${esc(k)}">Done, next</button>` : `<button type="button" class="btn sm" data-action="review-grade" data-key="${esc(k)}" data-grade="got">I recalled it</button><button type="button" class="btn sm ghost" data-action="review-grade" data-key="${esc(k)}" data-grade="again">Not yet</button>`}<a class="btn sm ghost" href="${esc(r.src)}">Open the source</a><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></div></div></details>`;
+  const pcard = e => card(e, true);
   setView(`${crumbs([['Paths','#/paths'],['Review']])}<h1>Review</h1>
     <p class="dim" style="max-width:820px">Answer each question in your head or out loud first, then open it and compare with the outline. Recalled questions come back after a longer gap; missed ones come back tomorrow. No streaks: skip a day and the queue simply waits.</p>
     ${all.length ? `<div class="section-head"><h2>Due today</h2><span class="muted">${due.length} of ${all.length} questions${later ? ` · ${later} later${next ? `, next ${inDays(next - today())}` : ''}` : ''}</span></div>
-    ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : '<div class="empty">Nothing is due today. A new question comes back tomorrow, so answering it is a real test of recall.</div>'}
+    ${due.length ? `<div class="ivlist">${due.map(card).join('')}</div>` : practiseOn ? `<div class="callout"><b>Practice run.</b> These are not due yet, so this does not change when they come back. <button type="button" class="btn sm ghost" data-action="review-practise-end">Stop practising</button></div>${practise.length ? `<div class="ivlist">${practise.map(pcard).join('')}</div>` : '<div class="empty">That is the practice run done. Your schedule is unchanged.</div>'}` : `<div class="empty">Nothing is due today. A question comes back a day after you add it, and each time you recall it the gap doubles (1, 2, 4, 8, then 16 days). <div class="row" style="margin-top:8px"><button type="button" class="btn sm" data-action="review-practise">Practise now</button><span class="small muted">Practice does not change the schedule.</span></div></div>`}
     ${upcoming.length ? `<details class="review-later"><summary>Coming up (${upcoming.length})</summary><ul>${upcoming.map(([k, r]) => `<li><span>${esc(r.q)}</span><span class="small muted">${inDays(r.due - today())}</span><button type="button" class="btn sm ghost danger" data-action="review-remove" data-key="${esc(k)}">Remove</button></li>`).join('')}</ul></details>` : ''}`
-    : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) or a checkpoint question on a learning path, and press "Review later".</div>'}`);
+    : '<div class="empty">The queue is empty. Open any interview question (a topic\'s Interview tab, a project\'s questions) or a checkpoint question on a learning path, and press "Review later". It comes back a day later, then after longer gaps each time you recall it.</div>'}`);
 }
 
 /* =====================================================================
@@ -1892,7 +1964,7 @@ function pathNextStep(id){
   }
   return null;
 }
-function nextStepLabel(next){ return next ? (next.type === 'step' ? stepTitle(next.step) : `${next.stage.t} checkpoint`) : 'All stages complete'; }
+function nextStepLabel(next){ return next ? (next.type === 'step' ? stepTitle(next.step) : `checkpoint for ${next.stage.t}`) : 'All stages complete'; }
 function nextStepHref(next){ return next ? (next.type === 'step' ? stepHref(next.step, next.path.id, next.stage.id) : `#/paths/${next.path.id}/${next.stage.id}`) : '#/paths'; }
 function pathProgressCounts(pth){
   const prog = pathProgress(pth.id);
@@ -1914,6 +1986,9 @@ function goPastStage(pathId, stageId){
 function tickPathStep(pathId, key, checked){
   const prog = pathProgress(pathId); prog.steps[key] = !!checked; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
   savePathProgress(pathId, prog); store.set('paths.active', pathId);
+  // a topic step marked done counts that topic as read
+  const pth = PATHS.find(p => p.id === pathId), st = pth && pth.stages.find(s => s.id === key.slice(0, key.lastIndexOf('/'))), step = st && st.steps[+key.slice(key.lastIndexOf('/') + 1)];
+  if(checked && step && step.kind === 'topic' && TOPICS[step.ref]) markSeen(step.ref);
 }
 function togglePathStep(pathId, key, checked){
   tickPathStep(pathId, key, checked); keepScroll = true; route();
@@ -1966,15 +2041,18 @@ function pathBarHTML(){
   const curIdx = pth.stages.findIndex(s => s.id === currentStageId(pth)) + 1;
   const href = nextStepHref(next);
   const onNext = next && location.hash.replace(/^#/, '') === href.replace(/^#/, '');
+  // On the stage page whose checkpoint is next, that checkpoint is already open there.
+  const atCheckpoint = !!(onNext && next.type === 'checkpoint');
   // The step this page belongs to (an asset page opened from a step), so its
   // task stays in view: the unticked match first, else any match.
   const here = location.hash, prog = pathProgress(pth.id); let cur = null;
   for(const st of pth.stages) st.steps.forEach((s, i) => { if(s.kind !== 'reflect' && stepHref(s, pth.id, st.id) === here && (!cur || (cur.done && !prog.steps[`${st.id}/${i}`]))) cur = { step:s, done:!!prog.steps[`${st.id}/${i}`] }; });
   const task = cur ? `<div class="pathbar-task"><span class="pt-text"><b>Your task:</b> ${esc(cur.step.do)}${cur.step.min ? ` <span class="muted">· ${cur.step.min} min</span>` : ''}</span><button type="button" class="btn sm ghost pt-more" data-action="task-toggle" aria-expanded="false">More</button></div>` : '';
   return `<div class="pathbar">
-    <div class="pathbar-info"><b>${esc(pth.t)}</b><span class="muted"> · Stage ${curIdx} of ${pth.stages.length} · Next: ${esc(nextStepLabel(next))}</span></div>${task}
+    <div class="pathbar-info"><b>${esc(pth.t)}</b> <span class="muted pb-where">Stage ${curIdx} of ${pth.stages.length}</span> <span class="muted pb-next">${atCheckpoint ? `You are at the checkpoint for ${esc(next.stage.t)}` : `Next: ${esc(nextStepLabel(next))}`}</span></div>${task}
+    <div class="pathbar-mini"><span class="pm-stage">${curIdx}/${pth.stages.length}</span><button type="button" class="pm-text" data-action="bar-expand" aria-label="Show the whole path bar">${cur ? esc(cur.step.do) : atCheckpoint ? 'Checkpoint' : esc(nextStepLabel(next))}</button>${next && onNext && !atCheckpoint ? `<button type="button" class="btn sm primary pm-done" data-action="path-continue" data-path="${pth.id}">Done ✓</button>` : ''}</div>
     <div class="pathbar-actions">
-      ${next ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Mark done and continue'}</button>` : `<a class="btn sm primary" href="${href}">Next →</a>`) : ''}
+      ${next && !atCheckpoint ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Next →'}</a>`) : ''}
       <button class="btn sm ghost" data-action="leave-path">Leave path</button>
     </div></div>`;
 }
@@ -1988,6 +2066,12 @@ function pathCard(p, picked){
     <div class="small clamp2" title="${esc(p.audience)}" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
     <div class="small muted">${p.prereq.length ? `After ${p.prereq.map(id => esc(pathTitle(id))).join(', ')}` : 'No prerequisites'}</div>
     <div class="progress" style="margin-top:8px"><span class="small muted">${pct}%</span><span class="bar"><i style="width:${pct}%"></i></span></div></a>`;
+}
+// Progress lives in this browser only, so the backup controls sit where the learner looks for progress.
+function dataRowHTML(){
+  const read = [...seen].filter(id => TOPICS[id]).length;
+  return `<div class="datarow small" role="group" aria-label="Your saved progress"><span class="muted">Your progress (${read} of ${TOPIC_LIST.length} topics read) is saved in this browser only.</span>
+    <button type="button" class="btn sm ghost" data-action="data-export">Back up progress</button><button type="button" class="btn sm ghost" data-action="data-import">Restore from a backup…</button><button type="button" class="btn sm ghost danger" data-action="data-reset">Reset all</button></div>`;
 }
 function pathsDoorHTML(){
   const activeId = store.get('paths.active', null);
@@ -2009,6 +2093,7 @@ function pathsDoorHTML(){
   return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
     ${hint}
     ${continueCard}
+    ${dataRowHTML()}
     ${chooserHTML(ans, rec)}
     ${outcomes ? `<div class="section-head"><h2>What do you want to be able to do?</h2></div>${outcomes}` : ''}
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
@@ -2291,7 +2376,9 @@ $('#searchInput').addEventListener('keydown', e => { if(e.key==='ArrowDown'){ e.
 $$('.modal-bg').forEach(m => m.addEventListener('click', e => { if(e.target === m) closeModals(); }));
 $('#helpBtn').onclick = () => openModal('helpModal', 'h2');
 $('#helpClose').onclick = closeModals;
-$('#resetAll').onclick = () => { if(confirm('Reset all saved data (progress, tool inputs, checklists)?')){ store.clear(); location.reload(); } };
+const resetAllData = () => { if(confirm('Reset all saved data (progress, tool inputs, checklists)?')){ store.clear(); location.reload(); } };
+$('#resetAll').onclick = resetAllData;
+ACTIONS['data-reset'] = resetAllData;
 // Single-letter shortcuts can fire by accident under speech input or a
 // screen reader, so they can be switched off (WCAG 2.1.4).
 const keysOn = () => store.get('keys', true);
@@ -2300,7 +2387,7 @@ $('#keysToggle').onchange = e => store.set('keys', e.target.checked);
 // Everything the reader writes lives in localStorage, which a browser may
 // clear; export and import move it as one JSON file.
 const OWN = k => k.startsWith('playable.');
-$('#exportData').onclick = () => {
+const exportData = () => {
   const data = {}; Object.keys(localStorage).filter(OWN).forEach(k => { data[k] = localStorage.getItem(k); });
   const blob = new Blob([JSON.stringify({ app: 'playable', v: 1, exportedAt: new Date().toISOString(), data }, null, 1)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'playable-data-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -2308,6 +2395,9 @@ $('#exportData').onclick = () => {
   if(navigator.storage && navigator.storage.persist) navigator.storage.persist();
   toast(`Exported ${Object.keys(data).length} saved items`);
 };
+$('#exportData').onclick = exportData;
+ACTIONS['data-export'] = exportData;
+ACTIONS['data-import'] = () => $('#importFile').click();
 $('#importData').onclick = () => $('#importFile').click();
 $('#importFile').onchange = async e => {
   const file = e.target.files[0]; e.target.value = ''; if(!file) return;
@@ -2329,7 +2419,7 @@ $('#skipBtn').onclick = () => {
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='Escape'){ if(!document.querySelector('.modal-bg.show') && isNarrow() && $('#drawerClose').classList.contains('show') && !typing){ $('#drawerClose').click(); return; } closeModals(); return; }
+  if(e.key==='Escape'){ if(!document.querySelector('.modal-bg.show') && isNarrow() && $('#drawerClose').classList.contains('show') && (!typing || document.activeElement.closest('#rail'))){ $('#drawerClose').click(); return; } closeModals(); return; }
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ openModal('helpModal', 'h2'); return; }

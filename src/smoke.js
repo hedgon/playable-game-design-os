@@ -202,6 +202,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     if (mk.groups < 4 || mk.cards !== mk.tools || mk.when !== mk.tools || mk.why !== mk.tools || mk.start !== 1) failures.push('#/build: tools are not grouped with a use-when line, a why link and one start-here mark ' + JSON.stringify(mk));
     // Library: topic chips filter to the games that teach the topic. A smell links to games that show it.
     await page.evaluate(() => { location.hash = '#/games'; }); await page.waitForTimeout(250);
+    await page.evaluate(() => document.querySelector('#pane [data-action="lib-more"]')?.click()); await page.waitForTimeout(150);
     const chips = await page.evaluate(() => [...document.querySelectorAll('#pane .libteach [data-k="topic"]')].map(b => b.dataset.v));
     if (chips.length < 8 || !chips.includes('economy-and-resources') || !chips.includes('onboarding')) failures.push('#/games: topic chips missing (' + chips.length + ')');
     else {

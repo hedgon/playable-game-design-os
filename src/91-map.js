@@ -530,7 +530,6 @@ function renderMap(kind, id, tab){
   else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; mapState.lens = lensOf(TOPICS[id].d); setTopicTab(TOPICS[id], tab); }
   else if(kind==='s' && SMELLS.some(s => s.id===id)){ mapState.smell = id; }
   saveMap();
-  if(mapState.topic) markSeen(mapState.topic);
   setView(drawerHTML());
   renderTree(kind);
 }

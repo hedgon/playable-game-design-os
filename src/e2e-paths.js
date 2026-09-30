@@ -48,9 +48,13 @@ const server = http.createServer((req, res) => {
     // --- checkpoint first
     for (let i = 1; i < P.n; i++) { await page.evaluate(([sel, i]) => document.querySelectorAll(sel)[i]?.click(), [rows, i]); await page.waitForTimeout(60); }
     await nav('#/map/home'); await nav(`#/paths/${P.id}/${P.s1}`);
-    const barBtn = await page.evaluate(() => { const b = document.querySelector('.pathbar [data-action="path-continue"]'); return b && b.textContent; });
-    check(`${tag} at a checkpoint the bar offers "Open the checkpoint"`, barBtn === 'Open the checkpoint', barBtn);
-    await page.evaluate(() => document.querySelector('.pathbar [data-action="path-continue"]')?.click()); await page.waitForTimeout(150);
+    const barCp = await page.evaluate(() => ({ btn: !!document.querySelector('.pathbar [data-action="path-continue"], .pathbar a.primary'), text: document.querySelector('.pathbar-info').textContent, open: !!document.querySelector('#pane .pathcheck[open]') }));
+    check(`${tag} at an open checkpoint the bar says so and does not offer to open it`, !barCp.btn && barCp.open && /checkpoint for/i.test(barCp.text) && !/^\s*·/.test(barCp.text), JSON.stringify(barCp));
+    // ticking the last step and continuing lands on the checkpoint, focused
+    await page.evaluate(([sel, i]) => document.querySelectorAll(sel)[i]?.click(), [rows, P.n - 1]); await page.waitForTimeout(200);
+    const lastHref = await page.evaluate(([pid, sid, n]) => { const st = PATHS.find(p => p.id === pid).stages.find(s => s.id === sid); return stepHref(st.steps[n - 1], pid, sid); }, [P.id, P.s1, P.n]);
+    await nav(lastHref);
+    await page.evaluate(() => document.querySelector('.pathbar [data-action="path-continue"]')?.click()); await page.waitForTimeout(250);
     const cp = await page.evaluate(s1 => { const d = document.querySelector(`#pane .pathstage[data-stage="${s1}"] .pathcheck`); return { open: d && d.open, focused: document.activeElement === (d && d.querySelector('summary')) }; }, P.s1);
     check(`${tag} continue opens and focuses the checkpoint`, cp.open && cp.focused, JSON.stringify(cp));
     check(`${tag} continue does not mark the stage done`, !(await prog()).stages[P.s1], JSON.stringify((await prog()).stages));
@@ -162,6 +166,70 @@ const server = http.createServer((req, res) => {
     await page.evaluate(() => document.querySelector('#pane .review-later [data-action="review-remove"]')?.click()); await page.waitForTimeout(100);
     const gone = await page.evaluate(k => !JSON.parse(localStorage.getItem('playable.review') || '{}')[k], key);
     check(`${tag} it can be removed from the queue`, gone);
+
+    // --- second walkthrough: bar position, deep links, More menu, drawers, Make jobs, Map pill, data controls, read marks, practice
+    const stepH = await page.evaluate(() => { const P0 = PATHS.find(p => p.id === 'game-ai-programmer'), st = P0.stages[0]; return stepHref(st.steps[0], P0.id, st.id); });
+    await nav('#/paths/game-ai-programmer'); await nav(stepH); await page.waitForTimeout(200);
+    await page.evaluate(() => { document.getElementById('pane').scrollTo(0, 700); window.scrollTo(0, 700); }); await page.waitForTimeout(250);
+    if (w < 700) {
+      const cb = await page.evaluate(() => { const b = document.querySelector('#pane .pathbar'); return { c: b.classList.contains('compact'), h: b.getBoundingClientRect().height, done: !!b.querySelector('.pm-done') }; });
+      check(`${tag} scrolled, the phone path bar is one compact line (<= 56px)`, cb.c && cb.h <= 56, JSON.stringify(cb));
+      await page.evaluate(() => document.querySelector('#pane .pathbar .pm-text').click()); await page.waitForTimeout(200);
+      const ex = await page.evaluate(() => { const b = document.querySelector('#pane .pathbar'); return { c: b.classList.contains('compact'), h: b.getBoundingClientRect().height }; });
+      check(`${tag} tapping the compact task line shows the whole bar`, !ex.c && ex.h > 80, JSON.stringify(ex));
+      await page.evaluate(() => { document.getElementById('pane').scrollTo(0, 0); }); await page.waitForTimeout(150); await page.evaluate(() => { document.getElementById('pane').scrollTo(0, 700); }); await page.waitForTimeout(250);
+    }
+    const pos = await page.evaluate(() => { const b = document.querySelector('#pane .pathbar').getBoundingClientRect(), paneR = document.getElementById('pane').getBoundingClientRect(), hd = document.querySelector('.topbar').getBoundingClientRect().bottom; return { top: b.top, paneTop: paneR.top, hd, narrow: innerWidth <= 1100 }; });
+    check(`${tag} the path bar sticks at the top of the scrolling pane (below the header)`, Math.abs(pos.top - (pos.narrow ? pos.paneTop : pos.hd)) <= 2, JSON.stringify(pos));
+    await nav('#/games/pac-man/gameplay'); await page.waitForTimeout(500);
+    const dl = await page.evaluate(() => ({ card: document.getElementById('lens-gameplay').getBoundingClientRect().top, bar: document.querySelector('#pane .pathbar').getBoundingClientRect().bottom }));
+    check(`${tag} a lens deep link lands below the path bar`, dl.card >= dl.bar - 1, JSON.stringify(dl));
+    await nav('#/paths'); await page.waitForTimeout(150);
+    const dataBtns = await page.evaluate(() => ['data-export', 'data-import', 'data-reset'].map(a => !!document.querySelector('#pane [data-action="' + a + '"]')));
+    check(`${tag} Export, Import and Reset are on the paths page`, dataBtns.every(Boolean), JSON.stringify(dataBtns));
+    if (w < 700) {
+      for (const r of ['#/paths', '#/games', '#/lab', '#/map/t/core-loop/overview', '#/games/pac-man']) {
+        await nav(r);
+        await page.click('#navMore'); await page.waitForTimeout(120);
+        const hit = await page.evaluate(() => [...document.querySelectorAll('.nav-extra')].map(b => { const q = b.getBoundingClientRect(), e = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); return e === b || b.contains(e); }));
+        check(`${tag} the More menu items are clickable on ${r}`, hit.length >= 2 && hit.every(Boolean), JSON.stringify(hit));
+        await page.click('#navMore');
+      }
+      await nav('#/map/home');
+      const closed = await page.evaluate(() => ['rail', 'pane'].map(id => { const el = document.getElementById(id); return el.classList.contains('open') ? 0 : [...el.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')].filter(e => !e.closest('[inert]') && e.tabIndex >= 0).length; }));
+      check(`${tag} a closed drawer has no focusable element`, closed.every(n => n === 0), JSON.stringify(closed));
+      await page.click('#railToggle'); await page.waitForTimeout(250);
+      const inRail = await page.evaluate(() => document.getElementById('rail').contains(document.activeElement));
+      await page.keyboard.press('Escape'); await page.waitForTimeout(250);
+      const back = await page.evaluate(() => ({ open: document.getElementById('rail').classList.contains('open'), id: document.activeElement.id }));
+      check(`${tag} opening a drawer focuses it; Escape closes it and returns focus to the opener`, inRail && !back.open && back.id === 'railToggle', JSON.stringify(back));
+      await nav('#/lab');
+      const jobs = await page.evaluate(() => { const j = document.querySelector('#pane .makejobs'); return !!j && j.getBoundingClientRect().width > 0 && /Start here/.test(j.textContent) && j.querySelectorAll('a').length >= 8; });
+      check(`${tag} Make shows the tools by job, with Start here, in the page`, jobs);
+      await page.evaluate(() => document.querySelector('.pathbar [data-action="leave-path"]')?.click()); await page.waitForTimeout(150);
+      const pill = async r => { await nav(r); return page.evaluate(() => { const d = document.getElementById('drawerClose'); return d.classList.contains('show') && getComputedStyle(d).display !== 'none'; }); };
+      const pills = { topic: await pill('#/map/t/core-loop/overview'), paths: await pill('#/paths'), library: await pill('#/games'), make: await pill('#/lab'), review: await pill('#/review') };
+      check(`${tag} the Map pill shows on a topic and not on Paths, Library, Make or Review`, pills.topic && !pills.paths && !pills.library && !pills.make && !pills.review, JSON.stringify(pills));
+    }
+    // opening a topic does not count it as read; marking it does
+    const tid = await page.evaluate(() => Object.keys(TOPICS).find(t => !JSON.parse(localStorage.getItem('playable.seen') || '[]').includes(t)));
+    await nav('#/map/t/' + tid + '/overview'); await page.waitForTimeout(200);
+    const seenBefore = await page.evaluate(t => JSON.parse(localStorage.getItem('playable.seen') || '[]').includes(t), tid);
+    await page.evaluate(() => document.querySelector('#pane [data-action="topic-read"]')?.click()); await page.waitForTimeout(100);
+    const seenAfter = await page.evaluate(t => JSON.parse(localStorage.getItem('playable.seen') || '[]').includes(t), tid);
+    check(`${tag} opening a topic does not mark it read; "Mark as read" does`, !seenBefore && seenAfter, JSON.stringify({ seenBefore, seenAfter }));
+    // review: nothing due, so Practise now offers items without touching the schedule
+    await page.evaluate(() => { const due = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000) + 3; localStorage.setItem('playable.review', JSON.stringify({ a: { q: 'Q one', a: 'A one', src: '#/paths', box: 1, due }, b: { q: 'Q two', a: 'A two', src: '#/paths', box: 0, due: due + 2 } })); });
+    await nav('#/paths'); await nav('#/review'); await page.waitForTimeout(150);
+    const rvBefore = await page.evaluate(() => localStorage.getItem('playable.review'));
+    const empt = await page.evaluate(() => ({ text: document.querySelector('#pane .empty')?.textContent || '', btn: !!document.querySelector('#pane [data-action="review-practise"]') }));
+    check(`${tag} an empty due list explains when items return and offers Practise now`, empt.btn && /comes back a day after/.test(empt.text), JSON.stringify(empt));
+    await page.evaluate(() => document.querySelector('#pane [data-action="review-practise"]')?.click()); await page.waitForTimeout(100);
+    const pr = await page.evaluate(() => document.querySelectorAll('#pane .review-item').length);
+    await page.evaluate(() => document.querySelector('#pane [data-action="review-practise-next"]')?.click()); await page.waitForTimeout(100);
+    const rvAfter = await page.evaluate(() => localStorage.getItem('playable.review'));
+    check(`${tag} Practise now lists not-yet-due items and leaves the schedule unchanged`, pr === 2 && rvBefore === rvAfter, JSON.stringify({ pr }));
+    await page.evaluate(() => localStorage.removeItem('playable.review'));
 
     check(`${tag} no console errors`, !errors.length, errors[0]);
     await ctx.close();
