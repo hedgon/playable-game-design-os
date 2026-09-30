@@ -267,8 +267,9 @@ window.PlayableGraph = (function(){
     safe(() => PATHS).forEach(p => { const st = (p.stages || []).find(s => (s.steps || []).some(x => x.kind === 'topic' && x.ref === tid)); if(st) paths.push(item('path', p.id, p.t, `Stage: ${st.t}`, `#/paths/${p.id}/${st.id}`)); });
     add('path', 'Paths', paths);
     const parts = [];
+    safe(() => CASE_STUDIES).forEach(c => { const r = (c.rel || []).find(([rid]) => rid === tid); if(r) parts.push(item('part', c.id, '◆ ' + c.t, 'Project: ' + r[1], '#/experience/' + c.id)); });
     safe(() => CASE_STUDIES).forEach(c => (c.systems || []).forEach(s => (s.parts || []).forEach(p => { const r = (p.rel || []).find(([rid]) => rid === tid); if(r) parts.push(item('part', c.id + '/' + s.id + '/' + p.id, '◆ ' + p.t, `${c.t}: ${r[1]}`, `#/experience/${c.id}/${s.id}/${p.id}`)); })));
-    add('part', 'Project parts', parts);
+    add('part', 'Projects and parts', parts);
     return groups;
   }
 

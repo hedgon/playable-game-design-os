@@ -25,27 +25,33 @@ function cardOverlaps(nodes, name, problems) {
   }
 }
 
-// Edge crossings, counted from the drawn paths: each edge is a cubic curve,
-// sampled into a polyline. Two edges that share a node are not counted (they
-// meet by design). Information only, never a failure.
+// Edge crossings, counted from the drawn paths. Each edge is a cubic curve
+// sampled into a polyline; a PAIR of edges counts once however many segments
+// of the two curves meet, and two edges that share a node do not count (they
+// meet by design). Edges are of two kinds: "tree" edges (parent to child,
+// class edge / edge open) and "link" edges (the faint dashed cross-branch
+// curves: dd, cross, home). A tidy tree has no tree-tree crossing, so
+// `tree` is the layout-quality number and should be 0; `link` counts the
+// pairs where at least one is a cross-branch link, which pass over the tree
+// by design and grow with the number of links drawn. Information only.
 function edgeCrossings(g) {
-  const edges = []; const re = /<path class="edge[^"]*" data-a="([^"]*)" data-b="([^"]*)" d="([^"]*)"/g; let m;
+  const edges = []; const re = /<path class="(edge[^"]*)" data-a="([^"]*)" data-b="([^"]*)" d="([^"]*)"/g; let m;
   while ((m = re.exec(g.inner || ''))) {
-    const v = m[3].match(/-?\d+(?:\.\d+)?/g); if (!v || v.length < 8) continue;
+    const v = m[4].match(/-?\d+(?:\.\d+)?/g); if (!v || v.length < 8) continue;
     const [x0, y0, x1, y1, x2, y2, x3, y3] = v.map(Number), pts = [];
     for (let i = 0; i <= 14; i++) { const t = i / 14, u = 1 - t; pts.push([u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3]); }
-    edges.push({ a: m[1], b: m[2], pts, x: Math.min(...pts.map(p => p[0])), X: Math.max(...pts.map(p => p[0])), y: Math.min(...pts.map(p => p[1])), Y: Math.max(...pts.map(p => p[1])) });
+    edges.push({ a: m[2], b: m[3], link: /(dd|cross|home)/.test(m[1]), pts, x: Math.min(...pts.map(p => p[0])), X: Math.max(...pts.map(p => p[0])), y: Math.min(...pts.map(p => p[1])), Y: Math.max(...pts.map(p => p[1])) });
   }
   const side = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
   const cross = (p, q, r, s) => side(p, q, r) * side(p, q, s) < 0 && side(r, s, p) * side(r, s, q) < 0;
-  let n = 0;
+  const n = { tree: 0, link: 0 };
   for (let i = 0; i < edges.length; i++) for (let j = i + 1; j < edges.length; j++) {
     const A = edges[i], B = edges[j];
     if (A.a === B.a || A.a === B.b || A.b === B.a || A.b === B.b) continue;
     if (A.X < B.x || B.X < A.x || A.Y < B.y || B.Y < A.y) continue;
     let hit = false;
     for (let k = 0; k < A.pts.length - 1 && !hit; k++) for (let l = 0; l < B.pts.length - 1; l++) if (cross(A.pts[k], A.pts[k + 1], B.pts[l], B.pts[l + 1])) { hit = true; break; }
-    if (hit) n++;
+    if (hit) n[A.link || B.link ? 'link' : 'tree']++;
   }
   return n;
 }
@@ -140,26 +146,26 @@ function graphStates(G, DOMAINS, TOPICS, CASE_STUDIES, PATHS, GAMES, views) {
 
 // Returns { states, problems, split, crossings }. A problem is a
 // human-readable string; `split` lists the labels in which a word had to be
-// broken across lines, once each; `crossings` = { total, worst, worstName }.
+// broken across lines, once each; `crossings` = { tree, link, worst (tree crossings in one state), worstName }.
 // CASE_STUDIES is optional; when given, every project map state is rendered
 // too (project overview, each system open, each part selected) and the
 // "seen in practice" leaves are fed into the domain states, so the checker
 // sees the same fourth layer the app draws. VIEWS is the app's VIEW_LINKS.
 function overlaps(G, DOMAINS, TOPICS, CASE_STUDIES, F, PATHS, GAMES, VIEWS) {
-  let states = 0; const problems = []; const split = new Map(); const crossings = { total: 0, worst: 0, worstName: '' };
+  let states = 0; const problems = []; const split = new Map(); const crossings = { tree: 0, link: 0, worst: 0, worstName: '' };
   for (const st of graphStates(G, DOMAINS, TOPICS, CASE_STUDIES, PATHS, GAMES, VIEWS)) {
     const g = st.make(); states++;
     cardOverlaps(g.nodes, st.name, problems);
     for (const n of g.nodes) if (splitWord(n)) split.set(n.kind + ':' + n.label, st.name);
-    const x = edgeCrossings(g); crossings.total += x;
-    if (x > crossings.worst) { crossings.worst = x; crossings.worstName = st.name; }
+    const x = edgeCrossings(g); crossings.tree += x.tree; crossings.link += x.link;
+    if (x.tree > crossings.worst) { crossings.worst = x.tree; crossings.worstName = st.name; }
   }
   if (F) states += flowOverlaps(F, CASE_STUDIES, problems);
   return { states, problems, split: [...split.keys()], crossings };
 }
 // Diagrams (87-diagrams.js). Each spec is laid out exactly as the app draws
 // it. A problem is two boxes (cards, labels, points, regions) that touch, a
-// box outside the canvas, a text the renderer had to shorten, or a canvas
+// box outside the canvas, a diagram text the renderer had to cut, or a canvas
 // wider than a phone shows at a readable scale. Flow-kind specs get the same
 // card test as the project workflows.
 function diagramProblems(D, F, specs) {

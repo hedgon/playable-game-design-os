@@ -7,8 +7,9 @@
 //      letter-spacing are the ones the CSS really applies (the layout only
 //      estimates them). Needs Playwright, like smoke.js; the built page must
 //      be current (node src/build.js). --no-browser skips it.
-// Both fail the build (exit 1). Reported, never failing: edge crossings
-// (drawn edge pairs that cross) and words split across lines. The layout
+// Those two and any crossing of two tree edges (a tidy tree has none) fail the
+// build (exit 1). Reported, never failing: cross-branch links passing over
+// other edges (they cross the tree by design) and words split across lines. The layout
 // checker lives in layout-core.js so a synthetic dataset can be exercised too.
 // Without Playwright or a browser the text-fit half is reported as NOT MEASURED
 // (the build still runs); --require-browser turns that into a failure.
@@ -89,6 +90,8 @@ function textFitSweep(layoutCoreSource) {
   Object.entries(leaves).forEach(([tid, list]) => list.filter(([vid]) => vid.startsWith('game:')).forEach(([vid, why]) => { leafCount++; if (lensTopics.has(tid) && !/ lens$/.test(why)) problems.push(`map leaf for ${tid}: ${vid} is a diagram match although a game lens covers this topic`); }));
   console.log(`game leaves: ${leafCount}, lens-backed where a lens exists`);
 
+  if (crossings.tree) problems.push(`tree edges cross each other: ${crossings.tree} pair(s), most in ${crossings.worstName}`);
+
   // the browser pass: text against card with the real font
   let fit = null, skipped = null;
   if (!process.argv.includes('--no-browser')) {
@@ -114,7 +117,7 @@ function textFitSweep(layoutCoreSource) {
   const unfit = fit ? fit.bad.length : 'NOT MEASURED' + (skipped ? ': ' + skipped : ' (--no-browser)');
 if (skipped && process.argv.includes('--require-browser')) problems.push('text-fit not measured: ' + skipped);
   console.log(`states checked: ${states}; diagrams: ${specs.length}; overlaps and problems: ${problems.length}; labels that do not fit their card: ${unfit}`);
-  console.log(`reported, not failing: edge crossings ${crossings.total} in total (most in one state: ${crossings.worst}${crossings.worstName ? ' in ' + crossings.worstName : ''}); words split across lines: ${split.length}`);
+  console.log(`reported, not failing: tree-edge crossings ${crossings.tree} over ${states} states (a tidy tree has none; most in one state: ${crossings.worst}${crossings.worstName ? ' in ' + crossings.worstName : ''}); pairs where a faint cross-branch link passes over another edge, by design: ${crossings.link} (${(crossings.link / states).toFixed(0)} per state); words split across lines: ${split.length}`);
   if (fit) console.log(`text measured in the browser: ${fit.states} states, ${fit.cards} cards, ${fit.texts} texts; sizes drawn: ${fit.sizes.map(([k, n]) => `${k} x${n}`).join(', ')}`);
   problems.slice(0, 40).forEach(p => console.log('  ' + p));
   if (problems.length > 40) console.log(`  ... and ${problems.length - 40} more`);

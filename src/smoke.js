@@ -413,6 +413,16 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     await page.evaluate(() => { document.activeElement && document.activeElement.blur(); document.body.focus(); });
     const stops = await page.evaluate(s => document.querySelectorAll(s + '[tabindex="0"]').length, ITEM);
     if (stops !== 1) fail(`${stops} tab stops in the map (need exactly 1)`);
+    // the skip link: second Tab stop on the page, Enter lands on the map's tab stop
+    await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
+    const skipAt = await page.evaluate(() => document.activeElement.id);
+    if (skipAt !== 'skipMapBtn') fail('the second Tab stop should be "Skip to the map" (got "' + skipAt + '")');
+    else {
+      await page.keyboard.press('Enter'); await page.waitForTimeout(900);
+      const landed = await page.evaluate(r => !!document.activeElement.closest(r) && !!document.activeElement.closest('[role="treeitem"]'), ROOT);
+      if (!landed) fail('"Skip to the map" did not put focus on a map item');
+    }
+    await page.evaluate(() => { document.activeElement && document.activeElement.blur(); document.body.focus(); });
     let inMap = false;
     let mapStops = 0;   // Tab presses that land inside the map before an item has focus (the drawing itself, if it takes a stop)
     for (let i = 0; i < 120 && !inMap; i++) { await page.keyboard.press('Tab'); const at = await page.evaluate(r => ({ inside: !!document.activeElement.closest(r), node: !!document.activeElement.closest('[role="treeitem"]') }), ROOT); if (at.inside && !at.node) mapStops++; inMap = at.inside && at.node; }
