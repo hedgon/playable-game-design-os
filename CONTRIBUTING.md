@@ -257,7 +257,7 @@ process; anything that can change (fees, rules, deadlines, turnaround) is a
 dated fact with its source, checked like topic facts. `nda` names what the
 platform keeps under NDA; never guess NDA content. Every guide except `open` ones
 needs a `flow` (a flow diagram from sign-up to release), and `topics` must
-name real topics. The last stage (`release`, or `publish` for UGC) carries a
+name real topics. `checklists:['id']` links the guide's submit or cert checklists (each of those names the platform back in its own `platforms`). The last stage (`release`, or `publish` for UGC) carries a
 numbered `deploy` walkthrough of four or more steps `{t, d, shot?}` and five or
 more interview items `iv:[{q, a, follow, red}]`; the validator requires both. A
 portal screenshot comes from the platform’s own public documentation, credited
@@ -273,6 +273,7 @@ cost, languages, targets), all eight stages of `ENGINE_STAGES`, each with two or
 more `points` (the interview stage has four or more `iv` items instead), a
 `flow` from project to shipped build, and `topics`. Versions, prices and licence
 terms are dated facts. Engine tabs inside topics stay Godot and Unity only.
+Add a craft topic (`craft-game-loop-timestep`, `craft-physics-and-collision`, `craft-save-systems`, `craft-entities-and-scenes`, `craft-gameplay-math`, `craft-performance`, `craft-memory-and-gc`) to `topics` only where a stage of the guide really concerns it.
 
 ### Smells, tools and diagnostics
 
@@ -285,6 +286,8 @@ files every tool under one job (shape an idea, test an idea, systems, AI) and
 and the validator read them. The "See it in games" row on a smell and the topic
 chips at the top of the library are derived from the topics games list in their
 lenses, so nothing is written by hand for them.
+
+Prompt templates (`PROMPT_TEMPLATES`) carry `topics:['topic-id']`, one to three topics the prompt serves. Checklists (`CHECKLISTS`) carry `topics:[...]` (at least one) and, for a store submission, `platforms:['platform-id']`; the validator fails on a missing or unknown id and on a platform link that is not returned.
 
 ### Projects
 

@@ -732,6 +732,30 @@ for (const s of SMELLS) { for (const c of s.causes) if (!TOPICS[c.top]) errors.p
 for (const p of LOOP_PARTS) for (const t of p.top) if (!TOPICS[t]) errors.push(`loop part ${p.id}: unknown topic ${t}`);
 for (const u of UNFAIR_CAUSES) if (!TOPICS[u.top]) errors.push(`unfair ${u.id}: unknown topic ${u.top}`);
 for (const s of LOOP_STEPS) for (const t of s.top) if (!TOPICS[t] && !VIEW_LINKS.includes(t)) errors.push(`loop step ${s.n}: unknown topic ${t}`);
+// Cross-kind links: prompts and checklists name their topics (1 to 3 for a prompt); checklists and platform guides name each other; guide topics exist.
+{
+  const plats = ctx.PLATFORMS || [], cls = ctx.CHECKLISTS || [];
+  const platIds = new Set(plats.map(p => p.id)), clIds = new Set(cls.map(c => c.id));
+  const ids = (arr, ok, where, what) => (arr || []).forEach(x => { if (!ok(x)) errors.push(`${where}: unknown ${what} ${x}`); });
+  for (const p of ctx.PROMPT_TEMPLATES) {
+    if (!Array.isArray(p.topics) || p.topics.length < 1) errors.push(`prompt ${p.id}: needs 1 to 3 topics`);
+    else if (p.topics.length > 3) errors.push(`prompt ${p.id}: names ${p.topics.length} topics (limit 3)`);
+    ids(p.topics, t => TOPICS[t], `prompt ${p.id}`, 'topic');
+  }
+  for (const c of cls) {
+    if (!Array.isArray(c.topics) || c.topics.length < 1) errors.push(`checklist ${c.id}: needs at least one topic`);
+    ids(c.topics, t => TOPICS[t], `checklist ${c.id}`, 'topic');
+    ids(c.platforms, x => platIds.has(x), `checklist ${c.id}`, 'platform');
+    for (const pid of c.platforms || []) { const pl = plats.find(x => x.id === pid); if (pl && !(pl.checklists || []).includes(c.id)) errors.push(`checklist ${c.id}: names platform ${pid}, which does not link it back`); }
+  }
+  for (const pl of plats) {
+    ids(pl.checklists, x => clIds.has(x), `platform ${pl.id}`, 'checklist');
+    for (const cid of pl.checklists || []) { const c = cls.find(x => x.id === cid); if (c && !(c.platforms || []).includes(pl.id)) errors.push(`platform ${pl.id}: links checklist ${cid}, which does not name it back`); }
+    ids(pl.topics, t => TOPICS[t], `platform ${pl.id}`, 'topic');
+  }
+  for (const c of cls.filter(x => /^submit-/.test(x.id))) if (!plats.some(pl => (pl.checklists || []).includes(c.id))) errors.push(`checklist ${c.id}: no platform guide links this submission checklist`);
+  for (const e of ctx.ENGINES || []) ids(e.topics, t => TOPICS[t], `engine ${e.id}`, 'topic');
+}
 // inbound link coverage: every topic should be linked from at least one other place
 const inbound = new Set();
 topics.forEach(t => t.rel.forEach(([rid]) => inbound.add(rid)));

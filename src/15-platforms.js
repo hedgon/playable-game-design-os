@@ -86,7 +86,8 @@ PLATFORM('steam', { t:'Steam', kind:'pc', sub:'Windows, Mac, Linux and Steam Dec
   flow:{ kind:'flow', title:'Steam, from sign-up to release',
     steps:[{id:'account', t:'Steamworks sign-up', d:'person or company'},{id:'fee', t:'Pay the app fee', d:'the 30-day wait starts'},{id:'page', t:'Build the store page', d:'art, text, content survey'},{id:'pagerev', t:'Store page review', d:'3 to 5 business days'},{id:'soon', t:'Coming Soon', d:'at least two weeks of wishlists'},{id:'buildrev', t:'Build review', d:'3 to 5 business days'},{id:'release', t:'Press Release', d:'nothing happens until you do'}],
     edges:[['account','fee'],['fee','page'],['page','pagerev'],['pagerev','soon'],['pagerev','buildrev'],['soon','release'],['buildrev','release']] },
-  topics:['platform-access','certification-and-review','store-presence','release-and-updates']
+  topics:['platform-access','certification-and-review','store-presence','release-and-updates'],
+  checklists:['submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('nintendo', { t:'Nintendo Switch', kind:'console', sub:'Switch and Switch 2',
@@ -125,7 +126,8 @@ PLATFORM('nintendo', { t:'Nintendo Switch', kind:'console', sub:'Switch and Swit
   flow:{ kind:'flow', title:'Nintendo Switch, from sign-up to release',
     steps:[{id:'reg', t:'Register and sign the NDA', d:'free, individuals accepted'},{id:'apply', t:'Apply for Switch access', d:'a separate application'},{id:'dev', t:'Develop with the SDK', d:'kits and rules under NDA'},{id:'agree', t:'Publishing agreement', d:'before release'},{id:'rate', t:'Age ratings', d:'IARC, plus CERO for Japan'},{id:'review', t:'Nintendo review', d:'Lotcheck'},{id:'eshop', t:'eShop release', d:'your price and date'}],
     edges:[['reg','apply'],['apply','dev'],['dev','agree'],['agree','rate'],['rate','review'],['review','eshop']] },
-  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures']
+  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures'],
+  checklists:['submit-console','ai-submission-by-platform']
 });
 
 PLATFORM('playstation', { t:'PlayStation', kind:'console', sub:'PS5',
@@ -164,7 +166,8 @@ PLATFORM('playstation', { t:'PlayStation', kind:'console', sub:'PS5',
   flow:{ kind:'flow', title:'PlayStation, from application to release',
     steps:[{id:'apply', t:'Apply to PlayStation Partners', d:'as a registered company'},{id:'nda', t:'Agreements and NDA', d:'before the SDK'},{id:'kits', t:'SDK and dev kits', d:'DevNet access'},{id:'dev', t:'Build to the TRC', d:'trophies, saves, accessibility'},{id:'test', t:'Submission and testing', d:'against the TRC'},{id:'store', t:'PlayStation Store release', d:'you pick the date'}],
     edges:[['apply','nda'],['nda','kits'],['kits','dev'],['dev','test'],['test','store']] },
-  topics:['platform-access','platform-requirements','certification-and-review']
+  topics:['platform-access','platform-requirements','certification-and-review'],
+  checklists:['submit-console','ai-submission-by-platform']
 });
 
 PLATFORM('xbox', { t:'Xbox and Microsoft Store', kind:'console', sub:'Xbox Series X|S, PC Game Pass, Microsoft Store',
@@ -213,7 +216,8 @@ PLATFORM('xbox', { t:'Xbox and Microsoft Store', kind:'console', sub:'Xbox Serie
   flow:{ kind:'flow', title:'Xbox, from ID@Xbox to release',
     steps:[{id:'idx', t:'Join ID@Xbox', d:'18+, NDA, supported country'},{id:'gdk', t:'GDK and Partner Center', d:'an Entra ID tenant'},{id:'xr', t:'Build to the XRs', d:'public requirements'},{id:'sub', t:'Submit for certification', d:'4 business days'},{id:'rel', t:'Release', d:'with your Microsoft contact'}],
     edges:[['idx','gdk'],['gdk','xr'],['xr','sub'],['sub','rel']] },
-  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures']
+  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures'],
+  checklists:['submit-console','submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('google-play', { t:'Google Play', kind:'mobile', sub:'Android phones and tablets',
@@ -262,7 +266,8 @@ PLATFORM('google-play', { t:'Google Play', kind:'mobile', sub:'Android phones an
   flow:{ kind:'flow', title:'Google Play, from account to rollout',
     steps:[{id:'acct', t:'Play Console account', d:'$25, identity checks'},{id:'test', t:'Closed test', d:'12 testers, 14 days (new personal accounts)'},{id:'build', t:'App Bundle at target API', d:'16 KB pages for native code'},{id:'forms', t:'Data safety and IARC', d:'privacy policy linked'},{id:'review', t:'Review', d:'plan a week'},{id:'roll', t:'Staged rollout', d:'a share of users first'}],
     edges:[['acct','test'],['test','build'],['test','forms'],['build','review'],['forms','review'],['review','roll']] },
-  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates']
+  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates'],
+  checklists:['submit-mobile','ai-submission-by-platform']
 });
 
 PLATFORM('apple', { t:'Apple App Store', kind:'mobile', sub:'iPhone, iPad and Mac',
@@ -313,7 +318,8 @@ PLATFORM('apple', { t:'Apple App Store', kind:'mobile', sub:'iPhone, iPad and Ma
   flow:{ kind:'flow', title:'Apple App Store, from enrolment to release',
     steps:[{id:'enrol', t:'Developer Program', d:'$99 a year'},{id:'build', t:'Build with current Xcode', d:'Game Center, privacy manifest'},{id:'tf', t:'TestFlight beta', d:'up to 10,000 testers'},{id:'asc', t:'App Store Connect', d:'listing, privacy, age rating'},{id:'review', t:'App Review', d:'most within 24 hours'},{id:'rel', t:'Release', d:'phased, if you like'}],
     edges:[['enrol','build'],['build','tf'],['build','asc'],['tf','review'],['asc','review'],['review','rel']] },
-  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates']
+  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates'],
+  checklists:['submit-mobile','ai-submission-by-platform']
 });
 
 PLATFORM('epic', { t:'Epic Games Store', kind:'open', sub:'PC',
@@ -354,7 +360,8 @@ PLATFORM('epic', { t:'Epic Games Store', kind:'open', sub:'PC',
         { q:'Why add a Stage step when Bugfix can go straight to Live?', a:'Stage lets you check the store page, release date and binary as players will see them before promotion; a direct Bugfix is for urgent fixes that do not change features, platforms or the rating.', follow:'What happens to the deployment ID when you promote?', red:'Treating Dev as a place real players can reach.' }
       ] }
   },
-  topics:['store-presence']
+  topics:['store-presence'],
+  checklists:['submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('web', { t:'Web and browser portals', kind:'open', sub:'HTML5 and WebGL',
@@ -389,7 +396,8 @@ PLATFORM('web', { t:'Web and browser portals', kind:'open', sub:'HTML5 and WebGL
         { q:'Why enter a game jam before pitching a portal?', a:'A jam forces a small, finished browser build in days and gets real players and feedback, which is the evidence a portal’s QA and metrics look for.', follow:'What do you change between the jam build and the portal build?', red:'Treating the jam entry as the final release without SDK or size work.' }
       ] }
   },
-  topics:['platform-choice']
+  topics:['platform-choice'],
+  checklists:['ai-submission-by-platform']
 });
 
 PLATFORM('quest', { t:'Meta Quest', kind:'open', sub:'Meta Horizon Store (VR)',
@@ -473,7 +481,8 @@ PLATFORM('itch', { t:'itch.io', kind:'open', sub:'Downloads and browser games',
         { q:'How do you automate itch.io releases from CI?', a:'Store the butler API key as a secret, install butler in the job, push each export to its channel with the build number as --userversion, and fail the job if the push fails.', follow:'How would you publish a beta without replacing the stable build?', red:'Committing the API key or logging in interactively on the build machine.' }
       ] }
   },
-  topics:['platform-choice']
+  topics:['platform-choice'],
+  checklists:['submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('roblox', { t:'Roblox', kind:'ugc', sub:'Roblox Studio and Luau; players on phone, PC and console',
@@ -537,7 +546,8 @@ PLATFORM('roblox', { t:'Roblox', kind:'ugc', sub:'Roblox Studio and Luau; player
   flow:{ kind:'flow', title:'Roblox, from Studio to every age group',
     steps:[{id:'build', t:'Build in Studio', d:'private while you work'},{id:'upload', t:'Publish to Roblox', d:'uploads; still Private'},{id:'checks', t:'Age check', d:'and the questionnaire'},{id:'public', t:'Public, 16 and over', d:'set the audience'},{id:'discover', t:'Discovery tests it', d:'per-player engagement'},{id:'trial', t:'All-ages evaluation', d:'ID, 2FA, fee or Plus'},{id:'all', t:'Kids and Select', d:'under-16s can see it'}],
     edges:[['build','upload'],['upload','checks'],['checks','public'],['public','discover'],['public','trial'],['trial','all']] },
-  topics:['ugc-platforms','server-authority','server-anticheat','launch-and-discoverability','business-model']
+  topics:['ugc-platforms','server-authority','server-anticheat','launch-and-discoverability','business-model'],
+  checklists:['ai-submission-by-platform']
 });
 
 PLATFORM('fortnite', { t:'Fortnite (UEFN)', kind:'ugc', sub:'Unreal Editor for Fortnite, Verse and Fortnite Creative',
@@ -584,7 +594,8 @@ PLATFORM('fortnite', { t:'Fortnite (UEFN)', kind:'ugc', sub:'Unreal Editor for F
   flow:{ kind:'flow', title:'Fortnite, from UEFN to Discover',
     steps:[{id:'build', t:'Build the island', d:'UEFN on PC, or Creative'},{id:'program', t:'Developer Program', d:'18 and over, creator code'},{id:'private', t:'Publish Project', d:'a private version'},{id:'release', t:'Create a release', d:'details, IARC, media'},{id:'review', t:'Moderation', d:'metadata, then the island'},{id:'live', t:'Live in Discover', d:'tested for up to two weeks'}],
     edges:[['build','program'],['program','private'],['private','release'],['release','review'],['review','live']] },
-  topics:['ugc-platforms','platform-choice','launch-and-discoverability','business-model']
+  topics:['ugc-platforms','platform-choice','launch-and-discoverability','business-model'],
+  checklists:['ai-submission-by-platform']
 });
 
 // The comparison table on the Platforms page: one row per store or console,

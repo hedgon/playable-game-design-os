@@ -69,7 +69,7 @@ ENGINE_GUIDE('godot', { t:'Godot', kind:'engine', sub:'Free, open-source 2D and 
   flow:{ kind:'flow', title:'Godot: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'pick a renderer'},{id:'scenes', t:'Build scenes', d:'nodes, scripts, signals'},{id:'import', t:'Import assets', d:'glTF, textures, audio'},{id:'tpl', t:'Install templates', d:'exact editor version'},{id:'preset', t:'Export presets', d:'one per platform'},{id:'sign', t:'Sign builds', d:'keystore, Apple team, notarise'},{id:'ship', t:'Upload to stores', d:'Steam, Play, App Store, web'}],
     edges:[['proj','scenes'],['scenes','import'],['import','tpl'],['tpl','preset'],['preset','sign'],['sign','ship']] },
-  topics:['platform-choice','quality-and-build-health','prototyping','ai-for-implementation']
+  topics:['platform-choice','quality-and-build-health','prototyping','ai-for-implementation','craft-game-loop-timestep','craft-entities-and-scenes','craft-physics-and-collision']
 });
 
 ENGINE_GUIDE('unity', { t:'Unity', kind:'engine', sub:'Commercial 2D and 3D engine, Unity 6 line',
@@ -119,7 +119,7 @@ ENGINE_GUIDE('unity', { t:'Unity', kind:'engine', sub:'Commercial 2D and 3D engi
   flow:{ kind:'flow', title:'Unity: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'URP or HDRP template'},{id:'scenes', t:'Build scenes', d:'GameObjects, prefabs, C#'},{id:'assets', t:'Import assets', d:'meta files, Force Text'},{id:'addr', t:'Addressables', d:'group remote content'},{id:'profile', t:'Build profiles', d:'one per platform'},{id:'il2cpp', t:'IL2CPP build', d:'strip and test'},{id:'sign', t:'Sign builds', d:'keystore, Apple team, notarise'},{id:'ship', t:'Upload to stores', d:'Steam, Play, App Store, consoles'}],
     edges:[['proj','scenes'],['scenes','assets'],['assets','addr'],['addr','profile'],['profile','il2cpp'],['il2cpp','sign'],['sign','ship']] },
-  topics:['platform-choice','business-model','quality-and-build-health','ai-for-implementation','pm-risk']
+  topics:['platform-choice','business-model','quality-and-build-health','ai-for-implementation','pm-risk','craft-entities-and-scenes','craft-game-loop-timestep','craft-performance']
 });
 
 ENGINE_GUIDE('gamemaker', { t:'GameMaker', kind:'engine', sub:'2D-first engine from YoYo Games, part of Opera',
@@ -175,7 +175,7 @@ ENGINE_GUIDE('gamemaker', { t:'GameMaker', kind:'engine', sub:'2D-first engine f
   flow:{ kind:'flow', title:'GameMaker: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'GML Code or GML Visual'},{id:'assets', t:'Sprites and rooms', d:'origins, masks, layers'},{id:'objects', t:'Objects and events', d:'Create, Step, Draw'},{id:'tex', t:'Texture groups', d:'pack pages'},{id:'runner', t:'Pick runner', d:'VM to test, YYC to ship'},{id:'sign', t:'Sign builds', d:'keystore, Apple, notarise'},{id:'ship', t:'Upload to stores', d:'Steam, stores, GX.games'}],
     edges:[['proj','assets'],['assets','objects'],['objects','tex'],['tex','runner'],['runner','sign'],['sign','ship']] },
-  topics:['platform-choice','prototyping','business-model','ai-for-implementation']
+  topics:['platform-choice','prototyping','business-model','ai-for-implementation','craft-entities-and-scenes','craft-performance']
 });
 
 ENGINE_GUIDE('unreal', { t:'Unreal Engine', kind:'engine', sub:'Epic Games 3D engine, Unreal Engine 5 line',
@@ -226,7 +226,7 @@ ENGINE_GUIDE('unreal', { t:'Unreal Engine', kind:'engine', sub:'Epic Games 3D en
   flow:{ kind:'flow', title:'Unreal Engine: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'C++ or Blueprint template'},{id:'vc', t:'Set up Perforce', d:'typemap, checkout, OFPA'},{id:'code', t:'Build gameplay', d:'C++ base, Blueprint content'},{id:'ddc', t:'Shared DDC', d:'shaders built once'},{id:'cook', t:'BuildCookRun', d:'build, cook, stage, package'},{id:'graph', t:'BuildGraph CI', d:'every platform per changelist'},{id:'sign', t:'Sign builds', d:'keystore, Apple team, notarise'},{id:'ship', t:'Ship to stores', d:'Steam, Epic, Play, App Store, consoles'}],
     edges:[['proj','vc'],['vc','code'],['code','ddc'],['ddc','cook'],['cook','graph'],['graph','sign'],['sign','ship']] },
-  topics:['platform-choice','business-model','infra-ci-pipelines','team-and-collaboration','ai-for-implementation']
+  topics:['platform-choice','business-model','infra-ci-pipelines','team-and-collaboration','ai-for-implementation','craft-performance','craft-memory-and-gc']
 });
 
 ENGINE_GUIDE('web', { t:'Web stack', kind:'web', sub:'HTML5 Canvas, WebGL 2 and WebGPU with open-source libraries',
@@ -279,7 +279,7 @@ ENGINE_GUIDE('web', { t:'Web stack', kind:'web', sub:'HTML5 Canvas, WebGL 2 and 
   flow:{ kind:'flow', title:'Web stack: from project to a shipped build',
     steps:[{id:'lib', t:'Pick a library', d:'Phaser, three.js, Babylon.js'},{id:'loop', t:'Game loop', d:'rAF plus fixed timestep'},{id:'assets', t:'Assets', d:'glTF, KTX2, preload'},{id:'bundle', t:'Bundle', d:'Vite production build'},{id:'phone', t:'Test on phones', d:'Safari iOS, low-end Android'},{id:'host', t:'Host or portal', d:'static host, itch.io, Poki'},{id:'wrap', t:'Wrap for stores', d:'Electron, Tauri, Capacitor'}],
     edges:[['lib','loop'],['loop','assets'],['assets','bundle'],['bundle','phone'],['phone','host'],['phone','wrap']] },
-  topics:['platform-choice','prototyping','infra-cdn-assets','ai-for-implementation','launch-and-discoverability']
+  topics:['platform-choice','prototyping','infra-cdn-assets','ai-for-implementation','launch-and-discoverability','craft-game-loop-timestep','craft-memory-and-gc','craft-performance']
 });
 
 ENGINE_GUIDE('renpy', { t:'Ren’Py', kind:'engine', sub:'Open-source visual novel engine, 8.x line',
@@ -335,7 +335,7 @@ ENGINE_GUIDE('renpy', { t:'Ren’Py', kind:'engine', sub:'Open-source visual nov
   flow:{ kind:'flow', title:'Ren’Py: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'launcher, GUI template'},{id:'script', t:'Write script', d:'labels, say, menus'},{id:'art', t:'Images and audio', d:'layered images, channels'},{id:'lint', t:'Run Lint', d:'errors and statistics'},{id:'tl', t:'Translate', d:'tl/<language> files'},{id:'build', t:'Build distributions', d:'PC, Mac, Markets, mobile, web'},{id:'ship', t:'Upload to stores', d:'Steam, itch.io, Play, App Store'}],
     edges:[['proj','script'],['script','art'],['art','lint'],['lint','tl'],['tl','build'],['build','ship']] },
-  topics:['narrative-agency','narrative-pacing','prototyping','localization-and-culture','ai-for-implementation']
+  topics:['narrative-agency','narrative-pacing','prototyping','localization-and-culture','ai-for-implementation','craft-save-systems']
 });
 
 ENGINE_GUIDE('defold', { t:'Defold', kind:'engine', sub:'Free, source-available engine from the Defold Foundation, strongest in 2D',
@@ -383,7 +383,7 @@ ENGINE_GUIDE('defold', { t:'Defold', kind:'engine', sub:'Free, source-available 
   flow:{ kind:'flow', title:'Defold: from project to a shipped build',
     steps:[{id:'proj', t:'game.project', d:'settings, dependencies'},{id:'coll', t:'Collections', d:'objects and components'},{id:'lua', t:'Lua scripts', d:'msg.post, on_message'},{id:'atlas', t:'Atlases', d:'pack textures'},{id:'bob', t:'Bundle', d:'editor or bob.jar'},{id:'ship', t:'Upload', d:'stores, web, ad networks'}],
     edges:[['proj','coll'],['coll','lua'],['lua','atlas'],['atlas','bob'],['bob','ship']] },
-  topics:['soft-launch-and-playable-ads','platform-choice','platform-and-session']
+  topics:['soft-launch-and-playable-ads','platform-choice','platform-and-session','craft-entities-and-scenes']
 });
 
 ENGINE_GUIDE('cocos', { t:'Cocos Creator', kind:'engine', sub:'TypeScript 2D and 3D engine and editor, strongest in China and on mini-game platforms',
@@ -428,7 +428,7 @@ ENGINE_GUIDE('cocos', { t:'Cocos Creator', kind:'engine', sub:'TypeScript 2D and
   flow:{ kind:'flow', title:'Cocos Creator: from project to a shipped build',
     steps:[{id:'scene', t:'Scenes and nodes', d:'hierarchy and prefabs'},{id:'ts', t:'TypeScript components', d:'@ccclass, lifecycle'},{id:'bundle', t:'Asset bundles', d:'split and remote'},{id:'build', t:'Build panel or CLI', d:'pick target'},{id:'tool', t:'Platform tool', d:'WeChat DevTools, Xcode'},{id:'ship', t:'Submit', d:'mini-game review, stores'}],
     edges:[['scene','ts'],['ts','bundle'],['bundle','build'],['build','tool'],['tool','ship']] },
-  topics:['soft-launch-and-playable-ads','platform-choice','localization-and-culture']
+  topics:['soft-launch-and-playable-ads','platform-choice','localization-and-culture','craft-entities-and-scenes']
 });
 
 ENGINE_GUIDE('blender', { t:'Blender', kind:'tool', sub:'Free, open-source 3D creation suite, 5.x line',

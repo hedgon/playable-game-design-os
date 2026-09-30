@@ -100,7 +100,7 @@ const SMELLS = [
       {c:'No unfinished goal at session end', top:'goals-horizons', exp:`Ask at session end “what will you do next time?” If answers are vague, add a visible next goal before the natural stopping point.`},
       {c:'Novelty was the fun. Nothing regenerates', top:'mastery-discovery-expression', exp:`Test a second session with the same content. If enjoyment drops sharply, the game has no engine beyond novelty. Identify which engine it could run on.`},
       {c:'Nothing to think about between sessions', top:'return-and-quit', exp:`Add a decision the player makes at session end whose result they see at the next start. Measure return.`},
-      {c:'Politeness bias: “fun” was self-report', top:'playtesting', exp:`Stop asking. Watch: did they voluntarily repeat anything? Behavior is the evidence.`}],
+      {c:'Politeness bias: “fun” was self-report', top:'playtesting', exp:`Stop asking. Watch: did they voluntarily repeat anything? Behaviour is the evidence.`}],
     prompt:`Session feedback is positive but return is low. Here is our end-of-session state and what players said: [DATA]. Diagnose: no unfinished goal, novelty-only enjoyment, nothing to think about between sessions, or self-report bias. Propose one experiment per diagnosis with a return-rate signal.` },
   { id:'meaningless-progression', t:'Progression feels meaningless', fun:true, dims:['progression','anticipation','power'], dom:['systems'],
     sym:`“Number goes up”. Players cannot say what an unlock does. “Grinding to the good part”.`,
@@ -114,7 +114,7 @@ const SMELLS = [
     sym:`Players cannot say what a currency is for. Exchange rates are opaque. Wallets have eight numbers.`,
     causes:[
       {c:'Currencies added to gate systems instead of to create trade-offs', top:'economy-and-resources', exp:`For each currency, name the trade-off it creates. Merge any without one into a shared currency in a test build. Watch whether decisions change.`},
-      {c:'Monetization currencies bleeding into design', top:'business-model', exp:`List currencies that exist for the store. Test a build where they are hidden until the store is opened.`},
+      {c:'Monetisation currencies bleeding into design', top:'business-model', exp:`List currencies that exist for the store. Test a build where they are hidden until the store is opened.`},
       {c:'Cognitive load exceeds the player budget', top:'readability-and-hierarchy', exp:`Ask players to name every currency and what it buys. Cut to the number they can name.`}],
     prompt:`We have these currencies with sources and sinks: [LIST]. For each, state the spending decision it creates that no other currency creates. Propose merges that preserve every real decision and remove every currency that only gates.` },
   { id:'floaty-combat', t:'Combat feels floaty', dom:['presentation','core','ux'],
@@ -123,7 +123,7 @@ const SMELLS = [
       {c:'Missing or late impact feedback', top:'feedback-and-affordance', exp:`Feedback matrix for attacks. Fill empty cells with hit-stop, sound and a hit reaction under 100 ms. A/B with testers.`},
       {c:'Input latency', top:'controls-and-friction', exp:`Measure input-to-response on the target device. Anything over about 100 ms needs fixing before any juice.`},
       {c:'Animation timing without commitment or anticipation', top:'animation-and-vfx', exp:`Add anticipation frames and a commitment window to the main attack. Test readability and feel together.`},
-      {c:'No consequence: hits do not change enemy state', top:'core-loop', exp:`Make hits change something visible (stagger, position, behavior). Floaty is often “nothing happened”.`}],
+      {c:'No consequence: hits do not change enemy state', top:'core-loop', exp:`Make hits change something visible (stagger, position, behaviour). Floaty is often “nothing happened”.`}],
     prompt:`Combat feels floaty. Here are our attack timings, feedback per hit, input latency and enemy reactions: [DATA]. Identify whether the cause is missing impact feedback, latency, animation timing, or hits that change nothing. Propose fixes in order of cost, and what “weighty” would look like in a recording.` },
   { id:'unfair', t:'The game feels unfair', fun:true, dims:['mastery','tension'], dom:['systems','ux','presentation'],
     sym:`“Cheap”, “no warning”, “random”. Rage quits after a failure. Retries without change.`,
@@ -160,7 +160,7 @@ const SMELLS = [
     sym:`Dozens of options, all plausible, none exciting. The team is tired of reading proposals.`,
     causes:[
       {c:'The problem is not framed: no player, fantasy, constraints or decision stated', top:'prompting-framework', exp:`Rewrite the request with the full formula. Compare the distinctiveness of the output.`},
-      {c:'You need a decision, not more options', top:'bottleneck-shift', exp:`Stop generating. Pick two options, write hypotheses, prototype both in a day, test. Judgment needs evidence, not more candidates.`},
+      {c:'You need a decision, not more options', top:'bottleneck-shift', exp:`Stop generating. Pick two options, write hypotheses, prototype both in a day, test. Judgement needs evidence, not more candidates.`},
       {c:'Generic output because the fantasy is undefined', top:'fantasy', exp:`Write the fantasy sentence and the fantasy verbs. Filter all existing proposals by them. Most will fall away.`},
       {c:'Wrong role: brainstormer when you needed a critic', top:'ai-roles', exp:`Run the critic and devil’s advocate on the existing options instead of generating more.`}],
     prompt:`We have generated [N] proposals for [PROBLEM] and none feel right. Here is our fantasy, player and constraints: [CONTEXT]. Do not generate more. Instead: filter the existing proposals by the fantasy verbs, identify what the surviving ones have in common, state what decision I am avoiding, and propose the two-day prototype that would settle it.` },
@@ -338,7 +338,7 @@ SMELLS.push(
     causes:[
       {c:'Post-launch promised without staffing it', top:'live-operations', exp:`Set a cadence the team can keep, then promise only that.`},
       {c:'No channel for player feedback', top:'live-operations', exp:`Give players a channel and an owner who answers it.`},
-      {c:'Monetization that funds nothing players can feel', top:'business-model', exp:`Connect each revenue stream to something the player can see and value.`}],
+      {c:'Monetisation that funds nothing players can feel', top:'business-model', exp:`Connect each revenue stream to something the player can see and value.`}],
     prompt:`Here is our post-launch plan and our team capacity: [CONTEXT]. Flag everything the cadence cannot sustain and rewrite the plan so every promise maps to capacity and to something the player can feel.` },
   { id:'english-shaped-ui', t:'The interface breaks in other languages', dom:['product','ux'],
     sym:`Text overflows its button in German, grammar assumptions break, meaning is baked into images, and translation starts last.`,
@@ -353,5 +353,5 @@ SMELLS.push(
       {c:'The loop pressures rather than informs', top:'ethics-and-responsibility', exp:`Remove the pressure and check whether the loop still retains.`},
       {c:'A model that pays for a problem the design created', top:'ethics-and-responsibility', exp:`Fix the design problem instead of selling the skip.`},
       {c:'Engagement measured without asking whether the player would endorse it', top:'metrics-and-success', exp:`Add a signal for regret and for voluntary return, not only for return.`}],
-    prompt:`Here is our retention loop and monetization: [CONTEXT]. Identify where the design pressures rather than informs, propose the smallest change that keeps the experience and removes the pressure, and name the signal that would show players are returning by choice.` }
+    prompt:`Here is our retention loop and monetisation: [CONTEXT]. Identify where the design pressures rather than informs, propose the smallest change that keeps the experience and removes the pressure, and name the signal that would show players are returning by choice.` }
 );

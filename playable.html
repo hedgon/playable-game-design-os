@@ -1595,7 +1595,7 @@ const SMELLS = [
       {c:'No unfinished goal at session end', top:'goals-horizons', exp:`Ask at session end “what will you do next time?” If answers are vague, add a visible next goal before the natural stopping point.`},
       {c:'Novelty was the fun. Nothing regenerates', top:'mastery-discovery-expression', exp:`Test a second session with the same content. If enjoyment drops sharply, the game has no engine beyond novelty. Identify which engine it could run on.`},
       {c:'Nothing to think about between sessions', top:'return-and-quit', exp:`Add a decision the player makes at session end whose result they see at the next start. Measure return.`},
-      {c:'Politeness bias: “fun” was self-report', top:'playtesting', exp:`Stop asking. Watch: did they voluntarily repeat anything? Behavior is the evidence.`}],
+      {c:'Politeness bias: “fun” was self-report', top:'playtesting', exp:`Stop asking. Watch: did they voluntarily repeat anything? Behaviour is the evidence.`}],
     prompt:`Session feedback is positive but return is low. Here is our end-of-session state and what players said: [DATA]. Diagnose: no unfinished goal, novelty-only enjoyment, nothing to think about between sessions, or self-report bias. Propose one experiment per diagnosis with a return-rate signal.` },
   { id:'meaningless-progression', t:'Progression feels meaningless', fun:true, dims:['progression','anticipation','power'], dom:['systems'],
     sym:`“Number goes up”. Players cannot say what an unlock does. “Grinding to the good part”.`,
@@ -1609,7 +1609,7 @@ const SMELLS = [
     sym:`Players cannot say what a currency is for. Exchange rates are opaque. Wallets have eight numbers.`,
     causes:[
       {c:'Currencies added to gate systems instead of to create trade-offs', top:'economy-and-resources', exp:`For each currency, name the trade-off it creates. Merge any without one into a shared currency in a test build. Watch whether decisions change.`},
-      {c:'Monetization currencies bleeding into design', top:'business-model', exp:`List currencies that exist for the store. Test a build where they are hidden until the store is opened.`},
+      {c:'Monetisation currencies bleeding into design', top:'business-model', exp:`List currencies that exist for the store. Test a build where they are hidden until the store is opened.`},
       {c:'Cognitive load exceeds the player budget', top:'readability-and-hierarchy', exp:`Ask players to name every currency and what it buys. Cut to the number they can name.`}],
     prompt:`We have these currencies with sources and sinks: [LIST]. For each, state the spending decision it creates that no other currency creates. Propose merges that preserve every real decision and remove every currency that only gates.` },
   { id:'floaty-combat', t:'Combat feels floaty', dom:['presentation','core','ux'],
@@ -1618,7 +1618,7 @@ const SMELLS = [
       {c:'Missing or late impact feedback', top:'feedback-and-affordance', exp:`Feedback matrix for attacks. Fill empty cells with hit-stop, sound and a hit reaction under 100 ms. A/B with testers.`},
       {c:'Input latency', top:'controls-and-friction', exp:`Measure input-to-response on the target device. Anything over about 100 ms needs fixing before any juice.`},
       {c:'Animation timing without commitment or anticipation', top:'animation-and-vfx', exp:`Add anticipation frames and a commitment window to the main attack. Test readability and feel together.`},
-      {c:'No consequence: hits do not change enemy state', top:'core-loop', exp:`Make hits change something visible (stagger, position, behavior). Floaty is often “nothing happened”.`}],
+      {c:'No consequence: hits do not change enemy state', top:'core-loop', exp:`Make hits change something visible (stagger, position, behaviour). Floaty is often “nothing happened”.`}],
     prompt:`Combat feels floaty. Here are our attack timings, feedback per hit, input latency and enemy reactions: [DATA]. Identify whether the cause is missing impact feedback, latency, animation timing, or hits that change nothing. Propose fixes in order of cost, and what “weighty” would look like in a recording.` },
   { id:'unfair', t:'The game feels unfair', fun:true, dims:['mastery','tension'], dom:['systems','ux','presentation'],
     sym:`“Cheap”, “no warning”, “random”. Rage quits after a failure. Retries without change.`,
@@ -1655,7 +1655,7 @@ const SMELLS = [
     sym:`Dozens of options, all plausible, none exciting. The team is tired of reading proposals.`,
     causes:[
       {c:'The problem is not framed: no player, fantasy, constraints or decision stated', top:'prompting-framework', exp:`Rewrite the request with the full formula. Compare the distinctiveness of the output.`},
-      {c:'You need a decision, not more options', top:'bottleneck-shift', exp:`Stop generating. Pick two options, write hypotheses, prototype both in a day, test. Judgment needs evidence, not more candidates.`},
+      {c:'You need a decision, not more options', top:'bottleneck-shift', exp:`Stop generating. Pick two options, write hypotheses, prototype both in a day, test. Judgement needs evidence, not more candidates.`},
       {c:'Generic output because the fantasy is undefined', top:'fantasy', exp:`Write the fantasy sentence and the fantasy verbs. Filter all existing proposals by them. Most will fall away.`},
       {c:'Wrong role: brainstormer when you needed a critic', top:'ai-roles', exp:`Run the critic and devil’s advocate on the existing options instead of generating more.`}],
     prompt:`We have generated [N] proposals for [PROBLEM] and none feel right. Here is our fantasy, player and constraints: [CONTEXT]. Do not generate more. Instead: filter the existing proposals by the fantasy verbs, identify what the surviving ones have in common, state what decision I am avoiding, and propose the two-day prototype that would settle it.` },
@@ -1833,7 +1833,7 @@ SMELLS.push(
     causes:[
       {c:'Post-launch promised without staffing it', top:'live-operations', exp:`Set a cadence the team can keep, then promise only that.`},
       {c:'No channel for player feedback', top:'live-operations', exp:`Give players a channel and an owner who answers it.`},
-      {c:'Monetization that funds nothing players can feel', top:'business-model', exp:`Connect each revenue stream to something the player can see and value.`}],
+      {c:'Monetisation that funds nothing players can feel', top:'business-model', exp:`Connect each revenue stream to something the player can see and value.`}],
     prompt:`Here is our post-launch plan and our team capacity: [CONTEXT]. Flag everything the cadence cannot sustain and rewrite the plan so every promise maps to capacity and to something the player can feel.` },
   { id:'english-shaped-ui', t:'The interface breaks in other languages', dom:['product','ux'],
     sym:`Text overflows its button in German, grammar assumptions break, meaning is baked into images, and translation starts last.`,
@@ -1848,7 +1848,7 @@ SMELLS.push(
       {c:'The loop pressures rather than informs', top:'ethics-and-responsibility', exp:`Remove the pressure and check whether the loop still retains.`},
       {c:'A model that pays for a problem the design created', top:'ethics-and-responsibility', exp:`Fix the design problem instead of selling the skip.`},
       {c:'Engagement measured without asking whether the player would endorse it', top:'metrics-and-success', exp:`Add a signal for regret and for voluntary return, not only for return.`}],
-    prompt:`Here is our retention loop and monetization: [CONTEXT]. Identify where the design pressures rather than informs, propose the smallest change that keeps the experience and removes the pressure, and name the signal that would show players are returning by choice.` }
+    prompt:`Here is our retention loop and monetisation: [CONTEXT]. Identify where the design pressures rather than informs, propose the smallest change that keeps the experience and removes the pressure, and name the signal that would show players are returning by choice.` }
 );
 
 /* ---------------- AI ROLES ---------------- */
@@ -1875,7 +1875,7 @@ const ROLES = [
     verify:['Did it include anything the hypothesis does not need?','Did it surface embedded decisions?'] },
   { id:'analyst', t:'AI Playtest Analyst', job:'Finds behavioural patterns.', use:['You have notes, transcripts or telemetry from real players.','Coding, clustering, correlating, separating behaviour from self-report.'],
     avoid:['Without the hypothesis and your context, it will paraphrase opinions.','Recommending changes in the same pass. Keep analysis and design separate.'],
-    starter:`Act as a playtest analyst. Hypothesis: [HYPOTHESIS]. Data: [NOTES, TRANSCRIPTS, LOGS]. Code observations as behavior or self-report. Cluster behaviors, mark patterns (3 or more players) versus outliers. Surface contradictions between doing and saying. Align notes to telemetry by time. State what the evidence supports and does not. Do not interpret causes or recommend changes.`,
+    starter:`Act as a playtest analyst. Hypothesis: [HYPOTHESIS]. Data: [NOTES, TRANSCRIPTS, LOGS]. Code observations as behaviour or self-report. Cluster behaviours, mark patterns (3 or more players) versus outliers. Surface contradictions between doing and saying. Align notes to telemetry by time. State what the evidence supports and does not. Do not interpret causes or recommend changes.`,
     verify:['Did it call two testers a pattern?','Did it slide into recommendations?'] },
   { id:'content', t:'AI Content Generator', job:'Creates variations after the system is validated.', use:['The loop is voluntarily replayed and the distinctness criteria are written.','Filling defined niches: enemies that ask a stated question, items that own a stated situation.','Placeholder text and assets for prototypes.'],
     avoid:['Before validation: this is how content spam happens.','Without distinctness criteria: you will get oatmeal.','As a substitute for improving the interaction.'],
@@ -1903,7 +1903,7 @@ const FAILURES = [
   { t:'Premature implementation', sym:'A polished build of an idea nobody has tested.', why:'Building is the model’s strongest skill and the most satisfying output. The hypothesis step got skipped.', detect:'Ask: what question does this build answer? What is the kill criterion? Silence means premature.', fix:'Write the hypothesis. Rebuild as the smallest instrumented prototype. Test before polishing.' },
   { t:'Content spam', sym:'Hundreds of items, enemies or quests that all feel the same.', why:'Generation is cheap. Distinctness criteria were never written. The system underneath was not validated.', detect:'Show players pairs. Can they tell them apart by what each makes them do?', fix:'Validate the system first. Write distinctness criteria in terms of decisions. Generate within niches under a human filter.' },
   { t:'Documentation theatre', sym:'Beautiful design documents nobody reads. The build does not match them.', why:'Writing documents is easy and looks like progress. Documents are not evidence.', detect:'Compare document length to playtest count. Ask when the document last changed because of a test.', fix:'Replace documents with hypotheses, prototypes and iteration logs. Keep the experience statement and the not-list.' },
-  { t:'Analysis paralysis', sym:'Endless comparisons, matrices and trade-off tables. No decision.', why:'Analysis is cheap and comfortable. Deciding is a human act that analysis can postpone indefinitely.', detect:'Count analysis passes since the last decision. More than two is a warning.', fix:'Pick two options. Prototype both in a day. Let players decide. Judgment needs evidence, not more comparison.' },
+  { t:'Analysis paralysis', sym:'Endless comparisons, matrices and trade-off tables. No decision.', why:'Analysis is cheap and comfortable. Deciding is a human act that analysis can postpone indefinitely.', detect:'Count analysis passes since the last decision. More than two is a warning.', fix:'Pick two options. Prototype both in a day. Let players decide. Judgement needs evidence, not more comparison.' },
   { t:'Iteration without player evidence', sym:'Many builds, many changes, no playtests. The design drifts.', why:'AI iteration is fast enough to outrun the testing cadence. Each iteration feels like progress.', detect:'When did a player last touch the build? More than two cycles ago is a failure.', fix:'Hard rule: no more than two AI iterations without a player. Schedule tests before builds.' },
   { t:'Treating AI output as authority', sym:'“The AI said” ends design arguments. Nobody remembers deciding.', why:'Fluent, confident output from a tireless source is easy to defer to, especially under time pressure.', detect:'Ask who decided the current design and why. If the answer cites AI output, ownership drifted.', fix:'Use the responsibility matrix. Route embedded decisions to a human by name. Record decisions with the human’s reason.' }
 ];
@@ -1913,7 +1913,7 @@ const MATRIX = [
   ['Write the core experience statement','PRIMARY','Assist','Authorship. AI can dissect references and propose wordings. The target is yours.'],
   ['Generate alternatives','Assist','PRIMARY','Volume and variety are AI strengths. The human supplies the framing and the filter.'],
   ['Decide game identity and what it is not','PRIMARY','Assist','The not-list is the most human artifact in the project.'],
-  ['Analyze complexity vs depth','Shared','Shared','AI audits rules for decisions. Humans judge which decisions matter to this player.'],
+  ['Analyse complexity vs depth','Shared','Shared','AI audits rules for decisions. Humans judge which decisions matter to this player.'],
   ['Find dominant strategies and exploits','Assist','PRIMARY','Simulation and exhaustive reasoning. Humans decide which to keep.'],
   ['Build prototypes','Assist','PRIMARY','Speed. Humans write the hypothesis and own the embedded decisions.'],
   ['Judge fun','PRIMARY','Assist','Only observed players show fun. The human interprets. AI can code the observations.'],
@@ -1938,53 +1938,53 @@ const LOOP_STEPS = [
   { n:4, t:'Critique', goal:'Attack the assumptions.', human:'Read the critique. Decide which attacks are credible for your player.', ai:"Critic and devil's advocate: assumptions per option, disproving behaviours, the case for building none of them.", out:'A shortlist of one or two options with known risks.', exit:'You can state what would make each shortlisted option fail.', fail:'Skipping critique because the team agrees.', top:['verifying-ai-output','ai-failure-modes'] },
   { n:5, t:'Prototype', goal:'Build the cheapest possible test.', human:'Write the prototype brief: hypothesis, minimal mechanics, exposed values, logged events, exclusions.', ai:'Prototype engineer: build it fast with instrumentation, surface embedded decisions first.', out:'A disposable, instrumented build answering one question.', exit:'The build can produce the signal or the kill criterion within a 15-minute session.', fail:'Prototype grows into the game. No logging, polish creeps in.', top:['prototyping','ai-for-implementation'] },
   { n:6, t:'Play', goal:'Observe actual humans.', human:'Recruit matched players, run silent observation, do not explain, take timestamped notes.', ai:'Draft protocols and interview guides. Transcribe.', out:'Notes, recordings, logs from real players.', exit:'At least a handful of matched players have played without help.', fail:'Testing with the team. Explaining during the test. Asking “was it fun?”', top:['playtesting','who-is-the-player'] },
-  { n:7, t:'Measure', goal:'Collect behavioural evidence.', human:'Decide which behaviours matter for the hypothesis. Log them consistently.', ai:'Code notes, count choices, retries, hesitations, quits. Align notes to telemetry.', out:'Behavior data separated from self-report.', exit:'You can state the rate at which the predicted behaviour occurred.', fail:'Counting opinions as data. Treating two testers as a pattern.', top:['ai-for-playtest-analysis','iteration-and-evidence'] },
+  { n:7, t:'Measure', goal:'Collect behavioural evidence.', human:'Decide which behaviours matter for the hypothesis. Log them consistently.', ai:'Code notes, count choices, retries, hesitations, quits. Align notes to telemetry.', out:'Behaviour data separated from self-report.', exit:'You can state the rate at which the predicted behaviour occurred.', fail:'Counting opinions as data. Treating two testers as a pattern.', top:['ai-for-playtest-analysis','iteration-and-evidence'] },
   { n:8, t:'Interpret', goal:'Human and AI analyse the evidence.', human:'Add context AI lacks: intent, what changed, what the room felt like. Decide what the evidence means.', ai:'Cluster, find contradictions, propose alternative explanations, surface outliers.', out:'A statement of what the evidence supports and what it does not.', exit:'You can say whether the hypothesis survived, and why, in two sentences.', fail:'Letting the AI summary become the design change list.', top:['ai-for-playtest-analysis','playtesting'] },
   { n:9, t:'Decide', goal:'Keep, change, simplify, or kill.', human:'Make the call. Record the decision, the evidence and the reason. Write the next hypothesis.', ai:'Lay out options and trade-offs. Argue the other side. Maintain the log.', out:'A recorded decision and a next hypothesis.', exit:'Someone can read the log and understand why the design is the way it is.', fail:'Drifting into implementation without deciding. Deciding on opinion.', top:['iteration-and-evidence','scope-control','should-we-build-this'] },
   { n:10, t:'Implement', goal:'Use AI aggressively for production.', human:'Specify, review, own embedded decisions, keep the scope gate closed to unvalidated features.', ai:'Write production code, tools, content within validated niches. Refactor promoted prototypes. Write tests.', out:'Production-quality implementation of validated design.', exit:'The implementation matches the validated prototype behaviour and the logs still work.', fail:'Implementing unvalidated features because it is cheap.', top:['ai-for-implementation','content-multiplies'] },
   { n:11, t:'Polish', goal:'Amplify the validated experience.', human:'Rank polish by impact on the most important actions. Judge feel with players.', ai:'Implement feel systems. Rank opportunities by impact per cost. Check readability constraints.', out:'Clearer, more satisfying feedback on validated interactions.', exit:'Feedback is clearer, not just louder. Readability survives.', fail:'Polishing before validation. Uniform juice on everything.', top:['polish-when','game-feel-and-juice'] },
-  { n:12, t:'Repeat', goal:'Back to define or hypothesise.', human:'Revisit the experience statement against what players enjoyed. Pick the next riskiest assumption.', ai:'Summarize the cycle. Propose next hypotheses. Detect skipped steps.', out:'An updated experience statement and the next hypothesis.', exit:'The next cycle starts with a hypothesis, not a feature.', fail:'Treating polish as the end.', top:['ai-loop','core-experience'] }
+  { n:12, t:'Repeat', goal:'Back to define or hypothesise.', human:'Revisit the experience statement against what players enjoyed. Pick the next riskiest assumption.', ai:'Summarise the cycle. Propose next hypotheses. Detect skipped steps.', out:'An updated experience statement and the next hypothesis.', exit:'The next cycle starts with a hypothesis, not a feature.', fail:'Treating polish as the end.', top:['ai-loop','core-experience'] }
 ];
 /* ---------------- PROMPT TEMPLATES ---------------- */
 const PROMPT_TEMPLATES = [
-  { id:'brainstorm', cat:'Explore', t:'Brainstorming (distinct options, no recommendation)', vars:['PLAYER','FANTASY','LOOP','PROBLEM','CONSTRAINTS'],
+  { id:'brainstorm', topics:['finding-an-idea','ai-roles'], cat:'Explore', t:'Brainstorming (distinct options, no recommendation)', vars:['PLAYER','FANTASY','LOOP','PROBLEM','CONSTRAINTS'],
     p:`Act as a brainstormer, not an advisor. Context: player {{PLAYER}}, fantasy {{FANTASY}}, current loop {{LOOP}}. Problem: {{PROBLEM}}. Constraints: {{CONSTRAINTS}}. Generate 8 mechanically distinct solutions. For each: the player decision it creates, the intended emotion, the likely failure mode, implementation complexity (S/M/L), and the observable evidence that would validate or invalidate it. Reject your own near-duplicates before presenting. Do not recommend a solution.` },
-  { id:'critique', cat:'Critique', t:'Critique (assumptions and disproving behaviours)', vars:['DESIGN','PLAYER','TIME'],
+  { id:'critique', topics:['hypothesis-driven-design','ai-roles'], cat:'Critique', t:'Critique (assumptions and disproving behaviours)', vars:['DESIGN','PLAYER','TIME'],
     p:`Act as a sceptical critic. Design under review: {{DESIGN}}. Target player: {{PLAYER}}. List every assumption the design depends on, including ones I did not state. For each: the player behaviour that would disprove it, and how likely that behaviour is for this player. Now assume the game feels repetitive after {{TIME}}: identify which underlying decisions are too shallow and propose the smallest experiments that could test your diagnosis. End with the single assumption you would test first and why.` },
-  { id:'system-analysis', cat:'Systems', t:'System interaction analysis', vars:['MAP','FANTASY'],
+  { id:'system-analysis', topics:['systemic-design','agency-and-emergence'], cat:'Systems', t:'System interaction analysis', vars:['MAP','FANTASY'],
     p:`Act as a systems designer. Systems with the state each reads and writes: {{MAP}}. Produce the pairwise interaction matrix (existing, possible, impossible). For each possible pair, one concrete interaction rule, the emergent strategy it might create, and whether it fits the fantasy "{{FANTASY}}". For each existing pair, the most degenerate strategy it enables. Rank possible interactions by depth added per rule added. Do not add new systems.` },
-  { id:'mechanic', cat:'Systems', t:'Mechanic design from a behaviour goal', vars:['BEHAVIOR','EXPERIENCE','SYSTEMS','CONSTRAINTS'],
+  { id:'mechanic', topics:['mechanics-and-rules','feature-vs-experience'], cat:'Systems', t:'Mechanic design from a behaviour goal', vars:['BEHAVIOR','EXPERIENCE','SYSTEMS','CONSTRAINTS'],
     p:`Desired player behavior: {{BEHAVIOR}}. Desired experience: {{EXPERIENCE}}. Existing systems: {{SYSTEMS}}. Constraints: {{CONSTRAINTS}}. Propose 5 mechanics that would produce the behaviour, ordered from smallest to largest. For each: the rule in one sentence, the decision it creates, what it interacts with, teaching cost, and how we would observe the behaviour in a 15-minute test. Then argue that an existing system could be changed to produce the behaviour without any new mechanic.` },
-  { id:'economy', cat:'Systems', t:'Economy design and simulation', vars:['SPEC','HOURS'],
-    p:`Economy spec (resources, sources with rates, sinks with costs, converters): {{SPEC}}. Write and run a simulation over {{HOURS}} hours for cautious, average and aggressive spenders. Report balance curves, the hour each resource reaches surplus or starvation, and which spending decisions collapse. Propose the smallest rate or cost changes that keep every resource decision live. State the player-behavior assumptions your simulation makes.` },
-  { id:'progression', cat:'Systems', t:'Progression audit', vars:['STEPS','CHURN_TIMES'],
+  { id:'economy', topics:['economy-and-resources'], cat:'Systems', t:'Economy design and simulation', vars:['SPEC','HOURS'],
+    p:`Economy spec (resources, sources with rates, sinks with costs, converters): {{SPEC}}. Write and run a simulation over {{HOURS}} hours for cautious, average and aggressive spenders. Report balance curves, the hour each resource reaches surplus or starvation, and which spending decisions collapse. Propose the smallest rate or cost changes that keep every resource decision live. State the player-behaviour assumptions your simulation makes.` },
+  { id:'progression', topics:['progression','return-and-quit'], cat:'Systems', t:'Progression audit', vars:['STEPS','CHURN_TIMES'],
     p:`Progression track with timing: {{STEPS}}. For each step: type (power, horizontal, mastery, unlock, narrative) and the new decision or capability it creates, or “none”. Flag steps that make a previous decision dominant. Plot when the player first meets each major system against these churn windows: {{CHURN_TIMES}}. Propose the smallest reordering or merge that puts a capability change in every 30 minutes.` },
-  { id:'level', cat:'Level', t:'Level design alternatives (after constraints)', vars:['KNOWN','IDEA','EMOTION','POSITION','CONSTRAINTS'],
+  { id:'level', topics:['level-structure','encounter-design'], cat:'Level', t:'Level design alternatives (after constraints)', vars:['KNOWN','IDEA','EMOTION','POSITION','CONSTRAINTS'],
     p:`The player currently knows {{KNOWN}}. This level teaches {{IDEA}}. Emotional target: {{EMOTION}}. Pacing position: {{POSITION}}. Constraints: {{CONSTRAINTS}}. Propose 3 six-beat structures (teach, test, twist, combine, master, rest). For each beat: what the player does, what they could fail, what they learn. Make the twists different. Plot intensity and cognitive load per beat and flag any beat where both peak. Do not describe visuals.` },
-  { id:'ux-audit', cat:'UX', t:'UX friction audit', vars:['MODE','ELEMENTS','DECISIONS','DEVICE'],
+  { id:'ux-audit', topics:['ux-as-design','readability-and-hierarchy'], cat:'UX', t:'UX friction audit', vars:['MODE','ELEMENTS','DECISIONS','DEVICE'],
     p:`Act as a UX researcher. Mode: {{MODE}} on {{DEVICE}}. HUD and screen elements: {{ELEMENTS}}. Decisions the player makes here: {{DECISIONS}}. For each element: decision supported, information carried, when needed, parse speed required, cost of missing it, and whether the world could carry it instead. Flag elements with no decision and elements needed during action that require reading. Count inputs for the 5 most frequent tasks. Propose a minimal HUD.` },
-  { id:'narrative', cat:'Narrative', t:'Ludonarrative alignment audit', vars:['SYSTEMS','STORY'],
+  { id:'narrative', topics:['ludonarrative-alignment'], cat:'Narrative', t:'Ludonarrative alignment audit', vars:['SYSTEMS','STORY'],
     p:`Read our mechanics, rewards and punishments as a statement about the world: {{SYSTEMS}}. Compare with our story themes and key scenes: {{STORY}}. List every place mechanics reward what the story condemns or punish what it praises. For each, propose a mechanic change, a story change, and a way to make the dissonance deliberate and perceived, then state which is cheapest. Propose one mechanic that enacts the central theme directly.` },
-  { id:'playtest-analysis', cat:'Playtest', t:'Playtest analysis (behaviour vs self-report)', vars:['HYPOTHESIS','DATA'],
+  { id:'playtest-analysis', topics:['ai-for-playtest-analysis','playtesting'], cat:'Playtest', t:'Playtest analysis (behaviour vs self-report)', vars:['HYPOTHESIS','DATA'],
     p:`Act as a playtest analyst. Hypothesis under test: {{HYPOTHESIS}}. Data (observer notes, transcripts, logs): {{DATA}}. Code every observation as behaviour or self-report. Cluster behaviours and report frequency. Mark patterns (3 or more players) versus outliers, and list outliers separately. Surface contradictions between what players did and said. State what the evidence supports about the hypothesis and what it does not. Do not recommend design changes.` },
-  { id:'balancing', cat:'Systems', t:'Balancing (niches, not equalisation)', vars:['OPTIONS','DATA'],
+  { id:'balancing', topics:['builds-and-loadouts'], cat:'Systems', t:'Balancing (niches, not equalisation)', vars:['OPTIONS','DATA'],
     p:`Options with rules and numbers: {{OPTIONS}}. Pick and win rate data: {{DATA}}. Identify dominant options and trap options. For each dominant option, the situation that should punish it and a counter or cost that creates that situation. For each trap, the niche it could own or the case for removing it. Do not propose equalising numbers. Propose niches. Predict the pick-rate distribution after your changes.` },
-  { id:'scope', cat:'Product', t:'Scope reduction', vars:['FEATURES','EVIDENCE','CORE'],
+  { id:'scope', topics:['scope-control','pm-scoping-cuts'], cat:'Product', t:'Scope reduction', vars:['FEATURES','EVIDENCE','CORE'],
     p:`Feature list: {{FEATURES}}. Validated evidence so far: {{EVIDENCE}}. Core experience: "{{CORE}}". For each feature: the validated result it depends on, full cost (build, teach, balance, maintain, dilution), and what the player loses without it. Sort into build now, prototype first, defer, cut. Argue against your own build-now list once. Then propose the smallest version of the game that still delivers the core experience.` },
-  { id:'prototype', cat:'Build', t:'Instrumented prototype brief', vars:['HYPOTHESIS','ENGINE','MECHANICS','VALUES'],
+  { id:'prototype', topics:['prototyping','hypothesis-driven-design'], cat:'Build', t:'Instrumented prototype brief', vars:['HYPOTHESIS','ENGINE','MECHANICS','VALUES'],
     p:`Act as a prototype engineer. Hypothesis: {{HYPOTHESIS}}. Build a minimal playable test in {{ENGINE}} containing only {{MECHANICS}}. Shapes only. No menus, saves, progression or audio beyond one feedback tone. Expose {{VALUES}} as live on-screen sliders. Log with timestamps: every input, every decision point with the option chosen, every failure with its cause, session start and end. Export as CSV. Before writing code, list every design decision the code will embed (defaults, structures, numbers) and wait for my choices.` },
-  { id:'implement', cat:'Build', t:'Production implementation', vars:['SPEC','CODEBASE','TESTS'],
+  { id:'implement', topics:['ai-for-implementation','ai-agentic-implementation'], cat:'Build', t:'Production implementation', vars:['SPEC','CODEBASE','TESTS'],
     p:`Implement {{SPEC}} in our codebase ({{CODEBASE}}). Before coding: restate the spec, list ambiguities, and list the design decisions the implementation will embed, and wait for answers. Then implement with tests covering {{TESTS}}. Keep the prototype’s logging events intact. After implementing, list what you changed beyond the spec and why, and what you would refactor next.` },
-  { id:'refactor', cat:'Build', t:'Refactor a promoted prototype', vars:['CODE','BEHAVIOR'],
+  { id:'refactor', topics:['ai-for-implementation','craft-clean-code-ai-era'], cat:'Build', t:'Refactor a promoted prototype', vars:['CODE','BEHAVIOR'],
     p:`This prototype code is being promoted to production: {{CODE}}. Its validated behaviour that must not change: {{BEHAVIOR}}. Propose a refactor plan: what to keep, what to rewrite, what to delete, in what order, with the tests that would prove behaviour is preserved at each step. Flag hard-coded values that are design decisions and should become data.` },
-  { id:'postmortem', cat:'Production', t:'Postmortem', vars:['GOALS','HAPPENED','LOG'],
+  { id:'postmortem', topics:['pm-postmortems','iteration-and-evidence'], cat:'Production', t:'Postmortem', vars:['GOALS','HAPPENED','LOG'],
     p:`Goals at the start: {{GOALS}}. What happened: {{HAPPENED}}. Iteration log: {{LOG}}. Identify five things: assumptions that turned out false and when we could have known, decisions made on opinion rather than evidence, steps of the loop we skipped, scope added without validation, and the moment the project would have changed most if we had playtested. Produce 5 lessons stated as rules we could apply next time, each with the evidence from this project that supports it.` },
-  { id:'verify', cat:'Critique', t:'Verification pass on any AI output', vars:[],
+  { id:'verify', topics:['verifying-ai-output','ai-evals'], cat:'Critique', t:'Verification pass on any AI output', vars:[],
     p:`About your previous output: 1. List every assumption and mark each as given by me, inferred, or invented. 2. For each factual or “best practice” claim, give the source or say you have none. 3. What player behaviour would prove the proposal wrong? 4. Is this solving the problem I stated, or a nearby one? Quote my problem. 5. Which complexity is necessary and which could be removed? 6. What is the smallest prototype that tests this and what result would kill it? 7. What alternatives did you reject and why? 8. What trade-off are we making?` }
 ];
 /* ---------------- CHECKLISTS ---------------- */
 const CHECKLISTS = [
-  { id:'design-review', t:'Design review: any feature', desc:'Run before committing production time to any feature. Every group must have an answer, not a shrug.',
+  { id:'design-review', topics:['feature-vs-experience','design-pillars','scope-control'], t:'Design review: any feature', desc:'Run before committing production time to any feature. Every group must have an answer, not a shrug.',
     groups:[
       ['Player',['Who benefits, specifically? Name the player sketch.','What do they feel while using it?','What do they do differently because it exists?']],
       ['Design',['What decision does this create that did not exist before?','What trade-off does the player face inside it?','What happens if it is removed? Be specific about lost behaviour.']],
@@ -1992,32 +1992,32 @@ const CHECKLISTS = [
       ['UX',['Is it understandable by doing, without text?','Is feedback sufficient for success, failure and partial outcomes?','How much does it add to cognitive load during action?']],
       ['Production',['What is the smallest version that tests the idea?','What is the implementation cost, including teaching and balance?','What is the content cost: how many pieces does it need to stay interesting?']],
       ['Evidence',['What assumption are we testing?','How would we observe it in a 15-minute playtest?','What result would make us cut it?']],
-      ['AI',['Which part should AI handle: alternatives, prototype, simulation, analysis?','Which part requires human judgment: identity, fun, trade-off, cut?','What decisions will AI work embed, and who owns them?']] ] },
-  { id:'onboarding-audit', t:'Silent onboarding audit', desc:'Watch a new, matched player for ten minutes. No help. No explanation. Check what you observed.',
+      ['AI',['Which part should AI handle: alternatives, prototype, simulation, analysis?','Which part requires human judgement: identity, fun, trade-off, cut?','What decisions will AI work embed, and who owns them?']] ] },
+  { id:'onboarding-audit', topics:['onboarding','playtesting'], t:'Silent onboarding audit', desc:'Watch a new, matched player for ten minutes. No help. No explanation. Check what you observed.',
     groups:[
       ['First 30 seconds',['The player performed the core verb without reading.','The player knew where to go or what to try.','Nothing on screen was asked about.']],
       ['First 5 minutes',['The first meaningful decision happened, and the player hesitated over it.','The first failure happened, and the player could say why.','The player did not skip or ignore a required teaching moment.']],
       ['First session',['A moment of visible competence happened (“I got it”).','A reward changed what the player could do, not just a number.','The player can state what they would do next time.','The player used at least two mechanics without prompting.']],
       ['Observer discipline',['I did not speak during play.','I logged every hesitation with a timestamp.','I asked open questions only after play ended.']] ] },
-  { id:'ai-verify', t:'AI output verification', desc:'Before acting on any AI design output. If you cannot check a box, do not act on the output yet.',
+  { id:'ai-verify', topics:['verifying-ai-output','ai-failure-modes'], t:'AI output verification', desc:'Before acting on any AI design output. If you cannot check a box, do not act on the output yet.',
     groups:[
       ['Assumptions and evidence',['I know which claims came from my context and which were imported or invented.','Every “best practice” or “studies show” has a source I checked, or is marked as a heuristic.','The output uses the evidence I provided. It did not ignore it.']],
       ['Problem fit',['It solves the problem I stated, not a neighbouring one.','It respects every constraint I stated.','It did not add complexity that creates no decision.']],
       ['Testability',['There is a smallest prototype that tests it.','There is a kill criterion.','I know what player behaviour would prove it wrong.']],
       ['Ownership',['The decisions embedded in the output are surfaced and a human owns them.','I know what alternatives were rejected and why.','I know what trade-off we are making.']] ] },
-  { id:'pre-prototype', t:'Before building a prototype', desc:'A prototype without these is a demo.',
+  { id:'pre-prototype', topics:['prototyping','hypothesis-driven-design'], t:'Before building a prototype', desc:'A prototype without these is a demo.',
     groups:[
       ['Hypothesis',['Written in the standard form: player, behaviour, reason, signal (the kill criterion is the next item).','A kill criterion exists.','It is about player behaviour, not about the game.']],
       ['Scope',['The medium is the cheapest that can answer the question (paper, spreadsheet, grey boxes).','Everything not needed for the question is excluded.','Tuning values are exposed live.']],
       ['Instrumentation',['Inputs, decisions and failures are logged with timestamps.','Logs export in a format I can analyse.','The test protocol fits in 15 minutes per player.']],
       ['Disposal',['I intend to throw this away.','If promoted, a refactor plan will be written first.']] ] },
-  { id:'playtest-prep', t:'Playtest session preparation', desc:'Before players arrive.',
+  { id:'playtest-prep', topics:['playtesting','iteration-and-evidence'], t:'Playtest session preparation', desc:'Before players arrive.',
     groups:[
       ['Question',['The session has one written question and hypothesis.','I know which behaviours to watch for.','I know what result would surprise me.']],
       ['Players',['Testers match the player sketch.','Testers have not seen this build or been briefed on the design.','Enough testers to distinguish pattern from outlier (at least three).']],
       ['Protocol',['Silent observation first.','Timestamped note template ready.','Open, non-leading interview questions written, ordered from behaviour to opinion.']],
       ['After',['Synthesis separates behaviour from self-report.','One or two changes chosen, with reasons traceable to evidence.','Iteration log updated.']] ] },
-  { id:'scope-sanity', t:'Scope sanity (monthly)', desc:'Cheap implementation makes this the most important review you run.',
+  { id:'scope-sanity', topics:['scope-control','pm-scoping-cuts'], t:'Scope sanity (monthly)', desc:'Cheap implementation makes this the most important review you run.',
     groups:[
       ['Core',['The team can recite the core experience statement.','The not-list exists and was consulted this month.','The core loop signal moved, or we know why not.']],
       ['Features',['Every feature added this month has a hypothesis and a kill criterion.','No feature was built because “AI can do it in a day”.','The feature count grew more slowly than the playtest count.']],
@@ -2026,19 +2026,19 @@ const CHECKLISTS = [
 ];
 // Pre-submission checks per store family (see the platform guides).
 CHECKLISTS.push(
-  { id:'submit-pc', t:'Pre-submission: PC stores', desc:'Run before submitting a build and store page to a PC storefront (Steam, Epic, Microsoft Store, itch.io). Every item checkable against the actual build and page, not the plan for them.',
+  { id:'submit-pc', topics:['certification-and-review','store-presence','ratings-and-disclosures'], platforms:['steam','epic','itch','xbox'], t:'Pre-submission: PC stores', desc:'Run before submitting a build and store page to a PC storefront (Steam, Epic, Microsoft Store, itch.io). Every item checkable against the actual build and page, not the plan for them.',
     groups:[
       ['Build',['The build runs and completes on every OS version the store page claims to support.','Every advertised feature (achievements, cloud saves, controller support, Steam Input, Workshop) works in this exact build.','The build was tested on a clean machine, not just a developer machine with the SDK already configured.']],
       ['Store page',['Capsule and screenshot assets match the exact sizes this store requires.','Screenshots and trailer show only real gameplay, not mockups or engine placeholder art.','The page describes only content available at launch, with no promised feature the build does not have yet.']],
       ['Ratings and legal',['The rating or content questionnaire for this store is filed and matches the actual content of the build.','Any paid random item has its odds disclosed in the required place.','Regional pricing and any launch discount respect the discount-timing rules of this store.']],
       ['Business',['The tax interview and payout details are on file, not pending.','Coming Soon or a wishlist page has been live long enough to build a real number before launch.','One named person can press the store’s release button, and has rehearsed the exact steps once before launch day.']] ] },
-  { id:'submit-console', t:'Pre-submission: consoles', desc:'Run before submitting a build for console certification (Xbox, PlayStation, Nintendo). Every item checkable against the actual build, not the certification checklist alone.',
+  { id:'submit-console', topics:['certification-and-review','platform-requirements','ratings-and-disclosures'], platforms:['nintendo','playstation','xbox'], t:'Pre-submission: consoles', desc:'Run before submitting a build for console certification (Xbox, PlayStation, Nintendo). Every item checkable against the actual build, not the certification checklist alone.',
     groups:[
       ['Build',['The build starts and runs on every SKU or hardware variant this submission claims to support.','Save data is tied to the correct user and survives a suspend/resume or sleep cycle.','Controller removal and reconnection during play is handled without a crash or a stuck state.']],
       ['Certification',['Every platform-specific requirement (an achievements/trophies minimum, for example) is met exactly, not approximately.','Any requested exception to a platform requirement was raised with the platform contact well before this submission, not discovered at review.','The submission includes the exact validator or pre-check pass the platform requires before human review.']],
       ['Ratings and legal',['A digital rating (shared questionnaire or a rating specific to this platform) is filed and matches the build.','A physical SKU, if one exists, has its own long-form board rating in progress with enough lead time.','Any online or communication feature respects the privacy and reporting requirements of this platform.']],
       ['Release plan',['The day-one patch plan is budgeted against the real certification turnaround of this platform, not zero.','The team knows whether the update process of this platform re-certifies every patch.','A rollback or hotfix path exists if certification finds a blocking issue days before the date.']] ] },
-  { id:'submit-mobile', t:'Pre-submission: mobile stores', desc:'Run before submitting a build to Google Play or the Apple App Store. Every item checkable against the actual build, not the plan for it.',
+  { id:'submit-mobile', topics:['platform-requirements','ratings-and-disclosures','release-and-updates'], platforms:['google-play','apple'], t:'Pre-submission: mobile stores', desc:'Run before submitting a build to Google Play or the Apple App Store. Every item checkable against the actual build, not the plan for it.',
     groups:[
       ['Build',['The build targets the current minimum required API or SDK version for this store.','The build was tested on the oldest and newest OS version the store page claims to support.','No placeholder content, debug menu, or crashing path is reachable in the submitted build.']],
       ['Privacy and data',['The privacy label or Data safety form lists the actual data collection of every third-party SDK, not just first-party code.','A privacy policy link is present and matches what the form declares.','Any paid random item has its odds disclosed before purchase, inside the app.']],
@@ -2071,18 +2071,18 @@ function featureVerdict(score, answers){
 }
 
 CHECKLISTS.push(
-  { id:'agent-rules-file', t:'Agent rules file (CLAUDE.md, AGENTS.md)', desc:'Run when writing or pruning the rules file an AI coding agent loads every session. A line earns its place only if the agent would get it wrong without it and nothing else can enforce it.',
+  { id:'agent-rules-file', topics:['ai-agentic-implementation','craft-teaching-agents','models-agent-harnesses'], t:'Agent rules file (CLAUDE.md, AGENTS.md)', desc:'Run when writing or pruning the rules file an AI coding agent loads every session. A line earns its place only if the agent would get it wrong without it and nothing else can enforce it.',
     groups:[
       ['What belongs in it',['The exact commands to build, test and lint, copied from the ones CI runs.','Where things live: the folders an agent must not guess about, such as generated code and engine-owned files.','Project conventions a reader cannot infer from the code, each stated once, with the reason.','The pitfalls that are expensive in this project (engine lifetime, save compatibility, platform APIs), each with a short example of the house pattern.','What the agent must ask before doing: deleting files, changing dependencies, touching save formats or build settings.']],
       ['What should be a hook or a test instead',['Every rule that can be checked by a machine (formatting, forbidden APIs, file layout) is a linter, hook or test, not a sentence.','A rule the agent broke twice is moved into a check that fails, not repeated in bolder words.','Anything that must never happen (a push to main, a secret in a commit) is blocked by a hook or permission, not by a request.','Each hook was triggered on purpose: it blocks the case it was written for, including other spellings of the same command, and lets a legitimate command through.']],
       ['Keeping it healthy',['The always-loaded file is short: Claude Code’s docs target under 200 lines per CLAUDE.md and say longer files are followed less.','No two rules contradict each other, and none restates what the code, the linter, the README or the engine docs already say.','Each rule names the incident or reason behind it, so a later reader can tell when it no longer applies.','There is one source of truth: where both files exist, CLAUDE.md imports AGENTS.md with @AGENTS.md, because by default Claude Code reads AGENTS.md only when there is no CLAUDE.md.','Rules that apply to some paths only load there (path-scoped .claude/rules files, nested AGENTS.md, Cursor rules by file pattern) and hold only what differs for those paths.','The files are reviewed for stale and contradictory entries on a schedule.']] ] },
-  { id:'ai-architecture-boundary', t:'AI in the architecture: the boundary', desc:'Run before a model call ships inside a game or its tools. Every group must say where the probabilistic part ends and what deterministic code does with its output.',
+  { id:'ai-architecture-boundary', topics:['ai-budgets-and-debugging','ingame-ai-purpose','ai-failure-modes'], t:'AI in the architecture: the boundary', desc:'Run before a model call ships inside a game or its tools. Every group must say where the probabilistic part ends and what deterministic code does with its output.',
     groups:[
       ['Boundary',['The model’s output is data the game validates, never code or state it applies directly.','The rules a player can see (damage, prices, quest state) stay in deterministic code the model cannot change.','Output is constrained by a schema or a fixed set of choices, and parsed strictly.']],
       ['Validation',['Every field is checked for type, range and allowed values before use.','Player-visible text passes the same content filter and length limit as any other user-generated text.','Prompt injection from player input is assumed: player text is never placed where it can change instructions or tool access.']],
       ['Fallbacks',['A timeout, refusal, malformed reply or outage has a written fallback the player can still play through.','The fallback is tested by forcing each failure, not only by reading the code.','The game still starts and saves with the AI service unreachable.']],
       ['Budgets',['A latency budget per call is set from the moment it serves (a line of dialogue, a loading screen, a tool run), and measured at a high percentile such as p95 or p99, not the average.','A cost budget per player per session exists, with a cap and an alert.','Caching, smaller models or precomputed content were considered for every call that repeats.']] ] },
-  { id:'ai-submission-by-platform', t:'Pre-submission: AI-assisted builds', desc:'Run alongside the store checklist for each platform family. An AI-assisted build passes review on the same terms as any other; these are the checks it is most likely to skip.',
+  { id:'ai-submission-by-platform', topics:['ai-disclosure-policy','certification-and-review','ai-generative-assets'], platforms:['steam','epic','itch','web','xbox','nintendo','playstation','google-play','apple','roblox','fortnite'], t:'Pre-submission: AI-assisted builds', desc:'Run alongside the store checklist for each platform family. An AI-assisted build passes review on the same terms as any other; these are the checks it is most likely to skip.',
     groups:[
       ['Every platform',['A person played the release candidate end to end; passing tests alone is not a playthrough.','Every AI-generated asset, text and line of code has a known tool and model, and the terms of use you rely on are on file.','The build was made by the CI pipeline from tagged source, not from an agent’s local workspace.']],
       ['Desktop (PC stores)',['Steam’s content survey declares pre-generated AI content (made during development, shipped to players) and live-generated content (made while the game runs), and for the live kind describes the guardrails that stop it generating illegal content.','Store page screenshots and trailer show the actual build, not generated mock-ups.']],
@@ -2425,7 +2425,8 @@ PLATFORM('steam', { t:'Steam', kind:'pc', sub:'Windows, Mac, Linux and Steam Dec
   flow:{ kind:'flow', title:'Steam, from sign-up to release',
     steps:[{id:'account', t:'Steamworks sign-up', d:'person or company'},{id:'fee', t:'Pay the app fee', d:'the 30-day wait starts'},{id:'page', t:'Build the store page', d:'art, text, content survey'},{id:'pagerev', t:'Store page review', d:'3 to 5 business days'},{id:'soon', t:'Coming Soon', d:'at least two weeks of wishlists'},{id:'buildrev', t:'Build review', d:'3 to 5 business days'},{id:'release', t:'Press Release', d:'nothing happens until you do'}],
     edges:[['account','fee'],['fee','page'],['page','pagerev'],['pagerev','soon'],['pagerev','buildrev'],['soon','release'],['buildrev','release']] },
-  topics:['platform-access','certification-and-review','store-presence','release-and-updates']
+  topics:['platform-access','certification-and-review','store-presence','release-and-updates'],
+  checklists:['submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('nintendo', { t:'Nintendo Switch', kind:'console', sub:'Switch and Switch 2',
@@ -2464,7 +2465,8 @@ PLATFORM('nintendo', { t:'Nintendo Switch', kind:'console', sub:'Switch and Swit
   flow:{ kind:'flow', title:'Nintendo Switch, from sign-up to release',
     steps:[{id:'reg', t:'Register and sign the NDA', d:'free, individuals accepted'},{id:'apply', t:'Apply for Switch access', d:'a separate application'},{id:'dev', t:'Develop with the SDK', d:'kits and rules under NDA'},{id:'agree', t:'Publishing agreement', d:'before release'},{id:'rate', t:'Age ratings', d:'IARC, plus CERO for Japan'},{id:'review', t:'Nintendo review', d:'Lotcheck'},{id:'eshop', t:'eShop release', d:'your price and date'}],
     edges:[['reg','apply'],['apply','dev'],['dev','agree'],['agree','rate'],['rate','review'],['review','eshop']] },
-  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures']
+  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures'],
+  checklists:['submit-console','ai-submission-by-platform']
 });
 
 PLATFORM('playstation', { t:'PlayStation', kind:'console', sub:'PS5',
@@ -2503,7 +2505,8 @@ PLATFORM('playstation', { t:'PlayStation', kind:'console', sub:'PS5',
   flow:{ kind:'flow', title:'PlayStation, from application to release',
     steps:[{id:'apply', t:'Apply to PlayStation Partners', d:'as a registered company'},{id:'nda', t:'Agreements and NDA', d:'before the SDK'},{id:'kits', t:'SDK and dev kits', d:'DevNet access'},{id:'dev', t:'Build to the TRC', d:'trophies, saves, accessibility'},{id:'test', t:'Submission and testing', d:'against the TRC'},{id:'store', t:'PlayStation Store release', d:'you pick the date'}],
     edges:[['apply','nda'],['nda','kits'],['kits','dev'],['dev','test'],['test','store']] },
-  topics:['platform-access','platform-requirements','certification-and-review']
+  topics:['platform-access','platform-requirements','certification-and-review'],
+  checklists:['submit-console','ai-submission-by-platform']
 });
 
 PLATFORM('xbox', { t:'Xbox and Microsoft Store', kind:'console', sub:'Xbox Series X|S, PC Game Pass, Microsoft Store',
@@ -2552,7 +2555,8 @@ PLATFORM('xbox', { t:'Xbox and Microsoft Store', kind:'console', sub:'Xbox Serie
   flow:{ kind:'flow', title:'Xbox, from ID@Xbox to release',
     steps:[{id:'idx', t:'Join ID@Xbox', d:'18+, NDA, supported country'},{id:'gdk', t:'GDK and Partner Center', d:'an Entra ID tenant'},{id:'xr', t:'Build to the XRs', d:'public requirements'},{id:'sub', t:'Submit for certification', d:'4 business days'},{id:'rel', t:'Release', d:'with your Microsoft contact'}],
     edges:[['idx','gdk'],['gdk','xr'],['xr','sub'],['sub','rel']] },
-  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures']
+  topics:['platform-access','platform-requirements','certification-and-review','ratings-and-disclosures'],
+  checklists:['submit-console','submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('google-play', { t:'Google Play', kind:'mobile', sub:'Android phones and tablets',
@@ -2601,7 +2605,8 @@ PLATFORM('google-play', { t:'Google Play', kind:'mobile', sub:'Android phones an
   flow:{ kind:'flow', title:'Google Play, from account to rollout',
     steps:[{id:'acct', t:'Play Console account', d:'$25, identity checks'},{id:'test', t:'Closed test', d:'12 testers, 14 days (new personal accounts)'},{id:'build', t:'App Bundle at target API', d:'16 KB pages for native code'},{id:'forms', t:'Data safety and IARC', d:'privacy policy linked'},{id:'review', t:'Review', d:'plan a week'},{id:'roll', t:'Staged rollout', d:'a share of users first'}],
     edges:[['acct','test'],['test','build'],['test','forms'],['build','review'],['forms','review'],['review','roll']] },
-  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates']
+  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates'],
+  checklists:['submit-mobile','ai-submission-by-platform']
 });
 
 PLATFORM('apple', { t:'Apple App Store', kind:'mobile', sub:'iPhone, iPad and Mac',
@@ -2652,7 +2657,8 @@ PLATFORM('apple', { t:'Apple App Store', kind:'mobile', sub:'iPhone, iPad and Ma
   flow:{ kind:'flow', title:'Apple App Store, from enrolment to release',
     steps:[{id:'enrol', t:'Developer Program', d:'$99 a year'},{id:'build', t:'Build with current Xcode', d:'Game Center, privacy manifest'},{id:'tf', t:'TestFlight beta', d:'up to 10,000 testers'},{id:'asc', t:'App Store Connect', d:'listing, privacy, age rating'},{id:'review', t:'App Review', d:'most within 24 hours'},{id:'rel', t:'Release', d:'phased, if you like'}],
     edges:[['enrol','build'],['build','tf'],['build','asc'],['tf','review'],['asc','review'],['review','rel']] },
-  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates']
+  topics:['platform-access','platform-requirements','ratings-and-disclosures','release-and-updates'],
+  checklists:['submit-mobile','ai-submission-by-platform']
 });
 
 PLATFORM('epic', { t:'Epic Games Store', kind:'open', sub:'PC',
@@ -2693,7 +2699,8 @@ PLATFORM('epic', { t:'Epic Games Store', kind:'open', sub:'PC',
         { q:'Why add a Stage step when Bugfix can go straight to Live?', a:'Stage lets you check the store page, release date and binary as players will see them before promotion; a direct Bugfix is for urgent fixes that do not change features, platforms or the rating.', follow:'What happens to the deployment ID when you promote?', red:'Treating Dev as a place real players can reach.' }
       ] }
   },
-  topics:['store-presence']
+  topics:['store-presence'],
+  checklists:['submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('web', { t:'Web and browser portals', kind:'open', sub:'HTML5 and WebGL',
@@ -2728,7 +2735,8 @@ PLATFORM('web', { t:'Web and browser portals', kind:'open', sub:'HTML5 and WebGL
         { q:'Why enter a game jam before pitching a portal?', a:'A jam forces a small, finished browser build in days and gets real players and feedback, which is the evidence a portal’s QA and metrics look for.', follow:'What do you change between the jam build and the portal build?', red:'Treating the jam entry as the final release without SDK or size work.' }
       ] }
   },
-  topics:['platform-choice']
+  topics:['platform-choice'],
+  checklists:['ai-submission-by-platform']
 });
 
 PLATFORM('quest', { t:'Meta Quest', kind:'open', sub:'Meta Horizon Store (VR)',
@@ -2812,7 +2820,8 @@ PLATFORM('itch', { t:'itch.io', kind:'open', sub:'Downloads and browser games',
         { q:'How do you automate itch.io releases from CI?', a:'Store the butler API key as a secret, install butler in the job, push each export to its channel with the build number as --userversion, and fail the job if the push fails.', follow:'How would you publish a beta without replacing the stable build?', red:'Committing the API key or logging in interactively on the build machine.' }
       ] }
   },
-  topics:['platform-choice']
+  topics:['platform-choice'],
+  checklists:['submit-pc','ai-submission-by-platform']
 });
 
 PLATFORM('roblox', { t:'Roblox', kind:'ugc', sub:'Roblox Studio and Luau; players on phone, PC and console',
@@ -2876,7 +2885,8 @@ PLATFORM('roblox', { t:'Roblox', kind:'ugc', sub:'Roblox Studio and Luau; player
   flow:{ kind:'flow', title:'Roblox, from Studio to every age group',
     steps:[{id:'build', t:'Build in Studio', d:'private while you work'},{id:'upload', t:'Publish to Roblox', d:'uploads; still Private'},{id:'checks', t:'Age check', d:'and the questionnaire'},{id:'public', t:'Public, 16 and over', d:'set the audience'},{id:'discover', t:'Discovery tests it', d:'per-player engagement'},{id:'trial', t:'All-ages evaluation', d:'ID, 2FA, fee or Plus'},{id:'all', t:'Kids and Select', d:'under-16s can see it'}],
     edges:[['build','upload'],['upload','checks'],['checks','public'],['public','discover'],['public','trial'],['trial','all']] },
-  topics:['ugc-platforms','server-authority','server-anticheat','launch-and-discoverability','business-model']
+  topics:['ugc-platforms','server-authority','server-anticheat','launch-and-discoverability','business-model'],
+  checklists:['ai-submission-by-platform']
 });
 
 PLATFORM('fortnite', { t:'Fortnite (UEFN)', kind:'ugc', sub:'Unreal Editor for Fortnite, Verse and Fortnite Creative',
@@ -2923,7 +2933,8 @@ PLATFORM('fortnite', { t:'Fortnite (UEFN)', kind:'ugc', sub:'Unreal Editor for F
   flow:{ kind:'flow', title:'Fortnite, from UEFN to Discover',
     steps:[{id:'build', t:'Build the island', d:'UEFN on PC, or Creative'},{id:'program', t:'Developer Program', d:'18 and over, creator code'},{id:'private', t:'Publish Project', d:'a private version'},{id:'release', t:'Create a release', d:'details, IARC, media'},{id:'review', t:'Moderation', d:'metadata, then the island'},{id:'live', t:'Live in Discover', d:'tested for up to two weeks'}],
     edges:[['build','program'],['program','private'],['private','release'],['release','review'],['review','live']] },
-  topics:['ugc-platforms','platform-choice','launch-and-discoverability','business-model']
+  topics:['ugc-platforms','platform-choice','launch-and-discoverability','business-model'],
+  checklists:['ai-submission-by-platform']
 });
 
 // The comparison table on the Platforms page: one row per store or console,
@@ -17997,7 +18008,7 @@ ENGINE_GUIDE('godot', { t:'Godot', kind:'engine', sub:'Free, open-source 2D and 
   flow:{ kind:'flow', title:'Godot: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'pick a renderer'},{id:'scenes', t:'Build scenes', d:'nodes, scripts, signals'},{id:'import', t:'Import assets', d:'glTF, textures, audio'},{id:'tpl', t:'Install templates', d:'exact editor version'},{id:'preset', t:'Export presets', d:'one per platform'},{id:'sign', t:'Sign builds', d:'keystore, Apple team, notarise'},{id:'ship', t:'Upload to stores', d:'Steam, Play, App Store, web'}],
     edges:[['proj','scenes'],['scenes','import'],['import','tpl'],['tpl','preset'],['preset','sign'],['sign','ship']] },
-  topics:['platform-choice','quality-and-build-health','prototyping','ai-for-implementation']
+  topics:['platform-choice','quality-and-build-health','prototyping','ai-for-implementation','craft-game-loop-timestep','craft-entities-and-scenes','craft-physics-and-collision']
 });
 
 ENGINE_GUIDE('unity', { t:'Unity', kind:'engine', sub:'Commercial 2D and 3D engine, Unity 6 line',
@@ -18047,7 +18058,7 @@ ENGINE_GUIDE('unity', { t:'Unity', kind:'engine', sub:'Commercial 2D and 3D engi
   flow:{ kind:'flow', title:'Unity: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'URP or HDRP template'},{id:'scenes', t:'Build scenes', d:'GameObjects, prefabs, C#'},{id:'assets', t:'Import assets', d:'meta files, Force Text'},{id:'addr', t:'Addressables', d:'group remote content'},{id:'profile', t:'Build profiles', d:'one per platform'},{id:'il2cpp', t:'IL2CPP build', d:'strip and test'},{id:'sign', t:'Sign builds', d:'keystore, Apple team, notarise'},{id:'ship', t:'Upload to stores', d:'Steam, Play, App Store, consoles'}],
     edges:[['proj','scenes'],['scenes','assets'],['assets','addr'],['addr','profile'],['profile','il2cpp'],['il2cpp','sign'],['sign','ship']] },
-  topics:['platform-choice','business-model','quality-and-build-health','ai-for-implementation','pm-risk']
+  topics:['platform-choice','business-model','quality-and-build-health','ai-for-implementation','pm-risk','craft-entities-and-scenes','craft-game-loop-timestep','craft-performance']
 });
 
 ENGINE_GUIDE('gamemaker', { t:'GameMaker', kind:'engine', sub:'2D-first engine from YoYo Games, part of Opera',
@@ -18103,7 +18114,7 @@ ENGINE_GUIDE('gamemaker', { t:'GameMaker', kind:'engine', sub:'2D-first engine f
   flow:{ kind:'flow', title:'GameMaker: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'GML Code or GML Visual'},{id:'assets', t:'Sprites and rooms', d:'origins, masks, layers'},{id:'objects', t:'Objects and events', d:'Create, Step, Draw'},{id:'tex', t:'Texture groups', d:'pack pages'},{id:'runner', t:'Pick runner', d:'VM to test, YYC to ship'},{id:'sign', t:'Sign builds', d:'keystore, Apple, notarise'},{id:'ship', t:'Upload to stores', d:'Steam, stores, GX.games'}],
     edges:[['proj','assets'],['assets','objects'],['objects','tex'],['tex','runner'],['runner','sign'],['sign','ship']] },
-  topics:['platform-choice','prototyping','business-model','ai-for-implementation']
+  topics:['platform-choice','prototyping','business-model','ai-for-implementation','craft-entities-and-scenes','craft-performance']
 });
 
 ENGINE_GUIDE('unreal', { t:'Unreal Engine', kind:'engine', sub:'Epic Games 3D engine, Unreal Engine 5 line',
@@ -18154,7 +18165,7 @@ ENGINE_GUIDE('unreal', { t:'Unreal Engine', kind:'engine', sub:'Epic Games 3D en
   flow:{ kind:'flow', title:'Unreal Engine: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'C++ or Blueprint template'},{id:'vc', t:'Set up Perforce', d:'typemap, checkout, OFPA'},{id:'code', t:'Build gameplay', d:'C++ base, Blueprint content'},{id:'ddc', t:'Shared DDC', d:'shaders built once'},{id:'cook', t:'BuildCookRun', d:'build, cook, stage, package'},{id:'graph', t:'BuildGraph CI', d:'every platform per changelist'},{id:'sign', t:'Sign builds', d:'keystore, Apple team, notarise'},{id:'ship', t:'Ship to stores', d:'Steam, Epic, Play, App Store, consoles'}],
     edges:[['proj','vc'],['vc','code'],['code','ddc'],['ddc','cook'],['cook','graph'],['graph','sign'],['sign','ship']] },
-  topics:['platform-choice','business-model','infra-ci-pipelines','team-and-collaboration','ai-for-implementation']
+  topics:['platform-choice','business-model','infra-ci-pipelines','team-and-collaboration','ai-for-implementation','craft-performance','craft-memory-and-gc']
 });
 
 ENGINE_GUIDE('web', { t:'Web stack', kind:'web', sub:'HTML5 Canvas, WebGL 2 and WebGPU with open-source libraries',
@@ -18207,7 +18218,7 @@ ENGINE_GUIDE('web', { t:'Web stack', kind:'web', sub:'HTML5 Canvas, WebGL 2 and 
   flow:{ kind:'flow', title:'Web stack: from project to a shipped build',
     steps:[{id:'lib', t:'Pick a library', d:'Phaser, three.js, Babylon.js'},{id:'loop', t:'Game loop', d:'rAF plus fixed timestep'},{id:'assets', t:'Assets', d:'glTF, KTX2, preload'},{id:'bundle', t:'Bundle', d:'Vite production build'},{id:'phone', t:'Test on phones', d:'Safari iOS, low-end Android'},{id:'host', t:'Host or portal', d:'static host, itch.io, Poki'},{id:'wrap', t:'Wrap for stores', d:'Electron, Tauri, Capacitor'}],
     edges:[['lib','loop'],['loop','assets'],['assets','bundle'],['bundle','phone'],['phone','host'],['phone','wrap']] },
-  topics:['platform-choice','prototyping','infra-cdn-assets','ai-for-implementation','launch-and-discoverability']
+  topics:['platform-choice','prototyping','infra-cdn-assets','ai-for-implementation','launch-and-discoverability','craft-game-loop-timestep','craft-memory-and-gc','craft-performance']
 });
 
 ENGINE_GUIDE('renpy', { t:'Ren’Py', kind:'engine', sub:'Open-source visual novel engine, 8.x line',
@@ -18263,7 +18274,7 @@ ENGINE_GUIDE('renpy', { t:'Ren’Py', kind:'engine', sub:'Open-source visual nov
   flow:{ kind:'flow', title:'Ren’Py: from project to a shipped build',
     steps:[{id:'proj', t:'Create project', d:'launcher, GUI template'},{id:'script', t:'Write script', d:'labels, say, menus'},{id:'art', t:'Images and audio', d:'layered images, channels'},{id:'lint', t:'Run Lint', d:'errors and statistics'},{id:'tl', t:'Translate', d:'tl/<language> files'},{id:'build', t:'Build distributions', d:'PC, Mac, Markets, mobile, web'},{id:'ship', t:'Upload to stores', d:'Steam, itch.io, Play, App Store'}],
     edges:[['proj','script'],['script','art'],['art','lint'],['lint','tl'],['tl','build'],['build','ship']] },
-  topics:['narrative-agency','narrative-pacing','prototyping','localization-and-culture','ai-for-implementation']
+  topics:['narrative-agency','narrative-pacing','prototyping','localization-and-culture','ai-for-implementation','craft-save-systems']
 });
 
 ENGINE_GUIDE('defold', { t:'Defold', kind:'engine', sub:'Free, source-available engine from the Defold Foundation, strongest in 2D',
@@ -18311,7 +18322,7 @@ ENGINE_GUIDE('defold', { t:'Defold', kind:'engine', sub:'Free, source-available 
   flow:{ kind:'flow', title:'Defold: from project to a shipped build',
     steps:[{id:'proj', t:'game.project', d:'settings, dependencies'},{id:'coll', t:'Collections', d:'objects and components'},{id:'lua', t:'Lua scripts', d:'msg.post, on_message'},{id:'atlas', t:'Atlases', d:'pack textures'},{id:'bob', t:'Bundle', d:'editor or bob.jar'},{id:'ship', t:'Upload', d:'stores, web, ad networks'}],
     edges:[['proj','coll'],['coll','lua'],['lua','atlas'],['atlas','bob'],['bob','ship']] },
-  topics:['soft-launch-and-playable-ads','platform-choice','platform-and-session']
+  topics:['soft-launch-and-playable-ads','platform-choice','platform-and-session','craft-entities-and-scenes']
 });
 
 ENGINE_GUIDE('cocos', { t:'Cocos Creator', kind:'engine', sub:'TypeScript 2D and 3D engine and editor, strongest in China and on mini-game platforms',
@@ -18356,7 +18367,7 @@ ENGINE_GUIDE('cocos', { t:'Cocos Creator', kind:'engine', sub:'TypeScript 2D and
   flow:{ kind:'flow', title:'Cocos Creator: from project to a shipped build',
     steps:[{id:'scene', t:'Scenes and nodes', d:'hierarchy and prefabs'},{id:'ts', t:'TypeScript components', d:'@ccclass, lifecycle'},{id:'bundle', t:'Asset bundles', d:'split and remote'},{id:'build', t:'Build panel or CLI', d:'pick target'},{id:'tool', t:'Platform tool', d:'WeChat DevTools, Xcode'},{id:'ship', t:'Submit', d:'mini-game review, stores'}],
     edges:[['scene','ts'],['ts','bundle'],['bundle','build'],['build','tool'],['tool','ship']] },
-  topics:['soft-launch-and-playable-ads','platform-choice','localization-and-culture']
+  topics:['soft-launch-and-playable-ads','platform-choice','localization-and-culture','craft-entities-and-scenes']
 });
 
 ENGINE_GUIDE('blender', { t:'Blender', kind:'tool', sub:'Free, open-source 3D creation suite, 5.x line',
