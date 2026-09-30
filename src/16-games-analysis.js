@@ -44,7 +44,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Dark Souls heals with Estus Flasks, a fixed number of charges refilled at bonfires, so healing is rationed across a whole run between rests. Hollow Knight refills healing inside the fight, which keeps it aggressive and makes a long boss fight winnable by a player who keeps landing hits.',
       cost: 'A player who is struggling earns less soul and so heals less, which widens the gap between confident and nervous players. The walk back from a bench to a hard boss after each death adds time without teaching anything new.',
       principle: 'Tie recovery to the skill the game wants to see, and struggling players get fewer chances; give them another way back, or accept that the difficulty will climb for them.',
-      topics: ['risk-reward', 'builds-and-loadouts', 'challenge-failure-recovery'],
+      topics: ['risk-reward', 'challenge-failure-recovery'],
       sources: ['https://hollowknight.wiki/w/Focus', 'https://hollowknight.wiki/w/Shade', 'https://hollowknight.wiki/w/Charms'] },
     ui: {
       claim: 'Hollow Knight treats navigation help as a reward, not a given: the map, the quill that updates it and even your own position marker are items, so knowing where you are becomes progress.',
@@ -64,7 +64,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Ori and the Blind Forest, two years earlier, used glowing, painterly detail that, arguably, lets characters blend into the scenery. Hollow Knight keeps character art flat and graphic, and puts the richness into backgrounds.',
       cost: 'Simple characters limit expression to posture, animation and a few masks, and a strict palette per region makes some areas look alike within themselves, which makes getting lost inside a single region easier.',
       principle: 'When a world is big, spend detail on places and keep the characters simple: readability in the fight, identity in the region.',
-      topics: ['visual-language'],
+      topics: ['visual-language', 'animation-and-vfx'],
       sources: ['https://www.gameinformer.com/2018/10/15/the-making-of-hollow-knight', 'https://mcvuk.com/development-news/when-we-made-hollow-knight/', 'https://hollowknight.wiki/w/City_of_Tears'] },
     sound: {
       claim: 'Christopher Larkin’s score uses instruments as a map: each region has its own instrumental colour, so the player can tell where they are, and what is near, by ear.',
@@ -94,7 +94,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Super Metroid’s Zebes is smaller and more linear, with upgrades opening areas in a mostly set order. Hollow Knight opens several routes early, so sequence varies more between players.',
       cost: 'A world grown this way has uneven pacing, with dead ends and long walks, and non-linear routes make it hard to guide a stuck player without markers. Size also meant years of development for a very small team.',
       principle: 'Connect each region in more than one place and players will write their own route, but plan how a lost player finds the next step.',
-      topics: ['spatial-composition', 'level-structure'],
+      topics: ['spatial-composition'],
       sources: ['https://www.pcgamer.com/how-to-design-a-great-metroidvania-map/', 'https://hollowknight.wiki/w/Mantis_Tribe', 'https://en.wikipedia.org/wiki/Super_Metroid'] },
     env: {
       claim: 'Hollow Knight’s places show the kingdom’s fall in progress: the City of Tears keeps its grandeur, its rain and its guards, so the player reads what Hallownest was and what happened to it in the same room.',
@@ -114,7 +114,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Shovel Knight, another Kickstarter-funded game, likewise added its campaigns free for existing owners. Many premium games instead sell expansions, which earns more per player but splits the audience.',
       cost: 'Free updates earn nothing directly, and a very small studio carries the cost; the long wait for Silksong also turned the audience’s goodwill into years of public pressure.',
       principle: 'For a small studio with an unknown name, value for money is marketing: price low, add free content, and let each update bring players back.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://www.kickstarter.com/projects/11662585/hollow-knight', 'https://en.wikipedia.org/wiki/Hollow_Knight', 'https://gamingbolt.com/hollow-knight-has-sold-2-8-million-units-kickstarter-backers-will-receive-silksong-for-free', 'https://en.wikipedia.org/wiki/Hollow_Knight:_Silksong'] },
     replay: {
       claim: 'Hollow Knight’s replay value is a second, harder game built for mastery: permanent death and boss gauntlets test the same skills at higher stakes rather than adding new content.',
@@ -165,7 +165,7 @@ ANALYSIS('slay-the-spire', {
       compare: 'A traditional single-player release is balanced before launch and then left largely fixed; Slay the Spire instead ran a year of Early Access as an open balance loop, closer to how a live-service game treats its economy than how a single-player roguelike usually treats its cards.',
       cost: 'A two-person team spent much of that year patching and re-checking alongside adding content, and a build a player has mastered can be nerfed out from under them in the next update.',
       principle: 'Telemetry tells a designer where to look, not what to conclude; pair it with a channel for players to say how a change felt before you ship it.',
-      topics: ['iteration-and-evidence', 'metrics-and-success', 'difficulty'],
+      topics: ['iteration-and-evidence', 'metrics-and-success', 'difficulty', 'hypothesis-driven-design'],
       sources: ['https://media.gdcvault.com/gdc2019/presentations/Giovannetti_Anthony_SlayTheSpire.pdf', 'https://www.gamedeveloper.com/design/how-i-slay-the-spire-i-s-devs-use-data-to-balance-their-roguelike-deck-builder', 'https://www.gdcvault.com/play/1025731/-Slay-the-Spire-Metrics'] },
     ui: {
       claim: 'Slay the Spire’s intent icons turn every card play into a planned trade against a known threat, while a single reserved “unknown” icon admits the few moves it cannot reduce to a simple readout.',
@@ -205,7 +205,7 @@ ANALYSIS('slay-the-spire', {
       compare: 'Hollow Knight, also in this library, embeds its lore the same way but gives the player a dedicated tool, the Dream Nail, built specifically to read it; Slay the Spire has no equivalent, so how much story a run turns up depends on which events its randomised map happens to offer.',
       cost: 'Without a recall tool, two players can finish the same number of runs having seen wildly different amounts of story, and the ones who want more of it end up piecing scattered event text together on a wiki rather than in play.',
       principle: 'A story can live in item and event text if players already read that text for mechanical reasons, but without a way to gather it, it stays optional trivia.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://slaythespire.wiki.gg/wiki/Neow', 'https://slaythespire.wiki.gg/wiki/Ironclad', 'https://slaythespire.wiki.gg/wiki/Council_of_Ghosts'] },
     world: {
       claim: 'Slay the Spire builds its world through a bestiary rather than a map: each act’s enemies escalate from physical scavengers to civic corruption to outright abstraction, so the Spire tells the player what kind of place it is without ever describing the place itself.',
@@ -215,7 +215,7 @@ ANALYSIS('slay-the-spire', {
       compare: 'Hollow Knight, also in this library, builds a single fixed, explorable map whose regions the player learns by walking them; Slay the Spire instead rebuilds the map every run and keeps its sense of place entirely in a stable bestiary, since nothing about the rooms themselves stays the same twice.',
       cost: 'Because there is no fixed geography to return to, a player never gets the payoff of recognising a specific remembered room, and the escalation only reads clearly to someone who plays enough runs to notice which creatures cluster in which act.',
       principle: 'When level layout cannot stay fixed, worldbuilding can still work by keeping the population of a place constant and letting its unfamiliarity or familiarity carry the sense of where the player is.',
-      topics: ['premise-and-world', 'knowledge-as-progression'],
+      topics: ['premise-and-world'],
       sources: ['https://slaythespire.wiki.gg/wiki/Exordium', 'https://slaythespire.wiki.gg/wiki/The_City', 'https://slaythespire.wiki.gg/wiki/The_Beyond'] },
     env: {
       claim: 'Slay the Spire’s backgrounds, bestiary and event text agree on one history of captivity: chains hang in Exordium, Slavers fight in Acts 1 and 2, and the Colosseum seats them as its crowd.',
@@ -235,7 +235,7 @@ ANALYSIS('slay-the-spire', {
       compare: 'A conventional premium launch arguably concentrates its effort on a trailer and review cycle around release day; Slay the Spire instead spent a year treating each patch itself as the promotional event.',
       cost: 'Sustaining weekly patches for over a year cost a two-person studio the time it could have spent only on new content, and the approach only works if the underlying game is good enough that streamers keep choosing to return to it for free.',
       principle: 'A studio with no marketing budget can substitute a visible, repeated cadence of real improvement for paid attention, but that substitution has to be earned patch by patch, not announced once.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model', 'launch-and-discoverability', 'pm-agile-gamedev'],
       sources: ['https://media.gdcvault.com/gdc2019/presentations/Yano_Casey_SlayTheSpire.pdf', 'https://www.gdcvault.com/play/1025667/-Slay-the-Spire-Success'] },
     replay: {
       claim: 'Ascension turns “harder” into twenty graduated, per-character achievements rather than one global difficulty slider, so mastering one character buys no difficulty progress on another.',
@@ -305,7 +305,7 @@ ANALYSIS('into-the-breach', {
       compare: 'Firaxis’s XCOM renders detailed, semi-realistic soldiers and aliens across a 3D space the camera pans and rotates around; Into the Breach keeps its whole battlefield inside one static, flat-coloured isometric frame the player never has to scroll or re-angle.',
       cost: 'The flat, small-scale style leaves little room for spectacle in the mechs and Vek themselves. Justin Ma, the game’s co-designer and artist, told Rock Paper Shotgun the team would “sacrifice cool ideas for the sake of clarity every time”, and his own plans for burn marks on attacked tiles and scenery stomped down by mechs were cut, so presentation depends on colour and icon rather than on the cinematic unit close-ups a game such as XCOM uses to sell a single dramatic shot.',
       principle: 'When a board must be read whole and fast, trade surface detail for flat, consistent colour coding across the entire visible space.',
-      topics: ['visual-language'],
+      topics: ['visual-language', 'design-pillars', 'pm-scoping-cuts'],
       sources: ['https://en.wikipedia.org/wiki/Into_the_Breach', 'https://store.steampowered.com/app/590380/Into_the_Breach/', 'https://www.rockpapershotgun.com/into-the-breach-interface-design'] },
     sound: {
       claim: 'Ben Prunty’s score treats withheld music as a deliberate structural signal, cutting out before a mission begins and returning only once the player has already committed to the fight.',
@@ -365,7 +365,7 @@ ANALYSIS('into-the-breach', {
       compare: 'FTL, the studio’s previous game, ends a run entirely on death, carrying forward only unlocked ships; Into the Breach is FTL’s own permadeath idea, deliberately softened by the same studio for a different kind of game.',
       cost: 'Carrying forward only one pilot’s progress means every other investment from a lost run, the mechs built up, the other two pilots, the city itself, is thrown away, so a loss still stings even though it is never absolute.',
       principle: 'Make failure survivable in one specific, narrow way rather than either total or consequence-free, and players will keep choosing to fail again rather than walking away.',
-      topics: ['difficulty', 'challenge-failure-recovery', 'knowledge-as-progression'],
+      topics: ['difficulty', 'challenge-failure-recovery'],
       sources: ['https://www.gamedeveloper.com/design/reimagining-failure-in-strategy-game-design-in-i-into-the-breach-i-', 'https://en.wikipedia.org/wiki/Into_the_Breach'] },
     lineage: {
       claim: 'Into the Breach carried FTL’s unlockable ships forward as fixed squads, and years later a designer built the same telegraph idea into a different game after talking to its makers directly.',
@@ -405,7 +405,7 @@ ANALYSIS('stardew-valley', {
       compare: 'Harvest Moon: Back to Nature, the game Barone was answering, sends an overworked character to hospital, unable to work for a period that grows longer with each repeat collapse, so one misjudged day can compound into several lost ones. Stardew Valley’s capped cash fine is a single, small, one-off cost by comparison.',
       cost: 'A penalty this soft removes real jeopardy from the day-to-day loop; once tool upgrades and high-energy food arrive, the energy bar arguably stops mattering at all, leaving the clock as the only limit still felt by a mid-game farm.',
       principle: 'When a daily resource exists to shape planning, price overspending as a flat, capped fee rather than lost days; a fee lets players overdraw on purpose when the payoff is worth it, where a lost day only teaches them to stop early.',
-      topics: ['core-loop', 'economy-and-resources', 'risk-reward'],
+      topics: ['core-loop', 'economy-and-resources'],
       sources: ['https://stardewvalleywiki.com/Energy', 'https://en.wikipedia.org/wiki/Harvest_Moon:_Back_to_Nature', 'https://en.wikipedia.org/wiki/Stardew_Valley'] },
     ui: {
       claim: 'Stardew Valley keeps today’s facts on the glass and puts tomorrow’s in the world: the forecast, the daily luck, birthdays and festivals are read from a TV and a town calendar, not from the HUD.',
@@ -455,7 +455,7 @@ ANALYSIS('stardew-valley', {
       compare: 'The Desert Festival, Trout Derby, SquidFest and Night Market run while the shops stay open and time passes, a lighter model inside the same game. The older festivals take the whole day, so attending one is a real cost.',
       cost: 'A festival spends a day the player cannot farm, fish or mine, crops still need planning around it, and a player who misses one waits a full in-game year for it to come round again.',
       principle: 'Build a world’s culture into its timeline: fixed, shared days that interrupt the player’s routine make a town feel as if it has customs of its own.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://stardewvalleywiki.com/Festivals', 'https://stardewvalleywiki.com/Joja_Community_Development_Form'] },
     env: {
       claim: 'The farm’s own decay is the game’s opening argument: a screen full of stumps, weeds and boulders tells the player what has been neglected before a single line of dialogue does.',
@@ -475,7 +475,7 @@ ANALYSIS('stardew-valley', {
       compare: 'Many multiplatform releases aim for the same launch day on every platform. Stardew treats PC as the lead version and the ports as a second wave, even for its largest update.',
       cost: 'Console and phone players lag PC by months at every update, and spoilers for new content circulate long before they can play it, a cost borne by the larger share of players who never bought a PC copy.',
       principle: 'A solo or small team can ship to many platforms by making one version the lead and porting in waves; staggered releases cost some players patience but keep each update finished once before it is multiplied.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Stardew_Valley', 'https://stardewvalleywiki.com/Version_History'] },
     replay: {
       claim: 'Stardew Valley’s replay value comes from choices made when a save begins, a farm layout and, since 1.5, the option to remix the Community Center’s bundles, rather than from content that changes on its own.',
@@ -485,7 +485,7 @@ ANALYSIS('stardew-valley', {
       compare: 'Minecraft generates a new world from a seed on every save, so its variety is spatial and total. Stardew randomises only one checklist, the bundles, and keeps the valley identical, so a returning player’s map knowledge still pays.',
       cost: 'Farm layout and the Joja split cannot be undone without a new save, and marriage only through a 50,000g divorce, so a player who regrets an early choice pays for it in hours or in gold.',
       principle: 'When veterans have memorised a fixed game, randomise the checklist rather than the world: remixing one goal list brings back discovery without wasting the map knowledge players have earned.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://stardewvalleywiki.com/Remixed_Bundles', 'https://stardewvalleywiki.com/Farm_Maps', 'https://en.wikipedia.org/wiki/Stardew_Valley'] },
     lineage: {
       claim: 'Stardew Valley keeps Harvest Moon’s two-year checkpoint but deletes the ending it once guarded: Grandpa’s Evaluation still arrives at the start of Year 3, and then the game simply carries on.',
@@ -565,7 +565,7 @@ ANALYSIS('vampire-survivors', {
       compare: 'Castlevania itself, the game’s clearest reference point, has built a continuous, decades-long timeline across dozens of entries. Vampire Survivors borrows its imagery while refusing the same commitment to continuity, treating lore as optional decoration rather than a structure to maintain.',
       cost: 'A game with no real stakes in its fiction cannot use lore to add weight to a death or a victory, so the game leans entirely on numbers and spectacle for its sense of progress, and players looking for the vampire-hunting fantasy the art implies get comedy instead.',
       principle: 'If a game’s story is optional, deliver it through channels players cannot help reading, names and titles, and keep the full plot for those who look; the tone reaches everyone, the story only the curious.',
-      topics: ['narrative-agency', 'premise-and-world'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Vampire_Survivors'] },
     world: {
       claim: 'Vampire Survivors hides real geography inside an arena that looks like it has none: fixed secret items sit at exact, memorable distances from the start of each stage, rewarding players who treat the swarm as a map to navigate rather than only a threat to survive.',
@@ -595,7 +595,7 @@ ANALYSIS('vampire-survivors', {
       compare: 'Many early access games raise prices gradually across development as content is added. Vampire Survivors instead made one deliberate, timed increase tied to a specific platform mechanic, and used a separate, opposite pricing decision, free, on the platform where piracy was the bigger threat.',
       cost: 'Giving away the mobile version leaves poncle only optional ads and paid DLC from a large share of its players, and timing a price rise around a sale-calendar mechanic is fairly niche platform knowledge that a smaller or first-time team might not think to plan around.',
       principle: 'Price is a tool with more than one job: the right price on one platform can protect margin, while giving a product away free on a different, harder-to-police platform can protect the brand instead; the two decisions do not have to match.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Vampire_Survivors', 'https://www.pcgamesn.com/vampire-survivors/price-increase-steam', 'https://www.pcgamer.com/vampire-survivors-gets-surprise-mobile-release-and-its-free/'] },
     replay: {
       claim: 'Vampire Survivors turns difficulty into loot: Hyper, Hurry, Inverse and Endless modes are unlocked through play and toggled per stage, so a veteran sets their own challenge rather than picking from preset levels.',
@@ -697,7 +697,7 @@ ANALYSIS('balatro', {
       compare: 'Slot-machine roguelike Luck Be a Landlord, Balatro’s acknowledged model, was lowered from PEGI 18 to 12 the same day but on different grounds, that its slot machine taught no transferable gambling skills; PEGI’s announcement pairs the two and promises “a more granular set of classification criteria” for gambling themes.',
       cost: 'Fighting a rating is slow and public: nearly a year passed between the March 2024 PEGI 18 and the February 2025 reversal, after Playstack had already won the same argument with PEGI in October 2023, so the same case had to be won twice.',
       principle: 'A ratings board built around literal gambling can misfire on a game that only borrows gambling’s vocabulary; winning that argument for one game can push the board to promise new criteria for a whole category.',
-      topics: ['business-model', 'ratings-and-disclosures'],
+      topics: ['business-model', 'ratings-and-disclosures', 'certification-and-review'],
       sources: ['https://en.wikipedia.org/wiki/Balatro', 'https://pegi.info/news/pegi-complaints-board-amends-classifications-balatro-and-luck-be-landlord-pegi-12'] },
     replay: {
       claim: 'Balatro’s difficulty ladder, Stakes, tracks eight tiers separately for each of its fifteen decks and mixes plain number scaling with a few named new rules, so mastering one deck buys no progress on another.',
@@ -747,7 +747,7 @@ ANALYSIS('celeste', {
       compare: 'I Wanna Be the Guy (2007), the touchstone of so-called masocore, builds its difficulty on traps all but impossible to avoid without prior knowledge; Celeste, which Polygon likened to masocore games, widens its windows instead, so its difficulty lives in readable geometry rather than in surprise.',
       cost: 'Widening so many windows at once makes a room’s true difficulty hard to judge from watching alone, since a jump that looks impossibly precise may in fact land inside a generous, invisible window, which, arguably, can undersell to onlookers how much of the challenge the design is quietly absorbing.',
       principle: 'A game can be very hard and very fair at once if its input system quietly errs towards the player, so every death traces to the player’s read of the room rather than to a strict window.',
-      topics: ['skill-and-mastery', 'challenge-failure-recovery', 'knowledge-as-progression'],
+      topics: ['skill-and-mastery', 'challenge-failure-recovery'],
       sources: ['https://www.maddymakesgames.com/articles/celeste_and_forgiveness/index.html', 'https://en.wikipedia.org/wiki/Celeste_(video_game)'] },
     ui: {
       claim: 'Celeste shows Madeline’s two limited resources on her body and nowhere else, her hair’s colour for the dash and a red flash when climbing stamina is nearly gone, so a player reads both without looking away from her.',
@@ -787,7 +787,7 @@ ANALYSIS('celeste', {
       compare: 'Brothers: A Tale of Two Sons also changes what the player’s hands do at its climax, the younger brother swimming at last after his older brother dies; Celeste’s change is additive rather than a loss, a second dash gained by accepting the part of Madeline she had been fighting.',
       cost: 'A player who skips or misses the narrative framing still gets the double dash as a pure gameplay upgrade, so the emotional weight of the moment depends on having followed the dialogue that far, not merely on mastering the new move.',
       principle: 'When a story is about gaining an ability in the metaphorical sense, consider making it a literal one: tie the theme directly to a lasting change in what the player’s own inputs can do.',
-      topics: ['narrative-agency', 'ludonarrative-alignment'],
+      topics: ['ludonarrative-alignment'],
       sources: ['https://www.superjumpmagazine.com/celeste-anxiety-and-synthesis/'] },
     world: {
       claim: 'Celeste builds almost no horizontal geography: the whole game is one named mountain climbed once, so its handful of areas are vertical layers of a single, small human history rather than separate kingdoms or cultures.',
@@ -797,7 +797,7 @@ ANALYSIS('celeste', {
       compare: 'Journey also sets a single mountain as its destination, but its ruins record the rise and fall of a vanished civilisation in wall murals; Celeste’s mountain holds no civilisation, only a handful of individuals, living and dead, each with a private history.',
       cost: 'A single vertical route with a fixed order gives up the sense of an open, discoverable world a horizontally sprawling map offers, and once a chapter is finished there is nowhere new to wander within it beyond its own harder B-Side and C-Side variants.',
       principle: 'A world does not need breadth to feel complete; a single, vertically layered place can carry as much invented history as a sprawling map, provided each layer has its own legible story.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Celeste_64:_Fragments_of_the_Mountain', 'https://www.superjumpmagazine.com/celeste-anxiety-and-synthesis/'] },
     env: {
       claim: 'The Celestial Resort stages its own decline for the player to read without a word of exposition: faded photographs and a ruined guestbook show a grand hotel guests abandoned, and its ghost caretaker still tends it, unaware he is dead.',
@@ -817,7 +817,7 @@ ANALYSIS('celeste', {
       compare: 'Stardew Valley’s Eric Barone, credited as ConcernedApe, kept his solo-developer branding even after bringing on contract help for later updates and ports; Celeste’s team took the opposite path, retiring the founder’s personal brand for all new work once the work had become collaborative.',
       cost: 'Re-forming around shared ownership did not settle who owned what the old name had shipped: in January 2025 Thorson cancelled Earthblade, the studio’s first game, citing a dispute over the intellectual property rights of Celeste that cost the team a member.',
       principle: 'When a studio’s credited name stops matching who does the work, changing the name is itself a design choice about what the business is meant to represent, not a housekeeping detail.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://www.gamedeveloper.com/business/-i-celeste-i-developers-form-new-studio-extremely-ok-games', 'https://en.wikipedia.org/wiki/Celeste_(video_game)'] },
     replay: {
       claim: 'Celeste’s replay structure asks for the same skills at compounding stakes, a cassette unlocks a harder B-Side of the same chapter, finishing every B-Side unlocks a harder C-Side, rather than offering new content for finishing the main story.',
@@ -907,7 +907,7 @@ ANALYSIS('hades', {
       compare: 'A typical role-playing game’s town gives its NPCs a handful of static lines that repeat unchanged for the rest of the playthrough; Hades instead treats its one hub’s cast as a writing project large enough to keep responding for the entire length of the game.',
       cost: 'Writing and recording at this scale is a significant, ongoing cost that only a few studios could sustain, and a player who skips dialogue to farm runs efficiently is deliberately leaving most of that investment unseen, so the game’s biggest expense is also its most optional content.',
       principle: 'If a hub is the one constant a player returns to constantly, its writing budget can rival the rest of the game combined, because that is where a player will spend the time to notice it.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://store.steampowered.com/app/1145360/Hades/'] },
     world: {
       claim: 'Hades builds its mythology around a obscure figure, Zagreus, rather than a famous one, which let Supergiant invent freely inside gaps that classical sources already left open.',
@@ -947,7 +947,7 @@ ANALYSIS('hades', {
       compare: 'Spelunky offers no difficulty setting at all, so every player faces the same cost of failure; Hades keeps that fixed game as the default and adds one opt-in dial that grows with each death and another that only the player can turn up.',
       cost: 'An automatic system cannot ask a player why they are struggling, so it treats a player having a bad night the same as a player who cannot clear a fight, and Heat’s dozens of modifiers can, for some players, read as more tedium and damage sponges than a meaningfully different fight.',
       principle: 'Difficulty support does not have to be one slider in the middle of a range; build one system that responds automatically to failure and a separate one that responds to a request for more challenge, and let players opt into either without shame.',
-      topics: ['difficulty', 'challenge-failure-recovery'],
+      topics: ['difficulty', 'challenge-failure-recovery', 'adaptive-and-director-ai', 'accessibility'],
       sources: ['https://www.inverse.com/gaming/hades-god-mode-interview', 'https://en.wikipedia.org/wiki/Hades_(video_game)'] },
     lineage: {
       claim: 'Hades descends most directly from Supergiant’s Pyre: the studio saw that most players finished Pyre’s branching story only once, and built Hades so that the repeated runs a roguelike demands are what unlock its branches.',
@@ -957,7 +957,7 @@ ANALYSIS('hades', {
       compare: 'Bastion’s narrator speaks over the player’s actions as they happen, shaping how a single line lands in the moment; Hades instead saves its reactions for a hub the player is guaranteed to pass through, where a character can respond to a whole run at once rather than one action inside it.',
       cost: 'Moving reactivity out of real time trades away Bastion’s specific trick, a line landing the instant you do something, for a broader system that needs an entire hub, cast and currency structure to support it, which is a far larger production investment than one narrator role.',
       principle: 'A studio can keep the underlying idea behind an earlier success, the game reacting specifically to what the player just did, while completely changing which system carries it; the idea survives the redesign even when the delivery mechanism does not.',
-      topics: ['learning-from-success'],
+      topics: ['learning-from-success', 'finding-an-idea'],
       sources: ['https://en.wikipedia.org/wiki/Logan_Cunningham_(actor)', 'https://en.wikipedia.org/wiki/Hades_(video_game)'] }
   },
   shots: [
@@ -1027,7 +1027,7 @@ ANALYSIS('portal', {
       compare: 'A scripted moral choice in most narrative games presents an explicit menu, take this option or that one, and shows a consequence afterwards; Portal never presents a choice at all, since incinerating the cube is the only way to leave the chamber, so there is nothing to decide, only something to do.',
       cost: 'Because there is no real choice, the moment cannot vary between playthroughs or reward a player who refuses to comply, and it depends entirely on a first playthrough’s surprise; a player replaying the game already knows the cube is not optional, so the second experience of the same chamber cannot land the same way.',
       principle: 'To make a mechanical requirement feel like a moral act, spend a small amount of narrative attention humanising the object immediately before the rules force its loss; the action performs the argument, so very little dialogue is needed to defend it afterwards.',
-      topics: ['narrative-agency'],
+      topics: ['ludonarrative-alignment', 'playtesting'],
       sources: ['https://en.wikipedia.org/wiki/Portal_(video_game)', 'https://theportalwiki.com/wiki/Weighted_Companion_Cube'] },
     world: {
       claim: 'Aperture Science is built almost entirely out of one institutional voice: GLaDOS’s safety notices, trademarked product names and promised cake invent a corporate culture, its jargon and its indifference, without showing a single employee.',
@@ -1157,7 +1157,7 @@ ANALYSIS('factorio', {
       compare: 'Satisfactory instead hand-crafts around thirty square kilometres of biomes with fixed resource nodes the developers placed by hand, so its difficulty and reward curve comes from level design. Factorio’s curve comes from a formula applied identically to every new map.',
       cost: 'A rule this uniform cannot place a specific, memorable landmark the way hand-built terrain can, and a new player reading only “further is harder” has no other cue for where the game wants them to go next.',
       principle: 'If a game is going to regenerate its own maps, let the generator also regenerate the difficulty curve, tied to a value the player already understands, distance, depth, time, rather than to a scripted trigger.',
-      topics: ['spatial-composition', 'knowledge-as-progression'],
+      topics: ['spatial-composition'],
       sources: ['https://wiki.factorio.com/Map_generator', 'https://wiki.factorio.com/Enemies', 'https://en.wikipedia.org/wiki/Satisfactory'] },
     env: {
       claim: 'The crash site is Factorio’s only authored ruin, and the player is made to build around it rather than admire it: its wreckage cannot be rebuilt once mined, so it survives as scenery a factory must literally route belts past.',
@@ -1187,7 +1187,7 @@ ANALYSIS('factorio', {
       compare: 'Opus Magnum’s developers fix the axes players compete on: the simplest, fastest and most compact solution to each puzzle. Factorio sets only a few axes through achievements and leaves the rest, speedrun rules and overhaul mods, for its own community to invent.',
       cost: 'A replay structure this open gives a new player no signposted “next challenge” at all; finding Lazy Bastard, or a mod worth an hour of setup, depends on already being embedded in the community, which a solitary player might never be.',
       principle: 'A rule set flexible enough to support both a hand-crafting restriction and a total overhaul mod rewards a studio for building fewer fixed modes and instead making the base rules easy to bend.',
-      topics: ['difficulty', 'ugc-platforms'],
+      topics: ['difficulty'],
       sources: ['https://wiki.factorio.com/Achievements', 'https://mods.factorio.com/mod/space-exploration'] },
     lineage: {
       claim: 'Factorio took a niche Minecraft mod scene, automated crafting chains without survival or building, and turned that one subtracted idea into a genre of its own that now has descendants of its own.',
@@ -1197,7 +1197,7 @@ ANALYSIS('factorio', {
       compare: 'Satisfactory, which Rock Paper Shotgun compared directly to Factorio, transforms the formula again by moving it to first-person 3D on hand-built terrain; Factorio promoted one mod system to a whole game, where Satisfactory keeps that game and changes the camera and the map.',
       cost: 'Being the genre’s reference point means every later automation game is measured against Factorio’s specific choices, top-down, procedural, no combat focus, even when a competitor’s designers deliberately wanted to build something different.',
       principle: 'A genre can be founded by promotion: take one system players already bolt onto a bigger game as a mod, make it the core rule, and see whether it holds up as the whole game on its own.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Factorio', 'https://en.wikipedia.org/wiki/Satisfactory'] }
   },
   shots: [
@@ -1307,7 +1307,7 @@ ANALYSIS('among-us', {
       compare: 'Many live-service games add replay value through seasonal content that expires or rotates, forcing players to keep up or fall behind. Among Us instead keeps every role permanently in the same pool, so a lobby from any year plays by compatible rules.',
       cost: 'More roles mean more special cases a new player has to learn before a match makes full sense, and a game whose entire appeal was once “almost nothing to learn” has slowly added exactly the kind of rules weight its own original design avoided.',
       principle: 'Add replay variety at the level of what one player can do, and put any change to what winning means in a separate mode, as Hide n Seek does, so years of content never split the classic game’s community.',
-      topics: ['difficulty', 'progression'],
+      topics: ['content-multiplies'],
       sources: ['https://en.wikipedia.org/wiki/Among_Us'] },
     lineage: {
       claim: 'Among Us transformed a parlour game rather than inventing one: it took Mafia’s hidden-role structure and the isolation dread of The Thing, then replaced Mafia’s aimless downtime with tasks that double as both busywork and evidence, a substitution neither parent game had.',
@@ -1365,7 +1365,7 @@ ANALYSIS('wordle', {
       compare: 'Jotto, the 1955 five-letter pencil game, gives only a count of shared letters, so its players keep their own paper record and cross out letters of the alphabet by hand as deductions rule them out; Wordle’s keyboard does that bookkeeping automatically, on every guess, and never makes a slip.',
       cost: 'A single colour per letter cannot represent a repeated letter correctly when it is only partly confirmed, one occurrence right, another wrong, so the keyboard’s summary can imply more certainty about a repeated letter than the player has, arguably a point of confusion for newer players.',
       principle: 'When a mechanic produces cumulative knowledge across many small events, give the player one summarising display that updates itself automatically, but design that summary to represent every state the mechanic can produce, not just the common ones.',
-      topics: ['ux-as-design', 'accessibility'],
+      topics: ['ux-as-design'],
       sources: ['https://en.wikipedia.org/wiki/Wordle', 'https://en.wikipedia.org/wiki/Mastermind_(board_game)'] },
     art: {
       claim: 'Wordle’s art is three flat colours on a grid, chosen so the whole result survives being turned into a line of emoji, which is what let a finished game travel as text.',
@@ -1398,7 +1398,7 @@ ANALYSIS('wordle', {
       compare: 'Spotify bought Heardle, a daily song-guessing game built on Wordle’s pattern, in July 2022 and shut it down in April 2023, drawing on the audience briefly rather than keeping the ritual alive; the Times kept Wordle’s front door open and sells a subscription beside it, closer to a newspaper using a popular free column than to a typical game acquisition.',
       cost: 'Putting ads around the free puzzle, desktop display ads from September 2022 and interstitial video ads on mobile web from July 2023, charges non-subscribers in attention for a game they remember as ad-free, and every editorial change to the word list gets scrutinised by a public that remembers the game as free and unowned.',
       principle: 'When acquiring a free product for its audience rather than its revenue, keep the core act free and charge around it, with ads for visitors and a subscription that removes them, and expect the audience to watch every change to the free part far more closely than any new paid feature.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Wordle', 'https://www.cnbc.com/2022/01/31/the-new-york-times-is-buying-wordle.html', 'https://9to5mac.com/2022/01/31/wordle-acquired-by-new-york-times/'] },
     replay: {
       claim: 'Wordle’s replay value is a single move a day, not a session, and the streak counter, not the puzzle’s difficulty, is what makes players come back after they already know how to play.',
@@ -1408,7 +1408,7 @@ ANALYSIS('wordle', {
       compare: 'Duolingo’s streak works the same way but sells insurance against it: a Streak Freeze, bought in advance, covers a missed day so the count survives. Wordle offers no freeze, no make-up puzzle and no way to buy the day back, so its streak measures an unbroken run of days solved rather than a habit with an allowance for holidays.',
       cost: 'Tying replay to an unbroken streak turns a single missed day, a holiday, a lost phone, a busy morning, into a small loss with disproportionate emotional weight for a puzzle that takes a few minutes, and one hard answer can end streaks across the whole audience at once, as “Wordle 668 X” trending on 18 April 2023 showed.',
       principle: 'When a puzzle’s mechanical difficulty cannot escalate day to day, replay value can still come from a fragile, self-imposed record the player protects, but that record turns an ordinary missed day into a cost the difficulty design itself never intended to charge.',
-      topics: ['difficulty', 'return-and-quit'],
+      topics: ['return-and-quit'],
       sources: ['https://en.wikipedia.org/wiki/Wordle'] },
     lineage: {
       claim: 'Wordle transformed Mastermind’s code-breaking into a language deduction puzzle by swapping coloured pegs for real words and making the feedback far more generous, marking each letter instead of reporting only a count.',
@@ -1594,7 +1594,7 @@ ANALYSIS('minecraft', {
       compare: 'Rust, a survival game built for servers, has no ending at all: Facepunch’s scheduled force wipe returns every map to its original state each month; Minecraft instead pairs an optional boss with a literary coda that says nothing about the fight and everything about the hours spent building beforehand.',
       cost: 'Because the game is otherwise so quiet, this one dense passage lands disconnected from anything the player has done in their own world; players who never fight the Dragon, arguably the majority given how optional the End is, never encounter this text at all, so the game’s single largest narrative gesture is easy to miss entirely.',
       principle: 'When the stories in a game are the players’ own, an ending should address the player rather than resolve a plot the game never told; one authored text can reframe hours of self-directed play without contradicting any of it.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/End_Poem', 'https://en.wikipedia.org/wiki/Minecraft'] },
     world: {
       claim: 'Every Minecraft world is built from a single seed value, so the game’s entire geography, every mountain, cave and village, is a reproducible number rather than a hand-placed map, which lets the same finite ruleset generate an effectively unlimited number of distinct worlds.',
@@ -1604,7 +1604,7 @@ ANALYSIS('minecraft', {
       compare: 'Roguelikes such as Slay the Spire, also in this library, use procedural generation to reshuffle rooms drawn from a hand-built pool for one run at a time; Minecraft instead generates a persistent, explorable, editable world the player can return to indefinitely, closer to how a seed builds a whole planet than a single level.',
       cost: 'Procedural generation cannot guarantee a landscape is interesting or fair the way a hand-placed map can, so some seeds generate dull or awkward terrain near spawn, and the algorithm’s underlying rules occasionally show through as repetition once a player has explored enough of them.',
       principle: 'When a game needs far more explorable space than any team could hand-author, spend design effort on the rules that generate terrain rather than the terrain itself, and let a shareable seed become a unit of content players can pass to each other.',
-      topics: ['procedural-content', 'spatial-composition'],
+      topics: ['procedural-content'],
       sources: ['https://en.wikipedia.org/wiki/Minecraft'] },
     env: {
       claim: 'Minecraft’s generated structures, a sealed library deep underground, a trapped desert temple, a mansion full of hostile illagers, imply whole histories the game never narrates, so its environmental storytelling runs entirely on architecture with no character or text attached.',
@@ -1696,7 +1696,7 @@ ANALYSIS('animal-crossing-nh', {
       compare: 'Splatoon showed players’ Miiverse drawings as graffiti on the buildings of its hub, pictures that stayed on the walls; New Horizons turns a drawing into a real, placeable or wearable object, closer to a simple art tool than a costume selector.',
       cost: 'A blank canvas puts a real skill and time floor on good designs, so many players arguably default to downloading someone else’s design rather than drawing their own, splitting the player base between original creators and everyone reusing their work.',
       principle: 'Giving players the actual creation tool, not just a menu of finished options, lets a game’s visual identity grow past anything its own art team drew, but the tool only pays off if importing someone else’s result stays easy enough for players who will never learn to draw one themselves.',
-      topics: ['visual-language', 'ugc-platforms'],
+      topics: ['visual-language'],
       sources: ['https://www.gamespot.com/articles/custom-designs-in-animal-crossing-new-horizons-qr/1100-6475822/', 'https://edition.cnn.com/2020/09/01/tech/animal-crossing-biden-trnd/index.html'] },
     sound: {
       claim: 'New Horizons’ background score changes on the hour, every hour, across a full day, so the score itself becomes a second, audible clock running alongside the real one the game already reads from the Switch.',
@@ -1716,7 +1716,7 @@ ANALYSIS('animal-crossing-nh', {
       compare: 'Stardew Valley, also in this library, gates its deepest writing behind a friendship meter that gradually reveals an arc, such as Shane’s struggle with drinking, which does carry state and does resolve. New Horizons’ recurring visitors carry no such meter and resolve nothing, repeating the same beat indefinitely instead.',
       cost: 'Because nothing about Gulliver, Gullivarrr or Redd ever changes, a player who wants character growth or a resolved story will find none in the cast built to recur, and the game’s only real writing budget goes towards these small, self-contained scenes rather than towards any larger arc.',
       principle: 'A recurring visitor can carry real personality and be worth meeting many times over, provided the writer accepts that a loop, by design, never gets to pay off the way an arc does; use loops for texture, not for the story a player is meant to remember finishing.',
-      topics: ['narrative-agency', 'narrative-pacing'],
+      topics: ['narrative-pacing'],
       sources: ['https://nookipedia.com/wiki/Gullivarrr', 'https://nookipedia.com/wiki/Jolly_Redd'] },
     world: {
       claim: 'New Horizons builds its world almost entirely from real biology and real art rather than invented lore: every fish, bug, fossil and painting in the museum is drawn from the actual world, so Blathers’ collection reads as natural history first and fiction only where the animal cast itself is concerned.',
@@ -1726,7 +1726,7 @@ ANALYSIS('animal-crossing-nh', {
       compare: 'Slay the Spire, also in this library, builds its sense of place entirely from an invented bestiary with no real-world referent at all; New Horizons instead borrows its whole collectible cast from existing biology and existing art, inventing only the villagers who inhabit the island around that borrowed material.',
       cost: 'Borrowing real species and paintings means the museum can never surprise a player with something wholly new the way an invented creature might, and the forgery test rewards players who already know or look up the originals over those who do not.',
       principle: 'When a collection needs to feel complete and credible fast, borrow it from the real world rather than inventing an equivalent from scratch, and spend the game’s own invention budget on the smaller, original cast that lives alongside the borrowed material.',
-      topics: ['premise-and-world', 'knowledge-as-progression'],
+      topics: ['premise-and-world'],
       sources: ['https://www.cambridge.org/core/journals/public-humanities/article/designing-the-virtual-museum-with-animal-crossing-new-horizons/93606C8166446F088E4B7528694E773B', 'https://www.imore.com/animal-crossing-new-horizons-all-villager-personalities'] },
     env: {
       claim: 'A villager’s house tells the player who they are before a single line of dialogue does: New Horizons stages each neighbour’s hobby and personality directly in their own room, so visiting a home is itself a small piece of environmental storytelling.',
@@ -1756,7 +1756,7 @@ ANALYSIS('animal-crossing-nh', {
       compare: 'Destiny 2 manufactures return with seasons its developer schedules, each with a paid pass of ranked rewards; New Horizons ties its scarcity to the real calendar itself, so the “season” a player is missing is not a marketing decision but the actual time of year.',
       cost: 'A player who wants to see everything is committed to at least a full real year of occasional check-ins whether or not they still have much new to do most days, and missing a single-year event, such as one tied to a specific real holiday, means waiting a further twelve months unless the player changes the console clock.',
       principle: 'Tying content availability to the real calendar rather than an internal timer manufactures scarcity that costs a developer nothing to maintain and cannot be farmed or rushed, but it also means a player’s actual completion time is fixed at a year or more regardless of how much they play in any single sitting.',
-      topics: ['live-operations', 'difficulty'],
+      topics: ['live-operations'],
       sources: ['https://en.wikipedia.org/wiki/Animal_Crossing:_New_Horizons', 'https://nookipedia.com/wiki/K.K._Slider_songs'] },
     lineage: {
       claim: 'New Horizons demoted its predecessor’s biggest addition and then half restored it: New Leaf made the player mayor with ordinances, New Horizons launched with the same building powers under the title Resident Representative and no ordinances, and the 2.0 update brought the four ordinances back.',

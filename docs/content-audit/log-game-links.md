@@ -1,0 +1,479 @@
+# Game links: In real games audit (task G1)
+
+Tags before: 1823. After: 1563. Removed 349, added 89.
+
+## Topics shown by at least one game, per domain (before -> after)
+
+| Domain | Topics | Before | After |
+|---|---|---|---|
+| player | 5 | 4 | 5 |
+| experience | 8 | 5 | 8 |
+| core | 8 | 8 | 8 |
+| systems | 8 | 8 | 8 |
+| content | 6 | 6 | 6 |
+| level | 4 | 4 | 4 |
+| ux | 6 | 6 | 6 |
+| narrative | 5 | 5 | 5 |
+| presentation | 4 | 4 | 4 |
+| product | 10 | 8 | 9 |
+| production | 7 | 5 | 6 |
+| ai | 13 | 0 | 0 |
+| gameai | 11 | 5 | 8 |
+| studio | 5 | 2 | 2 |
+| backend | 11 | 0 | 0 |
+| infra | 8 | 0 | 0 |
+| server | 8 | 3 | 6 |
+| management | 8 | 4 | 4 |
+| leadership | 8 | 0 | 0 |
+| platforms | 9 | 5 | 5 |
+| models | 14 | 0 | 0 |
+| craft | 14 | 0 | 0 |
+| careers | 6 | 0 | 0 |
+| **all** | 186 | 82 | 94 |
+
+Topics that lost their only game: server-realtime-protocol, store-presence, pm-risk, risk-and-dependencies.
+Topics that gained a first game: hypothesis-driven-design, certification-and-review, adaptive-and-director-ai, finding-an-idea, pm-scoping-cuts, server-determinism, vertical-slice-mvp, core-experience, platform-and-session, fun-dimensions, feature-vs-experience, server-anticheat, server-scaling, server-state-sync, scripted-vs-simulated, navigation-and-pathfinding.
+
+## Removed tags (game, lens, topic, reason)
+
+- god-of-war [ui] allies-and-companions: camera framing, not the companion
+- skyrim [lineage] design-pillars: lineage of horizon promise, no pillar deciding a choice
+- witcher-3 [lineage] design-pillars: structure/lineage, no pillar
+- overwatch [world] design-pillars: setting tone, not a pillar forbidding choices
+- crash-bandicoot [lineage] iteration-and-evidence: remake collision fidelity, not iteration on evidence
+- rocket-league [lineage] iteration-and-evidence: rebuild after commercial failure, not an evidence loop
+- resident-evil-4 [sound] perception-and-awareness: player hearing enemies, not agent sensing
+- subnautica [business] pm-agile-gamedev: public early access, not sprint versus kanban
+- kerbal-space-program [lineage] pm-risk: lineage collapse, no risk register
+- bejeweled [art] polish-when: subject choice, not when to polish
+- kerbal-space-program [env] prototyping: hangar layout, not prototyping
+- ea-sports-fc [business] ratings-and-disclosures: licence economics, not age ratings or disclosures
+- pac-man [art] readable-and-fair-ai: sprite colour is presentation, not AI legibility rules
+- metal-gear-solid [lineage] readable-and-fair-ai: design history
+- deus-ex [business] risk-and-dependencies: engine licence is a budget trade, not risk ordering
+- sonic [lineage] team-and-collaboration: outside hire, not roles or handoffs
+- wordle [ui] accessibility: memory aid, not accessibility
+- gta-v [lineage] agency-and-emergence: format lineage, not choice or emergence
+- valheim [env] agency-and-emergence: environmental storytelling of a base, not emergence
+- god-of-war [art] animation-and-vfx: character design, not motion
+- tony-hawks-pro-skater [art] animation-and-vfx: authenticity of look, not motion
+- crusader-kings-iii [art] animation-and-vfx: portrait readability, not animation
+- beat-saber [art] animation-and-vfx: colour contrast, not animation
+- steins-gate [lineage] audience-and-positioning: series premise transformation, not audience
+- tony-hawks-pro-skater [sound] audience-and-positioning: soundtrack sourcing
+- tony-hawks-pro-skater [business] audience-and-positioning: royalty deal, not who the game is for
+- half-life-2 [ui] controls-and-friction: HUD/diegetic carried object, not input cost
+- god-of-war [ui] controls-and-friction: camera blind spot
+- deus-ex [ui] controls-and-friction: inventory belt as alternatives, not friction
+- call-of-duty-4 [world] fantasy: setting realism, not player identity
+- danganronpa [ui] game-feel-and-juice: crosshair debate UI, not feel feedback
+- doom [lineage] game-feel-and-juice: health refill resource loop
+- counter-strike-2 [art] game-feel-and-juice: smoke clarity, not feedback effects
+- crusader-kings-iii [gameplay] goals-horizons: inheritance feedback loop
+- microsoft-flight-simulator [replay] goals-horizons: planet changing under fixed flight model
+- god-of-war [sound] localization-and-culture: music identity, not localisation
+- farming-simulator [world] localization-and-culture: regional agriculture as setting
+- dragon-quest [ui] onboarding: interface consistency for returning players
+- dota-2 [replay] onboarding: Turbo shortens sessions, not first-session
+- elden-ring [gameplay] pacing: mount ban signals difficulty, not rhythm of demands
+- god-of-war [env] pacing: hub changes between visits
+- call-of-duty-4 [env] pacing: real abandoned city setting
+- overwatch [env] pacing: payload moves the fight, not intensity rhythm
+- contra [business] platform-choice: camera/control scheme fashion, not platform
+- god-of-war [business] platform-choice: brand rebuild
+- microsoft-flight-simulator [business] platform-choice: subscription pricing
+- fallout-new-vegas [replay] quests-and-events: faction reputation locking endings
+- megami-tensei [replay] release-and-updates: expanded re-release design
+- xeno [business] release-and-updates: remaster availability
+- god-of-war [business] release-and-updates: brand rebuild
+- microsoft-flight-simulator [lineage] release-and-updates: streamed scenery reboot
+- kerbal-space-program [lineage] scope-control: lineage collapse
+- overwatch [lore] scope-control: story outside the match
+- animal-crossing-nh [art] ugc-platforms: in-game pattern editor, not building on another company's platform
+- factorio [replay] ugc-platforms: mods and achievements
+- touhou [business] ugc-platforms: fan permission list
+- skyrim [business] ugc-platforms: modding pipeline
+- doom [replay] ugc-platforms: WAD modding
+- cities-skylines [replay] ugc-platforms: Workshop mods
+- farming-simulator [business] ugc-platforms: licensed mods
+- beat-saber [replay] ugc-platforms: fan maps
+- hollow-knight [gameplay] builds-and-loadouts: healing rule, not a build or loadout
+- call-of-duty-4 [ui] builds-and-loadouts: UAV HUD change
+- kerbal-space-program [lore] content-multiplies: default roster of characters, not content parameters
+- rocket-league [art] economy-and-resources: hitbox skins are monetisation, not resource flows
+- disco-elysium [business] ethics-and-responsibility: studio profit dispute
+- doom [business] ethics-and-responsibility: shareware distribution
+- age-of-empires-ii [world] ethics-and-responsibility: tech-age ladder consistency
+- call-of-duty-4 [business] ethics-and-responsibility: remaster bundling
+- overwatch [business] ethics-and-responsibility: pricing switch, no ethics claim
+- hollow-knight [world] level-structure: route network, not teach-test-twist
+- megami-tensei [env] level-structure: setting comparison
+- sonic [world] level-structure: tracks versus hubs, setting
+- elden-ring [gameplay] level-structure: mount ban, difficulty signal
+- elden-ring [world] level-structure: landmark orientation, spatial
+- katamari-damacy [world] level-structure: size gate of world
+- counter-strike-2 [env] level-structure: lanes and chokepoints, spatial
+- god-of-war [world] level-structure: map promising more myth
+- overwatch [env] level-structure: payload map terrain
+- tony-hawks-pro-skater [world] level-structure: dense lines in space
+- forza-horizon-5 [world] level-structure: compressed biomes
+- pac-man [world] level-structure: one maze
+- farming-simulator [world] level-structure: regional agriculture
+- five-nights-at-freddys [world] level-structure: one-building setting
+- deus-ex [env] level-structure: goal in view, spatial
+- final-fantasy-xii [lore] ludonarrative-alignment: plot theme, mechanics do not enact it
+- sonic [lore] ludonarrative-alignment: tone history
+- forza-horizon-5 [lore] ludonarrative-alignment: no antagonist premise
+- hearthstone [replay] procedural-content: rotation of card pool, not generation
+- among-us [replay] progression: roles as new verbs, not progression
+- cities-skylines [gameplay] progression: traffic simulation
+- metal-gear-solid [replay] return-and-quit: ending fork, not return pull
+- resident-evil-4 [replay] skill-and-mastery: minigame unlock, not skill arc
+- starcraft [gameplay] skill-and-mastery: economy as balance
+- age-of-empires-ii [replay] social-experience: learning matchups
+- halo [replay] social-experience: map used to tune weapons
+- call-of-duty-4 [replay] social-experience: prestige reset
+- wii-sports [art] social-experience: avatar looks
+- farming-simulator [replay] social-experience: starting over
+- persona-5-royal [world] systemic-design: setting consistency
+- smt-iii-nocturne [world] systemic-design: setting consistency
+- megami-tensei [world] systemic-design: alignment axis, setting
+- kerbal-space-program [world] systemic-design: scaled solar system layout
+- crusader-kings-iii [world] systemic-design: genealogy as map
+- farming-simulator [gameplay] systemic-design: order of jobs
+- clair-obscur [gameplay] time-and-turns: Picto trial progression
+- undertale [gameplay] time-and-turns: mercy skill
+- fire-emblem [gameplay] time-and-turns: weapon triangle
+- xeno [gameplay] time-and-turns: mechs
+- age-of-empires-ii [gameplay] time-and-turns: age advance cost
+- tony-hawks-pro-skater [replay] time-and-turns: short session replay
+- crusader-kings-iii [gameplay] time-and-turns: inheritance
+- farming-simulator [gameplay] time-and-turns: job order
+- halo [gameplay] core-loop: tuning process for a fight, not the loop
+- kerbal-space-program [env] core-loop: hangar UI layout
+- mario-kart-8 [gameplay] core-loop: rubber-band item table
+- gta-v [gameplay] core-loop: protagonist switch as traversal fix
+- ea-sports-fc [gameplay] decisions: physics layer escalation, not decision design
+- factorio [lineage] genre-hybrids: one subtracted idea, not a composed hybrid
+- clair-obscur [lineage] genre-hybrids: stated influences on combat
+- superhot [lineage] genre-hybrids: ancestry list
+- bejeweled [lineage] genre-hybrids: swap history
+- touhou [lineage] genre-hybrids: spin-off fighting game licensing
+- contra [lineage] genre-hybrids: programmers moved studios
+- dynasty-warriors [gameplay] genre-hybrids: crowd challenge
+- worms-armageddon [lineage] genre-hybrids: artillery lineage
+- dota-2 [lineage] genre-hybrids: mod ownership
+- mario-kart-8 [gameplay] genre-hybrids: item table
+- cities-skylines [lineage] genre-hybrids: rival collapse
+- resident-evil-4 [lineage] genre-hybrids: camera adoption
+- god-of-war [lineage] genre-hybrids: reboot rejection
+- valheim [gameplay] genre-hybrids: boss key progression (lineage lens keeps the graft)
+- halo [lineage] genre-hybrids: gamepad aim rules
+- call-of-duty-4 [lineage] genre-hybrids: rank unlock template
+- crusader-kings-iii [lineage] genre-hybrids: personality as cost
+- wii-sports [lineage] genre-hybrids: sequel trap
+- pac-man [lineage] genre-hybrids: sequel clock changes
+- farming-simulator [lineage] genre-hybrids: farming as job
+- deus-ex [lineage] genre-hybrids: genre naming
+- hearthstone [lineage] genre-hybrids: cut-down card structure
+- slay-the-spire [world] knowledge-as-progression: bestiary escalation, not understanding
+- celeste [gameplay] knowledge-as-progression: forgiving timing windows
+- into-the-breach [replay] knowledge-as-progression: carried pilot experience, not player knowledge
+- animal-crossing-nh [world] knowledge-as-progression: real biology as world
+- factorio [world] knowledge-as-progression: distance-scaled resources
+- pokemon [gameplay] knowledge-as-progression: type chart revisions
+- street-fighter [replay] knowledge-as-progression: modern controls
+- worms-armageddon [replay] knowledge-as-progression: scheme file
+- half-life-2 [replay] knowledge-as-progression: developer commentary
+- dota-2 [replay] knowledge-as-progression: Turbo shortens sessions
+- candy-crush-saga [business] live-operations: purchase moment
+- final-fantasy [business] live-operations: three business models
+- super-mario [business] live-operations: port availability strategy
+- monster-hunter [replay] live-operations: gear loop
+- dynasty-warriors [business] live-operations: reselling variants
+- ea-sports-fc [business] live-operations: licence economics
+- gta-v [replay] live-operations: split replay of campaign and online
+- counter-strike-2 [world] live-operations: map pool curation
+- counter-strike-2 [business] live-operations: free-to-play and market origins
+- starcraft [business] live-operations: PC bang boom
+- world-of-warcraft [business] live-operations: subscriber peak
+- farming-simulator [business] live-operations: licence and mod platform
+- valkyria-chronicles [lore] narrative-pacing: theme of history
+- final-fantasy-xii [lore] narrative-pacing: theme of nethicite
+- clair-obscur [lore] narrative-pacing: premise metaphor
+- xeno [lore] narrative-pacing: citation habit
+- zelda [lore] narrative-pacing: timeline reference book
+- super-smash-bros [lore] narrative-pacing: crossover framing
+- world-of-warcraft [lore] narrative-pacing: inherited cast
+- resident-evil-4 [lore] narrative-pacing: cut backstory
+- hearthstone [lore] narrative-pacing: frame not story
+- stardew-valley [gameplay] risk-reward: energy budget is not a risk choice
+- clair-obscur [gameplay] risk-reward: Picto trial
+- papers-please [gameplay] risk-reward: reading skill test
+- disco-elysium [gameplay] risk-reward: build voices
+- undertale [gameplay] risk-reward: mercy skill
+- xeno [gameplay] risk-reward: mechs
+- sonic [replay] risk-reward: collection reward
+- doom [lineage] risk-reward: health refill rule
+- overwatch [gameplay] risk-reward: ultimate economy
+- five-nights-at-freddys [gameplay] risk-reward: attention budget
+- stardew-valley [world] spatial-composition: festival timeline, not space
+- celeste [world] spatial-composition: history layers
+- minecraft [world] spatial-composition: seed determinism
+- final-fantasy-xii [world] spatial-composition: factions
+- chrono-trigger [env] spatial-composition: class system staging
+- viewfinder [world] spatial-composition: hub naming
+- papers-please [env] spatial-composition: tableau
+- disco-elysium [world] spatial-composition: setting mood
+- undertale [world] spatial-composition: migration history
+- mega-man [world] spatial-composition: job descriptions
+- final-fantasy [world] spatial-composition: world invention cost
+- touhou [world] spatial-composition: fixed setting
+- fire-emblem [world] spatial-composition: continuity
+- mega-man-x [env] spatial-composition: narrative staging
+- super-mario [world] spatial-composition: biome taxonomy
+- xeno [world] spatial-composition: wreckage motif
+- civilization [world] spatial-composition: historical quotes
+- street-fighter [world] spatial-composition: stage dioramas
+- dynasty-warriors [world] spatial-composition: political geography
+- dynasty-warriors [env] spatial-composition: reusable kit
+- sonic [world] spatial-composition: tracks versus hubs
+- super-smash-bros [world] spatial-composition: stages as arenas
+- fallout-new-vegas [world] spatial-composition: reputation
+- worms-armageddon [world] spatial-composition: jokes themes
+- katamari-damacy [world] spatial-composition: size gate
+- starcraft [world] spatial-composition: one trait per faction
+- dota-2 [world] spatial-composition: Roshan identity
+- mario-kart-8 [world] spatial-composition: retro tracks
+- world-of-warcraft [world] spatial-composition: inherited backstory
+- halo [replay] spatial-composition: map used to tune weapons
+- five-nights-at-freddys [env] spatial-composition: neglect story
+- crash-bandicoot [ui] feedback-and-affordance: lives menu choice
+- call-of-duty-4 [ui] feedback-and-affordance: UAV HUD change
+- dota-2 [ui] feedback-and-affordance: shop split
+- farming-simulator [env] feedback-and-affordance: fields record work
+- five-nights-at-freddys [ui] feedback-and-affordance: camera monitor as mechanic
+- slay-the-spire [lore] narrative-agency: optional text fragments, not agency
+- vampire-survivors [lore] narrative-agency: pun names
+- celeste [lore] narrative-agency: mechanic-as-story, not player agency
+- hades [lore] narrative-agency: loop as plot
+- minecraft [lore] narrative-agency: single ending text
+- animal-crossing-nh [lore] narrative-agency: visitor scenes
+- portal [lore] narrative-agency: tutorial companion cube
+- persona-5-royal [lore] narrative-agency: palace as ego
+- dark-souls [lore] narrative-agency: item description twist
+- superhot [lore] narrative-agency: meta plot
+- the-witness [lore] narrative-agency: philosophers' readings
+- viewfinder [lore] narrative-agency: climate story
+- outer-wilds [lore] narrative-agency: dead civilisation history
+- disco-elysium [lore] narrative-agency: setting depth
+- undertale [lore] narrative-agency: history via dialogue
+- final-fantasy [lore] narrative-agency: repeated theme
+- touhou [lore] narrative-agency: thin canon
+- civilization [lore] narrative-agency: leader change convention
+- street-fighter [lore] narrative-agency: thin premise
+- ace-attorney [lore] narrative-agency: plot via cross-examination
+- steins-gate [lore] narrative-agency: Reading Steiner as memory
+- skyrim [lore] narrative-agency: shout language
+- gta-v [lore] narrative-agency: theme dissonance
+- worms-armageddon [lore] narrative-agency: names and graves
+- zero-escape-999 [ui] narrative-agency: two-screen text
+- zero-escape-999 [lore] narrative-agency: ration of explanation
+- danganronpa [lore] narrative-agency: deferred proof
+- doki-doki-literature-club [lore] narrative-agency: fourth-wall reveal
+- elden-ring [lore] narrative-agency: fragmented backstory
+- witcher-3 [lore] narrative-agency: side quest craft
+- diablo-ii [lore] narrative-agency: returning villain
+- half-life-2 [lore] narrative-agency: first-person camera
+- starcraft [lore] narrative-agency: campaign order
+- dota-2 [lore] narrative-agency: lore outside match
+- mario-kart-8 [lore] narrative-agency: cast
+- kerbal-space-program [lore] narrative-agency: roster
+- subnautica [lore] narrative-agency: PDA fragments
+- god-of-war [lore] narrative-agency: player as input
+- halo [world] narrative-agency: ring reveal
+- call-of-duty-4 [lore] narrative-agency: scripted death
+- overwatch [lore] narrative-agency: story outside match
+- viewfinder [replay] mastery-discovery-expression: zero-cost failure
+- plants-vs-zombies [replay] mastery-discovery-expression: extra modes
+- subway-surfers [replay] mastery-discovery-expression: mission sets
+- bejeweled [replay] mastery-discovery-expression: pace choice
+- angry-birds [replay] mastery-discovery-expression: Mighty Eagle
+- mega-man [replay] mastery-discovery-expression: double gear
+- super-mario [replay] mastery-discovery-expression: badges
+- xeno [replay] mastery-discovery-expression: NG+
+- zelda [replay] mastery-discovery-expression: Master Quest
+- dynasty-warriors [replay] mastery-discovery-expression: roster
+- zero-escape-999 [replay] mastery-discovery-expression: flowchart convenience
+- katamari-damacy [replay] mastery-discovery-expression: score number
+- subnautica [replay] mastery-discovery-expression: rulesets
+- stardew-valley [business] launch-and-discoverability: update pipeline
+- vampire-survivors [business] launch-and-discoverability: pricing
+- celeste [business] launch-and-discoverability: studio rename
+- wordle [business] launch-and-discoverability: acquisition
+- hollow-knight [business] launch-and-discoverability: pricing goodwill
+- persona-5-royal [business] launch-and-discoverability: bundle DLC
+- smt-iii-nocturne [business] launch-and-discoverability: remaster
+- final-fantasy-xii [business] launch-and-discoverability: remaster
+- chrono-trigger [business] launch-and-discoverability: catalogue
+- nier-automata [business] launch-and-discoverability: studio pairing
+- dark-souls [business] launch-and-discoverability: petition port
+- clair-obscur [business] launch-and-discoverability: funding
+- superhot [business] launch-and-discoverability: standalone sequel
+- the-witness [business] launch-and-discoverability: budget bet
+- outer-wilds [business] launch-and-discoverability: exclusivity deal
+- baba-is-you [business] launch-and-discoverability: free update
+- plants-vs-zombies [business] launch-and-discoverability: shop design
+- bejeweled [business] launch-and-discoverability: monetisation history
+- angry-birds [business] launch-and-discoverability: delisting
+- mega-man [business] launch-and-discoverability: release clocks
+- fire-emblem [business] launch-and-discoverability: final entry bet
+- zelda [business] launch-and-discoverability: dual launch
+- monster-hunter [business] launch-and-discoverability: region order
+- steins-gate [business] launch-and-discoverability: re-cut anime
+- skyrim [business] launch-and-discoverability: modding pipeline
+- fallout-new-vegas [business] launch-and-discoverability: contract bonus
+- zero-escape-999 [business] launch-and-discoverability: sold weakly
+- danganronpa [business] launch-and-discoverability: platform shift
+- elden-ring [business] launch-and-discoverability: reputation
+- witcher-3 [business] launch-and-discoverability: post-launch packs
+- katamari-damacy [business] launch-and-discoverability: greenlight route
+- half-life-2 [business] launch-and-discoverability: crises
+- rocket-league [business] launch-and-discoverability: barrier removal
+- baldurs-gate-3 [business] launch-and-discoverability: no microtransactions
+- halo [business] launch-and-discoverability: studio purchase
+- call-of-duty-4 [business] launch-and-discoverability: remaster bundle
+- five-nights-at-freddys [business] launch-and-discoverability: sequel cadence
+- stardew-valley [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- among-us [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- wordle [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- animal-crossing-nh [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- persona-5-royal [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- smt-iii-nocturne [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- final-fantasy-xii [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- chrono-trigger [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- papers-please [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- disco-elysium [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- undertale [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- plants-vs-zombies [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- subway-surfers [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- bejeweled [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- fruit-ninja [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- mega-man [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- mega-man-x [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- xeno [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- ea-sports-fc [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- the-sims [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- worms-armageddon [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- zero-escape-999 [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- doki-doki-literature-club [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- diablo-ii [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- fortnite [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- dota-2 [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- rocket-league [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- cities-skylines [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- kerbal-space-program [gameplay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- kerbal-space-program [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- baldurs-gate-3 [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- overwatch [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- pac-man [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- five-nights-at-freddys [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- superhot [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- outer-wilds [replay] difficulty: replay lens is about content or replay pull, not challenge calibration
+- five-nights-at-freddys [art] readability-and-hierarchy: stillness horror, not legibility
+- hearthstone [art] readability-and-hierarchy: physical-toy look
+- starcraft [replay] server-matchmaking: ladder ranking and replays, not matching players into sessions
+- dota-2 [business] store-presence: free roster and prize-pool funding, not a store listing
+- counter-strike-2 [ui] server-realtime-protocol: about input timing rather than a wire format
+
+## Added tags (game, lens, topic, lens sentence that shows it)
+
+- slay-the-spire [gameplay] hypothesis-driven-design: treats its own balance as a moving target and checks it against play data through Early Access
+- halo [gameplay] vertical-slice-mvp: built by testing one short fight until it works and then rotating what surrounds it
+- viewfinder [lineage] vertical-slice-mvp: the one-mechanic demo grew a full puzzle structure, story and hub-based level design around it
+- smt-iii-nocturne [lineage] prototyping: built Press Turn through discarded prototypes (a weak-point meter, then a second meter, dropped for clutter)
+- baba-is-you [lineage] prototyping: conceived the core idea at Nordic Game Jam 2017; the jam prototype won first place
+- viewfinder [lineage] prototyping: the prototype predates the finished game by three and a half years, growing a full puzzle structure around one mechanic
+- cities-skylines [lineage] finding-an-idea: a genre heir made by exploiting a rival's collapse
+- clair-obscur [lineage] finding-an-idea: built to fill a hole left by high-fidelity turn-based RPGs
+- hades [lineage] finding-an-idea: the studio saw that most players finished Pyre's branching story only once and built Hades so repeated runs unlock its branches
+- subway-surfers [gameplay] platform-and-session: cuts each decision to a handful of positions so a very short mobile session still holds attention
+- dragon-quest [replay] platform-and-session: a commute or a crowded street produced new dungeons without any menus or matchmaking
+- flappy-bird [replay] platform-and-session: keeps very short sessions feeling purposeful with an immediate legible next goal
+- bejeweled [replay] platform-and-session: a single purchase serves different moods and sessions: Zen, Lightning, Classic
+- dota-2 [replay] platform-and-session: Turbo speeds the game up so a complete match fits into a shorter sitting
+- outer-wilds [art] core-experience: the fantasy it sells is vulnerability and wonder rather than control
+- dynasty-warriors [gameplay] core-experience: the crowd must stay harmless for the fantasy to hold, so challenge cannot come from it
+- outer-wilds [art] fantasy: the fantasy it sells is vulnerability and wonder rather than control
+- dynasty-warriors [art] fantasy: when adapting real historical figures into a power fantasy, give each a visibly invented weapon
+- superhot [lineage] fantasy: the first-person video gave it the fantasy, bullet time
+- bejeweled [gameplay] fun-dimensions: a new player succeeds immediately while an experienced one plays a quieter game of delayed gratification on the same board
+- bejeweled [replay] fun-dimensions: a player wanting to unwind chooses Zen, a quick competitive burst Lightning, an open-ended puzzle Classic
+- wii-sports [replay] fun-dimensions: replay comes from the people in the room rather than from unlocks
+- fruit-ninja [replay] feature-vs-experience: multiply a simple durable verb across different clocks instead of adding mechanics, so players pick a session length
+- ace-attorney [lore] feature-vs-experience: build the mechanic that reveals a beat before writing the scene so uncovering the truth is something the player does
+- into-the-breach [art] design-pillars: the team would sacrifice cool ideas for the sake of clarity every time, and cut burn marks and stomped scenery
+- into-the-breach [art] pm-scoping-cuts: plans for burn marks on attacked tiles and scenery stomped by mechs were cut for clarity
+- counter-strike-2 [ui] server-state-sync: timestamps every input at the exact moment it was made instead of the next 64-tick boundary
+- diablo-ii [business] server-anticheat: weak server-side item checks let duplication exploits destroy the player-made currency
+- diablo-ii [business] server-authority: Open realm kept characters with no server-side storage, Closed realm stored on Blizzard's servers
+- rocket-league [lineage] server-authority: one laggy connection made it a bad experience for everyone because the studio could not afford a dedicated server network
+- half-life-2 [business] server-scaling: overloaded authentication servers left buyers unable to play at launch
+- world-of-warcraft [ui] server-matchmaking: Dungeon Finder automated finding a group, so players on quiet realms could find groups at any hour
+- street-fighter [business] server-matchmaking: the Battle Hub turns matchmaking into a visible, populated space rather than an invisible queue
+- minecraft [world] server-determinism: every world is built from a single seed, a reproducible number rather than a hand-placed map
+- pac-man [gameplay] readable-and-fair-ai: players learn each ghost's target, e.g. Pinky aims at where Pac-Man is heading, and break the trap by turning early
+- cities-skylines [replay] navigation-and-pathfinding: the base traffic AI never recalculates a route mid-trip and sends a gridlocked car back to its origin
+- cities-skylines [gameplay] scripted-vs-simulated: simulates each citizen as a traceable individual with a home and a job so a jam has an identifiable cause
+- the-sims [gameplay] ingame-ai-purpose: autonomy is a direct output of need pressure, so a Sim behaves like a person rather than a puppet
+- the-sims [gameplay] choosing-ai-technique: eight decaying motives drive behaviour, not a separate AI layer bolted on top
+- mario-kart-8 [gameplay] adaptive-and-director-ai: weights the whole item table to whoever is currently losing
+- hades [replay] adaptive-and-director-ai: God Mode adds resistance after every failed run, capping at eighty per cent
+- final-fantasy-xii [gameplay] allies-and-companions: gambits turn party command into programming: the player writes the rule list the allies follow
+- final-fantasy-xii [gameplay] choosing-ai-technique: conditional automation with a strict, visible priority order
+- metal-gear-solid [ui] perception-and-awareness: the Soliton radar shows the player the guards' knowledge, and the game takes it away when it wants the player afraid
+- the-witness [gameplay] level-structure: teaches each of its line-puzzle rules purely through the sequence of panels a player meets
+- the-witness [gameplay] onboarding: learning to play and playing are never separated by a tutorial
+- civilization [gameplay] pacing: staggers systems on independent clocks so ending any turn always leaves something close to finished
+- papers-please [sound] pacing: silence gives up music's help with pacing so the rhythm of each shift rests on the player
+- clair-obscur [replay] accessibility: keep the demanding mechanic in every difficulty setting and adjust its timing rather than removing it
+- hades [replay] accessibility: God Mode grants damage resistance immediately for players who need it
+- fortnite [ui] ux-as-design: Visualize Sound Effects draws gunfire, footsteps and chests as directional rings
+- fortnite [ui] accessibility: the option serves a player with a muted phone, a noisy room or no hearing
+- fortnite [ui] feedback-and-affordance: hearing and sight answer the same question through a second, visual channel
+- fortnite [art] visual-language: cartoon proportions work as a house style every licence is redrawn into
+- fortnite [art] readability-and-hierarchy: keeping proportion, saturation and shading consistent keeps friend or foe readable at a glance
+- fortnite [sound] audio-and-music: at a live concert the music becomes the event itself, performed by a giant in-world figure
+- fortnite [lore] premise-and-world: tells its plot almost entirely through one-time live events
+- fortnite [lore] narrative-pacing: knowing the story means having been online at a specific scheduled hour
+- fortnite [world] premise-and-world: keeps continuity of name and cosmology across chapters while discarding the map
+- fortnite [env] environmental-storytelling: when a live event wrecks a named point of interest the damage stays on the map for the season
+- balatro [business] certification-and-review: temporarily pulled from PlayStation, Switch and Xbox storefronts within two weeks of launch after the PEGI 18 rating
+- among-us [replay] content-multiplies: adds roles, each handing one player a new verb
+- plants-vs-zombies [replay] content-multiplies: extra modes reuse the same plant roster under different rules
+- subway-surfers [replay] goals-horizons: a mission set lays a specific goal over the endless run
+- worms-armageddon [replay] mechanics-and-rules: a small file of numeric rules a host can swap changes the same weapons game
+- mega-man [replay] risk-reward: Double Gear adds risk to a format that had made power purely additive
+- xeno [replay] progression: a New Game Plus that carries levels into a fresh run
+- zero-escape-999 [replay] controls-and-friction: redoing the tedious act of reaching each ending, removed by the flowchart
+- doki-doki-literature-club [replay] ludonarrative-alignment: the act reached is kept in persistent data outside any save slot
+- fortnite [replay] skill-and-mastery: building is the one skill that survives every chapter's map reset
+- elden-ring [gameplay] difficulty: a legacy dungeon's difficulty is announced by a rule change, Torrent banned at tight doors
+- doom [lineage] economy-and-resources: killing a stunned enemy by hand refills health
+- sonic [world] premise-and-world: the world is built as a set of tracks
+- katamari-damacy [world] premise-and-world: the katamari's diameter gates which places open
+- kerbal-space-program [lore] premise-and-world: the default roster of four Kerbals, Jebediah among them, starts every game
+- final-fantasy-xii [lore] premise-and-world: history as a weapon controlled by whoever holds nethicite
+- overwatch [lore] premise-and-world: a large cast's story built outside the match in animated shorts and comics
+- portal [lore] ludonarrative-alignment: incinerating the Weighted Companion Cube is required to leave the chamber
+- doki-doki-literature-club [lore] narrative-pacing: stages its fourth-wall break as a slow narrative reveal
+- clair-obscur [gameplay] animation-and-vfx: players read the enemy's wind-up the way an action game asks them to read an attack animation
+- hollow-knight [art] animation-and-vfx: the eye finds the knight and the enemy's wind-up quickly, even against layered backgrounds
+- dark-souls [ui] animation-and-vfx: the sparse combat HUD keeps attention on enemy animations rather than on numbers
+- half-life-2 [gameplay] playtesting: three semi-independent teams reunited by constant playtests propagate a trick proven in one area
+- portal [lore] playtesting: playtesters forgot the box in Box Marathon, so Valve added dialogue naming the Weighted Companion Cube
+- mega-man [business] polish-when: near-yearly sequels kept Mega Man on shelves but cost Mega Man 3 its polish
+- angry-birds [sound] polish-when: the pigs' grunts were added during final polish
+- slay-the-spire [business] pm-agile-gamedev: weekly updates and a beta branch through the first months of Early Access
+- half-life-2 [gameplay] team-and-collaboration: Valve's decentralised Cabal process: three semi-independent teams reunited by constant playtests
+- dynasty-warriors [lineage] team-and-collaboration: Hyrule Warriors was co-developed by Omega Force and Team Ninja

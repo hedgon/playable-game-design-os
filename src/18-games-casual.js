@@ -108,7 +108,7 @@ GAME({ id:'plants-vs-zombies', series:{ id:'pvz', t:'Plants vs. Zombies', n:'the
       compare: 'Electronic Arts pushed a similar shift further with Dungeon Keeper’s 2014 mobile reboot, gating progress behind paid timers so aggressively that the UK Advertising Standards Authority ruled its “free” claim misleading. PvZ2’s model was milder, but both show one publisher reworking an acquired premium franchise’s economy.',
       cost: 'A one-time price caps how much revenue a hit keeps earning from its existing audience, likely why EA pushed the sequel toward free-to-play; the switch arguably cost reputation more than reach, since the sequel passed the original’s lifetime downloads within ten days.',
       principle: 'An in-game currency priced purely for pacing becomes a product the moment an owner sells it directly; price a premium shop as if that day may come, or keep its currency away from anything a purchase could shortcut.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://store.steampowered.com/app/3590/Plants_vs_Zombies_GOTY_Edition/', 'https://en.wikipedia.org/wiki/George_Fan', 'https://en.wikipedia.org/wiki/Plants_vs._Zombies_2', 'https://www.engadget.com/2014-07-02-uk-regulator-rules-free-dungeon-keeper-ad-was-misleading.html'] },
     replay: {
       claim: 'Plants vs. Zombies keeps its replay value inside extra modes that reuse the same plant roster under different rules, rather than inside the campaign itself, so mastery is spent on Survival and Puzzle modes once Adventure mode is done.',
@@ -118,7 +118,7 @@ GAME({ id:'plants-vs-zombies', series:{ id:'pvz', t:'Plants vs. Zombies', n:'the
       compare: 'Desktop Tower Defense adds replay through easy, medium and hard settings and challenge modes such as The 100 on the same field. Plants vs. Zombies instead adds entirely different rule sets, Vasebreaker’s deduction, I, Zombie’s role reversal, that ask the same knowledge to solve a different kind of problem.',
       cost: 'Because every extra mode depends on already knowing the roster from the campaign, none of them can teach a new player anything, so their appeal is aimed squarely at the fraction of players who finish Adventure mode and want more, while a casual player likely never reaches them.',
       principle: 'Once players know a defence roster, let them attack it: playing the other side, as I, Zombie does, tests whether they understood why each piece works, without a single new piece to learn, and rewards exactly the players who mastered the rules.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['content-multiplies'],
       sources: ['https://plantsvszombies.wiki.gg/wiki/Plants_vs._Zombies', 'https://en.wikipedia.org/wiki/Plants_vs._Zombies_(video_game)'] },
     lineage: {
       claim: 'Plants vs. Zombies took a genre built for players who enjoy spreadsheets and stripped it down until a first-time strategy player could finish it, which is arguably why so many later mobile tower defence games copy its structure rather than its predecessors’.',
@@ -244,7 +244,7 @@ GAME({ id:'subway-surfers', img:'assets/games/subway-surfers.jpg', card:'assets/
       compare: 'Plants vs. Zombies spreads its replay value across several distinct extra modes once its campaign ends. Subway Surfers has no campaign and no separate modes; its replay lives inside one endless mode, varied by the goals laid over it.',
       cost: 'Missions steer how the player runs, so an awkward set can pull a player away from chasing the score, and letting a mission be skipped for coins or an ad turns a design lever into a sales one.',
       principle: 'An endless mode stays varied if it hands out small goals a few at a time: each set nudges the player to run differently, and paying it off in a permanent bonus gives even a failed run a reason to have been played.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['goals-horizons'],
       sources: ['https://en.wikipedia.org/wiki/Subway_Surfers'] },
     lineage: {
       claim: 'Subway Surfers took Temple Run’s tilt-and-branch endless corridor and narrowed it to three fixed swipe lanes, a change that traded route-finding for pure reflex and proved durable enough to outlast the game it was built to answer.',
@@ -351,7 +351,7 @@ GAME({ id:'candy-crush-saga', img:'assets/games/candy-crush-saga.jpg', card:'ass
       compare: 'The arcade “Continue?” screen sold the same moment first: another coin to keep a run alive after the last life. Candy Crush Saga moves the offer inside the level, to the point where the goal is visible and nearly met, so the player pays to finish one board rather than to keep playing.',
       cost: 'The cost falls on trust: critics writing in the Guardian and Time described the game as built on a compulsion loop, and a purchase placed at the peak of frustration invites that reading whatever the level data says.',
       principle: 'A free game’s business model is a design decision, not a layer added afterwards: tune the moments of failure themselves if a purchase is meant to feel like a rescue rather than a toll, and expect that design to be judged as harshly as the price would be.',
-      topics: ['business-model', 'live-operations', 'ethics-and-responsibility'],
+      topics: ['business-model', 'ethics-and-responsibility'],
       sources: ['https://www.gamedeveloper.com/design/candy-crush-saga-a-sweet-journey-into-monetization', 'https://techcrunch.com/2016/02/23/activision-blizzard-closes-its-5-9b-acquisition-of-king-makers-of-candy-crush/', 'https://www.cnbc.com/2023/10/13/microsoft-closes-activision-blizzard-deal-after-regulatory-review.html', 'https://www.sec.gov/Archives/edgar/data/718877/000162828023013097/atvi33123ex991prtables.htm', 'https://mobilegamer.biz/how-king-defines-a-good-candy-crush-saga-level-and-why-it-constantly-prunes-the-bad-ones/', 'https://en.wikipedia.org/wiki/Game_over', 'https://en.wikipedia.org/wiki/Candy_Crush_Saga'] },
     replay: {
       claim: 'Candy Crush Saga makes a failed level worth retrying at once: the layout, goal and move budget stay fixed while the candies fall differently every attempt, so a loss can be blamed on the drops and the next try may be luckier.',
@@ -416,7 +416,7 @@ GAME({ id:'bejeweled', img:'assets/games/bejeweled.jpg', dev:'PopCap Games', sto
       compare: 'Puzzle Quest (2007) put the same swap-to-match board into turn-based duels, where a match of four earns an extra turn and a careless cascade can leave matches for the opponent; Bejeweled’s board has no opponent, so every cascade is good news and reading ahead only ever helps.',
       cost: 'With no clock, Classic has no natural stopping point and little pressure; PopCap knew the trade from the start, since Diamond Mine was timed by default on Pogo’s advice and the untimed mode was added as a tutorial before players made it the main game, which is why a timed mode has shipped beside it ever since.',
       principle: 'Removing scarcity from a puzzle does not remove its difficulty if the reward structure quietly favours patience over the first available option; a game can teach restraint without ever telling the player to wait.',
-      topics: ['core-loop', 'mastery-discovery-expression'],
+      topics: ['core-loop', 'mastery-discovery-expression', 'fun-dimensions'],
       sources: ['https://en.wikipedia.org/wiki/Bejeweled_(video_game)', 'https://en.wikipedia.org/wiki/Bejeweled_3', 'https://en.wikipedia.org/wiki/Puzzle_Quest:_Challenge_of_the_Warlords'] },
     ui: {
       claim: 'Bejeweled treats a stalled player as the real danger to a session: a Hint button always shows where a legal swap is, and Bejeweled 3 made asking free, so no casual game has to end because the player cannot see a move.',
@@ -436,7 +436,7 @@ GAME({ id:'bejeweled', img:'assets/games/bejeweled.jpg', dev:'PopCap Games', sto
       compare: 'Colors Game had the same rule and none of that pull: plain squares, no animation, no sound. Bejeweled kept the rule and changed what the pieces were, the difference between a matching exercise and a pile of jewels.',
       cost: 'A gem set is a closed family: seven cuts in seven colours leave little room for a new ordinary piece without crowding the board, so later entries added special gems and modes rather than new jewels.',
       principle: 'Choose a subject whose natural variety gives you readable pieces and whose natural appeal makes collecting them feel like a reward; the theme can do both jobs at once.',
-      topics: ['visual-language', 'polish-when'],
+      topics: ['visual-language'],
       sources: ['https://en.wikipedia.org/wiki/Bejeweled_(video_game)', 'https://store.steampowered.com/app/78000/'] },
     sound: {
       claim: 'Bejeweled’s sound works as a signal during play: rising pitches and cues tell a fast player that a chain is growing or a multiplier has arrived before the score readout confirms it.',
@@ -459,7 +459,7 @@ GAME({ id:'bejeweled', img:'assets/games/bejeweled.jpg', dev:'PopCap Games', sto
       compare: 'Candy Crush Saga, released the year after EA bought PopCap, chose a different scarcity again, gating play itself behind a life system, rather than Bejeweled’s route of selling a copy once or monetising attention around an unlimited game; the two together bracket most of casual match-3’s business models in twelve years.',
       cost: 'A single up-front purchase caps how much revenue one player can generate, the ceiling free-to-play was built to remove; PopCap’s answer, competing on reach rather than per-player spend, made the studio, not any one game, the valuable asset EA’s acquisition bought.',
       principle: 'A successful mechanic can be monetised more than one way across its lifetime; treating the business model as fixed at launch, rather than a decision to revisit per platform and era, leaves money on the table a rival building on the same mechanic will happily take.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Bejeweled_(video_game)', 'https://en.wikipedia.org/wiki/Bejeweled_Blitz', 'https://www.gamedeveloper.com/game-platforms/gdc-europe-popcap-s-kapalka-talks-i-bejeweled-blitz-i-origins-calls-social-games-a-bit-evil-', 'https://www.gamedeveloper.com/business/electronic-arts-confirms-750m-popcap-acquisition-550m-earnout'] },
     replay: {
       claim: 'Bejeweled 3 turns replayability into a choice of pace rather than a choice of content: Classic, Zen and Lightning present the identical board and gem set under three entirely different relationships to failure.',
@@ -469,7 +469,7 @@ GAME({ id:'bejeweled', img:'assets/games/bejeweled.jpg', dev:'PopCap Games', sto
       compare: 'Candy Crush Saga’s replay value instead comes from an ever-growing, individually tuned sequence of new levels a player must progress through in order; Bejeweled 3’s replay value comes from returning to the same, unchanging board under a different rule about what ends the session, with nothing to unlock in the way of new mechanical content.',
       cost: 'Because none of the modes teaches a new skill or introduces new content, a player who has mastered Classic gains nothing mechanically by trying Zen or Lightning beyond a change of pace, so the game’s replay value is entirely about mood-matching rather than about growth, and a player bored of the underlying mechanic itself has nowhere further to go inside the package.',
       principle: 'Offer one board under several rules for failure, none, soft or timed, and players choose a mode by mood rather than by skill, which a single difficulty setting cannot do.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['platform-and-session', 'fun-dimensions'],
       sources: ['https://en.wikipedia.org/wiki/Bejeweled_3', 'https://gamecritics.com/brandon-bales/bejeweled-3-review/'] },
     lineage: {
       claim: 'Bejeweled did not invent its swap: Shariki (1994) already swapped adjacent pieces, refused swaps that made no match and ended when none remained. What later match-3 games took from the Bejeweled line was Bejeweled 2’s special gems, a bigger match leaving behind a piece that clears more.',
@@ -479,7 +479,7 @@ GAME({ id:'bejeweled', img:'assets/games/bejeweled.jpg', dev:'PopCap Games', sto
       compare: 'Jewel Quest (2004) took the same swap in another direction, adding a goal per level, turning every square gold within a time limit, and lives; Candy Crush Saga later combined a goal per level with special pieces of the Bejeweled 2 kind.',
       cost: 'Because the rules were never Bejeweled’s to own, anyone could copy them, and thousands did, over 2,200 match-3 games on the App Store by February 2014; PopCap’s lead arguably lasted only as long as its presentation and sequels stayed ahead.',
       principle: 'A reward rule, what a better move leaves behind, travels further than a look, because it survives any reskin; when you borrow a template, change what success produces.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Shariki', 'https://en.wikipedia.org/wiki/Bejeweled_2', 'https://en.wikipedia.org/wiki/Jewel_Quest', 'https://en.wikipedia.org/wiki/Candy_Crush_Saga'] }
   },
   shots: [
@@ -585,7 +585,7 @@ GAME({ id:'angry-birds', series:{ id:'angry-birds', t:'Angry Birds', n:'the orig
       compare: 'Nintendo folds its classics into a subscription instead, the NES and SNES libraries of Nintendo Switch Online, so an old game adds value to a paid service rather than competing in search as a separate product. Rovio chose the opposite for Angry Birds: rename the paid classic so it stops sharing shelf space with the new games.',
       cost: 'Renaming a decade-old, widely recognised app to protect newer titles confuses the very audience most likely to search for it by its old name, and the studio absorbs that confusion as a cost of keeping its live games competitive.',
       principle: 'A popular original can outlive its usefulness to its own publisher once the business has moved on to a different model; protecting the new revenue stream can mean quietly burying the classic that built it.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Angry_Birds_(video_game)', 'https://www.macrumors.com/2023/02/22/rovio-renaming-angry-birds-classic-on-ios/', 'https://www.rovio.com/articles/a-classic-returns-rovio-classics-angry-birds-launches-today/'] },
     replay: {
       claim: 'Angry Birds sells its own way past a stuck level: the Mighty Eagle clears any unbeaten level, then turns every beaten one into a second, different goal, total destruction.',
@@ -595,7 +595,7 @@ GAME({ id:'angry-birds', series:{ id:'angry-birds', t:'Angry Birds', n:'the orig
       compare: 'New Super Mario Bros. Wii, released weeks before Angry Birds, offers its skip for free: after eight deaths in a row a Super Guide block lets a computer-controlled Luigi show a safe path, which the player may take over. Rovio charged for its skip, turning help for stuck players into one of its first in-app purchases.',
       cost: 'Selling a skip arguably invites the suspicion that hard levels are tuned to sell it, and it splits players into those who paid to see every level and those who did not; the hourly cooldown caps how far one purchase can carry a player.',
       principle: 'A skip for stuck players and a second goal for finished ones can share one tool, but charging for the skip makes players ask whether a hard level is hard on purpose.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['difficulty'],
       sources: ['https://en.wikipedia.org/wiki/Angry_Birds_(video_game)', 'https://en.wikipedia.org/wiki/New_Super_Mario_Bros._Wii', 'https://www.rovio.com/articles/a-classic-returns-rovio-classics-angry-birds-launches-today/'] },
     lineage: {
       claim: 'Angry Birds is a direct, widely reported transformation of an obscure Flash game, Crush the Castle, rebuilt for one finger on a touchscreen rather than a mouse.',
@@ -715,7 +715,7 @@ GAME({ id:'fruit-ninja', img:'assets/games/fruit-ninja.jpg', card:'assets/games/
       compare: 'Coin-op arcade games usually offer one ruleset that runs until the lives are gone; Fruit Ninja instead builds three parallel time structures around a single verb, so the choice a player makes before starting is about risk and duration, not about which game to play.',
       cost: 'Because none of the three modes changes the underlying swipe-and-slice rule, a player who has tired of the verb itself gets no relief from switching modes, only a different clock running under the same action.',
       principle: 'When a core verb is simple and durable, multiply it across different clocks instead of adding mechanics: an open-ended run, a fixed minute and a bomb-free ninety seconds let players pick a session length as much as a stake.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://www.halfbrick.com/blog/fruit-ninja-arcade-mode-announced', 'https://en.wikipedia.org/wiki/Fruit_Ninja'] },
     lineage: {
       claim: 'Fruit Ninja’s stated source is not a game at all but a late-night knife advert, and its lineage runs forward into a genre of imitators rather than back to a named predecessor.',
@@ -832,7 +832,7 @@ GAME({ id:'flappy-bird', dev:'dotGears', img:'assets/games/flappy-bird.jpg', img
       compare: 'Angry Birds spreads its three-star rating across dozens of separate levels, so there are always new stars somewhere to chase. Flappy Bird has exactly one continuous score and no levels at all, so every medal is chasing the same single number forever.',
       cost: 'Once a player has taken platinum and pushed their personal best well past forty, the game has nothing left to offer: no new mode, no harder tier, no further named target, so interest arguably ends abruptly rather than fading gradually.',
       principle: 'When a game has exactly one score and no other content, naming a small number of fixed thresholds on that score gives a short session a real goal, but expect player interest to fall off a cliff once the last threshold is behind them rather than tapering away.',
-      topics: ['goals-horizons', 'difficulty'],
+      topics: ['goals-horizons', 'difficulty', 'platform-and-session'],
       sources: ['https://en.wikipedia.org/wiki/Flappy_Bird'] },
     lineage: {
       claim: 'Flappy Bird’s lineage is disputed rather than traced: its reported inspiration is a paddle-and-ball pastime while critics name two earlier games, so what it transformed was less the idea than the tuning and platform that carried one version to a mass audience.',

@@ -75,7 +75,7 @@ GAME({ id:'valkyria-chronicles', series:{ id:'valkyria', t:'Valkyria Chronicles'
       compare: 'Many war stories in games cast the player’s side as simply in the right. Valkyria gives its heroes the same failing as the enemy, and ties the twist to the unreliability of recorded history.',
       cost: 'Heavy themes sit beside anime comedy and a romance, and the tonal swings blunt the argument. Because the story is told in Book Mode and cutscenes, most of it is watched rather than played.',
       principle: 'If the story is about how history is told, let the framing device be a record the player reads, then use the plot to show what the record left out.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Valkyria_Chronicles_(video_game)', 'https://www.popmatters.com/131760-valkyria-chronicles-2496131018.html', 'https://gamecritics.com/richard-naik/valkyria-chronicles-review/'] },
     world: {
       claim: 'Gallia borrows the map and politics of 1930s Europe so fully that the player understands the war’s causes before the plot explains them.',
@@ -209,7 +209,7 @@ GAME({ id:'persona-5-royal', series:{ id:'megami-tensei', t:'Megami Tensei', n:'
       compare: 'Most JRPG villains are characterised through cutscenes and dialogue with dungeons as separate, theme-matched but not person-matched backdrops (an ice cave for an ice-elemental boss). Persona 5 Royal instead ties a dungeon’s entire shape to one specific person’s psychology, closer to how a haunted house in fiction is often built to reflect its owner.',
       cost: 'Building a wholly new, thematically coherent dungeon for every major villain is expensive, which is part of why Palaces are relatively few and the game fills the remaining hours with Mementos, a shared, more repetitive dungeon for lesser targets.',
       principle: 'If a space is meant to characterise a specific person rather than dress a generic threat, build its geography as an argument about that person, so exploring it functions as delivered characterisation rather than backdrop.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Persona_5', 'https://store.steampowered.com/app/1687950/Persona_5_Royal/'] },
     world: {
       claim: 'Persona 5 Royal builds a functioning double Tokyo, one mundane and one born of belief, and keeps them consistent with each other so a change in one plausibly explains a change in the other.',
@@ -219,7 +219,7 @@ GAME({ id:'persona-5-royal', series:{ id:'megami-tensei', t:'Megami Tensei', n:'
       compare: 'Many JRPGs justify each new dungeon with its own local legend, so consistency comes from a shared aesthetic rather than a shared causal rule, so consistency comes from a shared aesthetic rather than a shared causal rule. Persona 5 Royal’s two-tier system (Palace for an individual, Mementos for the collective) derives both from one mechanism, which is a tighter, more economical kind of world-building.',
       cost: 'Tying every fantastical space to one person’s psychology limits variety: several Palaces necessarily repeat the beats of ego, treasure, and collapse, and a player who tires of that structure has no fantastical location in the game that works differently.',
       principle: 'One well-chosen causal rule, applied at more than one scale, buys more consistency than a library of separate lore explanations, and it lets players predict and reason about a world they have only partly seen.',
-      topics: ['premise-and-world', 'systemic-design'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Persona_5', 'https://store.steampowered.com/app/1687950/Persona_5_Royal/'] },
     env: {
       claim: 'Persona 5 Royal’s ordinary Tokyo is staged so that its background details, not its dialogue, are where the game shows the player it takes the city seriously as a place.',
@@ -239,7 +239,7 @@ GAME({ id:'persona-5-royal', series:{ id:'megami-tensei', t:'Megami Tensei', n:'
       compare: 'Many live-service or long-tail premium games instead keep older downloadable content available separately even on later platform releases, which forces a new player to research what to buy. Persona 5 Royal’s approach resembles a “complete edition” release strategy also seen in Valkyria Chronicles’ later ports, folding everything into one purchase rather than one price tier per platform.',
       cost: 'Consolidating years of downloadable content into a single edition means Atlus and Sega arguably gave up new-platform sales of those individual pieces, effectively trading any remaining sales of the separate DLC in exchange for a stronger, simpler pitch to new platforms.',
       principle: 'When a premium game’s content has accumulated in pieces over several years, bundling the whole history into one edition for a new platform is often worth more in reach than selling each piece again would be worth in revenue.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://store.steampowered.com/app/1687950/Persona_5_Royal/', 'https://gameworldobserver.com/2022/12/01/persona-5-royal-sales-3-3-million-units-atlus', 'https://www.kitguru.net/tech-news/mustafa-mahmoud/persona-5-royal-have-officially-sold-over-10-million-copies/'] },
     replay: {
       claim: 'Persona 5 Royal makes New Game Plus a chance to finally see the relationships the calendar denied on the first run, rather than a harder version of the same run.',
@@ -249,7 +249,7 @@ GAME({ id:'persona-5-royal', series:{ id:'megami-tensei', t:'Megami Tensei', n:'
       compare: 'Roguelikes generate replay value from randomised runs where the player’s knowledge, not any specific save data, is what carries over. Persona 5 Royal instead carries over concrete save data (money, items, the Compendium) into a fixed, unchanged calendar and story, so replay is about optimising a known puzzle rather than adapting to a new one.',
       cost: 'Resetting Confidant ranks on New Game Plus means a returning player who wants to see a specific relationship’s ending must sacrifice time on others all over again, so “seeing everything” realistically still takes more than two full playthroughs.',
       principle: 'When a game’s content is larger than any one playthrough can hold by design, carry over the player’s tools and knowledge on replay, but leave the choice structure that created the scarcity intact, or the second run stops being a different puzzle.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://en.wikipedia.org/wiki/Persona_5'] },
     lineage: {
       claim: 'Persona 5 Royal’s combat arguably descends, in three generations, from Shin Megami Tensei III: Nocturne’s Press Turn system, and the change at each generation is about who receives the reward for a good hit.',
@@ -352,7 +352,7 @@ GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:
       compare: 'Many JRPG apocalypses (Chrono Trigger’s Day of Lavos among them) use a single catastrophic event as backdrop but keep its cosmology largely separate from moment-to-moment systems. Nocturne instead threads its central cosmological object through an everyday mechanical decision, so the lore is load-bearing rather than scenery.',
       cost: 'A world this conceptually dense (Gnostic and Buddhist reference points, an energy called Magatsuhi, several factions each pursuing a Reason) asks a lot of a player in a short time, and arguably asks a lot of a player in a short time, on top of a difficulty reviewers did single out.',
       principle: 'Where possible, derive a world’s cosmology and its concrete systems from the same governing image, so learning the lore and learning the mechanics reinforce each other instead of running as parallel, separately memorised tracks.',
-      topics: ['premise-and-world', 'systemic-design'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Shin_Megami_Tensei_III:_Nocturne'] },
     env: {
       claim: 'Nocturne’s environmental storytelling works at the scale of a whole real district rather than a staged room: recognisable Tokyo neighbourhoods are left standing, emptied and demon-infested, so their ordinary function becomes the joke or the horror.',
@@ -372,7 +372,7 @@ GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:
       compare: 'Chrono Trigger’s 2018 Steam release also brought an older Japanese RPG to PC, but launched as a bare port that needed patches after player complaints. Nocturne’s remaster instead leaned on new voice acting as its main selling point for a new platform.',
       cost: 'Reviewers were split on whether the remaster’s visual and technical work matched the price of a 2021 release, with some calling it barely adequate for the asking price rather than a full technical rebuild, an argument a purely consolidating rerelease is more exposed to than one with substantial new content.',
       principle: 'A cult game fragmented across regions and platforms by its own history can gain more from one clean, simultaneous, voiced rerelease than from any single new feature, but that strategy invites the criticism that too little was rebuilt for the price.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Shin_Megami_Tensei_III:_Nocturne', 'https://www.rpgsite.net/news/13003-shin-megami-tensei-iii-nocturne-hd-remaster-surpasses-600000-units-sold-worldwide', 'https://store.steampowered.com/app/1413480/Shin_Megami_Tensei_III_Nocturne_HD_Remaster/'] },
     replay: {
       claim: 'Nocturne’s six endings are reached through story-length commitments to a philosophy, not a late-game menu choice, so replaying for a different ending means replaying a different second half, not just a different final cutscene.',
@@ -382,7 +382,7 @@ GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:
       compare: 'Many RPGs gate multiple endings behind a single late choice or an accumulated hidden meter checked only at the credits. Nocturne instead ties each ending to a sustained, story-length alliance the player must actively play through, which is a heavier but more legible commitment than an invisible counter.',
       cost: 'Seeing every ending realistically costs several full playthroughs, softened only by the New Game Plus carry-overs, which is a real time cost that likely limits how many players see more than one or two of the six endings.',
       principle: 'If an ending is meant to reward more than a single choice, tie it to a sustained commitment made across the story rather than a single flag set near the credits, so replaying for a different ending means replaying, not just re-selecting.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://en.wikipedia.org/wiki/Shin_Megami_Tensei_III:_Nocturne'] },
     lineage: {
       claim: 'Nocturne is the hinge point of its own franchise: it replaced the first-person, plain turn-based combat of the earliest Megami Tensei games with Press Turn, and nearly every mainline entry since has kept that system rather than the one it replaced.',
@@ -392,7 +392,7 @@ GAME({ id:'smt-iii-nocturne', series:{ id:'megami-tensei', t:'Megami Tensei', n:
       compare: 'Persona, a spin-off from the same Megami Tensei umbrella, arguably took Press Turn’s core reward (extra action for a good hit) and rebuilt it as One More, an individual rather than shared-pool reward, showing the same root idea diverging into two different design philosophies within one publisher’s output.',
       cost: 'A mechanic this central and this punishing sets a high floor of difficulty and system literacy for every subsequent mainline entry, which likely narrows the series’ mainstream reach compared with franchises that reset their combat system, and difficulty expectations, with each new game.',
       principle: 'When a core system proves to generalise across different sequels with only its numbers retuned, that is a signal the original design solved something structural, not merely something specific to the game it launched in; such a system is worth preserving deliberately rather than reinventing each time.',
-      topics: ['learning-from-success', 'time-and-turns'],
+      topics: ['learning-from-success', 'time-and-turns', 'prototyping'],
       sources: ['https://en.wikipedia.org/wiki/Shin_Megami_Tensei_III:_Nocturne', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei_(video_game)', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei:_Digital_Devil_Saga', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei_IV', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei_V'] }
   },
   shots: [
@@ -435,7 +435,7 @@ GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n
       compare: 'Contemporary party RPGs, including earlier Final Fantasy games, hand every command to the player each turn or let a fixed AI setting choose blindly. Gambits sit between the two: the player still decides everything, but decides it in advance and in bulk, closer to Dragon Age: Origins’ tactics system, which BioWare built after this game and which BioWare’s Mike Laidlaw has said “was inspired by it for sure”.',
       cost: 'A list tuned well enough removes the player from most ordinary fights, a much-repeated criticism: parties can clear whole fields of common enemies while the player mostly watches the screen. The cost is paid by anyone who wanted continuous, moment-to-moment control rather than the occasional correction.',
       principle: 'If a system lets the player pre-author behaviour, keep every condition it can check visible on screen, and keep manual override immediate; automation the player cannot read or interrupt stops being a tool and starts being a black box.',
-      topics: ['mechanics-and-rules', 'systemic-design', 'agency-and-emergence'],
+      topics: ['mechanics-and-rules', 'systemic-design', 'agency-and-emergence', 'allies-and-companions', 'choosing-ai-technique'],
       sources: ['https://en.wikipedia.org/wiki/Final_Fantasy_XII', 'https://www.rpgsite.net/review/2789-final-fantasy-xii-review'] },
     ui: {
       claim: 'The License Board, in The Zodiac Age’s job-wheel form, turns a menu screen into a sentence a new player can read: pick a sign, and the interface tells you what that job is for before you spend a single point on it.',
@@ -475,7 +475,7 @@ GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n
       compare: 'Many Final Fantasy plots end with the party wielding a god-tier weapon to defeat a final antagonist. Final Fantasy XII inverts this: the pivotal act of its playable protagonist is destruction of the very artefact that could have made her strongest, closer to a hero choosing to break the sword than to a typical Final Fantasy finale.',
       cost: 'A climax built on restraint asks the player to feel an absence of power as the payoff, which can arguably read as anticlimactic after games that end in a bigger spell; it also depends on knowing what the Occuria, Venat and nethicite are, delivered through dialogue and menus a player can walk past.',
       principle: 'A story can argue its theme through the option the protagonist turns down, not only the one they take; give the player a tempting alternative before the refusal, or the restraint reads as the absence of a choice rather than the choice itself.',
-      topics: ['narrative-pacing', 'ludonarrative-alignment'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Final_Fantasy_XII'] },
     world: {
       claim: 'Ivalice is built to be understood through its factions rather than its geography: the game spends more of its early hours establishing who Archadia, Rozarria and Dalmasca are to each other than what any of their maps look like.',
@@ -485,7 +485,7 @@ GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n
       compare: 'Final Fantasy X, released five years earlier, builds its world mostly through one linear pilgrimage route and a single religion’s mythology. Inverse called it a would-be “game of thrones (albeit with a dash of Star Wars, one of Matsuno’s self-proclaimed biggest influences)”: small polities and empires whose maps matter less than which side of a treaty they sit on.',
       cost: 'Leaning this hard on political scaffolding front-loads exposition: the opening hours carry a wedding, an assassination, an occupation and a resistance movement within a prologue whose only boss is a tutorial, which arguably makes it slower next to the more immediate hooks of prior Final Fantasy openings.',
       principle: 'A shared setting used across several games can spend its early hours on the specific conflict rather than re-explaining the world, but only if enough political stakes are stated up front that a first-time player is not simply lost among names.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Final_Fantasy_XII', 'https://en.wikipedia.org/wiki/Ivalice', 'https://www.inverse.com/article/17383-the-underrated-work-of-yasumi-matsuno-the-creative-genius-behind-final-fantasy-xii'] },
     env: {
       claim: 'Rabanastre tells the occupation’s story through its layout: the wealthy streets above and Lowtown beneath, with citizens whose talk changes at story beats, let a player read Dalmasca’s politics by walking through them.',
@@ -505,7 +505,7 @@ GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n
       compare: 'Many remasters of this era (character models sharpened, resolution raised) sold the same design at a higher fidelity. The Zodiac Age instead resembles Kingdom Hearts HD 1.5 Remix, which took the Japan-only Final Mix edition worldwide as one complete edition, changing what the purchase contains rather than only how it looks.',
       cost: 'Building a materially different edition costs real development time on a game already eleven years old, and it fragments the audience’s shared experience: the job system, speed options and Trial Mode changes mean the “definitive” 2017 version and the 2006 original are not quite the same game to discuss.',
       principle: 'A remaster earns a full price again when it changes what the game asks of the player, not only how it looks; folding in region-exclusive or previously paid content is one reliable way to make an old catalogue title feel new again.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Final_Fantasy_XII', 'https://www.rpgsite.net/feature/5751-final-fantasy-xii-the-zodiac-age-differences-changes-and-additions-whats-new-in-this-ivalice-remaster'] },
     replay: {
       claim: 'In The Zodiac Age, replay is a build decision, not a new story: two locked jobs per character make every pairing a trade-off, so a second run tests the pairings not picked.',
@@ -515,7 +515,7 @@ GAME({ id:'final-fantasy-xii', series:{ id:'final-fantasy', t:'Final Fantasy', n
       compare: 'Chrono Trigger’s New Game Plus varies when the story ends, and The Zodiac Age’s Strong and Weak modes vary the level curve. Its jobs instead vary the party’s capabilities themselves between playthroughs, closer to a roguelike’s class selection than to a New-Game-Plus power fantasy.',
       cost: 'A save-length commitment punishes a first-time player’s uninformed choices, the complaint a 2019 to 2020 job reset answered; even with resets, a player can field every job in one save but not every pairing, so a full tour of the job system needs more than one playthrough.',
       principle: 'Make a build commitment long enough to matter, but let players recover from an uninformed early choice, or permanence reads as punishment rather than stakes.',
-      topics: ['builds-and-loadouts', 'difficulty'],
+      topics: ['builds-and-loadouts'],
       sources: ['https://blog.playstation.com/2020/04/24/final-fantasy-xii-the-zodiac-age-update-adds-license-resets-original-soundtrack-more/', 'https://www.rpgsite.net/feature/5751-final-fantasy-xii-the-zodiac-age-differences-changes-and-additions-whats-new-in-this-ivalice-remaster'] },
     lineage: {
       claim: 'Gambits did not stay inside one Final Fantasy game: BioWare’s Mike Laidlaw said Dragon Age: Origins’ tactics were “inspired by it for sure”, and eighteen years on Veilguard’s director still cited its License Board.',
@@ -629,7 +629,7 @@ GAME({ id:'chrono-trigger', series:{ id:'chrono', t:'Chrono', n:'the first game;
       compare: 'Final Fantasy VII’s Midgar, two years later, stacks a wealthy upper plate over slums with the same vertical logic across a whole opening act; Chrono Trigger makes the point inside a single era that the player crosses in minutes.',
       cost: 'The contrast lives in one era the story passes through quickly, and much of Zeal’s history still arrives through dialogue, so a player hurrying to the next plot beat takes in the picture without the detail.',
       principle: 'Put a society’s hierarchy into its layout: when the powerful live above the powerless and the player must travel between them, the space explains the politics.',
-      topics: ['environmental-storytelling', 'spatial-composition'],
+      topics: ['environmental-storytelling'],
       sources: ['https://en.wikipedia.org/wiki/Chrono_Trigger', 'https://en.wikipedia.org/wiki/Final_Fantasy_VII'] },
     business: {
       claim: 'Chrono Trigger has been sold to new audiences for three decades without a true sequel on the same engine, treating one 1995 cartridge as a catalogue asset to be re-packaged rather than a franchise to be iterated.',
@@ -639,7 +639,7 @@ GAME({ id:'chrono-trigger', series:{ id:'chrono', t:'Chrono', n:'the first game;
       compare: 'A live-service game earns repeatedly through content updates on one persistent version. Chrono Trigger instead earns repeatedly through re-releases on new platforms, like Final Fantasy XII’s Zodiac Age, except as a run of ports rather than one rebuilt edition, over nearly twice the years.',
       cost: 'Not every re-release cleared the bar its predecessors set: the 2018 Steam port launched to strongly negative reception for tiled textures, an intrusive filter and a redesigned menu, costing Square Enix five major patches across four months, plus a sixth in 2022, to fix a version of the game that should have been the easiest one yet to get right.',
       principle: 'A strong enough original can be resold indefinitely across new hardware generations if each re-release earns its price with something new, but a rushed port risks damaging decades of accumulated goodwill in a single release.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Chrono_Trigger'] },
     replay: {
       claim: 'Chrono Trigger invented the vocabulary for a genre-wide feature: it coined the term “New Game Plus,” turning a second playthrough into a chance to see the same fixed story resolved differently rather than a reason to add new content.',
@@ -649,7 +649,7 @@ GAME({ id:'chrono-trigger', series:{ id:'chrono', t:'Chrono', n:'the first game;
       compare: 'Multiple-ending games without carried-over strength, such as many visual novels, ask the player to reread the same shared route to see a different ending. Chrono Trigger instead removes that friction entirely via New Game Plus, so replaying for a different ending is closer to a victory lap than a repeated challenge.',
       cost: 'Because a New Game Plus character is drastically overpowered for the early game, replaying trades away the original’s carefully paced difficulty curve; a returning player who wants that original tension back has to deliberately avoid using the strength the mode hands them.',
       principle: 'A carried-over New Game Plus turns a fixed story into a space for optional, self-directed experimentation (how early can this ending be reached) rather than new content; the replay value comes from the player’s own growing mastery, not from anything added to the game.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://en.wikipedia.org/wiki/New_Game_Plus', 'https://en.wikipedia.org/wiki/Chrono_Trigger'] },
     lineage: {
       claim: 'Chrono Trigger’s own scenario writer carried its time-travel and deep-history obsessions into two more properties, so the game’s clearest descendants are not competitors that copied it but the sequels and successor games its own creator kept building.',
@@ -770,7 +770,7 @@ GAME({ id:'nier-automata', series:{ id:'drakengard-nier', t:'Drakengard and NieR
       compare: 'Metal Gear Rising: Revengeance had shown the route in 2013, when Konami brought in PlatinumGames to build the combat of a Metal Gear game. Automata likewise solved a similar cross-genre problem by importing a specialist external studio for the half of the game its home studio was weaker at, a co-development route rather than an in-house one.',
       cost: 'The arrangement required Yoko to work away from his usual base for years and PlatinumGames to build RPG systems (levelling, an open world) it had never shipped before, on a project neither studio could have made confidently alone; the PC version also shipped with unaddressed technical problems that went unpatched officially until 2021, four years after launch.',
       principle: 'When a project needs two skill sets no single studio has, a specialist partner can be worth the coordination cost, if both sides hold enough creative control that neither half reads as junior.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Nier:_Automata'] },
     replay: {
       claim: 'Automata makes a second full playthrough mandatory to see the story at all, and adjusts who is allowed to struggle rather than how much content there is, so replay value here is closer to a second act than to extra difficulty.',
@@ -873,7 +873,7 @@ GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n
       compare: 'Most role-playing games deliver a comparable late reveal through a scripted cutscene everyone sees in the same order. Dark Souls instead makes the reveal conditional on two optional player behaviours, reading obscure items and choosing to attack an ostensibly friendly character, so large parts of the audience never receive it at all.',
       cost: 'Burying a major plot point this deeply means most players will simply never encounter it without external help, and relying on item text for revelations this significant asks a lot of patience from anyone who is not already inclined to read every description.',
       principle: 'A revelation delivered only through optional reading and an optional, faintly transgressive action rewards attentive players without punishing everyone else with exposition; the cost is that most of the audience will never see it.',
-      topics: ['narrative-agency', 'narrative-pacing'],
+      topics: ['narrative-pacing'],
       sources: ['https://en.wikipedia.org/wiki/Anor_Londo'] },
     world: {
       claim: 'Lordran’s cosmology gives every named god, place and monster a shared origin in one event, the First Flame, so the world holds together as one mythology even though the player only ever sees its fading, decayed end state.',
@@ -903,7 +903,7 @@ GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n
       compare: 'Most console games of the era reached PC, if at all, through ports their publishers chose to fund; Dark Souls’ Prepare to Die Edition came in 2012 after a fan petition, arguably letting a petition stand in for market research.',
       cost: 'Early adopters effectively subsidised a worse product; Namco Bandai producer Takeshi Miyazoe later said the original PC port’s problems were expected, because shipping fast came first, and Remastered’s PC price drew criticism for few significant changes.',
       principle: 'Letting a fan campaign demonstrate demand before funding a port can be a legitimate way to de-risk a platform expansion, but it only stays fair if the eventual, improved version does not simply charge full price again for what should have shipped properly the first time.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Dark_Souls_(video_game)'] },
     replay: {
       claim: 'Dark Souls raises the cost of failure on which Juul’s paradox of failure turns: dying costs real, recoverable-but-losable progress every single time, not just on a permanent-death mode, which is what makes every ordinary death in the game feel expensive.',
@@ -966,7 +966,7 @@ GAME({ id:'clair-obscur', img:'assets/games/clair-obscur.jpg', dev:'Sandfall Int
       compare: 'Classic turn-based RPGs such as Final Fantasy resolve an enemy’s attack the instant it is declared, with no further player input; Persona 5’s One More and Baton Pass reward hitting a weakness but ask nothing of the player during the enemy’s own turn. Expedition 33 is closest to Mario & Luigi’s per-attack jump and hammer counters, recast as a high-fidelity JRPG rather than a comic one.',
       cost: 'A player who cannot reliably parry is pushed towards the safer, lower-reward Dodge, widening the gap between confident and nervous players inside a single fight, and feinted attacks punish players for correctly reading an earlier, similar-looking one. The Picto system also costs the player bookkeeping: with 210 Pictos, three worn slots per character and a capped Lumina Point budget, the player has to keep track of which Pictos are close to mastery and decide which mastered ones to leave out.',
       principle: 'If a turn-based fight should feel dangerous rather than administrative, give the enemy’s turn its own input and pay the best version of that input more than the safe one, so learning to read an attack is worth more than avoiding it blindly.',
-      topics: ['time-and-turns', 'risk-reward', 'decisions'],
+      topics: ['decisions', 'animation-and-vfx'],
       sources: ['https://en.wikipedia.org/wiki/Clair_Obscur:_Expedition_33', 'https://automaton-media.com/en/news/clair-obscur-expedition-33s-battle-system-was-designed-around-the-premise-of-no-frustrating-deaths-and-a-game-you-can-clear-with/', 'https://www.gamesradar.com/games/rpg/clair-obscur-expedition-33-devs-were-told-that-no-one-would-like-one-of-the-rpgs-best-systems-before-it-launched-lead-says-we-didnt-care/'] },
     ui: {
       claim: 'Expedition 33’s battle HUD withholds the one prompt players expect: nothing says when or whether to parry, so the enemy’s own swing and sound become the interface, and a compass-only world map applies the same restraint outside combat.',
@@ -1006,7 +1006,7 @@ GAME({ id:'clair-obscur', img:'assets/games/clair-obscur.jpg', dev:'Sandfall Int
       compare: 'Many RPGs use a doomsday clock as a pure narrative device with no mechanical stakes, such as Final Fantasy VII’s Meteor. Expedition 33 keeps its clock almost entirely off-screen during play, closer to Dark Souls’ implied, unenforced decay of its world than to a literal onscreen timer, which keeps urgency emotional rather than punishing.',
       cost: 'A dread this diffuse depends on the player noticing and caring about journals and dialogue rather than skipping them for the next fight, and a game that never enforces its own deadline in play risks the theme reading as decoration to a player who never reads a word of it.',
       principle: 'A ticking premise does not need a ticking mechanic to matter: embedding the stakes in things the player finds, rather than a timer they fight against, can carry dread without punishing the player for taking their time.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Clair_Obscur:_Expedition_33'] },
     world: {
       claim: 'The Continent is built as a world that admits it is a painting, so its physically impossible geography, floating islands, sideways gravity, works as world-building rather than as a flaw in the setting’s internal logic.',
@@ -1036,7 +1036,7 @@ GAME({ id:'clair-obscur', img:'assets/games/clair-obscur.jpg', dev:'Sandfall Int
       compare: 'Many indie successes grow in public instead: Hollow Knight was crowdfunded on Kickstarter, and Hades spent almost two years in early access before its full release. Expedition 33 instead front-loaded AAA-level presentation onto a first release through a publisher’s co-funding, closer to how a film studio finances an unproven director’s first feature.',
       cost: 'Publisher funding means Kepler shares the upside on terms neither company has published, so Sandfall’s return on a hit is arguably smaller than a self-funded success would pay, a trade-off made to make the game possible at all rather than to maximise the studio’s later earnings.',
       principle: 'A small team does not have to shrink its ambitions to its own balance sheet if a publisher’s funding model is built to absorb the specific costs, voices, localisation, marketing, that scale with ambition rather than with headcount.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://gameworldobserver.com/2025/12/12/the-creators-of-clair-obscur-expedition-33-spent-less-than-10-million-developing-the-game', 'https://en.wikipedia.org/wiki/Kepler_Interactive', 'https://en.wikipedia.org/wiki/Clair_Obscur:_Expedition_33'] },
     replay: {
       claim: 'Expedition 33 treats difficulty as a dial the player can turn mid-story rather than a choice locked in at the start, which keeps the parry-and-dodge system central to every playthrough instead of an option some players simply avoid.',
@@ -1046,7 +1046,7 @@ GAME({ id:'clair-obscur', img:'assets/games/clair-obscur.jpg', dev:'Sandfall Int
       compare: 'Many action RPGs offer difficulty as a single choice made once at a new game’s start, or as an option that changes numbers but not the underlying interaction. Expedition 33’s difficulty instead adjusts the input windows of the exact mechanic under discussion elsewhere in this analysis, closer to Celeste’s Assist Mode, which eases execution without removing it, though Story also cuts damage like a typical RPG slider.',
       cost: 'Letting players soften the reflex test at any time can undercut the sense of earned mastery the game’s own marketing and design otherwise lean on, and New Game Plus resetting relationship and side content means a returning player optimises combat far more than they revisit the story.',
       principle: 'If a demanding mechanic is core to a game’s identity, keep it in every difficulty setting and adjust its timing rather than removing it, so easier does not mean a different, lesser game.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['difficulty', 'mastery-discovery-expression', 'accessibility'],
       sources: ['https://en.wikipedia.org/wiki/Clair_Obscur:_Expedition_33', 'https://store.steampowered.com/app/1903340/Clair_Obscur_Expedition_33/'] },
     lineage: {
       claim: 'Expedition 33 openly states its lineage: Guillaume Broche built it to fill a hole left by high-fidelity turn-based RPGs, crediting Lost Odyssey’s and Blue Dragon’s combat QTEs, while producer François Meurisse names Sekiro for the dodge and parry.',
@@ -1056,7 +1056,7 @@ GAME({ id:'clair-obscur', img:'assets/games/clair-obscur.jpg', dev:'Sandfall Int
       compare: 'Mario & Luigi already let players jump or hammer-counter each enemy attack; Persona 5 keeps its turn entirely menu-driven but rewards a correct read with an extra turn to hand off. Expedition 33’s transformation is narrower and more direct than either: it changes only what happens during the enemy’s own turn, leaving the player’s turn as traditional JRPG menu play.',
       cost: 'Naming a specific, narrow inheritance invites exactly the comparison it courts, and a studio’s public insistence that “no one” wanted this system before launch is a story that only reads as vindication in hindsight, because the game succeeded; had it failed, the same anecdote would read as a warning ignored.',
       principle: 'When reviving a genre commentators consider stale, find the one older mechanic that solves the exact fatigue players describe, and graft it onto the structure fans still love rather than replacing the structure itself.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success', 'finding-an-idea'],
       sources: ['https://blog.playstation.com/2024/07/29/clair-obscur-expedition-33-devs-discuss-classic-turn-based-rpg-inspiration-and-real-time-mechanics/', 'https://www.gamesradar.com/games/rpg/clair-obscur-expedition-33-devs-were-told-that-no-one-would-like-one-of-the-rpgs-best-systems-before-it-launched-lead-says-we-didnt-care/'] }
   },
   shots: [
@@ -1139,7 +1139,7 @@ GAME({ id:'superhot', img:'assets/games/superhot.jpg', dev:'SUPERHOT Team', stor
       compare: 'Most shooters keep marketing entirely outside the fiction; a few games gesture at breaking the fourth wall once for a single surprise, such as Metal Gear Solid’s Psycho Mantis reading a memory card. Superhot instead builds its whole narrative frame around the fourth wall, from the opening seconds to the credits.',
       cost: 'A story this tightly wound around commenting on its own distribution has little to say once the trick is understood, and critics felt the “system” voice grew heavy-handed by the later missions, since the same joke, the game knows you are playing it, cannot really escalate.',
       principle: 'If a game’s hook is inherently viral, consider writing that virality directly into the fiction rather than leaving it as an unstated marketing hope, so playing the game and spreading it become the same act.',
-      topics: ['narrative-agency', 'premise-and-world'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Superhot', 'https://www.eurogamer.net/superhot-review'] },
     world: {
       claim: 'Superhot’s world is a machine, not a place: the fiction invents one doctrine, that mind is software and bodies are disposable, and derives the whole setting from it, from the fake operating system the player boots to the late power that carries the player from body to body.',
@@ -1169,7 +1169,7 @@ GAME({ id:'superhot', img:'assets/games/superhot.jpg', dev:'SUPERHOT Team', stor
       compare: 'Hollow Knight followed the same arc when its promised Hornet DLC grew into Silksong, but Team Cherry’s free copies went only to its Kickstarter backers; Superhot honoured the promise for every owner. Superhot’s approach is closer to a studio honouring a scope-creep promise at real cost to potential DLC revenue, rather than a standard live-service content cadence.',
       cost: 'Years of development on content originally promised for free is time the studio could have spent on a new, fully paid project instead, and a promise made before scope is known can quietly cost far more than planned if the free content grows, as it did here, into an entire second game.',
       principle: 'A promise of future content is a contract with the audience a small studio most needs; honouring it after the scope grows costs more but builds trust a price rise would spend.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://www.gameinformer.com/b/news/archive/2017/12/05/superhot-expansion-mind-control-delete-announced.aspx', 'https://en.wikipedia.org/wiki/Superhot:_Mind_Control_Delete', 'https://www.kickstarter.com/projects/375798653/superhot'] },
     replay: {
       claim: 'Superhot’s replay value comes from proving the same solve was skill, not luck: a real-time replay of the player’s own run, plus challenge modes that remove tools rather than add content, both test mastery of one fixed rule rather than offering new rules to learn.',
@@ -1179,7 +1179,7 @@ GAME({ id:'superhot', img:'assets/games/superhot.jpg', dev:'SUPERHOT Team', stor
       compare: 'Many replay systems, a killcam, a highlight reel, exist purely for spectacle and carry no extra difficulty. Superhot’s replay is spectacle built from data ordinary play already generates, cheap enough to fund as a Kickstarter stretch goal, while its challenge modes, unlike a typical New Game Plus, subtract player options rather than adding enemy strength.',
       cost: 'Because the core loop stays fixed, players who have mastered the base game’s small vocabulary of red silhouettes and object types can find later challenge runs repetitive rather than newly demanding, since removing a tool changes the solution to a known puzzle rather than presenting an unknown one.',
       principle: 'If a mechanic already produces good-looking outcomes from careful play, replay that outcome back to the player as its own reward rather than building a separate spectacle system, and offer mastery variety by removing player options rather than only by adding new ones.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://www.kickstarter.com/projects/375798653/superhot', 'https://www.destructoid.com/reviews/review-superhot/'] },
     lineage: {
       claim: 'Superhot’s ancestry runs through a Flash game and a music video, not shooters: Time4Cat gave it the rule, time moving only when the cat moves, and Biting Elbows’ first-person “Bad Motherfucker” video gave it the fantasy, so bullet time is an analogy, not a parent.',
@@ -1189,7 +1189,7 @@ GAME({ id:'superhot', img:'assets/games/superhot.jpg', dev:'SUPERHOT Team', stor
       compare: 'F.E.A.R. (2005) also used a player-activated slow-motion meter for its firefights, refining Max Payne’s model without changing its resource logic. Superhot is a more direct descendant of the Flash game Time4Cat than of either AAA game, despite doing the same underlying job, slowed, stylish gunfights, that the bullet-time genre had already been selling for over a decade.',
       cost: 'Removing the resource layer also removes the strategic question of when to spend a limited power, which some critics who came to the game via the bullet-time genre missed, since Superhot’s version offers less to manage even as it offers more moment-to-moment control.',
       principle: 'When adapting a well-worn mechanic, ask which part of it is load-bearing for the player’s fun, here the slowed motion itself, not the meter around it, and be willing to cut the part every predecessor kept out of habit rather than necessity.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success', 'fantasy'],
       sources: ['https://en.wikipedia.org/wiki/Max_Payne_(video_game)', 'https://www.gamedeveloper.com/design/road-to-the-igf-superhot-team-s-i-superhot-i-'] }
   },
   shots: [

@@ -78,7 +78,7 @@ GAME({ id:'steins-gate', series:{ id:'science-adventure', t:'Science Adventure',
       compare: 'Most branching visual novels treat a return to an earlier scene as a replay from outside the story, with no reason given for why the protagonist might remember. Steins;Gate built an ability specifically to explain why only its protagonist, and so the reader, carries anything across a reset.',
       cost: 'Repeated hours still cost reading time, and a player who holds the skip button through already-read text skips the very repetition Reading Steiner is meant to make felt.',
       principle: 'If a story repeats scenes, give the protagonist the player’s memory of them, so the repetition becomes the character’s burden rather than the reader’s chore.',
-      topics: ['narrative-agency','ludonarrative-alignment'],
+      topics: ['ludonarrative-alignment'],
       sources: ['https://en.wikipedia.org/wiki/Steins;Gate'] },
     world: {
       claim: 'Steins;Gate borrows a real turn-of-the-millennium internet myth, the John Titor time-travel posts, as canon fact inside its fiction, so a player who recognises the reference finds an invented conspiracy resting on genuinely documented internet history.',
@@ -108,7 +108,7 @@ GAME({ id:'steins-gate', series:{ id:'science-adventure', t:'Science Adventure',
       compare: 'Steins;Gate’s own earlier ports, to PC, PSP, PS3 and Vita among others, carried the visual novel’s drawn art from platform to platform. Elite instead imports a separately produced adaptation’s footage wholesale, an unusual reuse of one licensed asset to refresh another.',
       cost: 'The approach only covers material the anime chose to adapt, so newly written or extended scenes needed fresh animation from White Fox at extra cost, and footage timed for television had to be taken apart, each character’s movements split into separately playable animations, before it could follow a reader’s own pace.',
       principle: 'A property that already exists in two media can refresh the older one by re-cutting footage from the newer, but only where the two overlap; wherever they do not, the studio still has to pay for new material, so the saving is partial, not total.',
-      topics: ['business-model','launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Steins;Gate_Elite', 'https://en.wikipedia.org/wiki/Mages_(company)', 'https://www.rpgsite.net/review/8284-steinsgate-elite-review', 'https://www.hardcoregaming101.net/steinsgate-elite/'] },
     replay: {
       claim: 'Steins;Gate makes replaying a knowledge problem rather than a content problem: reaching the true ending usually needs what an earlier playthrough taught about which replies matter, since the game itself keeps no in-built list of routes to choose from.',
@@ -128,7 +128,7 @@ GAME({ id:'steins-gate', series:{ id:'science-adventure', t:'Science Adventure',
       compare: 'Most sequels keep both a predecessor’s tone and its core systems, varying mainly cast and setting. Steins;Gate instead kept Chaos;Head’s core interface and hidden-organisation premise but changed the tone entirely, closer to a spin-off answering a different audience than a direct sequel.',
       cost: 'Distancing the tone from Chaos;Head meant abandoning much of what that game’s existing fans valued, its horror atmosphere and unreliable narration, so Steins;Gate’s mainstream success came partly at the cost of continuing what made the first Science Adventure game distinct.',
       principle: 'When a franchise’s first entry finds only a narrow, self-selecting audience, keeping its structure while replacing the tone that limited it can reach a much larger one, but that trade abandons the very qualities the original audience valued.',
-      topics: ['learning-from-success','audience-and-positioning'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Science_Adventure', 'https://en.wikipedia.org/wiki/Chaos;Head', 'https://noisypixel.net/steins-gate-series-sales-4-million-worldwide/'] }
   },
   shots: [
@@ -210,7 +210,7 @@ GAME({ id:'skyrim', series:{ id:'elder-scrolls', t:'The Elder Scrolls', n:'the f
       compare: 'Skyrim’s own library of readable books holds most of its deeper history, and reading it is optional; the shouts are the one lore channel no player can skip, because the main quest requires learning them.',
       cost: 'Tying lore to the verb limits it to what a short word can carry: the shouts establish that the language exists and matters, but the history of who spoke it, and why, still sits in optional books many players skip.',
       principle: 'When a power comes from the fiction’s own language, teach the language through the power: every use rehearses a word of the setting, so the world’s premise reaches players who never read a line of its lore.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/The_Elder_Scrolls_V:_Skyrim', 'https://en.wikipedia.org/wiki/The_Elder_Scrolls_V:_Skyrim_(soundtrack)'] },
     world: {
       claim: 'Skyrim delivers its “if you can see it, you can go there” promise by building the whole province as one continuous, seamless landmass, rather than by using a device, like a climbable tower, to reveal the map for the player.',
@@ -240,7 +240,7 @@ GAME({ id:'skyrim', series:{ id:'elder-scrolls', t:'The Elder Scrolls', n:'the f
       compare: 'A studio that instead funds new content through new sequels, as BioWare did across Dragon Age, sells a new game around each generation of content; Bethesda kept selling variations on the same base game rather than replacing it.',
       cost: 'Critics said paying modders through Creation Club blurred the line the 2015 backlash had defended, that mods stay free, and asked owners to pay again for content built on a tool they had used for free for years.',
       principle: 'A free modding tool can become, over a long tail, the research pipeline for a studio’s later paid content; that stays healthy for the community only if the free route the tool first opened is never quietly closed once the paid version exists.',
-      topics: ['business-model', 'ugc-platforms', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Skyrim_modding', 'https://en.wikipedia.org/wiki/The_Elder_Scrolls_V:_Skyrim', 'https://www.cinemablend.com/games/Skyrim-Creation-Kit-High-Resolution-Texture-Pack-Released-Through-Steam-39327.html', 'https://www.playstationlifestyle.net/2021/11/07/skyrim-anniversary-edition-price/'] },
     replay: {
       claim: 'Radiant Story keeps handing out side quests indefinitely by matching a small set of quest templates to whatever eligible target the player’s current save happens to contain, so replay value comes from an assembly line rather than a fixed stock of content running out.',
@@ -260,7 +260,7 @@ GAME({ id:'skyrim', series:{ id:'elder-scrolls', t:'The Elder Scrolls', n:'the f
       compare: 'Direct genre descent, where a sequel reuses a predecessor’s actual systems, is common in tactics and roguelike games; here the transfer is closer to a shared design idea reproven independently, each team building its own machinery rather than copying Skyrim’s.',
       cost: 'Because only the promise travelled and not the systems, claims that a later game was “influenced by Skyrim” can overstate how much was reused; the hardest part to copy, a seamless landmass with per-object simulation, is the part fewer successors actually rebuilt.',
       principle: 'When a design’s most famous virtue is easy to name but expensive to build, imitators tend to borrow the promise and construct their own machinery to deliver it, rather than copying the original system; judge real influence by what a later game rebuilt, not by what its developers cite in an interview.',
-      topics: ['learning-from-success', 'design-pillars'],
+      topics: ['learning-from-success'],
       sources: ['https://www.gamespot.com/articles/how-skyrim-influenced-breath-of-the-wild/1100-6455780/', 'https://news.xbox.com/en-us/2022/05/27/from-softwares-hidetaka-miyazaki-on-the-secrets-of-elden-rings-development/'] }
   },
   shots: [
@@ -302,7 +302,7 @@ GAME({ id:'gta-v', series:{ id:'grand-theft-auto', t:'Grand Theft Auto', n:'the 
       compare: 'Grand Theft Auto IV kept a single protagonist, Niko Bellic, and eased the drive with taxis, including free cabs sent by his cousin Roman; Grand Theft Auto V answers the same series-long problem by multiplying the avatar rather than skipping the road.',
       cost: 'Three leads triple the authored material around every job, homes, contacts, wardrobes and a stock of switch scenes for each, and Rockstar treated the structure as a gamble: art director Aaron Garbut called leaving the single protagonist “a risk” the team feared “might backfire”.',
       principle: 'When an open world’s biggest recurring friction is empty travel time between missions, consider multiplying who the player can be rather than shrinking the map back down; switching to whoever is already near the next objective removes the downtime while keeping the world the size it needs to be.',
-      topics: ['core-loop', 'mechanics-and-rules', 'agency-and-emergence'],
+      topics: ['mechanics-and-rules', 'agency-and-emergence'],
       sources: ['https://en.wikipedia.org/wiki/Grand_Theft_Auto_V', 'https://en.wikipedia.org/wiki/Development_of_Grand_Theft_Auto_V', 'https://en.wikipedia.org/wiki/Grand_Theft_Auto_IV'] },
     ui: {
       claim: 'The character wheel and its satellite-camera transition double as a status readout for the other two leads, staging the fiction that they keep living, and keep getting into trouble, while unselected.',
@@ -342,7 +342,7 @@ GAME({ id:'gta-v', series:{ id:'grand-theft-auto', t:'Grand Theft Auto', n:'the 
       compare: 'Saints Row: The Third, released two years earlier, arguably drops the pretence of critique entirely and lets its violence and wealth read as pure, unqualified wish-fulfilment; Grand Theft Auto V keeps insisting its crime is hollow while still paying the player in full for committing it, a harder position to hold consistently.',
       cost: 'Spending hours of writing on a critique of greed while the whole reward loop underneath is greed satisfied risks the satire reading as hypocritical to any player paying close attention, a tension the game never resolves by making success cost the player anything.',
       principle: 'If a story argues against the very behaviour its mechanics reward, decide deliberately whether the mechanics should occasionally cost the player for winning at that behaviour, or accept that a critique delivered through a consequence-free reward loop will read to many players as endorsement rather than commentary.',
-      topics: ['ludonarrative-alignment', 'narrative-agency'],
+      topics: ['ludonarrative-alignment'],
       sources: ['https://gamecritics.com/gene-park/grand-theft-auto-v-review/', 'https://en.wikipedia.org/wiki/Grand_Theft_Auto_V'] },
     world: {
       claim: 'Los Santos builds its satire as infrastructure rather than jokes: nearly every institution a resident would actually use, a bank, a social network, a phone maker, a news channel, has its own fully worked fictional counterpart, so the parody keeps running through systems the player uses rather than scenes the player watches.',
@@ -382,7 +382,7 @@ GAME({ id:'gta-v', series:{ id:'grand-theft-auto', t:'Grand Theft Auto', n:'the 
       compare: 'Red Dead Redemption 2 repeated the same split deliberately with Red Dead Online; unlike GTA Online, it never reached comparable scale, which makes this split look less like an inevitable formula than a result this specific game produced.',
       cost: 'Freezing single-player replay this early costs players who preferred the three leads’ story to a self-made online character, since every subsequent year of support went somewhere they cannot follow.',
       principle: 'If a premium campaign ships beside a live mode, decide early and say plainly whether the campaign will get more of itself; players who bought it for the story otherwise wait years for expansions that the live mode’s demands have quietly made unlikely.',
-      topics: ['live-operations', 'return-and-quit'],
+      topics: ['return-and-quit'],
       sources: ['https://en.wikipedia.org/wiki/Grand_Theft_Auto_V', 'https://en.wikipedia.org/wiki/Grand_Theft_Auto_Online', 'https://www.techtimes.com/articles/214749/20171024/grand-theft-auto-v-single-player-dlc-never-happened-and-rockstar-games-finally-explains-why.htm', 'https://en.wikipedia.org/wiki/Red_Dead_Online'] },
     lineage: {
       claim: 'Grand Theft Auto V keeps the format Grand Theft Auto III set in 2001, a 3D free-roam city with in-world radio and escalating wanted stars, but reverses its most basic character decision: GTA III’s silent, blank protagonist becomes three fully voiced leads with fixed personalities.',
@@ -392,7 +392,7 @@ GAME({ id:'gta-v', series:{ id:'grand-theft-auto', t:'Grand Theft Auto', n:'the 
       compare: 'Grand Theft Auto: Vice City took the first step only a year after GTA III, giving its lead, Tommy Vercetti, the voice of Ray Liotta; Grand Theft Auto V goes further by voicing three leads and letting the player move between them rather than inhabit one.',
       cost: 'Voiced, fixed characters cost the projection that Claude’s silence allowed: GTA III needed no reason for Claude to do anything, while Grand Theft Auto V must justify every job in three voices, and a player who dislikes one lead cannot redefine him, only switch away.',
       principle: 'When a format moves from a blank protagonist to authored ones, give players a choice between characters to replace the choice of identity they lose; the freedom to project can be traded for the freedom to switch, but it should not simply disappear.',
-      topics: ['learning-from-success', 'agency-and-emergence'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Grand_Theft_Auto_III', 'https://en.wikipedia.org/wiki/Grand_Theft_Auto_V', 'https://en.wikipedia.org/wiki/Grand_Theft_Auto:_Vice_City'] }
   },
   shots: [
@@ -487,7 +487,7 @@ GAME({ id:'fallout-new-vegas', series:{ id:'fallout', t:'Fallout', n:'a spin-off
       compare: 'Skyrim, released a year later, bets on scale instead: a larger province where nearly any landmark on the horizon can be reached on foot, with crime bounties and guard remarks that track the player hold by hold; New Vegas spends less on ground and more on how each faction’s ledger changes the ground it already has.',
       cost: 'This trade means New Vegas cannot offer Skyrim’s horizon-chasing thrill; several of its named locations are small, and a player drawn purely to scale finds less of it here, in exchange for a state-tracking system across dozens of factions and settlements that a larger, hand-authored landmass would have made far more expensive to build.',
       principle: 'When a map cannot grow, let its factions carry the memory instead: tie who patrols, trades or attacks on a stretch of road to that faction’s own ledger of the player, and familiar ground stays worth re-crossing.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://fallout.wiki/wiki/Fallout:_New_Vegas_Reputation', 'https://en.wikipedia.org/wiki/Fallout:_New_Vegas'] },
     env: {
       claim: 'Nipton stages Caesar’s Legion’s ideology as a crime scene the player has to read, not a monologue the game delivers.',
@@ -507,7 +507,7 @@ GAME({ id:'fallout-new-vegas', series:{ id:'fallout', t:'Fallout', n:'a spin-off
       compare: 'Bethesda’s own Skyrim, developed over roughly three years on the Creation Engine, forked from Fallout 3’s codebase, launched to Metacritic averages of 92 to 96 across platforms; New Vegas arguably shows what the same publisher-and-engine relationship looks like when a different, smaller studio is given a fraction of that time.',
       cost: 'Tying a bonus to one aggregate score rewards polishing what reviewers notice in the first week, and a studio paid a flat fee, with no royalties, has no revenue share to fund the years of patching a longer-term audience expects.',
       principle: 'A launch-week Metacritic bonus rewards a build’s first impression, not the design a rushed schedule was actually asked to deliver; a contract that must use a review-aggregate threshold should tie it to a later, patched snapshot rather than day one.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://www.gamedeveloper.com/business/report-obsidian-missed-i-fallout-new-vegas-i-bonus-by-one-metacritic-point', 'https://www.gamesradar.com/games/fallout/elder-scrolls-6-and-fallout-5-fans-might-dread-the-return-of-creation-engine-but-new-vegas-lead-josh-sawyer-once-called-it-incredibly-easy-to-work-with-even-if-it-is-buggy-and-unstable/', 'https://en.wikipedia.org/wiki/The_Elder_Scrolls_V:_Skyrim'] },
     replay: {
       claim: 'New Vegas locks whole endings and companions behind faction reputation, so replaying under a different allegiance means starting over, not just picking new dialogue.',
@@ -517,7 +517,7 @@ GAME({ id:'fallout-new-vegas', series:{ id:'fallout', t:'Fallout', n:'a spin-off
       compare: 'Skyrim, on the same console generation, lets one character join the Companions, the Thieves Guild, the College of Winterhold and the Dark Brotherhood in a single playthrough with no real exclusivity between them; New Vegas instead makes its major factions mutually exclusive, so seeing every ending costs several full playthroughs, not several side quests.',
       cost: 'Locking content behind reputation means a first-time player can accidentally seal off a companion or ending hours before they realise it, because the ledger lives on a screen they may never open, and a completionist must replay the whole game rather than reload a late save to see what they missed.',
       principle: 'If a world is meant to remember an allegiance, make that allegiance cost something real, a locked companion, a locked ending, rather than letting the player collect every faction’s rewards in one forgiving playthrough.',
-      topics: ['decisions', 'quests-and-events'],
+      topics: ['decisions'],
       sources: ['https://fallout.wiki/wiki/Fallout:_New_Vegas_Reputation'] },
     lineage: {
       claim: 'New Vegas’s multi-skill dialogue system became the design later Fallout games moved away from rather than toward, even as critics increasingly named it the series’ high point.',
@@ -611,7 +611,7 @@ GAME({ id:'worms-armageddon', series:{ id:'worms', t:'Worms', n:'the third main 
       compare: 'XCOM also lets a player name and customise every soldier, and its campaign carries those named soldiers from mission to mission, so a death costs a veteran the player has invested in; Worms Armageddon’s naming carries no such campaign payoff at all, since its real content is one match against another player.',
       cost: 'Because nothing narrative is authored, replaying the campaign gives a returning player no story to uncover, only the same training missions that taught the weapons the first time; arguably the effort went into customisation tools rather than a plot for the offline game.',
       principle: 'When a game’s real content is player versus player, spend narrative budget on tools that let players name and personalise their own pieces rather than on an authored plot for a single-player mode nobody primarily bought the game for.',
-      topics: ['narrative-agency', 'premise-and-world'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Worms_(series)', 'https://en.wikipedia.org/wiki/Worms_Armageddon'] },
     world: {
       claim: 'Worms Armageddon refuses Wolf’s usual test for a good invented world, consistency across its setting, on purpose: its built-in landscape themes are unrelated jokes rather than pieces of one place, because no match needs to agree with the last.',
@@ -621,7 +621,7 @@ GAME({ id:'worms-armageddon', series:{ id:'worms', t:'Worms', n:'the third main 
       compare: 'Street Fighter, also in this library, ties each stage to one fighter’s homeland, so its settings add up to an atlas of the cast; Worms Armageddon’s themes belong to no worm and no place, and never ask to agree with one another.',
       cost: 'Because no setting is developed beyond its surface joke, the world lens has almost nothing to reward slow attention: a player who studies the fruit island for lore clues will find none, since the theme was chosen for its punchline, not for anything it is trying to say.',
       principle: 'When settings are disposable, carry a game’s identity in what appears in every match, its cast, their voices and their weapons, so that no new theme, however strange, can dilute what the game is.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://store.steampowered.com/app/217200/Worms_Armageddon/', 'https://en.wikipedia.org/wiki/Worms_Armageddon'] },
     env: {
       claim: 'Worms Armageddon gets environmental storytelling for free from a mechanic that was never built to tell a story: because craters, tunnels and collapsed bridges persist for a whole match, the battlefield itself becomes a live record of where the fighting has been, readable by anyone watching.',
@@ -651,7 +651,7 @@ GAME({ id:'worms-armageddon', series:{ id:'worms', t:'Worms', n:'the third main 
       compare: 'Slay the Spire, also in this library, generates its replay from randomised runs drawn out of a large developer-authored card pool; Worms Armageddon’s variation instead comes from players editing the rules themselves, closer to a tabletop game’s house rules than to unlocking new developer content.',
       cost: 'A scheme-fragmented playerbase means ‘Worms Armageddon’ can describe wildly different experiences between two lobbies, a slow, luck-heavy pub game against a ruthless timed duel, which can confuse a newcomer since there is no single canonical way the game is meant to be played.',
       principle: 'If replay should scale without new content, expose a game’s own numeric rules to players as an editable, shareable file rather than only building unlockables; expect the community to fracture into distinct sub-games a newcomer cannot tell apart until someone names the scheme running.',
-      topics: ['difficulty', 'knowledge-as-progression'],
+      topics: ['mechanics-and-rules'],
       sources: ['https://en.wikipedia.org/wiki/Worms_Armageddon'] },
     lineage: {
       claim: 'Worms Armageddon is arguably the high point of a lineage that runs back to Scorched Earth’s stationary artillery duels, and the series’ own later attempt to modernise by moving into 3D broke exactly the two-dimensional reading its creator said the format depended on.',
@@ -661,7 +661,7 @@ GAME({ id:'worms-armageddon', series:{ id:'worms', t:'Worms', n:'the third main 
       compare: 'Street Fighter, also in this library, moved to polygons with Street Fighter IV in 2008 yet kept its fights on a single 2D plane; Worms’ 3D games instead changed the very axis, a flat plane read by eye for angle and wind, that their aiming depended on.',
       cost: 'Abandoning the 2D format cost Team17 two main 3D releases of mixed reception before Worms: Open Warfare, on handhelds in 2006, returned the series to its original 2D gameplay, arguably an admission that the earlier problem was the format itself and not just its execution.',
       principle: 'When a mechanic’s readability depends on a specific reduction, here a 2D plane a player can visually parse for angle and wind, adding a dimension for its own sake can break the very thing that made the format legible, even where the new version is executed competently elsewhere.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://www.vice.com/en/article/worms-wmd-scorched-earth-artillery-shooter/', 'https://en.wikipedia.org/wiki/Worms_3D', 'https://en.wikipedia.org/wiki/Worms_4:_Mayhem', 'https://www.digitallydownloaded.net/2024/09/review-worms-armageddon-anniversary-edition-nintendo-switch.html', 'https://en.wikipedia.org/wiki/Worms:_Open_Warfare', 'https://en.wikipedia.org/wiki/Street_Fighter_IV'] }
   },
   shots: [
@@ -714,7 +714,7 @@ GAME({ id:'zero-escape-999', series:{ id:'zero-escape', t:'Zero Escape', n:'the 
       compare: 'The World Ends With You, from the same console generation, also gives its two screens distinct jobs, but a spatial one: separate battles fought simultaneously by two characters. 999 instead gives its two screens two different narrators telling one story, using the same hardware for misdirection rather than parallel action.',
       cost: 'The trick cannot survive a straight port: the remaster has to hand players an explicit mode switch to reproduce what the DS did silently, which changes the reveal from something noticed to something stated.',
       principle: 'A twist built on a genuinely platform-specific signal earns real surprise, but it also has an expiry date: once the platform stops existing, the trick has to be re-explained rather than re-experienced.',
-      topics: ['ux-as-design','narrative-agency'],
+      topics: ['ux-as-design'],
       sources: ['https://en.wikipedia.org/wiki/999:_Nine_Hours,_Nine_Persons,_Nine_Doors', 'https://www.hardcoregaming101.net/999-nine-hours-nine-persons-nine-doors/', 'https://store.steampowered.com/app/477740/Zero_Escape_The_Nonary_Games/'] },
     art: {
       claim: '999’s art budget follows from its premise: sealing nine strangers inside one ship means, in Uchikoshi’s account, that the only space to build is the enclosed one, so the spend goes into a cast drawn by Kinu Nishimura rather than a varied world.',
@@ -744,7 +744,7 @@ GAME({ id:'zero-escape-999', series:{ id:'zero-escape', t:'Zero Escape', n:'the 
       compare: 'Fate/stay night (2004) unlocks each of its three routes by finishing the one before, so its gate is a fixed order of complete stories; 999 instead gates its true ending on one specific ending among six, which the player has to find by trying branches rather than by finishing whatever comes next.',
       cost: 'A player who quits after one unsatisfying ending never learns that the incompleteness was deliberate, and the structure only works once: a second full playthrough with everything already known has none of this particular pleasure left to give.',
       principle: 'If a true ending requires one specific other ending first, make that prerequisite end on the question the true route answers, so the gate reads as a lead to follow rather than a lock to pick.',
-      topics: ['narrative-agency','knowledge-as-progression'],
+      topics: ['knowledge-as-progression'],
       sources: ['https://en.wikipedia.org/wiki/999:_Nine_Hours,_Nine_Persons,_Nine_Doors', 'https://en.wikipedia.org/wiki/Fate/stay_night', 'https://www.destructoid.com/reviews/review-nine-hours-nine-persons-nine-doors/'] },
     world: {
       claim: '999 borrows a real disaster’s dread on purpose so it can later spend that same borrowed knowledge against the player: the ship is dressed and named to evoke the Titanic specifically so a player’s own knowledge of that sinking does the scene-setting and becomes something the story can later turn against them.',
@@ -774,7 +774,7 @@ GAME({ id:'zero-escape-999', series:{ id:'zero-escape', t:'Zero Escape', n:'the 
       compare: 'Shenmue III’s fans paid for their sequel through Kickstarter; Zero Escape’s fans instead lobbied a publisher to invest its own money, after Uchikoshi considered Kickstarter and judged the idea not persuasive enough to meet its goal.',
       cost: 'Relying on visible fan pressure rather than direct funding meant more than two years between the February 2014 halt and Zero Time Dilemma’s June 2016 release, time in which the trilogy Uchikoshi had already planned risked staying permanently unfinished.',
       principle: 'When a series sells in one market and fails in another, put the stronger market’s numbers into the greenlight case from the start, or the studio will judge each sequel by the weaker figure it sees first.',
-      topics: ['business-model','launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/999:_Nine_Hours,_Nine_Persons,_Nine_Doors', 'https://en.wikipedia.org/wiki/Zero_Escape', 'https://en.wikipedia.org/wiki/Zero_Time_Dilemma', 'https://blog.playstation.com/2017/08/17/zero-time-dilemma-comes-to-ps4-tomorrow-aksys-looks-back-at-the-trilogys-localization/'] },
     replay: {
       claim: 'The original DS 999 asked players to redo the tedious act of reaching each ending in order to see them all; the flowchart added in its 2013 iOS version and kept in the 2017 Nonary Games remaster instead turns that same replay requirement into deliberate, non-linear navigation.',
@@ -784,7 +784,7 @@ GAME({ id:'zero-escape-999', series:{ id:'zero-escape', t:'Zero Escape', n:'the 
       compare: 'Chrono Trigger’s New Game Plus carries levels and items into a replay so combat goes faster, but still asks the player to sit through every story scene again in order; the Nonary Games’ flowchart instead removes the scenes between two points entirely rather than only speeding up what happens during them.',
       cost: 'The flowchart makes the game’s branching structure visible as a diagram before the story has finished making its own case for it, which can pre-empt some of the surprise of realising, unprompted, that an ending was not the end.',
       principle: 'When a structure requires repeat visits by design, separate the cost of tedium from the cost of thinking: a flowchart can remove the first without removing the second, and only removing the first is a quality-of-life fix rather than a difficulty change.',
-      topics: ['difficulty','mastery-discovery-expression'],
+      topics: ['controls-and-friction'],
       sources: ['https://en.wikipedia.org/wiki/999:_Nine_Hours,_Nine_Persons,_Nine_Doors', 'https://en.wikipedia.org/wiki/Zero_Escape', 'https://www.hardcoregaming101.net/999-nine-hours-nine-persons-nine-doors/', 'https://www.destructoid.com/reviews/review-nine-hours-nine-persons-nine-doors/'] },
     lineage: {
       claim: '999 is a graft of two unrelated traditions: Uchikoshi took the browser escape-the-room games he enjoyed and gave them a story, inside the branching sound-novel form Chunsoft had built its name on.',
@@ -847,7 +847,7 @@ GAME({ id:'danganronpa', series:{ id:'danganronpa', t:'Danganronpa', n:'the firs
       compare: 'The Typing of the Dead turned a shooting genre into a typing test; Danganronpa instead turns a reading and evidence-matching problem into a shooting-gallery input, the same trick aimed at the opposite kind of genre.',
       cost: 'Because weak points glow before the player fires, early debates arguably test bullet choice and aim more than spotting the lie; only later debates, with several flagged lines, ask the player to find which claim is actually false.',
       principle: 'Dressing a choice as an aimed shot buys urgency, but if the target is already highlighted for the player, check that the mechanic is still testing the reasoning it claims to, not just reflexes.',
-      topics: ['ux-as-design','game-feel-and-juice'],
+      topics: ['ux-as-design'],
       sources: ['https://en.wikipedia.org/wiki/Danganronpa:_Trigger_Happy_Havoc', 'https://en.wikipedia.org/wiki/The_Typing_of_the_Dead'] },
     art: {
       claim: 'Danganronpa depicts extreme violence in flat, brightly coloured pop art with hot-pink blood, a colour swap Kazutaka Kodaka has said was chosen for tone rather than to soften the gore.',
@@ -877,7 +877,7 @@ GAME({ id:'danganronpa', series:{ id:'danganronpa', t:'Danganronpa', n:'the firs
       compare: 'Most murder-mystery games, Ace Attorney’s self-contained cases among them, close every mystery they open inside one entry; Danganronpa instead resolves its trials but keeps the frame that licenses them hanging for a sequel to confirm.',
       cost: 'A player who never continues the series is left without confirmation of the one reveal the ending is built to make them question.',
       principle: 'A series can close its immediate mysteries while leaving the frame that explains them open, provided the immediate case still resolves cleanly enough to satisfy on its own.',
-      topics: ['narrative-pacing','narrative-agency'],
+      topics: ['narrative-pacing'],
       sources: ['https://en.wikipedia.org/wiki/Danganronpa:_Trigger_Happy_Havoc'] },
     world: {
       claim: 'Hope’s Peak gives every student one public title, an “Ultimate” talent, so a fifteen-strong cast is legible at a glance and every talent is a possible motive or method.',
@@ -907,7 +907,7 @@ GAME({ id:'danganronpa', series:{ id:'danganronpa', t:'Danganronpa', n:'the firs
       compare: '999: Nine Hours, Nine Persons, Nine Doors, developed by Chunsoft and originally published in Japan by Spike, the company that made Danganronpa, before the two merged into Spike Chunsoft in 2012, followed an almost identical path: its 2009 Nintendo DS original reached Steam only in 2017, bundled as Zero Escape: The Nonary Games, eight years on and a platform family away from where it began.',
       cost: 'Years passed before Western players could legally access a game already finished and released in Japan, ceding that audience to import copies and fan translations in the meantime.',
       principle: 'For a niche, text-heavy genre, budget for the platform jump as much as the translation: the format’s ceiling may be a store its original hardware never reached.',
-      topics: ['business-model','launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Danganronpa:_Trigger_Happy_Havoc', 'https://www.siliconera.com/nis-america-localized-danganronpa-trigger-happy-havoc/', 'https://en.wikipedia.org/wiki/999:_Nine_Hours,_Nine_Persons,_Nine_Doors', 'https://en.wikipedia.org/wiki/Spike_Chunsoft'] },
     replay: {
       claim: 'Danganronpa’s replay reward removes the very mechanic the main game is built on: School Mode retells the cast’s time together as a life sim with no killing at all.',
@@ -1010,7 +1010,7 @@ GAME({ id:'doki-doki-literature-club', img:'assets/games/doki-doki-literature-cl
       compare: 'Many fourth-wall-breaking games, such as The Stanley Parable, make the narrator’s awareness of the player explicit from the opening minutes, so the joke is in what the narrator says about the player’s choices. Monika’s awareness instead arrives gradually inside a story that spent hours establishing she was just another character.',
       cost: 'Because the reveal depends on a slow build the player may not consciously track, a player who skips text quickly, or who already knows the twist going in, gets a single flat statement instead of the accumulating dread the pacing is built to produce.',
       principle: 'A character’s awareness of the medium lands harder as a discovery assembled from small, earlier anomalies than as a single declared twist, because the player has to do the work of noticing, which makes the conclusion feel earned rather than delivered.',
-      topics: ['narrative-agency'],
+      topics: ['narrative-pacing'],
       sources: ['https://en.wikipedia.org/wiki/Doki_Doki_Literature_Club!', 'https://en.wikipedia.org/wiki/Monika_(Doki_Doki_Literature_Club!)'] },
     world: {
       claim: 'Doki Doki Literature Club borrows an entire genre’s stock world, a wholesome high-school anime setting with a cast of instantly recognisable archetypes, wholesale and for free, precisely so that audience expectation can do the design work its horror later exploits.',
@@ -1050,7 +1050,7 @@ GAME({ id:'doki-doki-literature-club', img:'assets/games/doki-doki-literature-cl
       compare: 'Steins;Gate, also in this library, lets saves be reloaded and routes replayed, so its replay depends on what the player remembers. Doki Doki Literature Club withholds that option: the game remembers, and will not forget unless asked outside the story.',
       cost: 'A player who wants the first act again, for a different girl’s route, must wipe all progress to get it, since the original offers no chapter select.',
       principle: 'When a story’s damage must feel permanent, keep its progress outside ordinary save slots and make the only reset an explicit data-deletion question, so no reload can undo it by accident and a full restart has to be chosen on purpose.',
-      topics: ['difficulty'],
+      topics: ['ludonarrative-alignment'],
       sources: ['https://en.wikipedia.org/wiki/Doki_Doki_Literature_Club!', 'https://github.com/skewbmaster/DDLC-Mod-Template-Full/blob/master/game/splash.rpy'] },
     lineage: {
       claim: 'Doki Doki Literature Club’s horror lineage runs through disquieting, glitch-driven exploration games rather than other visual novels: Dan Salvato has named Yume Nikki and Eversion as direct influences on how the game builds unease.',
@@ -1103,7 +1103,7 @@ GAME({ id:'elden-ring', img:'assets/games/elden-ring.jpg', cardPos:'50% 0%', dev
       compare: 'Dark Souls, this library’s other Souls entry, never gives the player a mount at all, so its entire world plays at the careful, on-foot pace Elden Ring now reserves for legacy dungeons alone; Elden Ring keeps that register but confines it, opening a second, faster one around it rather than replacing it everywhere.',
       cost: 'Running two registers means tuning two separate kinds of encounter, field enemies built to be survivable at a gallop and dungeon enemies built to demand full engagement, which doubles part of the encounter-design workload, and some open-field threats can end up feeling like padding once outrunning them becomes the obviously correct answer.',
       principle: 'When opening a tightly authored, punishing game into a larger world, consider literally revoking the new traversal tool at the doors of the old, dense spaces rather than blending both paces everywhere; a hard boundary lets each register be tuned for its own tempo instead of compromising both.',
-      topics: ['pacing', 'level-structure'],
+      topics: ['difficulty'],
       sources: ['https://en.wikipedia.org/wiki/Torrent_(Elden_Ring)', 'https://www.pcgamesn.com/elden-ring/review-pc'] },
     ui: {
       claim: 'Elden Ring keeps Dark Souls’ refusal of a quest log but adds something Dark Souls never needed, a world map, and even then marks only what the player has already found: Sites of Grace, NPCs met since patch 1.03, and the player’s own pins.',
@@ -1143,7 +1143,7 @@ GAME({ id:'elden-ring', img:'assets/games/elden-ring.jpg', cardPos:'50% 0%', dev
       compare: 'Dark Souls, analysed elsewhere in this library, writes its cosmology entirely in-house around one compact founding event, the First Flame, and a short list of named souls, making it a smaller myth a player can hold in memory once collected; Elden Ring’s outsourced, novelist-authored mythos is larger and arguably harder to fully reconstruct from fragments alone.',
       cost: 'Splitting authorship this way left even critics unsure how much of the finished game’s actual text was Martin’s, since his stated role stopped at the backstory and Miyazaki’s team wrote everything the player directly reads, and within weeks of launch Den of Geek was asking whether his involvement had been overhyped.',
       principle: 'When a studio’s storytelling method is fragmentary by design, consider commissioning the source myth from a writer working in a completely different, linear mode, then doing the fragmenting in-house afterwards; the two-stage process can buy scale and texture an in-house writer alone might not attempt, at the cost of the audience never being able to tell where one author’s contribution ends and the other’s begins.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Elden_Ring', 'https://www.denofgeek.com/games/elden-ring-george-r-r-martin-story-contributions-writing-hype/'] },
     world: {
       claim: 'Elden Ring orients an entire open world around one constantly visible landmark, the Erdtree, rather than a climbable structure the player unlocks once, so navigation stays a background sense the whole game rather than a one-time reveal.',
@@ -1153,7 +1153,7 @@ GAME({ id:'elden-ring', img:'assets/games/elden-ring.jpg', cardPos:'50% 0%', dev
       compare: 'Skyrim, analysed elsewhere in this library, delivers a comparable ‘if you can see it, you can reach it’ promise but pairs it with an always-on compass and quest marker; Elden Ring keeps the landmark but drops the marker entirely, so orientation survives while direction does not.',
       cost: 'A single dominant landmark works only while the world stays legible enough that its direction alone is useful information; underground, in Siofra River and Ainsel River among others, the Erdtree can vanish from view entirely, and the game has no equivalent ambient landmark to replace it there.',
       principle: 'A world can be oriented by one constant landmark rather than by marks on a map; the landmark only ever answers ‘which way’, never ‘what is there’, so pair it with a world dense enough to reward walking towards it, and plan for the places where it drops out of view.',
-      topics: ['spatial-composition', 'level-structure'],
+      topics: ['spatial-composition'],
       sources: ['https://en.wikipedia.org/wiki/Elden_Ring'] },
     env: {
       claim: 'Stormveil Castle stages an ongoing infection rather than a finished ruin: its halls are still being consumed from beneath by a demigod’s corpse the player can go and find, so the space argues its story is still being written while the player walks through it.',
@@ -1173,7 +1173,7 @@ GAME({ id:'elden-ring', img:'assets/games/elden-ring.jpg', cardPos:'50% 0%', dev
       compare: 'Dark Souls, analysed elsewhere in this library, needed a public petition with almost 100,000 signatures before Namco Bandai would even fund a PC port in 2012; a decade later the same publisher shipped Elden Ring day one on PC to millions despite real, reviewer-confirmed technical problems, so the fight had moved from whether a port would exist to how good it was.',
       cost: 'Leaning on reputation instead of a clean launch shifted quality control onto post-release patching, so early PC buyers effectively paid full price to help finish the implementation, and the difficulty debate Wikipedia also records, ‘reviewers both praised and criticised its lack of easy modes’, ran alongside the performance complaints.',
       principle: 'A studio’s accumulated reputation can substitute for a demo or a smooth launch and still sell in the tens of millions, but that substitution borrows against patience: it works once enough acclaim has been banked, and it still leaves day-one buyers absorbing the cost the marketing skipped.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Elden_Ring', 'https://www.windowscentral.com/elden-ring-13-4-million-sold', 'https://gameinformer.com/2025/04/28/elden-ring-celebrates-30-million-copies-shipped'] },
     replay: {
       claim: 'Elden Ring answers Souls games’ reputation for punishing, unmodifiable difficulty not with a slider but with resources a struggling player can spend, Spirit Ashes, multiplayer help, and the freedom to leave, while every player still faces the same numbers.',
@@ -1276,7 +1276,7 @@ GAME({ id:'witcher-3', series:{ id:'witcher', t:'The Witcher', n:'the third main
       compare: 'Skyrim, analysed elsewhere in this library, tops up its hand-written quests with endless Radiant Story repeatables, which the game’s own replay lens notes experienced players learn to recognise as filler; The Witcher 3 instead hand-writes its quests, though not its map’s question-mark activities, at a far higher cost per hour of content.',
       cost: 'Writing every side quest to this standard is not a repeatable formula: it demands bespoke branching dialogue, full voice direction and its own resolution states for content most players will only see once, a cost a templated or procedural side-quest system exists specifically to avoid.',
       principle: 'If a side quest is meant to feel as consequential as the main story, give it the same tools, full voice, branching, an ending that can go wrong, rather than a lighter version of the same craft reserved for optional content.',
-      topics: ['quests-and-events', 'narrative-agency'],
+      topics: ['quests-and-events'],
       sources: ['https://en.wikipedia.org/wiki/The_Bloody_Baron', 'https://www.pcgamer.com/how-the-witcher-3s-best-quest-was-made/', 'https://en.wikipedia.org/wiki/The_Witcher_3:_Wild_Hunt'] },
     world: {
       claim: 'The Witcher 3 lets a choice’s consequence surface hours later and several quests away, rather than resolving it in the scene where it was made.',
@@ -1306,7 +1306,7 @@ GAME({ id:'witcher-3', series:{ id:'witcher', t:'The Witcher', n:'the third main
       compare: 'Batman: Arkham Knight, released one month after Wild Hunt, also pre-announced a $39.99 Season Pass, six months of story missions, challenge maps and skins; The Witcher 3 gave that kind of small content away in its 16 free packs and charged only for two large expansions.',
       cost: 'Sixteen free releases are sixteen additional builds to test, patch and support at no direct revenue, a cost only a studio confident the base game would sell well on its own reputation could absorb without a live-service revenue stream to fund it.',
       principle: 'Sort post-launch content by size rather than by timing: give away anything a player would call a patch or a costume, and charge only for content substantial enough to be reviewed on its own, so the paid tier never reads as material cut from the base game.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/The_Witcher_3:_Wild_Hunt', 'https://www.gamespot.com/articles/witcher-3-s-two-major-expansions-cost-25/1100-6426565/', 'https://www.gameinformer.com/b/news/archive/2015/04/28/batman-arkham-knight-season-pass-to-include-more-story-villains-challenges-skins.aspx', 'https://www.cdprojekt.com/en/media/news/cd-projekt-red-wraps-up-the-first-half-of-2026/'] },
     replay: {
       claim: 'Gwent works as a complete card game nested inside the open world, deep enough that CD Projekt Red could spin it off as two separate commercial products after launch.',
@@ -1326,7 +1326,7 @@ GAME({ id:'witcher-3', series:{ id:'witcher', t:'The Witcher', n:'the third main
       compare: 'Bethesda’s Elder Scrolls series did the reverse: open-world since Arena in 1994, it kept that structure and changed its systems between entries, with Skyrim dropping character classes; the Witcher series instead changed its most basic structural assumption, level-by-level chapters, between its second and third entries while keeping combat and writing identity constant.',
       cost: 'Rebuilding the series around full traversal cost CD Projekt Red the tight, hand-paced chapter structure that let The Witcher and The Witcher 2 control exactly when a player met a given plot beat, a form of authorial control an open world trades away by design.',
       principle: 'When transforming a series’ structure, decide which layer carries the franchise’s identity, its systems and tone, or its level shape, and keep that layer intact while changing the other; changing both at once risks losing what returning players came back for.',
-      topics: ['learning-from-success', 'design-pillars'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/The_Witcher_3:_Wild_Hunt', 'https://en.wikipedia.org/wiki/The_Elder_Scrolls_V:_Skyrim'] }
   },
   shots: [
@@ -1421,7 +1421,7 @@ GAME({ id:'katamari-damacy', series:{ id:'katamari', t:'Katamari', n:'the first 
       compare: 'Super Metroid gates its map with collected abilities, famously the Morph Ball, which shrinks Samus to fit narrow tunnels. Katamari runs the same gating logic with one key and in the opposite direction: the ball has to grow, and the only thing it ever collects toward access is size.',
       cost: 'A single key can only express size, so the world cannot gate by skill, story or choice, and because bigger is always better, a gate once opened never asks the player anything again.',
       principle: 'If the player already watches one number climb, let that number be the key to the map as well, so progress and access are read from the same place and the world needs no separate lock-and-key inventory.',
-      topics: ['spatial-composition', 'level-structure'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Katamari_Damacy'] },
     env: {
       claim: 'The rooms Katamari empties behind the player arguably stage a family’s loss without anyone remarking on it in play: the katamari that finally remakes the Moon takes the Hoshino family, their house and their town with it.',
@@ -1441,7 +1441,7 @@ GAME({ id:'katamari-damacy', series:{ id:'katamari', t:'Katamari', n:'the first 
       compare: 'Konami’s Computer Entertainment School, the model Namco was copying, fed student experiments into products such as Beatmania and Dance Dance Revolution. Katamari is the Namco lab’s equivalent hit, reached through a prototype class rather than a product team.',
       cost: 'Routing a game through a student lab meant fighting for basic staffing, Takahashi got engineers only because three arcade-division staff faced layoffs, and Namco’s own push came late: Sony ran the Japanese promotion after the Tokyo Game Show demo, and the Western release came only after press and players asked for it.',
       principle: 'An idea nobody at a publisher will greenlight through the normal process can sometimes reach a shelf through a side channel meant for training, but expect that channel to grant a token budget and staff, so the game has to be planned around scarcity rather than hoping for more once it proves itself.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Katamari_Damacy'] },
     replay: {
       claim: 'Katamari’s replay pull is a number that only goes up, much like an idle game’s, except the number is earned inside a timed, skilled run rather than through waiting or reinvesting, so wanting to play again means wanting a better few minutes, not a longer session.',
@@ -1451,7 +1451,7 @@ GAME({ id:'katamari-damacy', series:{ id:'katamari', t:'Katamari', n:'the first 
       compare: 'Cookie Clicker, also in this library, generates its climbing number from one exponential price formula a player mostly manages between purchases. Vampire Survivors, also in this library, generates a comparable pull through meta-currency spent between runs. Katamari’s number grows only inside a single timed attempt, carrying nothing forward beyond what the player has learned.',
       cost: 'Because nothing meaningful persists between attempts, no purchasable upgrade, no meta-progression multiplier, a player who wants a bigger number has to replay the same short level again from scratch rather than feel steady, guaranteed growth, a higher-effort ask than either idle game makes of its players.',
       principle: 'The “number goes up” pull idle games manufacture through unattended accumulation can be recreated inside a single timed, skill-based attempt instead, but doing so removes the guaranteed, low-effort growth that makes idle games easy to return to, so the return has to be sold on personal improvement, not accumulation.',
-      topics: ['progression', 'mastery-discovery-expression'],
+      topics: ['progression'],
       sources: ['https://en.wikipedia.org/wiki/Katamari_Damacy'] },
     lineage: {
       claim: 'Katamari’s sequels kept the size-threshold rolling rule unchanged and varied the goals and dressing around it, a sumo wrestler’s food, a tropical island, a new console, and Metacritic scores fell steadily across the entries made after Keita Takahashi stopped directing.',
@@ -1544,7 +1544,7 @@ GAME({ id:'diablo-ii', series:{ id:'diablo', t:'Diablo', n:'the second main game
       compare: 'Many sequels introduce an unrelated new antagonist to raise stakes without implicating the player’s own earlier choices; Diablo II instead makes the previous game’s protagonist the very thing this game must be fought against, so the sequel’s villain is the first game’s outcome, not a new arrival.',
       cost: 'The device depends entirely on having played Diablo, so a player new to the series meets the Wanderer as a mysterious stranger with none of the dramatic irony intended, and the ending’s deliberately unresolved corruption can read as an anticlimax rather than as the setting’s bleak point.',
       principle: 'A sequel can raise its stakes by making its predecessor’s ending the new game’s starting problem, letting returning players supply the horror themselves from what they already know, at the cost of that same horror being invisible to anyone new.',
-      topics: ['narrative-agency', 'premise-and-world'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Diablo_II', 'https://en.wikipedia.org/wiki/Diablo_(video_game)', 'https://en.wikipedia.org/wiki/Diablo_II:_Lord_of_Destruction'] },
     world: {
       claim: 'Diablo II keeps Sanctuary’s shape fixed, its acts, waypoints and towns always in the same place relative to each other, while regenerating everything between those fixed points fresh in every game, trading a memorised map for infinite replay at the cost of never fully authoring the space in between.',
@@ -1574,7 +1574,7 @@ GAME({ id:'diablo-ii', series:{ id:'diablo', t:'Diablo', n:'the second main game
       compare: 'Diablo III answered the same problem in the opposite way: it launched in May 2012 with a gold auction house and opened a real-money one that June, formalising trade instead of leaving it emergent; director Jay Wilson later said it “really hurt” the game and both closed in March 2014, arguably showing neither answer solved the problem cleanly.',
       cost: 'An emergent economy costs the developer control over price and legitimacy, and duping directly devalued the time legitimate players had spent earning their own drops, a cost paid by players who never exploited anything themselves.',
       principle: 'If a shared loot pool will produce a player-run economy regardless, decide deliberately whether to formalise or leave it emergent, since an emergent one without server-side integrity checks hands itself to whoever exploits it first.',
-      topics: ['economy-and-resources', 'business-model'],
+      topics: ['economy-and-resources', 'business-model', 'server-anticheat', 'server-authority'],
       sources: ['https://classic.battle.net/diablo2exp/basics/trading.shtml', 'https://www.purediablo.com/d2wiki/Stone_of_Jordan', 'https://en.wikipedia.org/wiki/Diablo_III'] },
     replay: {
       claim: 'Because a skill point spent in the original release could never be returned, Diablo II’s main replay engine was not finishing the game again but starting an entirely new character once the current one’s build had gone wrong.',
@@ -1584,7 +1584,7 @@ GAME({ id:'diablo-ii', series:{ id:'diablo', t:'Diablo', n:'the second main game
       compare: 'Diablo III removed permanent skill trees entirely, letting any skill or rune be swapped outside combat at will; that design trades away Diablo II’s alt-driven replay engine for one where the same single character can be endlessly reconfigured instead of restarted.',
       cost: 'A permanent tree makes early choices matter enormously, which is exactly the tension replayed characters are chasing, but it also means a genuinely curious build experiment costs an entire new character to try safely, discouraging exactly the kind of exploration the tree’s depth might otherwise reward.',
       principle: 'If permanent choices are meant to drive replay through fresh starts, expect players to route around that cost by restarting rather than adapting, and design the early game to be worth replaying quickly, since that is where most of the replaying will actually happen.',
-      topics: ['difficulty', 'builds-and-loadouts'],
+      topics: ['builds-and-loadouts'],
       sources: ['https://blizzplanet.substack.com/p/diablo_ii_patch_113c_patcn_notes', 'https://news.blizzard.com/en-us/article/24246296/diablo-ii-resurrected-ladder-season-13-has-concluded', 'https://en.wikipedia.org/wiki/Diablo_III'] },
     lineage: {
       claim: 'As the second main game in the Diablo series, Diablo II is arguably the best-known carrier of the loot-driven “number goes up” loop that now runs through action games far removed from dungeon-crawling: Path of Exile names it outright, and Borderlands credits the series.',
@@ -1707,7 +1707,7 @@ GAME({ id:'doom', series:{ id:'doom', t:'Doom', n:'the first game' }, img:'asset
       compare: 'A modern demo usually offers a short vertical slice and stops there; Doom instead gave away a complete, structurally finished third of the game and trusted that experience alone to sell the rest.',
       cost: 'By id’s own estimate only about 1 percent of shareware players paid for the rest, so most of the audience the free episode reached never became revenue, and the same violent, satanic imagery that helped it spread also fed a moral panic, Germany classified it as harmful to minors shortly after release, a restriction lifted only in 2011, that followed the franchise for years, including false claims after the 1999 Columbine shooting that one of the killers had built a practice level from the school itself.',
       principle: 'When a product can be cleanly split into a whole, satisfying free part and a paid continuation, uncontrolled copying of the free part is not a leak to plug, it is distribution a publisher would otherwise be paid to provide.',
-      topics: ['business-model', 'launch-and-discoverability', 'ethics-and-responsibility'],
+      topics: ['business-model', 'launch-and-discoverability'],
       sources: ['https://en.wikipedia.org/wiki/Doom_(1993_video_game)', 'https://www.snopes.com/fact-check/the-harris-levels/'] },
     replay: {
       claim: 'Doom stored its levels and art in WAD files separate from the engine, built knowing that players had struggled to mod Wolfenstein 3D, then opened the engine itself in 1997, so the community has kept supplying new content for over thirty years.',
@@ -1717,7 +1717,7 @@ GAME({ id:'doom', series:{ id:'doom', t:'Doom', n:'the first game' }, img:'asset
       compare: 'Minecraft, also in this library, has never released its source: mods run through community loaders such as Forge and Fabric, and only from late 2025 did Mojang stop obfuscating Java Edition’s code. Doom’s community instead works on the actual engine source id published, not just a layer bolted onto a closed client.',
       cost: 'Opening the code let anyone ship a changed engine, and decades of separate source ports mean “play Doom” no longer describes one fixed, identical experience, since each port can quietly change timing, resolution or rules the original never had.',
       principle: 'Separate a game’s content format from its engine before anyone asks for modding, and replay value keeps arriving for free; opening the engine’s own code later is what turns that community from level-makers into engine-keepers.',
-      topics: ['content-multiplies', 'ugc-platforms'],
+      topics: ['content-multiplies'],
       sources: ['https://en.wikipedia.org/wiki/Doom_modding', 'https://en.wikipedia.org/wiki/MyHouse.wad', 'https://en.wikipedia.org/wiki/Doom_(1993_video_game)', 'https://fabricmc.net/2025/10/31/obfuscation.html'] },
     lineage: {
       claim: 'id’s 2016 reboot answers Doom’s speed with a rule the original never had: killing a stunned enemy by hand refills your health, so the safest thing in a fight is to keep attacking.',
@@ -1727,7 +1727,7 @@ GAME({ id:'doom', series:{ id:'doom', t:'Doom', n:'the first game' }, img:'asset
       compare: 'Doom 3, in 2004, had gone the opposite way, towards slower survival horror; the 2016 team abandoned that slower pace and used the original games as the template for its art and gameplay.',
       cost: 'Tying resources to melee finishers adds an animation-locked beat to combat that a purely twitch-based shooter would not have, and a player who dislikes stopping to perform a kill loses some of the constant, uninterrupted movement the original game never paused for at all.',
       principle: 'When a classic design’s core reward, in this case movement, was only ever implicit, a remake can make it explicit by attaching a direct resource payoff to it, provided the payoff still asks for the same underlying skill.',
-      topics: ['risk-reward', 'game-feel-and-juice'],
+      topics: ['economy-and-resources'],
       sources: ['https://en.wikipedia.org/wiki/Doom_(2016_video_game)', 'https://en.wikipedia.org/wiki/Doom_(1993_video_game)'] }
   },
   shots: [
@@ -1772,7 +1772,7 @@ GAME({ id:'half-life-2', series:{ id:'half-life', t:'Half-Life', n:'the second m
       compare: 'Garry’s Mod, a Source sandbox first released as a mod in December 2004, hands players a physics gun and free choice of props with no set objectives; with the level designer’s placement gone, the same physics becomes a construction toy rather than a fight, which shows how much of Half-Life 2’s combat lives in where the props were put.',
       cost: 'Because so much of the challenge depends on what happens to be lying around, encounter design has to hand-place the right junk in every room, a level-art cost invisible to the player; the wrong props left in a room can quietly make it far harder or trivially easy.',
       principle: 'When a physics tool can act on nearly everything in a level, treat level dressing and armament as one budget: place props for what they will be thrown at, not only for how they look.',
-      topics: ['mechanics-and-rules','encounter-design','core-loop'],
+      topics: ['mechanics-and-rules', 'encounter-design', 'core-loop', 'playtesting', 'team-and-collaboration'],
       sources: ['https://en.wikipedia.org/wiki/Gravity_Gun', 'https://en.wikipedia.org/wiki/Ravenholm', 'https://en.wikipedia.org/wiki/Garry%27s_Mod', 'https://culturedvultures.com/memorable-mechanics-half-life-2-seamless-tutorial/', 'https://www.gamedeveloper.com/design/classic-postmortem-the-making-of-i-half-life-2-i-'] },
     ui: {
       claim: 'Half-Life 2 keeps its HUD to a few bare numbers and lets the Gravity Gun’s payload stay in the world: a held radiator or sawblade hangs visibly in front of the player, blocking part of the view, instead of vanishing into an inventory slot.',
@@ -1782,7 +1782,7 @@ GAME({ id:'half-life-2', series:{ id:'half-life', t:'Half-Life', n:'the second m
       compare: 'Dead Space, four years later, moves even health and ammunition into the world, onto Isaac’s suit and his raised weapon; Half-Life 2 stops halfway, keeping its suit numbers as a conventional corner readout while letting the physics payload live in the scene.',
       cost: 'A payload that physically fills the screen also blocks it: carrying a large prop narrows the player’s view at exactly the moment a fight is starting, a trade the game accepts rather than hiding the object in a slot.',
       principle: 'When the thing a player carries is also the ammunition, keep it in the scene rather than in an inventory: its size, weight and position then do the HUD’s job and suggest uses no icon would.',
-      topics: ['feedback-and-affordance','readability-and-hierarchy','controls-and-friction'],
+      topics: ['feedback-and-affordance', 'readability-and-hierarchy'],
       sources: ['https://en.wikipedia.org/wiki/Gordon_Freeman', 'https://en.wikipedia.org/wiki/Dead_Space_(2008_video_game)', 'https://en.wikipedia.org/wiki/Gravity_Gun'] },
     art: {
       claim: 'Half-Life 2 spent its technical budget on faces rather than bodies, building a dedicated facial-animation system so principal characters could carry whole scenes by expression alone, since the camera never cuts to a close-up for them.',
@@ -1812,7 +1812,7 @@ GAME({ id:'half-life-2', series:{ id:'half-life', t:'Half-Life', n:'the second m
       compare: 'Half-Life (1998) set the no-cutscene rule first, with mostly silent scientists and guards; Half-Life 2 extends it to fully modelled, expressive companions, so the technique now has to carry real relationships, not just briefings.',
       cost: 'The same commitment left the story unfinished: Half-Life 2: Episode Two ends in 2007 on Eli Vance’s death and Alyx’s abduction, and Valve cancelled Episode Three and, by its own account, several further projects, leaving that cliffhanger open for over twelve years until Half-Life: Alyx, a prequel, reversed Eli’s death in its final scene without continuing the story past it.',
       principle: 'A camera that never leaves the player’s eyes can make a companion feel like company rather than cargo, but a studio that commits to telling a whole story this way has committed to finishing every scene in engine, in real time, which is far costlier to leave undone than a cutscene would be.',
-      topics: ['narrative-pacing','narrative-agency'],
+      topics: ['narrative-pacing'],
       sources: ['https://www.gamesradar.com/how-wordless-gordon-freeman-became-one-gamings-best-heroes-half-life-2/', 'https://en.wikipedia.org/wiki/Half-Life_2', 'https://en.wikipedia.org/wiki/Half-Life_2:_Episode_Two', 'https://en.wikipedia.org/wiki/Half-Life:_Alyx', 'https://en.wikipedia.org/wiki/Gordon_Freeman'] },
     world: {
       claim: 'Half-Life 2 implies an entire occupied planet from the one city it can afford to build, by staging the machinery of control, checkpoints, propaganda screens, converted architecture, rather than describing a war the player never leaves City 17 to see.',
@@ -1842,7 +1842,7 @@ GAME({ id:'half-life-2', series:{ id:'half-life', t:'Half-Life', n:'the second m
       compare: 'SimCity’s 2013 reboot repeated the same bet at a larger scale, tying ordinarily single-player-feeling play to always-online servers that buckled at launch and drew a far longer backlash; Half-Life 2 only needed one successful activation per copy, so its damage stayed inside its preload and launch days.',
       cost: 'Valve staked its flagship release on infrastructure with little track record and too little capacity for a launch-day surge, so across preload and launch day the game people had waited years for was, for many buyers, simply unplayable.',
       principle: 'A platform that still has to earn trust should not premiere on the one release its whole audience is already guaranteed to buy: bundling a mandatory new service with a must-play game turns the service’s rough edges into damage against the game itself.',
-      topics: ['business-model','launch-and-discoverability'],
+      topics: ['business-model', 'server-scaling'],
       sources: ['https://en.wikipedia.org/wiki/Half-Life_2', 'https://www.inverse.com/gaming/half-life-2-anniversary-steam'] },
     replay: {
       claim: 'Half-Life 2 turns its own making into replayable content: since Lost Coast in 2005, floating commentary nodes let a player pause inside the finished game and hear why a room, a fight or a joke was built the way it was.',
@@ -1852,7 +1852,7 @@ GAME({ id:'half-life-2', series:{ id:'half-life', t:'Half-Life', n:'the second m
       compare: 'A film’s director’s commentary track runs underneath the same fixed edit for the length of the whole film; Half-Life 2’s version is spatial rather than continuous, so a player chooses which of dozens of separate moments to stop and listen to, and can ignore the rest entirely.',
       cost: 'Writing, recording and placing commentary for dozens of nodes across a full campaign is real, ongoing production work for a feature most players use once if at all, and it was not added to Half-Life 2 itself until the 20th-anniversary update in November 2024, two decades after release.',
       principle: 'A fixed, linear campaign can earn a second life without new content if replaying it means hearing why it was built that way; place that explanation at the exact spot it explains, not in a separate video or article, so finding it stays part of playing the game.',
-      topics: ['knowledge-as-progression','learning-from-success'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Half-Life_2:_Lost_Coast', 'https://en.wikipedia.org/wiki/Half-Life_2'] },
     lineage: {
       claim: 'Half-Life 2’s Gravity Gun is inherited most tellingly inside its own series: Half-Life: Alyx (2020) kept the power to lift and throw distant objects but rebuilt it as gravity gloves, because in VR the player’s own hands had replaced the gun.',
@@ -1915,7 +1915,7 @@ GAME({ id:'counter-strike-2', series:{ id:'counter-strike', t:'Counter-Strike', 
       compare: 'Riot’s Valorant attacked the same timing problem with raw speed, running 128-tick servers for every player from its 2020 launch; CS2 instead keeps 64 ticks and treats the tick as a simulation step separate from input timing, recording when each input actually happened.',
       cost: 'The change is invisible without comparison, so most of the audience never notices it directly, and it did nothing to fix the stability problems reviewers flagged at CS2’s launch, since sub-tick addresses timing fairness, not server or client performance.',
       principle: 'If a network model quantises timing to a fixed interval, look for where that rounding leaks into fairness before raising the interval’s resolution; recording the true timing and only quantising the simulation step can remove the unfairness without needing a faster server.',
-      topics: ['server-realtime-protocol', 'server-authority', 'feedback-and-affordance'],
+      topics: ['server-authority', 'feedback-and-affordance'],
       sources: ['https://en.wikipedia.org/wiki/Counter-Strike_2', 'https://store.steampowered.com/app/730/CounterStrike_2/', 'https://www.dust2.us/news/59297/spunj-begs-valve-to-allow-128-tick-subtick-servers-in-cs2-i-want-to-play-on-whats-the-best', 'https://www.riotgames.com/en/news/peeking-valorants-netcode'] },
     art: {
       claim: 'Counter-Strike 2’s volumetric smoke trades a flat, predictable prop for a rendered volume that gunfire can physically punch through, spending a clarity budget CS:GO never had to manage.',
@@ -1925,7 +1925,7 @@ GAME({ id:'counter-strike-2', series:{ id:'counter-strike', t:'Counter-Strike', 
       compare: 'Rainbow Six Siege’s destructible walls apply a similar idea to architecture rather than utility, letting a fixed structure become a temporary sightline; CS2 is the first Counter-Strike entry to apply that same logic to a grenade’s effect rather than to the map’s geometry.',
       cost: 'Simulating a volume per smoke grenade is more expensive to render than a flat sprite, and a smoke that can be shot open removes some of the total, guaranteed safety a thrown smoke previously bought a pushing team.',
       principle: 'When a prop’s whole job is to block information, decide deliberately whether its physical behaviour should be as fixed and memorisable as a rule, or as reactive and simulated as the space around it; each choice trades a different kind of clarity for a different kind of realism.',
-      topics: ['visual-language', 'game-feel-and-juice'],
+      topics: ['visual-language'],
       sources: ['https://en.wikipedia.org/wiki/Counter-Strike_2', 'https://store.steampowered.com/app/730/CounterStrike_2/'] },
     sound: {
       claim: 'Counter-Strike 2 makes a player’s own footsteps a resource to spend, not just a warning to react to, since movement speed sets how loud and how far a player broadcasts their own position.',
@@ -1946,7 +1946,7 @@ GAME({ id:'counter-strike-2', series:{ id:'counter-strike', t:'Counter-Strike', 
       compare: 'A game built around one permanent arena, League of Legends’ Summoner’s Rift, never has to make this decision at all; Counter-Strike 2 instead treats its whole map roster as an editable list, closer to a sports league revising its official rulebook than to a single fixed stadium.',
       cost: 'Removing a map, even temporarily, discards the callout knowledge and strategy a community spent years building around it, and Valve’s reversals, Dust II and Train both left, returned and, in Train’s case, left again, show the studio itself is not always certain which edits the data actually supports.',
       principle: 'A game that repeats the same short match indefinitely does not need one consistent world; it needs a curated, revisable set of arenas, and treating that set as a canon to edit deliberately, rather than a content library to only ever add to, is itself a design decision with a cost.',
-      topics: ['live-operations', 'content-multiplies'],
+      topics: ['content-multiplies'],
       sources: ['https://en.wikipedia.org/wiki/Dust_II', 'https://en.wikipedia.org/wiki/Counter-Strike_2', 'https://www.hltv.org/news/43600/anubis-replaces-train-in-active-duty-pool'] },
     env: {
       claim: 'Dust II and Mirage stage every route as one of a small number of readable lanes meeting at a named chokepoint, so a map’s layout becomes a vocabulary players share before they can see each other.',
@@ -1956,7 +1956,7 @@ GAME({ id:'counter-strike-2', series:{ id:'counter-strike', t:'Counter-Strike', 
       compare: 'Fortnite’s battle royale island changes its named locations most seasons and is replaced outright between chapters, so a place name a community learns often lasts months rather than years; Dust II’s named routes have stayed legible for over two decades because the layout underneath the callouts barely changes.',
       cost: 'A three-lane layout that stays legible for decades also stays predictable, so professional play develops rehearsed set pieces for the same few chokepoints rather than a wide variety of routes, and a map with too few lanes can make a losing team’s position easy for the other side to read as well.',
       principle: 'If players are expected to communicate a space verbally under pressure, design the space to need only a small, stable set of names, and hold that underlying layout still for long enough that the vocabulary itself becomes shared knowledge rather than a fresh cost every session.',
-      topics: ['spatial-composition', 'level-structure'],
+      topics: ['spatial-composition'],
       sources: ['https://en.wikipedia.org/wiki/Dust_II', 'https://en.wikipedia.org/wiki/Counter-Strike_2'] },
     business: {
       claim: 'Counter-Strike 2 runs on a model built from two separate Valve decisions, going free-to-play in 2018 and turning weapon cosmetics into a tradeable market in 2013, whose combined success came with a gambling scandal Valve had to police itself.',
@@ -1966,7 +1966,7 @@ GAME({ id:'counter-strike-2', series:{ id:'counter-strike', t:'Counter-Strike', 
       compare: 'Valve had already tested a cosmetic economy in Team Fortress 2 from 2010, hats and crates traded for real value years before Arms Deal; Counter-Strike 2 inherited a mature, already-controversial version of that model rather than inventing it, so Valve’s 2016 and 2019 interventions read as damage control on a known risk, not an unforeseeable surprise.',
       cost: 'Free accounts feed smurfing and cheating that Prime Status only partly filters, and the skin market keeps attracting new gambling and laundering schemes faster than enforcement closes the last ones, an ongoing cost of an economy Valve never fully controls.',
       principle: 'A free-to-play switch and a tradeable virtual-goods market are each manageable alone, but combining them multiplies both audience and risk together, so plan who gets banned before the two decisions ship, not after operators have already built on top of them.',
-      topics: ['business-model', 'ethics-and-responsibility', 'live-operations'],
+      topics: ['business-model', 'ethics-and-responsibility'],
       sources: ['https://en.wikipedia.org/wiki/Counter-Strike:_Global_Offensive', 'https://www.espn.com/esports/story/_/id/17723033/washington-state-gambling-commission-orders-valve-stop-skins-gambling', 'https://www.espn.com/gaming/story/_/id/17115903/valve-sends-cease-desists-23-csgo-skin-betting-sites', 'https://www.gamespot.com/articles/valve-launches-steam-market/1100-6401485/'] },
     replay: {
       claim: 'Counter-Strike 2 stacks two separate costs of failure onto one death, a temporary one that empties the rest of the round of agency and an economic one that follows the player into the next round entirely.',
@@ -2039,6 +2039,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'Counter-Strike 2 also treats footsteps as decisive information but leaves them in the audio channel, so reading them well still depends on hearing and a good headset; Fortnite chose to copy the same cues to the screen and then made that copy the default rather than an opt-in setting.',
       cost: 'The rings add one more layer to a HUD already carrying the storm timer, player count and quest tracker, and they turn a listening skill into a reading one, so a player who had invested in hearing a fight well loses part of that edge to everyone else.',
       principle: 'When a sound carries information a match can be won on, give it a visual twin and switch it on for everyone, so an accessibility aid does not quietly become an advantage for whoever found the setting.',
+      topics: ['ux-as-design', 'accessibility', 'feedback-and-affordance'],
       sources: ['https://caniplaythat.com/2024/08/09/icymi-fortnite-enables-visualize-sound-effects-xbox-shares-gamescom-accessibility/', 'https://accessibility-labs.com/feature-highlight-fortnites-sound-visualizer/', 'https://en.wikipedia.org/wiki/Counter-Strike_2'] },
     art: {
       claim: 'Fortnite’s cartoon proportions work as a house style that every licence is redrawn into: exaggerated heads, saturated colour and soft shading let hundreds of unrelated crossover skins share one island without breaking its tone.',
@@ -2048,6 +2049,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'Call of Duty: Warzone sells strange crossovers too, including Godzilla and King Kong in its 2022 Operation Monarch event and Monsterverse operator skins, but drops them into a photorealistic world where they read as costumes on soldiers; Fortnite redraws a licence into its own proportions, so the guest looks native to the island.',
       cost: 'The same flexibility that absorbs any licence also softens the game’s own darker story beats, a black hole ending an entire chapter, an alien invasion, since a cast this stylised arguably cannot fully sell dread; that cost is paid by the writers, not the art budget.',
       principle: 'Fix one house proportion and shading model before licensing anything, and redraw every guest into it, so a crossover reads as native and a threat still reads by silhouette; the same softness then caps how much dread the studio’s own darkest story beats can sell.',
+      topics: ['visual-language', 'readability-and-hierarchy'],
       sources: ['https://en.wikipedia.org/wiki/Fortnite', 'https://en.wikipedia.org/wiki/Lego_Fortnite', 'https://www.windowscentral.com/call-duty-warzone-godzilla-king-kong-operation-monarch'] },
     sound: {
       claim: 'Fortnite’s boldest sound decision is to turn the island into a stage: at a live concert the music stops being a soundtrack and becomes the event itself, performed by a giant in-world avatar while the game’s own verbs are switched off.',
@@ -2057,6 +2059,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'Roblox borrowed the format in November 2020 for Lil Nas X, four performances that drew more than 33 million views with the performer as an avatar inside the game world, which suggests the format rests on a shared social space more than on any one game’s combat.',
       cost: 'Switching off combat so the music can lead means a concert exercises nothing Fortnite’s matches are built on: the event rents a musician’s audience and licence for a few showings, and every minute of staging is spent on content that players watch rather than master.',
       principle: 'To make licensed music the event rather than a backdrop, give it a visible source inside the world and switch off every verb that would compete with it, so for a few minutes the whole mix belongs to one performer and players listen instead of fight.',
+      topics: ['audio-and-music'],
       sources: ['https://news.pollstar.com/2020/04/27/review-travis-scotts-astronomical-fortnite-event/', 'https://en.wikipedia.org/wiki/Astronomical_(Fortnite_event)', 'https://mobilesyrup.com/2020/11/16/lil-nas-xs-roblox-concert-attracted-33-million-views/'] },
     lore: {
       claim: 'Fortnite tells its plot almost entirely through one-time live events, so knowing the story means having been online at a specific scheduled hour, not reading anything the game keeps afterwards.',
@@ -2066,6 +2069,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'Destiny 2 also runs scheduled seasonal story beats, but backs them with a permanent in-game Lore archive afterward; Fortnite keeps no equivalent archive of its events: Fortnite OG, a permanent side mode since December 2024, brings back the original map rather than its live events, which survive only as fan wikis and recorded video.',
       cost: 'A story told once, live, cannot onboard whoever was not online at that exact hour, across time zones, school or work, so most of Fortnite’s current audience has necessarily missed most of its own history, and nobody can explain the plot from inside the game itself.',
       principle: 'A live-service game can tell its story as an unrepeatable performance instead of persistent text, trading the reach of anyone who can read a wiki page whenever they like for a shared memory that only whoever logged in at the right hour actually owns.',
+      topics: ['narrative-pacing'],
       sources: ['https://time.com/5702675/fortnite-black-hole-season-2/', 'https://en.wikipedia.org/wiki/Fortnite_seasonal_events'] },
     world: {
       claim: 'Fortnite keeps continuity of name and cosmology across chapters while discarding the map itself completely, substituting “the same address” for “the same geography”.',
@@ -2075,6 +2079,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'Minecraft keeps every player’s own generated world permanently intact and never wipes it, so that world is a possession; a Fortnite island belongs to Epic and is demolished on Epic’s own schedule, so a player’s map knowledge lasts only until the next reset, or until Epic chooses to bring the old map back as nostalgia.',
       cost: 'Total map resets throw away years of accumulated player knowledge and any location-based storytelling has to be rebuilt from nothing each chapter, at real production cost, since the previous chapter’s landmarks are simply gone.',
       principle: 'A live game can treat its whole map as disposable content rather than a persistent place, trading players’ accumulated spatial knowledge for a new headline each chapter, and banking every retired map as nostalgia it can bring back later.',
+      topics: ['premise-and-world'],
       sources: ['https://time.com/5702675/fortnite-black-hole-season-2/', 'https://en.wikipedia.org/wiki/Fortnite_seasonal_events', 'https://en.wikipedia.org/wiki/Fortnite'] },
     env: {
       claim: 'When a live event wrecks a named point of interest, Fortnite leaves the damage on the map for the rest of that season, so a ruin argues an in-fiction event really happened.',
@@ -2084,6 +2089,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'BioShock’s Rapture is a single ruin, authored once and preserved for the whole game; Fortnite’s ruin is a temporary state of a location that is still being live-updated and will itself be erased at the very next full map reset.',
       cost: 'A ruin only reads as a record to players who knew the place before it fell; a newcomer landing in a crater sees ordinary terrain, so the technique rewards veterans and says little to the new players a live game most needs to keep.',
       principle: 'Let a live event leave its damage on the map, and a ruin becomes proof to returning players that something happened while they were away; but it speaks only to players who remember the place before, so pair it with a cue a newcomer can read.',
+      topics: ['environmental-storytelling'],
       sources: ['https://en.wikipedia.org/wiki/Fortnite_seasonal_events', 'https://en.wikipedia.org/wiki/Tilted_Towers'] },
     business: {
       claim: 'Fortnite Battle Royale is free to install, sells only cosmetics and a Battle Pass that can be bought with tiers already unlocked, and pays every one of its islands, including its own Battle Royale, from the same engagement pool as any outside creator.',
@@ -2103,7 +2109,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'Counter-Strike 2 splits its skill: aim and spray control travel to any map, but utility lineups and positions are learned per map in a small competitive pool that Valve rotates only gradually, so part of a veteran’s mastery is tied to specific maps; Fortnite’s building works like aim, useful on a brand new island every year.',
       cost: 'Splitting Build and Zero Build means neither queue benefits from the other’s population at a given hour, and Epic must design, balance and patch content twice, once for a game with building and once without it, effectively running two competitive metas under one name.',
       principle: 'If a mechanic is meant to be the one thing veterans keep across a live game’s constant content churn, make it a transferable player skill rather than map knowledge, but be ready for players who never wanted that skill to demand the game without it.',
-      topics: ['difficulty'],
+      topics: ['skill-and-mastery'],
       sources: ['https://en.wikipedia.org/wiki/Fortnite_Battle_Royale', 'https://gameinformer.com/2022/03/29/fortnite-epic-games-announces-zero-build-a-new-no-build-mode-for-the-battle-royale', 'https://en.wikipedia.org/wiki/Counter-Strike_2'] },
     lineage: {
       claim: 'Fortnite Battle Royale did not invent the genre; it fast-followed PlayerUnknown’s Battlegrounds by about six months, then won a larger audience by removing what PUBG kept and adding a system Fortnite already owned.',
@@ -2160,7 +2166,7 @@ GAME({ id:'starcraft', series:{ id:'starcraft', t:'StarCraft', n:'the first game
       compare:'Civilization, also in this library, staggers production, research and movement on clocks that leave a turn unfinished; StarCraft removes the turn boundary entirely, so every one of those clocks runs at once, and the staggering Civilization gets from turn order, StarCraft gets from the player’s own split attention instead.',
       cost:'Balancing three complete rosters against each other, not just against themselves, multiplies the patch workload: a change to one Terran unit must be weighed against its effect on the Zerg and the Protoss matchup separately, a cost carried by Blizzard’s balance team and the scene for decades.',
       principle:'When you want factions to feel wholly different, balance the resource beneath them, attention, economy, timing, rather than mirroring their unit stats; but budget for the matchup matrix that decision creates for the entire life of the game.',
-      topics:['economy-and-resources','skill-and-mastery'],
+      topics: ['economy-and-resources'],
       sources:['https://en.wikipedia.org/wiki/StarCraft_(video_game)', 'https://en.wikipedia.org/wiki/StarCraft:_Brood_War', 'https://en.wikipedia.org/wiki/Civilization_(video_game)', 'https://classic.battle.net/scc/terran/basic.shtml'] },
     ui:{
       claim:'StarCraft keeps every race’s interface in the same three screen regions regardless of which race is on screen, so a spectator or a player reading over someone’s shoulder can find the resource count, the minimap and the command card without ever learning that race’s specific units first.',
@@ -2200,7 +2206,7 @@ GAME({ id:'starcraft', series:{ id:'starcraft', t:'StarCraft', n:'the first game
       compare:'Warcraft III, Blizzard’s next real-time strategy game, repeats the same one-campaign-per-faction structure across four races instead of three, and again threads a single corrupted protagonist, Arthas, through more than one of those campaigns, so the studio kept the device that had already tied StarCraft’s three acts together.',
       cost:'Committing an entire campaign’s length to teaching one race before the next race even appears means a player has to finish two full campaigns of systems they may never choose in multiplayer before reaching the third, and the Zerg and Protoss campaigns both depend on a plot thread that only makes sense to someone who played the Terran campaign first.',
       principle:'When a story must be split across mechanically unrelated chapters to teach each one properly, give it one character built specifically to survive every handover, so the seams between chapters carry continuity even where the systems underneath share nothing.',
-      topics:['premise-and-world','narrative-agency'],
+      topics: ['premise-and-world'],
       sources:['https://en.wikipedia.org/wiki/StarCraft_(video_game)'] },
     world:{
       claim:'StarCraft’s Koprulu Sector buys its three-way conflict real stakes cheaply by inventing exactly one trait per side and letting that single trait explain their whole war: Terrans need room after exile, Zerg need genetic material to assimilate, Protoss need to preserve what the other two threaten.',
@@ -2210,7 +2216,7 @@ GAME({ id:'starcraft', series:{ id:'starcraft', t:'StarCraft', n:'the first game
       compare:'Civilization, also in this library, buys its own completeness by citing real historical figures and named wonders as content; StarCraft instead invents its whole cast from nothing, but keeps the invention cheap by giving each side exactly one motive rather than a researched history, a far smaller invention budget spent on a comparable sense of a settled, motivated world.',
       cost:'A world explained by one motive per side each has less room to surprise a player later: once “Zerg assimilate” and “Protoss preserve” are established, most Zerg and Protoss behaviour across the whole series follows predictably from that single sentence rather than from any deeper, harder-to-summarise culture.',
       principle:'When a setting needs to justify conflict between invented sides fast, give each side exactly one motive specific enough to collide with the others on contact, rather than a fuller history whose politics take longer to establish than the war itself.',
-      topics:['premise-and-world','spatial-composition'],
+      topics: ['premise-and-world'],
       sources:['https://en.wikipedia.org/wiki/StarCraft_(video_game)', 'https://en.wikipedia.org/wiki/Civilization_(video_game)'] },
     env:{
       claim:'Zerg creep, the purple organic film that spreads from Zerg buildings, doubles as an environmental storytelling device: it visibly marks which parts of the map are currently occupied, so a glance at the ground reports territorial control that a Terran or Protoss army has no equivalent way to display.',
@@ -2230,7 +2236,7 @@ GAME({ id:'starcraft', series:{ id:'starcraft', t:'StarCraft', n:'the first game
       compare:'Age of Empires II reached its later audience through two paid remasters, HD Edition in 2013 and Definitive Edition in 2019, with no free tier; StarCraft split the same legacy relaunch into a free base game plus a separate paid visual upgrade, monetising presentation rather than a ruleset its competitive audience already owned for free.',
       cost:'Giving away the base game forfeits any further new-copy revenue from it, a cost Blizzard absorbed in exchange for keeping the install base, and by extension the competitive scene, that had made the StarCraft name valuable enough for a paid Remastered edition to be worth making at all.',
       principle:'When an unplanned venue-based or broadcast economy ends up carrying a game’s relevance far longer than its original release cycle, formalise that economy through licensing and, eventually, a free base tier, rather than trying to force it back into an ordinary paid-copy model it has already outgrown.',
-      topics:['business-model','live-operations'],
+      topics: ['business-model'],
       sources:['https://en.wikipedia.org/wiki/PC_bang', 'https://en.wikipedia.org/wiki/StarCraft_(video_game)', 'https://en.wikipedia.org/wiki/StarCraft:_Remastered', 'https://gameinformer.com/b/news/archive/2017/04/18/starcraft-brood-war-patch-version-1-18-makes-the-game-completely-free.aspx'] },
     replay:{
       claim:'StarCraft kept its replay value rising for nineteen years with no new units after 1998 by pairing Battle.net’s ladder with a live broadcast scene, so the content that kept changing was the visible ceiling of human skill, not the game itself.',
@@ -2240,7 +2246,7 @@ GAME({ id:'starcraft', series:{ id:'starcraft', t:'StarCraft', n:'the first game
       compare:'Age of Empires II sustained its own long competitive tail on largely the same ruleset for years before Definitive Edition (2019) restarted its content cycle; Brood War’s league scene ran on one fixed roster longer still, twelve years under KeSPA, before a different sequel, not a content update, replaced it.',
       cost:'Tying replay value to one publisher-sanctioned game meant the May 2012 switch to StarCraft II displaced a generation of Brood War specialists within months, a cost the ladder and league structure had no mechanism to soften, since neither was built to manage a transition away from the game it measured.',
       principle:'When a fixed-content multiplayer game is going to be replayed for years, invest in the spectator layer, rankings, observer tools, broadcast rights, as care for the game’s content in its own right; but know that anchoring a scene’s sanctioned game to one publisher’s roadmap risks ending years of specialised skill the moment that roadmap moves on.',
-      topics:['mastery-discovery-expression','server-matchmaking'],
+      topics: ['mastery-discovery-expression'],
       sources:['https://en.wikipedia.org/wiki/Battle.net', 'https://en.wikipedia.org/wiki/StarCraft:_Brood_War', 'https://en.wikipedia.org/wiki/Korea_e-Sports_Association', 'https://en.wikipedia.org/wiki/Lim_Yo-hwan'] },
     lineage:{
       claim:'StarCraft’s own map editor is arguably the traceable root of the MOBA genre: a custom scenario built inside it, Aeon of Strife, supplied the concept a different studio’s editor later turned into Defense of the Ancients.',
@@ -2299,7 +2305,7 @@ GAME({ id:'age-of-empires-ii', series:{ id:'age-of-empires', t:'Age of Empires',
       compare: 'Civilization, also in this library, advances technology continuously: science earned each turn flows into the chosen technology, with no lump sum and no emptied treasury, so a Civilization player is never forced to pick one moment to go all in the way an Age advance forces here.',
       cost: 'A player raided mid-advance must choose between cancelling, and wasting the Town Centre time already spent, or pressing on with a stockpile that cannot buy a defence, and newer players tend either to hoard resources too long out of caution or to age up blind and get caught with an empty bank.',
       principle: 'When a system’s only lever for growth is continuous accumulation, consider replacing one stage of it with a single, expensive, timed commitment instead: a discrete bet reads as a decision in a way steady accretion never does, and it gives skilled play something exact to read from outside.',
-      topics: ['time-and-turns','decisions','risk-reward'],
+      topics: ['decisions', 'risk-reward'],
       sources: ['https://en.wikipedia.org/wiki/Age_of_Empires_II', 'https://liquipedia.net/ageofempires/Castle_Age', 'https://en.wikipedia.org/wiki/Civilization_(series)'] },
     ui: {
       claim: 'Because four resources are gathered in different places and dropped at different camps, the interface has to help a player notice an idle villager fast, or food, wood, gold and stone quietly stop moving.',
@@ -2349,7 +2355,7 @@ GAME({ id:'age-of-empires-ii', series:{ id:'age-of-empires', t:'Age of Empires',
       compare: 'Civilization keeps a universal structure too, one tech tree every civilisation climbs regardless of when it starts, but frames that structure explicitly as alternate history rather than a record of what happened, which sidesteps the specific charge of misrepresenting anyone’s real chronology since nothing in Civilization claims to have happened at all.',
       cost: 'Historical consistency bought this cheaply is paid for by every civilisation whose real history does not fit a Dark-to-Imperial arc, and by any player who mistakes the game’s tidy shared ladder for an actual timeline.',
       principle: 'A single unifying structure applied to real, unrelated subjects earns consistency and lower production cost, but the designer, not the audience, has to own the specific claim that structure quietly makes about all of them being comparable in the first place.',
-      topics: ['premise-and-world','ethics-and-responsibility'],
+      topics: ['premise-and-world'],
       sources: ['https://www.playthepast.org/?p=3902', 'https://en.wikipedia.org/wiki/Age_of_Empires_II'] },
     env: {
       claim: 'A Wonder win is public on purpose: once a Wonder stands, every player sees the countdown to its victory, so the building itself becomes an invitation to attack rather than a private flex.',
@@ -2379,7 +2385,7 @@ GAME({ id:'age-of-empires-ii', series:{ id:'age-of-empires', t:'Age of Empires',
       compare: 'Age of Empires IV, Relic’s 2021 sequel for the same publisher, went the other way: it launched with eight far more asymmetric civilisations, including nomadic Mongols who cannot build in stone, buying deeper per-civilisation identity with a much smaller roster than Age of Empires II’s.',
       cost: 'Depth per civilisation is arguably shallower than in a fully asymmetric design, since most of a civilisation’s identity is a unit, two technologies and a few bonuses layered on a system every other civilisation also has, so the ceiling on how different any two matches can feel is lower.',
       principle: 'When a design needs to keep generating new competitive content for decades without a sequel, base that growth on many small variants of one shared system rather than a few large, separate ones: variants are cheaper to add, easier to balance against each other, and stay legible to an audience that already knows the core game.',
-      topics: ['skill-and-mastery','depth-vs-complexity','social-experience'],
+      topics: ['skill-and-mastery', 'depth-vs-complexity'],
       sources: ['https://liquipedia.net/ageofempires/Hidden_Cup/4', 'https://en.wikipedia.org/wiki/Age_of_Empires_IV', 'https://www.forgottenempires.net/age-of-empires-ii-definitive-edition/civilizations/britons', 'https://www.forgottenempires.net/age-of-empires-ii-definitive-edition/civilizations/mongols'] },
     lineage: {
       claim: 'Age of Empires II inherited its subtraction model from the 1997 original and added the piece that made each civilisation memorable: a unit no other civilisation can train.',
@@ -2442,7 +2448,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'League of Legends keeps both halves non-diegetic: its shop can be browsed anywhere but used to buy only at the base or while dead, and there is no courier-equivalent unit, so the logistics problem Dota 2 turns into a mechanic is simply abstracted away.',
       cost: 'A lost or badly timed courier run can leave a hero without a needed item at the moment a fight starts, a cost separate from anything the player did wrong in that fight, and one a new player can easily forget to manage.',
       principle: 'When a convenience interface removes friction from an action, consider whether reattaching a slower, interceptable, in-world cost to only half of that action can turn pure convenience back into a decision worth managing, rather than removing the friction altogether.',
-      topics: ['ux-as-design','feedback-and-affordance'],
+      topics: ['ux-as-design'],
       sources: ['https://en.wikipedia.org/wiki/Dota_2', 'https://www.gamingonlinux.com/2019/11/dota-2-just-got-massive-overhaul-with-the-outlanders-update/'] },
     art: {
       claim: 'Valve’s Steam Workshop lets any artist design and sell a hero’s cosmetics, but Valve’s own art guide asks every item to stay close to that hero’s default silhouette and colours, keeping a decade of crowdsourced art from breaking the readability competitive play depends on.',
@@ -2472,7 +2478,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'League of Legends reached for the same medium in the same year with Arcane, but its Runeterra lore also lives mainly beside the match, on Riot’s Universe website, so both studios arguably treat story as a companion product rather than a layer inside the game.',
       cost: 'Building lore this late and this externally means most of a hero’s identity for most players is still just their kit, so the millions of hours spent in Dota 2 itself arguably do little to deepen the audience Dragon’s Blood was made to reach, unlike a game whose narrative and mechanics were designed together from the start.',
       principle: 'A competitive game that cannot pause for story without breaking its core loop can still build a narrative identity, but only by treating it as a separate product for a separate moment of attention, not as a layer added on top of the match itself.',
-      topics: ['premise-and-world','narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Dota:_Dragon%27s_Blood', 'https://en.wikipedia.org/wiki/Dota_2'] },
     world: {
       claim: 'Roshan, a single named boss present since DotA Allstars, anchors Dota 2’s whole world identity by offering a resurrection rather than a buff, a reward no other neutral entity in the game, or in its closest rival, replicates.',
@@ -2482,7 +2488,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'League of Legends’ equivalent boss, Baron Nashor, grants Hand of Baron, a 180-second team buff of bonus stats, an empowered recall and stronger minions, according to the League of Legends wiki; the reward is a temporary siege advantage, not a second life, so the two games’ mythic jungle bosses solve entirely different problems even though both occupy the same design slot.',
       cost: 'Committing five heroes to a Roshan attempt leaves every lane and objective elsewhere on the map undefended for as long as the attempt takes, and a contested Roshan that goes wrong can hand the enemy team both the kills and the Aegis in the same fight.',
       principle: 'A single, recurring neutral entity that every match returns to can carry a game’s sense of shared identity better than any amount of cosmetic variety, provided its reward is different in kind, not just in size, from anything a player can buy.',
-      topics: ['premise-and-world','spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Dota_2', 'https://liquipedia.net/dota2/Aegis_of_the_Immortal', 'https://wiki.leagueoflegends.com/en-us/Hand_of_Baron', 'https://www.gosugamers.net/dota2/news/74352-dota-2-introduces-more-water-and-new-roshan-pit-locations-in-patch-7-38'] },
     env: {
       claim: 'Dota 2 gives higher terrain a built-in defensive edge, a flat chance for ranged attacks from below to simply miss, so a team defending its own high ground gets an advantage no hero has to spend anything to use.',
@@ -2502,7 +2508,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'League of Legends also monetises through cosmetics, but gates its roster behind a weekly rotation of twenty free champions plus a purchase economy in Blue Essence or Riot Points, so Riot’s free-to-play promise and Dota 2’s are not the same promise.',
       cost: 'A prize pool depending on fans buying a given year’s cosmetic pass is not a sum Valve can budget in advance: the pool halved to $18.9 million in 2022, and Valve then dropped Battle Passes altogether, saying most players never bought one.',
       principle: 'When free access removes a paywall the roster used to carry, fund what that paywall paid for through spending players choose, but never build a headline commitment on a source that depends on the crowd staying as excited as the year it peaked.',
-      topics: ['business-model','live-operations','store-presence'],
+      topics: ['business-model', 'live-operations'],
       sources: ['https://en.wikipedia.org/wiki/Dota_2', 'https://en.wikipedia.org/wiki/The_International_(esports)', 'https://www.pcgamer.com/dota-2-is-moving-away-from-the-battle-pass-model-as-valve-says-there-are-better-uses-of-dev-time-and-most-players-never-buy-one-anyway/', 'https://wiki.leagueoflegends.com/en-us/Free_champion_rotation'] },
     replay: {
       claim: 'Dota 2 shortens a session by speeding the game up rather than cutting it down: Turbo keeps every hero, item and rule but raises gold and experience and weakens the siege, so a complete match fits into a shorter sitting.',
@@ -2512,7 +2518,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'League of Legends answers the same session-length problem with ARAM, a mode on a separate one-lane map, the Howling Abyss, with no jungle and randomly assigned champions, which changes the rules; Turbo keeps Dota 2’s map and rules and changes only the pace.',
       cost: 'Faster gold and weaker towers change which heroes and item timings are strong, so Turbo habits, such as expecting a core item minutes early, do not fully carry back to a normal match, and the shortcut can quietly teach a slightly different game.',
       principle: 'To shorten a long competitive session without splitting the audience, consider speeding up the economy’s clock rather than cutting the rule set, so the shorter mode still teaches the full game, while accepting that a faster economy shifts which strategies are strong.',
-      topics: ['difficulty','onboarding','knowledge-as-progression'],
+      topics: ['platform-and-session'],
       sources: ['https://en.wikipedia.org/wiki/Dota_2', 'https://gameinformer.com/b/features/archive/2017/11/04/dota-2s-turbo-mode-makes-it-easier-to-fit-dota-into-your-life.aspx', 'https://en.wikipedia.org/wiki/League_of_Legends'] },
     lineage: {
       claim: 'Dota 2 is the direct, Valve-owned continuation of a single Warcraft III mod, while its closest rival, League of Legends, is a from-scratch rebuild by that mod’s own former lead designer, so the genre’s two biggest games share one ancestor but not one line of code.',
@@ -2522,7 +2528,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'Counter-Strike 2’s lineage runs through one free Half-Life mod Valve bought outright; Dota 2’s is stranger, since the design passed through volunteer map-makers Eul, Meian and Ragn0r, Feak, Neichus and IceFrog before Valve hired one, and another left to build the rival first.',
       cost: 'Valve inherited a decade of balance decisions it did not originate, letting Dota 2 launch complete rather than iterate from zero, but meaning it could claim no more credit for the genre’s founding rules than for formalising what unpaid modders finished.',
       principle: 'When a genre forks from one shared ancestor, study what each branch deleted rather than what both kept: a removed rule, such as denying, records a deliberate judgement about the original’s cost, and is the cheapest design argument a newcomer to the genre can learn from.',
-      topics: ['learning-from-success','genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Defense_of_the_Ancients', 'https://en.wikipedia.org/wiki/Dota_2', 'https://en.wikipedia.org/wiki/League_of_Legends'] }
   },
   shots: [
@@ -2585,7 +2591,7 @@ GAME({ id:'rocket-league', series:{ id:'rocket-league-series', t:'Rocket League'
       compare: 'Racing and kart games commonly tie a vehicle’s look to its stats, Mario Kart 8’s heavier characters and kart parts trade acceleration and handling for top speed by design, so choosing an appearance also chooses a play style; Rocket League deliberately keeps the two apart.',
       cost: 'Fairness bought this way caps how far customisation can go: a player can never buy a genuinely different-playing car, only a different-feeling one within a fixed hitbox’s shape, and a hitbox’s dimensions can differ from the body drawn over it, arguably a standing source of confusion for new players.',
       principle: 'When a purchasable cosmetic must never grant power, define the mesh players see and the mesh the rules use as two separate things, and hold the second to a small, fixed set, so any amount of visual variety can be sold on top of it without ever touching competitive balance.',
-      topics: ['visual-language', 'economy-and-resources'],
+      topics: ['visual-language'],
       sources: ['https://dignitas.gg/articles/an-overview-of-hitboxes-in-rocket-league', 'https://www.gonintendo.com/contents/17141-rocket-league-season-10-kicks-off-march-8th-2023', 'https://www.nintendolife.com/guides/mario-kart-8-deluxe-fastest-kart-how-to-build-the-best-kart'] },
     sound: {
       claim: 'Rocket League keeps composed music out of matches by default, so an engine’s pitch, a boost’s roar and the crowd, not a soundtrack, carry the sport’s excitement.',
@@ -2617,7 +2623,7 @@ GAME({ id:'rocket-league', series:{ id:'rocket-league-series', t:'Rocket League'
       compare: 'EA Sports FC, and FIFA before it, instead sustains its audience by renewing one recurring cost, a full-price release every year plus, until 2023, a licence fee for the FIFA name itself reported at about $150 million annually; Rocket League never re-releases, so its only lever for reach has been removing friction from the one game it already has.',
       cost: 'The September 2020 change that removed price and subscription friction installed a different friction in its place: Windows players who did not already own the game on Steam could no longer buy it there and had to move to the Epic Games Store, trading one platform lock for another rather than eliminating platform friction outright.',
       principle: 'When several separate things stand between an audience and a live game, a subscription gate, a platform wall, an opaque price, treat each as its own decision to revisit on its own timeline rather than waiting to bundle them into one relaunch, but check what any single fix costs before calling the friction gone, since removing one barrier can just as easily install a different one.',
-      topics: ['business-model', 'platform-choice', 'launch-and-discoverability'],
+      topics: ['business-model', 'platform-choice'],
       sources: ['https://en.wikipedia.org/wiki/Rocket_League', 'https://www.espn.com/soccer/story/_/id/37628326/fifa-ea-sports-end-video-game-partnership-game-continue-new-name', 'https://store.steampowered.com/app/252950/Rocket_League/'] },
     replay: {
       claim: 'Rocket League ties its one content treadmill, Rocket Pass, to the same clock as its skill ladder, competitive Ranked seasons, so climbing in skill and finishing the pass reward exactly the same weeks of play.',
@@ -2627,7 +2633,7 @@ GAME({ id:'rocket-league', series:{ id:'rocket-league-series', t:'Rocket League'
       compare: 'League of Legends for most of its history ran one ranked season a year while its cosmetic event passes ran on shorter, separate calendars, so ladder and cosmetic investment rarely lined up; Rocket League has kept the two aligned since 2020.',
       cost: 'Because a season’s Rocket Pass rewards and its Ranked rank rewards are both time-limited, a player who steps away for one season’s window can permanently miss both sets of rewards at once rather than only one, compounding the cost of any long break from the game.',
       principle: 'When a skill ladder and a cosmetic pass share exactly one season clock, any time spent chasing either goal quietly advances the other for free, but stepping away from that window then costs both progress systems at once, so weigh that convenience against how much a lapsed player loses in a single step.',
-      topics: ['progression', 'difficulty'],
+      topics: ['progression'],
       sources: ['https://en.wikipedia.org/wiki/Rocket_League', 'https://blog.playstation.com/2020/09/15/rocket-league-goes-free-to-play-september-23/'] },
     lineage: {
       claim: 'Rocket League is proof that a good idea can fail once and still be worth rebuilding: Psyonix diagnosed exactly why its 2008 predecessor underperformed and rebuilt the sequel around fixing each cause.',
@@ -2637,7 +2643,7 @@ GAME({ id:'rocket-league', series:{ id:'rocket-league-series', t:'Rocket League'
       compare: 'A studio that instead reads a commercial failure as proof a concept does not work would have dropped car football entirely; Hagewood kept a small team prototyping the idea through years of separate contract work rather than abandoning it, naming the failure’s causes instead of its genre.',
       cost: 'Rebuilding this way took roughly seven years and continued contract work to fund, a runway most small studios cannot bank on or plan for in advance, and committing fully to the rebrand arguably orphaned the original game’s own name and small community once Rocket League took over.',
       principle: 'Before abandoning an idea that failed commercially, separate what specifically caused the failure, intensity, infrastructure, discovery, from the idea itself, since a concept can be exactly right while every condition around its first release was wrong.',
-      topics: ['learning-from-success', 'iteration-and-evidence'],
+      topics: ['learning-from-success', 'server-authority'],
       sources: ['https://en.wikipedia.org/wiki/Supersonic_Acrobatic_Rocket-Powered_Battle-Cars', 'https://en.wikipedia.org/wiki/Psyonix', 'https://www.gamedeveloper.com/business/why-some-old-designs-are-worth-revisiting-a-i-rocket-league-i-story'] }
   },
   shots: [
@@ -2688,7 +2694,7 @@ GAME({
       compare: 'Rocket League runs the opposite bet: no items and no rubber-banding in its standard soccer modes, with power-ups confined to a separate Rumble mode, so a match stays a pure, engineered contest of physics and mechanical skill with no manufactured luck layered on top.',
       cost: 'A driver who played a clean, mistake-free race can still lose it to one shell in the final seconds, and that specific frustration, not a bug or an imbalance, is the trade the whole design deliberately accepts.',
       principle: 'When a game must stay watchable and contestable for a mixed-skill room at once, weighting randomness by current rank, rather than removing it or spreading it evenly, only needs to boost the trailing player’s luck for the whole room to stay engaged.',
-      topics: ['core-loop', 'genre-hybrids'],
+      topics: ['adaptive-and-director-ai'],
       sources: ['https://en.wikipedia.org/wiki/Blue_shell', 'https://ideas.repec.org/a/nat/natsus/v4y2021i5d10.1038_s41893-021-00685-8.html', 'https://www.mariowiki.com/Mario_Kart_8_item_probability_distributions', 'https://www.vice.com/en/article/the-blue-shell-and-its-discontents-2/', 'https://en.wikipedia.org/wiki/Rocket_League', 'https://www.mariowiki.com/Mario_Kart_8_Deluxe'] },
     ui: {
       claim: 'Mario Kart 8 Deluxe shows every kart part’s Speed, Acceleration, Weight, Handling, Traction and Mini-Turbo as a coarse bar chart, but the exact numbers that actually decide a race stay hidden behind it, so real optimisation depends on research the interface itself never offers.',
@@ -2728,7 +2734,7 @@ GAME({
       compare: 'Wipeout, the other well-known anti-gravity racer, invents its own lore wholesale instead: a fictional F9000 Anti-Gravity Racing League with named teams such as Feisar and Goteki 45 and a documented, decades-long timeline, spending real writing budget where Mario Kart spends none.',
       cost: 'No character gains any depth from appearing here, so the jolt of recognition the roster sells reaches only players who already know the home series; for everyone else a guest racer is a new skin with a name attached, and nothing written here makes up the difference.',
       principle: 'A crossover roster can substitute borrowed recognition for written characterisation at zero writing cost, but the recognition only pays out for players who already know the franchise it was borrowed from.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Mario_Kart_8_Deluxe', 'https://www.nintendo.com/us/store/products/mario-kart-8-deluxe-booster-course-pass-70070000013723-switch/', 'https://en.wikipedia.org/wiki/Wipeout_(video_game_series)'] },
     world: {
       claim: 'Mario Kart 8 builds half its map from the series’ own past: sixteen of its thirty-two launch courses are retro tracks from earlier Mario Kart games, several of them rebuilt so a familiar layout now carries the new anti-gravity rule.',
@@ -2738,7 +2744,7 @@ GAME({
       compare: 'Mario Kart DS (2005) set the sixteen-new, sixteen-retro split this game keeps, bringing old courses back in updated 3D; Mario Kart 8 goes further by redesigning several of them around a rule, anti-gravity, that the originals never had.',
       cost: 'Every retro slot is a slot not spent on a new place, and a remade course is judged against a player’s memory of the original, so a rebuild that changes a loved layout can read as damage rather than renewal.',
       principle: 'A sequel that introduces a new movement rule can teach it on old ground: remaking places players already know leaves the rule as the only unfamiliar thing on the track, so memory does the work of a tutorial.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Mario_Kart_8', 'https://en.wikipedia.org/wiki/Mario_Kart_DS', 'https://www.mariowiki.com/Hyrule_Circuit', 'https://www.mariowiki.com/Animal_Crossing', 'https://www.mariowiki.com/Mario_Kart_8_Deluxe_%E2%80%93_Booster_Course_Pass'] },
     env: {
       claim: 'Mario Kart 8 stages entire ruined civilisations, a Thwomp-carved temple at Thwomp Ruins, a skeleton-strewn desert at Bone-Dry Dunes, purely as spectacle a driver passes at racing speed, with no clue, item or line of text anywhere in the game ever paying off what supposedly happened there.',
@@ -2835,7 +2841,7 @@ GAME({
       compare: 'SimCity (2013), whose troubled launch opened the market, also produced its jams from individual agents, but critics found its Sims had no persistent lives, heading each day to “the nearest available workplace” and the nearest free house; Cities: Skylines instead gives every citizen a fixed home and workplace, so each car has an accountable origin and destination.',
       cost: 'Simulating a whole population as individual travellers is not affordable, so the game caps how many citizens can be “active” on the road and queues the rest invisibly, meaning the population figure on the status bar is a resident count, not a live count of traffic being simulated at any instant.',
       principle: 'When you want a failure state to read as a diagnosis rather than a difficulty spike, simulate the individual units that fail and let players trace the ones responsible, but budget honestly for how many you can run at once, and hide the queue rather than let a hard cap show as unfairness.',
-      topics: ['core-loop', 'systemic-design', 'progression'],
+      topics: ['core-loop', 'systemic-design', 'scripted-vs-simulated'],
       sources: ['https://en.wikipedia.org/wiki/Cities:_Skylines', 'https://www.gamedeveloper.com/design/how-traffic-works-in-cities-skylines', 'https://en.wikipedia.org/wiki/SimCity_(2013_video_game)'] },
     ui: {
       claim: 'Cities: Skylines turns diagnosis into a costume change: an info-view recolours the whole city by one variable at a time, traffic, land value, pollution, so reading a problem always means looking at the city through a single lens rather than a dashboard of numbers.',
@@ -2906,7 +2912,7 @@ GAME({
       compare: 'Factorio, also in this library, leaves its ruleset open enough for total-overhaul mods such as Space Exploration to add whole new endgames years ahead of an official expansion; Cities: Skylines’ best-known gameplay mod instead targets a weakness of the shipped simulation, its junction and lane rules, rather than adding a new endgame.',
       cost: 'Depending on an unpaid, volunteer-maintained mod for a core system means a city’s real difficulty curve rests on software Colossal Order does not own or guarantee compatibility for between patches, so a broken mod update can make a heavily modded city unplayable through no fault of the base game.',
       principle: 'When a core system’s rough edge becomes common knowledge among players, expect a volunteer mod to standardise itself as the unofficial patch for it, and treat that mod’s existence as a roadmap of a fix still owed, not as permission to leave the system unfixed.',
-      topics: ['difficulty', 'ugc-platforms'],
+      topics: ['navigation-and-pathfinding'],
       sources: ['https://www.gamedeveloper.com/design/how-traffic-works-in-cities-skylines', 'https://tmpe.me/'] },
     lineage: {
       claim: 'Cities: Skylines is a genre heir made by exploiting a rival’s collapse, and its own sequel then relearned the same lesson in reverse: a modding-dependent city builder cannot launch without the mod support its predecessor’s community had already made mandatory.',
@@ -2916,7 +2922,7 @@ GAME({
       compare: 'The original Cities: Skylines had over 200,000 Workshop items by February 2020; Cities: Skylines II had no official mod platform at release, leaving early mods to third-party sites such as Thunderstore until Paradox Mods arrived in March 2024.',
       cost: 'Chasing a unified, cross-platform mod system was a defensible goal, but shipping before that system or its predecessor’s equivalent existed arguably left Cities: Skylines II absorbing a second, avoidable wave of criticism on top of its performance problems, for missing a safety net its own reputation had trained players to expect.',
       principle: 'A sequel is judged against its predecessor’s final, patched and modded state, not its launch state, so a studio replacing a mature ecosystem should ship the replacement, and acceptable performance, on day one.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success', 'finding-an-idea'],
       sources: ['https://en.wikipedia.org/wiki/Cities:_Skylines', 'https://en.wikipedia.org/wiki/Cities:_Skylines_II', 'https://www.pcgamer.com/cities-skylines-2-wont-use-steam-workshop-for-mod-sharing/', 'https://en.wikipedia.org/wiki/SimCity_(2013_video_game)'] }
   },
   shots: [
@@ -3084,7 +3090,7 @@ GAME({ id:'kerbal-space-program', series:{ id:'kerbal', t:'Kerbal Space Program'
       compare: 'No Man’s Sky lets a ship fly seamlessly from a planet’s surface into space and on to another system with no orbital mechanics to manage at all; arrival is a matter of pointing the ship and travelling, not calculating a transfer window. Kerbal Space Program instead makes the calculation itself the content.',
       cost: 'Because the physics are real, a first successful orbit or Mun landing can take new players many hours of failed launches to reach, and the official store page frames that risk plainly, warning that a built spacecraft simply "flies (or doesn’t)".',
       principle: 'Ground a game’s difficulty in a real external system with its own consistent laws, rather than an invented curve, and every failure becomes something a player can actually investigate and fix, at the cost of a much steeper first hour than a curve tuned purely for pacing would allow.',
-      topics: ['mechanics-and-rules', 'knowledge-as-progression', 'difficulty'],
+      topics: ['mechanics-and-rules', 'knowledge-as-progression'],
       sources: ['https://en.wikipedia.org/wiki/Kerbal_Space_Program', 'https://store.steampowered.com/app/220200/Kerbal_Space_Program/'] },
     ui: {
       claim: 'Kerbal Space Program puts the one instrument a real spacecraft would actually carry, an attitude ball, at the bottom centre of the screen, and lets planning happen on the same map view a player already reads to fly, instead of behind a separate menu.',
@@ -3124,7 +3130,7 @@ GAME({ id:'kerbal-space-program', series:{ id:'kerbal', t:'Kerbal Space Program'
       compare: 'XCOM lets players rename and customise soldiers who then earn nicknames as they rank up under a permadeath system built to make loss personal; Kerbal Space Program instead starts every player with the same four default names, so the attachment comes from a shared, recognisable character rather than one a player built themselves.',
       cost: 'Because none of this is scripted, a Kerbal’s story only exists if a player notices it; the game records only the milestones that earn experience, flybys, orbits, landings and flags, not the near misses and rescues players actually retell.',
       principle: 'A fixed, unscripted default character, present in every player’s copy from the very first launch, can become a shared mascot purely through what players do to and with it, without a single line of dialogue ever being written for them.',
-      topics: ['content-multiplies', 'narrative-agency'],
+      topics: [],
       sources: ['https://en.wikipedia.org/wiki/Kerbal_Space_Program'] },
     world: {
       claim: 'The Kerbol system borrows the real Solar System’s layout, Moho through Eeloo standing in for Mercury through Pluto, but shrinks it, Kerbin at about a tenth of Earth’s radius, and runs it on patched conics, a model under which the bodies never pull on one another.',
@@ -3134,7 +3140,7 @@ GAME({ id:'kerbal-space-program', series:{ id:'kerbal', t:'Kerbal Space Program'
       compare: 'Elite Dangerous instead rebuilds the Milky Way at full scale, so most of it is empty space measured in light years; Kerbin’s system is compressed until a full interplanetary mission fits inside an ordinary play session.',
       cost: 'Because gravity does not propagate between bodies, the system can never support the specific real phenomena, Lagrange points, tidal forces, gravitational perturbation, that make some real missions interesting, so anything built on those specific effects has to come from a mod rather than the stock game.',
       principle: 'When a simulation borrows a real system’s layout for familiarity, check it against the physics you actually run: a simplified model can hold together an arrangement real laws would pull apart, and that simplification becomes part of the world’s design, not a shortcut hidden behind it.',
-      topics: ['premise-and-world', 'systemic-design'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Kerbal_Space_Program'] },
     env: {
       claim: 'The Vehicle Assembly Building wraps the build phase in a modelled hangar: the parts catalogue and staging list sit as panels at the screen edges, while the half-built rocket stands in a lit bay in the middle, a rotation gizmo on the one part being placed.',
@@ -3144,7 +3150,7 @@ GAME({ id:'kerbal-space-program', series:{ id:'kerbal', t:'Kerbal Space Program'
       compare: 'Besiege builds each machine inside the very level it will be tested in, then simply presses play; Kerbal Space Program instead gives the build phase its own named, bounded room, distinct from the launch pad and the flight itself, so the player always knows which phase of the loop they are currently in just from the space they are standing in.',
       cost: 'A dedicated building for construction means the game has to model and light an entire interior purely for a phase that never actually flies anywhere, art and engineering spent on a room whose sole job is holding parts still while the player arranges them.',
       principle: 'Give each distinct phase of a build-test-fail loop its own physical space rather than a shared menu state, and the room a player is standing in becomes a free reminder of which phase of the loop they are in.',
-      topics: ['core-loop', 'prototyping'],
+      topics: [],
       sources: ['https://store.steampowered.com/app/220200/Kerbal_Space_Program/', 'https://en.wikipedia.org/wiki/Kerbal_Space_Program'] },
     business: {
       claim: 'Take-Two’s May 2017 acquisition of Kerbal Space Program arguably bought a small studio proper console support it could not otherwise afford, in exchange for folding a beloved indie property into a publisher whose later decisions it no longer controlled.',
@@ -3164,7 +3170,7 @@ GAME({ id:'kerbal-space-program', series:{ id:'kerbal', t:'Kerbal Space Program'
       compare: 'Cities: Skylines offers unlimited-money and unlock-all options on its one simulation rather than a separate mode; Kerbal Space Program goes further, offering a genuine middle option, Science, that keeps a currency but drops the funding and reputation layer Career adds on top of it.',
       cost: 'Maintaining three coherent difficulty framings of one system means every new part or mechanic has to be considered three times over, once for how it behaves free in Sandbox, once gated by science alone, and once inside Career’s funding and reputation math.',
       principle: 'Between a free sandbox and a full economy, add a middle rung that keeps progression but drops the money: players who want goals without bookkeeping get a mode of their own, at the cost of balancing every unlock twice.',
-      topics: ['difficulty', 'depth-vs-complexity'],
+      topics: ['depth-vs-complexity'],
       sources: ['https://en.wikipedia.org/wiki/Kerbal_Space_Program', 'https://store.steampowered.com/app/220200/Kerbal_Space_Program/'] },
     lineage: {
       claim: 'Kerbal Space Program 2’s collapse shows that a sequel inherits a beloved rule set’s audience and expectations at once, but not the conditions, an obsessive small team iterating in public for years, that built the original.',
@@ -3174,7 +3180,7 @@ GAME({ id:'kerbal-space-program', series:{ id:'kerbal', t:'Kerbal Space Program'
       compare: 'Cities: Skylines II, also in this library, launched the same year to comparable performance complaints and a Metacritic drop from 85 to 74; the difference is what happened next. Colossal Order kept patching, and by April 2024 Rock Paper Shotgun reported performance had reached "tolerable levels", where Take-Two instead closed Intercept Games in May 2024 as part of company-wide cost cuts.',
       cost: 'Whatever expertise Intercept’s staff had built toward the promised colonies, interstellar travel and multiplayer was laid off with them in June 2024, and that November Take-Two sold Private Division to an unnamed buyer, CEO Strauss Zelnick calling those projects “on the smaller side”: "We’re in the business of making great big hits."',
       principle: 'A sequel can inherit its predecessor’s audience, trademark and rule set and still fail, if the date its publisher announces leaves no room for the years of public iteration that made the original feel earned.',
-      topics: ['pm-postmortems', 'pm-risk', 'scope-control'],
+      topics: ['pm-postmortems'],
       sources: ['https://en.wikipedia.org/wiki/Kerbal_Space_Program_2', 'https://www.bloomberg.com/news/articles/2024-05-01/take-two-interactive-shuts-down-two-game-studios', 'https://www.pcgamer.com/too-early-access-for-early-accessplayers-react-to-kerbal-space-program-2-launch/', 'https://www.rockpapershotgun.com/after-six-months-of-renovations-cities-skyline-2-performance-is-considerably-less-terrible', 'https://gamingbolt.com/take-two-ceo-explains-private-division-sale-were-in-the-business-of-making-great-big-hits'] }
   },
   shots: [
@@ -3287,7 +3293,7 @@ GAME({ id:'baldurs-gate-3', series:{ id:'baldurs-gate', t:'Baldur’s Gate', n:'
       compare: 'A contemporary premium-priced live-service RPG such as Diablo IV sells a full-price campaign alongside a recurring cosmetic shop and seasonal pass; Baldur’s Gate 3 took the single, one-time purchase further and made the absence of that shop part of its own public identity.',
       cost: 'Forgoing any recurring revenue stream means Larian’s income from the base game is finite once sales taper, unlike a live-service title’s renewable seasonal income, a bet that only pays off at Baldur’s Gate 3’s unusually large scale of sales.',
       principle: 'A public stance against an industry norm becomes free, repeatable marketing only once independent juries validate it; the stance has to be true at launch, before any award exists to amplify it.',
-      topics: ['business-model','launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Baldur%27s_Gate_3', 'https://www.pcgamer.com/gaming-industry/larian-boss-swen-vincke-calls-out-pretty-much-the-entire-videogame-industry-at-the-game-awards/', 'https://en.wikipedia.org/wiki/The_Game_Awards_2023', 'https://en.wikipedia.org/wiki/27th_Annual_D.I.C.E._Awards', 'https://en.wikipedia.org/wiki/24th_Game_Developers_Choice_Awards', 'https://en.wikipedia.org/wiki/20th_British_Academy_Games_Awards', 'https://gameworldobserver.com/2024/03/21/mass-layoffs-publishers-greed-profits-swen-vincke-larian'] },
     replay: {
       claim: 'Baldur’s Gate 3 sells a second playthrough as a different pre-written life, not just a different build, by letting the player start as one of its own companions instead of a blank custom character.',
@@ -3297,7 +3303,7 @@ GAME({ id:'baldurs-gate-3', series:{ id:'baldurs-gate', t:'Baldur’s Gate', n:'
       compare: 'Mass Effect keeps one protagonist, Commander Shepard, across its trilogy and instead varies replay through your past choices; Baldur’s Gate 3 (continuing what Divinity: Original Sin 2 began) varies replay by swapping who the protagonist is entirely, while the surrounding plot largely stays the same.',
       cost: 'Writing seven fully reactive alternate protagonists multiplies the dialogue and cutscene budget for content most players will only sample through a handful of companions, and an Origin run can flatten some of a companion’s own mystery, since the player now knows their secrets from the start.',
       principle: 'When a fully blank protagonist already lets players write their own story, sell replay instead as a small set of pre-authored identities with their own locked stakes, a different kind of story rather than a harder or longer one.',
-      topics: ['difficulty','mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://en.wikipedia.org/wiki/Divinity:_Original_Sin_II', 'https://bg3.wiki/wiki/Origin_characters', 'https://en.wikipedia.org/wiki/Baldur%27s_Gate_3'] },
     lineage: {
       claim: 'Baldur’s Gate 3 keeps its parent series’ name and Forgotten Realms setting across a twenty-three-year gap and a change of studio, while replacing BioWare’s real-time-with-pause Infinity Engine entirely with Larian’s own turn-based, systemic combat.',
@@ -3390,7 +3396,7 @@ GAME({ id:'subnautica', series:{ id:'subnautica-series', t:'Subnautica', n:'the 
       compare: 'Dark Souls embeds much of its history in item text read in a menu, where it no longer sits where it was found. Subnautica ties almost every fragment to the wreck or base it came from, so the place itself, not only the text, is part of what the player reads.',
       cost: 'A player who does not habitually stop to scan wreckage finishes the game having read only a fraction of the Degasi and Precursor story; the design accepts that most of the plot stays genuinely missable rather than paced to guarantee every player sees it.',
       principle: 'When a story is optional by design, tie each fragment to the specific place it was found rather than a menu list, so exploring the world and reading the plot become the same action instead of two competing ones.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Subnautica', 'https://media.gdcvault.com/gdc2019/presentations/Cleveland_Charlie_Design_Of_Subnautica.pdf', 'https://www.destructoid.com/reviews/review-subnautica/'] },
     world: {
       claim: '4546B holds together as one shared ecosystem and one shared history rather than a level list: several unrelated groups, the Aurora’s crew, the Sunbeam, the Degasi and the Precursors, all leave physical remains on the same map, and the player reconstructs each group’s fate independently of the others.',
@@ -3420,7 +3426,7 @@ GAME({ id:'subnautica', series:{ id:'subnautica-series', t:'Subnautica', n:'the 
       compare: 'A premium launch usually spends its development behind closed doors and puts one marketing push around a single release date; Subnautica instead spent three years making its own bug triage and roadmap public, so nearly every update was a small, repeatable marketing beat.',
       cost: 'A public feedback form and roadmap run for three years is an ongoing cost, not a one-off spend, and hard to walk back: Krafton, which bought Unknown Worlds in 2021 with a further $250 million bonus tied to revenue targets, delayed Subnautica 2’s early access near that 2025 deadline; the founders sued, alleging the delay dodged the payment, a judge reinstated the ousted chief executive and extended the bonus period, and the dispute was settled in July 2026.',
       principle: 'A visible, regularly updated process can substitute for a marketing budget a small studio lacks, but only while it keeps running; the same transparency that builds trust during a rescue becomes a record a later owner’s incentives can be judged against.',
-      topics: ['business-model', 'pm-agile-gamedev'],
+      topics: ['business-model'],
       sources: ['https://media.gdcvault.com/gdc2019/presentations/Cleveland_Charlie_Design_Of_Subnautica.pdf', 'https://gist.github.com/roskakori/82562ca8f2c4355ca4ba3abe524d4947', 'https://en.wikipedia.org/wiki/Unknown_Worlds_Entertainment', 'https://www.pcgamer.com/games/in-a-wild-turn-for-the-subnautica-2-lawsuit-a-judge-orders-krafton-to-restore-fired-unknown-worlds-ceo-and-gives-them-9-more-months-to-earn-usd250-million-bonus/'] },
     replay: {
       claim: 'Subnautica offers almost no randomised content to replay against; its real replay lever is choosing a different ruleset, Survival, Freedom, Hardcore permadeath or Creative, over the same hand-built map and story.',
@@ -3430,7 +3436,7 @@ GAME({ id:'subnautica', series:{ id:'subnautica-series', t:'Subnautica', n:'the 
       compare: 'Minecraft instead regenerates an entirely new, randomly seeded world on every save, so its replay value is spatial and near-infinite. Subnautica’s map is fixed and hand-authored the way a puzzle game’s level is, so replaying it changes the rules the player must obey, not the space they explore.',
       cost: 'Because nothing about the world itself changes, a player who has fully explored the map and reached the ending has genuinely seen everything the base game offers; only a harder ruleset, not new content, brings that player back, which is a smaller lever than a randomised map or new biomes would be.',
       principle: 'When a hand-authored world is too expensive to build twice, put replay value in the ruleset around it, permadeath, resource scarcity, rather than in the space itself, and be honest that this rewards discipline more than discovery on a second run.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['difficulty'],
       sources: ['https://en.wikipedia.org/wiki/Subnautica'] },
     lineage: {
       claim: 'Subnautica set itself apart from survival contemporaries such as DayZ and Rust by cutting the one feature nearly all of them share, other players, and reinvested that removed complexity into a single-player scanner-and-blueprint system and an authored, non-randomised map.',
@@ -3493,7 +3499,7 @@ GAME({ id:'world-of-warcraft', series:{ id:'warcraft', t:'Warcraft', n:'the four
       compare: 'Final Fantasy XIV built the same idea in from its relaunch: A Realm Reborn (2013) shipped with a Duty Finder already part of the game’s design rather than retrofitted five years into an established social economy, as WoW’s was.',
       cost: 'The cost lands hardest on exactly the realms and guilds that had built an identity around local reputation and recruiting through world chat, a cost real enough that Blizzard withheld the same convenience from Wrath Classic for most of its run.',
       principle: 'Automating a costly search does not just save time, it can remove the reason players had to talk to each other; retrofitting matchmaking onto an existing social system competes with the bonds friction created rather than simply adding convenience on top of them.',
-      topics: ['ux-as-design', 'social-experience'],
+      topics: ['ux-as-design', 'social-experience', 'server-matchmaking'],
       sources: ['https://warcraft.wiki.gg/wiki/Dungeon_Finder', 'https://www.gamespot.com/articles/wow-wrath-of-the-lich-king-classic-devs-talk-server-woes-the-dungeon-finder-debate-and-heroic-dungeons/1100-6507788/', 'https://en.wikipedia.org/wiki/Final_Fantasy_XIV'] },
     art: {
       claim: 'World of Warcraft’s character models reuse a readability rule invented for a completely different camera: Warcraft III’s exaggerated, chunky silhouettes, designed to be read from a strategy game’s top-down view, were carried into a third-person camera standing right behind the character.',
@@ -3523,7 +3529,7 @@ GAME({ id:'world-of-warcraft', series:{ id:'warcraft', t:'Warcraft', n:'the four
       compare: 'EverQuest and Ultima Online, the genre’s other founders, built their pantheons and villains from zero specifically for their own MMOs; WoW instead spent five years’ accumulated stakes from an entirely separate strategy-game trilogy on its single most anticipated expansion.',
       cost: 'Cashing in a story this large costs the format its biggest possible future payoff: once Arthas is dead in 2008, that particular thread is finished for good, and no subsequent expansion has been able to promise the same cross-genre, years-long anticipation again.',
       principle: 'A game built inside an existing fictional universe can spend that universe’s oldest, most anticipated unresolved thread as a single expansion’s climax, but that spending is one-time only, and nothing later in the same series can borrow the same anticipation twice.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Arthas_Menethil', 'https://en.wikipedia.org/wiki/World_of_Warcraft:_Wrath_of_the_Lich_King', 'https://en.wikipedia.org/wiki/Warcraft_III:_Reign_of_Chaos'] },
     world: {
       claim: 'Durotar, the orcs’ WoW starting zone, exists because Warcraft III’s orc campaign had already sent Thrall’s orcs there to found a new home, so WoW inherited a whole game’s-worth of invented geography and history before a single WoW quest was written.',
@@ -3533,7 +3539,7 @@ GAME({ id:'world-of-warcraft', series:{ id:'warcraft', t:'Warcraft', n:'the four
       compare: 'The Elder Scrolls built Tamriel persistent from the start specifically as a role-playing setting, so Morrowind, Oblivion and Skyrim all draw on one continuous world with no other genre’s game to translate; WoW’s founding geography instead began life as a real-time strategy game’s mission maps.',
       cost: 'Inheriting a setting from a different genre’s game means some of what a strategy game could simply cut away from, an army landing, a battle resolving off-screen, has to be built as walkable, persistent space in WoW, so a fair amount of connective geography between Warcraft III’s key locations had to be invented purely to hold the world together.',
       principle: 'A persistent world adapted from an earlier game in a different genre inherits that game’s geography and history for free, but still has to build the connective space between its landmarks that the earlier game’s own camera never required.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Warcraft_III:_Reign_of_Chaos'] },
     env: {
       claim: 'Scarlet Monastery’s Library tells you what the Scarlet Crusade is before any quest text does: a monastery built for peaceful study, converted into a fortress and hung with the crusade’s own red-and-gold banners over its chained bookshelves.',
@@ -3553,7 +3559,7 @@ GAME({ id:'world-of-warcraft', series:{ id:'warcraft', t:'Warcraft', n:'the four
       compare: 'Guild Wars (2005), built by ArenaNet, a studio founded by former Blizzard developers, was designed explicitly as the opposite bet: no subscription at all, just a one-time purchase per campaign, on the stated belief that players would not commit to paying every month for more than one online game at once.',
       cost: 'A subscription asks every player for continuing payment whether or not that month’s content is worth it to them, and it commits the studio to a permanent content treadmill just to hold the subscriber base it already has, a cost a one-time purchase model never carries.',
       principle: 'A recurring-revenue model can reach a scale a one-time purchase struggles to match, but only by committing the studio to permanently funding new content at the pace that revenue promised, a commitment a rival studio can instead choose to opt out of entirely.',
-      topics: ['business-model', 'live-operations'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/World_of_Warcraft', 'https://en.wikipedia.org/wiki/Guild_Wars_(video_game)'] },
     replay: {
       claim: 'World of Warcraft’s raid size has been renegotiated four times in one franchise, from a mandatory forty players in 2004 to a flexible ten-to-thirty by 2014, because the studio kept discovering the same fixed headcount cost it a different price at each stage of the game’s life.',
@@ -3648,7 +3654,7 @@ GAME({ id:'resident-evil-4', series:{ id:'resident-evil', t:'Resident Evil', n:'
       compare: 'Dead Space, a later over-the-shoulder horror game, has its Necromorphs appear from vents, so threats hide in the walls; Resident Evil 4’s enemies come at Leon in the open, pushing timing rather than suspicion.',
       cost: 'Players with hearing loss or the sound turned low lose that radar, and the game offers no visual stand-in for off-screen enemies, so they pay with more surprise hits.',
       principle: 'When the camera narrows the player’s view, let each threat carry its own sound so the ears cover what the eyes cannot.',
-      topics: ['audio-and-music', 'perception-and-awareness'],
+      topics: ['audio-and-music'],
       sources: ['https://en.wikipedia.org/wiki/Zombies_in_Resident_Evil', 'https://en.wikipedia.org/wiki/Resident_Evil_4'] },
     lore: {
       claim: 'Resident Evil 4 cuts the series’ Umbrella backstory almost entirely and replaces it with a self-contained cult plot, trading continuity for a story that a newcomer can follow without the earlier games.',
@@ -3658,7 +3664,7 @@ GAME({ id:'resident-evil-4', series:{ id:'resident-evil', t:'Resident Evil', n:'
       compare: 'Resident Evil – Code: Veronica (2000) is set largely on an Umbrella-owned prison island and turns on Umbrella’s viruses; Resident Evil 4 moves nearly all of that off stage.',
       cost: 'The rushed story shows in its theatrical villains and loose logic, and the series later had to reconnect the parasite plot to its wider history; writers and continuity-minded fans pay.',
       principle: 'A long series can buy a clean entry point by cutting its own backstory, but it pays later when it has to reconnect the threads.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Resident_Evil_4'] },
     world: {
       claim: 'Resident Evil 4 moves the series from one mansion or city to a travelling route of three distinct places, village, castle and island, each introducing its own enemy group and style of fight.',
@@ -3698,7 +3704,7 @@ GAME({ id:'resident-evil-4', series:{ id:'resident-evil', t:'Resident Evil', n:'
       compare: 'Devil May Cry, born from an earlier RE4 prototype, also grades combat with a ranking; Resident Evil 4 applies the idea in a separate mode rather than inside every story fight.',
       cost: 'Separate modes cost extra level work and balancing, and a player who only wants the story may never see them.',
       principle: 'If the core verbs are deep enough, extract them into a short score mode; it turns the story’s teaching into lasting replay.',
-      topics: ['skill-and-mastery', 'return-and-quit'],
+      topics: ['return-and-quit'],
       sources: ['https://en.wikipedia.org/wiki/Resident_Evil_4'] },
     lineage: {
       claim: 'Resident Evil 4, the fourth numbered main entry of the Resident Evil series, set the over-the-shoulder camera that third-person shooters adopted, even though its director says it was not meant as an innovation.',
@@ -3708,7 +3714,7 @@ GAME({ id:'resident-evil-4', series:{ id:'resident-evil', t:'Resident Evil', n:'
       compare: 'The 2023 remake, on the same design, let Leon move while aiming and added a knife parry, following the genre RE4 had shaped rather than its own rule.',
       cost: 'Spreading only the camera left most imitators without the pressure that made it work, and Capcom’s own series drifted towards action for years afterwards.',
       principle: 'An idea often travels without the constraint that made it work; when you borrow a feature, check what it was paired with.',
-      topics: ['genre-hybrids', 'learning-from-success'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Resident_Evil_4', 'https://www.gamedeveloper.com/business/shinji-mikami-didn-t-realize-the-impact-of-i-resident-evil-4-i-s-camera', 'https://en.wikipedia.org/wiki/Resident_Evil_4_(2023_video_game)'] }
   },
   shots: [
@@ -3761,7 +3767,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'The combat team wanted the camera further back, as in the Batman: Arkham games, where a wider view shows more of a crowd; God of War trades that overview for weight and closeness.',
       cost: 'Players pay with enemies they cannot see, and Game Revolution’s reviewer found it hard to keep a bead on them; the team paid with a harder, costlier production.',
       principle: 'A camera that hides space creates an information debt; pay it deliberately through companions, sound or warnings, and budget for the pieces you add.',
-      topics: ['readability-and-hierarchy','allies-and-companions','controls-and-friction'],
+      topics: ['readability-and-hierarchy'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)'] },
     art: {
       claim: 'God of War redraws its hero to carry a new story: the older, bearded Kratos is designed to read as a restrained father, where the Greek-era design read as pure rage.',
@@ -3771,7 +3777,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'God of War III (2010) showed Kratos bare-chested through a fixed camera; the 2018 design had to hold up in close shots behind one shoulder for the whole game.',
       cost: 'A redesign risks losing players attached to the old look, and a close camera puts every surface near the lens, a detail cost the art team pays in every scene.',
       principle: 'When a character changes, change the silhouette first and keep one mark of who they were, so players see both the change and the continuity.',
-      topics: ['visual-language','animation-and-vfx'],
+      topics: ['visual-language'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/God_of_War_III', 'https://www.escapistmagazine.com/god-of-war-2018-game-of-the-year-single-moment-blades/'] },
     sound: {
       claim: 'God of War’s score moves the series from Greek brass towards Norse voices and folk instruments, so the music itself tells the player they are in a new land.',
@@ -3781,7 +3787,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'McCreary remembered the Greek games for deep choirs, pounding drums and shrieking brass, and rebuilt those sounds for the north; the 2018 score keeps the choir but adds solo voice and folk strings for grief and distance.',
       cost: 'Unusual instruments and live soloists cost more to record, and a quieter, sadder register gives up some of the thrill fans expected from the series.',
       principle: 'When a series moves to a new setting, change the instruments before the themes: timbre tells players where they are faster than any melody.',
-      topics: ['audio-and-music','localization-and-culture'],
+      topics: ['audio-and-music'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/15th_British_Academy_Games_Awards', 'https://en.wikipedia.org/wiki/22nd_Annual_D.I.C.E._Awards'] },
     lore: {
       claim: 'God of War tells a story about teaching by making the student a combat input: Atreus’s growth is felt through the button that commands him, not only in cutscenes.',
@@ -3791,7 +3797,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'The Greek God of War games told a revenge story in cutscenes between fights and gave Kratos no one to command; the 2018 game makes the second character part of every encounter.',
       cost: 'A companion who fights beside you must be written, voiced and animated to react for dozens of hours, and a story built on him limits how freely the player can roam alone.',
       principle: 'If the story is about a relationship, give the player a verb that uses it, so the bond grows through play and its breaks cost something.',
-      topics: ['ludonarrative-alignment','allies-and-companions','narrative-agency'],
+      topics: ['ludonarrative-alignment', 'allies-and-companions'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/15th_British_Academy_Games_Awards'] },
     world: {
       claim: 'God of War builds its Norse world as nine realms around one lake, but lets the player explore only six, so the map itself promises more myth than the game delivers.',
@@ -3801,7 +3807,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'Assassin’s Creed Odyssey, released the same year, puts its whole Greek world on one continuous open map; God of War uses a hub and realm gates, giving up openness for tightly built spaces.',
       cost: 'Locked realms can read as missing content to players who expected all nine, and the hub-and-gate plan costs the studio many separate spaces instead of one map.',
       principle: 'A world can promise more than it shows: name the places you cannot visit yet, and anchor the ones you can in a hub the player keeps seeing.',
-      topics: ['premise-and-world','level-structure'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/Assassin%27s_Creed_Odyssey'] },
     env: {
       claim: 'God of War’s Lake of the Nine changes between visits, so the hub itself shows the story moving forward rather than staying a fixed menu of exits.',
@@ -3811,7 +3817,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'In The Legend of Zelda: Ocarina of Time a curse drains Lake Hylia, a side area beside one dungeon; God of War lowers the water of its hub itself, so every return shows the change.',
       cost: 'A hub that changes has to be rebuilt in several states, and slow boat rides, while restful, add travel time on later returns.',
       principle: 'Let the hub change with the story, so every return shows the player what they have done without a word of text.',
-      topics: ['environmental-storytelling','pacing'],
+      topics: ['environmental-storytelling'],
       context: 'The drop in the lake is taken from a walkthrough; the full list of shores it opens is left out because it was not confirmed.',
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://www.powerpyx.com/god-of-war-a-new-destination-walkthrough/', 'https://blog.playstation.com/archive/2018/08/23/how-god-of-wars-seamless-boat-travel-sequences-were-created', 'https://en.wikipedia.org/wiki/Water_Temple_(Ocarina_of_Time)'] },
     business: {
@@ -3822,7 +3828,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'God of War: Ascension (2013) added online multiplayer to the Greek formula; the 2018 game dropped multiplayer and bet on length and story.',
       cost: 'Five years and a larger team is a budget few publishers can risk, and PC players waited almost four years.',
       principle: 'A platform holder can afford reinvention that a single-product studio cannot; judge a first-party game on the value it adds to the platform, not only its own sales.',
-      topics: ['business-model','platform-choice','release-and-updates'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/God_of_War_(franchise)'] },
     replay: {
       claim: 'God of War’s replay is built on optional mastery tests rather than new story: the Valkyries and New Game Plus are where the combat system is pushed hardest.',
@@ -3842,7 +3848,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'Resident Evil 4 (2005) similarly dropped its series’ fixed cameras for a view behind the hero and moved to rural Spain; God of War also swapped the hero’s weapon and made him a father.',
       cost: 'Fans of the fast, spectacular Greek style lost the game they loved, and the studio took the risk of alienating its base.',
       principle: 'When rebooting, keep one piece of the old identity as a reward, and bring it back late, so the new design is learned first and the old one returns as a payoff.',
-      topics: ['learning-from-success','genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(franchise)', 'https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/Resident_Evil_4'] }
   },
   shots: [
@@ -3885,7 +3891,7 @@ GAME({ id:'valheim', img:'assets/games/valheim.jpg', dev:'Iron Gate AB', store:'
       compare: 'Minecraft, also in this library, gates diamond only behind an iron pickaxe the player crafts, with no boss in the way, so its direction is whatever the player invents. Valheim keeps the open world but makes its tiers something you earn in one fight.',
       cost: 'Hard gates mean a group stuck on one boss is stuck everywhere, since no side route opens the next biome’s material; players who only want to build can find the fights a toll on the part they enjoy.',
       principle: 'A sandbox gains direction without losing freedom if a few goals are hard keys, chosen fights whose reward is the only way forward, while everything between them stays open.',
-      topics: ['progression', 'goals-horizons', 'genre-hybrids'],
+      topics: ['progression', 'goals-horizons'],
       sources: ['https://www.pcgamer.com/valheim-developer-says-zelda-and-skyrim-were-bigger-influences-than-survival-games/', 'https://en.wikipedia.org/wiki/Valheim'] },
     ui: {
       claim: 'Valheim makes an invisible physics rule buildable by colouring each piece by how well it is supported while the player holds the hammer, so a structure’s weak points show up before the roof falls in.',
@@ -3945,7 +3951,7 @@ GAME({ id:'valheim', img:'assets/games/valheim.jpg', dev:'Iron Gate AB', store:'
       compare: 'Fallout 3’s level designers author a ruin’s history before the player arrives. Valheim leaves its most readable spaces to be authored by the players, with rules that push them to stage those spaces as homes and forts.',
       cost: 'The story only exists if players build; a group that lives in a hut learns nothing, and raids that flatten a careful build had players asking for a way to change them almost from launch, which the 2023 raid-rate slider answered.',
       principle: 'Give players mechanical reasons to furnish and defend a space, and the space will record its own history; the best staged rooms may be the ones players build.',
-      topics: ['environmental-storytelling', 'agency-and-emergence'],
+      topics: ['environmental-storytelling'],
       sources: ['https://www.pcgamer.com/increase-valheim-comfort-level-max/', 'https://www.gamesradar.com/valheims-difficulty-settings-will-let-you-disable-the-games-most-annoying-feature-or-make-it-worse/'] },
     business: {
       claim: 'Valheim shows that an Early Access hit from a tiny team inherits live-service expectations it cannot staff for: five million sales in a month bought goodwill that slow updates then spent.',
@@ -4018,7 +4024,7 @@ GAME({ id:'halo', series:{ id:'halo', t:'Halo', n:'the first main game' }, img:'
       compare: 'GoldenEye 007 (1997) varied its missions through objective lists: recover an item, destroy an object, rescue hostages. Halo varies the same combat exchange by where it happens and with what, and keeps objectives thin.',
       cost: 'When the budget for new context runs out, as critics argued it did in the second half, the player sees the loop naked, and the same strength becomes the most cited complaint.',
       principle: 'Prove the smallest fun encounter in one test level first, then budget for varying its context; when that budget ends, the repetition shows at once.',
-      topics: ['core-loop','encounter-design','prototyping'],
+      topics: ['encounter-design', 'prototyping', 'vertical-slice-mvp'],
       sources: ['https://www.engadget.com/2011-07-14-half-minute-halo-an-interview-with-jaime-griesemer.html', 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved', 'https://en.wikipedia.org/wiki/The_Library_(Halo)', 'https://en.wikipedia.org/wiki/GoldenEye_007_(1997_video_game)'] },
     ui: {
       claim: 'Halo’s HUD splits damage into two bars with different clocks: a shield bar that refills after a short pause, and a health bar beneath it that only pickups restore.',
@@ -4068,7 +4074,7 @@ GAME({ id:'halo', series:{ id:'halo', t:'Halo', n:'the first main game' }, img:'
       compare: 'Many shooters of the time arguably kept the setting as backdrop to a hunt for a villain. Halo’s villain for the last act is partly the place itself and the helper who guided the player.',
       cost: 'A world whose truth arrives late arguably gives the first half little to discover; the early ring is scenery, and its meaning is spent in one reveal.',
       principle: 'If the player’s objective is tied to the setting’s central object, revealing that object’s real purpose can turn the objective itself into the threat.',
-      topics: ['premise-and-world','narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Halo:_Combat_Evolved'] },
     env: {
       claim: 'Halo’s outdoor levels place the ring itself in the sky, so the player sees the whole setting’s shape from the ground they stand on.',
@@ -4088,7 +4094,7 @@ GAME({ id:'halo', series:{ id:'halo', t:'Halo', n:'the first main game' }, img:'
       compare: 'Nintendo launched the Nintendo 64 with its own Super Mario 64. Microsoft had no in-house flagship, so it bought one, and Mac players lost the game they had been shown.',
       cost: 'The Mac and PC audience that saw the 1999 reveal waited until 2003 for ports, and the Xbox game shipped before Xbox Live existed, with no online play.',
       principle: 'A platform without its own flagship can buy one, but moving a game to meet a hardware date trades features and the audience it was first shown to.',
-      topics: ['platform-choice','business-model','launch-and-discoverability'],
+      topics: ['platform-choice', 'business-model'],
       sources: ['https://en.wikipedia.org/wiki/Halo:_Combat_Evolved', 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved_Anniversary'] },
     replay: {
       claim: 'Halo’s multiplayer arguably kept players returning because one map, Blood Gulch, was used to tune the weapons and vehicles themselves.',
@@ -4098,7 +4104,7 @@ GAME({ id:'halo', series:{ id:'halo', t:'Halo', n:'the first main game' }, img:'
       compare: 'Halo 2 rebuilt the canyon as Coagulation rather than retiring it: the map had become part of the sandbox it once tuned.',
       cost: 'Tuning to one map biases the sandbox: a weapon shaped for Blood Gulch’s distances can feel wrong in tighter spaces.',
       principle: 'Tune a weapon on the map where it will be used most, and its features will fit that space.',
-      topics: ['social-experience','items-weapons-abilities','spatial-composition'],
+      topics: ['items-weapons-abilities'],
       sources: ['https://en.wikipedia.org/wiki/Blood_Gulch', 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved'] },
     lineage: {
       claim: 'Halo, the first main game in the Halo series, reached the first person late and on a new input device, and its rules read as answers to aiming with a gamepad.',
@@ -4108,7 +4114,7 @@ GAME({ id:'halo', series:{ id:'halo', t:'Halo', n:'the first main game' }, img:'
       compare: 'Halo 2 in 2004 kept the shield but hid the health bar, leaving one visible meter; a shield that refills stayed the series’ core rule.',
       cost: 'Rules shaped for a gamepad arguably suit mouse players less; the 2003 PC port scored 83 against the Xbox 97, with performance issues.',
       principle: 'A rule adopted to fit an input device can outlive the device and become the genre’s default; check which of your rules exist for your controls.',
-      topics: ['controls-and-friction','genre-hybrids'],
+      topics: ['controls-and-friction'],
       sources: ['https://en.wikipedia.org/wiki/Halo:_Combat_Evolved', 'https://en.wikipedia.org/wiki/Halo_2'] }
   },
   shots: [
@@ -4163,7 +4169,7 @@ GAME({ id:'call-of-duty-4', series:{ id:'call-of-duty', t:'Call of Duty', n:'the
       compare: 'Halo: Combat Evolved, also in this library, puts only nearby moving or firing enemies on its motion tracker, so an enemy hides by keeping still; there information is earned by position, not bought with kills.',
       cost: 'The minimap becomes mandatory reading, pulling the eye away from the scene, and players who ignore it lose fights they could have predicted.',
       principle: 'Make an early reward an information channel rather than a weapon, and a counter can be a perk that hides from it.',
-      topics: ['feedback-and-affordance','readability-and-hierarchy','builds-and-loadouts'],
+      topics: ['readability-and-hierarchy'],
       sources: ['https://en.wikipedia.org/wiki/Call_of_Duty_4:_Modern_Warfare', 'https://www.inverse.com/gaming/call-of-duty-4-modern-warfare-15th-anniversary', 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved'] },
     art: {
       claim: 'Call of Duty 4 makes the material of a surface part of combat: its bullet penetration lets shots pass through some surfaces, so what a wall looks like tells the player whether it is cover.',
@@ -4193,7 +4199,7 @@ GAME({ id:'call-of-duty-4', series:{ id:'call-of-duty', t:'Call of Duty', n:'the
       compare: 'Half-Life, in 1998, kept the player as Gordon Freeman throughout; Call of Duty 4 splits control between two soldiers, which is what makes losing one possible.',
       cost: 'A death the player cannot prevent takes away agency, and the device only works once; later series entries repeating it risk feeling staged.',
       principle: 'If the player controls more than one character, losing one of them without a fight shows the stakes of the story more clearly than a cutscene can.',
-      topics: ['narrative-pacing','ludonarrative-alignment','narrative-agency'],
+      topics: ['narrative-pacing', 'ludonarrative-alignment'],
       sources: ['https://en.wikipedia.org/wiki/Call_of_Duty_4:_Modern_Warfare'] },
     world: {
       claim: 'Call of Duty 4 sets a present-day war in an unnamed Middle Eastern country and against fictional Russian ultranationalists, borrowing the look of the news while keeping every enemy invented.',
@@ -4203,7 +4209,7 @@ GAME({ id:'call-of-duty-4', series:{ id:'call-of-duty', t:'Call of Duty', n:'the
       compare: 'The earlier Call of Duty games fought the Second World War, whose sides players knew; Call of Duty 4 had to invent its enemies to have any.',
       cost: 'An unnamed country becomes a generic backdrop, and critics can argue it flattens a real region into a stage for Western soldiers.',
       principle: 'Blend a recognisable present with invented states and leaders, and a war story gains plausibility without naming a real enemy.',
-      topics: ['premise-and-world','fantasy'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Call_of_Duty_4:_Modern_Warfare'] },
     env: {
       claim: 'Call of Duty 4 sets its stealth mission, All Ghillied Up, in Pripyat, a real city abandoned after Chernobyl, so the empty streets need no explanation.',
@@ -4213,7 +4219,7 @@ GAME({ id:'call-of-duty-4', series:{ id:'call-of-duty', t:'Call of Duty', n:'the
       compare: 'Half-Life 2’s City 17 invents its control props to explain a quiet city. Call of Duty 4 uses a real place whose history players may already know.',
       cost: 'A real disaster site is borrowed for entertainment, and players who do not know its history lose the layer that makes its emptiness speak.',
       principle: 'A real place with a known history can explain a level’s mood for free, but only to players who share that knowledge.',
-      topics: ['environmental-storytelling','pacing'],
+      topics: ['environmental-storytelling'],
       sources: ['https://en.wikipedia.org/wiki/Call_of_Duty_4:_Modern_Warfare', 'https://en.wikipedia.org/wiki/Pripyat'] },
     business: {
       claim: 'Call of Duty 4’s remaster was first sold as a reason to buy a different game: Activision bundled it only with premium editions of Infinite Warfare.',
@@ -4223,7 +4229,7 @@ GAME({ id:'call-of-duty-4', series:{ id:'call-of-duty', t:'Call of Duty', n:'the
       compare: 'Halo: Combat Evolved Anniversary, also in this library, shipped as a game of its own in November 2011; Activision used Call of Duty 4’s as an edition upgrade.',
       cost: 'Fans who wanted only the remaster paid for a game they had not chosen, and the monetisation cost goodwill.',
       principle: 'Bundling a beloved remaster with a new release can lift the new one, but the audience may read it as a hostage.',
-      topics: ['business-model','ethics-and-responsibility','launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Call_of_Duty:_Modern_Warfare_Remastered', 'https://en.wikipedia.org/wiki/Call_of_Duty_4:_Modern_Warfare', 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved_Anniversary'] },
     replay: {
       claim: 'Call of Duty 4’s Prestige turns the end of progression into a new start: at the rank cap a player can give back every unlock in exchange for a badge.',
@@ -4233,7 +4239,7 @@ GAME({ id:'call-of-duty-4', series:{ id:'call-of-duty', t:'Call of Duty', n:'the
       compare: 'Diablo II’s ladder seasons end on Blizzard’s schedule and move every ladder character to non-ladder. Call of Duty 4 lets each player choose to reset, and shows it.',
       cost: 'Resetting unlocks means playing weeks with a weaker kit, and the badge rewards hours as much as skill.',
       principle: 'Let players choose to give up what they have earned for a visible mark, and a finished progression can be replayed as status.',
-      topics: ['progression','social-experience','return-and-quit'],
+      topics: ['progression', 'return-and-quit'],
       sources: ['https://en.wikipedia.org/wiki/Call_of_Duty_4:_Modern_Warfare', 'https://en.wikipedia.org/wiki/Diablo_II'] },
     lineage: {
       claim: 'Call of Duty 4, the 4th main entry in the Call of Duty series, did not invent rank unlocks; it tied them to loadouts and streaks, and that combination became the genre’s template.',
@@ -4243,7 +4249,7 @@ GAME({ id:'call-of-duty-4', series:{ id:'call-of-duty', t:'Call of Duty', n:'the
       compare: 'Battlefield 2 unlocked one weapon per class by rank but kept preset kits; Call of Duty 4 let players build their own.',
       cost: 'A template copied without its short matches fails, as several single-player series found, and every entry after must keep adding unlocks.',
       principle: 'A system often becomes a template not by inventing a part but by linking parts across timescales, so check which link is doing the work.',
-      topics: ['progression','builds-and-loadouts','genre-hybrids'],
+      topics: ['progression', 'builds-and-loadouts'],
       sources: ['https://en.wikipedia.org/wiki/Battlefield_2', 'https://en.wikipedia.org/wiki/Call_of_Duty_4:_Modern_Warfare', 'https://www.inverse.com/gaming/call-of-duty-4-modern-warfare-15th-anniversary'] }
   },
   shots: [
@@ -4286,7 +4292,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
       compare: 'Dota 2 ties power to gold and items that persist for the whole match; Overwatch has no shop, so the only power that accumulates inside a round is ultimate charge, and in the 2016 game it reset to zero with every swap.',
       cost: 'Fights decided by ultimate trades are hard to read for newcomers and spectators, who see a burst of effects without knowing which one decided it, and players who swap to counter pay for flexibility with lost charge.',
       principle: 'When a game lets players change their build freely, attach a small accumulated resource to the current build, so that switching stays possible but never free.',
-      topics: ['risk-reward','builds-and-loadouts','economy-and-resources'],
+      topics: ['builds-and-loadouts', 'economy-and-resources'],
       sources: ['https://en.wikipedia.org/wiki/Overwatch_(2016_video_game)', 'https://comicbook.com/gaming/news/overwatch-2-season-3-ultimate-charge-30-percent/'] },
     ui: {
       claim: 'Overwatch’s kill cam and hero select screen together form a feedback loop that points a player straight at a counter pick, which is what makes the free swap usable by people who do not yet know the roster.',
@@ -4326,7 +4332,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
       compare: 'Dota 2 also keeps its lore outside the match, but never promised a playable story; Overwatch raised that expectation itself, and paid for failing to meet it.',
       cost: 'Out-of-game lore is cheap to extend but builds expectations the game design cannot serve, and the cost of the gap fell on the studio’s credibility when the PvE plan was dropped.',
       principle: 'Story told outside a game creates demand to play it; do not sell the fulfilment of that demand before the team has proved it can build it.',
-      topics: ['narrative-agency','scope-control'],
+      topics: [],
       sources: ['https://en.wikipedia.org/wiki/Overwatch_(2016_video_game)', 'https://en.wikipedia.org/wiki/Overwatch_2'] },
     world: {
       claim: 'Overwatch’s world is built on a stated tone, a hopeful near future, which lets maps from many countries and heroes from many cultures sit in one setting without a single plot joining them.',
@@ -4336,7 +4342,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
       compare: 'Blizzard’s own StarCraft binds its maps to invented planets and a long campaign; Overwatch borrows real geography and leaves the plot outside the maps.',
       cost: 'A tone is a loose constraint: consistency of events is weak, and the world risks reading as a collection of theme-park locations rather than one place with a history.',
       principle: 'A setting meant to grow for years can be held together by a firm tone and a few rules for places, rather than by one continuous plot.',
-      topics: ['premise-and-world','design-pillars'],
+      topics: ['premise-and-world'],
       sources: ['https://www.gamedeveloper.com/art/video-defining-and-evolving-the-art-direction-of-i-overwatch-i-', 'https://en.wikipedia.org/wiki/Overwatch_(2016_video_game)', 'https://store.steampowered.com/app/2357570/Overwatch/'] },
     env: {
       claim: 'Overwatch’s Escort maps make the battlefield move, because the payload drags the front line through a sequence of streets and chokes, so each fight happens in different terrain from the last.',
@@ -4346,7 +4352,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
       compare: 'Counter-Strike 2’s bomb maps keep the same two sites all match, so the space is learned and called out by name; Overwatch’s payload changes the ground every few minutes.',
       cost: 'Moving fronts are harder to balance, since each segment favours one side differently, and defenders often have little choice about where to stand.',
       principle: 'Tie the objective to a path through the map, and the designer can pace terrain like a level even inside an open team fight.',
-      topics: ['level-structure','pacing','spatial-composition'],
+      topics: ['spatial-composition'],
       sources: ['https://en.wikipedia.org/wiki/Overwatch_(2016_video_game)'] },
     business: {
       claim: 'Overwatch’s boxed-price, free-hero model funded its growth for six years, but the switch to free-to-play in 2022 turned the same roster into a battle-pass product, and the reversal arguably cost more trust than money.',
@@ -4356,7 +4362,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
       compare: 'Dota 2 made every hero free from launch and has never sold one; Overwatch 2 put new heroes behind its battle pass first, then reversed it.',
       cost: 'Players paid in lost purchases and gated heroes; Blizzard paid in reputation and, later, in reversing the gating it had built its sequel around.',
       principle: 'In a game where counter-picking is the skill, putting a price on a hero sells a competitive answer, not a cosmetic.',
-      topics: ['business-model','live-operations','ethics-and-responsibility'],
+      topics: ['business-model', 'live-operations'],
       sources: ['https://en.wikipedia.org/wiki/Overwatch_(2016_video_game)', 'https://en.wikipedia.org/wiki/Overwatch_2'] },
     replay: {
       claim: 'Overwatch’s long-term play depended less on new maps than on repeated rule changes to team composition, each of which re-set what a winning team looked like.',
@@ -4366,7 +4372,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
       compare: 'Counter-Strike has kept its five-a-side team and its core rules close to fixed for decades; Overwatch treats its team size and role counts as tunable.',
       cost: 'Each change angered the players whose favourite strategy it removed, and 5v5 cut tank slots, a cost carried by the tank players who lost a place in every match.',
       principle: 'If team composition is the game’s depth, the rules that bound composition are a balance lever as strong as any hero’s numbers.',
-      topics: ['depth-vs-complexity','live-operations','difficulty'],
+      topics: ['depth-vs-complexity', 'live-operations'],
       sources: ['https://www.espn.com/espn/print?id=17146154','https://overwatch.blizzard.com/en-us/news/23060961/introducing-role-queue/', 'https://en.wikipedia.org/wiki/Overwatch_(2016_video_game)', 'https://en.wikipedia.org/wiki/Overwatch_2'] },
     lineage: {
       claim: 'Overwatch is Team Fortress 2’s class shooter crossed with a MOBA’s hero kits, and its own sequel is the clearest record of which parts of that cross Blizzard thought had failed.',
@@ -4439,7 +4445,7 @@ GAME({ id:'tony-hawks-pro-skater', series:{ id:'tony-hawks', t:'Tony Hawk’s', 
       compare: 'Top Skater, the Sega arcade game Neversoft studied, used a racing-style course; Tony Hawk’s dropped most of the track for open spaces where real trick names carry the presentation.',
       cost: 'Tying the look to real moves and named professionals limits how far the art can exaggerate, and every licensed skater adds approval work; when motion capture fell short, the animators had to build tricks by hand from video.',
       principle: 'When a game sells a real activity, give an expert from that activity the power to reject animation that looks wrong.',
-      topics: ['animation-and-vfx','fantasy'],
+      topics: ['fantasy'],
       sources: ['https://www.gamedeveloper.com/design/the-history-of-i-tony-hawk-s-pro-skater-i-ollies-grabs-and-grinds', 'https://en.wikipedia.org/wiki/Tony_Hawk%27s_Pro_Skater_(video_game)'] },
     sound: {
       claim: 'Tony Hawk’s Pro Skater used a licensed punk and rock soundtrack as its main source of energy, and the tracks came from the team’s own taste rather than a composer’s brief.',
@@ -4449,7 +4455,7 @@ GAME({ id:'tony-hawks-pro-skater', series:{ id:'tony-hawks', t:'Tony Hawk’s', 
       compare: 'Wipeout (1995) licensed Leftfield, Orbital and The Chemical Brothers to evoke rave culture; Tony Hawk’s drew on the music of skate videos instead, so its soundtrack tied the game to skate culture rather than club culture.',
       cost: 'Licensed songs must be cleared again for a remake, and three original tracks did not return in the 2020 one, while the Nintendo 64 port’s cartridge forced short loops that critics called annoying.',
       principle: 'A licensed soundtrack chosen from the culture the game depicts can carry that culture’s identity more cheaply than any cutscene.',
-      topics: ['audio-and-music','audience-and-positioning'],
+      topics: ['audio-and-music'],
       sources: ['https://www.theringer.com/2019/08/30/video-games/oral-history-tony-hawk-pro-skater-soundtrack-les-claypool-neversoft-activision', 'https://en.wikipedia.org/wiki/Tony_Hawk%27s_Pro_Skater_(video_game)', 'https://en.wikipedia.org/wiki/Wipeout_(video_game)', 'https://en.wikipedia.org/wiki/Tony_Hawk%27s_Pro_Skater_1_%2B_2'] },
     lore: { na:'Tony Hawk’s Pro Skater has no story to speak of: the career is a sequence of levels and competitions with no plot, cutscenes or characters beyond the real professionals. Its fiction is skate culture itself, carried by real skaters, real trick names and a soundtrack from skate videos, so the lore lens has nothing to analyse beyond what the art and sound lenses already cover.' },
     world: {
@@ -4460,7 +4466,7 @@ GAME({ id:'tony-hawks-pro-skater', series:{ id:'tony-hawks', t:'Tony Hawk’s', 
       compare: 'Tony Hawk’s American Wasteland (2005) joined its levels into one large space for story mode, though critics saw corridors hiding the loading; the first game’s levels stay small enough to learn in a few two-minute runs.',
       cost: 'Small dense levels run out of surprises once learned, and the career asks the player to beat them only a few times before moving on.',
       principle: 'A small level packed with connectable features can offer more distinct play than a large one with the same features spread apart.',
-      topics: ['level-structure','spatial-composition'],
+      topics: ['spatial-composition'],
       sources: ['https://en.wikipedia.org/wiki/Tony_Hawk%27s_Pro_Skater_(video_game)', 'https://www.theringer.com/2019/08/30/video-games/oral-history-tony-hawk-pro-skater-soundtrack-les-claypool-neversoft-activision', 'https://en.wikipedia.org/wiki/Tony_Hawk%27s_American_Wasteland'] },
     env: { na:'Tony Hawk’s Pro Skater does not tell stories through its spaces. Wikipedia notes that, unlike later entries, Neversoft did not mainly model its levels on real places but imagined areas such as a school or a city and fitted them with ramps and rails for play. Graffiti and props set a tone rather than record past events, so the spaces serve as courses for lines and goals, which the world lens covers.' },
     business: {
@@ -4471,7 +4477,7 @@ GAME({ id:'tony-hawks-pro-skater', series:{ id:'tony-hawks', t:'Tony Hawk’s', 
       compare: 'Activision’s first offer was a one-time buyout, the usual way to rent a name; Hawk’s royalty, arguably, made the athlete an owner of the result, much as authors are paid by book sales.',
       cost: 'Yearly sequels built on that success wore the formula thin by the late 2000s, and the licensor shares every sale, which lowers the publisher’s margin on a hit.',
       principle: 'When a real person lends their name to a game, pay in a way that rewards them for the game’s quality, not only for the signature.',
-      topics: ['business-model','audience-and-positioning'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Tony_Hawk%27s_Pro_Skater_(video_game)', 'https://en.wikipedia.org/wiki/Tony_Hawk%27s_Pro_Skater_1_%2B_2', 'https://en.wikipedia.org/wiki/Mat_Hoffman%27s_Pro_BMX'] },
     replay: {
       claim: 'Tony Hawk’s Pro Skater gets its replay from the two-minute run itself: a short fixed session invites one more try more than a long open one does.',
@@ -4481,7 +4487,7 @@ GAME({ id:'tony-hawks-pro-skater', series:{ id:'tony-hawks', t:'Tony Hawk’s', 
       compare: 'Tony Hawk’s Pro Skater 3 + 4 lets players stretch the clock to 60 minutes, yet PC Gamer’s critic still missed free roaming, since the goals had been cut to fit two minutes: the timer shapes the goals, not only the session.',
       cost: 'The clock stops players who want to explore at their own pace, which is why Free Skate exists and why later games moved away from it.',
       principle: 'A fixed, short session length makes retries cheap and results comparable, at the cost of free exploration.',
-      topics: ['return-and-quit','time-and-turns'],
+      topics: ['return-and-quit'],
       sources: ['https://en.wikipedia.org/wiki/Tony_Hawk%27s_Pro_Skater_(video_game)', 'https://www.pcgamer.com/games/sports/i-wouldve-loved-tony-hawk-pro-skater-3-4-a-lot-more-if-it-hadnt-made-the-mistake-of-rolling-out-time-limits-for-every-level/'] },
     lineage: {
       claim: 'Tony Hawk’s Pro Skater, the first entry of the Tony Hawk’s series, set a core its next two sequels grew by adding moves that link combos, rather than by changing the run.',
@@ -4537,7 +4543,7 @@ GAME({ id:'crusader-kings-iii', img:'assets/games/crusader-kings-iii.jpg', dev:'
       compare: 'Civilization, also in this library, gives the player one immortal leader for the whole game; Crusader Kings III makes the player mortal and the dynasty the constant.',
       cost: 'New players can lose a realm to partition without understanding why, and a strong realm can reach a point where no death is a real threat, which players linked to a thinner late game.',
       principle: 'If you want players to plan beyond one life, tie their identity to a lineage and make the handover the hardest moment of play.',
-      topics: ['core-loop', 'time-and-turns', 'goals-horizons'],
+      topics: ['core-loop'],
       sources: ['https://en.wikipedia.org/wiki/Crusader_Kings_III', 'https://www.pcgamer.com/crusader-kings-3-review/'] },
     ui: {
       claim: 'Crusader Kings III makes a dense rules set learnable in play by letting highlighted terms inside a tooltip open their own tooltips, so the game carries its own wiki under the cursor.',
@@ -4557,7 +4563,7 @@ GAME({ id:'crusader-kings-iii', img:'assets/games/crusader-kings-iii.jpg', dev:'
       compare: 'Total War spends its detail on battlefield soldiers; Crusader Kings III puts the same kind of effort into faces because its decisions are about people.',
       cost: 'Animating every character arguably costs performance and art time, and modelling medieval faces across many cultures adds work for every new region.',
       principle: 'Put your richest art where the player’s decisions are made: if choices are about people, show their state on their faces.',
-      topics: ['visual-language', 'animation-and-vfx'],
+      topics: ['visual-language'],
       sources: ['https://www.pcgamer.com/crusader-kings-3-review/', 'https://store.steampowered.com/app/1158310/Crusader_Kings_III/'] },
     sound: {
       claim: 'Crusader Kings III lets its events call short musical cues, so a generated moment such as a banquet can be heard as a chapter break in a game with no fixed plot.',
@@ -4588,7 +4594,7 @@ GAME({ id:'crusader-kings-iii', img:'assets/games/crusader-kings-iii.jpg', dev:'
       compare: 'Europa Universalis IV, also from Paradox, models states whose rulers are secondary; Crusader Kings III turns that around.',
       cost: 'Seeding real genealogies across such a map was a large research task, and invented relatives fill gaps; historians and players can arguably find the result uneven.',
       principle: 'If the systems run on relationships, make the relationship graph the world’s main structure and let borders follow from it.',
-      topics: ['premise-and-world', 'systemic-design'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Crusader_Kings_III', 'https://www.pcgamer.com/crusader-kings-3-review/'] },
     env: {
       claim: 'Royal Court gave Crusader Kings III a staged room that reports a ruler’s standing, so the court itself became evidence of how a reign has gone.',
@@ -4628,7 +4634,7 @@ GAME({ id:'crusader-kings-iii', img:'assets/games/crusader-kings-iii.jpg', dev:'
       compare: 'The Sims, whose parallels Fåhraeus acknowledged to Vice, also gives characters traits and needs; Crusader Kings III sets them in a political game with death and inheritance.',
       cost: 'Moving to a new engine cost years of expansions’ worth of Crusader Kings II content, and veterans missed features at launch.',
       principle: 'A sequel can renew a formula by changing what one existing system means, rather than by adding new systems.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Crusader_Kings_III', 'https://www.pcgamer.com/crusader-kings-3-review/', 'https://www.vice.com/en/article/crusader-kings-iii-wants-to-be-a-medieval-soap-opera-for-everyone/'] }
   },
   shots: [
@@ -4691,7 +4697,7 @@ GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'firs
       compare: 'Mario Tennis (2000) casts famous Nintendo characters, so players play as Mario’s cast; Wii Sports’ Miis make the players themselves the cast.',
       cost: 'Plain figures and simple courts made the game look old: reviewers compared its graphics to GameCube and Nintendo 64 games and marked it down.',
       principle: 'For play among people in one room, an avatar the players make of themselves can matter more than a detailed character the studio designed.',
-      topics: ['visual-language','fantasy','social-experience'],
+      topics: ['visual-language', 'fantasy'],
       sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://iwataasks.nintendo.com/interviews/wii/wii_sports/0/1/', 'https://en.wikipedia.org/wiki/Mario_Tennis'] },
     sound: {
       claim: 'Wii Sports plays the moment of contact from the Wii Remote’s own speaker, so a hit sounds in the player’s hand rather than only from the television.',
@@ -4724,7 +4730,7 @@ GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'firs
       compare: 'Nintendo Switch Sports (2022) tied its unlockable rewards to online play, which reviewers disliked; Wii Sports keeps every reason to return in the room.',
       cost: 'A player alone has little to do once the skill points level off, and the game gives groups no tournament mode to structure their play.',
       principle: 'If the audience plays together in one room, let the group supply the reasons to return.',
-      topics: ['return-and-quit','social-experience'],
+      topics: ['return-and-quit', 'social-experience', 'fun-dimensions'],
       sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://en.wikipedia.org/wiki/Nintendo_Switch_Sports'] },
     lineage: {
       claim: 'Wii Sports, the first entry of the Wii Sports series, arguably set its sequels a trap: they could add precision and sports, but not a new input to discover.',
@@ -4734,7 +4740,7 @@ GAME({ id:'wii-sports', series:{ id:'wii-sports-series', t:'Wii Sports', n:'firs
       compare: 'Tony Hawk’s Pro Skater 2 kept its predecessor’s core and extended the combo chain; the Wii Sports sequels had no chain to extend, only the input to refine.',
       cost: 'Better tracking arguably made each sequel more precise and less forgiving, raising the bar for the newcomers the series was built for.',
       principle: 'A game whose appeal is a new input cannot sell that novelty twice; its sequels need a new reason to play.',
-      topics: ['learning-from-success','genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Wii_Sports', 'https://en.wikipedia.org/wiki/Nintendo_Switch_Sports'] }
   },
   shots: [
@@ -4819,7 +4825,7 @@ GAME({ id:'forza-horizon-5', series:{ id:'forza-horizon', t:'Forza Horizon', n:'
       compare: 'Need for Speed (2015) gave its open-world racing a story told in live-action video with a crew and rivals. Horizon keeps the rivalry out, trading drama for a tone that never discourages.',
       cost: 'The writing team pays: with no opponent and no failure, lines can only celebrate, and critics’ complaint of empty praise is the result.',
       principle: 'A premise without conflict suits a game without failure, but give the writing something the player has actually done to react to, or its praise turns into noise.',
-      topics: ['premise-and-world', 'ludonarrative-alignment'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Forza_Horizon_5', 'https://global.techradar.com/nl-nl/reviews/forza-horizon-5-test', 'https://en.wikipedia.org/wiki/Need_for_Speed_(2015_video_game)'] },
     world: {
       claim: 'Forza Horizon 5 compresses a country into a drive: eleven biomes are packed so close that a few minutes at speed crosses desert, jungle, beach and volcano.',
@@ -4829,7 +4835,7 @@ GAME({ id:'forza-horizon-5', series:{ id:'forza-horizon', t:'Forza Horizon', n:'
       compare: 'Forza Horizon 4’s Britain, from the Highlands to the Cotswolds, shared one temperate climate and let the seasons supply most of the variety. Forza Horizon 5 puts the variety into the ground itself.',
       cost: 'Real distances and the empty stretches between Mexican regions are lost, so the place is a greatest-hits version, which Mexican players may find less recognisable than visitors do.',
       principle: 'When a world is crossed at speed, measure it in contrasts per minute, not kilometres; compress the gaps and keep the differences.',
-      topics: ['level-structure', 'spatial-composition'],
+      topics: ['spatial-composition'],
       sources: ['https://en.wikipedia.org/wiki/Forza_Horizon_5', 'https://en.wikipedia.org/wiki/Forza_Horizon_4'] },
     env: {
       claim: 'Forza Horizon 5 hands part of its environment to Mexican artists, so the walls beside the road carry a real culture’s own work rather than an outsider’s impression of it.',
@@ -4914,7 +4920,7 @@ GAME({ id:'pac-man', series:{ id:'pac-man-series', t:'Pac-Man', n:'first entry' 
       compare: 'Namco’s own Rally-X (1980) sends red cars that all pursue the player and grow more aggressive; Pac-Man’s pack reads as four jobs rather than one crowd.',
       cost: 'Fixed rules are fully predictable, so the dossier notes that high scores rest on memorised patterns that exploit the game’s determinism, which rewards rote over reading for experts.',
       principle: 'Emergent teamwork can come from giving enemies different goals under one shared movement rule, with no communication between them.',
-      topics: ['ingame-ai-purpose','choosing-ai-technique','systemic-design'],
+      topics: ['ingame-ai-purpose', 'choosing-ai-technique', 'systemic-design', 'readable-and-fair-ai'],
       sources: ['https://www.gamedeveloper.com/design/the-pac-man-dossier', 'https://en.wikipedia.org/wiki/Rally-X'] },
     ui: {
       claim: 'Pac-Man’s attract screen is a character sheet: before a coin goes in, it introduces the ghosts as named people rather than hazards.',
@@ -4934,7 +4940,7 @@ GAME({ id:'pac-man', series:{ id:'pac-man-series', t:'Pac-Man', n:'first entry' 
       compare: 'Asteroids (1979) casts the player as a triangle of vector lines; Pac-Man’s round, eating face gave the arcade a mascot rather than a vehicle.',
       cost: 'One shared ghost silhouette puts identity on colour alone, so players who confuse red, pink and orange arguably lose the differences the whole design is built on.',
       principle: 'When enemies differ by behaviour, give them one shape and distinct colours, and keep one colour change for the state that flips who is in danger.',
-      topics: ['visual-language','readable-and-fair-ai'],
+      topics: ['visual-language'],
       sources: ['https://en.wikipedia.org/wiki/Pac-Man', 'https://en.wikipedia.org/wiki/Asteroids_(video_game)'] },
     sound: {
       claim: 'Pac-Man’s background siren is a progress meter the player hears: it climbs as the maze empties, so the sound says how near the level is to its end without a look at the board.',
@@ -4964,7 +4970,7 @@ GAME({ id:'pac-man', series:{ id:'pac-man-series', t:'Pac-Man', n:'first entry' 
       compare: 'Ms. Pac-Man (1982) swapped the single maze for four, which kept the chase fresh but arguably meant players learned each map less deeply.',
       cost: 'One fixed maze means no new place to see after the first minute, and variety must come from speed and timing alone, which some players found repetitive.',
       principle: 'A single place in a fixed space where the rules tilt towards the player gives every escape route a destination.',
-      topics: ['spatial-composition','level-structure'],
+      topics: ['spatial-composition'],
       sources: ['https://www.gamedeveloper.com/design/the-pac-man-dossier', 'https://en.wikipedia.org/wiki/Ms._Pac-Man'] },
     env: { na:'Pac-Man’s maze stages no story: there are no traces of past events, no objects arranged to suggest what happened and nothing that changes between levels except the fruit. The space is a board for the chase, which the world lens covers, and its only narrative comes from the intermissions, which the lore lens analyses.' },
     business: {
@@ -4985,7 +4991,7 @@ GAME({ id:'pac-man', series:{ id:'pac-man-series', t:'Pac-Man', n:'first entry' 
       compare: 'Ms. Pac-Man (1982) made its ghosts less predictable so that set patterns stopped working, trading route-learning for reading.',
       cost: 'Players who learn a pattern stop reading the ghosts, so the character-reading the design was built on stops mattering at the top level.',
       principle: 'A deterministic game will be solved; decide in advance whether a solved route is a reward or a failure of the design.',
-      topics: ['skill-and-mastery','difficulty'],
+      topics: ['skill-and-mastery'],
       sources: ['https://www.gamedeveloper.com/design/the-pac-man-dossier', 'https://en.wikipedia.org/wiki/Pac-Man', 'https://en.wikipedia.org/wiki/Ms._Pac-Man'] },
     lineage: {
       claim: 'Pac-Man, the first entry of its series, arguably renewed best when sequels changed the clock and the crowd around the chase, not the ghosts’ rules.',
@@ -4995,7 +5001,7 @@ GAME({ id:'pac-man', series:{ id:'pac-man-series', t:'Pac-Man', n:'first entry' 
       compare: 'Tetris 99 (2019), also by Arika, first used the 99-player frame on a puzzle game; Pac-Man 99 carried a frame already proven on another classic.',
       cost: 'Keeping the ghosts’ rules fixed ties every sequel to the 1980 game, and an online-only entry like Pac-Man 99 lost its main mode when its servers closed.',
       principle: 'To renew a classic, keep its core loop exactly and change the frame around it: the clock, the space or who else is playing.',
-      topics: ['learning-from-success','genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Ms._Pac-Man', 'https://en.wikipedia.org/wiki/Pac-Man_Championship_Edition', 'https://en.wikipedia.org/wiki/Pac-Man_99', 'https://en.wikipedia.org/wiki/Tetris_99'] }
   },
   shots: [
@@ -5104,7 +5110,7 @@ GAME({ id:'microsoft-flight-simulator', series:{ id:'flight-simulator', t:'Micro
       compare: 'Microsoft Flight (2012), a free-to-play attempt with paid aircraft, had development halted within five months; the 2020 game kept a premium base and put the trial through a subscription instead.',
       cost: 'The download and streaming demand, with the European disc edition on ten DVDs, excludes players with slow connections or small drives.',
       principle: 'A subscription can serve as the trial for a niche premium game, as long as a deep paid tier sits behind it for the players it converts.',
-      topics: ['business-model', 'platform-choice'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Microsoft_Flight_Simulator_(2020_video_game)', 'https://en.wikipedia.org/wiki/Microsoft_Flight_Simulator', 'https://www.flightsimulator.com/microsoft-flight-simulator-set-for-launch-on-august-18-for-pc-also-with-xbox-game-pass-for-pc-beta/', 'https://en.wikipedia.org/wiki/Microsoft_Flight'] },
     replay: {
       claim: 'Microsoft Flight Simulator gets its replay from the planet changing under a fixed flight model, so the skill a player builds is portable to every place.',
@@ -5114,7 +5120,7 @@ GAME({ id:'microsoft-flight-simulator', series:{ id:'flight-simulator', t:'Micro
       compare: 'Cities: Skylines adds unlimited money and unlock options to its one simulation; Microsoft Flight Simulator varies nothing in its rules and lets the Earth supply the variety.',
       cost: 'With no set goals, players who need objectives drift away, and the game relies on self-directed players.',
       principle: 'Hold the skill system fixed and let the setting vary, and practice pays off everywhere; but a player without their own goals will not find one in the game.',
-      topics: ['skill-and-mastery', 'goals-horizons'],
+      topics: ['skill-and-mastery'],
       sources: ['https://en.wikipedia.org/wiki/Microsoft_Flight_Simulator_(2020_video_game)'] },
     lineage: {
       claim: 'The 2020 Microsoft Flight Simulator revived a lapsed series by replacing its approach to scenery, not its aircraft, which is what made it read as new.',
@@ -5124,7 +5130,7 @@ GAME({ id:'microsoft-flight-simulator', series:{ id:'flight-simulator', t:'Micro
       compare: 'X-Plane stayed the rival through the gap years with regular releases; Microsoft returned by changing what a simulator’s world is made of.',
       cost: 'Dependence on cloud data ties the game to a service Microsoft must keep running, and old add-ons from Flight Simulator X needed conversion.',
       principle: 'A long-dormant series comes back strongest when it keeps its core verb and replaces the constraint that capped it.',
-      topics: ['learning-from-success', 'release-and-updates'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Microsoft_Flight_Simulator', 'https://en.wikipedia.org/wiki/Microsoft_Flight_Simulator_(2020_video_game)', 'https://en.wikipedia.org/wiki/Microsoft_Flight'] }
   },
   shots: [
@@ -5169,7 +5175,7 @@ GAME({ id:'farming-simulator', series:{ id:'farming-simulator-series', t:'Farmin
       compare: 'Stardew Valley’s crops need only a hoe, seeds and a watering can, all worked by hand. Farming Simulator spreads the same growth over several separate machine passes, so logistics, not planting, is the game.',
       cost: 'Newcomers who do not know the real order of field work face steep first hours, which PC Gamer’s review says push them away, and veterans still spend most of their time repeating passes they have mastered.',
       principle: 'A real process with dependent steps can replace an invented challenge; the puzzle is sequencing, and the tools are the verbs.',
-      topics: ['core-loop', 'systemic-design', 'time-and-turns'],
+      topics: ['core-loop'],
       sources: ['https://en.wikipedia.org/wiki/Farming_Simulator', 'https://store.steampowered.com/app/2300320/Farming_Simulator_25/', 'https://store.steampowered.com/app/1248130/Farming_Simulator_22/', 'https://www.pcgamer.com/farming-simulator-22-review/'] },
     ui: {
       claim: 'Farming Simulator 25 draws its GPS guidance as lines on the field itself, so the precision a real farmer buys becomes something the player can see and drive to.',
@@ -5210,7 +5216,7 @@ GAME({ id:'farming-simulator', series:{ id:'farming-simulator-series', t:'Farmin
       compare: 'Euro Truck Simulator 2 models regions for the drive through them; Farming Simulator’s regions matter for what grows in them and which work they demand.',
       cost: 'Each regional map needs new crops, machines and licences, so the team can ship only a few, and players tied to one region may have little reason to leave it.',
       principle: 'If a world is a workplace, let each region change the work, not just the scenery.',
-      topics: ['premise-and-world', 'level-structure', 'localization-and-culture'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Farming_Simulator', 'https://farmingsimulator.wiki.gg/wiki/Hutan_Pantai/Farming_Simulator_25', 'https://store.steampowered.com/app/2300320/Farming_Simulator_25/'] },
     env: {
       claim: 'Farming Simulator’s fields record the player’s own work, so the environment tells the story of the last pass rather than a past someone else lived.',
@@ -5220,7 +5226,7 @@ GAME({ id:'farming-simulator', series:{ id:'farming-simulator-series', t:'Farmin
       compare: 'Environmental storytelling usually stages a scene for the player to decode; here the only author of the scene is the player.',
       cost: 'Persistent ground changes cost memory and processing, and the Farming Simulator 25 engine needs stronger hardware than its predecessor.',
       principle: 'In a game about work, let the space keep the marks of the work; the player’s own trace is the reward they look at.',
-      topics: ['environmental-storytelling', 'feedback-and-affordance'],
+      topics: ['environmental-storytelling'],
       sources: ['https://store.steampowered.com/app/2300320/Farming_Simulator_25/', 'https://store.steampowered.com/app/1248130/Farming_Simulator_22/'] },
     business: {
       claim: 'GIANTS runs Farming Simulator as a platform: brand licences, developer-tested mods and a sponsored esports league all sell the same machinery to different audiences.',
@@ -5230,7 +5236,7 @@ GAME({ id:'farming-simulator', series:{ id:'farming-simulator-series', t:'Farmin
       compare: 'Arguably, most premium simulators sell paid content packs as the main lifeline; Farming Simulator leans on a free, curated mod stream alongside its own packs.',
       cost: 'Testing every mod costs GIANTS staff time, and a rich mod library makes each sequel compete with the one players already own.',
       principle: 'Curating a community’s content can make one release last a whole cycle, but the next release then has to beat the curated library too.',
-      topics: ['business-model', 'ugc-platforms', 'live-operations'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Farming_Simulator', 'https://www.giants-software.com/news.php?show=news-134', 'https://www.farming-simulator.com/newsArticle.php?lang=en&country=gb&news_id=104', 'https://store.steampowered.com/app/1248130/Farming_Simulator_22/'] },
     replay: {
       claim: 'Farming Simulator’s replay comes from starting over at a different scale or place, because the process stays fixed and the player chooses how much of it to hold at once.',
@@ -5240,7 +5246,7 @@ GAME({ id:'farming-simulator', series:{ id:'farming-simulator-series', t:'Farmin
       compare: 'Roguelikes vary the content and reset progress on failure; Farming Simulator keeps the rules and lets the player reset voluntarily.',
       cost: 'Without failure, some players run out of reasons to start again, and a new save repeats early hours they know by heart.',
       principle: 'Where failure is cheap, replay has to come from player-chosen ambitions: scale, place and company.',
-      topics: ['return-and-quit', 'social-experience'],
+      topics: ['return-and-quit'],
       sources: ['https://store.steampowered.com/app/1248130/Farming_Simulator_22/', 'https://en.wikipedia.org/wiki/Farming_Simulator'] },
     lineage: {
       claim: 'Farming Simulator took farming from the life-sim tradition, where it is a backdrop for village life, and made it a job with the tools of real agribusiness.',
@@ -5250,7 +5256,7 @@ GAME({ id:'farming-simulator', series:{ id:'farming-simulator-series', t:'Farmin
       compare: 'Harvest Moon, from 1996, set farming inside a village of characters and festivals; Farming Simulator removed the village and kept the fields and machines.',
       cost: 'Renewal by addition makes each entry feel like a modest step, which critics note, and the series depends on licensing deals it does not control.',
       principle: 'A series that renews by adding more of the real world can last as long as the world has more to add, but it cannot surprise.',
-      topics: ['genre-hybrids', 'learning-from-success'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Farming_Simulator', 'https://en.wikipedia.org/wiki/Story_of_Seasons'] }
   },
   shots: [
@@ -5295,7 +5301,7 @@ GAME({ id:'five-nights-at-freddys', series:{ id:'five-nights-at-freddys-series',
       compare: 'Night Trap (1992) also splits attention across a house’s security cameras, but switching them is free and the player is never the target; the scarce thing is trap timing, not power.',
       cost: 'A fixed seat and three tools give little room to vary play, so reviewers found later nights repetitive; the player’s choices narrow as the pressure rises.',
       principle: 'When looking itself costs a resource, the player’s gaze becomes a set of decisions rather than a free survey.',
-      topics: ['economy-and-resources','risk-reward','decisions'],
+      topics: ['economy-and-resources', 'decisions'],
       sources: ['https://en.wikipedia.org/wiki/Five_Nights_at_Freddy%27s_(video_game)', 'https://store.steampowered.com/app/319510/', 'https://en.wikipedia.org/wiki/Night_Trap'] },
     ui: {
       claim: 'The camera monitor is the game’s map and its blindfold at once: raising it gives the player the building and takes away the office.',
@@ -5305,7 +5311,7 @@ GAME({ id:'five-nights-at-freddys', series:{ id:'five-nights-at-freddys-series',
       compare: 'Alien: Isolation (2014) also hands the player a diegetic device, a motion tracker whose sound can draw the Alien; there the cost of looking is noise, not a blind spot.',
       cost: 'The full-screen monitor arguably suits fast mouse or touch input; on a gamepad the quick flip between camera and doors is fiddlier, so console players pay more per look.',
       principle: 'A diegetic screen that takes over the view makes information cost attention, which a floating overlay can never do.',
-      topics: ['feedback-and-affordance','readability-and-hierarchy'],
+      topics: ['readability-and-hierarchy'],
       sources: ['https://store.steampowered.com/app/319510/', 'https://en.wikipedia.org/wiki/Alien:_Isolation'] },
     art: {
       claim: 'The game frightens with stillness: pre-rendered frames of mascots that have simply moved between looks, so the horror is the gap between two pictures.',
@@ -5315,7 +5321,7 @@ GAME({ id:'five-nights-at-freddys', series:{ id:'five-nights-at-freddys-series',
       compare: 'Resident Evil 4 frightens with visible bodies in motion that the player must shoot; Five Nights at Freddy’s shows no motion at all, only its result.',
       cost: 'Still frames limit what the game can show; there is no chase or animation, so the moment of attack must carry all the motion, and reviewers found that jump scare repetitive.',
       principle: 'A cheap art pipeline can be a fear tool: showing only the before and after of movement makes the player imagine it.',
-      topics: ['visual-language','readability-and-hierarchy'],
+      topics: ['visual-language'],
       sources: ['https://en.wikipedia.org/wiki/Five_Nights_at_Freddy%27s_(video_game)', 'https://store.steampowered.com/app/319510/'] },
     sound: {
       claim: 'With no music during play, the game turns its one song into a countdown: the Toreador Song means the player has lost power and has seconds left.',
@@ -5345,7 +5351,7 @@ GAME({ id:'five-nights-at-freddys', series:{ id:'five-nights-at-freddys-series',
       compare: 'Papers, Please, also in this library, builds a country behind one desk through documents; Five Nights at Freddy’s builds only a restaurant and lets the franchise’s later games widen it.',
       cost: 'A single building gives little room to grow within one game, so sequels had to add new sites and times to widen the world.',
       principle: 'A world can be one building if every room is both a place in the fiction and a node the player must track.',
-      topics: ['premise-and-world','level-structure'],
+      topics: ['premise-and-world'],
       sources: ['https://store.steampowered.com/app/319510/', 'https://en.wikipedia.org/wiki/Papers,_Please'] },
     env: {
       claim: 'The rooms tell a story of neglect that the player notices only while hunting for a threat.',
@@ -5355,7 +5361,7 @@ GAME({ id:'five-nights-at-freddys', series:{ id:'five-nights-at-freddys-series',
       compare: 'Gone Home (2013) asks the player to explore a quiet house at leisure to find its story; Five Nights at Freddy’s shows rooms only in snatched glances.',
       cost: 'Glanced-at detail is easy to miss, so much of the staging goes unseen by players who only check for threats.',
       principle: 'Place story details inside the frames the player must inspect for threats, and the details are read without a detour.',
-      topics: ['environmental-storytelling','spatial-composition'],
+      topics: ['environmental-storytelling'],
       sources: ['https://store.steampowered.com/app/319510/', 'https://en.wikipedia.org/wiki/Gone_Home'] },
     business: {
       claim: 'A solo developer turned a small premium game into a franchise by releasing sequels faster than the audience’s interest could fade.',
@@ -5366,7 +5372,7 @@ GAME({ id:'five-nights-at-freddys', series:{ id:'five-nights-at-freddys-series',
       cost: 'Fast sequels on one template risked sameness, and after 2021 the series depended on partner studios rather than its creator.',
       principle: 'A small, cheap-to-build template can carry a fast release cadence that holds an audience a single big game could not.',
       context: 'Cawthon was a solo developer working in Clickteam Fusion 2.5, so short cycles were what his resources allowed.',
-      topics: ['business-model','launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Five_Nights_at_Freddy%27s', 'https://en.wikipedia.org/wiki/Five_Nights_at_Freddy%27s_(film)', 'https://www.gamedeveloper.com/business/-i-five-night-s-at-freddy-s-i-creator-retiring-following-political-donation-controversy', 'https://www.thedailybeast.com/obsessed/five-nights-at-freddys-explained-the-fandom-the-lore-and-the-lets-plays/', 'https://en.wikipedia.org/wiki/Slender:_The_Eight_Pages'] },
     replay: {
       claim: 'Replay comes from mastery of one budget under rising pressure, and from the mysteries players return to decode, not from new content.',
@@ -5376,7 +5382,7 @@ GAME({ id:'five-nights-at-freddys', series:{ id:'five-nights-at-freddys-series',
       compare: 'Slay the Spire, also in this library, varies every run through random content; Five Nights at Freddy’s has no randomised content, only a difficulty dial.',
       cost: 'Players who want new situations find none after night five, which is why reviewers judged replay value low.',
       principle: 'Hand players the difficulty settings as the endgame, and a short game gains a challenge ladder at almost no cost to build.',
-      topics: ['difficulty','return-and-quit'],
+      topics: ['return-and-quit'],
       sources: ['https://en.wikipedia.org/wiki/Five_Nights_at_Freddy%27s_(video_game)', 'https://en.wikipedia.org/wiki/Five_Nights_at_Freddy%27s'] },
     lineage: {
       claim: 'Five Nights at Freddy’s began a run of mascot horror games built for watching as much as playing.',
@@ -5444,7 +5450,7 @@ GAME({ id:'metal-gear-solid', series:{ id:'metal-gear', t:'Metal Gear', n:'third
       compare: 'Splinter Cell (2002) reported the player’s own visibility through a light meter; Metal Gear Solid reports the guard’s side, where he is looking.',
       cost: 'With the radar doing the reading, players arguably watch a small corner of the screen instead of the 3D room, and the art in the room matters less.',
       principle: 'An interface that shows what the enemy knows can be taken away to change the mood without changing the rules.',
-      topics: ['readability-and-hierarchy','readable-and-fair-ai'],
+      topics: ['readability-and-hierarchy', 'readable-and-fair-ai', 'perception-and-awareness'],
       sources: ['https://en.wikipedia.org/wiki/Metal_Gear_Solid_(1998_video_game)', 'https://en.wikipedia.org/wiki/Stealth_game'] },
     art: {
       claim: 'Metal Gear Solid arguably puts its faces in 2D codec portraits because its polygon characters, seen from above, are too small to act.',
@@ -5505,7 +5511,7 @@ GAME({ id:'metal-gear-solid', series:{ id:'metal-gear', t:'Metal Gear', n:'third
       compare: 'Resident Evil (1996) varies its endings on whether the player saves their partners through the campaign; Metal Gear Solid ties its fork to a single test of stamina.',
       cost: 'A physical test favours players who can press fast, so the ending some players get depends on stamina rather than intent.',
       principle: 'A choice made through a physical act feels owned in a way a dialogue option does not, but it also measures ability, so decide which you want to measure.',
-      topics: ['narrative-agency','return-and-quit'],
+      topics: ['narrative-agency'],
       sources: ['https://en.wikipedia.org/wiki/Metal_Gear_Solid_(1998_video_game)', 'https://en.wikipedia.org/wiki/Resident_Evil_(1996_video_game)'] },
     lineage: {
       claim: 'Metal Gear Solid, the third main Metal Gear game, carried into 3D a stealth design that began as a workaround for weak hardware.',
@@ -5515,7 +5521,7 @@ GAME({ id:'metal-gear-solid', series:{ id:'metal-gear', t:'Metal Gear', n:'third
       compare: 'Tenchu: Stealth Assassins, credited as the first 3D stealth game, came out the same year as a new series; Metal Gear Solid brought an existing rule set from 1987 into 3D.',
       cost: 'The series’ growth tied it to one director: after Kojima’s 2015 exit, Konami kept the Metal Gear name without the person most associated with it.',
       principle: 'A limit worked around well can become a genre; when the limit goes, keep the rule it produced and spend the new power on showing it.',
-      topics: ['learning-from-success','readable-and-fair-ai'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Metal_Gear_(video_game)', 'https://en.wikipedia.org/wiki/Metal_Gear_Solid_(1998_video_game)', 'https://en.wikipedia.org/wiki/Hideo_Kojima', 'https://en.wikipedia.org/wiki/Stealth_game'] }
   },
   shots: [
@@ -5573,7 +5579,7 @@ GAME({ id:'deus-ex', series:{ id:'deus-ex-series', t:'Deus Ex', n:'first entry' 
       compare: 'System Shock 2 (1999) keeps items in a grid window the player opens, with weapon, armour and implant slots beside it; Deus Ex keeps a chosen set on one belt in view.',
       cost: 'The belt has only ten slots, so any answer left off it still needs a trip to the full inventory, which breaks the one-key switch.',
       principle: 'Put different kinds of answer in the same slot type, and the interface stops telling the player which kind is correct.',
-      topics: ['readability-and-hierarchy','controls-and-friction'],
+      topics: ['readability-and-hierarchy'],
       sources: ['https://store.steampowered.com/app/6910/', 'https://en.wikipedia.org/wiki/Deus_Ex_(video_game)', 'https://retrogamer.biz/wp-content/uploads/2016/06/System-Shock-2-Manual.pdf'] },
     art: {
       claim: 'Deus Ex spends its art on recognisable real places rather than invention, and pays for it in a look critics called dated even at launch.',
@@ -5623,7 +5629,7 @@ GAME({ id:'deus-ex', series:{ id:'deus-ex-series', t:'Deus Ex', n:'first entry' 
       compare: 'Thief also lets players plan routes through large spaces, but often hides the target inside; Deus Ex shows it first and lets the approach be the question.',
       cost: 'A visible goal gives away the level’s shape, so surprise must come from the routes, not the destination.',
       principle: 'Show the destination before the path, and players will read the space as a set of answers.',
-      topics: ['level-structure','spatial-composition'],
+      topics: ['spatial-composition'],
       sources: ['https://www.gamedeveloper.com/design/postmortem-ion-storm-s-i-deus-ex-i-', 'https://en.wikipedia.org/wiki/Deus_Ex_(video_game)'] },
     business: {
       claim: 'Deus Ex was built by licensing an engine and spending the saving on designers, a trade that bought depth with a small programming team.',
@@ -5633,7 +5639,7 @@ GAME({ id:'deus-ex', series:{ id:'deus-ex-series', t:'Deus Ex', n:'first entry' 
       compare: 'id Software built its own engines for its shooters; Ion Storm Austin bought one and spent its people on design.',
       cost: 'Licensing did not save all the time Spector hoped: his postmortem says the time went into learning Unreal’s limits and capabilities.',
       principle: 'Buy the technology your game shares with others, and spend your own people on what only your game does.',
-      topics: ['scope-control','risk-and-dependencies'],
+      topics: ['scope-control'],
       sources: ['https://www.gamedeveloper.com/design/postmortem-ion-storm-s-i-deus-ex-i-', 'https://en.wikipedia.org/wiki/Deus_Ex_(video_game)'] },
     replay: {
       claim: 'Deus Ex’s replay comes from builds, not endings: a second run with other skills finds routes the first never saw.',
@@ -5653,7 +5659,7 @@ GAME({ id:'deus-ex', series:{ id:'deus-ex-series', t:'Deus Ex', n:'first entry' 
       compare: 'Dishonored (2012) and Prey (2017), later immersive sims from Arkane that Wikipedia names in the genre, keep its many routes but in invented worlds rather than real cities.',
       cost: 'The genre stayed costly and hard to sell; even its own series, with Mankind Divided, struggled commercially.',
       principle: 'A named genre is easier to fund and copy; naming the thing you make is part of its legacy.',
-      topics: ['learning-from-success','genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Immersive_sim', 'https://en.wikipedia.org/wiki/Deus_Ex_(video_game)'] }
   },
   shots: [
@@ -5718,7 +5724,7 @@ GAME({ id:'hearthstone', img:'assets/games/hearthstone.jpg', card:'assets/games/
       compare: 'Magic: The Gathering’s digital versions reproduce the printed card, text box and all; Hearthstone designed its cards for the screen from the start.',
       cost: 'Ornate frames take space on a phone, and art must be commissioned for every new card at a pace of several sets a year, which the team pays for continuously.',
       principle: 'When the pieces are the whole game, give them material weight and let their shape carry their type.',
-      topics: ['visual-language', 'readability-and-hierarchy'],
+      topics: ['visual-language'],
       sources: ['https://en.wikipedia.org/wiki/Hearthstone', 'https://play.google.com/store/apps/details?id=com.blizzard.wtcg.hearthstone'] },
     sound: {
       claim: 'Hearthstone’s sound treats a card game like a pub game: warm tavern music under the match and loud, physical effects on every play keep a quiet genre lively.',
@@ -5738,7 +5744,7 @@ GAME({ id:'hearthstone', img:'assets/games/hearthstone.jpg', card:'assets/games/
       compare: 'Slay the Spire keeps a small mystery about Neow and the Spire across runs; Hearthstone has no central mystery and asks for nothing to be followed.',
       cost: 'Players who want a campaign get only short Adventures, and each new set needs a fresh theme with no single plot to carry players between them.',
       principle: 'A light frame that explains why pieces meet can hold a large cast without asking the player to follow a plot.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Hearthstone'] },
     world: {
       claim: 'Hearthstone borrows a finished world and spends its invention on themes: each expansion treats one corner of Warcraft as a place, so the world grows by locations, not by history.',
@@ -5769,7 +5775,7 @@ GAME({ id:'hearthstone', img:'assets/games/hearthstone.jpg', card:'assets/games/
       compare: 'Magic: The Gathering also rotates Standard and keeps old cards in formats such as Modern; Hearthstone puts that safety net in one Wild ladder in the same client.',
       cost: 'Players pay for sets that leave Standard after about two years, and a returning player may find most of their decks retired.',
       principle: 'Rotating the pool keeps a live game learnable; always leave a format where what players bought still works.',
-      topics: ['live-operations', 'procedural-content', 'return-and-quit'],
+      topics: ['live-operations', 'return-and-quit'],
       sources: ['https://hearthstone.blizzard.com/en-us/news/19995505/a-new-way-to-play-2-2-2016', 'https://hearthstone.wiki.gg/wiki/Arena', 'https://en.wikipedia.org/wiki/Hearthstone', 'https://www.hearthpwn.com/news/1745-ben-brode-on-randomness-in-hearthstone-karazhan'] },
     lineage: {
       claim: 'Hearthstone took Magic: The Gathering’s structure and the World of Warcraft Trading Card Game’s content and cut them down for a screen, and its own designers later carried the same cutting further.',
@@ -5779,7 +5785,7 @@ GAME({ id:'hearthstone', img:'assets/games/hearthstone.jpg', card:'assets/games/
       compare: 'Magic: The Gathering Arena (2019) later brought Magic to screens with its full response rules intact; Hearthstone kept the duel and the collection but changed how a turn works.',
       cost: 'Borrowing the collection model also borrowed its cost to players, and The Escapist argued in 2021 that its Secrets lack the strategic complexity of Magic’s instants.',
       principle: 'Borrowing a genre’s structure frees you to change one hard thing, such as timing, and do it well.',
-      topics: ['genre-hybrids', 'learning-from-success'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Hearthstone', 'https://en.wikipedia.org/wiki/Ben_Brode', 'https://www.gamedeveloper.com/design/-iterate-fast-and-other-design-lessons-learned-from-i-hearthstone-i-', 'https://www.escapistmagazine.com/hearthstone-is-not-magic-but-i-love-it-all-the-same/', 'https://en.wikipedia.org/wiki/Magic:_The_Gathering_Arena'] }
   },
   shots: [
@@ -5842,7 +5848,7 @@ GAME({ id:'beat-saber', img:'assets/games/beat-saber.jpg', dev:'Beat Games', sto
       compare: 'Rez, Tetsuya Mizuguchi’s rhythm shooter, also used glowing abstract shapes, but as a visual synaesthesia of the music. Beat Saber’s colour code serves the hands first and the music second.',
       cost: 'The style leaves little room for variety: packs change the stage and light show, but songs of very different moods arguably look alike, and the dark, flashing stages are a concern for light-sensitive players.',
       principle: 'In a fast game, spend the art on the one pairing the player must make every second, and let everything else stay dark.',
-      topics: ['visual-language', 'animation-and-vfx'],
+      topics: ['visual-language'],
       sources: ['https://en.wikipedia.org/wiki/Beat_Saber', 'https://en.wikipedia.org/wiki/Rez_(video_game)'] },
     sound: {
       claim: 'Beat Saber’s launch soundtrack was written by its composer with the charts in mind, which made the music a partner to the level design rather than a licensed backdrop.',
@@ -5884,7 +5890,7 @@ GAME({ id:'beat-saber', img:'assets/games/beat-saber.jpg', dev:'Beat Games', sto
       compare: 'Unlike a level-making game such as Super Mario Maker, which owns its sharing platform, Beat Saber’s biggest content source lives outside the product and outside its control.',
       cost: 'The studio pays in broken mods and angry players after every update, and artists whose songs are mapped by fans see no money from it.',
       principle: 'When your content is someone else’s intellectual property, expect players to build an unofficial supply; decide early how far you can tolerate it, because you cannot license it.',
-      topics: ['ugc-platforms', 'content-multiplies'],
+      topics: ['content-multiplies'],
       sources: ['https://www.uploadvr.com/gdc-beat-saber-ceo-mods/', 'https://roadtovr.com/mod-saber-no-new-beat-saber-mod-solution-coming-soon/', 'https://en.wikipedia.org/wiki/Beat_Saber'] },
     lineage: {
       claim: 'Beat Saber began as a sharper Audioshield: a quick prototype that kept VR’s swing-at-music idea and added the precision of a classic rhythm chart.',

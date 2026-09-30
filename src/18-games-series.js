@@ -142,7 +142,7 @@ SERIES({
       compare: 'Pokémon (1996) also implies its world one entry at a time, through the Pokédex, a fictional encyclopedia of every species. Mega Man’s entries are job descriptions, so they add up to an economy of robot labour rather than an ecology.',
       cost: 'None of this backstory is shown in play, only stated in manuals or profiles, so a player who skips that material meets only a fighting robot with a themed weapon and never learns the job it was built to do; the worldbuilding is real but optional.',
       principle: 'A large, consistent world needs no map or history text if every new character carries the same one line of information, here an occupation, since a reader assembles a society from enough repeated small facts with no document stating it.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/List_of_Mega_Man_characters', 'https://en.wikipedia.org/wiki/Mega_Man_(1987_video_game)', 'https://en.wikipedia.org/wiki/Pok%C3%A9mon_(video_game_series)'] },
     env: { na: 'Mega Man’s stages are built to preview a boss’s gimmick and threat, not to narrate what happened in that space before the player arrived: there are no logs, corpses or visible history to piece together, and ruins appear only as themed scenery, only an obstacle course themed to whoever waits at the end. The nearest thing to environmental storytelling is Dr Wily’s fortress, which brings the defeated bosses back for rematches, from Mega Man 2 onward in a single teleporter room, a structural callback to the run so far rather than a discovered past.' },
     business: {
@@ -153,7 +153,7 @@ SERIES({
       compare: 'Doom (2016) kept the originals’ fast play but rebuilt the look on a new engine, after id scrapped a Doom 4 derided as “Call of Doom”. Mega Man 9 went further back, reviving the old look and sound too, betting the audience wanted the old constraint itself.',
       cost: 'A yearly schedule with a small team produces the rushed stretches Inafune described; a deliberate downgrade risks alienating anyone wanting the series to move forward, and Mega Man 9 drew criticism for cutting the slide and charge shot later entries had added.',
       principle: 'A cheap, download-only release can carry a bet a boxed one cannot: aiming a game squarely at existing fans, which Capcom’s managers feared would limit Mega Man 9, becomes viable when the price and the channel are sized to that audience.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model', 'polish-when'],
       sources: ['https://en.wikipedia.org/wiki/Mega_Man_3', 'https://en.wikipedia.org/wiki/Mega_Man_4', 'https://en.wikipedia.org/wiki/Mega_Man_9', 'https://en.wikipedia.org/wiki/Mega_Man_10', 'https://en.wikipedia.org/wiki/Mega_Man_Legacy_Collection', 'https://en.wikipedia.org/wiki/Doom_(2016_video_game)'] },
     replay: {
       claim: 'Mega Man 11’s (2018) Double Gear System adds risk to a format that had otherwise made power purely additive: the same tool that saves a fight can also strand the player with a single hit point left.',
@@ -163,7 +163,7 @@ SERIES({
       compare: 'Mega Man 9 launched with no difficulty setting at all, harder modes arriving later as paid downloads, and Mega Man 10’s several modes are chosen before play. The Double Gear System is a resource decision made mid-fight, closer to a limited special move in a fighting game than an accessibility setting.',
       cost: 'The gear system adds a gauge to track on top of health and weapon energy, and the one-shot last stand means a badly timed activation can leave a player worse off than doing nothing, since pulling it too early costs a long cooldown at one hit point.',
       principle: 'If a format’s difficulty options have only ever softened failure, consider adding a mid-action, resource-metered gamble: a tool spent at the worst moment gives struggling players agency rather than a permanently lower ceiling.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['risk-reward'],
       sources: ['https://en.wikipedia.org/wiki/Mega_Man_11', 'https://en.wikipedia.org/wiki/Mega_Man_10', 'https://en.wikipedia.org/wiki/Mega_Man_9', 'https://jesperjuul.net/text/fearoffailing/'] },
     lineage: {
       claim: 'Classic Mega Man survived losing its first director, Akira Kitamura, after Mega Man 2, but stalled for eight years after producer Keiji Inafune left Capcom in 2010: by its own developers’ account, what went missing was a sponsor, not a design.',
@@ -312,7 +312,7 @@ SERIES({
       compare: 'The Legend of Zelda takes the opposite route to the same problem: it reuses Link and Zelda as “various incarnations” and keeps Ganon “the same person in every game” with one exception, later ordered by the official timeline in Hyrule Historia (2011); Final Fantasy discards even the names, keeping only object and role names, a crystal, an engineer called Cid, rather than any character identity across entries.',
       cost: 'Motif-only continuity means the series banks no accumulated character loyalty the way a returning hero can build across sequels; every entry has to make a player care about a cast introduced from zero, in the same hours a returning-cast series could spend on new plot instead.',
       principle: 'An anthology series can signal “you are in the right franchise” through a small kit of recurring objects and role-names rather than character identity, but only if that kit, not the plot, is what the opening hour and the marketing actually lean on.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Final_Fantasy_(video_game)', 'https://na.finalfantasyxvi.com/story', 'https://en.wikipedia.org/wiki/Recurring_elements_in_the_Final_Fantasy_series', 'https://en.wikipedia.org/wiki/The_Legend_of_Zelda'] },
     world: {
       claim: 'Each numbered Final Fantasy invents a full geography, religion and technology level from nothing, an expensive habit a single persistent setting, its closest possible alternative, would remove at a stroke.',
@@ -322,7 +322,7 @@ SERIES({
       compare: 'The Elder Scrolls keeps one persistent continent, Tamriel, across Morrowind (2002), Oblivion (2006) and Skyrim (2011), so each new entry can spend its invention budget deepening an inherited setting instead of drafting one from scratch; Final Fantasy almost never gets that discount.',
       cost: 'Repeated from-scratch worldbuilding is expensive in development time, arguably part of why Final Fantasy XV took roughly a decade, and it means a beloved setting is usually visited once and then retired rather than built upon by a direct sequel.',
       principle: 'A series that resets its whole setting every entry should budget the cost of full re-invention explicitly against a persistent-setting rival’s discount, rather than treating a fresh world as free simply because worldbuilding happens every time regardless.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Final_Fantasy_X', 'https://en.wikipedia.org/wiki/Final_Fantasy_XV'] },
     env: {
       claim: 'Final Fantasy has staged the price of harvesting a magical power source twice, twenty-six years apart, first as a single exception inside one city and later as a dying landscape spread across a whole continent.',
@@ -342,7 +342,7 @@ SERIES({
       compare: 'Most premium franchises that stumble simply ship a better sequel; Square Enix instead rebuilt the same title under the same name while still live, closer to a live-service studio relaunching a failing game than how a single-purchase RPG series usually recovers from a weak entry.',
       cost: 'The subscription model asks players for ongoing payment a premium entry never does, and the 2010-to-2013 rebuild cost Square Enix roughly three years of a large team’s time on one already-released game, time a sequel would have spent on new content.',
       principle: 'A subscription-funded entry in an otherwise premium series can fail in a way no boxed release can, compounding every month it stays broken, so budget for a full, costed rebuild, not just a patch plan, before launching one.',
-      topics: ['business-model', 'live-operations'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Final_Fantasy_XI', 'https://en.wikipedia.org/wiki/Final_Fantasy_XIV', 'https://en.wikipedia.org/wiki/Final_Fantasy_XIV_(2010_video_game)'] },
     replay: {
       claim: 'Final Fantasy’s difficulty and replay value come almost entirely from whichever growth system that entry invented, so replaying an old entry can date badly in a way replaying its story never does.',
@@ -530,7 +530,7 @@ SERIES({
       compare: 'Final Fantasy XII’s warring nations give the player a conflict to read but no axis that also reorganises the game’s own systems; the Megami Tensei branches are unusual in making cosmology double as a literal sorting key for gameplay.',
       cost: 'A single governing axis is cheap to reuse but expensive to abandon: mainline has kept Law-Chaos-Neutral despite decades of criticism that its endings can feel like a quiz, and Persona’s full commitment to Arcana meant Persona 3 had to build an entire cast around twenty-plus Arcana-shaped relationships, arguably a harder writing problem than the negotiation loop it replaced.',
       principle: 'Replacing the parent’s organising axis outright, not just its aesthetic, is what actually separates a spin-off: a new coat of paint over the same sorting system reads as reskinning, but a genuinely different axis reused everywhere the old one was forces every later writer to think in the new terms.',
-      topics: ['premise-and-world', 'systemic-design'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Megami_Tensei', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei_IV', 'https://en.wikipedia.org/wiki/Revelations:_Persona', 'https://en.wikipedia.org/wiki/Persona_3'] },
     env: {
       claim: 'Both branches stage the supernatural as a transformed copy of a Tokyo the player has walked intact, but mainline makes the crossing a one-way catastrophe while Persona makes it a routine round trip.',
@@ -540,7 +540,7 @@ SERIES({
       compare: 'The Legend of Zelda: A Link to the Past (1991) mirrors a known map as a corrupted Dark World and lets the player leave it with the Magic Mirror; Persona binds the crossing to a clock rather than an item, while mainline removes the way back altogether.',
       cost: 'Persona must build two versions of any place it wants to matter twice and make both survive repeat visits; mainline builds its intact city once, briefly, and asks a short opening act to carry the whole sense of loss.',
       principle: 'Decide whether crossing into a transformed space is an event or a routine: an event turns the change into a loss the player carries forward, a routine turns it into a second life the player keeps returning to.',
-      topics: ['environmental-storytelling', 'level-structure'],
+      topics: ['environmental-storytelling'],
       sources: ['https://en.wikipedia.org/wiki/Shin_Megami_Tensei_(video_game)', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei_III:_Nocturne', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei_V', 'https://en.wikipedia.org/wiki/Persona_3', 'https://en.wikipedia.org/wiki/Persona_5', 'https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_A_Link_to_the_Past'] },
     business: {
       claim: 'The spin-off outgrew its parent: Persona overtook the rest of Megami Tensei in sales in the Persona 5 era, and Atlus spun its casts off into other genres in a way the mainline never has.',
@@ -560,7 +560,7 @@ SERIES({
       compare: 'A typical Game of the Year edition bundles downloadable content that sits beside the main game; Atlus’s editions rewrite the calendar or the story itself, closer to a director’s cut than to a bundle.',
       cost: 'Owners of the first edition must buy the game again and replay it to see the new material, and with about three years between Persona 5 and Royal, and between Shin Megami Tensei V and Vengeance, the most eager players arguably met each game in its least complete form.',
       principle: 'If you plan to expand a long, fixed-story game later, place the new material inside the run rather than after the credits, so the expansion gives a finished player a reason to play again rather than only a reason to load an old save.',
-      topics: ['release-and-updates', 'narrative-pacing'],
+      topics: ['narrative-pacing'],
       sources: ['https://en.wikipedia.org/wiki/Persona_3', 'https://en.wikipedia.org/wiki/Persona_4', 'https://en.wikipedia.org/wiki/Persona_5', 'https://en.wikipedia.org/wiki/Shin_Megami_Tensei_V'] },
     lineage: {
       claim: 'The 2006 fork that produced Persona 3 was a personnel decision before it was a mechanical one: the same director who built mainline’s modern battle system carried it, and himself, across the branch line.',
@@ -675,7 +675,7 @@ SERIES({
       compare: 'A live-service game edits existing numbers after launch, whenever its data says so. Pokémon holds its corrections for the next generation, two or three years later, and ships them mostly as new content that changes an old chart’s meaning.',
       cost: 'Older Pokémon inherit matchups nobody designed for them: first-generation Psychic types only gained a real predator once Dark existed, and first-generation Dragons such as Dragonite met Fairy seventeen years after their debut, so old species keep being redefined long after release.',
       principle: 'If a core numeric system only changes at major releases, pair each correction with a new category aimed at whatever dominates, so the fix arrives as content players want to learn rather than a nerf they must accept.',
-      topics: ['mechanics-and-rules', 'knowledge-as-progression'],
+      topics: ['mechanics-and-rules'],
       sources: ['https://en.wikipedia.org/wiki/Pok%C3%A9mon_Red_and_Blue', 'https://en.wikipedia.org/wiki/Pok%C3%A9mon_Gold_and_Silver', 'https://www.siliconera.com/pokemon-gold-silvers-helped-make-series-balanced-detailed/', 'https://en.wikipedia.org/wiki/Pok%C3%A9mon_X_and_Y'] },
     ui: {
       claim: 'The Pokédex works as a Fagerholt and Lorentzon meta interface: an in-fiction device the player’s character carries, read through a menu outside the 3D game space rather than modelled as a prop inside it.',
@@ -897,7 +897,7 @@ SERIES({
       compare: 'Long-running shared-universe franchises such as Marvel or DC employ editorial teams specifically to keep hundreds of writers’ output consistent with a dense, decades-deep continuity. ZUN instead minimises the continuity itself, so there is far less for any one fan work to get wrong, trading narrative depth for near-total compatibility with whatever a fan invents.',
       cost: 'Players wanting a substantial authored story get very little from the official games, and ZUN has put it down partly to the form itself, since in a shooter a boss is “going to die” as soon as it appears, so anyone expecting an entry to resolve or deepen the setting’s history is working against the format’s design.',
       principle: 'If you want an audience to freely extend a setting without your permission for every detail, do not build a dense authored continuity for them to contradict; write only the premise a scene needs and leave everything else unstated, so “what fans add” and “what canon says” rarely have the chance to collide.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://shmuplations.com/doujin/', 'https://en.wikipedia.org/wiki/Touhou_Project'] },
     world: {
       claim: 'Gensokyo has stayed the same sealed land for every mainline entry since 2002, so Touhou builds a world by adding new residents and rules to one fixed place rather than inventing new geography each time, the reverse of how most long-running numbered series handle their setting.',
@@ -907,7 +907,7 @@ SERIES({
       compare: 'Most numbered Final Fantasy entries invent an entirely new world, cast and geography from scratch, discarding the previous game’s setting outright; Touhou instead keeps one land for twenty-four years and counting, so its equivalent of a new numbered entry is closer to a new chapter of the same map than a new setting altogether.',
       cost: 'A fixed setting used this long risks running out of plausible new corners, and ZUN has reached for ever more folklore, the Kaguya legend, Shinto mountain gods, a Buddhist temple, to justify a new area of the same small land rather than simply making Gensokyo bigger.',
       principle: 'A series can grow its world by deepening one fixed place with new inhabitants and rules instead of inventing new geography each entry, provided the setting is bounded clearly enough, here a sealed land, that “what else is inside it” stays a believable, answerable question after decades of asking.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Embodiment_of_Scarlet_Devil', 'https://en.wikipedia.org/wiki/Mountain_of_Faith', 'https://en.wikipedia.org/wiki/Undefined_Fantastic_Object'] },
     env: { na: 'A vertical-scrolling danmaku shooter gives the player almost no space to stop and read a scene: the screen never stops filling with bullets long enough for a background detail to function as a discoverable clue, and stages scroll past at a fixed pace the player cannot pause to inspect. Touhou instead delivers place and history through short dialogue exchanges before each boss fight and through profile text in spin-off books, not through staged objects in the play space itself, so there is no meaningful environmental storytelling to analyse here beyond decorative backdrops.' },
     business: {
@@ -918,7 +918,7 @@ SERIES({
       compare: 'In August 2016, after Nintendo DMCA notices, the free fan remake AM2R’s download links came down the day after release and Pokémon Uranium’s a week after, despite 1.5 million first-week downloads. Both were free fan works; ZUN’s guideline instead names what fans may do unasked and where they must make contact.',
       cost: 'Outside studios reached consoles first: in 2010 ZUN said he had turned down offers of download sales on services such as the PlayStation Store, and his own games reached Playism only in 2014 and Steam in 2017, while Play,Doujin! carried fan games on PlayStation 4 from 2015.',
       principle: 'When a fan community is too large to police case by case, publish an explicit two-tier rule, a free commons plus a named contact point for anything commercial, rather than a blanket ban or allowance; the tier boundary, not enforcement effort, manages the scale.',
-      topics: ['business-model', 'ugc-platforms'],
+      topics: ['business-model'],
       sources: ['https://touhou-project.news/guidelines_en/', 'https://touhou-project.news/guideline/', 'https://en.wikipedia.org/wiki/Touhou_Luna_Nights', 'https://www.siliconera.com/touhou-project-games-revealed-playstation-consoles-september-2/', 'https://shmuplations.com/doujin/', 'https://en.wikipedia.org/wiki/AM2R', 'https://en.wikipedia.org/wiki/Pok%C3%A9mon_Uranium'] },
     replay: {
       claim: 'Touhou lets any player continue through every stage but keeps the good ending and the Extra Stage for a run without continues, so seeing the game and finishing it properly are two different goals, and the harder one carries the story’s real ending.',
@@ -938,7 +938,7 @@ SERIES({
       compare: 'Hyrule Warriors (2014) used a similar split, Omega Force and Team Ninja supplying Dynasty Warriors combat while Nintendo supplied its knowledge of Zelda, but between two large companies. Immaterial and Missing Power shows the same split working at doujin scale, between a property’s sole creator and a small circle, with authorship divided along competence lines.',
       cost: 'Splitting authorship means ZUN gives up direct control over how his characters play in a genre he did not design, trusting Twilight Frontier’s systems to represent them fairly, and any weakness in that studio’s craft becomes a weakness attributed to Touhou regardless of who built it.',
       principle: 'When a collaborator builds a new genre on your setting, keep only the parts that define canon, character design, plot and the names of attacks, and hand over everything the genre needs; the parts you keep are what make it recognisably yours, whoever builds the systems.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Immaterial_and_Missing_Power'] }
   },
   shots: [
@@ -1053,7 +1053,7 @@ SERIES({
       compare: 'Advance Wars, a contemporary Nintendo grid-tactics series, counters unit types against each other, infantry against tanks, tanks against artillery, but gives every unit of one type identical matchups. Fire Emblem instead ties the matchup to the weapon a unit currently holds, so the same soldier can flip which side of the triangle they stand on by re-equipping.',
       cost: 'The triangle rewards memorising nine fixed relationships before a new player can plan confidently, and a bonus small enough to matter only on close rolls can read as noise until a player has lost a unit to it once.',
       principle: 'When a genre already resolves combat with a roll, add a second, positional rule that decides which roll is being made; the player’s read of the board, not the dice, becomes the skill being tested.',
-      topics: ['time-and-turns', 'risk-reward', 'mechanics-and-rules'],
+      topics: ['risk-reward', 'mechanics-and-rules'],
       sources: ['https://fireemblemwiki.org/wiki/Weapon_triangle', 'https://en.wikipedia.org/wiki/Fire_Emblem', 'https://en.wikipedia.org/wiki/Fire_Emblem:_Three_Houses', 'https://en.wikipedia.org/wiki/Fire_Emblem_Engage'] },
     ui: {
       claim: 'Fire Emblem paints a selected unit’s whole reach onto the map: blue tiles for everywhere it can move and a red band for every further tile its weapon could strike, and selecting an enemy paints that enemy’s reach the same way, so danger is read from the terrain rather than a menu.',
@@ -1103,7 +1103,7 @@ SERIES({
       compare: 'The Legend of Zelda reuses one named world, Hyrule, and lets fans debate a timeline between entries. Fire Emblem mostly declines a timeline and carries continuity in guest heroes instead, from Awakening’s return to Archanea to Engage’s twelve Emblems.',
       cost: 'Building a full continent’s geography, politics and mythology for one or two games is expensive worldbuilding to set aside, and heroes shown outside their own world can read as cameos: The Verge’s Ash Parrish found Engage’s conversations with its Emblems shallow, short and uninteresting.',
       principle: 'When a series resets its world, carry continuity in characters who can visit rather than in a shared history; a returning hero needs no timeline to be recognised, but give the visit enough writing that it reads as a reunion, not a cameo.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Fire_Emblem', 'https://en.wikipedia.org/wiki/Fire_Emblem_Engage', 'https://en.wikipedia.org/wiki/The_Legend_of_Zelda'] },
     env: {
       claim: 'Fire Emblem’s maps tell small stories through villages that raiders can reach first: a village the player visits gives up an item, gold or a recruit, while one an enemy thief or brigand enters turns to ruins and its reward is lost.',
@@ -1123,7 +1123,7 @@ SERIES({
       compare: 'Capcom revived Mega Man in 2008 with Mega Man 9, a download release that went back to 8-bit graphics and Mega Man 2’s rules for existing fans. Nintendo’s bet with Awakening was the opposite, spending everything the format had accumulated in one game rather than deliberately reviving an old, smaller version of it.',
       cost: 'Treating one game as a last chance is a strategy that can only be used once per crisis: having already spent the everything-just-in-case idea list on Awakening, Fire Emblem Fates (2015) had to find its novelty elsewhere, in a release split across two boxed versions and a download, which drew its own criticism.',
       principle: 'When a team is told a project may be its category’s last, treat that as permission to spend every held-back idea rather than to play safe, since an audience can tell the difference between a cautious sequel and a team with nothing left to lose.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://iwataasks.nintendo.com/interviews/3ds/fire-emblem-fates/0/3/', 'https://en.wikipedia.org/wiki/Fire_Emblem_Awakening', 'https://en.wikipedia.org/wiki/Fire_Emblem'] },
     replay: {
       claim: 'Permanent death is Fire Emblem’s default, but the series has spent since 2010 building an increasingly gentle set of alternatives, so the same core system can be as punishing or as forgiving as the player chooses before a single battle starts.',
@@ -1294,7 +1294,7 @@ SERIES({
       compare: 'Classic Mega Man stages carry no history, they are themed obstacle courses only; Mega Man X’s highway instead stages a road already broken by an attack the player did not cause, closer to the “after the disaster” staging environmental-storytelling writers associate with a ruined opening than to a clean, undamaged introduction.',
       cost: 'A scripted, unwinnable ambush spends design effort on a fight whose outcome the player cannot affect, and a stage staged this heavily for narrative effect is harder to reuse or remix later than classic Mega Man’s more generic, theme-only obstacle courses.',
       principle: 'If a sequel wants to announce a tonal shift before a single line of dialogue, stage its very first space with visible damage from an event the player did not cause; a wrecked, populated opening argues stakes faster than a clean one ever can.',
-      topics: ['environmental-storytelling', 'spatial-composition'],
+      topics: ['environmental-storytelling'],
       sources: ['https://en.wikipedia.org/wiki/Mega_Man_X_(video_game)'] },
     business: {
       claim: 'After low sales ended the mainline series, Capcom kept selling Mega Man X through two other models, compilations of the finished games and a free-to-play mobile gacha spin-off, and neither has yet led to a new mainline platformer.',
@@ -1314,7 +1314,7 @@ SERIES({
       compare: 'Mega Man X (1993) stacked its armour parts additively, each capsule adding one ability to the same suit; Mega Man X5’s sets are closer to choosing a class in a role-playing game, mutually exclusive rather than cumulative.',
       cost: 'Multiple full armour sets multiply the sprite and ability work a PlayStation-era team had to animate and balance, and a set found too early, or a stage cleared before a set unlocks, can make part of the collection layer feel redundant on a first playthrough.',
       principle: 'When a series already rewards exploration with equipment, consider making that equipment mutually exclusive builds rather than a single additive stack; replay value can come from choosing between playstyles ahead of a run, not only from new content added after one.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://en.wikipedia.org/wiki/Mega_Man_X5', 'https://en.wikipedia.org/wiki/Mega_Man_X6', 'https://en.wikipedia.org/wiki/Mega_Man_X_(video_game)'] },
     lineage: {
       claim: 'X’s mechanical lineage has outlived Capcom’s own support: no mainline entry has shipped since 2004, yet a long-running fan project and a newly finished one both kept building on X’s specific verbs through 2026.',
@@ -1476,7 +1476,7 @@ SERIES({
       compare: 'The Legend of Zelda builds its world as one continuous, walkable map whose regions a player must travel between and remember. Mario instead treats each biome as a reusable module picked from a short list and redrawn for the current hardware, trading a rememberable geography for near-infinite recombination.',
       cost: 'Because the biome list is so small and recognisable, an entry that leans on it too literally risks looking like reused content, exactly the recycled-environments complaint reviewers made of the New Super Mario Bros. line released between 2006 and 2012.',
       principle: 'A small, closed set of environment types, each with one clear physical rule, can carry a series for decades if every new entry redraws the set rather than adds to it indefinitely; recombination reads as variety for far longer than an ever-growing list of one-off locations does.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Super_Mario_Bros.', 'https://en.wikipedia.org/wiki/Super_Mario_World', 'https://en.wikipedia.org/wiki/Super_Mario_Galaxy'] },
     env: {
       claim: 'Super Mario Sunshine (2002) is the mainline entry that most fully stages its levels as the aftermath of an event: Isle Delfino’s plazas and walls are smeared with graffiti and black goo the player never sees applied, so the space itself accuses Mario of a crime before a single line of dialogue does.',
@@ -1496,7 +1496,7 @@ SERIES({
       compare: 'Mario Kart 8 Deluxe and New Super Mario Bros. U Deluxe stayed on continuous sale, the ordinary evergreen model; the time limit was an anniversary policy rather than a one-off, since Super Mario Bros. 35 and the Game & Watch: Super Mario Bros. handheld were withdrawn on the same 31 March 2021 date.',
       cost: 'A Switch owner who missed the six-month window waited four and a half years for Galaxy and more than five for Sunshine, which returned only inside a subscription; the scarcity sold the bundle once, and the fans who missed it paid for the wait.',
       principle: 'A withdrawal date can turn old games into an event, but withdrawn games rarely stay withdrawn: plan how each one returns, since every return route, a new bundle or a subscription library, sells the same work to the same fans again.',
-      topics: ['business-model', 'live-operations'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Super_Mario_3D_All-Stars', 'https://mario.nintendo.com/news/super-mario-3d-all-stars-leaves-nintendo-eshop-on-march-31st/', 'https://en.wikipedia.org/wiki/Super_Mario_Bros._35th_Anniversary', 'https://en.wikipedia.org/wiki/Super_Mario_64', 'https://en.wikipedia.org/wiki/Super_Mario_Galaxy', 'https://en.wikipedia.org/wiki/Super_Mario_Sunshine'] },
     replay: {
       claim: 'Super Mario Bros. Wonder’s (2023) badges let a player choose one difficulty-shifting concession per level from a menu, rather than the series’ older single global toggle, turning accessibility into a loadout decision made before each course rather than a setting picked once for the whole game.',
@@ -1506,7 +1506,7 @@ SERIES({
       compare: 'Celeste’s Assist Mode instead exposes several global options, game speed, extra dashes, invincibility, that stay on for every screen until the player changes them in the pause menu. Wonder’s badges are narrower per level but let a player change their mind far more often, trading depth of control for frequency of choice.',
       cost: 'A badge occupies the same equip slot as a purely offensive or exploratory one, so choosing an accessibility badge for a hard level means giving up whatever badge would have helped find that level’s secrets, turning easier play and fuller exploration into a real trade-off rather than a free option.',
       principle: 'When adding a difficulty concession, consider scoping it to the next attempt rather than the whole save file, so a player can ask for exactly the help one specific challenge needs without that request following them into every easier moment that comes after.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['difficulty'],
       sources: ['https://en.wikipedia.org/wiki/Super_Mario_Bros._Wonder', 'https://nintendoeverything.com/super-mario-bros-wonder-badges-list-locations/', 'https://en.wikipedia.org/wiki/New_Super_Mario_Bros._Wii', 'https://en.wikipedia.org/wiki/Super_Mario_3D_World'] },
     lineage: {
       claim: 'Nintendo grew Super Mario Odyssey’s director from inside its own art and co-direction ranks rather than importing one, and kept Shigeru Miyamoto attached afterward only as a feedback-giving “Creative Fellow”, so authorship passed through a planned ladder instead of staying with one founder’s continuous control.',
@@ -1618,7 +1618,7 @@ SERIES({
       compare: 'Armored Core’s energy gauge limits boosting and energy weapons inside one fight and refills on its own within seconds. Xenogears makes the player buy fuel back with a lost turn, and Xenoblade Chronicles X carries an empty tank out of the fight.',
       cost: 'A fuel-gated mech asks players to track a second bar beside health, and a Xenogears Gear that runs dry spends its turns charging instead of fighting; players who find the gauge fiddly can end up hoarding the machine’s best attacks rather than using them.',
       principle: 'If a stronger mode should stay a decision, price its best moves in a resource the player must spend time or tempo to restore, and show the price on every action, so running dry feels like the player’s call rather than the game’s.',
-      topics: ['mechanics-and-rules', 'risk-reward', 'time-and-turns'],
+      topics: ['mechanics-and-rules'],
       sources: ['https://www.xenoserieswiki.org/wiki/Combat_(XG)', 'https://en.wikipedia.org/wiki/Xenogears', 'https://www.xenoserieswiki.org/wiki/Fuel_(XCX)', 'https://en.wikipedia.org/wiki/Xenoblade_Chronicles_X'] },
     ui: {
       claim: 'The Xenosaga era met the lineage’s information overload with an interface built for the job: an in-fiction Database that grows as the story is played, arguably an admission that the plot had outrun what dialogue alone could carry.',
@@ -1658,7 +1658,7 @@ SERIES({
       compare: 'Persona borrows the tarot’s Major Arcana as a sorting key that also organises its systems, so citation and mechanics reinforce each other. The Xeno lineage’s citations sit mostly in names and dialogue rather than a system the player uses, so the borrowing does narrative work but rarely mechanical work.',
       cost: 'Borrowed weight is also borrowed baggage: Gnostic and biblical imagery used this densely, especially across Xenosaga’s antagonists and named factions, invites readings about what the story intends that the plot never has to answer, since the citations are atmosphere rather than argument.',
       principle: 'A cosmology built fresh for each new owner can still feel weighty if it borrows real philosophy or scripture by name, but check whether the citation only dresses the mood or actually organises a system the player uses, since the first costs nothing and the second demands the whole game agree.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Xeno_(series)', 'https://en.wikipedia.org/wiki/Xenogears', 'https://en.wikipedia.org/wiki/Xenoblade_Chronicles_(video_game)'] },
     world: {
       claim: 'Every era hides, or reveals, the same trick: the map is the wreckage of a much older machine or god, and how visible that wreck is arguably tracks the owner as much as the plot.',
@@ -1668,7 +1668,7 @@ SERIES({
       compare: 'Shadow of the Colossus also builds its map around giant bodies, but keeps them as separate foes scattered through the land. Xenoblade Chronicles makes two giants the land itself, while Xenogears keeps its buried power off the map until the last disc.',
       cost: 'Hiding the truth, as Xenogears and Xenosaga do, spends a long stretch of play on a mystery that must pay off convincingly or feel withheld; showing it outright, as Xenoblade Chronicles does, gives up the shock of discovery for a vista that argues the theme without a word.',
       principle: 'A world built on one buried origin can keep that origin hidden for a long mystery or put it in full view as the setting itself; the second trades a late revelation for a constant, wordless argument, and either can work if the rest of the design commits to the choice.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://www.xenoserieswiki.org/wiki/Deus_(dungeon)', 'https://www.xenoserieswiki.org/wiki/Merkava', 'https://en.wikipedia.org/wiki/Xenoblade_Chronicles_(video_game)'] },
     env: {
       claim: 'Before any character explains the lineage’s old catastrophe in dialogue, the player has usually already walked through its wreckage: a derelict ship, a buried ruin or a titan’s own corroded interior, staged so the scale of the disaster reads before the plot names it.',
@@ -1688,7 +1688,7 @@ SERIES({
       compare: 'Final Fantasy or Dragon Quest, single-owner franchises throughout, can reissue any numbered entry on one publisher’s own schedule; Square Enix’s Pixel Remasters bundle six Final Fantasy games at once because one company holds all six. The Xeno lineage cannot make that decision for even one sub-series, let alone all three.',
       cost: 'Preservation itself is the cost: two-thirds of the lineage exists only on ageing physical media with no legal path to a modern platform, and a market analysis that Xenosaga failed, in Harada’s own account, forecloses the option for as long as Bandai Namco’s calculation holds.',
       principle: 'A franchise split across unrelated owners cannot be preserved as a whole by any one of them; each will weigh a remaster against its own slate, not the completeness of a lineage it owns only a third of, so expect uneven survival rather than a coordinated one.',
-      topics: ['business-model', 'release-and-updates'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Xenogears', 'https://en.wikipedia.org/wiki/Xenosaga', 'https://www.siliconera.com/katsuhiro-harada-says-a-xenosaga-hd-collection-failed-in-a-profitable-market-analysis/', 'https://www.nintendo.com/us/store/products/xenoblade-chronicles-definitive-edition-switch/'] },
     replay: {
       claim: 'In the Nintendo era a finished save became a starting point: Xenoblade Chronicles shipped in 2010 with a New Game Plus that carries levels into a fresh run, and when Xenoblade Chronicles 2 launched without one, Monolith Soft patched it in three months later.',
@@ -1698,7 +1698,7 @@ SERIES({
       compare: 'Dark Souls’ New Game Plus raises enemy strength on each cycle so the rerun stays a test. Xenoblade Chronicles leaves the world at its first-run strength, so carried levels make the rerun easier and turn it into a sweep for what was missed.',
       cost: 'Carried levels make the main path easy, so the story’s fights lose their tension on a rerun, and a mode patched in three months after launch, as Xenoblade Chronicles 2’s was, reaches only the players still playing by then.',
       principle: 'Judge a long RPG’s replay by what one run cannot fit in: if the optional content outgrows a first run’s patience, a carry-over mode is where it will actually get played.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['progression'],
       sources: ['https://www.xenoserieswiki.org/wiki/New_Game_Plus_(XC1)', 'https://www.siliconera.com/xenoblade-chronicles-2s-1-3-0-update-advanced-new-game-now-live/', 'https://en.wikipedia.org/wiki/Xenoblade_Chronicles_2'] },
     lineage: {
       claim: 'What actually crossed three companies was never a licence: it was Tetsuya Takahashi, much of his original staff, and a habit of calling the result Xeno, which by 2015 an interviewer could call his director’s signature.',
@@ -1879,7 +1879,7 @@ SERIES({
       compare: 'Metroid Prime (2002) also moved a 2D action series into a fully 3D camera, but kept the exploration-driven structure and atmosphere that defined the earlier games; Contra’s 3D entries changed the camera while dropping the arcade-style enemy patterns and precise platforming that had defined the 2D ones.',
       cost: 'Two console generations of 3D experiments and one twin-stick spin-off spent years of development on formats critics judged as ordinary genre entries rather than as Contra, time a refinement of the original format might have spent differently.',
       principle: 'When a format already works, treat a rival genre’s rising popularity as a reason to sharpen the format’s own identity rather than a reason to adopt the rival’s camera and controls; reviewers will judge the result against whichever genre it now resembles.',
-      topics: ['business-model', 'platform-choice'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Contra:_Legacy_of_War', 'https://en.wikipedia.org/wiki/C_The_Contra_Adventure', 'https://en.wikipedia.org/wiki/Contra:_Rogue_Corps', 'https://en.wikipedia.org/wiki/Contra_4', 'https://en.wikipedia.org/wiki/Metroid_Prime'] },
     replay: {
       claim: 'Contra rations its lives differently on every platform it has shipped on, from an arcade’s pay-per-life scarcity to a handheld’s built-in mercy, while keeping the same one-hit rule underneath.',
@@ -1899,7 +1899,7 @@ SERIES({
       compare: 'Contra 4 (2007) restored Contra III’s two-weapon inventory fifteen years later but kept the two guns separate; the step from holding a pair to combining it was taken only outside the series, by Treasure, with no licence to the Contra name.',
       cost: 'Combining multiplies what must be balanced and learned: four weapons give Gunstar Heroes far more shot types than Contra III’s pickups, and every pairing has to stay useful or the choice collapses to one best pair.',
       principle: 'Once a design lets the player hold two of something, test whether the two can interact: holding is storage, combining is a new decision, and that step is where a descendant can overtake its parent.',
-      topics: ['learning-from-success', 'genre-hybrids'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Contra_III:_The_Alien_Wars', 'https://en.wikipedia.org/wiki/Treasure_(company)', 'https://en.wikipedia.org/wiki/Gunstar_Heroes', 'https://en.wikipedia.org/wiki/Contra_4'] }
   },
   shots: [
@@ -1987,7 +1987,7 @@ SERIES({
       compare: 'XCOM 2 puts a visible turn limit on many of its missions, so a squad’s turns count down to a designed end. Civilization’s turn has no such ceiling; a build queue, a tech and a wonder race can all still be mid-flight on turn 400.',
       cost: 'A game can run past twenty hours, and Firaxis’s own research found fewer than half of Civilization VI’s players ever reached the end of one, a cost the studio built Civilization VII’s three Ages to address with internal stopping points instead of one continuous scheduling problem.',
       principle: 'Stagger a game’s systems on independent clocks that rarely complete on the same turn, so ending any single turn always leaves something close to finished; a session then supplies its own reason to continue without needing a separate hook bolted on top of the mechanics.',
-      topics: ['time-and-turns', 'decisions'],
+      topics: ['time-and-turns', 'decisions', 'pacing'],
       sources: ['https://en.wikipedia.org/wiki/Civilization_(video_game)', 'https://en.wikipedia.org/wiki/Civilization_IV', 'https://en.wikipedia.org/wiki/Civilization_VI', 'https://en.wikipedia.org/wiki/Civilization_VII', 'https://www.gamedeveloper.com/design/firaxis-big-swing-with-civilization-vii-convincing-players-to-actually-finish-their-games'] },
     ui: {
       claim: 'Civilization VII (2025) launched with an interface whose failure was hierarchy rather than density: reviewers said it withheld what a turn’s decisions needed while repeating what they did not, and Firaxis named improving the UI its top priority after launch.',
@@ -2027,7 +2027,7 @@ SERIES({
       compare: 'Humankind (Amplitude Studios, 2021) built its whole pitch around choosing a new culture every era, marketed as an alternative to Civilization’s fixed civilizations, four years before Civilization VII made a version of the same choice a mainline mechanic.',
       cost: 'Introducing the choice into a series whose identity, from 1991 to 2016, rested on one continuous civilization costs the credibility of that history: a mechanic Humankind’s audience opted into by choosing that game is, in Civilization VII, the default way to play the one series that never asked for it before.',
       principle: 'A series’ oldest unstated premise, here that a game’s identity stays fixed once chosen, is itself a design decision that can be changed, but changing it in the series that spent thirty years training players to expect otherwise costs more trust than introducing the same idea in a new, unencumbered series would.',
-      topics: ['narrative-agency', 'premise-and-world'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Civilization_VII', 'https://en.wikipedia.org/wiki/Humankind_(video_game)'] },
     world: {
       claim: 'Civilization builds its world from real intellectual history rather than invented lore: Civilization IV (2005) has Leonard Nimoy read a genuine historical quotation, drawn from real philosophers, scientists and leaders, every time a technology is researched, so the game’s only narrator speaks entirely in other people’s recorded words.',
@@ -2037,7 +2037,7 @@ SERIES({
       compare: 'Return of the Obra Dinn borrows real historical infrastructure, ranks, trade routes, period language, so its own invented supernatural device is the only thing left needing explanation. Civilization’s citation differs in kind: it quotes real people verbatim as content, tying reward text to a source the player could go and read in full.',
       cost: 'Nothing in these quotations is written for the specific game or player; the voice is authentically historical but never personal to a playthrough, so the technique cannot characterise a leader the way invented dialogue could, and a wonder’s real name carries whatever real-world associations that structure already has.',
       principle: 'When a game’s scope is too large to invent a matching amount of history, citing real, attributable sources as content, a quotation, a named structure, can ground the fiction in something a player can verify, at the cost of ever making that content sound like it belongs to this specific game rather than to history itself.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Civilization_IV', 'https://en.wikipedia.org/wiki/Civilization_(video_game)'] },
     env: { na: 'Civilization’s world is a randomly generated grid of terrain and resources with no authored past for the player to discover: a forest tile carries no history of what happened there, and the improvements and ruins that do appear, a barbarian camp, an ancient ruin token, hand out a random bonus or unit rather than a readable vignette. Cities razed in war leave no rubble to interpret, only an empty tile; the closest the series comes to environmental storytelling is a captured city keeping its old name and some of its buildings, which records that a war happened without staging how, so there is no space in the game built to be read the way a level in a narrative game is.' },
     business: {
@@ -2206,7 +2206,7 @@ SERIES({
       compare: 'Mortal Kombat, its closest genre rival, has built entire mainline entries, Mortal Kombat 9 and 11 especially, around hours-long cinematic story modes that reintroduce its roster; Street Fighter kept story to endings, films and one optional mode until Street Fighter 6’s World Tour, and even that stays separate from the versus game.',
       cost: 'Keeping story this thin means Street Fighter earns little of the sustained narrative attachment a story-driven rival can claim, and when Street Fighter V finally tried a fuller cinematic story mode in 2016, it arrived five months after launch, although announced before release, too late to answer the launch’s thin content.',
       principle: 'In a competitive game where the moment-to-moment loop must never pause, keep the story entirely optional and delivered outside the match, endings, shorts, a separate mode, so narrative ambition never has to compete with the input a tournament format actually rewards.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Street_Fighter_(video_game)', 'https://en.wikipedia.org/wiki/Street_Fighter_IV', 'https://en.wikipedia.org/wiki/Street_Fighter_V'] },
     world: {
       claim: 'Street Fighter builds its world one battle stage at a time: each fighter’s home country supplies not a map but a single, densely detailed diorama, so thirty-six years of entries have implied a whole globe without ever drawing one.',
@@ -2216,7 +2216,7 @@ SERIES({
       compare: 'Mortal Kombat’s Outworld and Earthrealm are built as a single connected fictional cosmology explored across a linear story mode; Street Fighter’s world is instead an anthology of real, named, unconnected places, closer to a travelogue than an invented setting.',
       cost: 'Because every stage is a real or near-real location, the series carries none of the fantastical worldbuilding budget a fictional setting affords, and every new stage has to research and depict an actual culture respectfully rather than invent one freely, a constraint some entries have handled with more care than others.',
       principle: 'When a roster’s home stages must stand in for an atlas, choose for each one a landmark that reads behind a fight at a single glance, a castle roof, a temple’s elephants, rather than detail that needs the camera to stop and pan.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Street_Fighter_II', 'https://en.wikipedia.org/wiki/Street_Fighter_6'] },
     env: {
       claim: 'Street Fighter’s stages stage a living moment around the fight rather than a story before it: crowds, animals and passers-by keep reacting throughout a match, arguing that this fight is an intrusion into an ordinary place rather than the reason that place exists.',
@@ -2236,7 +2236,7 @@ SERIES({
       compare: 'Street Fighter V sold its post-launch characters the same way but without a comparable persistent social hub at launch, so its seasons felt like paid patches; Street Fighter 6 pairs the same funding model with a space that keeps the base game visibly active regardless of whether a player buys the next season.',
       cost: 'A season-pass roster means a player who wants the whole current cast pays well beyond the base game’s price over several years, and a character held back for a paid season is a character absent from ranked play and tournaments until Capcom decides to release them, a decision now made on a publishing calendar rather than a design one.',
       principle: 'When a competitive game’s roster becomes a live service, fund the paid content calendar but also ship a free, persistent social space alongside it, so players have a reason to feel the game is alive in the months between paid character drops, not only on the day one arrives.',
-      topics: ['business-model', 'live-operations'],
+      topics: ['business-model', 'live-operations', 'server-matchmaking'],
       sources: ['https://en.wikipedia.org/wiki/Street_Fighter_6', 'https://en.wikipedia.org/wiki/Street_Fighter_V', 'https://www.gematsu.com/2026/06/street-fighter-6-year-4-dlc-characters-yasmine-arjun-tifa-and-bosch-announced'] },
     replay: {
       claim: 'Street Fighter 6’s Modern controls are an accessibility change aimed squarely at the series’ oldest complaint, that a beginner must master joystick motions before they can play at all, and Capcom priced that change honestly rather than offering it for free.',
@@ -2246,7 +2246,7 @@ SERIES({
       compare: 'Granblue Fantasy Versus (2020) struck this bargain first, one-button skills that cool down longer than technical inputs, in ranked play; Street Fighter 6 prices its shortcut in damage instead, paid every time the move lands.',
       cost: 'The damage penalty and missing moves mean a Modern player has a genuine ceiling below a skilled Classic player’s, and some competitive players have argued the two schemes are not perfectly balanced against each other, a live, ongoing tuning problem rather than a solved one.',
       principle: 'When lowering a game’s execution barrier for accessibility, keep the underlying decision-making identical between the easy and the hard input and charge the easy version a real, stated cost, rather than either gatekeeping the decisions behind the hard input or granting the easy input for free.',
-      topics: ['accessibility', 'knowledge-as-progression'],
+      topics: ['accessibility'],
       sources: ['https://en.wikipedia.org/wiki/Street_Fighter_6', 'https://www.eventhubs.com/news/2023/may/05/sf6-real-disadvantages-modern-controls/', 'https://granbluefantasyvs.com/system/versusmode.php'] },
     lineage: {
       claim: 'Street Fighter II did not just launch a franchise, it founded the modern fighting-game tournament scene, and Street Fighter III: 3rd Strike’s Evo Moment 37 is the single clip most often credited with keeping that scene alive into the esports era.',
@@ -2410,7 +2410,7 @@ SERIES({
       compare: 'Lucasfilm took the opposite approach to a similarly tangled continuity in 2014, rebranding the entire pre-Disney Star Wars Expanded Universe as non-canonical “Legends” rather than reconciling it, erasing the contradictions instead of organising them.',
       cost: 'Publishing an official timeline forecloses interpretations some fans preferred and hands Nintendo’s own later writers a reference they must either honour or publicly contradict, a constraint no game had explicitly bound itself to before 2011.',
       principle: 'If a long-running series’ internal contradictions have already become common knowledge among its audience, consider organising them in a dedicated reference work rather than either ignoring them indefinitely or erasing them the way a rebrand does; a paratext can settle a continuity question no single entry’s plot has room to answer.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Hyrule_Historia', 'https://en.wikipedia.org/wiki/The_Legend_of_Zelda'] },
     world: {
       claim: 'Tears of the Kingdom (2023) reuses its direct predecessor’s Hyrule landmass instead of redrawing the kingdom; the only earlier precedent, A Link Between Worlds (2013), rebuilt A Link to the Past’s map 22 years after it, not six.',
@@ -2440,7 +2440,7 @@ SERIES({
       compare: 'Halo: Combat Evolved (2001) took the opposite bet as the Xbox’s own launch showcase, released only for the brand-new console at launch, after Microsoft bought Bungie and moved it off Mac and PC, with a PC version following in 2003, staking the whole game’s audience on the new hardware’s success.',
       cost: 'Supporting two consoles at once meant Breath of the Wild had to run on the Wii U’s far weaker hardware too, and reviewers and players who compared the two versions noted the Wii U release ran below the docked Switch version.',
       principle: 'When a new console’s early sales are uncertain, releasing the generation’s flagship game on the outgoing platform as well as the new one can recover its cost either way, at the price of that flagship running at its weakest on the console it was actually built for.',
-      topics: ['platform-choice', 'launch-and-discoverability'],
+      topics: ['platform-choice'],
       sources: ['https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Breath_of_the_Wild', 'https://en.wikipedia.org/wiki/Halo:_Combat_Evolved'] },
     replay: {
       claim: 'Ocarina of Time’s Master Quest, first released in Japan in 2002 on a GameCube bonus disc, sells a second playthrough of the same game by rewriting only its dungeons, and the 2011 3DS remake stacked a mirrored world and double damage on top of those same redesigned dungeons.',
@@ -2450,7 +2450,7 @@ SERIES({
       compare: 'Mario Kart’s Mirror Mode, present since Mario Kart 64 (1996), flips its tracks horizontally without changing any corner, which tests memory of a route rather than posing a new problem; Ocarina of Time 3D uses the same flip, but only as garnish on dungeons whose puzzles were rewritten underneath it.',
       cost: 'Rewriting every dungeon costs level-design time for content only a fraction of owners play, and Master Quest first shipped only as a preorder bonus rather than a product of its own; the 3DS version’s mirror and damage multiplier, by contrast, cost almost nothing to add because they change no room at all.',
       principle: 'A replay mode earns its place when it changes the questions rather than the stats: rearranging where the puzzles and enemies sit forces veterans to reason again, where a damage multiplier alone only asks them to repeat the same answers more carefully.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['difficulty'],
       sources: ['https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Ocarina_of_Time_Master_Quest', 'https://www.nintendolife.com/news/2011/05/you_must_finish_ocarina_of_time_3d_to_take_on_the_master_quest'] },
     lineage: {
       claim: 'Ocarina of Time’s Z-targeting, which locks the camera and Link’s facing onto one enemy or object at the press of a button, is credited with popularising the target-lock system that has since become common in 3D action and adventure games.',
@@ -2629,7 +2629,7 @@ SERIES({
       compare: 'Pokémon’s core games have launched worldwide on one day since Pokémon X and Y (2013), after earlier entries ran gaps of months or years and even changed content between regions; Monster Hunter closed the same gap five years later with World, releasing identical day-one content everywhere at once.',
       cost: 'Removing the staged rollout also removes the safety margin it provided: if a worldwide launch stumbles, there is no smaller, proven Japanese release to fall back on for confidence or fixes, a risk Capcom accepted for World and later carried into Monster Hunter Wilds (2025), whose launch problems then landed on every region at once.',
       principle: 'A staggered regional release can de-risk a launch by proving demand in one market before spending on the rest, but collapsing it into one global date is how a franchise stops treating any market as secondary, provided the team is ready to fail everywhere at once too.',
-      topics: ['business-model', 'launch-and-discoverability'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Monster_Hunter_(video_game)', 'https://en.wikipedia.org/wiki/Monster_Hunter_Freedom_Unite', 'https://en.wikipedia.org/wiki/Monster_Hunter:_World', 'https://www.capcom.co.jp/ir/english/interview/2017/vol02.html', 'https://en.wikipedia.org/wiki/Monster_Hunter'] },
     replay: {
       claim: 'Monster Hunter’s replay value has always come from repeating the same hunts for better gear against harder versions of monsters already beaten once, a loop Monster Hunter Wilds (2025) launched without enough of at endgame to satisfy veterans.',
@@ -2639,7 +2639,7 @@ SERIES({
       compare: 'Destiny 2 has repeatedly shipped expansions with a similarly thin day-one endgame and patched additional activities in over following months; Monster Hunter had rarely done this at this scale before, since World’s Iceborne and Rise’s Sunbreak both arrived as large, separately marketed expansions rather than an emergency top-up patch to the base game.',
       cost: 'Rushing a patch forward, as Capcom did in July 2025, means shipping content on a compressed schedule instead of the one originally planned, and it does nothing for the players who had already bounced off the game in its first months and will not necessarily come back to check a patch note.',
       principle: 'A grind-based replay loop is only as strong as its top rung: ship the escalating ladder incomplete and even a well-reviewed base game will feel finished within days, no matter how long the main story took to reach that point.',
-      topics: ['difficulty', 'live-operations'],
+      topics: ['difficulty'],
       sources: ['https://en.wikipedia.org/wiki/Monster_Hunter_Wilds', 'https://www.windowscentral.com/gaming/monster-hunter-wilds-reviews-hit-overwhelmingly-negative-on-steam-players-decry-the-games-poor-endgame-and-pc-performance'] },
     lineage: {
       claim: 'Monster Hunter spawned a whole subgenre of imitators, each defined by which single piece of the hunt-carve-craft skeleton they changed to reach an audience Capcom’s own pricing or platform choices had left underserved.',
@@ -2787,7 +2787,7 @@ SERIES({
       compare: 'Many narrative-heavy role-playing games deliver a major reveal through an uninterruptible cutscene the player can only watch, needing no action to unlock it. Ace Attorney withholds the same kind of revelation until the player supplies the contradiction that exposes it, so a stuck player cannot receive the story beat yet.',
       cost: 'Because every reveal must be gated behind a correct action, even backstory needs a trial to carry it: Trials and Tribulations built whole flashback cases around Mia’s past rather than telling it in a few lines, and a player stuck on one contradiction cannot reach the story beyond it.',
       principle: 'When a plot beat must be revealed, consider building the mechanic that reveals it before writing the scene, so uncovering the truth is something the player does rather than watches; that discipline only pays off if every scene can support inventing a fresh, fair contradiction to gate it, or the mechanic starts feeling bolted onto the story instead of the other way round.',
-      topics: ['premise-and-world', 'narrative-agency'],
+      topics: ['premise-and-world', 'feature-vs-experience'],
       sources: ['https://en.wikipedia.org/wiki/Phoenix_Wright:_Ace_Attorney_%E2%80%93_Trials_and_Tribulations', 'https://en.wikipedia.org/wiki/Ace_Attorney:_Spirit_of_Justice'] },
     world: {
       claim: 'Ace Attorney’s American setting began as a quick localisation decision rather than a plan: its English release placed the games in California because one episode involves time zones, and every later localisation has had to reconcile that Los Angeles with stories that keep getting more visibly Japanese.',
@@ -2931,7 +2931,7 @@ SERIES({
       compare: 'Total War: Three Kingdoms, set in the same period, keeps the player above the battlefield giving orders the AI resolves; Dynasty Warriors answers the same “which target first” problem by putting the player inside the crowd as the one unit who can decide it.',
       cost: 'Because the crowd must stay harmless for the fantasy to hold, the format cannot use it as a real difficulty lever, so raising challenge means adding officers or space between them, which Dynasty Warriors 9 (2018) tried and critics called “lifeless.”',
       principle: 'When a crowd exists to be moved through rather than fought, keep every member mechanically incapable of contesting the player’s real target, and spend the whole design and difficulty budget on the small, named set the crowd is staged around.',
-      topics: ['core-loop', 'genre-hybrids'],
+      topics: ['core-loop', 'core-experience'],
       sources: ['https://en.wikipedia.org/wiki/Dynasty_Warriors_2', 'https://en.wikipedia.org/wiki/Dynasty_Warriors_5', 'https://en.wikipedia.org/wiki/Dynasty_Warriors_8', 'https://en.wikipedia.org/wiki/Dynasty_Warriors:_Origins', 'https://www.koeitecmoamerica.com/dw_origins/us/system/', 'https://en.wikipedia.org/wiki/Total_War:_Three_Kingdoms'] },
     ui: {
       claim: 'Dynasty Warriors keeps the player’s health and Musou Gauge, the health of the officer being fought and the army’s morale on screen at once, because the fiction, hundreds of bodies on screen, offers no other way to track a fight than direct, permanent readouts.',
@@ -2951,7 +2951,7 @@ SERIES({
       compare: 'Hyrule Warriors (2014) never needed this trick: transplanting an already-mythic cast, wizards, monsters, magic swords, from The Legend of Zelda into the same combat system required no invented anachronism, since its source material was fantastical from the start.',
       cost: 'Committing every officer to a signature, often anachronistic weapon and, for some, a supernatural ability multiplies the art and animation budget per character far beyond a shared-moveset design, a cost that grows with every officer the roster adds.',
       principle: 'When adapting real historical figures into a power fantasy, give each one a visibly invented weapon or ability rather than a historically accurate one, so the roster itself, not just the marketing, tells players not to expect a documentary.',
-      topics: ['visual-language'],
+      topics: ['visual-language', 'fantasy'],
       sources: ['https://en.wikipedia.org/wiki/Dynasty_Warriors', 'https://en.wikipedia.org/wiki/Hyrule_Warriors'] },
     sound: {
       claim: 'Dynasty Warriors scores third-century China like a rock concert, not a war epic, mixing traditional Chinese instrumentation with hard rock and heavy metal, and its own sister series proves the choice was a deliberate genre signal rather than a technical default.',
@@ -2981,7 +2981,7 @@ SERIES({
       compare: 'Compare Romance of the Three Kingdoms (1985), Koei’s own strategy series, which spends its whole game on the campaign map, diplomacy and territory of the same three kingdoms; Dynasty Warriors takes that map as already taught and zooms into single battles on it.',
       cost: 'The inherited map is also a ceiling: because the geography and factions are fixed by real history and a specific novel, the series cannot meaningfully expand its own world the way an invented setting can, and every numbered entry has told variations on the same fall of the Han dynasty since 1997.',
       principle: 'When one studio owns two games about a setting, split them by scale rather than by story: let one play the campaign map and the other a single battle on it, so each can skip what the other already teaches.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Dynasty_Warriors', 'https://en.wikipedia.org/wiki/Dynasty_Warriors_2'] },
     env: {
       claim: 'Dynasty Warriors builds every battlefield from the same reusable kit of gates, camps and watchtowers regardless of era or army, trading the individually staged history environmental storytelling usually sells for a map any veteran can read from the minimap alone.',
@@ -2991,7 +2991,7 @@ SERIES({
       compare: 'Valkyria Chronicles, also in this library, stages its fictionalised real-world battles to imply which side has fortified a position and why; Dynasty Warriors instead keeps its gates and camps a constant, reusable shape so the map, not the individual site, is what a player learns to read.',
       cost: 'None of the hundreds of battlefields the series has staged across nearly thirty years carries individual, discoverable history the way a smaller, hand-authored game’s environments might, since the same functional kit of gates and camps has to serve every setting the format is asked to represent.',
       principle: 'Let a battle’s name carry its history and its layout carry only the rules: players accept a famous siege built from the same gates as every other, provided its objectives read at a glance.',
-      topics: ['environmental-storytelling', 'spatial-composition'],
+      topics: ['environmental-storytelling'],
       sources: ['https://en.wikipedia.org/wiki/Dynasty_Warriors_5', 'https://en.wikipedia.org/wiki/Dynasty_Warriors_2'] },
     business: {
       claim: 'Dynasty Warriors turns one numbered game into three separate products without building a new core: Xtreme Legends resells the same battles with extra content, and Empires turns the same engine into a strategy game, both released between one numbered entry and the next.',
@@ -3001,7 +3001,7 @@ SERIES({
       compare: 'Compare Mega Man’s near-yearly NES sequels, also in this library, which shipped as complete new games with no separate paid-expansion tier; Dynasty Warriors instead splits one development cycle’s assets into a base game, an expanded edition and a spin-off strategy game, three revenue events per cast rather than one.',
       cost: 'A model built on reselling the same assets three ways draws exactly the “recycled” criticism the series has faced for two decades, and it commits Koei Tecmo to supporting three overlapping products, base game, Xtreme Legends and Empires, per numbered entry rather than concentrating that budget on one.',
       principle: 'When one development cycle can produce more reusable content than a single release needs, consider splitting it across a base game, a content-expanded edition and a systems-remixed spin-off, sold separately, rather than either cutting the extra content or cramming it all into one box.',
-      topics: ['business-model', 'live-operations'],
+      topics: ['business-model'],
       sources: ['https://en.wikipedia.org/wiki/Dynasty_Warriors_3', 'https://en.wikipedia.org/wiki/Dynasty_Warriors_4', 'https://en.wikipedia.org/wiki/Dynasty_Warriors_8'] },
     replay: {
       claim: 'Dynasty Warriors turns its playable roster itself into the main replay content, growing from 16 duellists in 1997 to more than 80 officers by Dynasty Warriors 8 (2013), each with a distinct weapon and moveset rather than a shared class reskinned.',
@@ -3011,7 +3011,7 @@ SERIES({
       compare: 'Compare Samurai Warriors’ own separate cast for the Sengoku period: rather than reskinning Dynasty Warriors’ Three Kingdoms officers, Koei built an entirely new roster from local history, showing the studio treats a fresh, large cast as core content worth building twice over rather than a reusable template.',
       cost: 'Sustaining a roster this size across a near-yearly release schedule is expensive to draw, animate and voice individually, and Dynasty Warriors 6 (2007) shrank the cast from 48 to 41, giving only 17 of them a story mode, rather than keep growing it.',
       principle: 'When a format’s core loop stays fixed across many playable characters, treat the size and mechanical distinctiveness of that roster as a primary lever for replay value in its own right, worth a dedicated art and design budget rather than a byproduct of the story content.',
-      topics: ['content-multiplies', 'mastery-discovery-expression'],
+      topics: ['content-multiplies'],
       sources: ['https://en.wikipedia.org/wiki/Dynasty_Warriors_8', 'https://en.wikipedia.org/wiki/Samurai_Warriors', 'https://en.wikipedia.org/wiki/Dynasty_Warriors_6'] },
     lineage: {
       claim: 'The Dynasty Warriors formula licenses out as a whole engine transplant rather than a guest cameo: Omega Force, with partners such as Team Ninja and Atlus’s P-Studio, has rebuilt entire other franchises, Zelda, Persona, Fire Emblem, One Piece, Gundam, around its crowd-and-officer loop rather than adding one guest character to an existing game.',
@@ -3021,7 +3021,7 @@ SERIES({
       compare: 'Compare Soulcalibur II (2003), which invited one licensed guest fighter, Link, on GameCube only, into an otherwise unchanged roster and rule set; Dynasty Warriors instead rebuilds the whole game around the licensed property, a heavier production bet that pays off only if the formula itself, not any one character, is what the licence is buying.',
       cost: 'Building a full game per licence multiplies production cost and risk per crossover, and ties Omega Force’s output to rights held by outside owners such as Nintendo.',
       principle: 'When a mechanical formula is genuinely separable from its own cast and setting, license it out as a complete transplant into a partner’s world rather than a guest appearance inside your own, since a fan of the borrowed property gets more from owning a whole game built around it than from one cameo.',
-      topics: ['learning-from-success'],
+      topics: ['learning-from-success', 'team-and-collaboration'],
       sources: ['https://en.wikipedia.org/wiki/Hyrule_Warriors', 'https://en.wikipedia.org/wiki/Persona_5_Strikers', 'https://en.wikipedia.org/wiki/Dynasty_Warriors', 'https://en.wikipedia.org/wiki/Soulcalibur_II'] }
   },
   shots: [
@@ -3114,7 +3114,7 @@ SERIES({
       compare: 'Street Fighter escalates its fighting formula with a new mechanic per numbered entry, Focus Attacks in Street Fighter IV, the Drive Gauge in Street Fighter 6, each a rule a player must learn. FIFA’s equivalent, the same rules resolving more convincingly, asks a returning player to relearn a feel rather than a rule, harder for a reviewer to describe or a highlight reel to show.',
       cost: 'Because the escalation lives in the engine, a year with a genuinely large rebuild, Frostbite in FIFA 17, HyperMotion in FIFA 22, can be marketed almost identically to a smaller refresh, so buyers have historically struggled to tell from marketing alone whether a given year is a real upgrade or an incremental one.',
       principle: 'When a licensed simulation cannot change its own rules without breaking the real sport it represents, spend each year’s escalation budget on how convincingly the existing rules resolve, and expect that kind of upgrade to be harder to market and review fairly than a new rule would be.',
-      topics: ['mechanics-and-rules', 'decisions'],
+      topics: ['mechanics-and-rules'],
       sources: ['https://en.wikipedia.org/wiki/FIFA_12', 'https://en.wikipedia.org/wiki/FIFA_14', 'https://en.wikipedia.org/wiki/FIFA_17', 'https://en.wikipedia.org/wiki/FIFA_22'] },
     ui: {
       claim: 'Ultimate Team’s pack opening borrows the sealed sticker or trading-card packet, random players nobody sees before paying, then adds a delay and a lighting cue no paper packet ever had, turning a menu transaction into the mode’s own small ritual.',
@@ -3175,7 +3175,7 @@ SERIES({
       compare: 'A studio whose core asset is a single licence, such as an officially branded film tie-in game, has no equivalent fallback if that licence lapses; FIFA’s many separate contracts meant EA could lose its single most famous licence and still ship a nearly identical product the following year under a different name.',
       cost: 'EA gave up the FIFA name, the World Cup licence and any future FIFA-branded competitor to its own product, a commercial risk it accepted rather than pay FIFA’s new price, betting that decades of consumer trust in the football itself, not the four letters on the box, would carry the rebrand.',
       principle: 'When a business depends on a single headline licence layered over many smaller ones it separately controls, price out how much of the audience is actually buying the headline name versus the underlying content before renewing it at any cost, since the smaller licences may be doing more of the real work.',
-      topics: ['business-model', 'live-operations', 'ratings-and-disclosures'],
+      topics: ['business-model'],
       sources: ['https://www.espn.com/soccer/story/4662729/fifaea-sports-to-end-video-game-partnership-game-to-continue-under-new-name', 'https://fortune.com/2022/05/11/ea-electronic-arts-loses-20-billion-fifa-video-game-franchise-licensing-spat', 'https://en.wikipedia.org/wiki/EA_Sports_FC_24'] },
     replay: {
       claim: 'Ultimate Team generates its replay value from a constantly refreshed card economy, Team of the Week, Team of the Season, Team of the Year, rather than from rising difficulty, and unlike Rocket League’s cosmetic-only live content, its new cards can be strictly, measurably better than the ones already in a squad.',
@@ -3185,7 +3185,7 @@ SERIES({
       compare: 'Rocket League, an unlicensed vehicular-football game with nothing to protect on the pitch, went free-to-play in September 2020 and sells only cosmetic items, car bodies, decals, wheels, each body skinned onto one of six shared hitboxes so a bought car plays like a free one; its live content refreshes constantly without ever letting a purchase make a player’s car better than a free one.',
       cost: 'Because Ultimate Team’s new cards can be genuinely stronger, not just different-looking, its replay economy ties competitive standing to spending in a way Rocket League’s cosmetic-only model never does, precisely the design choice consumer bodies and regulators have targeted when comparing FIFA’s packs to gambling rather than ordinary cosmetic monetisation.',
       principle: 'A live economy can manufacture replay value either through power, letting new purchasable content out-perform old content, or through cosmetics that never touch performance; the first keeps players spending to stay competitive but invites gambling scrutiny, the second protects fairness but must sell purely on looking good.',
-      topics: ['economy-and-resources', 'difficulty'],
+      topics: ['economy-and-resources'],
       sources: ['https://en.wikipedia.org/wiki/Rocket_League', 'https://www.gamedeveloper.com/game-platforms/ea-generated-1-6-billion-in-revenue-last-year-from-just-i-ultimate-team-i-modes'] },
     lineage: {
       claim: 'FIFA chose to iterate by replacing the whole product every year at full price, where Street Fighter II, the fighting-game genre’s own long-running annual-ish cycle, iterated by re-releasing revisions of the same game, and that difference in lineage strategy shaped what each franchise’s history actually looks like today.',
@@ -3287,7 +3287,7 @@ SERIES({
       compare: 'Stardew Valley tracks one depleting number, energy, spent on any action and restored mainly by sleep, a dial read once per day. The Sims spreads the same pressure across eight independent bars scored against a priced object catalogue, trading Stardew’s at-a-glance simplicity for a system that can generate its own small dramas unprompted.',
       cost: 'Eight independently decaying bars is real interface and tuning overhead: a new player has to learn which icon means what before any bar actually threatens the Sim, and every new object added in an expansion has to be scored against all eight motives or it reads as useless compared to older furniture that was tuned more carefully.',
       principle: 'When a character needs to look alive without being watched every second, give it several independently decaying pressures scored against the same objects the player is already encouraged to buy or build, so managing the character and building their world become one loop instead of two the player has to run in parallel.',
-      topics: ['core-loop', 'mechanics-and-rules'],
+      topics: ['core-loop', 'mechanics-and-rules', 'ingame-ai-purpose', 'choosing-ai-technique'],
       sources: ['https://en.wikipedia.org/wiki/The_Sims_(video_game)', 'https://en.wikipedia.org/wiki/The_Sims_2'] },
     ui: {
       claim: 'Build and Buy mode prices every wall, floor covering and object individually and shows the household’s remaining budget update in real time, turning interior design into a second, self-contained game with its own feedback loop of cost against effect.',
@@ -3367,7 +3367,7 @@ SERIES({
       compare: 'Stardew Valley’s mod scene runs on SMAPI, a community-built mod loader rather than an official tool. The Sims took the opposite route: Maxis shipped its own creation tools before the first game launched and bundled Body Shop with The Sims 2, so fans built on sanctioned formats and a large custom-content scene grew around the official catalogue rather than in spite of it.',
       cost: 'Unsanctioned custom content breaks more often across engine updates, since EA owes it no compatibility guarantee, and a fan site’s survival depends entirely on volunteer moderation and hosting rather than a studio’s own infrastructure, so large parts of two decades of community-made Sims history have already been lost when smaller fan sites shut down.',
       principle: 'If a game is built from discrete, swappable catalogue objects, ship a simple official tool for making one more of them before launch: players who can add a chair or a hairstyle keep an install fresh long after the studio moves on, and the tool sets the formats a fan scene would otherwise have to reverse-engineer.',
-      topics: ['difficulty', 'mastery-discovery-expression'],
+      topics: ['mastery-discovery-expression'],
       sources: ['https://en.wikipedia.org/wiki/The_Sims_(video_game)', 'https://en.wikipedia.org/wiki/The_Sims_2'] },
     lineage: {
       claim: 'The Sims Online’s 2002 failure to translate a single-player household into a persistent, subscription-funded social world stands as the franchise’s one clear lesson in what not to copy, one the series itself never repeated and one its closest genre neighbour has avoided testing at all.',
@@ -3493,7 +3493,7 @@ SERIES({
       compare: 'Celeste removed lives entirely and simply counts deaths as a statistic; Crash 4 kept both models side by side, arguably because its audience included players returning from the 1990s who expected lives.',
       cost: 'Removing the lives threat means the levels themselves have to carry all the difficulty, and critics called Crash 4’s later levels frustrating even with unlimited retries.',
       principle: 'When a counter on screen doubles as a punishment rule, let players choose whether it punishes, and keep rewards independent of that choice so neither group feels cheated.',
-      topics: ['difficulty', 'feedback-and-affordance'],
+      topics: ['difficulty'],
       sources: ['https://en.wikipedia.org/wiki/Crash_Bandicoot_4:_It%27s_About_Time'] },
     art: {
       claim: 'Crash’s orange was chosen by elimination against the backgrounds he had to run through, and that single colour decision then set which level themes the first game could have.',
@@ -3564,7 +3564,7 @@ SERIES({
       compare: 'Super Mario Bros.’ Virtual Console and Nintendo Switch Online releases run the original code in emulation, which keeps the feel exactly; the N. Sane Trilogy had no code to run and had to rebuild the rules.',
       cost: 'Players paid in difficulty they had not chosen, and the studio paid in a reputation for inaccuracy that it never corrected in a patch.',
       principle: 'When rebuilding a game without its code, measure the original’s movement numbers from frame-by-frame footage before building any level, because the feel is in the numbers, not the geometry.',
-      topics: ['game-feel-and-juice', 'iteration-and-evidence'],
+      topics: ['game-feel-and-juice'],
       sources: ['https://en.wikipedia.org/wiki/Crash_Bandicoot_N._Sane_Trilogy'] }
   },
   shots: [
@@ -3714,7 +3714,7 @@ SERIES({
       compare: 'Metal Gear Solid builds its long, serious cutscenes into a stealth game whose pace already includes waiting. Sonic’s pace does not, so the same investment in story lands as interruption.',
       cost: 'Keeping the plot light caps what writers can do with a cast that fans have followed for decades, and the fans who want Shadow’s darker story pay for the lighter default.',
       principle: 'Match the weight of a story to how long the core play lets a player sit still; a game sold on momentum should spend its story in moments short enough not to break it.',
-      topics: ['ludonarrative-alignment', 'narrative-pacing'],
+      topics: ['narrative-pacing'],
       sources: ['https://en.wikipedia.org/wiki/Shadow_the_Hedgehog_(video_game)', 'https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_(2006_video_game)', 'https://en.wikipedia.org/wiki/Sonic_Colors', 'https://en.wikipedia.org/wiki/Sonic_Forces'] },
     world: {
       claim: 'Sonic’s world is built as a set of tracks between which the series keeps looking for a place to stand still, from Sonic Adventure’s hubs to Sonic Frontiers’ open islands.',
@@ -3724,7 +3724,7 @@ SERIES({
       compare: 'Super Mario 64’s (1996) castle hub made a place from which to choose levels. Sonic’s hubs have a harder job: they must feel good at speed while also being a place to stop, which Frontiers answers by making the hub itself something to run across.',
       cost: 'Open space strains speed: Frontiers was criticised for large objects popping into view, and a world big enough to run in for hours costs more to build and finish than a line of short stages.',
       principle: 'When your core verb punishes stopping, a hub should still reward that verb, so the place between challenges is a playground for it rather than a lobby.',
-      topics: ['level-structure', 'spatial-composition'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_(1991_video_game)', 'https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_2', 'https://en.wikipedia.org/wiki/Sonic_Adventure', 'https://en.wikipedia.org/wiki/Sonic_Frontiers'] },
     env: { na: 'Sonic’s stages are built to be crossed at speed, not read: there are no logs or staged scenes that reveal what happened in a place before the player arrived, and the player rarely stops long enough to look. What the series does instead is theme each zone as a mood and a set of physical rules, water, casinos, factories, so the space tells the player how to move, not what happened there.' },
     business: {
@@ -3745,7 +3745,7 @@ SERIES({
       compare: 'Mega Man’s weapons stay earned once taken, so the reward is permanent. Super Sonic lasts only as long as the rings do, so the reward stays a skill test rather than a solved problem.',
       cost: 'Players who find special stages hard never see the reward or the full ending, and a near-invincible form can make the zones’ designed challenge meaningless for those who do.',
       principle: 'Let a completionist reward consume the game’s ordinary resource, so even the strongest form still depends on the core play and keeps a replay from becoming a victory lap.',
-      topics: ['risk-reward', 'progression'],
+      topics: ['progression'],
       sources: ['https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_(1991_video_game)', 'https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_2'] },
     lineage: {
       claim: 'Sonic Mania, the best-reviewed Sonic game in fifteen years, came from a fan developer Sega first hired to port its old games, not from Sonic Team.',
@@ -3755,7 +3755,7 @@ SERIES({
       compare: 'Capcom revived Mega Man’s 8-bit look in Mega Man 9 (2008) through Inti Creates, an established partner studio. Sega let outside fans do it, keeping its own team on the 3D line the same year.',
       cost: 'Relying on outside developers leaves the style outside the studio: Sega depends on a small team it does not own, and fans who wanted a sequel wait on that relationship.',
       principle: 'Small, low-risk contracts such as ports can test an outside team on your own material; when they prove they understand it, let them make something new.',
-      topics: ['learning-from-success', 'team-and-collaboration'],
+      topics: ['learning-from-success'],
       sources: ['https://en.wikipedia.org/wiki/Sonic_Mania', 'https://toucharcade.com/2009/07/29/christian-whitehead-on-sonic-cd-and-his-retro-engine/', 'https://en.wikipedia.org/wiki/Sonic_Forces'] }
   },
   shots: [
@@ -3855,7 +3855,7 @@ SERIES({
       compare: 'Final Fantasy rebuilt its battle interface around changing systems. Dragon Quest kept one battle tempo, so its menus could stay put.',
       cost: 'Players raised on real-time action find the menu slow and old-fashioned, and critics named XI’s traditional design as a drawback.',
       principle: 'When a series keeps its rules stable, keep the interface for them stable too: players’ memory of where things sit is an asset every new entry inherits for free.',
-      topics: ['readability-and-hierarchy', 'onboarding'],
+      topics: ['readability-and-hierarchy'],
       sources: ['https://shmuplations.com/yujihorii/', 'https://en.wikipedia.org/wiki/Dragon_Quest', 'https://en.wikipedia.org/wiki/Dragon_Quest_XI'] },
     art: {
       claim: 'Dragon Quest borrowed a manga star’s audience along with his art: Akira Toriyama’s monsters sold the game to Dragon Ball readers in Japan, and North America replaced that look on the box.',
@@ -3916,7 +3916,7 @@ SERIES({
       compare: 'Pokémon asks two players to meet deliberately and link up to trade; tag mode worked between strangers who never spoke.',
       cost: 'The feature depends on crowds of players carrying the same console, strong in Japanese cities and thin elsewhere.',
       principle: 'Passive exchange between nearby players can supply endless replay content, but it only works where enough of them share a place.',
-      topics: ['social-experience', 'procedural-content'],
+      topics: ['social-experience', 'procedural-content', 'platform-and-session'],
       sources: ['https://en.wikipedia.org/wiki/Dragon_Quest_IX'] },
     lineage: {
       claim: 'Dragon Quest’s spin-offs use the series’ familiar vocabulary to carry players into other genres: monster collecting in Dragon Quest Monsters, and block building in Dragon Quest Builders.',
@@ -4050,7 +4050,7 @@ SERIES({
       compare: 'Kingdom Hearts builds a full plot to explain Disney and Final Fantasy characters sharing worlds; Smash’s toy-box frame avoids that work entirely and saves its story effort for optional modes.',
       cost: 'The frame gives the series no story to escalate, so each adventure mode starts from scratch, and the biggest one, the Subspace Emissary, was a large production that left no trace in the next entry.',
       principle: 'A crossover can borrow every guest’s story by giving them one playful excuse to meet; adding a plot that explains the meeting costs far more and rarely adds what players came for.',
-      topics: ['premise-and-world', 'narrative-pacing'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Super_Smash_Bros._(video_game)', 'https://en.wikipedia.org/wiki/Super_Smash_Bros._Brawl', 'https://en.wikipedia.org/wiki/Super_Smash_Bros._Ultimate'] },
     world: {
       claim: 'Every Smash stage is a place from a Nintendo game rebuilt as an arena, and from 2014 the series also shipped a flattened version of each, so the same world serves the party and the tournament.',
@@ -4060,7 +4060,7 @@ SERIES({
       compare: 'Street Fighter’s stages are flat backdrops by design; Smash’s stages change the fight itself, which is why it needed a separate neutral form that traditional fighting games never required.',
       cost: 'Every stage must be built twice in effect, once as a designed arena and once as a neutral one, and the flat versions make many stages look alike to a competitive player who never sees the original layout.',
       principle: 'When a place’s layout is part of the rules, ship a neutral version of it as well as the designed one, so the audience that wants the place does not also have to accept its rules.',
-      topics: ['spatial-composition', 'premise-and-world'],
+      topics: ['premise-and-world'],
       sources: ['https://en.wikipedia.org/wiki/Super_Smash_Bros._(video_game)', 'https://en.wikipedia.org/wiki/Super_Smash_Bros._Melee', 'https://en.wikipedia.org/wiki/Super_Smash_Bros._for_Nintendo_3DS_and_Wii_U'] },
     env: { na: 'Smash’s stages are arenas built from other games’ places, not spaces with a past to discover: there are no logs, ruins with a history or scenes left for a player to read, and a match never pauses long enough for one. What the stages do instead is quote their source games, a castle roof or a town, and move their hazards on a timer, which belongs to the world lens rather than environmental storytelling.' },
     business: {
