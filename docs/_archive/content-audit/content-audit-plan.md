@@ -97,7 +97,7 @@ Not added: economy balancing already has a real home in `economy-and-resources`,
   - feedback and performance, conflict and growing people.
   
   Server-authority also gained a worked lag-compensation example. The library now has 198 topics.
-- **Games to topics.** 349 "In real games" tags that did not fit were removed and about 88 real ones added. Topics shown by at least one game went from 82 to over 95.
+- **Games to topics.** 349 "In real games" tags that did not fit were removed and about 88 real ones added. Topics shown by at least one game went from 82 of 186 to 95 of 198.
 - **Paths.** 30 of 32 findings were fixed. The main changes:
   - a path can ask for any one of several base paths;
   - idea-to-prototype builds a real prototype;
