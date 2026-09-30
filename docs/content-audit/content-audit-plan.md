@@ -40,12 +40,49 @@ Status: `todo`, `doing`, `done`.
 | --- | --- | --- | --- |
 | P1 | Paths audit: all 21 paths and the chooser's 81 combinations | done | 32 findings (6 high, 15 medium, 11 low) in [findings-paths.md](findings-paths.md); 6 chooser rows a mentor would not give |
 | K1 | Curriculum audit: coverage against established curricula, gaps, overlaps, level progression, domain structure | done | 10 gaps (K-1 to K-10: gameplay math and algorithms, client engine architecture, rollback, physics, save systems, audio, economy and monetisation depth, multiplayer design), 6 overlap clusters, 3 orphan topics; games show 82 of 186 topics (orchestrator recount) |
-| T1 | Topics: player, experience, core, systems, content, level (39) | doing | |
-| T2 | Topics: ux, narrative, presentation, product, production (32) | todo | |
-| T3 | Topics: ai, gameai, studio (29) | todo | |
-| T4 | Topics: backend, infra, server (27) | todo | |
-| T5 | Topics: management, leadership, platforms (25) | todo | |
-| T6 | Topics: models, craft, careers (34) | todo | |
-| X1 | Triage: merge findings, decide fixes (debate where unsure) | todo | |
-| F1 | Fixes: correctness first, then clarity, gaps and structure; new material fact-checked | todo | |
+| T1 | Topics: player, experience, core, systems, content, level (39) | done | 29 findings (1 high, 12 medium, 16 low): 5 engine snippets would fail; 3 "what" walls; weak "In real games" links on pacing, level structure, spatial composition |
+| T2 | Topics: ux, narrative, presentation, product, production (32) | done | 26 findings (4 high, 10 medium, 12 low): broken Godot rebind save, a wrong date, a false Godot pitfall, a wrong Unity batching claim; mis-tagged game links; about 10 facts still to verify in the fix phase |
+| T3 | Topics: ai, gameai, studio (29) | done | 26 findings (5 high, 11 medium, 10 low): 5 engine snippets would not run (undeclared calls, one-shot signal bug, unpolled TCP, Edit Mode scene load); Godot 3 wording; 3 facts to verify |
+| T4 | Topics: backend, infra, server (27) | done | 28 findings (6 high, 13 medium, 9 low): all 6 highs are engine snippets that would not compile or run (string version compare, missing File.Replace guard, wrong array types, stub type error); prose and interview answers held up |
+| T5 | Topics: management, leadership, platforms (25) | done | 16 findings (0 high, 4 medium, 12 low); platform rules verified against official pages (Play, Apple, Steam, Xbox, PEGI, Meta, Roblox, Fortnite, Epic) |
+| T6 | Topics: models, craft, careers (34) | done | 13 findings (0 high, 3 medium, 10 low); dated model, pricing and caching facts verified against vendor pages |
+| X1 | Triage: merge findings, decide fixes (debate where unsure) | done | decisions below |
+| F1 | Fixes: correctness first, then clarity, gaps and structure; new material fact-checked | doing | fa: T1 and T2 findings (topic files 20 to 30); fb: T3 to T6 findings (topic files 31 to 39c) |
+| N1 | New topics for the confirmed gaps (10 topics plus the lag-compensation example), fact-checked and code-reviewed | todo | after fa and fb, which own the topic files |
+| G1 | "In real games" links: remove mis-tags, add real ones | todo | game data files |
+| P2 | Paths fixes and placement of the new topics | todo | after N1 |
+| R1 | Independent fact-check and code review of every batch | todo | |
 | V1 | Checks, CI replay, archive | todo | |
+
+## Findings and decisions
+
+Audit reports: [findings-paths.md](findings-paths.md) (P-1 to P-32), [findings-curriculum.md](findings-curriculum.md) (K-1 to K-10, with orchestrator corrections), and `findings-topics-T1.md` to `findings-topics-T6.md` (138 topic findings: 16 high, 53 medium, 69 low).
+
+**The main pattern.** Most high findings are engine snippets that would not compile or run: undeclared methods, unassigned components, wrong types, string version compares, freed nodes and unpolled sockets. That is about 20 of the 372 snippets. The prose, facts and interview answers mostly held up, and dated platform and model facts were verified against official pages.
+
+**Topics (F1, batches fa and fb).** Apply every high and medium finding and every clear low one. Every changed snippet gets an independent code review before commit. "In real games" mis-tags are fixed separately (G1).
+
+**New topics (N1).** Each gap below was checked against the data. No topic owns it:
+- server: rollback netcode and deterministic lockstep; lag compensation gets a worked example in `server-authority`;
+- craft: gameplay math (vectors, dot and cross products, interpolation and easing, rotations, spatial queries), the game loop and fixed timestep, entities and scenes (node and scene composition against ECS, and when each pays), physics and collision (controllers, tunnelling, layers, determinism), and save systems (serialization, versioning, corruption safety, cloud saves);
+- careers: coding-interview practice for game roles (data structures and algorithms, gameplay math questions, system design);
+- presentation: audio implementation (engine buses, FMOD and Wwise, ducking, adaptive-music hooks);
+- product: monetisation design (IAP, gacha and odds-disclosure rules, battle passes, pricing, with the ethics link);
+- core: multiplayer game design (co-op against PvP, balance, fair matching as a design problem).
+
+Not added: economy balancing already has a real home in `economy-and-resources`, and profiling in `craft-performance`. K-9 stays low priority. The AI-era craft cluster overlaps in framing only (every pair scores under 0.21), so it stays. The three orphan topics (localization-and-culture, perception-and-awareness, adaptive-and-director-ai) get inbound `rel` links.
+
+**Game links (G1).** Remove "In real games" tags where the lens does not show the topic, add tags only where a lens really does, and give topics with no game a real one where the library holds one.
+
+**Paths (P1 fixes).**
+- Engineering interview prep and technical lead each ask for one fitting specialty path, not all of them.
+- game-ai-programmer asks for Godot or Unity, not both.
+- idea-to-prototype builds a real prototype, and its playtest uses it.
+- netcode adds the prediction, reconciliation, interpolation, lag compensation and rollback steps.
+- Engineering interview prep adds coding and math practice.
+- The gameplay-engineer paths skip the foundations overlap when foundations is done.
+- The engine setup step comes before the first code step.
+- Export-only builds become real builds.
+- Unrealistic times are fixed.
+- The six chooser rows a mentor would not give are fixed.
+- The new topics are placed in the paths where they teach best.
