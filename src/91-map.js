@@ -149,7 +149,7 @@ function updateNext(){
   const id = mapMode === 'domains' ? nextUnread() : null;
   a.hidden = !id;
   if(!id) return;
-  a.href = '#/map/t/' + id;
+  a.href = '#/map/t/' + id; a.onclick = () => A.pinMap();
   a.textContent = 'Next unread: ' + TOPICS[id].t + ' →';
   a.setAttribute('aria-label', 'Next unread topic: ' + TOPICS[id].t);
 }
@@ -216,7 +216,7 @@ function startPanel(){
   if(lens[0] !== LENSES[0][0]) return engPanel(lens);
   return `${lensSwitchHTML('inpane')}<span class="overline">Field manual · ${DOMAINS.filter(d => d.lens === lens[0]).reduce((a, d) => a + d.topics.length, 0)} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
     <h1 style="margin:6px 0 8px">Make something people want to play.</h1>
-    <p class="dim">The mind map on the left is always here. Click a domain to expand it in place, click a topic to read it in this panel. The index and the map do the same work, so use whichever suits you.</p>
+    <p class="dim">The mind map on the left is always here. Click a domain to open it and see its topics, click a topic to read it in this panel and see what it connects to: related topics, games, smells and paths. Type in Find in map to jump to a topic by name. The index lists the same topics; the map adds how they connect and what you have read.</p>
     <div class="paths">${startPathsHTML()}</div>
     <div class="section-head" style="margin-top:22px"><h2>What are you trying to solve?</h2><span class="muted">symptom to likely cause to experiment</span></div>
     ${symptomsHTML()}
@@ -240,11 +240,81 @@ function drawerHTML(){
   return startPanel();
 }
 
+/* ---- find in the map ----
+   Typing rings the topics (and the closed domains that hold them) whose name
+   matches, on whichever lens is drawn; Enter opens the first match, switching
+   lens if it lives in the other one, and repeated Enter steps to the next.
+   Words are folded the way the site search folds them (UK and US spellings,
+   plurals, synonyms such as gacha and loot box). A query no title answers falls
+   back to the site search for a few topics whose text does. */
+const titleWords = new Map();
+function findMatches(q){
+  const qs = A.searchWords(q).filter(w => !A.STOP_WORDS.has(w)); if(!qs.length) return [];
+  const words = (id, t, tag) => titleWords.get(id) || (titleWords.set(id, { t: A.searchWords(t), g: A.searchWords(tag || '') }), titleWords.get(id));
+  const hits = [];
+  const test = (kind, id, dom, t, tag) => {
+    const w = words(kind + id, t, tag); let score = 0;
+    for(const x of qs){
+      if(w.t.includes(x)) score += 10; else if(w.t.some(y => y.startsWith(x))) score += 6; else if(w.g.includes(x)) score += 3; else if(w.g.some(y => y.startsWith(x))) score += 2; else return;
+    }
+    if(w.t.join(' ') === qs.join(' ')) score += 20;
+    hits.push({ kind, id, dom, lens: lensOf(dom), title: t, score });
+  };
+  TOPIC_LIST.forEach(t => test('t', t.id, t.d, t.t, t.tag));
+  DOMAINS.forEach(d => test('d', d.id, d.id, d.t, d.short));
+  // a title that answers wins; a tag alone only answers when no title does
+  if(hits.length) return (hits.some(h => h.score >= 6) ? hits.filter(h => h.score >= 6) : hits).sort((a, b) => b.score - a.score);
+  const out = [];
+  for(const it of A.search(q)){
+    const m = /^#\/map\/t\/([^/]+)$/.exec(it.href);
+    if(m && TOPICS[m[1]]) out.push({ kind:'t', id:m[1], dom:TOPICS[m[1]].d, lens:lensOf(TOPICS[m[1]].d), title:it.t });
+    if(out.length >= 8) break;
+  }
+  return out;
+}
+function findSummary(f){
+  if(!f.q.trim()) return '';
+  if(!f.matches.length) return 'No match';
+  const cur = currentLens()[0], other = f.matches.filter(m => m.lens !== cur);
+  return f.matches.length + (f.matches.length === 1 ? ' match' : ' matches') + (other.length ? ', ' + other.length + ' in ' + (LENSES.find(l => l[0] === other[0].lens) || [0, other[0].lens])[1] : '');
+}
+// Rings the matches that are drawn; the rest recede so the rings read at a glance.
+function applyFind(){
+  if(!MAP || !MAP.find) return;
+  const f = MAP.find, root = treeRoot(); if(!root) return;
+  let n = 0;
+  root.querySelectorAll('[data-key]').forEach(el => {
+    const k = el.dataset.kind, id = el.dataset.id;
+    const on = mapMode === 'domains' && !el.dataset.scope && f.matches.length > 0 && !f.quiet && ((k === 'topic' || k === 'leaf') ? f.ids.has(id) : k === 'domain' ? f.doms.has(id) && !el.classList.contains('open') : false);
+    el.classList.toggle('found', on); if(on) n++;
+  });
+  MAP.svg.classList.toggle('finding', n > 0);
+  MAP.outline.classList.toggle('finding', n > 0);
+}
+
 /* ---- camera ---- */
 // The box is widened to the stage's own shape, so the tree fills the stage on
 // both axes instead of being framed for a fixed 1.18 ratio.
 function fitBox(b){ const A = MAP && MAP.wrap.clientWidth > 50 && MAP.wrap.clientHeight > 50 ? Math.min(3, Math.max(0.4, MAP.wrap.clientWidth / MAP.wrap.clientHeight)) : 1.18; let {x,y,w,h} = b; if(w/h < A){ const nw = h*A; x -= (nw-w)/2; w = nw; } else { const nh = w/A; y -= (nh-h)/2; h = nh; } return {x,y,w,h}; }
-function applyVB(svg, vb){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); }
+function applyVB(svg, vb){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); updateMoreCues(); }
+// "N more" pills at the stage edges: the leaves and items the window cuts off, by direction.
+function updateMoreCues(){
+  const el = $('#mapmore'); if(!el || !MAP || !MAP.g || !MAP.vb) return;
+  const cnt = { l:0, r:0, u:0, d:0 }, cx = { u:0, d:0 }, vb = MAP.vb;
+  if(!phoneQuery.matches && MAP.wrap.clientWidth > 50 && MAP.wrap.clientHeight > 50)
+    for(const n of MAP.g.nodes){
+      if(n.kind !== 'leaf' && n.kind !== 'item') continue;
+      // a card whose middle is above or below the window is "more"; one beside it is "cut off" once a sixth of it is hidden
+      if(n.y > vb.y + vb.h){ cnt.d++; cx.d += n.x + n.w / 2; } else if(n.y < vb.y){ cnt.u++; cx.u += n.x + n.w / 2; }
+      else if(n.x + n.w > vb.x + vb.w + n.w / 6) cnt.r++; else if(n.x < vb.x - n.w / 6) cnt.l++;
+    }
+  // the up and down pills sit over the column of leaves they count
+  const at = k => cnt[k] ? Math.max(12, Math.min(88, (cx[k] / cnt[k] - vb.x) / vb.w * 100)) : 50;
+  const ARROW = { l:'←', r:'→', u:'↑', d:'↓' }, sig = JSON.stringify([cnt, at('u'), at('d')]);
+  if(el.dataset.sig === sig) return;
+  el.dataset.sig = sig;
+  el.innerHTML = Object.keys(cnt).filter(k => cnt[k]).map(k => `<button type="button" class="morecue ${k}" data-dir="${k}" tabindex="-1"${k === 'u' || k === 'd' ? ` style="left:${at(k).toFixed(1)}%"` : ''} aria-hidden="true" title="Pan the map to show them">${cnt[k]} ${k === 'l' || k === 'r' ? 'cut off' : 'more'} ${ARROW[k]}</button>`).join('');
+}
 const nextFrame = fn => document.hidden ? { kind:'t', id: setTimeout(() => fn(performance.now()), 16) } : { kind:'r', id: requestAnimationFrame(fn) };
 const cancelFrame = h => { if(!h) return; if(h.kind === 't') clearTimeout(h.id); else cancelAnimationFrame(h.id); };
 function cameraTarget(g, cam, kind){
@@ -383,9 +453,37 @@ function keepInView(r, sel, left){
   if(sel.y - sel.h / 2 < y + m) y = sel.y - sel.h / 2 - m; else if(sel.y + sel.h / 2 > y + h - m) y = sel.y + sel.h / 2 + m - h;
   return { x, y, w, h };
 }
+/* ---- framing the selected branch ----
+   The selected node, its children and their children (a topic with its groups
+   and open leaves; a stage with its steps) are framed as a block. The block
+   starts at the selected node's own column edge, so the columns before it (the
+   domain, the centre) sit wholly off-stage and never half-cut, and it is drawn
+   as large as it fits without the labels dropping under MIN_LABEL_PX or growing
+   past MAX_LABEL_PX. When the block is wider or taller than the stage at the
+   smallest size, the selected node and its group column stay in view and the
+   leaves run on past the edge; updateMoreCues says how many. */
+const MAX_LABEL_PX = 14;
+function branchFrame(g, sel){
+  if(!MAP || !sel || sel.kind === 'center' || !(sel.children || []).length) return null;
+  const W = MAP.wrap.clientWidth, H = MAP.wrap.clientHeight;
+  if(W < 50 || H < 50) return null;
+  const below = n => [n, ...(n.children || []).flatMap(below)];
+  const all = below(sel), max = readableSize(), px = MAP.labelPx || 13.5;
+  const lo = Math.min(...all.map(n => n.x)), hi = Math.max(...all.map(n => n.x + n.w)), right = sel.side >= 0;
+  const need = hi - lo + 48, w = Math.min(max.w, Math.max(need, W * px / MAX_LABEL_PX)), h = w * H / W;
+  const top = n => n.y - n.h / 2, bot = n => n.y + n.h / 2;
+  const span = ns => [Math.min(...ns.map(top)), Math.max(...ns.map(bot))];
+  const [ylo, yhi] = span(all), [clo, chi] = span([sel, ...sel.children]);
+  // whole block if it fits, else the selected node with its group column, else the node alone
+  const y = yhi - ylo + 48 <= h ? (ylo + yhi) / 2 - h / 2 : chi - clo + 48 <= h ? (clo + chi) / 2 - h / 2 : sel.y - h / 2;
+  const x = right ? lo - 24 : hi + 24 - w;
+  MAP.wrap.classList.toggle('fade-right', need > w + 1 && right);
+  return { x, y, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
   if(phoneQuery.matches) return phoneTarget(g);
+  { const f = branchFrame(g, selectedNode(g)); if(f) return f; }
   if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return keepReadable(t, g); }
   let target = cameraTarget(g, cam, kind);
   if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
@@ -506,6 +604,7 @@ function announce(n){
 }
 function mapClick(n){
   announce(n);
+  A.pinMap();   // a click inside the map keeps the map shown, even on the pages that fold it away
   if(n.dataset.scope === 'project') return projClick(n);
   if(n.dataset.scope === 'path') return pathMapClick(n);
   const kind = n.dataset.kind, id = n.dataset.id;
@@ -524,16 +623,9 @@ function toggleGroup(n){
   mapState.grp = mapState.grp || {}; mapState.grp[id] = !open; saveMap();
   MAP.focusKey = n.dataset.key; MAP.keyNav = false;
   paintGraph();
-  if(open) return;
-  // bring the opened group into view: its first leaf at the top of the stage
-  const gn = MAP.g.nodes.find(x => x.kind === 'group' && x.id === id); if(!gn) return;
-  const kids = gn.children || [], vb = MAP.vb, hi = Math.max(gn.x + gn.w, ...kids.map(k => k.x + k.w)), lo = Math.min(gn.x, ...kids.map(k => k.x));
-  const x = hi - lo + 40 <= vb.w ? (lo + hi) / 2 - vb.w / 2 : (gn.side >= 0 ? hi + 20 - vb.w : lo - 20);
-  const y = (kids.length ? Math.min(gn.y - gn.h / 2, kids[0].y - kids[0].h / 2) : gn.y - gn.h / 2) - 24;
-  MAP.userCamera = true;
-  // ... without losing the topic the group belongs to
-  const sel = selectedNode(MAP.g);
-  mapAnimateTo(sel && sel.kind === 'topic' ? keepInView({ x, y, w: vb.w, h: vb.h }, sel, sel.side >= 0) : { x, y, w: vb.w, h: vb.h });
+  // the branch is framed again with the group open or closed: the topic and its group column stay in view
+  MAP.userCamera = false; mapStopAnim();
+  mapAnimateTo(stageTarget(MAP.g, MAP.kind, MAP.vb));
 }
 
 function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(keepReadable(fitBox(MAP.g.bbox), MAP.g)); } }
@@ -597,6 +689,7 @@ function paintGraph(){
   const root = treeRoot(), byKey = k => k && root.querySelector('[data-key="' + CSS.escape(k) + '"]');
   const stop = byKey(MAP.focusKey) || byKey(currentKey()) || root.querySelector('[role="treeitem"]');
   if(stop){ stop.setAttribute('tabindex', '0'); if(hadFocus) stop.focus({ preventScroll: true }); }
+  updateMoreCues(); applyFind();
   return g;
 }
 function nodeCentre(el){ const r = el.querySelector('.disc'); return { x: +r.getAttribute('x') + +r.getAttribute('width') / 2, y: +r.getAttribute('y') + +r.getAttribute('height') / 2 }; }
@@ -607,8 +700,12 @@ function focusItem(n){
   treeRoot().querySelectorAll('[tabindex="0"]').forEach(x => x.setAttribute('tabindex', '-1'));
   el.setAttribute('tabindex', '0'); el.focus({ preventScroll: true }); MAP.focusKey = n.key;
   if(phoneQuery.matches){ el.scrollIntoView({ block: 'nearest' }); return; }
-  const c = nodeCentre(el), vb = MAP.vb;
-  if(c.x < vb.x || c.x > vb.x + vb.w || c.y < vb.y || c.y > vb.y + vb.h) mapAnimateTo({ x: c.x - vb.w / 2, y: c.y - vb.h / 2, w: vb.w, h: vb.h });
+  // the whole card is brought inside the window, by the smallest move
+  const d = el.querySelector('.disc'), vb = MAP.vb, m = 20;
+  const bx = +d.getAttribute('x'), by = +d.getAttribute('y'), bw = +d.getAttribute('width'), bh = +d.getAttribute('height');
+  const shift = (lo, size, vlo, vsize) => lo < vlo + m ? lo - m - vlo : lo + size > vlo + vsize - m ? lo + size + m - vlo - vsize : 0;
+  const dx = bw + 2 * m > vb.w ? nodeCentre(el).x - vb.x - vb.w / 2 : shift(bx, bw, vb.x, vb.w), dy = bh + 2 * m > vb.h ? 0 : shift(by, bh, vb.y, vb.h);
+  if(dx || dy){ MAP.userCamera = true; mapAnimateTo({ x: vb.x + dx, y: vb.y + dy, w: vb.w, h: vb.h }, 260); }
 }
 /* The ARIA tree keys. Down and Up walk the items in reading order; Right opens a
    closed branch or steps into an open one; Left closes an open branch or steps
@@ -756,6 +853,42 @@ function initMapStage(){
   on(outline, 'click', e => { const row = e.target.closest && e.target.closest('.oi-row'); if(row){ const li = row.parentElement; MAP.focusKey = li.dataset.key; mapClick(li); } });
   on(outline, 'keydown', treeKey);
   $('#mapFit').onclick = fitMap;
+  const fi = $('#mapFind'), fn = $('#mapFindN');
+  if(fi){
+    MAP.find = { q:'', matches:[], ids:new Set(), doms:new Set(), idx:-1 };
+    let ft = 0;
+    const run = () => {
+      clearTimeout(ft); ft = 0;
+      const q = fi.value, m = findMatches(q);
+      MAP.find = { q, matches:m, ids:new Set(m.filter(x => x.kind === 't').map(x => x.id)), doms:new Set(m.map(x => x.dom)), idx:-1 };
+      const sum = findSummary(MAP.find);
+      const away = m.filter(x => x.lens !== currentLens()[0]).length;
+      fn.textContent = sum && m.length ? m.length + (m.length === 1 ? ' match' : ' matches') + (away ? ' · ' + away + ' other lens' : '') : sum; fn.title = sum;
+      applyFind();
+      say(q.trim() ? sum + (m.length ? '. Enter opens ' + m[0].title + '.' : '.') : 'Find cleared');
+    };
+    on(fi, 'input', () => { clearTimeout(ft); ft = setTimeout(run, 120); });
+    on(fi, 'keydown', e => {
+      if(e.key === 'Escape'){ if(fi.value){ e.preventDefault(); e.stopPropagation(); fi.value = ''; run(); } return; }
+      if(e.key !== 'Enter') return;
+      e.preventDefault();
+      if(ft || MAP.find.q !== fi.value) run();
+      const f = MAP.find; if(!f.matches.length) return;
+      f.idx = (f.idx + 1) % f.matches.length;
+      const m = f.matches[f.idx], to = m.kind === 't' ? '#/map/t/' + m.id : '#/map/d/' + m.id;
+      f.quiet = true; applyFind();   // the rings have done their job once a match is opened
+      A.pinMap(); MAP.keyNav = true; setTimeout(() => { if(MAP) MAP.keyNav = false; }, 800);
+      say('Opening ' + m.title + (m.lens !== currentLens()[0] ? ', in ' + (LENSES.find(l => l[0] === m.lens) || [0, m.lens])[1] : ''));
+      if(location.hash === to) return;
+      go(to);
+    });
+  }
+  // a "N more" pill pans the window most of the way toward the leaves it counts
+  on($('#mapmore'), 'click', e => {
+    const b = e.target.closest && e.target.closest('.morecue'); if(!b || !MAP.vb) return;
+    const d = b.dataset.dir, vb = MAP.vb; mapStopAnim(); MAP.userCamera = true;
+    mapAnimateTo({ x: vb.x + (d === 'r' ? vb.w * 0.8 : d === 'l' ? -vb.w * 0.8 : 0), y: vb.y + (d === 'd' ? vb.h * 0.8 : d === 'u' ? -vb.h * 0.8 : 0), w: vb.w, h: vb.h }, 320);
+  });
   const lgBtn = $('#mapLegendBtn'), lg = $('#maplegend');
   if(lgBtn && lg){
     lg.innerHTML = legendHTML();
@@ -807,9 +940,10 @@ function legendHTML(){
   const sw = (c, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 26 14" aria-hidden="true"><rect class="${c}" x="1" y="1" width="24" height="12" rx="3"/></svg>${t}</span>`;
   const ln = (c, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 26 14" aria-hidden="true"><path class="edge ${c}" d="M1,7 L25,7"/></svg>${t}</span>`;
   const rd = (on, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 14 14" aria-hidden="true"><circle class="rd${on ? ' on' : ''}" cx="7" cy="7" r="6"/>${on ? '<text class="chk" x="7" y="10.5" text-anchor="middle" font-size="9">✓</text>' : ''}</svg>${t}</span>`;
-  return `<div class="lgrow"><b>Cards</b>${sw('domain', 'Domain: its colour marks its topics')}${sw('topic', 'Topic')}${rd(true, 'Read')}${rd(false, 'Not read yet')}</div>
-    <div class="lgrow"><b>Around a topic</b>${sw('leaf', 'Related topic')}${sw('leaf other', 'Also in the other lens (click to switch)')}${sw('item t-game', '◇ Game')}${sw('item t-smell', '! Smell')}${sw('item t-tool', 'Tool')}${sw('item t-checklist', 'Checklist')}${sw('item t-prompt', 'Prompt')}${sw('item t-path', 'Path')}${sw('item t-part', '◆ Project part')}${sw('group', 'Group: click to open or close')}</div>
-    <div class="lgrow"><b>Lines</b>${ln('open', 'Parent to child')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div>`;
+  return `<div class="lgrow"><b>Cards</b><div class="lgset">${sw('domain', 'Domain: its colour marks its topics')}${sw('topic', 'Topic')}${rd(true, 'Read')}${rd(false, 'Not read yet')}</div></div>
+    <div class="lgrow"><b>Topics around it</b><div class="lgset">${sw('leaf', 'Related topic')}${sw('leaf other', 'Also in the other lens (click to switch)')}${sw('group', 'Group: click to open or close')}</div></div>
+    <div class="lgrow"><b>Other links</b><div class="lgset">${sw('item t-game', '◇ Game')}${sw('item t-smell', '! Smell')}${sw('item t-tool', 'Tool')}${sw('item t-checklist', 'Checklist')}${sw('item t-prompt', 'Prompt')}${sw('item t-path', 'Path')}${sw('item t-part', '◆ Project part')}</div></div>
+    <div class="lgrow"><b>Lines</b><div class="lgset">${ln('open', 'Parent to child')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div></div>`;
 }
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();

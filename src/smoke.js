@@ -44,6 +44,7 @@ const CUT_LABELS = () => {
   return cut;
 };
 // The map camera as drawn, and the widest the old clamp allowed (three times the fitted tree; the label floor stops a zoom-out well before that).
+const hashOf = page => page.evaluate(() => location.hash);
 const MAP_VB = () => {
   const svg = document.getElementById('mapsvg'), v = svg.viewBox.baseVal; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   for (const r of svg.querySelectorAll('.disc')) { const x = +r.getAttribute('x'), y = +r.getAttribute('y'), w = +r.getAttribute('width'), h = +r.getAttribute('height'); x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + w); y1 = Math.max(y1, y + h); }
@@ -689,6 +690,88 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       const back = await page.evaluate(() => { const li = document.querySelector('#mapoutline [aria-selected="true"]'), o = document.getElementById('mapoutline'), r = li.querySelector(':scope > .oi-row').getBoundingClientRect(), b = o.getBoundingClientRect(); return { shown: getComputedStyle(o).display !== 'none' && o.getBoundingClientRect().width > 0, inView: r.top >= b.top - 1 && r.bottom <= b.bottom + 1, groups: o.querySelectorAll('li[data-kind="group"]').length }; });
       if (!back.shown || !back.inView) fail('phone outline: the selected topic is not in view on returning ' + JSON.stringify(back));
     }
+    await ctx.close();
+  }
+  // The map follow-ups: a selected topic is framed with its groups (and the leaves the
+  // window cuts off are counted in "more" pills), a click inside the map keeps the map
+  // shown, find in map, the skip link from a folded page, and a toolbar that stays on one line.
+  for (const w of [1280, 1440]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: 800 } });
+    const page = await ctx.newPage(); const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    const fail = m => failures.push(`${w}px map follow-ups: ${m}`);
+    const fresh = async (hash, keep) => {
+      await page.goto(base + '#/map/home');
+      await page.evaluate(k => { localStorage.clear(); localStorage.setItem('playable.visited', 'true'); if(k) localStorage.setItem('playable.hideMap', 'false'); }, keep);
+      await page.goto(base + hash); await page.reload(); await page.waitForTimeout(1100);
+    };
+    // framing: the topic and its group column are in view, labels stay readable, cut-off leaves are counted
+    for (const id of ['who-is-the-player', 'server-rollback-netcode', 'core-loop']) {
+      await fresh('#/map/t/' + id, true);
+      if (id === 'core-loop') { await page.evaluate(() => { const g = document.querySelector('#mapsvg .node[data-kind="group"][data-id="game"]'); if(g && !g.classList.contains('open')) g.dispatchEvent(new MouseEvent('click', { bubbles: true })); }); await page.waitForTimeout(900); }
+      const r = await page.evaluate(() => {
+        const wr = document.getElementById('mapwrap').getBoundingClientRect(), vb = document.getElementById('mapsvg').viewBox.baseVal, k = wr.width / vb.width;
+        const rect = n => n.getBoundingClientRect();
+        const inside = n => { const b = rect(n); return b.left >= wr.left - 1 && b.right <= wr.right + 1 && b.top >= wr.top - 1 && b.bottom <= wr.bottom + 1; };
+        const sel = document.querySelector('#mapsvg .node.topic[aria-selected="true"]');
+        const groups = [...document.querySelectorAll('#mapsvg .node[data-kind="group"]')];
+        const leaves = [...document.querySelectorAll('#mapsvg .node[data-kind="leaf"], #mapsvg .node[data-kind="item"]')];
+        const cutOff = leaves.filter(n => { const b = rect(n), cy = (b.top + b.bottom) / 2; return cy < wr.top || cy > wr.bottom || b.right > wr.right + b.width / 6 || b.left < wr.left - b.width / 6; }).length;
+        const lbl = [...document.querySelectorAll('#mapsvg .node .lbl:not(.sub)')].filter(t => inside(t.closest('.node'))).map(t => parseFloat(getComputedStyle(t).fontSize) * k);
+        return { sel: !!sel && inside(sel), groupsIn: groups.filter(inside).length, groups: groups.length, cutOff, pills: document.querySelectorAll('#mapmore .morecue').length, minLabel: lbl.length ? Math.min(...lbl) : 99 };
+      });
+      if (!r.sel) fail(`${id}: the selected topic is not whole in the window`);
+      if (id === 'core-loop' ? r.groupsIn < 1 : r.groupsIn !== r.groups) fail(`${id}: only ${r.groupsIn} of ${r.groups} groups are in view`);
+      if (r.minLabel < 10.9) fail(`${id}: labels drawn at ${r.minLabel.toFixed(1)}px, under the 11px floor`);
+      if ((r.cutOff > 0) !== (r.pills > 0)) fail(`${id}: ${r.cutOff} leaves are cut off but ${r.pills} "more" pills are shown`);
+      if (id === 'core-loop' && !r.pills) fail('core-loop with Games open: no "more" cue for the leaves past the edge');
+    }
+    // a click inside the map keeps the map shown, on a page that folds it away by default; the reader's own choice wins
+    await fresh('#/map/home', false);
+    const shown = () => page.evaluate(() => { const s = document.getElementById('shell'), m = document.getElementById('mapwrap'); return !s.classList.contains('nomap') && m.getBoundingClientRect().width > 200; });
+    await page.locator('#mapsvg .node[data-kind="domain"]').nth(2).click({ force: true }); await page.waitForTimeout(900);
+    if (!/^#\/map\/d\//.test(await hashOf(page))) fail('clicking a domain did not open its page');
+    if (!await shown()) fail('clicking a domain on the map hid the map');
+    await page.locator('#mapsvg .node[data-kind="topic"]').first().click({ force: true }); await page.waitForTimeout(900);
+    if (!/^#\/map\/t\//.test(await hashOf(page))) fail('clicking a topic did not open it');
+    if (!await shown()) fail('clicking a topic on the map hid the map');
+    await page.click('[data-action="toggle-map"]'); await page.waitForTimeout(500);
+    if (await shown()) fail('Hide map did not hide the map');
+    await page.evaluate(() => { location.hash = '#/map/d/core'; }); await page.waitForTimeout(700);
+    if (await shown()) fail('the reader hid the map, but a later page showed it again');
+    // find in map: type, count, Enter opens the first match (switching lens), Escape clears
+    await fresh('#/map/home', true);
+    await page.fill('#mapFind', 'fantasy'); await page.waitForTimeout(500);
+    const f1 = await page.evaluate(() => ({ n: document.getElementById('mapFindN').textContent, live: document.getElementById('maplive').textContent, found: document.querySelectorAll('#mapsvg .node.found').length }));
+    if (!/\d+ match/.test(f1.n) || !/match/.test(f1.live)) fail('find in map gave no count: ' + JSON.stringify(f1));
+    await page.keyboard.press('Enter'); await page.waitForTimeout(1000);
+    if (!/^#\/map\/t\/fantasy/.test(await hashOf(page))) fail('Enter in find did not open the first match (' + await hashOf(page) + ')');
+    if (!await shown()) fail('opening a find match hid the map');
+    await page.fill('#mapFind', 'fantasy'); await page.waitForTimeout(400);
+    if (!await page.evaluate(() => document.querySelectorAll('#mapsvg .node.found').length)) fail('find in map rings nothing for "fantasy"');
+    await page.fill('#mapFind', 'rollback'); await page.waitForTimeout(400); await page.keyboard.press('Enter'); await page.waitForTimeout(1200);
+    const f2 = await page.evaluate(() => ({ hash: location.hash, lens: document.querySelector('.lens-switch [aria-pressed="true"]').dataset.lens }));
+    if (!/server-rollback-netcode/.test(f2.hash) || f2.lens !== 'eng') fail('find "rollback" did not switch to the engineering lens ' + JSON.stringify(f2));
+    await page.press('#mapFind', 'Escape'); await page.waitForTimeout(300);
+    const f3 = await page.evaluate(() => ({ v: document.getElementById('mapFind').value, found: document.querySelectorAll('#mapsvg .node.found').length, n: document.getElementById('mapFindN').textContent }));
+    if (f3.v || f3.found || f3.n) fail('Escape did not clear find ' + JSON.stringify(f3));
+    // the skip link from a topic page whose map is folded away opens the map and lands on it
+    await fresh('#/map/t/decisions', false);
+    await page.evaluate(() => { document.activeElement && document.activeElement.blur(); document.body.focus(); });
+    await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
+    if (await page.evaluate(() => document.activeElement.id) !== 'skipMapBtn') fail('the second Tab stop on a topic page is not "Skip to the map"');
+    await page.keyboard.press('Enter'); await page.waitForTimeout(1300);
+    if (!await shown() || !await page.evaluate(() => !!document.activeElement.closest('#mapsvg [role="treeitem"]'))) fail('"Skip to the map" on a folded page did not show the map and focus it');
+    // the toolbar: crumbs and find on the first line, every button on one line, at the narrowest stage the desktop gives
+    const pathId = await page.evaluate(() => PATHS[0].id);
+    for (const hash of ['#/map/home', '#/map/t/core-loop', '#/paths/' + pathId]) {
+      await fresh(hash, true);
+      const bar = await page.evaluate(() => { const els = [...document.querySelectorAll('.mapbar .mapctl > *:not([hidden])')].map(e => e.getBoundingClientRect()), find = document.getElementById('mapFind').getBoundingClientRect(), wr = document.getElementById('mapstage').getBoundingClientRect(); return { oneLine: Math.max(...els.map(b => b.top)) < Math.min(...els.map(b => b.bottom)), inside: Math.max(...els.map(b => b.right)) <= wr.right + 1, find: find.width > 100 }; });
+      if (!bar.oneLine) fail(`the map toolbar wraps on ${hash}`);
+      if (!bar.inside) fail(`the map toolbar runs past the stage on ${hash}`);
+      if (!bar.find) fail(`the find field is too narrow on ${hash}`);
+    }
+    if (errors.length) fail('page error ' + errors[0]);
     await ctx.close();
   }
   // Reduced motion: the camera moves in one step and CSS transitions are cut.

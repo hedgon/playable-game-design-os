@@ -1030,11 +1030,13 @@ details.comp .body{padding-top:6px}
 .kgraph .node.next .disc{stroke:var(--accent);stroke-width:2;stroke-dasharray:6 3}
 .kgraph .whynote rect{fill:var(--bg);stroke:var(--accent);stroke-width:1.2}
 .kgraph .whynote text{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:500;letter-spacing:.01em}
-.maplegend-panel{padding:8px 10px;border-bottom:1px solid var(--line);background:var(--panel);font-size:.75rem;line-height:1.3}
-.maplegend-panel .lgrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:3px 0}
-.maplegend-panel .lgrow b{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:.68rem;color:var(--fg3);min-width:104px}
-.maplegend-panel .lgi{display:inline-flex;align-items:center;gap:5px;color:var(--fg2)}
-.maplegend-panel .lgsw{width:26px;height:14px;flex:none}
+.maplegend-panel{padding:6px 12px 8px;border-bottom:1px solid var(--line);background:var(--panel);font-size:.86rem;line-height:1.35;max-height:44vh;overflow-y:auto}
+.maplegend-panel .lgrow{display:grid;grid-template-columns:118px 1fr;gap:4px 12px;align-items:start;padding:7px 0;border-top:1px solid var(--line)}
+.maplegend-panel .lgrow:first-child{border-top:0}
+.maplegend-panel .lgrow b{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:.74rem;color:var(--fg2);padding-top:3px}
+.maplegend-panel .lgset{display:flex;flex-wrap:wrap;gap:6px 18px}
+.maplegend-panel .lgi{display:inline-flex;align-items:center;gap:7px;color:var(--fg)}
+.maplegend-panel .lgsw{width:32px;height:17px;flex:none}
 .maplegend-panel .lgsw rect{fill:var(--bg2);stroke:var(--line2);stroke-width:1.2}
 .maplegend-panel .lgsw rect.domain{fill:color-mix(in srgb,var(--d-core) 24%,var(--bg2));stroke:var(--d-core);stroke-width:1.6}
 .maplegend-panel .lgsw rect.topic{fill:color-mix(in srgb,var(--d-core) 9%,var(--bg2));stroke:color-mix(in srgb,var(--d-core) 48%,var(--line2))}
@@ -1050,6 +1052,28 @@ details.comp .body{padding-top:6px}
 .maplegend-panel .lgsw path.edge{opacity:1}
 .mapbar #mapLegendBtn.on{border-color:var(--accent);color:var(--fg)}
 .mapbar .mapnext{max-width:100%;white-space:normal;text-align:left}
+/* the toolbar: crumbs and the find field share the first line, the buttons the second and never wrap */
+.mapbar .mapctl{flex:1 0 100%;flex-wrap:nowrap;min-width:0}
+.mapbar .mapctl .btn{flex:none;white-space:nowrap}
+.mapbar .mapctl .mapnext{flex:0 1 auto;min-width:0;white-space:normal;line-height:1.2}
+.mapbar .mapcrumbs{flex:1 1 0;min-width:0}
+.mapfind{position:relative;display:flex;align-items:center;gap:6px;flex:0 1 280px;min-width:170px}
+.mapfind input{width:100%;padding:5px 8px;font-size:.82rem;border:1px solid var(--line2);background:var(--bg2);color:var(--fg);border-radius:var(--r2)}
+.mapfind-n{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:.68rem;color:var(--fg2);pointer-events:none;background:var(--bg2);padding-left:4px}
+.mapfind input:not(:placeholder-shown){padding-right:128px}
+/* find in map: matches are ringed, the rest recede */
+.kgraph.finding .node:not(.found){opacity:.4}
+.kgraph .node.found .disc{stroke:var(--accent);stroke-width:3.2;stroke-dasharray:none}
+.mapoutline li.found>.oi-row{outline:2px solid var(--accent);outline-offset:1px}
+/* "N more" pills at the stage edge: leaves the window cuts off */
+.mapmore{position:absolute;inset:0;pointer-events:none}
+.morecue{position:absolute;pointer-events:auto;font-family:var(--mono);font-size:.72rem;font-weight:700;letter-spacing:.04em;color:var(--fg);background:var(--bg);border:1px solid var(--accent);border-radius:999px;padding:3px 10px;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+.morecue:hover{background:var(--accent);color:var(--ink)}
+.morecue.r{right:8px;top:8px}
+.morecue.l{left:8px;top:8px}
+.morecue.d{bottom:8px;transform:translateX(-50%)}
+.morecue.u{top:8px;transform:translateX(-50%)}
+@media (max-width:700px){.mapmore{display:none}}
 /* the phone outline: the same tree as the canvas, as an expandable list (below 700px the canvas is not drawn) */
 .mapoutline{display:none}
 .mapoutline ul{list-style:none;margin:0;padding:0}
@@ -1080,6 +1104,7 @@ details.comp .body{padding-top:6px}
   .mapwrap svg,.mapwrap .maptip{display:none}
   .mapoutline{display:block;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:6px 10px 28px}
   .mapbar #mapZoomIn,.mapbar #mapZoomOut,.mapbar #mapFit,.mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
+  .mapfind{flex:1 1 100%}
 }
 @media (min-width:1101px){.shell:not(.hide-left) .pane .lens-switch.inpane{display:none}}
 /* cross-branch links: faint dashed curves, highlighted on hover */

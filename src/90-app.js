@@ -74,7 +74,13 @@ document.addEventListener('keydown', e => { if(e.target.closest && e.target.clos
 document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.story; if(k) store.set(k, e.target.value); });
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
 ACTIONS.copy = el => copyText(el.closest('.promptbox').querySelector('pre').textContent);
-ACTIONS['toggle-map'] = el => { const h = !store.get('hideMap', true); store.set('hideMap', h); keepScroll = true; route(); if(isNarrow() && !h){ $('#pane').classList.remove('open'); syncScrim(); } };
+// A topic or domain page folds the map away by default. A click inside the map is
+// the reader asking for the map, so it stays shown for that visit; a Show or Hide
+// choice the reader has made themselves always wins over both.
+let mapPinned = false;
+const mapHidden = () => { const v = store.get('hideMap', null); return v === null ? !mapPinned : !!v; };
+const pinMap = () => { mapPinned = true; };
+ACTIONS['toggle-map'] = el => { const h = !mapHidden(); store.set('hideMap', h); keepScroll = true; route(); if(isNarrow() && !h){ $('#pane').classList.remove('open'); syncScrim(); } };
 ACTIONS.lens = el => setLens(el.dataset.lens);
 ACTIONS.focus = el => document.getElementById(el.dataset.target).focus();
 ACTIONS['toggle-parent'] = el => el.parentElement.classList.toggle('open');
@@ -182,7 +188,7 @@ function route(){
   $("#shell").classList.toggle("reading", mapReading(parts));
   // On a topic page the map is folded away until the reader asks for it. Once shown it
   // takes the place of the concept index (one click back), so no node is cut.
-  const sh = $("#shell"), reading = mapReading(parts), hideIt = reading && store.get('hideMap', true);
+  const sh = $("#shell"), reading = mapReading(parts), hideIt = reading && mapHidden();
   sh.classList.toggle("nomap", hideIt);
   if(reading && !hideIt && !isNarrow()){ if(!sh.classList.contains('hide-left')){ sh.classList.add('hide-left'); sh.dataset.autofold = '1'; } }
   else if(sh.dataset.autofold){ delete sh.dataset.autofold; if(!store.get('hideLeft')) sh.classList.remove('hide-left'); }
@@ -248,19 +254,21 @@ function ensureShell(){
     <aside class="rail" id="rail"></aside>
     <div class="splitter" id="splitL" title="Drag to resize"></div>
     <section class="mapstage" id="mapstage">
-      <div class="mapbar"><div class="mapcrumbs"></div><div class="row" style="gap:4px">
+      <div class="mapbar"><div class="mapcrumbs"></div>
+        <div class="mapfind"><input type="search" id="mapFind" placeholder="Find in map" aria-label="Find in map" aria-describedby="mapFindN" autocomplete="off" spellcheck="false"><span class="mapfind-n" id="mapFindN"></span></div>
+        <div class="row mapctl" style="gap:4px">
         <a class="btn sm mapnext" id="mapNext" href="#/map" hidden>Next unread</a>
         <button class="btn sm ghost" id="mapLegendBtn" aria-expanded="false" aria-controls="maplegend" title="What the colours, marks and lines mean">Legend</button>
         <button class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">－</button>
         <button class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
         <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢ fit</button>
-        <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺ layout</button>
-        <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲ default</button>
+        <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺</button>
+        <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲</button>
         <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
         <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
       </div></div>
       <div class="maplegend-panel kgraph" id="maplegend" hidden></div>
-      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="tree" tabindex="-1" aria-label="Mind map. Tab into it, move with the arrow keys, Right and Left open and close, Enter opens."></svg><div class="mapoutline" id="mapoutline" role="tree" aria-label="Map outline. Move with the arrow keys, Right and Left open and close, Enter opens."></div><div class="maptip" id="maptip" hidden></div></div>
+      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="tree" tabindex="-1" aria-label="Mind map. Tab into it, move with the arrow keys, Right and Left open and close, Enter opens."></svg><div class="mapoutline" id="mapoutline" role="tree" aria-label="Map outline. Move with the arrow keys, Right and Left open and close, Enter opens."></div><div class="maptip" id="maptip" hidden></div><div class="mapmore" id="mapmore"></div></div>
       <div class="mapfoot-live" id="maplive" role="status" aria-live="polite" aria-atomic="true"></div>
     </section>
     <div class="splitter" id="splitR" title="Drag to resize"></div>
@@ -536,7 +544,7 @@ function subNavHTML(){
   if(!g || g.views.length < 2) return '';
   const cur = v === 'smell' ? 'diagnose' : v;
   const due = g.id === 'paths' ? reviewDue().length : 0;
-  const hidden = store.get('hideMap', true);
+  const hidden = mapHidden();
   const toggle = mapReading(p) ? `<button type="button" class="btn sm ghost maptoggle" data-action="toggle-map" aria-pressed="${hidden}">${hidden ? 'Show map' : 'Hide map'}</button>` : '';
   return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}${toggle}</nav>`;
 }
@@ -2599,6 +2607,6 @@ document.addEventListener('keydown', e => {
 // What the later files import from this one.
 Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search });
+  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search, searchWords, STOP_WORDS, pinMap });
 })(window.PlayableApp = {});
 
