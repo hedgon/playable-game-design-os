@@ -136,11 +136,14 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     await page.goto(base + '#/map/t/core-loop/overview');
     await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
     const state = () => page.evaluate(() => ({ open: document.getElementById('pane').classList.contains('open'), scrim: document.getElementById('scrim').classList.contains('show') }));
+    // A resize reaches the page's media-query listener after a variable delay,
+    // so wait for the expected state (up to 2 s) instead of a fixed sleep.
+    const settle = async ok => { let s = await state(); for (let t = 0; t < 40 && !ok(s); t++) { await page.waitForTimeout(50); s = await state(); } return s; };
     const narrowOpen = await state();
-    await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(300);
-    const wide = await state();
-    await page.setViewportSize({ width: 375, height: 812 }); await page.waitForTimeout(300);
-    const narrowAgain = await state();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const wide = await settle(s => !s.open && !s.scrim);
+    await page.setViewportSize({ width: 375, height: 812 });
+    const narrowAgain = await settle(s => s.open);
     if (!narrowOpen.open) failures.push('resize: pane not open on a narrow topic route');
     if (wide.open || wide.scrim) failures.push('resize: drawer state kept after widening ' + JSON.stringify(wide));
     if (!narrowAgain.open) failures.push('resize: pane rule not applied after narrowing again');
