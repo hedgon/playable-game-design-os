@@ -18,7 +18,7 @@ loudly if any check fails:
 | Check | What it guards |
 | --- | --- |
 | `validate.js` | Every cross-link resolves; every topic has all eight parts, Godot and Unity views where required, and 6 to 10 interview questions; cases, systems, flows, paths and dated facts have the right shape. Prints the inventory counts. |
-| `check-layout.js` | Every map state (both lenses, desktop and one-sided phone layouts, open topics, projects, paths, workflow charts) is laid out and checked for overlapping cards. Every diagram (topics, reference games, the content-or-mechanic tree) is laid out as the page draws it and fails on touching boxes, a box outside the canvas, a label that does not fit, or a canvas too wide for a phone. `--list` prints any map label that had to be shortened. |
+| `check-layout.js` | Every map state (both lenses, desktop and one-sided phone layouts, open topics, projects, paths, workflow charts, and any state `PlayableGraph.checkStates` lists) is built with the labels a reader sees, including the static tool links, and checked for overlapping cards. The same states are then drawn in a real browser from the built `playable.html` and every label is measured with the font and size the CSS really applies: the check fails when any card's text sticks out of its card ("labels that do not fit their card"). Without Playwright that half is reported as NOT MEASURED; `--require-browser` makes it a failure. Edge crossings and words split across lines are reported, never failing (`--list` prints the split words). Every diagram (topics, reference games, the content-or-mechanic tree) is laid out as the page draws it and fails on touching boxes, a box outside the canvas, a label that does not fit, or a canvas too wide for a phone. |
 | `check-contrast.js` | Every text colour pair in both themes, including map labels on every domain tint, reaches 4.5:1. |
 | syntax | The bundle and each source file parse. |
 | actions | Every `data-action` in the markup has a handler in `ACTIONS`. |
@@ -49,8 +49,15 @@ npx -y -p typescript@5 tsc -p jsconfig.json
 one route of every kind, and fails on a page or console error, an empty content
 pane, content that runs past the pane's right edge outside a horizontal scroller,
 a narrow-screen pane rule that is not met, map labels under 11 px, a phone header
-that clips a section, or a Make, library or Diagnose page missing its grouping. It needs Playwright, which is
-not a dependency of the guide:
+that clips a section, or a Make, library or Diagnose page missing its grouping.
+At 1440 and 375 px it also drives the map: the tree roles and the single Tab stop,
+the ARIA arrow keys with their live announcements, wheel and button zoom with the
+11 px label floor, the selected topic staying in view, dimmed-leaf contrast and the
+focus ring in both themes, dragging a node (kept after a reload), the fit and reset
+buttons, the lens switch, the project map camera, eight quick route changes, and
+reduced motion. Below 700 px the map is an expandable outline instead of a canvas
+(same tree, groups, read marks and routes), and the 375 px run drives that instead.
+It needs Playwright, which is not a dependency of the guide:
 
 ```bash
 npm i --no-save --no-package-lock playwright@1
@@ -102,7 +109,8 @@ the type check and the smoke test on every push and pull request.
 88-flow.js                workflow chart renderer (also the diagrams' flow kind)
 89-graph.js               tidy-tree mind-map layout and rendering (topic map, project map, path map)
 90-app.js                 router, views, tools, search, review queue, dialogs, saved data
-91-map.js                 the map view: lenses, camera, pan, zoom, keyboard, reading panels
+91-map.js                 the map view: lenses, camera, pan, zoom, ARIA tree keys, phone outline, reading panels
+                          (saved map state is validated on load; the camera is saved only while a branch is open, and after a 250 ms pause)
 92-ideas.js               Reference Dissection
 93-lab.js                 Idea Lab
 99-tail.js                boot

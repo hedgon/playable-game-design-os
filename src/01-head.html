@@ -270,20 +270,12 @@ pre.snippet{white-space:pre;overflow-x:auto;border-left:3px solid var(--dc,var(-
 .mapwrap{position:relative;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--accent) 6%,transparent),transparent 55%),var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
 .mapwrap svg{width:100%;height:100%;display:block}
 .mapwrap .node{cursor:pointer}
-.mapwrap .node circle{transition:filter .15s}
-.mapwrap .node:hover circle.main{filter:brightness(1.15)}
-.mapwrap .node text{fill:var(--fg);font-weight:700;pointer-events:none;font-size:13px}
-.mapwrap .node text.sub{fill:var(--fg3);font-weight:500;font-size:12px}
+.mapwrap .node text{fill:var(--fg);font-weight:700;pointer-events:none}
+.mapwrap .node text.sub{fill:var(--fg3);font-weight:500}
 .mapwrap .edge{stroke:var(--line2);stroke-width:1.2;opacity:.55;transition:opacity .15s,stroke-width .15s}
 .mapwrap .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
-.mapwrap .edge.dim{opacity:.12}
-.mapwrap .node.dim{opacity:.35}
 .mapwrap .center{cursor:pointer}
 .mapwrap .center text{fill:var(--fg);font-weight:800;pointer-events:none}
-.mapwrap .center .glow{fill:none;stroke:var(--accent2);stroke-width:1;opacity:.5}
-.maplegend{position:absolute;left:14px;bottom:12px;font-size:.8rem;color:var(--fg3);background:color-mix(in srgb,var(--bg) 70%,transparent);padding:6px 10px;border-radius:var(--r3);border:1px solid var(--line);max-width:420px}
-.mapinfo{position:absolute;right:14px;top:12px;width:300px;background:color-mix(in srgb,var(--panel) 92%,transparent);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px;font-size:.85rem;box-shadow:var(--shadow)}
-@media (max-width:800px){.mapinfo{position:static;width:auto;margin:10px}.maplegend{position:static;margin:10px;max-width:none}}
 .chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0}
 .chain .cn{background:var(--bg2);border:1px solid var(--line2);border-radius:99px;padding:5px 11px;font-size:.85rem;font-weight:600;cursor:pointer;transition:border-color .12s,transform .12s}
 .chain .cn:hover{border-color:var(--accent);transform:translateY(-1px)}
@@ -608,12 +600,10 @@ nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(-
 .role{border-top:3px solid var(--d-ai)}
 .role h3{color:var(--fg)!important}
 .mapwrap{background:var(--panel);border-radius:var(--r2)}
-.mapwrap .center circle:not(.glow){fill:var(--bg)}
 .mapwrap .center text{font-family:var(--display);font-stretch:87.5%;letter-spacing:.06em}
-.mapwrap .node text{font-family:var(--display);font-stretch:92%;font-size:13.5px;letter-spacing:.02em}
+.mapwrap .node text{font-family:var(--display);font-stretch:92%;letter-spacing:.02em}
 .mapwrap .edge{stroke-dasharray:3 4}
 .mapwrap .edge.hl{stroke-dasharray:none}
-.mapinfo,.maplegend{border-radius:2px}
 .side{border-radius:var(--r2)}
 .side .dom > button{font-family:var(--display);font-stretch:92%;text-transform:uppercase;letter-spacing:.05em;font-size:.85rem}
 .side .dom > button .dot{border-radius:1px;width:8px;height:8px}
@@ -630,36 +620,19 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 
 /* ---------- knowledge graph ---------- */
 .kgraph{width:100%;height:auto;display:block}
-.kgraph .guide{fill:none;stroke:var(--line);stroke-dasharray:2 6;opacity:.8}
 .kgraph .edge{fill:none;stroke:var(--line2);stroke-width:1.3;opacity:.55;transition:opacity .15s,stroke-width .15s}
-.kgraph .edge.out{stroke-dasharray:4 4}
 .kgraph .edge.cross{opacity:.22;stroke-dasharray:2 4}
 .kgraph .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.4;stroke-dasharray:none}
 .kgraph.dimmed .edge:not(.hl){opacity:.07}
-.kgraph.dimmed .node:not(.hl):not(.center){opacity:.22}
+/* hovering one node fades the others' fills and lines, never their words: label text keeps its full contrast */
+.kgraph.dimmed .node:not(.hl):not(.center) :is(.disc,.glyph,.rd,.chk){opacity:.35}
 .kgraph .node{cursor:pointer;transition:opacity .15s}
-.kgraph .hit{fill:transparent}
 .kgraph .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 22%,var(--bg2));stroke:var(--dc,var(--accent));stroke-width:2;transition:fill .15s}
 .kgraph .node:hover .disc,.kgraph .node.hl .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 48%,var(--bg2))}
-.kgraph .node.active .disc{fill:var(--dc);stroke:var(--fg)}
-.kgraph .ring{fill:none;stroke:var(--dc);stroke-width:3;opacity:.95}
-.kgraph .dot{fill:var(--dc)}
 .kgraph .glyph{fill:var(--fg2);font-family:var(--mono);font-size:12px;font-weight:600;pointer-events:none}
 .kgraph .lbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700;pointer-events:none;paint-order:stroke;stroke:var(--panel);stroke-width:5px;stroke-linejoin:round}
 .kgraph .lbl.sub{fill:var(--fg3);font-family:var(--mono);font-weight:500;letter-spacing:.02em}
-.kgraph .lbl.small{font-weight:600;fill:var(--fg2)}
-.kgraph .node.faint{opacity:.5}
-.kgraph .node.faint .lbl{fill:var(--fg3)}
-.kgraph .center .halo{fill:none;stroke:var(--accent2);stroke-width:1;stroke-dasharray:3 5;opacity:.8}
-.kgraph .center .core{fill:var(--bg);stroke:var(--accent2);stroke-width:2}
 .kgraph .center .disc{fill:color-mix(in srgb,var(--dc,var(--accent2)) 28%,var(--bg));stroke:var(--dc,var(--accent2))}
-.kgraph .center:hover .core{fill:color-mix(in srgb,var(--accent2) 12%,var(--bg))}
-.kgraph .ctitle{fill:var(--fg);font-family:var(--display);font-stretch:87.5%;font-weight:800;font-size:15px;letter-spacing:.06em;pointer-events:none}
-.kgraph .csub{fill:var(--fg3);font-family:var(--mono);font-size:10px;letter-spacing:.04em;pointer-events:none}
-.kgraph .smell .disc{fill:color-mix(in srgb,var(--bad) 25%,var(--bg2));stroke:var(--bad)}
-.kgraph .view .disc{fill:color-mix(in srgb,var(--accent2) 20%,var(--bg2));stroke:var(--accent2)}
-.kgraph .edge.smell{stroke:var(--bad)}
-.kgraph .edge.view{stroke:var(--accent2)}
 .mapside{position:sticky;top:70px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:14px;font-size:.9rem;min-height:220px}
 .mapside h3{margin-bottom:4px}
 .mapside ul{padding-left:16px;margin:6px 0}
@@ -694,32 +667,18 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 /* ---------- one brain map ---------- */
 .mapbar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .mapbar .mapcrumbs{margin:0}
-.mapwrap.one{padding:0;overflow:hidden;touch-action:none;cursor:grab;background:var(--panel)}
-.mapwrap.one:active{cursor:grabbing}
-.mapwrap.one svg{width:100%;height:auto;aspect-ratio:1.18;display:block;min-width:0}
-.kgraph .guide.arc{fill:none;stroke:var(--line2);stroke-dasharray:2 5;opacity:.6}
 .kgraph .edge.dd{opacity:.34;stroke-dasharray:4 5;stroke-width:1.3}
-.kgraph .edge.dt{opacity:.7;stroke:var(--line2);stroke-width:1.6}
 .kgraph .edge.cross{opacity:.16;stroke-dasharray:3 5}
-.kgraph .edge.tl{opacity:.75;stroke-width:1.5}
 .kgraph .edge.home{opacity:.42;stroke-dasharray:5 5}
 .kgraph .edge.hl{opacity:1!important;stroke:var(--accent)!important;stroke-width:2.4;stroke-dasharray:none}
-@keyframes kg-in{from{opacity:0}to{opacity:1}}
-.kgraph [data-new]{animation:kg-in .45s ease both}
 .kgraph .node.domain.open .disc{fill:var(--dc);stroke:var(--fg)}
 .kgraph .node.domain.open .glyph{fill:var(--ink);font-weight:800;font-size:16px}
-.kgraph .node.topic .lbl.topic-lbl{font-weight:600}
-.kgraph .node.topic.active .lbl{font-weight:800}
-.kgraph .leaf-lbl{font-weight:600;fill:var(--fg2)}
 .kgraph .lbl.sub{font-size:12px}
 .topicnum{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);font-family:var(--mono);font-size:.66rem;color:var(--fg2);vertical-align:1px}
 .maptip{position:absolute;max-width:260px;background:var(--bg);border:1px solid var(--line2);border-radius:2px;padding:8px 10px;font-size:.8rem;line-height:1.35;pointer-events:none;box-shadow:4px 4px 0 var(--line2);z-index:5}
 .maptip b{display:block;margin-bottom:2px}
 .maptip .why{margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)}
 .maptip .muted{margin-top:4px;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
-.maplegend.static{position:static;display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;max-width:none;font-family:var(--mono);font-size:.7rem;letter-spacing:.04em}
-.maplegend i.lg{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:2px solid var(--accent)}
-.maplegend i.lg.d{border-color:var(--d-systems);background:color-mix(in srgb,var(--d-systems) 25%,transparent)}
 .maplegend i.lg.t{border-color:var(--d-systems);width:8px;height:8px}
 .maplegend i.lg.l{border-color:var(--d-ux);width:7px;height:7px}
 .maplegend i.lg.s{border-color:var(--bad);border-radius:0;transform:rotate(45deg);width:7px;height:7px}
@@ -1027,8 +986,11 @@ details.comp .body{padding-top:6px}
 .kgraph .node.topic .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 9%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 48%,var(--line2))}
 .kgraph .node.center .disc{fill:var(--panel);stroke:var(--accent2);stroke-width:2}
 .kgraph .node.hl .disc,.kgraph .node:hover .disc{stroke:var(--accent);stroke-width:2}
-.kgraph .node:focus{outline:none}
+.kgraph .node:focus,.mapwrap svg:focus{outline:none}
 .kgraph .node:focus-visible .disc{stroke:var(--accent);stroke-width:3.5}
+/* the focus ring: a separate outline offset from the card, in the text colour so it holds against the panel in both themes */
+.kgraph .node .fring{display:none;fill:none;stroke:var(--fg);stroke-width:2.5;pointer-events:none}
+.kgraph .node:focus-visible .fring{display:block}
 .kgraph .node .glyph{fill:var(--fg2);font-family:var(--mono);font-weight:700;pointer-events:none}
 .kgraph .node .lbl{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:700;pointer-events:none;paint-order:normal;stroke:none}
 .kgraph .node .lbl.sub{fill:var(--fg2);font-family:var(--mono);font-weight:500}
@@ -1036,7 +998,6 @@ details.comp .body{padding-top:6px}
 .kgraph .node.domain.open .lbl.sub{fill:var(--fg)}
 .kgraph .edge{fill:none;stroke:var(--line2);stroke-width:1.4;opacity:.7}
 .kgraph .edge.open{stroke:var(--accent);opacity:.9}
-.kgraph .dimmed .node:not(.hl):not(.center){opacity:.35}
 .kgraph .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
 /* fourth layer: smaller leaf nodes under the selected topic */
 .kgraph .node.leaf .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 8%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 52%,var(--line2));stroke-width:1}
@@ -1045,6 +1006,81 @@ details.comp .body{padding-top:6px}
 .kgraph .node.leaf .lbl{font-weight:600;fill:var(--fg2)}
 .kgraph .node.leaf.hl .disc,.kgraph .node.leaf:hover .disc{stroke:var(--accent);stroke-width:2}
 .kgraph .edge.ext{stroke-width:1.1;opacity:.6}
+/* --- the map as connections and progress: groups, typed leaves, read marks, next cue, legend, the why note --- */
+.kgraph .node.group .disc{fill:var(--bg3);stroke:var(--line2)}
+.kgraph .node.group .lbl{fill:var(--fg);font-family:var(--mono);font-weight:700;font-stretch:100%;letter-spacing:0}
+.kgraph .node.group.open .disc{stroke:var(--accent2)}
+.kgraph .node.leaf.other .disc{stroke-dasharray:5 3}
+.kgraph .node.item .disc{fill:color-mix(in srgb,var(--ic,var(--accent2)) 10%,var(--bg2));stroke:var(--ic,var(--accent2))}
+.kgraph .node.item .lbl{font-weight:600;fill:var(--fg2)}
+.kgraph .node.t-game{--ic:var(--accent)}
+.kgraph .node.t-smell{--ic:var(--bad)}
+.kgraph .node.t-tool{--ic:var(--accent2)}
+.kgraph .node.t-guide{--ic:var(--fg3)}
+.kgraph .node.t-checklist{--ic:var(--ok)}
+.kgraph .node.t-prompt{--ic:var(--warn)}
+.kgraph .node.t-path{--ic:var(--d-core)}
+.kgraph .node.t-part{--ic:var(--accent2)}
+.kgraph .node.t-view{--ic:var(--accent2)}
+.kgraph .rd{fill:none;stroke:var(--fg3);stroke-width:1.6;pointer-events:none}
+.kgraph .rd.on{fill:var(--ok);stroke:var(--ok)}
+.kgraph .chk{fill:var(--ink);font-weight:800;pointer-events:none}
+.kgraph .node.topic.sel .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 30%,var(--bg2));stroke:var(--dc,var(--accent));stroke-width:2}
+.kgraph .node.next .disc{stroke:var(--accent);stroke-width:2;stroke-dasharray:6 3}
+.kgraph .whynote rect{fill:var(--bg);stroke:var(--accent);stroke-width:1.2}
+.kgraph .whynote text{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:500;letter-spacing:.01em}
+.maplegend-panel{padding:8px 10px;border-bottom:1px solid var(--line);background:var(--panel);font-size:.75rem;line-height:1.3}
+.maplegend-panel .lgrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:3px 0}
+.maplegend-panel .lgrow b{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:.68rem;color:var(--fg3);min-width:104px}
+.maplegend-panel .lgi{display:inline-flex;align-items:center;gap:5px;color:var(--fg2)}
+.maplegend-panel .lgsw{width:26px;height:14px;flex:none}
+.maplegend-panel .lgsw rect{fill:var(--bg2);stroke:var(--line2);stroke-width:1.2}
+.maplegend-panel .lgsw rect.domain{fill:color-mix(in srgb,var(--d-core) 24%,var(--bg2));stroke:var(--d-core);stroke-width:1.6}
+.maplegend-panel .lgsw rect.topic{fill:color-mix(in srgb,var(--d-core) 9%,var(--bg2));stroke:color-mix(in srgb,var(--d-core) 48%,var(--line2))}
+.maplegend-panel .lgsw rect.group{fill:var(--bg3)}
+.maplegend-panel .lgsw rect.other{stroke-dasharray:4 2}
+.maplegend-panel .lgsw rect.item{fill:color-mix(in srgb,var(--ic,var(--accent2)) 10%,var(--bg2));stroke:var(--ic,var(--accent2))}
+.maplegend-panel .lgsw rect.t-game{--ic:var(--accent)}
+.maplegend-panel .lgsw rect.t-smell{--ic:var(--bad)}
+.maplegend-panel .lgsw rect.t-tool,.maplegend-panel .lgsw rect.t-part{--ic:var(--accent2)}
+.maplegend-panel .lgsw rect.t-checklist{--ic:var(--ok)}
+.maplegend-panel .lgsw rect.t-prompt{--ic:var(--warn)}
+.maplegend-panel .lgsw rect.t-path{--ic:var(--d-core)}
+.maplegend-panel .lgsw path.edge{opacity:1}
+.mapbar #mapLegendBtn.on{border-color:var(--accent);color:var(--fg)}
+.mapbar .mapnext{max-width:100%;white-space:normal;text-align:left}
+/* the phone outline: the same tree as the canvas, as an expandable list (below 700px the canvas is not drawn) */
+.mapoutline{display:none}
+.mapoutline ul{list-style:none;margin:0;padding:0}
+.mapoutline ul ul{margin:0 0 0 12px;padding-left:10px;border-left:2px solid var(--line2)}
+.mapoutline li{margin:0}
+.mapoutline li:focus{outline:none}
+.oi-row{display:flex;align-items:center;gap:10px;min-height:44px;margin:3px 0;padding:6px 10px;border:1px solid var(--line2);border-left:4px solid var(--dc,var(--line2));border-radius:var(--r2);background:color-mix(in srgb,var(--dc,var(--accent)) 10%,var(--bg2));color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mapoutline li[data-kind="leaf"]>.oi-row,.mapoutline li[data-kind="item"]>.oi-row{background:var(--bg2);min-height:44px}
+.mapoutline li[data-type="other"]>.oi-row{border-style:dashed}
+.mapoutline li[data-kind="group"]>.oi-row{background:var(--bg3);border-left-color:var(--line2)}
+.mapoutline li[data-kind="center"]>.oi-row{background:var(--panel);border-color:var(--accent2)}
+.mapoutline li.open>.oi-row{background:color-mix(in srgb,var(--dc,var(--accent)) 24%,var(--bg2))}
+.mapoutline li[aria-selected="true"]>.oi-row{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.mapoutline li.next>.oi-row{border-style:dashed;border-color:var(--accent)}
+.mapoutline li:focus-visible>.oi-row{outline:3px solid var(--fg);outline-offset:2px}
+.oi-mark{flex:none;width:22px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--fg2)}
+.oi-mark .rd-o,.oi-mark .rd-x{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1.6px solid var(--fg3);font-size:.7rem;line-height:1}
+.oi-mark .rd-x{background:var(--ok);border-color:var(--ok);color:var(--ink);font-weight:800}
+.oi-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.oi-t{font-family:var(--display);font-stretch:92%;font-weight:700;font-size:.98rem;line-height:1.25;overflow-wrap:anywhere}
+.mapoutline li[data-kind="leaf"] .oi-t,.mapoutline li[data-kind="item"] .oi-t{font-weight:600;color:var(--fg2)}
+.oi-sub{font-family:var(--mono);font-size:.78rem;color:var(--fg2)}
+.oi-why{font-size:.8rem;color:var(--fg2);line-height:1.3}
+.oi-flag{flex:none;font-family:var(--mono);font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:1px 5px}
+.mapfoot-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:700px){
+  .mapwrap{touch-action:auto;cursor:auto}
+  .mapwrap svg,.mapwrap .maptip{display:none}
+  .mapoutline{display:block;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:6px 10px 28px}
+  .mapbar #mapZoomIn,.mapbar #mapZoomOut,.mapbar #mapFit,.mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
+}
+@media (min-width:1101px){.shell:not(.hide-left) .pane .lens-switch.inpane{display:none}}
 /* cross-branch links: faint dashed curves, highlighted on hover */
 .kgraph .edge.dd{opacity:.2;stroke-dasharray:4 5}
 .kgraph .edge.cross{opacity:.16;stroke-dasharray:3 5}

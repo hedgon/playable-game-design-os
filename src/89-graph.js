@@ -16,19 +16,32 @@
    edge names the relationship; the app's hover handler highlights the
    edges attached to the hovered node using data-a / data-b node keys.
 
-   Two maps are built from the same layout code. `build` draws the domain
+   Three maps are built from the same layout code. `build` draws the domain
    map (the guide). `buildProject` draws one case study as a project: the
    project title in the middle, its systems where the domains sit, their
    parts where the topics sit, and the guide topics a part demonstrates as
-   leaves. Node kinds stay center|domain|topic|leaf so the CSS is shared;
-   project nodes carry data-scope="project" and keys sys:<id> / part:<id>.
+   leaves. `buildPath` draws one learning path as stages and steps. Node
+   kinds stay center|domain|topic|leaf|group|item so the CSS is shared;
+   project nodes carry data-scope="project" and keys sys:<id> / part:<id>,
+   path nodes data-scope="path" and keys stage:<id> / step:<id>.
+   Every node is a tree item (role="treeitem" with its level, position and
+   expanded state) so the flat SVG reads as the tree it is; the phone outline
+   in 91-map.js is built from the same nodes.
    ===================================================================== */
 window.PlayableGraph = (function(){
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const SIZE = { root:{ w:330, h:74 }, domain:{ w:262, h:46 }, topic:{ w:300, h:34 }, leaf:{ w:236, h:30 } };
-  const COL = 340, VGAP = 30, PAD = 40;
+  // Sizes are graph units. The domain layer is compact (one card per 44 units)
+  // so a lens of fourteen domains fits a 600 px stage at a readable size.
+  const SIZE = { root:{ w:220, h:74 }, domain:{ w:250, h:36 }, topic:{ w:300, h:34 }, group:{ w:176, h:28 }, leaf:{ w:236, h:26 } };
+  const PAD = 12;
+  // The horizontal gap between a node and its parent, and the vertical gap
+  // after a node, by kind. Columns follow the widths above, not a fixed step.
+  const GAP_X = { domain:40, topic:56, group:44, leaf:36, item:36 };
+  const GAP_Y = { domain:4, topic:8, group:8, leaf:6, item:6, center:8 };
+  // A group of leaves with more than this many starts collapsed.
+  const GROUP_OPEN = 6;
 
-  const fontOf = n => n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : n.kind === 'topic' ? 13 : 12;
+  const fontOf = n => n.kind === 'center' ? 15 : n.kind === 'domain' ? 14 : (n.kind === 'topic' || n.kind === 'group') ? 13 : 12;
   const lineGap = fs => Math.round(fs * 1.25);
   // A label that does not fit one line wraps at word breaks onto as many
   // lines as it needs; nothing is shortened (owner, 2026-09-29: no cap may
@@ -46,23 +59,26 @@ window.PlayableGraph = (function(){
   // Lines are fixed before layout, so a two-line card is taller and the tidy
   // tree spaces it like any other card.
   const fitLabels = n => {
-    if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
-    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w, 12)); n.h += (n.subLines.length - 1) * lineGap(12); }
+    // a card with a mark on its right (a +/- glyph or a read mark) keeps its text clear of it
+    const gut = (n.kind === 'domain' || n.kind === 'group' || typeof n.rd === 'boolean') ? 22 : 0;
+    if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w - gut, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
+    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w - gut, 12)); n.h += (n.subLines.length - 1) * lineGap(12); }
     n.children.forEach(fitLabels);
   };
-  // Longest label that fits the node's inner width. Derived from the same
-  // per-character estimate the layout checker uses, so the text is only
-  // shortened when it would actually not fit the card.
+  // Longest line that fits the node's inner width, from the same
+  // per-character estimate the layout checker uses. It sets where a label
+  // wraps; nothing is ever cut.
   const maxFor = (w, fs) => Math.max(4, Math.floor((w - 26) / (fs * 0.56)));
   // Horizontal-tangent cubic between two points; dx is how far the control
   // points sit from each end (negative to bow left, as the cross links do).
   const link = (ax, ay, bx, by, dx) => `M${ax},${ay} C${ax + dx},${ay} ${bx + dx},${by} ${bx},${by}`;
   const smooth = (ax, ay, bx, by) => `M${ax},${ay} C${(ax + bx) / 2},${ay} ${(ax + bx) / 2},${by} ${bx},${by}`;
 
-  const LEAF_KINDS = { leaf:'leaf', smell:'smell', view:'view' };
+  const LEAF_KINDS = { leaf:1, item:1, group:1 };
   const innerX = n => n.side < 0 ? n.x + n.w : n.x;   // edge facing the root
+  const leafKey = n => 'l:' + (n.gid ? n.gid + ':' : '') + n.id;
 
-  const DKEY = n => n.kind === 'center' ? 'c' : n.kind === 'domain' ? 'd:' + n.id : n.kind === 'topic' ? 't:' + n.id : 'l:' + n.id;
+  const DKEY = n => n.kind === 'center' ? 'c' : n.kind === 'domain' ? 'd:' + n.id : n.kind === 'topic' ? 't:' + n.id : n.kind === 'group' ? 'g:' + n.id : leafKey(n);
   const PKEY = n => n.kind === 'center' ? 'c' : n.kind === 'domain' ? 'sys:' + n.id : n.kind === 'topic' ? 'part:' + n.id : 'l:' + n.id;
 
   /* ---- shared layout: two-sided tidy tree + dragged-node offsets ---- */
@@ -77,22 +93,33 @@ window.PlayableGraph = (function(){
     root.side = 0;
     const half = Math.ceil(root.children.length / 2);
     root.children.forEach((node, i) => { node.side = root.oneSided || i < half ? 1 : -1; });
-    const xFor = (n, depth) => n.side < 0 ? -(depth * COL) - n.w : depth * COL;
-    const cursors = { '1': 0, '-1': 0 };
-    const assign = (n, depth) => {
-      n.depth = depth;
-      n.x = n.kind === 'center' ? -n.w / 2 : xFor(n, depth);
-      if(n.kind !== 'center') n.children.forEach(c => { c.side = n.side; });
-      if(!n.children.length){ const c = cursors[n.side] || 0; n.y = c; cursors[n.side] = c + n.h + VGAP; }
-      else {
-        const ys = []; n.children.forEach(c => { assign(c, depth + 1); ys.push(c.y); });
-        n.y = (ys[0] + ys[ys.length - 1]) / 2;
-        const span = ys[ys.length - 1] - ys[0];
-        if(span < n.h){ const c = cursors[n.side] || 0; cursors[n.side] = c + (n.h - span) + VGAP; }
-      }
-      n.lx = n.x; n.ly = n.y;
+    // a column sits beside its parent's far edge, so a wide card pushes its children on
+    const xFor = (n, p) => {
+      const gap = GAP_X[n.kind] || 40;
+      return n.side < 0 ? p.x - gap - n.w : p.x + p.w + gap;
     };
-    assign(root, 0);
+    const gapY = n => GAP_Y[n.kind] || 8;
+    // `cursors` is the next free top edge in each column; a node sits at its
+    // cursor, and a parent is centred on its children, pushed down if it is
+    // taller than they are, so cards of any height never touch.
+    const cursors = { '1': 0, '-1': 0 };
+    const shift = (n, dy) => { n.y += dy; n.children.forEach(c => shift(c, dy)); };
+    const assign = (n, depth, parent) => {
+      n.depth = depth;
+      n.x = n.kind === 'center' ? -n.w / 2 : xFor(n, parent);
+      if(n.kind !== 'center') n.children.forEach(c => { c.side = n.side; });
+      const start = cursors[n.side] || 0;
+      if(!n.children.length){ n.y = start + n.h / 2; cursors[n.side] = start + n.h + gapY(n); return; }
+      n.children.forEach(c => assign(c, depth + 1, n));
+      n.y = (n.children[0].y + n.children[n.children.length - 1].y) / 2;
+      if(n.kind === 'center') return;
+      const top = n.y - n.h / 2;
+      if(top < start){ const dy = start - top; shift(n, dy); cursors[n.side] += dy; }
+      cursors[n.side] = Math.max(cursors[n.side] || 0, n.y + n.h / 2 + gapY(n));
+    };
+    assign(root, 0, null);
+    const fin = n => { n.lx = n.x; n.ly = n.y; n.children.forEach(fin); };
+    fin(root);
     // centre each side on the root so it sits between the two groups
     const shiftSide = s => {
       const list = []; const collectSide = n => { list.push(n); n.children.forEach(collectSide); };
@@ -116,44 +143,133 @@ window.PlayableGraph = (function(){
   /* ---- shared emit: walk the placed tree into nodes, edges and extents ---- */
   function collect(root, keyOf){
     const nodes = [], byKey = {}, edges = [], xs = [], ys = [];
-    const walk = (n, parent) => {
-      nodes.push(n); byKey[keyOf(n)] = n; xs.push(n.x, n.x + n.w); ys.push(n.y - n.h / 2, n.y + n.h / 2);
+    const walk = (n, parent, pos, size) => {
+      n.key = keyOf(n); n.pos = pos; n.set = size;   // the tree item's place among its siblings
+      nodes.push(n); byKey[n.key] = n; xs.push(n.x, n.x + n.w); ys.push(n.y - n.h / 2, n.y + n.h / 2);
       if(parent){
         const sx = n.side < 0 ? parent.x : parent.x + parent.w, sy = parent.y;
         const ex = innerX(n), ey = n.y, mx = sx + (ex - sx) / 2;
         const ext = LEAF_KINDS[n.kind] ? ' ext' : '';
         edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="M${sx},${sy} C${mx},${sy} ${mx},${ey} ${ex},${ey}"/>`);
       }
-      n.children.forEach(c => walk(c, n));
+      n.children.forEach((c, i) => walk(c, n, i + 1, n.children.length));
     };
-    walk(root, null);
+    walk(root, null, 1, 1);
     return { nodes, byKey, edges, xs, ys };
   }
 
-  function mark(n, keyOf, scope){
-    const x = n.x, y = n.y - n.h / 2, left = n.side < 0, dc = n.color ? ` style="--dc:${n.color}"` : '';
-    const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : n.kind === 'topic' ? (n.seen ? 'topic seen' : 'topic') : ('leaf ' + n.kind);
-    const fs = fontOf(n), lines = n.lines || [n.label], extra = (lines.length - 1) * lineGap(fs);
-    const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(12) : 0;
-    const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 2 : n.y + 4) - (extra + subExtra) / 2, anchor = left ? 'end' : 'start';
+  // The class list of a node, shared by the canvas card and the phone outline item.
+  const classOf = n => n.kind === 'center' ? 'center'
+    : n.kind === 'domain' ? 'domain' + (n.open ? ' open' : '') + (n.next ? ' next' : '')
+    : n.kind === 'group' ? 'group' + (n.open ? ' open' : '')
+    : n.kind === 'topic' ? 'topic' + (n.rd ? ' seen' : '') + (n.sel ? ' sel' : '') + (n.next ? ' next' : '')
+    : n.kind === 'item' ? 'leaf item t-' + n.type
+    : 'leaf' + (n.other ? ' other' : '') + (n.rd ? ' seen' : '');
+  // The accessible name is the full label, then its state (read or not, next to
+  // read) and what it is for, so none of it rests on colour or on hover.
+  const nameOf = n => {
+    let name = n.sub ? `${n.label}, ${n.sub}` : n.label;
+    if(typeof n.rd === 'boolean') name += ', ' + (n.rd ? n.rdWord[0] : n.rdWord[1]);
+    if(n.next) name += n.kind === 'domain' ? ', holds the next unread topic' : ', next unread';
+    if(n.why) name += '. ' + n.why;
+    return name;
+  };
+  // Everything a node carries besides its shape: the keys the app reads, the tree
+  // item semantics (level, place among siblings, expanded state, selection) and
+  // the name. Needs n.key, n.pos and n.set from `collect`.
+  function attrs(n, scope){
+    const dc = n.color ? ` style="--dc:${n.color}"` : '';
     const why = n.why ? ` data-why="${esc(n.why)}"` : '';
     const sc = scope ? ` data-scope="${scope}"` : '';
-    // The accessible name is the full label even when the card shortens it.
-    const name = n.sub ? `${n.label}, ${n.sub}` : n.label;
-    const expanded = n.kind === 'domain' ? ` aria-expanded="${!!n.open}"` : '';
-    let g = `<g class="node ${cls}" data-key="${keyOf(n)}"${sc} data-kind="${n.kind}" data-id="${n.id}"${why}${dc} tabindex="-1" role="button" aria-label="${esc(name)}"${expanded}>`;
-    g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
-    if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
+    const href = n.href ? ` data-href="${esc(n.href)}"` : '';
+    const typ = n.kind === 'item' ? ` data-type="${n.type}"` : n.other ? ' data-type="other"' : '';
+    // expandable: a domain, a group, or a topic showing its neighbourhood
+    const expandable = n.kind === 'domain' || n.kind === 'group' || (n.kind === 'topic' && n.children.length);
+    const expanded = expandable ? ` aria-expanded="${n.kind === 'topic' ? true : !!n.open}"` : '';
+    return `data-key="${n.key}"${sc} data-kind="${n.kind}" data-id="${n.id}"${n.gid ? ` data-gid="${n.gid}"` : ''}${typ}${href}${why}${dc} tabindex="-1" role="treeitem" aria-level="${n.depth + 1}" aria-setsize="${n.set}" aria-posinset="${n.pos}" aria-selected="${!!n.sel}" aria-label="${esc(nameOf(n))}"${expanded}`;
+  }
+
+  function mark(n, keyOf, scope){
+    const x = n.x, y = n.y - n.h / 2, left = n.side < 0;
+    const cls = classOf(n), hasRd = typeof n.rd === 'boolean';
+    const fs = fontOf(n), lines = n.lines || [n.label], extra = (lines.length - 1) * lineGap(fs);
+    const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(12) : 0;
+    const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 3 : n.y + 4) - (extra + subExtra) / 2, anchor = left ? 'end' : 'start';
+    let g = `<g class="node ${cls}" ${attrs(n, scope)}>`;
+    g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/><rect class="fring" x="${x - 4}" y="${y - 4}" width="${n.w + 8}" height="${n.h + 8}" rx="6"/>`;
+    const mx = left ? x + 16 : x + n.w - 16;
+    if(n.kind === 'domain' || n.kind === 'group') g += `<text class="glyph" x="${mx}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
+    // read state: a ring for unread, a filled ring with a tick for read
+    else if(hasRd) g += `<circle class="rd${n.rd ? ' on' : ''}" cx="${mx}" cy="${n.y}" r="7"/>` + (n.rd ? `<text class="chk" x="${mx}" y="${n.y + 4}" text-anchor="middle" font-size="11">✓</text>` : '');
     g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${lines.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(fs)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + (extra - subExtra) / 2}" text-anchor="${anchor}" font-size="12">${subs.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(12)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 13 + (extra - subExtra) / 2}" text-anchor="${anchor}" font-size="12">${subs.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(12)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
     g += `</g>`;
     return g;
   }
 
   function frame(c, keyOf, scope){
-    const inner = `<g class="lay guides"></g><g class="lay edges">${c.edges.join('')}</g><g class="lay nodes">${c.nodes.map(n => mark(n, keyOf, scope)).join('')}</g>`;
+    const inner = `<g class="lay edges">${c.edges.join('')}</g><g class="lay nodes">${c.nodes.map(n => mark(n, keyOf, scope)).join('')}</g>`;
     const bbox = { x: Math.min(...c.xs) - PAD, y: Math.min(...c.ys) - PAD, w: Math.max(...c.xs) - Math.min(...c.xs) + PAD * 2, h: Math.max(...c.ys) - Math.min(...c.ys) + PAD * 2 };
     return { inner, bbox };
+  }
+
+  /* ---- a topic's neighbourhood: everything the data links to it ---- */
+  // Returns [{ id, label, leaves }] with the groups in reading order. Nothing is
+  // written by hand: related topics come from `rel` (both ways), the rest from
+  // the games' lenses and diagrams, the smells' causes, the tools' motivating
+  // topic, the guides, checklists and prompts that name the topic, the paths
+  // with a step on it and the project parts that demonstrate it. Topics that
+  // live in the other lens get a group of their own ("Also in Engineering").
+  // Pure: it reads the data files only, so the layout checker draws the same map.
+  function neighbours(tid, views){
+    views = views || {};
+    const t = TOPICS[tid]; if(!t) return [];
+    const safe = f => { try { return f() || []; } catch(e){ return []; } };
+    const dom = id => DOMAINS.find(x => x.id === id);
+    const lensOfDom = id => { const d = dom(id); return d ? d.lens : null; };
+    const my = lensOfDom(t.d);
+    const groups = [], add = (id, label, leaves) => { if(leaves.length) groups.push({ id, label, leaves }); };
+    const item = (type, id, label, why, href) => ({ kind:'item', type, id, label, why, href });
+
+    // related topics, in both directions, split by the lens they live in
+    const same = [], other = {}, used = new Set([tid]);
+    const relTopic = (rid, why) => {
+      const rt = TOPICS[rid]; if(!rt || used.has(rid)) return; used.add(rid);
+      const lens = lensOfDom(rt.d), leaf = { kind:'leaf', id:rid, label:rt.t, color:(dom(rt.d) || {}).color || 'var(--accent)', why, home:rt.d };
+      if(lens && my && lens !== my){ leaf.other = true; (other[lens] || (other[lens] = [])).push(leaf); } else same.push(leaf);
+    };
+    (t.rel || []).forEach(([rid, why]) => {
+      if(TOPICS[rid]) return relTopic(rid, why);
+      const v = views[rid] || safe(() => [VIEW_LINKS[rid]])[0];
+      if(v && !used.has(rid)){ used.add(rid); same.push(item('view', rid, v[1], why, v[0])); }
+    });
+    Object.values(TOPICS).forEach(x => { const r = (x.rel || []).find(([rid]) => rid === tid); if(r) relTopic(x.id, r[1]); });
+    add('rel', 'Related topics', same);
+    LENSES.forEach(([lid, lname]) => { if(other[lid]) add('lens:' + lid, 'Also in ' + lname.split(/[ &]/)[0], other[lid]); });
+
+    // games whose lenses (or loop and screen diagrams) name the topic, best match first
+    const games = [];
+    safe(() => REFERENCE_GAMES).forEach(g => {
+      let best = null;
+      const offer = (rank, why, key) => { if(!best || rank < best.rank) best = { rank, why, key }; };
+      if(g.lens) safe(() => GAME_LENSES).forEach(([k, label]) => { const l = g.lens[k]; if(l && !l.na && (l.topics || []).includes(tid)) offer(l.topics.indexOf(tid), `${label} lens`, k); });
+      (g.diagrams || []).forEach(d => { if((d.topics || []).includes(tid)) offer(100, d.kind === 'screen' ? 'its screen shows this idea' : 'its loop shows this idea'); });
+      if(best) games.push({ rank:best.rank, leaf:item('game', g.id, '◇ ' + g.t, `${g.t}: ${best.why}`, '#/games/' + g.id + (best.key ? '/' + best.key : '')) });
+    });
+    add('game', 'Games', games.sort((a, b) => a.rank - b.rank).map(x => x.leaf));
+
+    add('smell', 'Smells', safe(() => SMELLS).filter(s => s.causes.some(c => c.top === tid)).map(s => item('smell', s.id, '! ' + s.t, s.sym, '#/map/s/' + s.id)));
+    add('tool', 'Tools', safe(() => TOOLS).filter(x => x[4] === tid).map(x => item('tool', x[0], x[1], x[2], '#/build/' + x[0])));
+    add('guide', 'Guides', [...safe(() => PLATFORMS).map(g => ['platforms', g]), ...safe(() => ENGINES).map(g => ['engines', g])].filter(([, g]) => (g.topics || []).includes(tid)).map(([k, g]) => item('guide', k + ':' + g.id, g.t, k === 'platforms' ? 'Platform guide' : 'Engine guide', `#/${k}/${g.id}`)));
+    add('checklist', 'Checklists', safe(() => CHECKLISTS).filter(c => (c.topics || []).includes(tid)).map(c => item('checklist', c.id, c.t, c.desc, '#/checklists/' + c.id)));
+    add('prompt', 'Prompts', safe(() => PROMPT_TEMPLATES).filter(p => (p.topics || []).includes(tid)).map(p => item('prompt', p.id, p.t, p.cat ? p.cat + ' prompt' : 'Prompt template', '#/prompts/' + p.id)));
+    const paths = [];
+    safe(() => PATHS).forEach(p => { const st = (p.stages || []).find(s => (s.steps || []).some(x => x.kind === 'topic' && x.ref === tid)); if(st) paths.push(item('path', p.id, p.t, `Stage: ${st.t}`, `#/paths/${p.id}/${st.id}`)); });
+    add('path', 'Paths', paths);
+    const parts = [];
+    safe(() => CASE_STUDIES).forEach(c => (c.systems || []).forEach(s => (s.parts || []).forEach(p => { const r = (p.rel || []).find(([rid]) => rid === tid); if(r) parts.push(item('part', c.id + '/' + s.id + '/' + p.id, '◆ ' + p.t, `${c.t}: ${r[1]}`, `#/experience/${c.id}/${s.id}/${p.id}`)); })));
+    add('part', 'Project parts', parts);
+    return groups;
   }
 
   /* ---- the guide map: goal, domains, topics, leaves ---- */
@@ -167,30 +283,30 @@ window.PlayableGraph = (function(){
     const doms = DOMAINS.filter(d => d.lens === lens[0]);
     const root = { kind:'center', id:'root', label:lens[2], w:SIZE.root.w, h:SIZE.root.h, children:[], oneSided:!!state.oneSided };
     let sel = null;
+    const READ = ['read', 'not read yet'];
     doms.forEach(d => {
       const sn = d.topics.filter(t => seen.has(t)).length;
-      const node = { kind:'domain', id:d.id, label:d.t, sub:`${sn}/${d.topics.length} read`, color:d.color, open:state.dom === d.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
+      const node = { kind:'domain', id:d.id, label:d.t, sub:`${sn} of ${d.topics.length} read`, color:d.color, open:state.dom === d.id, next:!!state.next && d.topics.includes(state.next), w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
       if(state.dom === d.id) d.topics.forEach(t => {
-        const tn = { kind:'topic', id:t, label:TOPICS[t].t, color:d.color, seen:seen.has(t), w:SIZE.topic.w, h:SIZE.topic.h, children:[] };
+        const tn = { kind:'topic', id:t, label:TOPICS[t].t, color:d.color, rd:seen.has(t), rdWord:READ, next:state.next === t, sel:state.topic === t, w:SIZE.topic.w, h:SIZE.topic.h, children:[] };
         if(state.topic === t) sel = tn;
         node.children.push(tn);
       });
       root.children.push(node);
     });
 
-    // fourth layer: the selected topic's related concepts, smells and tools.
-    // `state.extra` carries runtime-only leaves (the project parts that
-    // demonstrate this topic); they render exactly like a tool leaf.
+    // fourth layer: the selected topic's whole neighbourhood, read from the
+    // data and grouped by kind. A group with more than GROUP_OPEN leaves is
+    // collapsed to "Games (14)" and opens on a click, so nothing is cut.
+    // `state.grp` holds the reader's open/closed choices by group id.
     if(sel){
-      const t = TOPICS[state.topic] || {};
-      (t.rel || []).forEach(([rid, why]) => {
-        const rt = TOPICS[rid];
-        if(rt) sel.children.push({ kind:'leaf', id:rid, label:rt.t, color:dcolor(rt.d), why, home:rt.d, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] });
-        else sel.children.push({ kind:'view', id:rid, label:(views[rid] ? views[rid][1] : rid), why, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] });
+      const groups = state.groups || neighbours(state.topic, views);
+      groups.forEach(gr => {
+        const open = state.grp && gr.id in state.grp ? !!state.grp[gr.id] : gr.leaves.length <= GROUP_OPEN;
+        const gn = { kind:'group', id:gr.id, label:`${gr.label} (${gr.leaves.length})`, open, w:SIZE.group.w, h:SIZE.group.h, children:[] };
+        if(open) gr.leaves.forEach(l => gn.children.push(Object.assign({}, l, { gid:gr.id, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] }, l.kind === 'leaf' ? { rd:seen.has(l.id), rdWord:READ } : {})));
+        sel.children.push(gn);
       });
-      SMELLS.filter(s => s.causes.some(c => c.top === state.topic))
-        .forEach(s => sel.children.push({ kind:'smell', id:s.id, label:`! ${s.t}`, color:'var(--bad)', why:s.sym, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] }));
-      (state.extra || []).forEach(([vid, why]) => sel.children.push({ kind:'view', id:vid, label:(views[vid] ? views[vid][1] : vid), why, w:SIZE.leaf.w, h:SIZE.leaf.h, children:[] }));
     }
 
     place(root, state.off || {}, DKEY);
@@ -214,10 +330,10 @@ window.PlayableGraph = (function(){
         });
       });
     }
-    if(sel) sel.children.filter(l => l.home && l.home !== state.dom).forEach(l => {
+    if(sel) sel.children.forEach(gn => gn.children.filter(l => l.home && l.home !== state.dom).forEach(l => {
       const dn = c.byKey['d:' + l.home]; if(!dn) return;
-      c.edges.push(`<path class="edge home" data-a="l:${l.id}" data-b="d:${l.home}" d="${smooth(innerX(l), l.y, innerX(dn), dn.y)}"><title>${esc(l.label)} lives in ${esc(dtitle(l.home))}</title></path>`);
-    });
+      c.edges.push(`<path class="edge home" data-a="${DKEY(l)}" data-b="d:${l.home}" d="${smooth(innerX(l), l.y, innerX(dn), dn.y)}"><title>${esc(l.label)} lives in ${esc(dtitle(l.home))}</title></path>`);
+    }));
 
     const f = frame(c, DKEY, '');
     return { inner:f.inner, bbox:f.bbox, focus:null, nodes:c.nodes };
@@ -249,7 +365,7 @@ window.PlayableGraph = (function(){
       if(state.sys === s.id){
         open = s;
         parts.forEach(p => {
-          const pn = { kind:'topic', id:p.id, label:p.t, color, w:SIZE.topic.w, h:SIZE.topic.h, children:[] };
+          const pn = { kind:'topic', id:p.id, label:p.t, color, sel:state.part === p.id, w:SIZE.topic.w, h:SIZE.topic.h, children:[] };
           if(state.part === p.id) sel = pn;
           node.children.push(pn);
         });
@@ -308,10 +424,10 @@ window.PlayableGraph = (function(){
       const k = steps.filter((_, i) => done.steps && done.steps[`${st.id}/${i}`]).length;
       const status = done.stages && done.stages[st.id];
       const color = status === 'done' ? 'var(--ok)' : status === 'skipped' ? 'var(--warn)' : 'var(--accent2)';
-      const node = { kind:'domain', id:st.id, label:st.t, sub:`${k}/${steps.length} done`, color, open:state.stage === st.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
+      const node = { kind:'domain', id:st.id, label:st.t, sub:`${k} of ${steps.length} done`, color, open:state.stage === st.id, w:SIZE.domain.w, h:SIZE.domain.h, children:[] };
       if(state.stage === st.id) steps.forEach((step, i) => {
         const sid = `${st.id}/${i}`;
-        node.children.push({ kind:'topic', id:sid, label:(typeof stepTitle === 'function' ? stepTitle(step) : step.ref || step.kind), color, seen:!!(done.steps && done.steps[sid]), w:SIZE.topic.w, h:SIZE.topic.h, children:[] });
+        node.children.push({ kind:'topic', id:sid, label:(typeof stepTitle === 'function' ? stepTitle(step) : step.ref || step.kind), color, rd:!!(done.steps && done.steps[sid]), rdWord:['done', 'not done'], w:SIZE.topic.w, h:SIZE.topic.h, children:[] });
       });
       root.children.push(node);
     });
@@ -355,5 +471,5 @@ window.PlayableGraph = (function(){
     return { hits, views, extra };
   }
 
-  return { build, buildProject, buildPath, practiceLinks };
+  return { build, buildProject, buildPath, practiceLinks, neighbours, GROUP_OPEN, nodeAttrs: attrs, nodeClass: classOf, nodeName: nameOf };
 })();

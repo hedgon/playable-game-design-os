@@ -2,7 +2,9 @@
    PERSISTENT MIND MAP (centre) + INDEX (left) + CONTENT (right)
    The map is always on screen. It is a horizontal collapsible tidy tree,
    not a circle, so it grows by stacking and panning rather than shrinking.
+   Below 700px the same tree is drawn as an expandable outline instead of a canvas.
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
+   (home shows the lens the reader last chose; a domain or topic route sets its own)
    ===================================================================== */
 (function(A){
 'use strict';
@@ -27,12 +29,76 @@ function symptomsHTML(){ return `<div class="symptoms">${SYMPTOMS.map(([s,id]) =
 function openStart(){ const el = $('#startPaths'); if(el) el.innerHTML = startPathsHTML(); openModal('startModal'); }
 { const sc = $('#startClose'); if(sc) sc.onclick = () => closeModals(); }
 
-const mapState = Object.assign({ dom:null, topic:null, smell:null, vb:null, lens:'design' }, store.get('mapState', {}));
-function saveMap(){ store.set('mapState', mapState); }
+/* ---- persisted state: checked on the way in, written on the way out ----
+   Three stores share one shape: mapState (the guide), projMap.<case> and
+   pathMap.<path>. Anything the data no longer knows (a renamed topic, a
+   removed project, a hand-edited value) is dropped when the state is loaded,
+   and the offsets are capped, so a stale store cannot grow or misdraw the map.
+   `vb` is the camera the reader left a branch with. It is written only while
+   a branch is open: the overview (no branch open) is always framed afresh,
+   so a camera saved there would never be read. */
+const GROUP_IDS = /^(rel|game|smell|tool|guide|checklist|prompt|path|part|lens:[\w-]+)$/;
+const OFF_CAP = 150;
+const isNum = v => typeof v === 'number' && isFinite(v);
+function cleanCamera(vb){ return vb && typeof vb === 'object' && [vb.x, vb.y, vb.w, vb.h, vb.sw, vb.sh].every(isNum) && vb.w > 0 && vb.h > 0 && vb.sw > 0 ? vb : null; }
+// `keyOk` says whether a node key still names something the data has.
+function cleanOffsets(off, keyOk){
+  const out = {}; let n = 0;
+  if(off && typeof off === 'object') for(const k of Object.keys(off)){
+    const o = off[k];
+    if(n >= OFF_CAP || !keyOk(k) || !o || !isNum(o.x) || !isNum(o.y)) continue;
+    out[k] = { x: Math.max(-5000, Math.min(5000, o.x)), y: Math.max(-5000, Math.min(5000, o.y)) }; n++;
+  }
+  return out;
+}
+const leafKeyOk = k => /^l:/.test(k) && k.length <= 120;
+const guideKeyOk = k => k === 'c' || (/^d:/.test(k) && !!DOM[k.slice(2)]) || (/^t:/.test(k) && !!TOPICS[k.slice(2)]) || (/^g:/.test(k) && GROUP_IDS.test(k.slice(2))) || leafKeyOk(k);
+function cleanGuideState(raw){
+  const s = Object.assign({ dom:null, topic:null, smell:null, vb:null, lens:LENSES[0][0], grp:{}, off:{} }, raw && typeof raw === 'object' ? raw : {});
+  if(!LENSES.some(l => l[0] === s.lens)) s.lens = LENSES[0][0];
+  if(!DOM[s.dom]) s.dom = null;
+  if(!TOPICS[s.topic]) s.topic = null;
+  if(!SMELLS.some(x => x.id === s.smell)) s.smell = null;
+  s.vb = cleanCamera(s.vb);
+  s.grp = Object.fromEntries(Object.entries(s.grp && typeof s.grp === 'object' ? s.grp : {}).filter(([k, v]) => GROUP_IDS.test(k) && typeof v === 'boolean'));
+  s.off = cleanOffsets(s.off, guideKeyOk);
+  return s;
+}
+function cleanProjState(s, c){
+  const sysIds = new Set(['workflows', ...(c.systems || []).map(x => x.id)]);
+  const partIds = new Set([...(c.systems || []).flatMap(x => (x.parts || []).map(p => p.id)), ...(c.flows || []).map(f => f.id)]);
+  s.vb = cleanCamera(s.vb);
+  s.off = cleanOffsets(s.off, k => k === 'c' || (/^sys:/.test(k) && sysIds.has(k.slice(4))) || (/^part:/.test(k) && partIds.has(k.slice(5))) || leafKeyOk(k));
+  return s;
+}
+function cleanPathState(s, pth){
+  const stageIds = new Set((pth.stages || []).map(x => x.id));
+  s.vb = cleanCamera(s.vb);
+  s.off = cleanOffsets(s.off, k => k === 'c' || (/^stage:/.test(k) && stageIds.has(k.slice(6))) || (/^step:/.test(k) && stageIds.has(k.slice(5).split('/')[0])) || leafKeyOk(k));
+  return s;
+}
+// A project or path that was removed leaves its saved map behind; drop those once, on load.
+try {
+  const live = { 'projMap.': new Set(CASE_STUDIES.map(c => c.id)), 'pathMap.': new Set(PATHS.map(p => p.id)) };
+  Object.keys(localStorage).forEach(k => { const m = /^playable\.(projMap\.|pathMap\.)(.+)$/.exec(k); if(m && !live[m[1]].has(m[2])) localStorage.removeItem(k); });
+} catch(e){}
+const mapState = cleanGuideState(store.get('mapState', {}));
+// One place decides which store a state belongs to, so a write scheduled for one
+// map can never land in another's.
+const stateKeyOf = st => 'cs' in st ? 'projMap.' + st.cs : 'stage' in st ? 'pathMap.' + st.id : 'mapState';
+const persist = st => { if(st) store.set(stateKeyOf(st), st); };
+// The camera changes on every wheel tick and animation end; it is written once,
+// after the gesture settles, and at once when the page is hidden.
+const camSave = { st:null, t:0 };
+function flushPersist(){ clearTimeout(camSave.t); camSave.t = 0; if(camSave.st){ persist(camSave.st); camSave.st = null; } }
+function persistSoon(st){ if(camSave.st && camSave.st !== st) flushPersist(); camSave.st = st; clearTimeout(camSave.t); camSave.t = setTimeout(flushPersist, 250); }
+window.addEventListener('pagehide', flushPersist);
+document.addEventListener('visibilitychange', () => { if(document.hidden) flushPersist(); });
+function saveMap(){ persist(mapState); }
 // The domain map shows one lens; a domain or topic route switches to its own.
 const lensOf = domId => (DOM[domId] || {}).lens || LENSES[0][0];
 function currentLens(){ return LENSES.find(l => l[0] === mapState.lens) || LENSES[0]; }
-function setLens(id){ mapState.lens = id; mapState.dom = null; mapState.topic = null; mapState.smell = null; saveMap(); go('#/map/home'); }
+function setLens(id){ mapState.lens = id; mapState.dom = null; mapState.topic = null; mapState.smell = null; mapState.grp = {}; saveMap(); go('#/map/home'); }
 // Phones get the one-sided tree, read one column at a time.
 const phoneQuery = window.matchMedia('(max-width: 700px)');
 
@@ -46,16 +112,16 @@ const phoneQuery = window.matchMedia('(max-width: 700px)');
 let mapMode = 'domains';
 let projState = null;
 let pathMapState = null;
-function saveProj(){ if(projState) store.set('projMap.' + projState.cs, projState); }
+function saveProj(){ persist(projState); }
 function projCase(){ return projState ? CASE_STUDIES.find(x => x.id === projState.cs) : null; }
-function savePathMap(){ if(pathMapState) store.set('pathMap.' + pathMapState.id, pathMapState); }
+function savePathMap(){ persist(pathMapState); }
 function curPath(){ return pathMapState ? PATHS.find(x => x.id === pathMapState.id) : null; }
 // Called by the router before the pane renders: the route is the truth about
 // which branch is open and which child is selected, the store only supplies
 // the camera and the dragged-node offsets. `sysId` is a system id or the
 // reserved 'workflows'; `partId` is then a part id or a flow id.
 function enterProject(c, sysId, partId){
-  if(!projState || projState.cs !== c.id) projState = Object.assign({ sys:null, part:null, off:{}, vb:null }, store.get('projMap.' + c.id, {}), { cs:c.id });
+  if(!projState || projState.cs !== c.id){ flushPersist(); projState = cleanProjState(Object.assign({ sys:null, part:null, off:{}, vb:null }, store.get('projMap.' + c.id, {}), { cs:c.id }), c); }
   projState.sys = sysId || null;
   projState.part = partId || null;
   mapMode = 'project';
@@ -64,16 +130,29 @@ function enterProject(c, sysId, partId){
 // Same shape, for the path map: `stageId` is a stage id or null, matching
 // `sysId` above. Called by renderPaths before the pane renders.
 function enterPathMap(pth, stageId){
-  if(!pathMapState || pathMapState.id !== pth.id) pathMapState = Object.assign({ stage:null, off:{}, vb:null }, store.get('pathMap.' + pth.id, {}), { id:pth.id });
+  if(!pathMapState || pathMapState.id !== pth.id){ flushPersist(); pathMapState = cleanPathState(Object.assign({ stage:null, off:{}, vb:null }, store.get('pathMap.' + pth.id, {}), { id:pth.id }), pth); }
   pathMapState.stage = stageId || null;
   mapMode = 'path';
   savePathMap();
 }
 function curState(){ return mapMode === 'project' && projState ? projState : mapMode === 'path' && pathMapState ? pathMapState : mapState; }
 function saveCur(){ if(mapMode === 'project') saveProj(); else if(mapMode === 'path') savePathMap(); else saveMap(); }
-// The domain map's fourth layer gains the project parts that demonstrate the
-// selected topic. They are runtime links, not data, so they ride along on a
-// copy of mapState instead of being stored in it.
+// The first topic the reader has not read, in map order: the open domain first,
+// then the lens from its first domain. Null when everything is read.
+function nextUnread(){
+  const first = ds => { for(const d of ds) for(const t of d.topics) if(!seen.has(t) && t !== mapState.topic) return t; return null; };
+  const open = mapState.dom && DOM[mapState.dom];
+  return (open && first([open])) || first(DOMAINS.filter(d => d.lens === currentLens()[0]));
+}
+function updateNext(){
+  const a = $('#mapNext'); if(!a) return;
+  const id = mapMode === 'domains' ? nextUnread() : null;
+  a.hidden = !id;
+  if(!id) return;
+  a.href = '#/map/t/' + id;
+  a.textContent = 'Next unread: ' + TOPICS[id].t + ' →';
+  a.setAttribute('aria-label', 'Next unread topic: ' + TOPICS[id].t);
+}
 // A stage too narrow for both halves of the tree at a readable size gets the
 // one-sided tree, the way a phone does.
 const TWO_SIDED_MIN = 1060;
@@ -84,8 +163,8 @@ function buildGraph(){
   if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided }), TOPICS, DOMAINS);
   const pth = curPath();
   if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
-  const pr = practice();
-  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, extra: (mapState.topic && pr.extra[mapState.topic]) || [] }), seen, VIEW_LINKS);
+  practice(); // fills VIEW_LINKS with the runtime links the neighbourhood reads
+  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, next: nextUnread() }), seen, VIEW_LINKS);
 }
 
 function mapCrumbs(){
@@ -117,14 +196,16 @@ function mapCrumbs(){
   if(mapState.smell){ const s = SMELLS.find(x => x.id===mapState.smell); if(s) parts.push(`<span>›</span><b>${esc(s.t)}</b>`); }
   return `<div class="mapcrumbs">${parts.join('')}</div>`;
 }
-function lensSwitchHTML(){
+// The one lens switch. The index rail carries it; the start panel carries a copy
+// the stylesheet hides while the rail is on screen (see .lens-switch.inpane).
+function lensSwitchHTML(cls){
   const cur = currentLens()[0];
-  return `<div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === cur}">${esc(t)}</button>`).join('')}</div>`;
+  return `<div class="lens-switch${cls ? ' ' + cls : ''}" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === cur}">${esc(t)}</button>`).join('')}</div>`;
 }
 function engPanel(lens){
   const doms = DOMAINS.filter(d => d.lens === lens[0]);
   const n = doms.reduce((a, d) => a + d.topics.length, 0);
-  return `${lensSwitchHTML()}<span class="overline">${esc(lens[1])} · ${n} topics · ${CASE_STUDIES.length} projects</span>
+  return `${lensSwitchHTML('inpane')}<span class="overline">${esc(lens[1])} · ${n} topics · ${CASE_STUDIES.length} projects</span>
     <h1 style="margin:6px 0 8px">${esc(lens[2])}.</h1>
     <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership, platforms and publishing, how the AI models the team now depends on work, the code craft that still pays, and careers beyond games. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
     <div class="grid auto">${doms.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/d/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small" style="margin:0">${esc(d.short)}</p></a>`).join('')}</div>
@@ -133,7 +214,7 @@ function engPanel(lens){
 function startPanel(){
   const lens = currentLens();
   if(lens[0] !== LENSES[0][0]) return engPanel(lens);
-  return `${lensSwitchHTML()}<span class="overline">Field manual · ${DOMAINS.filter(d => d.lens === lens[0]).reduce((a, d) => a + d.topics.length, 0)} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
+  return `${lensSwitchHTML('inpane')}<span class="overline">Field manual · ${DOMAINS.filter(d => d.lens === lens[0]).reduce((a, d) => a + d.topics.length, 0)} topics · ${SMELLS.length} smells · ${TOOLS.length} tools</span>
     <h1 style="margin:6px 0 8px">Make something people want to play.</h1>
     <p class="dim">The mind map on the left is always here. Click a domain to expand it in place, click a topic to read it in this panel. The index and the map do the same work, so use whichever suits you.</p>
     <div class="paths">${startPathsHTML()}</div>
@@ -160,7 +241,9 @@ function drawerHTML(){
 }
 
 /* ---- camera ---- */
-function fitBox(b){ const A = 1.18; let {x,y,w,h} = b; if(w/h < A){ const nw = h*A; x -= (nw-w)/2; w = nw; } else { const nh = w/A; y -= (nh-h)/2; h = nh; } return {x,y,w,h}; }
+// The box is widened to the stage's own shape, so the tree fills the stage on
+// both axes instead of being framed for a fixed 1.18 ratio.
+function fitBox(b){ const A = MAP && MAP.wrap.clientWidth > 50 && MAP.wrap.clientHeight > 50 ? Math.min(3, Math.max(0.4, MAP.wrap.clientWidth / MAP.wrap.clientHeight)) : 1.18; let {x,y,w,h} = b; if(w/h < A){ const nw = h*A; x -= (nw-w)/2; w = nw; } else { const nh = w/A; y -= (nh-h)/2; h = nh; } return {x,y,w,h}; }
 function applyVB(svg, vb){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); }
 const nextFrame = fn => document.hidden ? { kind:'t', id: setTimeout(() => fn(performance.now()), 16) } : { kind:'r', id: requestAnimationFrame(fn) };
 const cancelFrame = h => { if(!h) return; if(h.kind === 't') clearTimeout(h.id); else cancelAnimationFrame(h.id); };
@@ -184,7 +267,13 @@ function mapAnimateTo(to, ms=480){
 function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim = null; } }
 // The camera is stored with the stage size it was framed for; a camera saved
 // on a different screen is not restored, the tree is framed afresh instead.
-function mapPersistCamera(){ if(!MAP) return; curState().vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h, sw:MAP.wrap.clientWidth, sh:MAP.wrap.clientHeight }; saveCur(); }
+function mapPersistCamera(){
+  // the overview is framed afresh every time, so there is nothing to remember there
+  if(!MAP || !MAP.vb || !MAP.g || !MAP.g.focus) return;
+  const st = curState();
+  st.vb = { x:MAP.vb.x, y:MAP.vb.y, w:MAP.vb.w, h:MAP.vb.h, sw:MAP.wrap.clientWidth, sh:MAP.wrap.clientHeight };
+  persistSoon(st);
+}
 function savedCamera(vb){
   if(!vb || !vb.w || !vb.sw) return null;
   const w = MAP.wrap.clientWidth, h = MAP.wrap.clientHeight;
@@ -237,16 +326,35 @@ function keepReadable(t, g){
   const max = readableSize(), clamp = !(t.w <= max.w * 1.001 && t.h <= max.h * 1.001);
   // a window narrower than the tree fades at its right edge, so a card cut off there reads as "more this way"
   MAP.wrap.classList.toggle('fade-right', clamp);
-  if(!clamp) return t;
-  const w = max.w, h = max.h, root = (g.nodes || []).find(n => n.kind === 'center');
-  const sel = selectedNode(g), from = sel || root;
+  const sel = selectedNode(g);
+  const below = n => [n, ...(n.children || []).flatMap(below)];
+  // a selected topic's neighbourhood must sit inside the window even when the
+  // window is small enough to be readable already (a tablet's 720-wide frame)
+  const nb = sel && sel.children && sel.children.length ? below(sel).slice(1) : null;
+  const nbLo = nb ? Math.min(...nb.map(n => n.x)) : 0, nbHi = nb ? Math.max(...nb.map(n => n.x + n.w)) : 0;
+  // ... and the topic itself is whole or wholly out, never cut by the stage's edge
+  const straddle = !!nb && ((t.x > sel.x && t.x < sel.x + sel.w) || (t.x + t.w > sel.x && t.x + t.w < sel.x + sel.w));
+  const nbIn = !nb || (t.x <= nbLo - 8 && t.x + t.w >= nbHi + 8 && !straddle);
+  // the selected node is whole inside the window, or the window has to move
+  const selIn = tt => !sel || (sel.x >= tt.x + 8 && sel.x + sel.w <= tt.x + tt.w - 8 && sel.y - sel.h / 2 >= tt.y && sel.y + sel.h / 2 <= tt.y + tt.h);
+  if(!clamp && nbIn && selIn(t)) return t;
+  const w = clamp ? max.w : t.w, h = clamp ? max.h : t.h, root = (g.nodes || []).find(n => n.kind === 'center');
+  const from = sel || root;
   if(!from) return t;
   // the part of the tree to show: the node and its children, or the first column
-  const group = sel ? [sel, ...(sel.children || [])] : (root.children && root.children.length ? root.children : [root]);
+  const group = sel ? below(sel) : (root.children && root.children.length ? root.children : [root]);
   const lo = Math.min(...group.map(n => n.x)), hi = Math.max(...group.map(n => n.x + n.w));
   const left = sel ? sel.side >= 0 : (root.children[0] || {}).side >= 0;
   let x0;
   if(hi - lo + 48 <= w) x0 = (lo + hi) / 2 - w / 2;
+  // too wide for the stage: keep the selected topic's neighbourhood (its groups and
+  // leaves), starting at a column edge so no card is cut, even if the topic itself
+  // then sits just off the stage
+  else if(sel && sel.children.length && (() => { const nb = below(sel).slice(1); const nlo = Math.min(...nb.map(n => n.x)), nhi = Math.max(...nb.map(n => n.x + n.w)); return nhi - nlo + 48 <= w; })()){
+    const nb = below(sel).slice(1), nlo = Math.min(...nb.map(n => n.x)), nhi = Math.max(...nb.map(n => n.x + n.w));
+    x0 = left ? nlo - 24 : nhi + 24 - w;  // `left`: the tree grows to the right, so its near edge is the low x
+  }
+  else if(sel) x0 = left ? hi + 24 - w : lo - 24;
   else x0 = left ? lo - 24 : hi + 24 - w;
   // include the root beside the first column when both fit
   if(!sel && root && root.x + root.w <= x0 + w && left && hi + 24 - (root.x - 20) <= w) x0 = root.x - 20;
@@ -254,7 +362,22 @@ function keepReadable(t, g){
   let y0;
   if(yhi - ylo + 48 <= h) y0 = (ylo + yhi) / 2 - h / 2;
   else y0 = sel ? sel.y - h / 2 : ylo - 24;
-  return { x: x0, y: y0, w, h };
+  const r = { x: x0, y: y0, w, h };
+  if(!sel || selIn(r)) return r;
+  const k = keepInView(r, sel, left);
+  if(nb && left && k.x + w < nbHi + 8) MAP.wrap.classList.add('fade-right');
+  return k;
+}
+// The selected node is never dropped off the stage. When its neighbourhood is
+// wider than the stage, the node keeps the edge nearest the goal and the leaves
+// run on past the far edge (pan, or press Right, to reach them), so the reader
+// always sees where they are. `left` is true when the tree grows to the right.
+function keepInView(r, sel, left){
+  const m = 16, w = r.w, h = r.h;
+  let { x, y } = r;
+  if(sel.x < x + m || sel.x + sel.w > x + w - m) x = left ? sel.x - m : sel.x + sel.w + m - w;
+  if(sel.y - sel.h / 2 < y + m) y = sel.y - sel.h / 2 - m; else if(sel.y + sel.h / 2 > y + h - m) y = sel.y + sel.h / 2 + m - h;
+  return { x, y, w, h };
 }
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
@@ -284,31 +407,52 @@ function pathTipHTML(n){
   if(kind==='topic'){ const [stageId, i] = id.split('/'); const st = pth.stages.find(x => x.id===stageId); const step = st && st.steps[+i]; if(!step) return ''; return `<b>${esc(stepTitle(step))}</b><div>${esc(step.why)}</div><div class="muted">click to show this step in the stage</div>`; }
   return '';
 }
+const ITEM_NAMES = { game:'Reference game', smell:'Design smell', tool:'Tool', guide:'Guide', checklist:'Checklist', prompt:'Prompt template', path:'Learning path', part:'Seen in practice', view:'Tool page' };
 function mapTipHTML(n){
   if(n.dataset.scope === 'project') return projTipHTML(n);
   if(n.dataset.scope === 'path') return pathTipHTML(n);
   const kind = n.dataset.kind, id = n.dataset.id, why = n.dataset.why || '';
   if(kind==='center') return `<b>Make something people want to play</b><div class="muted">${mapState.dom || mapState.topic || mapState.smell ? 'click to reset the branch' : 'click for the starting paths'}</div>`;
   if(kind==='domain'){ const d = DOM[id]; return `<b style="color:${d.color}">${esc(d.t)}</b><div>${esc(d.short)}</div><div class="muted">${n.classList.contains('open')?'click to collapse':'click to expand and read'}</div>`; }
-  if(kind==='topic'){ const t = TOPICS[id]; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div><div class="muted">click to read in the panel</div>`; }
-  if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div>${why?`<div class="why"><b>Why it connects:</b> ${esc(why)}</div>`:''}<div class="muted">click to open this concept</div>`; }
-  if(kind==='smell'){ const s = SMELLS.find(x => x.id===id); return `<b style="color:var(--bad)">Design smell</b><div>${esc(s?s.t:id)}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open in Diagnose</div>`; }
-  if(kind==='view'){ const v = VIEW_LINKS[id];
-    // v[2] is only set on the runtime "seen in practice" links, where it names
-    // the project the part belongs to.
-    if(v && v[2]) return `<b style="color:var(--accent2)">Seen in practice</b><div>${esc(v[2])}</div><div>${esc(v[1].replace(/^◆\s*/, ''))}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open that part of the project</div>`;
-    return `<b style="color:var(--accent2)">Tool</b><div>${esc(v?v[1]:id)}</div>${why?`<div class="why">${esc(why)}</div>`:''}<div class="muted">click to open</div>`; }
+  if(kind==='topic'){ const t = TOPICS[id]; return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div><div class="muted">${seen.has(id) ? 'read · ' : ''}click to read in the panel</div>`; }
+  // a leaf's "why" is drawn beside the card (showWhy), so the tip keeps to what and where
+  if(kind==='leaf'){ const t = TOPICS[id]; if(!t) return ''; const other = n.dataset.type === 'other';
+    return `<b>${esc(t.t)}</b><div>${esc(t.tag)}</div><div class="muted">${other ? 'lives in ' + esc(lensOf(t.d) === LENSES[0][0] ? LENSES[0][1] : LENSES[1][1]) + ' · click to switch lens and open it' : 'click to open this concept'}</div>`; }
+  if(kind==='group'){ const open = n.classList.contains('open'); return `<b>${esc(n.getAttribute('aria-label').replace(/,.*$/, ''))}</b><div class="muted">${open ? 'click to collapse' : 'click to show all'}</div>`; }
+  if(kind==='item'){ const type = n.dataset.type;
+    return `<b>${esc(ITEM_NAMES[type] || 'Link')}</b><div class="muted">click to open</div>`; }
   return '';
+}
+/* ---- a leaf's "why", beside its card ----
+   Hover, keyboard focus or a tap draws the reason a leaf is linked in a small
+   note attached to the card, so the reason is on the map and not only in a
+   tooltip. The note is redrawn with the graph and never takes pointer events. */
+const noteLines = (s, n) => { const out = []; let a = ''; for(const w of String(s).split(' ')){ if(a && a.length + 1 + w.length > n){ out.push(a); a = w; } else a = a ? a + ' ' + w : w; } if(a) out.push(a); return out; };
+function hideWhy(){ if(MAP && MAP.svg){ const g = MAP.svg.querySelector('.whynote'); if(g) g.remove(); } }
+function showWhy(n){
+  hideWhy();
+  if(!MAP || !n || !n.dataset.why || (n.dataset.kind !== 'leaf' && n.dataset.kind !== 'item')) return;
+  const r = n.querySelector('.disc'); if(!r) return;
+  const x = +r.getAttribute('x'), y = +r.getAttribute('y'), w = +r.getAttribute('width'), h = +r.getAttribute('height');
+  const NW = 300, PADX = 10, lines = noteLines(n.dataset.why, Math.floor((NW - 2 * PADX) / 6.8)), lh = 15, nh = lines.length * lh + 12;
+  const left = n.querySelector('.lbl').getAttribute('text-anchor') === 'end';
+  // the note stays inside the window the reader is looking at, so its words are never cut by the stage's edge
+  const vb = MAP.vb, nx = vb ? Math.max(vb.x + 8, Math.min(left ? x + w - NW : x, vb.x + vb.w - NW - 8)) : left ? x + w - NW : x, ny = y + h + 3;
+  const t = lines.map((l, i) => `<tspan x="${nx + PADX}" dy="${i ? lh : 0}">${esc(l)}</tspan>`).join('');
+  MAP.svg.insertAdjacentHTML('beforeend', `<g class="whynote" pointer-events="none"><rect x="${nx}" y="${ny}" width="${NW}" height="${nh}" rx="3"/><text x="${nx + PADX}" y="${ny + 17}" font-size="12">${t}</text></g>`);
 }
 function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
 function mapHover(n, e){
   const M = MAP; if(M.hover === n){ if(n && e) mapMoveTip(e); return; }
-  if(M.hover){ M.svg.classList.remove('dimmed'); $$('.hl', M.svg).forEach(x => x.classList.remove('hl')); M.tip.hidden = true; }
-  M.hover = n; if(!n) return;
+  if(M.hover){ hideWhy(); M.svg.classList.remove('dimmed'); $$('.hl', M.svg).forEach(x => x.classList.remove('hl')); M.tip.hidden = true; }
+  M.hover = n; if(!n){ hideWhy(); return; }
+  showWhy(n);
   const key = n.dataset.key;
   M.svg.classList.add('dimmed'); n.classList.add('hl');
   $$('.edge', M.svg).forEach(ed => { const hit = ed.dataset.a === key || ed.dataset.b === key; ed.classList.toggle('hl', hit); if(hit){ const other = ed.dataset.a === key ? ed.dataset.b : ed.dataset.a; const on = other && M.svg.querySelector(`.node[data-key="${other}"]`); if(on) on.classList.add('hl'); } });
-  if(e && e.pointerType !== 'touch'){ M.tip.innerHTML = mapTipHTML(n); M.tip.hidden = false; mapMoveTip(e); }
+  // a leaf with a reason gets the note beside its card, which replaces the tip
+  const noted = n.dataset.why && (n.dataset.kind === 'leaf' || n.dataset.kind === 'item');
+  if(e && e.pointerType !== 'touch' && !noted){ M.tip.innerHTML = mapTipHTML(n); M.tip.hidden = false; mapMoveTip(e); }
 }
 function projClick(n){
   const kind = n.dataset.kind, id = n.dataset.id, c = projCase();
@@ -326,16 +470,54 @@ function pathMapClick(n){
   if(kind==='domain') return go(n.classList.contains('open') ? `#/paths/${pth.id}` : `#/paths/${pth.id}/${id}`);
   if(kind==='topic') showPathStep(pth.id, id);
 }
+// The polite live region: what a keyboard or screen-reader user needs to hear
+// when a node opens, closes or takes them to a page.
+let sayT = 0;
+function say(msg){
+  const el = $('#maplive'); if(!el) return;
+  el.textContent = ''; clearTimeout(sayT);
+  sayT = setTimeout(() => { el.textContent = msg; }, 60);
+}
+function announce(n){
+  const kind = n.dataset.kind, info = MAP && MAP.idx && MAP.idx.byKey.get(n.dataset.key), label = info ? info.n.label : '';
+  if(!label || kind === 'center') return;
+  if(kind === 'domain' || kind === 'group'){
+    const open = n.classList.contains('open') || n.getAttribute('aria-expanded') === 'true', kids = kind === 'domain' && mapMode === 'domains' && DOM[n.dataset.id] ? DOM[n.dataset.id].topics.length : 0;
+    say(open ? 'Collapsed ' + label : 'Expanded ' + label + (kids ? ', ' + kids + ' topics' : ''));
+  }
+  else if(kind === 'topic') say('Opened ' + label);
+  else say('Opening ' + label);
+}
 function mapClick(n){
+  announce(n);
   if(n.dataset.scope === 'project') return projClick(n);
   if(n.dataset.scope === 'path') return pathMapClick(n);
   const kind = n.dataset.kind, id = n.dataset.id;
   if(kind==='center'){ if(mapState.dom || mapState.topic || mapState.smell) return go('#/map/home'); return openStart(); }
   if(kind==='domain') return go(n.classList.contains('open') ? '#/map/home' : '#/map/d/'+id);
   if(kind==='topic') return go('#/map/t/'+id);
+  // a related topic, also one that lives in the other lens: the route sets the lens
   if(kind==='leaf') return go('#/map/t/'+id);
-  if(kind==='smell') return go('#/map/s/'+id);
-  if(kind==='view'){ const v = VIEW_LINKS[id]; if(v) go(v[0]); }
+  if(kind==='group') return toggleGroup(n);
+  if(kind==='item' && n.dataset.href) return go(n.dataset.href);
+}
+// A group of leaves opens or closes in place; the reader's choice is kept per
+// group until another topic is selected.
+function toggleGroup(n){
+  const id = n.dataset.id, open = n.classList.contains('open') || n.getAttribute('aria-expanded') === 'true';
+  mapState.grp = mapState.grp || {}; mapState.grp[id] = !open; saveMap();
+  MAP.focusKey = n.dataset.key; MAP.keyNav = false;
+  paintGraph();
+  if(open) return;
+  // bring the opened group into view: its first leaf at the top of the stage
+  const gn = MAP.g.nodes.find(x => x.kind === 'group' && x.id === id); if(!gn) return;
+  const kids = gn.children || [], vb = MAP.vb, hi = Math.max(gn.x + gn.w, ...kids.map(k => k.x + k.w)), lo = Math.min(gn.x, ...kids.map(k => k.x));
+  const x = hi - lo + 40 <= vb.w ? (lo + hi) / 2 - vb.w / 2 : (gn.side >= 0 ? hi + 20 - vb.w : lo - 20);
+  const y = (kids.length ? Math.min(gn.y - gn.h / 2, kids[0].y - kids[0].h / 2) : gn.y - gn.h / 2) - 24;
+  MAP.userCamera = true;
+  // ... without losing the topic the group belongs to
+  const sel = selectedNode(MAP.g);
+  mapAnimateTo(sel && sel.kind === 'topic' ? keepInView({ x, y, w: vb.w, h: vb.h }, sel, sel.side >= 0) : { x, y, w: vb.w, h: vb.h });
 }
 
 function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(keepReadable(fitBox(MAP.g.bbox), MAP.g)); } }
@@ -349,41 +531,100 @@ function currentKey(){
   if(mapMode === 'path' && pathMapState) return pathMapState.stage ? 'stage:' + pathMapState.stage : 'c';
   return mapState.topic ? 't:' + mapState.topic : mapState.dom ? 'd:' + mapState.dom : 'c';
 }
-// Draws the graph with one node in the tab order (a roving tab stop). A
-// redraw replaces every node, so focus is handed to the node with the same
+/* ---- the tree: one index, two views ----
+   Both views (the canvas and the phone outline) are built from the same graph
+   nodes and answer to the same keys. The index lets the keyboard find a node's
+   parent, its children and its neighbours in reading order without asking the DOM. */
+function indexTree(g){
+  const byKey = new Map(), order = [];
+  const walk = (n, parent) => { byKey.set(n.key, { n, parent }); order.push(n); n.children.forEach(c => walk(c, n)); };
+  if(g.nodes && g.nodes[0]) walk(g.nodes[0], null);
+  return { byKey, order };
+}
+// Which view is showing: the outline on a phone, the canvas elsewhere.
+const treeRoot = () => phoneQuery.matches ? MAP.outline : MAP.svg;
+const itemFor = key => key && treeRoot().querySelector('[data-key="' + CSS.escape(key) + '"]');
+// The phone outline: the graph's own nodes as nested, expandable list items.
+function outlineHTML(g){
+  const root = g.nodes && g.nodes[0]; if(!root) return '';
+  const scope = mapMode === 'domains' ? '' : mapMode;
+  const row = n => {
+    const mark = n.kind === 'domain' || n.kind === 'group' ? (n.open ? '−' : '+')
+      : typeof n.rd === 'boolean' ? (n.rd ? '<span class="rd-x">✓</span>' : '<span class="rd-o"></span>') : '';
+    const why = n.why && (n.kind === 'leaf' || n.kind === 'item') ? `<span class="oi-why">${esc(n.why)}</span>` : '';
+    return `<div class="oi-row"><span class="oi-mark" aria-hidden="true">${mark}</span><span class="oi-body"><span class="oi-t">${esc(n.label)}</span>${n.sub ? `<span class="oi-sub">${esc(n.sub)}</span>` : ''}${why}</span>${n.next ? '<span class="oi-flag" aria-hidden="true">Next</span>' : ''}</div>`;
+  };
+  const item = n => `<li class="${PlayableGraph.nodeClass(n)}" ${PlayableGraph.nodeAttrs(n, scope)}>${row(n)}${n.children.length ? `<ul role="group">${n.children.map(item).join('')}</ul>` : ''}</li>`;
+  return `<ul role="none">${item(root)}</ul>`;
+}
+// Scrolls the outline so the selected item (else the open branch) sits mid-screen.
+function outlineReveal(){
+  const o = MAP.outline; if(!o || !phoneQuery.matches) return;
+  const li = o.querySelector('[aria-selected="true"]') || o.querySelector('li.open:not([data-kind="center"])');
+  const row = li && li.querySelector(':scope > .oi-row');
+  if(!row){ o.scrollTop = 0; return; }
+  const r = row.getBoundingClientRect(), b = o.getBoundingClientRect();
+  o.scrollTop += r.top - b.top - (o.clientHeight - r.height) / 2;
+}
+// Draws the graph with one item in the tab order (a roving tab stop). A
+// redraw replaces every node, so focus is handed to the item with the same
 // key and arrow-key travel or Enter never drops the reader out of the map.
 function paintGraph(){
-  const hadFocus = MAP.svg.contains(document.activeElement);
+  const hadFocus = MAP.svg.contains(document.activeElement) || MAP.outline.contains(document.activeElement);
   const g = buildGraph();
   g.focus = treeFocus(g);
-  MAP.g = g; MAP.hover = null;
+  MAP.g = g; MAP.hover = null; MAP.idx = indexTree(g);
   MAP.labelPx = 0; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
+  MAP.outline.innerHTML = phoneQuery.matches ? outlineHTML(g) : '';
   { const px = [...MAP.svg.querySelectorAll('.lbl:not(.sub)')].slice(0, 60).map(t => parseFloat(getComputedStyle(t).fontSize)).filter(Boolean); MAP.labelPx = px.length ? Math.min(...px) : 13.5; }
-  const byKey = k => k && MAP.svg.querySelector('.node[data-key="' + CSS.escape(k) + '"]');
-  const stop = byKey(MAP.focusKey) || byKey(currentKey()) || MAP.svg.querySelector('.node');
+  const root = treeRoot(), byKey = k => k && root.querySelector('[data-key="' + CSS.escape(k) + '"]');
+  const stop = byKey(MAP.focusKey) || byKey(currentKey()) || root.querySelector('[role="treeitem"]');
   if(stop){ stop.setAttribute('tabindex', '0'); if(hadFocus) stop.focus({ preventScroll: true }); }
   return g;
 }
 function nodeCentre(el){ const r = el.querySelector('.disc'); return { x: +r.getAttribute('x') + +r.getAttribute('width') / 2, y: +r.getAttribute('y') + +r.getAttribute('height') / 2 }; }
-// Arrow keys travel spatially: the nearest node in that direction, with
-// sideways distance counting double so the move follows rows and columns.
-function nearestNode(from, dx, dy){
-  const a = nodeCentre(from); let best = null, bestScore = Infinity;
-  for(const el of MAP.svg.querySelectorAll('.node')){
-    if(el === from) continue;
-    const b = nodeCentre(el), vx = b.x - a.x, vy = b.y - a.y, along = vx * dx + vy * dy;
-    if(along <= 1) continue;
-    const score = along + 2 * Math.abs(vx * dy - vy * dx);
-    if(score < bestScore){ bestScore = score; best = el; }
-  }
-  return best;
-}
-function focusNode(el){
-  MAP.svg.querySelectorAll('.node[tabindex="0"]').forEach(x => x.setAttribute('tabindex', '-1'));
-  el.setAttribute('tabindex', '0'); el.focus({ preventScroll: true }); MAP.focusKey = el.dataset.key;
+// Moves keyboard focus to one item and keeps it on screen: the canvas pans to
+// it, the outline scrolls to it.
+function focusItem(n){
+  const el = itemFor(n.key); if(!el) return;
+  treeRoot().querySelectorAll('[tabindex="0"]').forEach(x => x.setAttribute('tabindex', '-1'));
+  el.setAttribute('tabindex', '0'); el.focus({ preventScroll: true }); MAP.focusKey = n.key;
+  if(phoneQuery.matches){ el.scrollIntoView({ block: 'nearest' }); return; }
   const c = nodeCentre(el), vb = MAP.vb;
   if(c.x < vb.x || c.x > vb.x + vb.w || c.y < vb.y || c.y > vb.y + vb.h) mapAnimateTo({ x: c.x - vb.w / 2, y: c.y - vb.h / 2, w: vb.w, h: vb.h });
+}
+/* The ARIA tree keys. Down and Up walk the items in reading order; Right opens a
+   closed branch or steps into an open one; Left closes an open branch or steps
+   out to the parent; Home and End go to the first and last item; Enter and Space
+   open. A branch on the left of the goal grows leftwards, so its Right and Left
+   swap: the arrow always points the way the branch goes. */
+function treeKey(e){
+  const el = e.target.closest && e.target.closest('[role="treeitem"]');
+  if(!el || !MAP || !MAP.idx || e.altKey || e.ctrlKey || e.metaKey) return;
+  const info = MAP.idx.byKey.get(el.dataset.key); if(!info) return;
+  const n = info.n, k = e.key, order = MAP.idx.order, i = order.indexOf(n);
+  if(k === 'Enter' || k === ' '){ e.preventDefault(); MAP.focusKey = n.key; MAP.keyNav = true; mapClick(el); return; }
+  let to = null;
+  if(k === 'ArrowDown') to = order[i + 1];
+  else if(k === 'ArrowUp') to = order[i - 1];
+  else if(k === 'Home') to = order[0];
+  else if(k === 'End') to = order[order.length - 1];
+  else if(k === 'ArrowRight' || k === 'ArrowLeft'){
+    const dir = k === 'ArrowRight' ? 1 : -1, expandable = el.hasAttribute('aria-expanded'), isOpen = el.getAttribute('aria-expanded') === 'true';
+    if(n.kind === 'center') to = n.children.find(c => (c.side < 0 ? -1 : 1) === dir);
+    else if(dir === (n.side < 0 ? -1 : 1)){
+      // toward the children: open a closed branch, else step into the first child
+      if(expandable && !isOpen){ e.preventDefault(); MAP.focusKey = n.key; MAP.keyNav = true; mapClick(el); return; }
+      to = n.children[0];
+    } else {
+      // toward the goal: close an open branch (a selected topic stays), else step out to the parent
+      if(expandable && isOpen && n.kind !== 'topic'){ e.preventDefault(); MAP.focusKey = n.key; MAP.keyNav = true; mapClick(el); return; }
+      to = info.parent;
+    }
+  } else return;
+  e.preventDefault();
+  if(to) focusItem(to);
 }
 function redrawGraph(){
   if(!MAP || !document.body.contains(MAP.svg)) return;
@@ -413,15 +654,38 @@ function resetMapDefault(){
 }
 function initMapStage(){
   if(MAP && document.body.contains(MAP.svg)) return;
-  const wrap = $('#mapwrap'), svg = $('#mapsvg'), tip = $('#maptip');
-  MAP = { wrap, svg, tip, g:null, vb:null, anim:null, hover:null };
+  if(MAP && MAP.dispose) MAP.dispose();   // a rebuilt stage must not leave the old one's listeners behind
+  const wrap = $('#mapwrap'), svg = $('#mapsvg'), tip = $('#maptip'), outline = $('#mapoutline');
+  MAP = { wrap, svg, tip, outline, g:null, idx:null, vb:null, anim:null, hover:null };
+  const undo = [];
+  const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); undo.push(() => target.removeEventListener(type, fn, opts)); };
   const screenToVB = (cx, cy) => { const r = svg.getBoundingClientRect(); return [MAP.vb.x + (cx - r.left)/r.width*MAP.vb.w, MAP.vb.y + (cy - r.top)/r.height*MAP.vb.h]; };
-  const zoomAbout = (fx, fy, f) => { const vb = MAP.vb, fit = fitBox(MAP.g ? MAP.g.bbox : vb); const nw = Math.min(Math.max(vb.w*f, 120), fit.w*3), nh = nw/(vb.w/vb.h); MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh }; applyVB(svg, MAP.vb); MAP.userCamera = true; mapPersistCamera(); };
-  let drag = null, nodeDrag = null, suppressClick = false, pinch = null, raf = 0; const touchPts = new Map();
+  // Zooming in stops at 120 units wide. Zooming out stops where the labels would
+  // drop under MIN_LABEL_PX, so no gesture leaves them too small to read; the
+  // fit button and the route targets never go past it either.
+  const zoomAbout = (fx, fy, f) => {
+    const vb = MAP.vb, ratio = vb.w / vb.h, cap = MAP.wrap.clientWidth > 50 && MAP.wrap.clientHeight > 50 ? readableSize() : { w: Infinity, h: Infinity };
+    const floorW = Math.min(cap.w, cap.h * ratio);
+    const nw = f > 1 ? Math.min(vb.w * f, Math.max(floorW, vb.w)) : Math.max(vb.w * f, 120), nh = nw / ratio;
+    MAP.vb = { x: fx - (fx - vb.x)*(nw/vb.w), y: fy - (fy - vb.y)*(nh/vb.h), w: nw, h: nh };
+    applyVB(svg, MAP.vb); MAP.userCamera = true; mapPersistCamera();
+  };
+  let drag = null, nodeDrag = null, suppressClick = false, pinch = null; const touchPts = new Map();
   const nodeKeyAt = e => { const n = e.target.closest ? e.target.closest('.node') : null; return n ? n.dataset.key : null; };
   // Offsets belong to whichever map is on stage, so a nudge on the project map
   // never lands in the domain map's saved layout.
-  const startNode = (key, x, y, id) => { const off = curState().off; const o = (off && off[key]) || { x:0, y:0 }; nodeDrag = { key, id, x, y, base:{ x:o.x, y:o.y }, moved:false }; };
+  const startNode = (key, x, y, id) => { const off = curState().off; const o = (off && off[key]) || { x:0, y:0 }; nodeDrag = { key, id, x, y, base:{ x:o.x, y:o.y }, moved:false, els:null }; };
+  // While a card is dragged, it and its branch move by a transform and the lines
+  // that would stretch are dimmed; the tree is laid out and drawn once, on release.
+  const dragParts = () => {
+    const info = MAP.idx && MAP.idx.byKey.get(nodeDrag.key), keys = new Set();
+    const walk = n => { keys.add(n.key); n.children.forEach(walk); };
+    if(info) walk(info.n);
+    nodeDrag.els = [...svg.querySelectorAll('.node')].filter(el => keys.has(el.dataset.key));
+    nodeDrag.lines = [...svg.querySelectorAll('.edge')].map(ed => { const a = keys.has(ed.dataset.a), b = keys.has(ed.dataset.b); return a && b ? [ed, true] : a || b ? [ed, false] : null; }).filter(Boolean);
+    nodeDrag.lines.forEach(([ed, moves]) => { if(!moves) ed.style.opacity = '0.15'; });
+    hideWhy(); tip.hidden = true;
+  };
   const moveNode = e => {
     if(nodeDrag.id !== undefined && e.pointerId !== undefined && e.pointerId !== nodeDrag.id) return;
     const r = svg.getBoundingClientRect();
@@ -431,58 +695,70 @@ function initMapStage(){
     const st = curState();
     st.off = st.off || {};
     st.off[nodeDrag.key] = { x: nodeDrag.base.x + dx, y: nodeDrag.base.y + dy };
-    if(!raf) raf = requestAnimationFrame(() => { raf = 0; redrawGraph(); });
+    if(!nodeDrag.els) dragParts();
+    const t = `translate(${dx} ${dy})`;
+    nodeDrag.els.forEach(el => el.setAttribute('transform', t));
+    nodeDrag.lines.forEach(([ed, moves]) => { if(moves) ed.setAttribute('transform', t); });
   };
-  svg.addEventListener('pointerdown', e => {
+  const dropNode = () => { const moved = nodeDrag && nodeDrag.moved; nodeDrag = null; if(moved) redrawGraph(); return moved; };
+  on(svg, 'pointerdown', e => {
     if(e.pointerType === 'touch'){ touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY }); mapStopAnim();
       if(touchPts.size === 1){ const key = nodeKeyAt(e); if(key) startNode(key, e.clientX, e.clientY, e.pointerId); else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
-      else if(touchPts.size === 2){ drag = null; nodeDrag = null; const p = [...touchPts.values()]; pinch = { dist: Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y) }; }
+      else if(touchPts.size === 2){ drag = null; dropNode(); const p = [...touchPts.values()]; pinch = { dist: Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y) }; }
       return; }
     if(e.button !== 0) return; mapStopAnim();
     const key = nodeKeyAt(e);
     if(key) startNode(key, e.clientX, e.clientY, e.pointerId);
     else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false };
   });
+  const panBy = e => { const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } };
   const onMove = e => {
     if(!document.body.contains(svg)) return;
     if(e.pointerType === 'touch'){
       if(touchPts.has(e.pointerId)) touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY });
       if(touchPts.size >= 2 && pinch){ const p = [...touchPts.values()]; const dist = Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y); if(dist > 0){ const mid = screenToVB((p[0].x+p[1].x)/2, (p[0].y+p[1].y)/2); zoomAbout(mid[0], mid[1], pinch.dist/dist); pinch = { dist }; suppressClick = true; } }
-      else if(touchPts.size === 1){ if(nodeDrag) moveNode(e); else if(drag){ const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } } }
+      else if(touchPts.size === 1){ if(nodeDrag) moveNode(e); else if(drag) panBy(e); }
       return;
     }
     if(nodeDrag){ moveNode(e); return; }
-    if(!drag) return; const r = svg.getBoundingClientRect(); const dx = (e.clientX - drag.x)/r.width*MAP.vb.w, dy = (e.clientY - drag.y)/r.height*MAP.vb.h; if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y) > 5) drag.moved = true; if(drag.moved){ MAP.vb = Object.assign({}, MAP.vb, { x: drag.vx - dx, y: drag.vy - dy }); applyVB(svg, MAP.vb); } };
+    if(drag) panBy(e);
+  };
   const onUp = e => {
-    if(nodeDrag){ if(nodeDrag.moved){ saveCur(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } nodeDrag = null; if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
+    if(nodeDrag){ if(nodeDrag.moved){ saveCur(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } dropNode(); if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
     if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
     if(drag && drag.moved){ MAP.userCamera = true; mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
-  window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
-  const clearTouches = () => { touchPts.clear(); pinch = null; drag = null; nodeDrag = null; }; window.addEventListener('blur', clearTouches);
-  svg.addEventListener('wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); }, {passive:false});
-  svg.addEventListener('pointermove', e => { if(e.pointerType === 'touch' || nodeDrag || drag) return; const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
-  svg.addEventListener('pointerleave', () => { if(!nodeDrag && !drag) mapHover(null); });
-  svg.addEventListener('click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
-  svg.addEventListener('keydown', e => {
-    const n = e.target.closest && e.target.closest('.node'); if(!n) return;
-    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); MAP.focusKey = n.dataset.key; MAP.keyNav = true; mapClick(n); return; }
-    if(e.key === 'Home'){ e.preventDefault(); focusNode(svg.querySelector('.node[data-kind="center"]')); return; }
-    const d = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0] }[e.key];
-    if(!d) return;
-    e.preventDefault();
-    const next = nearestNode(n, d[0], d[1]); if(next) focusNode(next);
-  });
+  on(window, 'pointermove', onMove); on(window, 'pointerup', onUp); on(window, 'pointercancel', onUp);
+  on(window, 'blur', () => { touchPts.clear(); pinch = null; drag = null; dropNode(); });
+  on(svg, 'wheel', e => { e.preventDefault(); mapStopAnim(); const p = screenToVB(e.clientX, e.clientY); zoomAbout(p[0], p[1], e.deltaY > 0 ? 1.12 : 1/1.12); }, {passive:false});
+  on(svg, 'pointermove', e => { if(e.pointerType === 'touch' || nodeDrag || drag) return; const n = e.target.closest ? e.target.closest('.node') : null; mapHover(n, e); });
+  on(svg, 'pointerleave', () => { if(!nodeDrag && !drag) mapHover(null); });
+  on(svg, 'click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
+  on(svg, 'keydown', treeKey);
+  on(svg, 'focusin', e => { const n = e.target.closest && e.target.closest('.node'); if(n) showWhy(n); });
+  on(svg, 'focusout', () => hideWhy());
+  // the phone outline: a tap on a row is a click on its item
+  on(outline, 'click', e => { const row = e.target.closest && e.target.closest('.oi-row'); if(row){ const li = row.parentElement; MAP.focusKey = li.dataset.key; mapClick(li); } });
+  on(outline, 'keydown', treeKey);
   $('#mapFit').onclick = fitMap;
+  const lgBtn = $('#mapLegendBtn'), lg = $('#maplegend');
+  if(lgBtn && lg){
+    lg.innerHTML = legendHTML();
+    const setLegend = on => { lg.hidden = !on; lgBtn.setAttribute('aria-expanded', on); lgBtn.classList.toggle('on', on); };
+    setLegend(!!store.get('mapLegend', false));
+    lgBtn.onclick = () => { const on = lg.hidden; setLegend(on); store.set('mapLegend', on); };
+  }
   // When the stage changes size (window, rotation, a panel collapsed or
   // dragged) the camera is framed again, unless the reader moved it.
   let resizeT = 0;
-  new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
+  const ro = new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
     if(!MAP.g || !document.body.contains(svg) || wrap.clientWidth < 50) return;
     // crossing the two-sided width swaps the tree's shape
     if(oneSidedNow() !== MAP.oneSided){ mapStopAnim(); MAP.userCamera = false; paintGraph(); }
     if(MAP.userCamera) return;
     mapStopAnim(); const t = stageTarget(MAP.g, MAP.kind, MAP.vb); MAP.vb = t; applyVB(svg, t); mapPersistCamera();
-  }, 150); }).observe(wrap);
+  }, 150); });
+  ro.observe(wrap);
+  MAP.dispose = () => { undo.forEach(f => f()); ro.disconnect(); clearTimeout(resizeT); };
   $('#mapResetDrag').onclick = resetMapDrag;
   $('#mapResetDefault').onclick = resetMapDefault;
   $('#mapZoomIn').onclick = () => zoomAbout(MAP.vb.x + MAP.vb.w/2, MAP.vb.y + MAP.vb.h/2, 1/1.15);
@@ -504,11 +780,22 @@ function treeFocus(g){
 // swaps the camera for the one that stage last had instead of carrying the
 // other map's viewBox across.
 let mapStage = null;
+// What the colours, marks and lines on the guide map mean. The swatches use the
+// map's own classes, so they cannot drift from the nodes they describe.
+function legendHTML(){
+  const sw = (c, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 26 14" aria-hidden="true"><rect class="${c}" x="1" y="1" width="24" height="12" rx="3"/></svg>${t}</span>`;
+  const ln = (c, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 26 14" aria-hidden="true"><path class="edge ${c}" d="M1,7 L25,7"/></svg>${t}</span>`;
+  const rd = (on, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 14 14" aria-hidden="true"><circle class="rd${on ? ' on' : ''}" cx="7" cy="7" r="6"/>${on ? '<text class="chk" x="7" y="10.5" text-anchor="middle" font-size="9">✓</text>' : ''}</svg>${t}</span>`;
+  return `<div class="lgrow"><b>Cards</b>${sw('domain', 'Domain: its colour marks its topics')}${sw('topic', 'Topic')}${rd(true, 'Read')}${rd(false, 'Not read yet')}</div>
+    <div class="lgrow"><b>Around a topic</b>${sw('leaf', 'Related topic')}${sw('leaf other', 'Also in the other lens (click to switch)')}${sw('item t-game', '◇ Game')}${sw('item t-smell', '! Smell')}${sw('item t-tool', 'Tool')}${sw('item t-checklist', 'Checklist')}${sw('item t-prompt', 'Prompt')}${sw('item t-path', 'Path')}${sw('item t-part', '◆ Project part')}${sw('group', 'Group: click to open or close')}</div>
+    <div class="lgrow"><b>Lines</b>${ln('open', 'Parent to child')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div>`;
+}
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
   const st = curState();
   const g = paintGraph();
   const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
+  updateNext();
   const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
   const stored = savedCamera(st.vb);
   if(mapStage !== stageKey){
@@ -519,6 +806,7 @@ function renderTree(kind){
   if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
   MAP.kind = kind; MAP.userCamera = false;
   mapAnimateTo(stageTarget(g, kind, stored || MAP.vb));
+  outlineReveal();
 }
 // `tab` is the fourth route part (#/map/t/<id>/<tab>). It selects which topic
 // view the content pane shows and is deliberately kept out of mapState: the
@@ -527,7 +815,7 @@ function renderMap(kind, id, tab){
   mapMode = 'domains';
   if(!kind || kind==='home'){ mapState.dom = null; mapState.topic = null; mapState.smell = null; }
   else if(kind==='d' && DOM[id]){ mapState.dom = id; mapState.topic = null; mapState.smell = null; mapState.lens = lensOf(id); }
-  else if(kind==='t' && TOPICS[id]){ mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; mapState.lens = lensOf(TOPICS[id].d); setTopicTab(TOPICS[id], tab); }
+  else if(kind==='t' && TOPICS[id]){ if(mapState.topic !== id) mapState.grp = {}; mapState.dom = TOPICS[id].d; mapState.topic = id; mapState.smell = null; mapState.lens = lensOf(TOPICS[id].d); setTopicTab(TOPICS[id], tab); }
   else if(kind==='s' && SMELLS.some(s => s.id===id)){ mapState.smell = id; }
   saveMap();
   setView(drawerHTML());
@@ -549,5 +837,10 @@ function syncMapMode(view, id){
 
 // Crossing the phone width swaps the two-sided tree for the one-sided one.
 phoneQuery.addEventListener('change', () => { if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
-Object.assign(A, { SYMPTOMS, renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
+// A topic was marked read or unread: the map's marks, counts and next-unread cue follow.
+function mapProgress(){
+  if(!MAP || !MAP.g || mapMode !== 'domains' || !document.body.contains(MAP.svg)) return;
+  paintGraph(); updateNext();
+}
+Object.assign(A, { SYMPTOMS, mapProgress, lensSwitchHTML, renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
 })(window.PlayableApp);

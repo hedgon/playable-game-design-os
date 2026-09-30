@@ -17,7 +17,8 @@ const late = name => (...a) => A[name](...a);
 const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
   enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
   toolDissect = late('toolDissect'), renderLab = late('renderLab'), fitMap = late('fitMap'),
-  consumeMapKeyNav = late('consumeMapKeyNav'), currentLens = late('currentLens'), setLens = late('setLens');
+  consumeMapKeyNav = late('consumeMapKeyNav'), currentLens = late('currentLens'), setLens = late('setLens'),
+  lensSwitchHTML = late('lensSwitchHTML'), mapProgress = late('mapProgress');
 
 /* ---------- storage ---------- */
 const store = {
@@ -30,7 +31,7 @@ function markSeen(id){ if(!seen.has(id)){ seen.add(id); store.set('seen', [...se
 // Opening a topic does not count it: a topic is read once the learner marks it read
 // at the foot of the page, or marks its path step done. Stored marks stay as they were.
 function unmarkSeen(id){ if(seen.delete(id)){ store.set('seen', [...seen]); updateProgress(); } }
-function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `Topics read ${s}/${n}`; $('#progressBar').style.width = (100*s/n)+'%'; }
+function updateProgress(){ const n = TOPIC_LIST.length, s = [...seen].filter(id => TOPICS[id]).length; $('#progressText').textContent = `Topics read ${s}/${n}`; $('#progressBar').style.width = (100*s/n)+'%'; if(A.mapProgress) mapProgress(); }
 
 /* ---------- theme ---------- */
 // The theme follows the system until the reader picks one with the toggle;
@@ -73,7 +74,6 @@ document.addEventListener('keydown', e => { if(e.target.closest && e.target.clos
 document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.story; if(k) store.set(k, e.target.value); });
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
 ACTIONS.copy = el => copyText(el.closest('.promptbox').querySelector('pre').textContent);
-ACTIONS['fit-map'] = () => fitMap();
 ACTIONS['toggle-map'] = el => { const h = !store.get('hideMap', true); store.set('hideMap', h); keepScroll = true; route(); if(isNarrow() && !h){ $('#pane').classList.remove('open'); syncScrim(); } };
 ACTIONS.lens = el => setLens(el.dataset.lens);
 ACTIONS.focus = el => document.getElementById(el.dataset.target).focus();
@@ -249,15 +249,19 @@ function ensureShell(){
     <div class="splitter" id="splitL" title="Drag to resize"></div>
     <section class="mapstage" id="mapstage">
       <div class="mapbar"><div class="mapcrumbs"></div><div class="row" style="gap:4px">
-        <button class="btn sm ghost" id="mapZoomOut" title="Zoom out">－</button>
-        <button class="btn sm ghost" id="mapZoomIn" title="Zoom in">＋</button>
-        <button class="btn sm ghost" id="mapFit" title="Fit the map">⤢ fit</button>
-        <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout">↺ drag</button>
-        <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview">⟲ default</button>
+        <a class="btn sm mapnext" id="mapNext" href="#/map" hidden>Next unread</a>
+        <button class="btn sm ghost" id="mapLegendBtn" aria-expanded="false" aria-controls="maplegend" title="What the colours, marks and lines mean">Legend</button>
+        <button class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">－</button>
+        <button class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
+        <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢ fit</button>
+        <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺ layout</button>
+        <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲ default</button>
         <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
         <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
       </div></div>
-      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="group" aria-label="Mind map. Tab into it, move with the arrow keys, open a node with Enter."></svg><div class="maptip" id="maptip" hidden></div></div>
+      <div class="maplegend-panel kgraph" id="maplegend" hidden></div>
+      <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="tree" tabindex="-1" aria-label="Mind map. Tab into it, move with the arrow keys, Right and Left open and close, Enter opens."></svg><div class="mapoutline" id="mapoutline" role="tree" aria-label="Map outline. Move with the arrow keys, Right and Left open and close, Enter opens."></div><div class="maptip" id="maptip" hidden></div></div>
+      <div class="mapfoot-live" id="maplive" role="status" aria-live="polite" aria-atomic="true"></div>
     </section>
     <div class="splitter" id="splitR" title="Drag to resize"></div>
     <section class="pane" id="pane"></section>
@@ -316,8 +320,7 @@ function railHTML(activeDom, activeTopic){
   const openSet = new Set(store.get('sideOpen', [])); if(activeDom) openSet.add(activeDom);
   const lens = currentLens()[0];
   return `<div class="railhead">
-      <div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === lens}">${esc(t)}</button>`).join('')}</div>
-      <button class="railgraph" id="railFit" data-action="fit-map">⤢ Fit map</button>
+      ${lensSwitchHTML()}
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
@@ -384,7 +387,7 @@ function syncScrim(){
   const parts = currentParts(), pill = page && (mapReading(parts) || (parts[0] === 'experience' && !!parts[1])) && !$('#pane .pathbar');
   $('#pane').classList.toggle('nopill', page && !pill);
   dc.classList.toggle('show', narrow && (railOpen || (paneOpen && (!page || pill)))); dc.classList.toggle('text', page);
-  dc.textContent = page ? '◂ Map' : '✕'; dc.setAttribute('aria-label', page ? 'Back to the map' : 'Close panel');
+  dc.textContent = page ? '◂ Map' : '✕'; dc.setAttribute('aria-label', page ? 'Back to the map outline' : 'Close panel');
 }
 function closeRailDrawer(r){ if(isNarrow()){ r.classList.remove('open'); syncScrim(); } }
 // Crossing the narrow width swaps drawers for panes: drop drawer state when

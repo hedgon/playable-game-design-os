@@ -39,8 +39,16 @@ const ROUTES_IN_PAGE = () => {
 // Node labels on the map that the stage edge cuts off (horizontally), for nodes in view.
 const CUT_LABELS = () => {
   const w = document.getElementById('mapwrap').getBoundingClientRect(), cut = [];
-  for (const t of document.querySelectorAll('#mapsvg .node .lbl')) { const r = t.getBoundingClientRect(); if (r.right > w.left && r.left < w.right && r.top < w.bottom && r.bottom > w.top && (r.left < w.left - 1 || r.right > w.right + 1)) cut.push(t.textContent.trim().slice(0, 30)); }
+  // a selected topic's leaves may run on past the far edge of a stage that is too narrow for them (the topic stays in view and the reader pans); every other card is whole or wholly out
+  for (const t of document.querySelectorAll('#mapsvg .node:not(.leaf) .lbl')) { const r = t.getBoundingClientRect(); if (r.right > w.left && r.left < w.right && r.top < w.bottom && r.bottom > w.top && (r.left < w.left - 1 || r.right > w.right + 1)) cut.push(t.textContent.trim().slice(0, 30)); }
   return cut;
+};
+// The map camera as drawn, and the widest the old clamp allowed (three times the fitted tree; the label floor stops a zoom-out well before that).
+const MAP_VB = () => {
+  const svg = document.getElementById('mapsvg'), v = svg.viewBox.baseVal; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const r of svg.querySelectorAll('.disc')) { const x = +r.getAttribute('x'), y = +r.getAttribute('y'), w = +r.getAttribute('width'), h = +r.getAttribute('height'); x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + w); y1 = Math.max(y1, y + h); }
+  let w = x1 - x0 + 80; const h = y1 - y0 + 80; if (w / h < 1.18) w = h * 1.18;
+  return { x: v.x, y: v.y, w: v.width, h: v.height, maxW: w * 3 };
 };
 const MAP_LABEL_PX = () => {
   const svg = document.getElementById('mapsvg'), r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal, scale = Math.min(r.width / vb.width, r.height / vb.height);
@@ -55,7 +63,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
   await new Promise(r => server.listen(0, r));
   const base = `http://localhost:${server.address().port}/`;
   const browser = await chromium.launch(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {});
-  const failures = []; let visits = 0;
+  const failures = [], notes = []; let visits = 0;   // notes are observations, they never fail the run
   for (const [w, h] of [[375, 812], [1024, 768], [1440, 900]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } });
     const page = await ctx.newPage();
@@ -362,8 +370,338 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     if (errors.length) failures.push('cross-links page errors: ' + errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
+  // Map interaction, at desktop and phone width: keyboard travel, wheel zoom and
+  // its clamp, dragging a node (kept after a reload), the fit / reset buttons,
+  // the lens switch, the project map's camera, rapid route changes, and reduced
+  // motion. It also covers the tree (roles, one Tab stop, ARIA arrow keys, live
+  // announcements, groups), the label floor under zoom, the selected topic staying
+  // in view, dimmed-leaf contrast, the focus ring, and the phone outline. Below 700px
+  // the canvas is not drawn, so those tests read the outline instead.
+  for (const [w, h] of [[1440, 900], [375, 812]]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+    const tag = `${w}px map`;
+    const fail = m => failures.push(`${tag}: ${m}`);
+    const hash = () => page.evaluate(() => location.hash);
+    const goto = async r => { await page.evaluate(x => { location.hash = x; }, r); await page.waitForTimeout(750); };
+    const vb = () => page.evaluate(MAP_VB);
+    // the map's own buttons, pressed in the page: on a phone a content pane can sit over them
+    const press = id => page.evaluate(i => document.getElementById(i).click(), id);
+    await page.goto(base + '#/map/home'); await page.evaluate(() => localStorage.setItem('playable.hideMap', 'false'));
+    await page.reload(); await page.waitForTimeout(800);
+    const D = await page.evaluate(() => ({ doms: DOMAINS.map(d => d.id), lenses: LENSES.map(l => [l[0], l[2]]), cs: CASE_STUDIES[0].id, sys: CASE_STUDIES[0].systems[0].id, path: PATHS[0].id, stage: PATHS[0].stages[0].id }));
+
+    // -- the tree: roles and names on the map (or the outline on a phone), the zoom buttons' names
+    const canvas = w > 700, ROOT = canvas ? '#mapsvg' : '#mapoutline', ITEM = ROOT + ' [role="treeitem"]';
+    const live = () => page.evaluate(() => document.getElementById('maplive').textContent);
+    {
+      const t = await page.evaluate(([root, item]) => {
+        const r = document.querySelector(root), items = [...document.querySelectorAll(item)];
+        return { role: r.getAttribute('role'), tabindex: r.getAttribute('tabindex'), n: items.length, bad: items.filter(n => !(+n.getAttribute('aria-level') >= 1) || !(+n.getAttribute('aria-setsize') >= 1) || !(+n.getAttribute('aria-posinset') >= 1) || !n.getAttribute('aria-label') || !n.hasAttribute('aria-selected')).length,
+          names: ['mapZoomIn', 'mapZoomOut', 'mapFit', 'mapResetDrag'].map(id => document.getElementById(id).getAttribute('aria-label')), liveRole: document.getElementById('maplive').getAttribute('aria-live') };
+      }, [ROOT, ITEM]);
+      if (t.role !== 'tree' || !t.n || t.bad) fail('tree roles ' + JSON.stringify(t));
+      if (canvas && t.tabindex !== '-1') fail('the drawing itself must not take a Tab stop (tabindex ' + t.tabindex + ')');
+      if (t.names.join('|') !== 'Zoom in|Zoom out|Fit map|Reset layout') fail('zoom buttons are named ' + JSON.stringify(t.names));
+      if (t.liveRole !== 'polite') fail('no polite live region for map announcements');
+    }
+
+    // -- keyboard: Tab into the tree (one tab stop), the ARIA tree keys, Enter keeps focus in the map
+    await page.evaluate(() => { document.activeElement && document.activeElement.blur(); document.body.focus(); });
+    const stops = await page.evaluate(s => document.querySelectorAll(s + '[tabindex="0"]').length, ITEM);
+    if (stops !== 1) fail(`${stops} tab stops in the map (need exactly 1)`);
+    let inMap = false;
+    let mapStops = 0;   // Tab presses that land inside the map before an item has focus (the drawing itself, if it takes a stop)
+    for (let i = 0; i < 120 && !inMap; i++) { await page.keyboard.press('Tab'); const at = await page.evaluate(r => ({ inside: !!document.activeElement.closest(r), node: !!document.activeElement.closest('[role="treeitem"]') }), ROOT); if (at.inside && !at.node) mapStops++; inMap = at.inside && at.node; }
+    if (mapStops) fail(`${mapStops} Tab stop(s) in the map before the first item (need none)`);
+    if (!inMap) fail('Tab never reached the map');
+    else {
+      const key = () => page.evaluate(() => document.activeElement.dataset.key || '');
+      const state = () => page.evaluate(([root, item]) => ({ hash: location.hash, inMap: !!document.activeElement.closest(root), tabStops: document.querySelectorAll(item + '[tabindex="0"]').length, expanded: document.activeElement.getAttribute('aria-expanded'), open: [...document.querySelectorAll(item + '.domain.open')].map(n => n.dataset.key) }), [ROOT, ITEM]);
+      const keys = await page.evaluate(s => [...document.querySelectorAll(s)].map(n => n.dataset.key), ITEM);
+      await page.keyboard.press('Home'); const home = await key();
+      if (home !== keys[0] || home !== 'c') fail(`Home moved focus to "${home}", not the first item "${keys[0]}"`);
+      await page.keyboard.press('End'); const last = await key();
+      if (last !== keys[keys.length - 1]) fail(`End moved focus to "${last}", not the last item "${keys[keys.length - 1]}"`);
+      await page.keyboard.press('Home'); await page.keyboard.press('ArrowDown');
+      if (await key() !== keys[1]) fail(`ArrowDown from the first item reached "${await key()}", not the next in reading order "${keys[1]}"`);
+      await page.keyboard.press('ArrowUp');
+      if (await key() !== keys[0]) fail('ArrowUp did not return to the first item');
+      // Right from the goal steps into a branch (a canvas whose branches also sit on the left uses Left for those)
+      let fwd = 'ArrowRight', back = 'ArrowLeft';
+      await page.keyboard.press(fwd); let k1 = await key();
+      if (!k1.startsWith('d:')) { await page.keyboard.press('Home'); await page.keyboard.press(back); k1 = await key(); fwd = 'ArrowLeft'; back = 'ArrowRight'; }
+      if (!k1.startsWith('d:')) fail(`arrow keys from the goal reached "${k1}", not a domain`);
+      await page.keyboard.press('ArrowDown'); const k2 = await key();
+      await page.keyboard.press('ArrowUp'); const k3 = await key();
+      if (k2 === k1 || k3 !== k1) fail(`ArrowDown/ArrowUp from ${k1} went to "${k2}" then "${k3}"`);
+      // toward the children opens a closed branch: the route follows, focus stays, the state and the live region say so
+      const before = k1;
+      await page.keyboard.press(fwd); await page.waitForTimeout(800);
+      const opened = await state();
+      if (!opened.hash.startsWith('#/map/d/')) fail(`${fwd} on ${before} left the route at ${opened.hash}`);
+      if (!opened.inMap) fail('after opening a branch by key, focus left the map');
+      if (opened.tabStops !== 1) fail(`${opened.tabStops} tab stops after opening a branch (need exactly 1)`);
+      if (opened.expanded !== 'true' || !opened.open.includes(before)) fail(`${fwd} on ${before} did not expand it (aria-expanded ${opened.expanded}; open: ${opened.open.join(',') || 'none'})`);
+      if (!/^Expanded /.test(await live())) fail(`opening ${before} was not announced: "${await live()}"`);
+      // ... again steps into the first topic; the other way steps back out, then closes
+      await page.keyboard.press(fwd); const child = await key();
+      if (!child.startsWith('t:')) fail(`${fwd} inside an open domain reached "${child}", not a topic`);
+      await page.keyboard.press(back);
+      if (await key() !== before) fail(`${back} from a topic did not return to its domain ${before}`);
+      await page.keyboard.press(back); await page.waitForTimeout(800);
+      const closed = await state();
+      if (closed.hash !== '#/map/home' || closed.expanded !== 'false' || closed.open.length) fail(`${back} on an open domain did not close it: ${JSON.stringify(closed)}`);
+      if (!/^Collapsed /.test(await live())) fail(`closing ${before} was not announced: "${await live()}"`);
+      await page.keyboard.press(back);
+      if (await key() !== 'c') fail(`${back} on a closed top-level branch did not step out to the goal`);
+      // Enter opens as well, and keeps focus in the map
+      await page.keyboard.press(fwd); await page.keyboard.press('Enter'); await page.waitForTimeout(800);
+      const entered = await state();
+      if (!entered.hash.startsWith('#/map/d/') || !entered.inMap || entered.tabStops !== 1) fail(`Enter on a domain: ${JSON.stringify(entered)}`);
+    }
+    if (errors.length) fail('page error during keyboard travel: ' + errors[0]);
+
+    if (canvas) {
+    // -- wheel zoom stays inside its clamp; fit restores the framing
+    await goto('#/map/home');
+    await press('mapFit'); await page.waitForTimeout(700);
+    const fit0 = await vb();
+    const wrapBox = await page.evaluate(() => { const r = document.getElementById('mapwrap').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    await page.mouse.move(wrapBox.x, wrapBox.y);
+    for (let i = 0; i < 60; i++) await page.mouse.wheel(0, -120);
+    await page.waitForTimeout(150);
+    const zin = await vb();
+    if (!(zin.w < fit0.w * 0.5)) fail(`wheel-in barely zoomed (${fit0.w.toFixed(0)} to ${zin.w.toFixed(0)})`);
+    if (zin.w < 119.5) fail(`wheel-in went past the clamp: viewBox ${zin.w.toFixed(1)} wide (minimum 120)`);
+    for (let i = 0; i < 90; i++) await page.mouse.wheel(0, 120);
+    await page.waitForTimeout(150);
+    const zout = await vb();
+    if (zout.w < fit0.w - 1) fail(`wheel-out shrank the view (${fit0.w.toFixed(0)} to ${zout.w.toFixed(0)})`);
+    if (zout.w > zout.maxW + 1) fail(`wheel-out went past the clamp: viewBox ${zout.w.toFixed(0)} wide (maximum ${zout.maxW.toFixed(0)})`);
+    // the zoom floor: no wheel or button gesture draws labels under 11px
+    { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail(`labels are ${px.min.toFixed(1)}px at the furthest wheel zoom-out (need 11 or more)`); }
+    for (let i = 0; i < 30; i++) await press('mapZoomOut');
+    { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail(`labels are ${px.min.toFixed(1)}px after the zoom-out button (need 11 or more)`); }
+    await press('mapFit'); await page.waitForTimeout(700);
+    const fit1 = await vb();
+    if (Math.abs(fit1.w - fit0.w) > 1) fail(`Fit did not restore the framing after zooming (${fit0.w.toFixed(0)} then ${fit1.w.toFixed(0)})`);
+
+    // -- drag a node; the offset is saved and survives a reload; the drag button resets it
+    // the overview always re-frames on load (a saved zoom is not restored on #/map/home): after a reload the framing is the fitted one
+    await goto('#/map/d/' + D.doms[0]); await goto('#/map/home');
+    const hfit = await vb();
+    await page.mouse.move(wrapBox.x, wrapBox.y); for (let i = 0; i < 3; i++) await page.mouse.wheel(0, -120);
+    await page.waitForTimeout(200);
+    await page.reload(); await page.waitForTimeout(1000);
+    const hz2 = await vb();
+    if (Math.abs(hz2.w - hfit.w) > 1) fail(`the overview came back ${hz2.w.toFixed(0)} wide after a reload, a fresh visit frames ${hfit.w.toFixed(0)}`);
+    await goto('#/map/home');
+    const pick = () => page.evaluate(() => {
+      const w = document.getElementById('mapwrap').getBoundingClientRect();
+      for (const n of document.querySelectorAll('#mapsvg .node.domain')) { const r = n.querySelector('.disc').getBoundingClientRect(); if (r.left > w.left + 5 && r.right < w.right - 5 && r.top > w.top + 5 && r.bottom < w.bottom - 45) return { key: n.dataset.key, x: r.x + r.width / 2, y: r.y + r.height / 2 }; }
+      return null;
+    });
+    const nodePos = key => page.evaluate(k => { const r = document.querySelector('#mapsvg .node[data-key="' + k + '"] .disc'); return r && { x: +r.getAttribute('x'), y: +r.getAttribute('y') }; }, key);
+    const target = await pick();
+    if (!target) fail('no domain node fully in view to drag');
+    else {
+      const p0 = await nodePos(target.key);
+      await page.mouse.move(target.x, target.y); await page.mouse.down();
+      await page.mouse.move(target.x + 30, target.y + 12, { steps: 4 }); await page.mouse.move(target.x + 60, target.y + 30, { steps: 4 }); await page.mouse.up();
+      await page.waitForTimeout(200);
+      const p1 = await nodePos(target.key);
+      if (!p1 || (Math.abs(p1.x - p0.x) < 1 && Math.abs(p1.y - p0.y) < 1)) fail(`dragging ${target.key} did not move it`);
+      if (await hash() !== '#/map/home') fail(`dragging ${target.key} also opened it (route ${await hash()})`);
+      const saved = await page.evaluate(k => { const s = JSON.parse(localStorage.getItem('playable.mapState') || '{}'); return !!(s.off && s.off[k]); }, target.key);
+      if (!saved) fail(`the drag of ${target.key} was not saved`);
+      await page.reload(); await page.waitForTimeout(900);
+      const p2 = await nodePos(target.key);
+      if (!p2 || Math.abs(p2.x - p1.x) > 0.5 || Math.abs(p2.y - p1.y) > 0.5) fail(`${target.key} came back at ${JSON.stringify(p2)} after a reload, dragged to ${JSON.stringify(p1)}`);
+      await press('mapResetDrag'); await page.waitForTimeout(300);
+      const p3 = await nodePos(target.key);
+      if (!p3 || Math.abs(p3.x - p0.x) > 0.5 || Math.abs(p3.y - p0.y) > 0.5) fail(`the drag reset button left ${target.key} at ${JSON.stringify(p3)}, tidy is ${JSON.stringify(p0)}`);
+      if (await page.evaluate(() => Object.keys((JSON.parse(localStorage.getItem('playable.mapState') || '{}').off) || {}).length)) fail('the drag reset button left offsets in storage');
+    }
+
+    }
+    // -- default reset: from an open domain back to the overview
+    await goto('#/map/d/' + D.doms[0]);
+    await press('mapResetDefault'); await page.waitForTimeout(800);
+    if (await hash() !== '#/map/home') fail(`the default button led to ${await hash()}, not #/map/home`);
+    if (await page.evaluate(() => document.querySelectorAll('#mapsvg .node.domain.open').length)) fail('the default button left a domain open');
+
+    // -- lens switch: the other lens draws its own domains and centre, and is remembered
+    for (const [lid, goal] of D.lenses.slice().reverse()) {
+      await page.evaluate(l => document.querySelector('[data-action="lens"][data-lens="' + l + '"]').click(), lid); await page.waitForTimeout(800);
+      const got = await page.evaluate(() => ({ centre: (document.querySelector('#mapsvg .node.center') || { getAttribute: () => '' }).getAttribute('aria-label'), doms: document.querySelectorAll('#mapsvg .node.domain').length, saved: JSON.parse(localStorage.getItem('playable.mapState') || '{}').lens, hash: location.hash }));
+      const want = await page.evaluate(l => DOMAINS.filter(d => d.lens === l).length, lid);
+      if (got.doms !== want || !got.centre || !got.centre.includes(goal) || got.saved !== lid || got.hash !== '#/map/home') fail(`lens ${lid}: ${JSON.stringify(got)}, expected ${want} domains and the goal "${goal}"`);
+      if (canvas) { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail(`lens ${lid}: labels ${px.min.toFixed(1)}px after the switch`); }
+    }
+    await page.evaluate(l => document.querySelector('[data-action="lens"][data-lens="' + l + '"]').click(), D.lenses[0][0]); await page.waitForTimeout(700);
+
+    // -- project map: own camera, saved under its own key, restored after a reload
+    await goto('#/experience/' + D.cs + '/' + D.sys);
+    const pm = await page.evaluate(() => ({ scope: [...document.querySelectorAll('#mapsvg .node')].every(n => n.dataset.scope === 'project'), n: document.querySelectorAll('#mapsvg .node').length }));
+    if (!pm.n || !pm.scope) fail('project route does not draw the project map ' + JSON.stringify(pm));
+    if (canvas) {
+    const pl = await page.evaluate(MAP_LABEL_PX);
+    if (pl.min < 10.9) fail(`project map labels ${pl.min.toFixed(1)}px (need 11)`);
+    const pb = await page.evaluate(() => { const r = document.getElementById('mapwrap').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    await page.mouse.move(pb.x, pb.y); for (let i = 0; i < 4; i++) await page.mouse.wheel(0, -120);
+    await page.waitForTimeout(500);   // the camera is written once the gesture settles
+    const pv1 = await vb();
+    const stored = await page.evaluate(id => (JSON.parse(localStorage.getItem('playable.projMap.' + id) || '{}').vb || null), D.cs);
+    if (!stored || Math.abs(stored.w - pv1.w) > 0.5) fail(`the project camera was not saved under projMap (${JSON.stringify(stored)} vs ${pv1.w})`);
+    const domainCam = await page.evaluate(() => (JSON.parse(localStorage.getItem('playable.mapState') || '{}').vb || {}).w);
+    if (domainCam && Math.abs(domainCam - pv1.w) < 0.01) fail('the project map wrote its camera into the guide map state');
+    await page.reload(); await page.waitForTimeout(900);
+    const pv2 = await vb();
+    // the project map re-centres on the open system at the saved zoom, so the size may grow to keep the branch in view; what must hold is a readable, populated view
+    const pp = await page.evaluate(MAP_LABEL_PX);
+    if (!pp.inView || pp.min < 10.9) fail(`the project map after a reload: labels ${pp.min.toFixed(1)}px, node in view ${pp.inView} (camera was ${pv1.w.toFixed(0)} wide, is ${pv2.w.toFixed(0)})`);
+    }
+    await press('mapResetDefault'); await page.waitForTimeout(700);
+    if (await hash() !== '#/experience/' + D.cs) fail(`the default button on a project map led to ${await hash()}`);
+
+    // -- rapid route changes while the camera animates: last route wins, no error
+    errors.length = 0;
+    const seq = ['#/map/d/' + D.doms[0], '#/map/t/core-loop/overview', '#/map/home', '#/experience/' + D.cs + '/' + D.sys, '#/map/d/' + D.doms[1], '#/paths/' + D.path + '/' + D.stage, '#/map/t/decisions/overview', '#/map/d/' + D.doms[2]];
+    for (const r of seq) { await page.evaluate(x => { location.hash = x; }, r); await page.waitForTimeout(60); }
+    await page.waitForTimeout(1000);
+    const end = await page.evaluate(() => ({ hash: location.hash, open: [...document.querySelectorAll('#mapsvg .node.domain.open')].map(n => n.dataset.key), nodes: document.querySelectorAll('#mapsvg .node').length }));
+    if (end.hash !== seq[seq.length - 1] || !end.open.includes('d:' + D.doms[2])) fail(`after 8 quick route changes: ${JSON.stringify(end)}`);
+    if (errors.length) fail('page error during rapid route changes: ' + errors[0]);
+    if (canvas) { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9 || !px.inView) fail(`after rapid route changes labels are ${px.min.toFixed(1)}px, in view: ${px.inView}`); }
+
+    // -- a topic's neighbourhood: groups open in place; on the canvas the selected topic stays in view and hovered leaves keep readable words
+    await goto('#/map/t/scope-control/overview');
+    {
+      const groups = await page.evaluate(([root, item]) => [...document.querySelectorAll(item + '[data-kind="group"]')].map(n => ({ key: n.dataset.key, expanded: n.getAttribute('aria-expanded') })), [ROOT, ITEM]);
+      const closedG = groups.find(g => g.expanded === 'false');
+      if (!groups.length) fail('a topic with many leaves shows no group (data-kind="group")');
+      else if (!closedG) fail('no group starts collapsed with aria-expanded="false"');
+      else {
+        const count = () => page.evaluate(s => document.querySelectorAll(s).length, ITEM);
+        const nb = await count();
+        await page.evaluate(([k, canv, root]) => { const n = document.querySelector(root + ' [data-key="' + CSS.escape(k) + '"]'); (canv ? n : n.querySelector(':scope > .oi-row')).dispatchEvent(new MouseEvent('click', { bubbles: true })); }, [closedG.key, canvas, ROOT]);
+        await page.waitForTimeout(600);
+        if (await count() <= nb) fail('opening a group did not add its leaves');
+        if (!/^Expanded /.test(await live())) fail(`opening a group was not announced: "${await live()}"`);
+      }
+    }
+    if (canvas) {
+      // the selected topic is whole inside the stage at 1440, 1280 and 1024 wide, for the topics with the widest neighbourhoods
+      for (const [vw, vh] of [[1440, 900], [1280, 800], [1024, 768]]) {
+        await page.setViewportSize({ width: vw, height: vh }); await page.waitForTimeout(500);
+        for (const t of ['scope-control', 'core-loop', 'economy-and-resources']) {
+          await goto('#/map/home'); await goto('#/map/t/' + t + '/overview');
+          const v = await page.evaluate(() => { const wr = document.getElementById('mapwrap').getBoundingClientRect(), s = document.querySelector('#mapsvg .node.sel .disc'); if (!s) return null; const r = s.getBoundingClientRect(); return { l: r.left - wr.left, r: wr.right - r.right, t: r.top - wr.top, b: wr.bottom - r.bottom, wrapW: wr.width }; });
+          if (!v) fail(`${t} at ${vw}px: no selected topic node`);
+          else if (v.wrapW > 50 && Math.min(v.l, v.r, v.t, v.b) < -0.5) fail(`${t} at ${vw}px: the selected topic is cut by the stage edge ${JSON.stringify(v)}`);
+        }
+      }
+      await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(500);
+      await goto('#/map/t/scope-control/overview');
+      // hover a leaf with a reason: one note (no tooltip over it), and the faded cards keep 4.5:1 for their words, in both themes
+      const CONTRAST = () => {
+        const cv = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        const rgba = c => { cv.clearRect(0, 0, 1, 1); cv.fillStyle = '#000'; cv.fillStyle = c; cv.fillRect(0, 0, 1, 1); const d = cv.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+        const over = (fg, bg) => [0, 1, 2].map(i => fg[i] * fg[3] + bg[i] * (1 - fg[3]));
+        const lum = c => { const v = c.map(x => x / 255).map(x => x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+        const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+        const panel = rgba(getComputedStyle(document.getElementById('mapwrap')).backgroundColor), svg = document.getElementById('mapsvg');
+        let min = 99, n = 0;
+        for (const node of svg.querySelectorAll('.node:not(.hl):not(.center)')) {
+          const disc = node.querySelector('.disc'), lbl = node.querySelector('.lbl'); if (!disc || !lbl) continue;
+          const d = rgba(getComputedStyle(disc).fill), op = parseFloat(getComputedStyle(disc).opacity) * parseFloat(getComputedStyle(node).opacity);
+          const card = over([d[0], d[1], d[2], d[3] * op], panel), text = over([...rgba(getComputedStyle(lbl).fill).slice(0, 3), parseFloat(getComputedStyle(node).opacity)], panel);
+          min = Math.min(min, ratio(text, card)); n++;
+        }
+        const ring = svg.querySelector('.node:focus-visible .fring');
+        return { min, n, dimmed: svg.classList.contains('dimmed'), ring: ring ? { shown: getComputedStyle(ring).display !== 'none', width: parseFloat(getComputedStyle(ring).strokeWidth), ratio: ratio(rgba(getComputedStyle(ring).stroke).slice(0, 3), panel) } : null };
+      };
+      for (const scheme of ['light', 'dark']) {
+        await page.emulateMedia({ colorScheme: scheme }); await page.waitForTimeout(300);
+        const leaf = await page.evaluate(() => { const l = [...document.querySelectorAll('#mapsvg .node.leaf')].find(x => x.dataset.why); if (!l) return null; const r = l.querySelector('.disc').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+        if (!leaf) { fail('no leaf with a reason to hover'); break; }
+        await page.mouse.move(leaf.x, leaf.y); await page.waitForTimeout(300);
+        const hv = await page.evaluate(() => ({ notes: document.querySelectorAll('#mapsvg .whynote').length, tip: !document.getElementById('maptip').hidden }));
+        if (hv.notes !== 1) fail(`hovering a leaf with a reason shows ${hv.notes} notes (${scheme})`);
+        if (hv.tip) fail(`the tooltip is shown over the note (${scheme})`);
+        const c = await page.evaluate(CONTRAST);
+        if (!c.dimmed || !c.n) fail(`hover did not fade the other cards (${scheme}) ${JSON.stringify(c)}`);
+        else if (c.min < 4.5) fail(`faded cards drop to ${c.min.toFixed(2)}:1 for their words (${scheme}; need 4.5)`);
+        await page.mouse.move(2, 2); await page.waitForTimeout(200);
+        // the focus ring on the first item: drawn, and 3:1 against the stage
+        await page.evaluate(() => { document.querySelector('#mapsvg .node.sel').focus(); });
+        await page.keyboard.press('ArrowDown'); await page.waitForTimeout(200);
+        const rg = (await page.evaluate(CONTRAST)).ring;
+        if (!rg || !rg.shown || rg.width < 2) fail(`no focus ring on a keyboard-focused node (${scheme}) ${JSON.stringify(rg)}`);
+        else if (rg.ratio < 3) fail(`the focus ring is ${rg.ratio.toFixed(2)}:1 against the stage (${scheme}; need 3)`);
+      }
+      await page.emulateMedia({ colorScheme: null });
+    }
+
+    // -- the phone outline: the same tree as a list, groups with counts, read marks, next unread, 44px rows, and the routes
+    if (!canvas) {
+      await goto('#/map/home');
+      const ol = await page.evaluate(() => {
+        const o = document.getElementById('mapoutline'), svg = document.getElementById('mapsvg'), rows = [...o.querySelectorAll('.oi-row')];
+        const small = rows.slice(0, 20).filter(r => r.getBoundingClientRect().height < 43.5).length;
+        const next = document.getElementById('mapNext');
+        return { shown: getComputedStyle(o).display !== 'none', svgShown: getComputedStyle(svg).display !== 'none', rows: rows.length, small, doms: o.querySelectorAll('li[data-kind="domain"]').length, domsWant: DOMAINS.filter(d => d.lens === LENSES[0][0]).length,
+          counts: [...o.querySelectorAll('li[data-kind="domain"] .oi-sub')].filter(s => /\d+ of \d+ read/.test(s.textContent)).length, unread: o.querySelectorAll('.rd-o').length, next: !!next && !next.hidden && /Next unread/.test(next.textContent), wrapsAll: o.scrollWidth <= o.clientWidth + 1 };
+      });
+      if (!ol.shown || ol.svgShown) fail('phone: the outline must show and the canvas must not ' + JSON.stringify(ol));
+      if (ol.doms !== ol.domsWant) fail(`phone outline lists ${ol.doms} domains, the lens has ${ol.domsWant}`);
+      if (ol.small) fail(`phone outline: ${ol.small} rows are under 44px tall`);
+      if (ol.counts !== ol.doms) fail(`phone outline: ${ol.counts} of ${ol.doms} domains show their read count`);
+      if (!ol.next) fail('phone outline: no "Next unread" button');
+      if (!ol.wrapsAll) fail('phone outline scrolls sideways');
+      // expand a group of the outline: a domain opens in place, and the route follows
+      const dom = await page.evaluate(() => document.querySelector('#mapoutline li[data-kind="domain"]').dataset.id);
+      await page.click('#mapoutline li[data-kind="domain"] > .oi-row'); await page.waitForTimeout(800);
+      const ex = await page.evaluate(() => { const li = document.querySelector('#mapoutline li[data-kind="domain"]'), topics = li.querySelectorAll('li[data-kind="topic"]'), o = document.getElementById('mapoutline'), r = li.getBoundingClientRect(), b = o.getBoundingClientRect(); return { hash: location.hash, expanded: li.getAttribute('aria-expanded'), topics: topics.length, want: DOMAINS.find(d => d.id === li.dataset.id).topics.length, inView: r.top < b.bottom && r.bottom > b.top, live: document.getElementById('maplive').textContent }; });
+      if (ex.hash !== '#/map/d/' + dom || ex.expanded !== 'true' || ex.topics !== ex.want || !ex.inView) fail('phone outline: opening a domain ' + JSON.stringify(ex));
+      if (!/^Expanded /.test(ex.live)) fail(`phone outline: opening a domain was not announced "${ex.live}"`);
+      // open a topic: it becomes a page, selected in the outline, and the way back shows it in view
+      const tid = await page.evaluate(() => document.querySelector('#mapoutline li[data-kind="topic"]').dataset.id);
+      await page.click('#mapoutline li[data-kind="topic"] > .oi-row'); await page.waitForTimeout(900);
+      const pg = await page.evaluate(() => ({ hash: location.hash, pane: document.getElementById('pane').classList.contains('open'), sel: [...document.querySelectorAll('#mapoutline [aria-selected="true"]')].map(n => n.dataset.id), back: document.getElementById('drawerClose').textContent, backLabel: document.getElementById('drawerClose').getAttribute('aria-label') }));
+      if (pg.hash !== '#/map/t/' + tid || !pg.pane || pg.sel.join() !== tid) fail('phone outline: opening a topic ' + JSON.stringify(pg));
+      if (!/Map/.test(pg.back) || !/outline/.test(pg.backLabel || '')) fail(`the back button on a phone reads "${pg.back}" / "${pg.backLabel}"`);
+      await page.evaluate(() => document.getElementById('drawerClose').click()); await page.waitForTimeout(500);
+      const back = await page.evaluate(() => { const li = document.querySelector('#mapoutline [aria-selected="true"]'), o = document.getElementById('mapoutline'), r = li.querySelector(':scope > .oi-row').getBoundingClientRect(), b = o.getBoundingClientRect(); return { shown: getComputedStyle(o).display !== 'none' && o.getBoundingClientRect().width > 0, inView: r.top >= b.top - 1 && r.bottom <= b.bottom + 1, groups: o.querySelectorAll('li[data-kind="group"]').length }; });
+      if (!back.shown || !back.inView) fail('phone outline: the selected topic is not in view on returning ' + JSON.stringify(back));
+    }
+    await ctx.close();
+  }
+  // Reduced motion: the camera moves in one step and CSS transitions are cut.
+  {
+    const probe = async reduce => {
+      const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: reduce ? 'reduce' : 'no-preference' });
+      const page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+      await page.goto(base + '#/map/home'); await page.evaluate(() => localStorage.setItem('playable.hideMap', 'false')); await page.reload(); await page.waitForTimeout(900);
+      // count the camera writes after the route change: an animation writes the viewBox every frame, an immediate move writes it once or twice (the stage refit)
+      const writes = await page.evaluate(() => new Promise(res => { let n = 0; const svg = document.getElementById('mapsvg'); const mo = new MutationObserver(() => { n++; }); mo.observe(svg, { attributes: true, attributeFilter: ['viewBox'] }); location.hash = '#/map/t/scope-control/overview'; setTimeout(() => { mo.disconnect(); res(n); }, 1200); }));
+      const tr = await page.evaluate(() => getComputedStyle(document.querySelector('#mapsvg .edge')).transitionDuration);
+      await ctx.close();
+      return { writes, tr, errors };
+    };
+    const r = await probe(true), c = await probe(false);
+    if (r.writes > 3) failures.push(`reduced motion: the camera was written ${r.writes} times after a route change (an animation), expected at most 3`);
+    if (parseFloat(r.tr) > 0.001) failures.push(`reduced motion: edges still transition (${r.tr})`);
+    if (c.writes < 5) failures.push(`reduced motion test is not meaningful: with motion on the camera was written only ${c.writes} times`);
+    if (r.errors.length) failures.push('reduced motion: page error ' + r.errors[0]);
+  }
   await browser.close(); server.close();
   console.log(`smoke: ${visits} route visits at 4 widths; failures: ${failures.length}`);
   failures.slice(0, 40).forEach(f => console.log('  ' + f));
+  notes.forEach(n => console.log('  note: ' + n));
   process.exit(failures.length ? 1 : 0);
 })().catch(e => { console.error(e); server.close(); process.exit(1); });

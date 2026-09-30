@@ -30,7 +30,7 @@ It sits beside the reading pane on desktop. Since the UX review, topic pages ope
 | M1 | Learner and research audit: purpose, usefulness against evidence on concept maps and graph views, task-based tests at 1440, 1920 and 375 px, visual quality, accessibility, performance, integration | done | verdict: worth changing; 14 findings in [findings-map-ux.md](findings-map-ux.md) |
 | M2 | Engineering audit: data model, layout, camera and interaction code, bugs, performance, test coverage, dead code | done | 14 findings, 0 high; fast and leak-free; details in [findings-map-code.md](findings-map-code.md) |
 | M3 | Verdict and decisions: keep, change or reduce, with a debate if unclear | done | below |
-| M4 | Fixes, reviewed | doing | MA: connections, progress, fit, legend (map code); then MB: phone outline, accessibility, engineering fixes; MT (tests and checker) alongside |
+| M4 | Fixes, reviewed | doing | MA, MT and MB landed and committed (see commit); independent review and a learner re-check running |
 | V1 | Checks, CI replay, a learner re-check, archive | todo | |
 
 ## Verdict and decisions (M3)
