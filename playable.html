@@ -64,7 +64,6 @@ h1[tabindex="-1"]:focus{outline:none}
 .subnav a{padding:5px 10px;border-radius:var(--r3);color:var(--fg2);font-weight:600;font-size:.85rem}
 .subnav a:hover{background:var(--bg3);color:var(--fg);text-decoration:none}
 .subnav a.active{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
-.nav-short{display:none}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -274,7 +273,7 @@ pre.snippet{white-space:pre;overflow-x:auto;border-left:3px solid var(--dc,var(-
 .mapwrap .node circle{transition:filter .15s}
 .mapwrap .node:hover circle.main{filter:brightness(1.15)}
 .mapwrap .node text{fill:var(--fg);font-weight:700;pointer-events:none;font-size:13px}
-.mapwrap .node text.sub{fill:var(--fg3);font-weight:500;font-size:10.5px}
+.mapwrap .node text.sub{fill:var(--fg3);font-weight:500;font-size:12px}
 .mapwrap .edge{stroke:var(--line2);stroke-width:1.2;opacity:.55;transition:opacity .15s,stroke-width .15s}
 .mapwrap .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
 .mapwrap .edge.dim{opacity:.12}
@@ -563,8 +562,16 @@ h4{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--fg
 nav.primary button{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border-radius:0;padding:9px 10px}
 nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(--accent);color:var(--accent)}
 /* phones: short group names and tighter padding so all six fit on one row (after the rule above, which sets padding) */
-@media (max-width:700px){ .nav-long{display:none} .nav-short{display:inline} nav.primary button{padding:7px 6px} }
-@media (max-width:420px){ nav.primary{justify-content:space-between} nav.primary button{padding:7px 3px;min-width:26px;font-size:.68rem;letter-spacing:.04em} }
+.nav-morebtn{display:none}
+@media (max-width:700px){
+  nav.primary{overflow:visible;justify-content:space-between}
+  nav.primary button{padding:7px 5px;font-size:.78rem;letter-spacing:.04em}
+  .nav-morebtn{display:block}
+  nav.primary .nav-extra{display:none}
+  nav.primary.more-open .nav-extra{display:block;position:absolute;right:10px;z-index:60;min-width:150px;min-height:44px;text-align:left;padding:10px 14px;background:var(--panel);border:1px solid var(--line2);box-shadow:var(--shadow)}
+  nav.primary.more-open .nav-extra:nth-of-type(6){top:calc(100% - 2px)}
+  nav.primary.more-open .nav-extra:nth-of-type(7){top:calc(100% + 42px)}
+}
 .searchbtn,.iconbtn{border-radius:2px}
 .tabs button{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border-radius:0}
 .pill-tabs button{border-radius:2px;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
@@ -704,7 +711,7 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .kgraph .node.topic .lbl.topic-lbl{font-weight:600}
 .kgraph .node.topic.active .lbl{font-weight:800}
 .kgraph .leaf-lbl{font-weight:600;fill:var(--fg2)}
-.kgraph .lbl.sub{font-size:9.5px}
+.kgraph .lbl.sub{font-size:12px}
 .topicnum{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);font-family:var(--mono);font-size:.66rem;color:var(--fg2);vertical-align:1px}
 .maptip{position:absolute;max-width:260px;background:var(--bg);border:1px solid var(--line2);border-radius:2px;padding:8px 10px;font-size:.8rem;line-height:1.35;pointer-events:none;box-shadow:4px 4px 0 var(--line2);z-index:5}
 .maptip b{display:block;margin-bottom:2px}
@@ -896,7 +903,9 @@ details.comp .body{padding-top:6px}
 .casesub{color:var(--fg2);font-size:.95rem;margin:0 0 8px}
 .card .casesub{font-size:.86rem;margin:2px 0 4px}
 /* ---------- persistent shell: index | mind map | content ---------- */
-.shell{display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--paneW,460px);align-items:start}
+.shell{--pw:var(--paneW,460px);display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--pw);align-items:start}
+/* a wide screen gives the reading pane a real column (about 690px at 1440) */
+@media (min-width:1300px){.shell.reading{--pw:var(--paneW,min(48vw,720px))}}
 .rail{position:sticky;top:74px;height:calc(100vh - 74px);overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel)}
 /* .splitter is the shell's drag divider; .split (above) is the two-column
    page layout used by Prompts, Explore and the tools. Keep them apart. */
@@ -907,7 +916,7 @@ details.comp .body{padding-top:6px}
 .mapbar .mapcrumbs{margin:0}
 .mapwrap{flex:1;min-height:0;border:0;border-radius:0;touch-action:none;cursor:grab;background:var(--panel)}
 .pane{min-width:0;padding:16px 20px 60px;overflow-x:clip}
-.hide-left{grid-template-columns:0 0 minmax(0,1fr) 6px var(--paneW,460px)}
+.hide-left{grid-template-columns:0 0 minmax(0,1fr) 6px var(--pw)}
 .hide-left #rail,.hide-left #splitL{display:none}
 .hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
 .hide-right #pane,.hide-right #splitR{display:none}
@@ -921,11 +930,14 @@ details.comp .body{padding-top:6px}
 /* Work views (tools, lists, diagnostics) have nothing to show on the map:
    on a wide screen the content takes the centre and the index stays. */
 @media (min-width:1101px){
-  .shell.work{grid-template-columns:var(--railW,300px) 6px 0 0 minmax(0,1fr)}
-  .shell.work.hide-left{grid-template-columns:0 0 0 0 minmax(0,1fr)}
-  .shell.work > .mapstage,.shell.work > #splitR{display:none}
-  .shell.work > #pane{display:block}
+  .shell.work,.shell.nomap{grid-template-columns:var(--railW,300px) 6px 0 0 minmax(0,1fr)}
+  .shell.work.hide-left,.shell.nomap.hide-left,.shell.work.norail{grid-template-columns:0 0 0 0 minmax(0,1fr)}
+  .shell.work > .mapstage,.shell.work > #splitR,.shell.nomap > .mapstage,.shell.nomap > #splitR{display:none}
+  .shell.work > #pane,.shell.nomap > #pane{display:block}
   .shell.work .view{max-width:1100px}
+  .shell.nomap .view{max-width:900px}
+  /* a section with no list of its own gives the column back */
+  .shell.norail > .rail,.shell.norail > #splitL{display:none}
 }
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 /* map lens: two segments, the pressed one filled */
@@ -977,11 +989,29 @@ details.comp .body{padding-top:6px}
 .railproj{display:block;text-decoration:none;color:var(--fg2);border-left:2px solid var(--line);padding:5px 8px;font-size:.86rem;line-height:1.25}
 .railproj:hover{color:var(--fg);background:var(--bg3);text-decoration:none}
 .railproj.active{border-left-color:var(--accent2);color:var(--fg);font-weight:700;background:var(--bg3)}
+.railsub{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin-top:1px}
+.smellgames{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:14px 0 4px;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--accent2);background:var(--panel)}
+.libteach{margin-bottom:6px}
+.mapwrap.fade-right{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent)}
+.libteach .chip{font-size:.66rem;padding:3px 7px}
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:8px}
+.toolcard{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px}
+.toolcard.start{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.toolcard-main{display:flex;flex-direction:column;gap:4px;color:var(--fg);text-decoration:none}
+.toolcard-main b{font-family:var(--display);font-stretch:92%;font-size:1.05rem}
+.toolcard-main .chip{align-self:flex-start}
+.toolwhen{margin:0}
+.toollinks{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:auto}
+.toolgroup{margin-bottom:8px}
+@media (min-width:1101px){.toolgroups{display:none}}
+.railfoot{margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.subnav .maptoggle{margin-left:auto;align-self:center}
 .railbtn{display:none}
 .scrim{display:none}
 .drawer-close{display:none}
 @media (max-width:1100px){
   .scrim.show{display:block;position:fixed;inset:var(--hdr,0px) 0 0 0;z-index:79;background:rgba(0,0,0,.45)}
+  .drawer-close.show.text{width:auto;border-radius:19px;padding:0 16px;font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase}
   .drawer-close.show{display:grid;place-items:center;position:fixed;top:calc(var(--hdr,0px) + 10px);right:10px;z-index:82;width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--fg);font-size:1rem;box-shadow:var(--shadow)}
 }
 /* horizontal mind-map nodes and edges */
@@ -1036,7 +1066,7 @@ details.comp .body{padding-top:6px}
 .symptom.more{border-left-color:var(--accent);color:var(--accent);text-decoration:none}
 /* ---------- learning paths ---------- */
 .pathbar{position:sticky;top:var(--barTop,74px);z-index:20;display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:var(--r2);padding:8px 12px;margin:0 0 14px}
-.pathbar-info{flex:1 1 auto;min-width:0;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pathbar-info{flex:1 1 220px;min-width:0;font-size:.88rem;overflow-wrap:anywhere}
 .pathbar-info b{font-family:var(--display);font-stretch:92%}
 .pathbar-actions{display:flex;gap:6px;flex-wrap:nowrap;flex:none}
 .pathbar-task{order:3;flex:1 0 100%;display:flex;gap:8px;align-items:baseline;font-size:.86rem;border-top:1px solid var(--line);padding-top:6px}
@@ -1076,7 +1106,7 @@ details.comp .body{padding-top:6px}
   .pane.open{transform:none}
   /* a work view (library, tools, lists) has nothing to show on the map, so
      its drawer takes the whole width instead of leaving a strip of map. */
-  .shell.work .pane{width:100vw;border-left:0}
+  .shell.work .pane,.shell.nomap .pane{width:100vw;border-left:0}
   /* every pixel the wrapper does not take is a pixel the chart renders at,
      and in the drawer the chart is already the widest thing on the page. */
   .flowwrap{padding:10px 2px}
@@ -1085,11 +1115,15 @@ details.comp .body{padding-top:6px}
   .pathbar-task.open .pt-text{display:block;overflow:visible}
   .pt-more{display:inline-flex}
   .pathbar-task{max-height:none}
-  .pathbar-info{white-space:nowrap}
+  .pathbar-info{flex:0 0 auto}
   .pathbar-actions{justify-content:flex-end}
   .pathstep input{width:22px;height:22px}
 }
-@media (max-width:700px){ .mapbar .mapcrumbs{display:none} }
+@media (max-width:700px){
+  .mapbar .mapcrumbs{display:none}
+  /* a topic or path is a page of its own here, with the map one tap away */
+  .pane{width:100vw;border-left:0}
+}
 </style>
 </head>
 <body>
@@ -1155,21 +1189,30 @@ details.comp .body{padding-top:6px}
    them used to keep its own copy.
    ===================================================================== */
 
-// [id, title, one-line pitch]. A path's 'tool' step refs an id; the Build
-// view lists them in this order.
+// [id, title, one-line pitch, use this when, motivating topic id]. A path's
+// 'tool' step refs an id; the Build view lists them by job (TOOL_GROUPS).
 const TOOLS = [
-  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it'],
-  ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded'],
-  ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check'],
-  ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not'],
-  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic'],
-  ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE'],
-  ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…'],
-  ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required'],
-  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated'],
-  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE'],
-  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view']
+  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it','You have a genre or a hunch, but no idea yet.','finding-an-idea'],
+  ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded','You have an idea and want to know whether it is good before you build it.','learning-from-success'],
+  ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check','Your idea is a list of features and you cannot tell whether it repeats.','core-loop'],
+  ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not','You need one page that says who it is for and what it should feel like.','core-experience'],
+  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic','Someone asks for a feature and you need the behavior it should cause.','feature-vs-experience'],
+  ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE','A feature is on the table and the team is about to commit.','scope-control'],
+  ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…','You are about to run a playtest and want it to settle a question.','hypothesis-driven-design'],
+  ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required','You are deciding which parts of the work to hand to an AI.','ai-roles'],
+  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated','Two systems touch and you suspect they collide.','systemic-design'],
+  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE','You are about to ask an AI for design help and want a prompt that gets a usable answer.','prompting-framework'],
+  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view','A character needs to decide things in play and you must pick a technique.','choosing-ai-technique']
 ];
+// The Build view groups the tools by job: [group id, title, tool ids]. The
+// one marked here is the tool to open first.
+const TOOL_GROUPS = [
+  ['shape','Shape an idea',['idea','canvas','ladder']],
+  ['test','Test an idea',['dissect','feature','hypothesis']],
+  ['systems','Systems',['loop','sysmap']],
+  ['ai','AI',['delegate','prompt','gameai']]
+];
+const TOOL_START = 'idea';
 
 // [id, tab label, full title]. The Diagnose view's tabs after "Design
 // smells", in this order; a path's 'diagnostic' step refs an id.
@@ -41216,7 +41259,7 @@ window.PlayableGraph = (function(){
   // tree spaces it like any other card.
   const fitLabels = n => {
     if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
-    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w, 9.5)); n.h += (n.subLines.length - 1) * lineGap(9.5); }
+    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w, 12)); n.h += (n.subLines.length - 1) * lineGap(12); }
     n.children.forEach(fitLabels);
   };
   // Longest label that fits the node's inner width. Derived from the same
@@ -41303,7 +41346,7 @@ window.PlayableGraph = (function(){
     const x = n.x, y = n.y - n.h / 2, left = n.side < 0, dc = n.color ? ` style="--dc:${n.color}"` : '';
     const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : n.kind === 'topic' ? (n.seen ? 'topic seen' : 'topic') : ('leaf ' + n.kind);
     const fs = fontOf(n), lines = n.lines || [n.label], extra = (lines.length - 1) * lineGap(fs);
-    const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(9.5) : 0;
+    const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(12) : 0;
     const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 2 : n.y + 4) - (extra + subExtra) / 2, anchor = left ? 'end' : 'start';
     const why = n.why ? ` data-why="${esc(n.why)}"` : '';
     const sc = scope ? ` data-scope="${scope}"` : '';
@@ -41314,7 +41357,7 @@ window.PlayableGraph = (function(){
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
     g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${lines.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(fs)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + (extra - subExtra) / 2}" text-anchor="${anchor}" font-size="9.5">${subs.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(9.5)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + (extra - subExtra) / 2}" text-anchor="${anchor}" font-size="12">${subs.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(12)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
     g += `</g>`;
     return g;
   }
@@ -41408,7 +41451,7 @@ window.PlayableGraph = (function(){
     // every system node.
     const count = `${systems.length} system${systems.length === 1 ? '' : 's'}`;
     const both = cs.sub ? `${cs.sub} · ${count}` : count;
-    const rootSub = cs.sub && both.length > maxFor(SIZE.root.w, 9.5) ? cs.sub : both;
+    const rootSub = cs.sub && both.length > maxFor(SIZE.root.w, 12) ? cs.sub : both;
     const root = { kind:'center', id:cs.id, label:cs.t, sub:rootSub, w:SIZE.root.w, h:SIZE.root.h, children:[] };
     let sel = null, open = null;
     systems.forEach(s => {
@@ -41600,6 +41643,7 @@ document.addEventListener('input', e => { const k = e.target.dataset && e.target
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
 ACTIONS.copy = el => copyText(el.closest('.promptbox').querySelector('pre').textContent);
 ACTIONS['fit-map'] = () => fitMap();
+ACTIONS['toggle-map'] = el => { const h = !store.get('hideMap', true); store.set('hideMap', h); keepScroll = true; route(); if(isNarrow() && !h){ $('#pane').classList.remove('open'); syncScrim(); } };
 ACTIONS.lens = el => setLens(el.dataset.lens);
 ACTIONS.focus = el => document.getElementById(el.dataset.target).focus();
 ACTIONS['toggle-parent'] = el => el.parentElement.classList.toggle('open');
@@ -41618,7 +41662,7 @@ const NAV = [
   { id:'library', t:'Library', views:[['games','Reference games'],['platforms','Platforms'],['engines','Engines'],['checklists','Checklists'],['prompts','Prompts'],['sources','Sources']] },
   { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
-  { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
+  { id:'ai', t:'AI Workflow', views:[['ai','AI Workflow']] },
   { id:'experience', t:'Projects', views:[['experience','Projects']] }
 ];
 const VIEW_GROUP = {};
@@ -41642,6 +41686,9 @@ function mapOnly(parts){
   if(v === 'experience' && a && b && !c) return !['workflows', 'interview', 'flow', 'overview'].includes(b);
   return false;
 }
+// A topic, domain or smell page is read beside the map; the reader can fold the
+// map away to give the text the whole width (see .shell.nomap).
+const mapReading = parts => (parts[0] === 'map' && ['t', 'd', 's'].includes(parts[1])) || parts[0] === 'topic';
 // Views with nothing on the map use the work layout (see .shell.work).
 function usesMap(parts){
   const [v, a] = parts;
@@ -41694,12 +41741,20 @@ function route(){
   const parts = h.split('/').filter(Boolean);
   const view = parts[0];
   const group = VIEW_GROUP[view || 'map'];
-  $$('#primaryNav button').forEach(b => { const on = !!group && b.dataset.group === group.id; b.classList.toggle('active', on); if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  $$('#primaryNav button[data-group]').forEach(b => { const on = !!group && b.dataset.group === group.id; b.classList.toggle('active', on); if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  $('#navMore').classList.toggle('active', !!group && NAV.indexOf(group) >= NAV_BAR); closeNavMore();
   closeModals();
   syncMapMode(view, parts[1]);
   render(view, parts);
   rememberPage();
   $("#shell").classList.toggle("work", !usesMap(parts));
+  $("#shell").classList.toggle("reading", mapReading(parts));
+  // On a topic page the map is folded away until the reader asks for it. Once shown it
+  // takes the place of the concept index (one click back), so no node is cut.
+  const sh = $("#shell"), reading = mapReading(parts), hideIt = reading && store.get('hideMap', true);
+  sh.classList.toggle("nomap", hideIt);
+  if(reading && !hideIt && !isNarrow()){ if(!sh.classList.contains('hide-left')){ sh.classList.add('hide-left'); sh.dataset.autofold = '1'; } }
+  else if(sh.dataset.autofold){ delete sh.dataset.autofold; if(!store.get('hideLeft')) sh.classList.remove('hide-left'); }
   showPaneFor(parts);
   const key = routeKey(parts), samePage = key === lastRouteKey;
   lastRouteKey = key;
@@ -41744,7 +41799,13 @@ function render(view, parts){
 }
 window.addEventListener('hashchange', route);
 // On a phone a long group name shows its short form; the accessible name stays whole.
-$('#primaryNav').innerHTML = NAV.map(g => `<button data-group="${g.id}" data-href="#/${g.views[0][0]}"${g.short ? ` aria-label="${g.t}"` : ''}>${g.short ? `<span class="nav-long">${g.t}</span><span class="nav-short">${g.short}</span>` : g.t}</button>`).join('');
+// On a phone the first five sections sit in the bar and the rest open from "More",
+// so every label is whole and nothing is clipped.
+const NAV_BAR = 5;
+$('#primaryNav').innerHTML = NAV.map((g, i) => `<button data-group="${g.id}" data-href="#/${g.views[0][0]}"${i >= NAV_BAR ? ' class="nav-extra"' : ''}>${g.t}</button>`).join('') + '<button type="button" class="nav-morebtn" id="navMore" data-action="nav-more" aria-haspopup="true" aria-expanded="false">More</button>';
+const closeNavMore = () => { $('#primaryNav').classList.remove('more-open'); $('#navMore').setAttribute('aria-expanded', 'false'); };
+ACTIONS['nav-more'] = el => { const on = $('#primaryNav').classList.toggle('more-open'); el.setAttribute('aria-expanded', on); };
+document.addEventListener('click', e => { if(!e.target.closest('#navMore')) closeNavMore(); });
 $('#brandBtn').onclick = () => go('#/map');
 $('#railToggle').onclick = () => { const r = $('#rail'); if(r){ r.classList.toggle('open'); syncScrim(); } };
 
@@ -41780,8 +41841,8 @@ function wireShell(){
   if(store.get('hideRight')) shell.classList.add('hide-right');
   const dragSplit = (handle, which) => handle.addEventListener('pointerdown', e => {
     e.preventDefault(); const startX = e.clientX;
-    const startRail = parseInt(getComputedStyle(shell).getPropertyValue('--railW')) || 300;
-    const startPane = parseInt(getComputedStyle(shell).getPropertyValue('--paneW')) || 460;
+    const startRail = $('#rail').getBoundingClientRect().width || 300;
+    const startPane = $('#pane').getBoundingClientRect().width || 460;
     const move = ev => { if(which === 'L'){ const w = Math.max(200, Math.min(560, startRail + (ev.clientX - startX))); shell.style.setProperty('--railW', w + 'px'); store.set('railW', w); } else { const w = Math.max(300, Math.min(820, startPane - (ev.clientX - startX))); shell.style.setProperty('--paneW', w + 'px'); store.set('paneW', w); } };
     const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
@@ -41800,7 +41861,7 @@ function wireShell(){
   const closeTopDrawer = () => { const top = drawerOrder[drawerOrder.length - 1]; if(top) top.classList.remove('open'); syncScrim(); };
   scrim.onclick = closeTopDrawer;
   $('#drawerClose').onclick = closeTopDrawer;
-  $('#collapseLeft').onclick = () => { if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
+  $('#collapseLeft').onclick = () => { delete shell.dataset.autofold; if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
   $('#collapseRight').onclick = () => { if(isNarrow()){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
   renderTree('home');
 }
@@ -41811,7 +41872,6 @@ function railHTML(activeDom, activeTopic){
       <div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === lens}">${esc(t)}</button>`).join('')}</div>
       <button class="railgraph" id="railFit" data-action="fit-map">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
-      <a class="railgraph" href="#/experience">❖ Projects</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
     <div class="raillist">${DOMAINS.filter(d => d.lens === lens).map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
@@ -41861,7 +41921,17 @@ function railActive(){
   if(parts[0]==='explore' && DOM[parts[1]]) return { dom: parts[1], topic: null };
   return { dom: null, topic: null };
 }
-function syncScrim(){ const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && isNarrow(); $('#scrim').classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); }
+// On a phone the content opens as a full page: no dimmed map behind it, and the
+// way out is a labelled "Map" button instead of a round close mark.
+const phoneMQ = window.matchMedia('(max-width: 700px)');
+function syncScrim(){
+  const railOpen = $('#rail').classList.contains('open'), paneOpen = $('#pane').classList.contains('open'), narrow = isNarrow();
+  $('#scrim').classList.toggle('show', narrow && (railOpen || (paneOpen && !phoneMQ.matches)));
+  const dc = $('#drawerClose'); if(!dc) return;
+  const page = narrow && paneOpen && !railOpen && phoneMQ.matches;
+  dc.classList.toggle('show', narrow && (railOpen || paneOpen)); dc.classList.toggle('text', page);
+  dc.textContent = page ? '◂ Map' : '✕'; dc.setAttribute('aria-label', page ? 'Back to the map' : 'Close panel');
+}
 function closeRailDrawer(r){ if(isNarrow()){ r.classList.remove('open'); syncScrim(); } }
 // Crossing the narrow width swaps drawers for panes: drop drawer state when
 // widening, and apply the route's pane rule when narrowing.
@@ -41878,9 +41948,39 @@ function railFilter(r, sel){
       de.style.display = (!q || any || dn.includes(q)) ? '' : 'none';
       if(q && any) de.classList.add('open'); }); });
 }
+// What the left column shows outside the map: the list that fits the section
+// (engines, Make's tools, Diagnose's symptoms, the checklists), or nothing.
+function railSection(p){
+  const v = p[0];
+  if(v === 'engines') return { id: 'engines', toggle: 'Browse engines' };
+  if(v === 'lab' || v === 'build') return { id: 'make', toggle: 'Browse tools' };
+  if(v === 'diagnose' || v === 'smell') return { id: 'diagnose', toggle: 'Browse symptoms' };
+  if(v === 'checklists') return { id: 'checklists', toggle: 'Browse checklists' };
+  return null;
+}
+function sectionRailHTML(sec, p){
+  const link = (href, t, on, sub) => `<a class="railproj ${on ? 'active' : ''}" href="${href}"${on ? ' aria-current="page"' : ''}>${esc(t)}${sub ? `<small class="railsub">${esc(sub)}</small>` : ''}</a>`;
+  const group = (title, links) => `<div class="railprojects"><span class="railtitle">${esc(title)}</span>${links.join('')}</div>`;
+  const idx = `<div class="railfoot"><a class="railgraph" href="#/map">⌘ Design concept index</a></div>`;
+  if(sec.id === 'engines') {
+    return [['engine', 'Game engines'], ['web', 'The web stack'], ['tool', 'Tools']].map(([k, t]) => { const xs = ENGINES.filter(e => e.kind === k); return xs.length ? group(t, xs.map(e => link('#/engines/' + e.id, e.t, p[1] === e.id))) : ''; }).join('') + idx;
+  }
+  if(sec.id === 'make') {
+    const cur = p[0] === 'build' ? p[1] : '';
+    return group('Ideation', [link('#/lab', 'Idea Lab', p[0] === 'lab', 'Observe, tension, idea card')]) +
+      TOOL_GROUPS.map(([gid, t, ids]) => group(t, ids.map(id => { const x = TOOLS.find(y => y[0] === id); return link('#/build/' + id, x[1], cur === id, id === TOOL_START ? 'Start here' : ''); }))).join('') + idx;
+  }
+  if(sec.id === 'diagnose') {
+    const cur = p[0] === 'smell' ? p[1] : p[2];
+    return group('What are you seeing?', A.SYMPTOMS.map(([s, id]) => link('#/smell/' + id, s, cur === id))) +
+      group('Other diagnostics', [link('#/diagnose/smells', `All ${SMELLS.length} smells`, p[0] === 'diagnose' && (!p[1] || p[1] === 'smells') && !cur), ...DIAGNOSTICS.map(([id, t]) => link('#/diagnose/' + id, t, p[0] === 'diagnose' && p[1] === id))]) + idx;
+  }
+  return group('Checklists', CHECKLISTS.map(c => link('#/checklists/' + c.id, c.t, (p[1] || CHECKLISTS[0].id) === c.id))) + idx;
+}
 function updateRail(){
   ensureShell(); const r = $('#rail'); if(!r) return;
-  const hash = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  $('#shell').classList.remove('norail');
+  const hash =location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const proj = hash[0] === 'experience' && hash[1] ? CASE_STUDIES.find(x => x.id === hash[1]) : null;
   if(proj){
     r.innerHTML = railProjectHTML(proj, hash[2], hash[3]);
@@ -41897,6 +41997,12 @@ function updateRail(){
     railFilter(r, '.railtopic');
     return;
   }
+  // Outside the map the column shows what fits the section, or collapses
+  // (the concept index is still in the drawer on a phone, and on the Map).
+  const sec = railSection(hash);
+  if(sec){ r.innerHTML = sectionRailHTML(sec, hash); $('#railToggle').title = $('#railToggle').ariaLabel = sec.toggle; return; }
+  $('#shell').classList.toggle('norail', !usesMap(hash));
+  $('#railToggle').title = 'Browse concepts'; $('#railToggle').ariaLabel = 'Browse concepts';
   const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
   r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/map/t/' + b.dataset.topic); closeRailDrawer(r); }));
@@ -41942,7 +42048,9 @@ function subNavHTML(){
   if(!g || g.views.length < 2) return '';
   const cur = v === 'smell' ? 'diagnose' : v;
   const due = g.id === 'paths' ? reviewDue().length : 0;
-  return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}</nav>`;
+  const hidden = store.get('hideMap', true);
+  const toggle = mapReading(p) ? `<button type="button" class="btn sm ghost maptoggle" data-action="toggle-map" aria-pressed="${hidden}">${hidden ? 'Show map' : 'Hide map'}</button>` : '';
+  return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}${toggle}</nav>`;
 }
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button data-href="${it[1]}">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
@@ -41960,13 +42068,25 @@ function gameArt(g){
 const familyLabel = id => (GAME_FAMILIES.find(f => f[0] === id) || [id, id])[1];
 const lensLabel = key => (GAME_LENSES.find(l => l[0] === key) || [key, key])[1];
 // The library's view and filters are a per-browser convenience.
-const libState = () => { const s = store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'' }); if (s.tag && !GAME_TAGS.includes(s.tag)) s.tag = ''; if (s.shelf && !GAME_SHELVES.some(x => x[0] === s.shelf)) s.shelf = ''; return s; };
+const libState = () => { const s = store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'', topic:'', lensk:'' }); if (s.tag && !GAME_TAGS.includes(s.tag)) s.tag = ''; if (s.shelf && !GAME_SHELVES.some(x => x[0] === s.shelf)) s.shelf = ''; return s; };
 // From a game page: open the library showing that game's family.
-ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { shelf: '', family: el.dataset.v, tag: '', lens: '' }));
+ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { shelf: '', family: el.dataset.v, tag: '', lens: '', topic: '', lensk: '' }));
 ACTIONS['lib-set'] = el => { const s = libState(); s[el.dataset.k] = s[el.dataset.k] === el.dataset.v ? '' : el.dataset.v; if(el.dataset.k === 'view') s.view = el.dataset.v; store.set('library', s); keepScroll = true; renderGames(); };
+// The games whose lenses name a topic (see gameLinks), as a set of game ids.
+const topicGameIds = tid => new Set((gameLinks()[tid] || []).map(x => x.g.id));
+// What a game teaches, for the chips at the top of the library: the topics that
+// games actually list in their lenses. A topic nearly every game lists (art,
+// sound, business model) tells the reader nothing, so those are left out.
+function libraryTopics(){
+  const n = REFERENCE_GAMES.length;
+  return Object.keys(gameLinks()).filter(t => TOPICS[t]).map(t => [t, topicGameIds(t).size]).filter(([, c]) => c >= 6 && c <= n * 0.5).sort((x, y) => y[1] - x[1] || TOPICS[x[0]].t.localeCompare(TOPICS[y[0]].t)).slice(0, 32);
+}
+const shortTopic = t => TOPICS[t].t.split(/:| and | vs /)[0].trim();
 function libraryHTML(){
   const s = libState(), analysed = REFERENCE_GAMES.filter(g => g.lens).length;
-  const pick = g => (!s.shelf || onShelf(g, s.shelf)) && (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!g.lens);
+  const wantTopics = s.topic ? s.topic.split('+').filter(t => TOPICS[t]) : [];
+  const wantIds = new Set(wantTopics.flatMap(t => [...topicGameIds(t)]));
+  const pick = g => (!s.shelf || onShelf(g, s.shelf)) && (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!g.lens) && (!wantTopics.length || wantIds.has(g.id)) && (!s.lensk || !!(g.lens && g.lens[s.lensk] && !g.lens[s.lensk].na));
   const shelves = GAME_SHELVES.filter(([id]) => REFERENCE_GAMES.some(g => onShelf(g, id)));
   const list = REFERENCE_GAMES.filter(pick);
   const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
@@ -41978,7 +42098,11 @@ function libraryHTML(){
     : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${gameYears(x)}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
     : s.family || s.shelf ? grid(list)
     : GAME_FAMILIES.map(([f, label]) => { const xs = list.filter(x => x.family === f); return xs.length ? `<div class="section-head"><h2>${esc(label)}</h2><span class="muted">${xs.length}</span></div>${grid(xs)}` : ''; }).join('');
+  const topics = libraryTopics();
+  const teaches = `<div class="librow libteach"><span class="overline">What it teaches</span><span class="chips libscroll">${wantTopics.length > 1 ? btn('topic', s.topic, 'Topics of one smell (clear)', true) : ''}${topics.map(([t, c]) => btn('topic', t, `${shortTopic(t)} ${c}`, s.topic === t)).join('')}</span></div>
+    <div class="librow libteach"><span class="overline">Read by lens</span><span class="chips libscroll">${GAME_LENSES.map(([k, t]) => btn('lensk', k, t, s.lensk === k)).join('')}</span></div>`;
   return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed === REFERENCE_GAMES.length ? ', each read through ten lenses, from UI and art direction to business and lineage' : analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
+    ${teaches}
     ${shelves.length ? `<div class="librow"><span class="overline">Shelves</span><span class="chips libscroll">${shelves.map(([id, t]) => btn('shelf', id, t, s.shelf === id)).join('')}</span></div>` : ''}
     <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span><span class="overline">Genre</span><span class="chips libscroll">${GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => btn('family', f, t, s.family === f)).join('')}</span></div>
     <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag, or show only games analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
@@ -42057,6 +42181,8 @@ function receptionHTML(g){
     <h4>What the difference teaches</h4><p>${esc(g.receptionLesson)}</p></div>`;
 }
 function renderGames(id, lensId){
+  // #/games/topic/<id> (or <id>+<id>) opens the library on the games that teach it.
+  if(id === 'topic' && lensId) store.set('library', Object.assign(libState(), { shelf: '', family: '', tag: '', lens: '', lensk: '', topic: lensId.split('+').filter(t => TOPICS[t]).join('+') }));
   const g = REFERENCE_GAMES.find(x => x.id === id);
   if(!g){ setView(libraryHTML()); return; }
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
@@ -42469,6 +42595,18 @@ function renderDiagnose(sub='smells', arg){
 }
 
 function smellCard(s){ return `<a class="smell lnk blk" href="#/smell/${s.id}"><h3>${esc(s.t)}</h3><div class="small dim">${esc(s.sym)}</div><div class="chips" style="margin-top:6px">${s.dom.map(domChip).join('')}</div></a>`; }
+// Games that show a smell's causes: those whose lenses list the topics its causes
+// name, best match first, each with the lens that lists the topic.
+function smellGames(s){
+  const tops = [...new Set(s.causes.map(c => c.top))].filter(t => TOPICS[t]), by = {};
+  tops.forEach(t => (gameLinks()[t] || []).forEach(({ g, label }) => { const e = by[g.id] || (by[g.id] = { g, topics: new Set(), lens: '' }); e.topics.add(t); const k = (GAME_LENSES.find(l => l[1] === label) || [''])[0]; if(k && !e.lens) e.lens = k; }));
+  return { tops, games: Object.values(by).sort((a, b) => b.topics.size - a.topics.size || a.g.t.localeCompare(b.g.t)) };
+}
+function smellGamesHTML(s){
+  const { tops, games } = smellGames(s); if(!games.length) return '';
+  const shown = games.slice(0, 6);
+  return `<div class="smellgames"><b>See it in games</b><span class="chips">${shown.map(e => `<a class="chip lnk" href="#/games/${e.g.id}${e.lens ? '/' + e.lens : ''}" title="Lists ${[...e.topics].map(t => esc(TOPICS[t].t)).join(', ')}">${esc(e.g.t)}</a>`).join('')}<a class="chip lnk" href="#/games/topic/${tops.join('+')}">All ${games.length} games →</a></span></div>`;
+}
 function smellsView(id){
   const s = SMELLS.find(x => x.id === id);
   if(s){
@@ -42477,6 +42615,7 @@ function smellsView(id){
       ${s.dims ? `<div class="chips" style="margin-bottom:10px"><span class="small muted">Fun dimensions implicated:</span>${s.dims.map(d => `<a class="chip lnk" style="cursor:pointer" href="#/diagnose/fun/${d}">${d}</a>`).join('')}</div>` : ''}
       <h3>Likely causes and the experiment for each</h3>
       ${s.causes.map((c, i) => `<div class="cause"><div class="t"><span class="badge-num" style="--dc:var(--accent)">${i+1}</span>${esc(c.c)} <span class="chip">${topicLink(c.top)}</span></div><div class="exp"><b>Experiment:</b> ${esc(c.exp)}</div></div>`).join('')}
+      ${smellGamesHTML(s)}
       <h3 style="margin-top:16px">Ask AI to help diagnose</h3>${promptBox('Diagnostic prompt', s.prompt)}
       <div class="callout"><b>Then:</b> write the hypothesis for the cause you believe most, in the <a href="#/build/hypothesis">Hypothesis Builder</a>. Test the cheapest experiment. Change one important variable. Test again.</div>`;
   }
@@ -42578,9 +42717,27 @@ function wireContentTree(){
 /* =====================================================================
    BUILD (tools)
    ===================================================================== */
-function renderBuild(tool='idea'){
-  const head = `${crumbs([['Make','#/lab'],['Build tools']])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
-    <div class="tool-nav">${TOOLS.map(([id, t, s]) => `<button class="${id===tool?'active':''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`).join('')}</div>`;
+// The first path step that uses a tool, so a card can say where it is taught.
+function toolPathStep(id){
+  for(const p of PATHS) for(const st of p.stages){ const step = st.steps.find(s => s.kind === 'tool' && s.ref === id); if(step) return { p, st, step }; }
+  return null;
+}
+function toolCardHTML(id){
+  const [, t, pitch, when, topic] = TOOLS.find(x => x[0] === id), ps = toolPathStep(id);
+  return `<article class="toolcard ${id === TOOL_START ? 'start' : ''}"><a class="toolcard-main" href="#/build/${id}"><b>${esc(t)}</b>${id === TOOL_START ? '<span class="chip ok">Start here</span>' : ''}<span class="small dim">${esc(pitch)}</span></a>
+    <p class="small toolwhen"><b>Use this when</b> ${esc(when)}</p>
+    <div class="small toollinks">${TOPICS[topic] ? `<a href="#/map/t/${topic}">Why: ${esc(TOPICS[topic].t)}</a>` : ''}${ps ? `<a href="${stepHref(ps.step, ps.p.id, ps.st.id)}">In the path: ${esc(ps.p.t)}</a>` : ''}</div></article>`;
+}
+function renderBuild(tool){
+  const cur = TOOLS.find(x => x[0] === tool);
+  if(!cur){
+    setView(`${crumbs([['Make','#/lab'],['Build tools']])}<h1>Build tools</h1><p class="dim" style="max-width:820px">Lightweight canvases that force the questions this guide keeps asking, grouped by the job you are doing. Everything saves in your browser and exports Markdown you can paste into a document or a prompt. Not sure where to begin? Open the <a href="#/build/${TOOL_START}">${esc(TOOLS.find(x => x[0] === TOOL_START)[1])}</a>, or the <a href="#/lab">Idea Lab</a> if you have no idea yet.</p>
+      ${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="section-head"><h2>${esc(gt)}</h2></div><div class="toolgrid">${ids.map(toolCardHTML).join('')}</div>`).join('')}`);
+    return;
+  }
+  const head = `${crumbs([['Make','#/lab'],['Build tools','#/build'],[cur[1]]])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
+    <p class="small toolwhen"><b>Use this when</b> ${esc(cur[3])} ${TOPICS[cur[4]] ? `<a href="#/map/t/${cur[4]}">Why: ${esc(TOPICS[cur[4]].t)}</a>` : ''}</p>
+    <div class="toolgroups">${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="overline">${esc(gt)}</span><div class="tool-nav">${ids.map(id => { const [, t, s] = TOOLS.find(x => x[0] === id); return `<button class="${id === tool ? 'active' : ''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
   const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt, gameai: toolGameAI }[tool] || toolIdea;
   setView(head + `<div class="tool" id="tool"></div>`);
   fn($('#tool'));
@@ -43744,7 +43901,7 @@ $('#skipBtn').onclick = () => {
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='Escape'){ closeModals(); return; }
+  if(e.key==='Escape'){ if(!document.querySelector('.modal-bg.show') && isNarrow() && $('#drawerClose').classList.contains('show') && !typing){ $('#drawerClose').click(); return; } closeModals(); return; }
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ openModal('helpModal', 'h2'); return; }
@@ -43841,8 +43998,13 @@ function saveCur(){ if(mapMode === 'project') saveProj(); else if(mapMode === 'p
 // The domain map's fourth layer gains the project parts that demonstrate the
 // selected topic. They are runtime links, not data, so they ride along on a
 // copy of mapState instead of being stored in it.
+// A stage too narrow for both halves of the tree at a readable size gets the
+// one-sided tree, the way a phone does.
+const TWO_SIDED_MIN = 1060;
+const oneSidedNow = () => phoneQuery.matches || (!!MAP && MAP.wrap.clientWidth > 50 && MAP.wrap.clientWidth < TWO_SIDED_MIN);
 function buildGraph(){
-  const oneSided = phoneQuery.matches, c = projCase();
+  const oneSided = oneSidedNow(), c = projCase();
+  if(MAP) MAP.oneSided = oneSided;
   if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided }), TOPICS, DOMAINS);
   const pth = curPath();
   if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
@@ -43890,7 +44052,7 @@ function engPanel(lens){
     <h1 style="margin:6px 0 8px">${esc(lens[2])}.</h1>
     <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership, platforms and publishing, how the AI models the team now depends on work, the code craft that still pays, and careers beyond games. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
     <div class="grid auto">${doms.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/d/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small" style="margin:0">${esc(d.short)}</p></a>`).join('')}</div>
-    <div class="row" style="margin-top:14px"><a class="btn" href="#/experience">Projects</a><a class="btn ghost" href="#/paths">Engineering, leadership and interview paths</a></div>`;
+    <div class="row" style="margin-top:14px"><a class="btn" href="#/paths">Engineering, leadership and interview paths</a></div>`;
 }
 function startPanel(){
   const lens = currentLens();
@@ -43975,13 +44137,56 @@ function pathStageTarget(g){
   if(w / h < A){ const nw = h * A; x -= (nw - w) / 2; w = nw; } else { const nh = w / A; y -= (nh - h) / 2; h = nh; }
   return { x, y, w, h };
 }
+/* ---- readable labels ----
+   Labels never render smaller than MIN_LABEL_PX on screen. When the whole tree
+   does not fit at that size, the camera shows the part the reader is on (the
+   selected node and its children, or the first column at the domain level)
+   instead of shrinking every label; the reader expands a domain by clicking it
+   or zooms out by hand. */
+const MIN_LABEL_PX = 11;
+// The node the route selected, else null (the domain level).
+function selectedNode(g){
+  const pick = (kind, id) => (g.nodes || []).find(n => n.kind === kind && n.id === id) || null;
+  if(mapMode === 'project' && projState) return (projState.part && pick('topic', projState.part)) || (projState.sys && pick('domain', projState.sys)) || null;
+  if(mapMode === 'path' && pathMapState) return (pathMapState.stage && pick('domain', pathMapState.stage)) || null;
+  return (mapState.topic && pick('topic', mapState.topic)) || (mapState.dom && pick('domain', mapState.dom)) || null;
+}
+// The window, in graph units, that a stage shows at exactly the minimum size.
+function readableSize(){
+  const px = MAP.labelPx || 13.5, s = MIN_LABEL_PX / px;
+  return { w: MAP.wrap.clientWidth / s, h: MAP.wrap.clientHeight / s };
+}
+function keepReadable(t, g){
+  if(!MAP || MAP.wrap.clientWidth < 50 || MAP.wrap.clientHeight < 50) return t;
+  const max = readableSize(), clamp = !(t.w <= max.w * 1.001 && t.h <= max.h * 1.001);
+  // a window narrower than the tree fades at its right edge, so a card cut off there reads as "more this way"
+  MAP.wrap.classList.toggle('fade-right', clamp);
+  if(!clamp) return t;
+  const w = max.w, h = max.h, root = (g.nodes || []).find(n => n.kind === 'center');
+  const sel = selectedNode(g), from = sel || root;
+  if(!from) return t;
+  // the part of the tree to show: the node and its children, or the first column
+  const group = sel ? [sel, ...(sel.children || [])] : (root.children && root.children.length ? root.children : [root]);
+  const lo = Math.min(...group.map(n => n.x)), hi = Math.max(...group.map(n => n.x + n.w));
+  const left = sel ? sel.side >= 0 : (root.children[0] || {}).side >= 0;
+  let x0;
+  if(hi - lo + 48 <= w) x0 = (lo + hi) / 2 - w / 2;
+  else x0 = left ? lo - 24 : hi + 24 - w;
+  // include the root beside the first column when both fit
+  if(!sel && root && root.x + root.w <= x0 + w && left && hi + 24 - (root.x - 20) <= w) x0 = root.x - 20;
+  const ylo = Math.min(...group.map(n => n.y - n.h / 2)), yhi = Math.max(...group.map(n => n.y + n.h / 2));
+  let y0;
+  if(yhi - ylo + 48 <= h) y0 = (ylo + yhi) / 2 - h / 2;
+  else y0 = sel ? sel.y - h / 2 : ylo - 24;
+  return { x: x0, y: y0, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
   if(phoneQuery.matches) return phoneTarget(g);
-  if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return t; }
+  if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return keepReadable(t, g); }
   let target = cameraTarget(g, cam, kind);
   if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
-  return target;
+  return keepReadable(target, g);
 }
 
 function projTipHTML(n){
@@ -44057,7 +44262,7 @@ function mapClick(n){
   if(kind==='view'){ const v = VIEW_LINKS[id]; if(v) go(v[0]); }
 }
 
-function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(fitBox(MAP.g.bbox)); } }
+function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(keepReadable(fitBox(MAP.g.bbox), MAP.g)); } }
 // True once after Enter or Space on a map node, so the route that follows
 // leaves keyboard focus on the map instead of moving it to the content.
 function consumeMapKeyNav(){ const k = !!(MAP && MAP.keyNav); if(MAP) MAP.keyNav = false; return k; }
@@ -44075,8 +44280,10 @@ function paintGraph(){
   const hadFocus = MAP.svg.contains(document.activeElement);
   const g = buildGraph();
   g.focus = treeFocus(g);
-  MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
+  MAP.g = g; MAP.hover = null;
+  MAP.labelPx = 0; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
+  { const px = [...MAP.svg.querySelectorAll('.lbl:not(.sub)')].slice(0, 60).map(t => parseFloat(getComputedStyle(t).fontSize)).filter(Boolean); MAP.labelPx = px.length ? Math.min(...px) : 13.5; }
   const byKey = k => k && MAP.svg.querySelector('.node[data-key="' + CSS.escape(k) + '"]');
   const stop = byKey(MAP.focusKey) || byKey(currentKey()) || MAP.svg.querySelector('.node');
   if(stop){ stop.setAttribute('tabindex', '0'); if(hadFocus) stop.focus({ preventScroll: true }); }
@@ -44194,7 +44401,10 @@ function initMapStage(){
   // dragged) the camera is framed again, unless the reader moved it.
   let resizeT = 0;
   new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
-    if(!MAP.g || MAP.userCamera || !document.body.contains(svg)) return;
+    if(!MAP.g || !document.body.contains(svg) || wrap.clientWidth < 50) return;
+    // crossing the two-sided width swaps the tree's shape
+    if(oneSidedNow() !== MAP.oneSided){ mapStopAnim(); MAP.userCamera = false; paintGraph(); }
+    if(MAP.userCamera) return;
     mapStopAnim(); const t = stageTarget(MAP.g, MAP.kind, MAP.vb); MAP.vb = t; applyVB(svg, t); mapPersistCamera();
   }, 150); }).observe(wrap);
   $('#mapResetDrag').onclick = resetMapDrag;
@@ -44264,7 +44474,7 @@ function syncMapMode(view, id){
 
 // Crossing the phone width swaps the two-sided tree for the one-sided one.
 phoneQuery.addEventListener('change', () => { if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
-Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
+Object.assign(A, { SYMPTOMS, renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
 })(window.PlayableApp);
 
 /* =====================================================================

@@ -47,7 +47,7 @@ window.PlayableGraph = (function(){
   // tree spaces it like any other card.
   const fitLabels = n => {
     if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
-    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w, 9.5)); n.h += (n.subLines.length - 1) * lineGap(9.5); }
+    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w, 12)); n.h += (n.subLines.length - 1) * lineGap(12); }
     n.children.forEach(fitLabels);
   };
   // Longest label that fits the node's inner width. Derived from the same
@@ -134,7 +134,7 @@ window.PlayableGraph = (function(){
     const x = n.x, y = n.y - n.h / 2, left = n.side < 0, dc = n.color ? ` style="--dc:${n.color}"` : '';
     const cls = n.kind === 'center' ? 'center' : n.kind === 'domain' ? (n.open ? 'domain open' : 'domain') : n.kind === 'topic' ? (n.seen ? 'topic seen' : 'topic') : ('leaf ' + n.kind);
     const fs = fontOf(n), lines = n.lines || [n.label], extra = (lines.length - 1) * lineGap(fs);
-    const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(9.5) : 0;
+    const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(12) : 0;
     const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 2 : n.y + 4) - (extra + subExtra) / 2, anchor = left ? 'end' : 'start';
     const why = n.why ? ` data-why="${esc(n.why)}"` : '';
     const sc = scope ? ` data-scope="${scope}"` : '';
@@ -145,7 +145,7 @@ window.PlayableGraph = (function(){
     g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/>`;
     if(n.kind === 'domain') g += `<text class="glyph" x="${left ? x + 16 : x + n.w - 16}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
     g += `<text class="lbl" x="${tx}" y="${ty}" text-anchor="${anchor}" font-size="${fs}">${lines.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(fs)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
-    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + (extra - subExtra) / 2}" text-anchor="${anchor}" font-size="9.5">${subs.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(9.5)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
+    if(n.sub) g += `<text class="lbl sub" x="${tx}" y="${n.y + 14 + (extra - subExtra) / 2}" text-anchor="${anchor}" font-size="12">${subs.map((l, i) => `<tspan x="${tx}"${i ? ` dy="${lineGap(12)}"` : ''}>${esc(l)}</tspan>`).join('')}</text>`;
     g += `</g>`;
     return g;
   }
@@ -239,7 +239,7 @@ window.PlayableGraph = (function(){
     // every system node.
     const count = `${systems.length} system${systems.length === 1 ? '' : 's'}`;
     const both = cs.sub ? `${cs.sub} · ${count}` : count;
-    const rootSub = cs.sub && both.length > maxFor(SIZE.root.w, 9.5) ? cs.sub : both;
+    const rootSub = cs.sub && both.length > maxFor(SIZE.root.w, 12) ? cs.sub : both;
     const root = { kind:'center', id:cs.id, label:cs.t, sub:rootSub, w:SIZE.root.w, h:SIZE.root.h, children:[] };
     let sel = null, open = null;
     systems.forEach(s => {

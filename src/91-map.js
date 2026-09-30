@@ -74,8 +74,13 @@ function saveCur(){ if(mapMode === 'project') saveProj(); else if(mapMode === 'p
 // The domain map's fourth layer gains the project parts that demonstrate the
 // selected topic. They are runtime links, not data, so they ride along on a
 // copy of mapState instead of being stored in it.
+// A stage too narrow for both halves of the tree at a readable size gets the
+// one-sided tree, the way a phone does.
+const TWO_SIDED_MIN = 1060;
+const oneSidedNow = () => phoneQuery.matches || (!!MAP && MAP.wrap.clientWidth > 50 && MAP.wrap.clientWidth < TWO_SIDED_MIN);
 function buildGraph(){
-  const oneSided = phoneQuery.matches, c = projCase();
+  const oneSided = oneSidedNow(), c = projCase();
+  if(MAP) MAP.oneSided = oneSided;
   if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided }), TOPICS, DOMAINS);
   const pth = curPath();
   if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
@@ -123,7 +128,7 @@ function engPanel(lens){
     <h1 style="margin:6px 0 8px">${esc(lens[2])}.</h1>
     <p class="dim">The server, the pipeline and the team around a game: backend and infrastructure design, the game server, project management and leadership, platforms and publishing, how the AI models the team now depends on work, the code craft that still pays, and careers beyond games. Every topic has an interview tab, and the shipped projects show the same ideas in the field.</p>
     <div class="grid auto">${doms.map(d => `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/d/${d.id}"><h3>${esc(d.t)}</h3><p class="dim small" style="margin:0">${esc(d.short)}</p></a>`).join('')}</div>
-    <div class="row" style="margin-top:14px"><a class="btn" href="#/experience">Projects</a><a class="btn ghost" href="#/paths">Engineering, leadership and interview paths</a></div>`;
+    <div class="row" style="margin-top:14px"><a class="btn" href="#/paths">Engineering, leadership and interview paths</a></div>`;
 }
 function startPanel(){
   const lens = currentLens();
@@ -208,13 +213,56 @@ function pathStageTarget(g){
   if(w / h < A){ const nw = h * A; x -= (nw - w) / 2; w = nw; } else { const nh = w / A; y -= (nh - h) / 2; h = nh; }
   return { x, y, w, h };
 }
+/* ---- readable labels ----
+   Labels never render smaller than MIN_LABEL_PX on screen. When the whole tree
+   does not fit at that size, the camera shows the part the reader is on (the
+   selected node and its children, or the first column at the domain level)
+   instead of shrinking every label; the reader expands a domain by clicking it
+   or zooms out by hand. */
+const MIN_LABEL_PX = 11;
+// The node the route selected, else null (the domain level).
+function selectedNode(g){
+  const pick = (kind, id) => (g.nodes || []).find(n => n.kind === kind && n.id === id) || null;
+  if(mapMode === 'project' && projState) return (projState.part && pick('topic', projState.part)) || (projState.sys && pick('domain', projState.sys)) || null;
+  if(mapMode === 'path' && pathMapState) return (pathMapState.stage && pick('domain', pathMapState.stage)) || null;
+  return (mapState.topic && pick('topic', mapState.topic)) || (mapState.dom && pick('domain', mapState.dom)) || null;
+}
+// The window, in graph units, that a stage shows at exactly the minimum size.
+function readableSize(){
+  const px = MAP.labelPx || 13.5, s = MIN_LABEL_PX / px;
+  return { w: MAP.wrap.clientWidth / s, h: MAP.wrap.clientHeight / s };
+}
+function keepReadable(t, g){
+  if(!MAP || MAP.wrap.clientWidth < 50 || MAP.wrap.clientHeight < 50) return t;
+  const max = readableSize(), clamp = !(t.w <= max.w * 1.001 && t.h <= max.h * 1.001);
+  // a window narrower than the tree fades at its right edge, so a card cut off there reads as "more this way"
+  MAP.wrap.classList.toggle('fade-right', clamp);
+  if(!clamp) return t;
+  const w = max.w, h = max.h, root = (g.nodes || []).find(n => n.kind === 'center');
+  const sel = selectedNode(g), from = sel || root;
+  if(!from) return t;
+  // the part of the tree to show: the node and its children, or the first column
+  const group = sel ? [sel, ...(sel.children || [])] : (root.children && root.children.length ? root.children : [root]);
+  const lo = Math.min(...group.map(n => n.x)), hi = Math.max(...group.map(n => n.x + n.w));
+  const left = sel ? sel.side >= 0 : (root.children[0] || {}).side >= 0;
+  let x0;
+  if(hi - lo + 48 <= w) x0 = (lo + hi) / 2 - w / 2;
+  else x0 = left ? lo - 24 : hi + 24 - w;
+  // include the root beside the first column when both fit
+  if(!sel && root && root.x + root.w <= x0 + w && left && hi + 24 - (root.x - 20) <= w) x0 = root.x - 20;
+  const ylo = Math.min(...group.map(n => n.y - n.h / 2)), yhi = Math.max(...group.map(n => n.y + n.h / 2));
+  let y0;
+  if(yhi - ylo + 48 <= h) y0 = (ylo + yhi) / 2 - h / 2;
+  else y0 = sel ? sel.y - h / 2 : ylo - 24;
+  return { x: x0, y: y0, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
   if(phoneQuery.matches) return phoneTarget(g);
-  if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return t; }
+  if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return keepReadable(t, g); }
   let target = cameraTarget(g, cam, kind);
   if(isNarrow() && target.w > 720){ const A = target.w / target.h, w = 720, h = w / A; const cx = target.x + target.w/2, cy = target.y + target.h/2; target = { x: cx - w/2, y: cy - h/2, w, h }; }
-  return target;
+  return keepReadable(target, g);
 }
 
 function projTipHTML(n){
@@ -290,7 +338,7 @@ function mapClick(n){
   if(kind==='view'){ const v = VIEW_LINKS[id]; if(v) go(v[0]); }
 }
 
-function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(fitBox(MAP.g.bbox)); } }
+function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(keepReadable(fitBox(MAP.g.bbox), MAP.g)); } }
 // True once after Enter or Space on a map node, so the route that follows
 // leaves keyboard focus on the map instead of moving it to the content.
 function consumeMapKeyNav(){ const k = !!(MAP && MAP.keyNav); if(MAP) MAP.keyNav = false; return k; }
@@ -308,8 +356,10 @@ function paintGraph(){
   const hadFocus = MAP.svg.contains(document.activeElement);
   const g = buildGraph();
   g.focus = treeFocus(g);
-  MAP.g = g; MAP.hover = null; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
+  MAP.g = g; MAP.hover = null;
+  MAP.labelPx = 0; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
+  { const px = [...MAP.svg.querySelectorAll('.lbl:not(.sub)')].slice(0, 60).map(t => parseFloat(getComputedStyle(t).fontSize)).filter(Boolean); MAP.labelPx = px.length ? Math.min(...px) : 13.5; }
   const byKey = k => k && MAP.svg.querySelector('.node[data-key="' + CSS.escape(k) + '"]');
   const stop = byKey(MAP.focusKey) || byKey(currentKey()) || MAP.svg.querySelector('.node');
   if(stop){ stop.setAttribute('tabindex', '0'); if(hadFocus) stop.focus({ preventScroll: true }); }
@@ -427,7 +477,10 @@ function initMapStage(){
   // dragged) the camera is framed again, unless the reader moved it.
   let resizeT = 0;
   new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
-    if(!MAP.g || MAP.userCamera || !document.body.contains(svg)) return;
+    if(!MAP.g || !document.body.contains(svg) || wrap.clientWidth < 50) return;
+    // crossing the two-sided width swaps the tree's shape
+    if(oneSidedNow() !== MAP.oneSided){ mapStopAnim(); MAP.userCamera = false; paintGraph(); }
+    if(MAP.userCamera) return;
     mapStopAnim(); const t = stageTarget(MAP.g, MAP.kind, MAP.vb); MAP.vb = t; applyVB(svg, t); mapPersistCamera();
   }, 150); }).observe(wrap);
   $('#mapResetDrag').onclick = resetMapDrag;
@@ -497,5 +550,5 @@ function syncMapMode(view, id){
 
 // Crossing the phone width swaps the two-sided tree for the one-sided one.
 phoneQuery.addEventListener('change', () => { if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
-Object.assign(A, { renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
+Object.assign(A, { SYMPTOMS, renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
 })(window.PlayableApp);

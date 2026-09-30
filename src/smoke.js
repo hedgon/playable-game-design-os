@@ -35,6 +35,19 @@ const ROUTES_IN_PAGE = () => {
     ...['core-loop', 'feature-vs-experience', 'choosing-ai-technique', 'depth-vs-complexity', 'pacing', 'economy-and-resources', 'perception-and-awareness', 'infra-ci-pipelines'].map(id => '#/map/t/' + id + '/overview')
   ];
 };
+// The smallest label on the map, as drawn on screen, and whether a domain node is in view.
+// Node labels on the map that the stage edge cuts off (horizontally), for nodes in view.
+const CUT_LABELS = () => {
+  const w = document.getElementById('mapwrap').getBoundingClientRect(), cut = [];
+  for (const t of document.querySelectorAll('#mapsvg .node .lbl')) { const r = t.getBoundingClientRect(); if (r.right > w.left && r.left < w.right && r.top < w.bottom && r.bottom > w.top && (r.left < w.left - 1 || r.right > w.right + 1)) cut.push(t.textContent.trim().slice(0, 30)); }
+  return cut;
+};
+const MAP_LABEL_PX = () => {
+  const svg = document.getElementById('mapsvg'), r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal, scale = Math.min(r.width / vb.width, r.height / vb.height);
+  const sizes = [...svg.querySelectorAll('.lbl:not(.sub)')].map(t => parseFloat(getComputedStyle(t).fontSize) * scale);
+  const w = document.getElementById('mapwrap').getBoundingClientRect();
+  return { nodes: sizes.length, min: Math.min(...sizes), inView: [...svg.querySelectorAll('.node')].some(n => { const b = n.getBoundingClientRect(); return b.right > w.left && b.left < w.right && b.bottom > w.top && b.top < w.bottom; }) };
+};
 // Routes that only reshape the map keep it in front on a narrow screen.
 const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/]+\/(?!workflows$|interview$|overview$|flow\/)[^/]+$/.test(r);
 
@@ -59,6 +72,20 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       errors.length = 0;
       await page.evaluate(route => new Promise(res => { if (location.hash === route) return res(); const f = () => { removeEventListener('hashchange', f); res(); }; addEventListener('hashchange', f); location.hash = route; }), r);
       const s = await page.evaluate(() => { const p = document.getElementById('pane'), rect = p.getBoundingClientRect(); return { text: (p.querySelector('.view') || p).innerText.trim().length, onScreen: rect.width > 0 && rect.left >= -1 && rect.right <= innerWidth + 1 }; });
+      // Nothing inside the content pane may run past its right edge, unless it sits inside a horizontal scroller.
+      const over = await page.evaluate(() => {
+        const p = document.getElementById('pane'), pr = p.getBoundingClientRect(), bad = [];
+        for (const el of p.querySelectorAll('*')) {
+          if (el.closest('svg') && el.tagName.toLowerCase() !== 'svg') continue;
+          const r = el.getBoundingClientRect(); if (!r.width && !r.height) continue;
+          if (r.right <= pr.right + 1) continue;
+          let a = el.parentElement, scroller = false;
+          while (a && a !== p) { const o = getComputedStyle(a).overflowX; if (o === 'auto' || o === 'scroll') { scroller = true; break; } a = a.parentElement; }
+          if (!scroller) bad.push(el.tagName.toLowerCase() + (el.className && el.className.baseVal === undefined ? '.' + String(el.className).split(' ')[0] : ''));
+        }
+        return bad.slice(0, 3);
+      });
+      if (over.length) failures.push(`${w}px ${r}: content runs past the pane edge (${over.join(', ')})`);
       if (errors.length) failures.push(`${w}px ${r}: ${errors[0]}`);
       if (s.text < 40) failures.push(`${w}px ${r}: content pane nearly empty (${s.text} chars)`);
       if (r.startsWith('#/map/t/') && r.endsWith('/overview') && await page.evaluate(id => !!(TOPICS[id] && TOPICS[id].diagram) && !document.querySelector('#pane .dgm-card svg'), r.split('/')[3])) failures.push(`${w}px ${r}: topic has a diagram but none is drawn`);
@@ -119,8 +146,128 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     if (!narrowAgain.open) failures.push('resize: pane rule not applied after narrowing again');
     await page.evaluate(() => { location.hash = '#/map/home'; });
     await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(900);
-    const fits = await page.evaluate(() => { const w = document.getElementById('mapwrap').getBoundingClientRect(); return [...document.querySelectorAll('#mapsvg .node[data-kind="domain"]')].every(n => { const r = n.getBoundingClientRect(); return r.left >= w.left - 1 && r.right <= w.right + 1 && r.top >= w.top - 1 && r.bottom <= w.bottom + 1; }); });
-    if (!fits) failures.push('resize: overview map not reframed for the wider stage');
+    const fits = await page.evaluate(MAP_LABEL_PX);
+    if (!fits.nodes || fits.min < 10.9) failures.push(`resize: overview map labels are ${fits.min.toFixed(1)}px after the stage widened (need 11)`);
+    visits++;
+    await ctx.close();
+  }
+  // The map keeps its labels readable at fit: about 11px on screen or more, never shrunk to fit the whole tree.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await ctx.newPage();
+    await page.goto(base);
+    await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
+    await page.evaluate(() => localStorage.setItem('playable.hideMap', 'false'));
+    for (const r of ['#/map/home', '#/map/d/' + await page.evaluate(() => DOMAINS[2].id), '#/map/t/core-loop/overview', '#/map/t/economy-and-resources/overview']) {
+      await page.evaluate(route => { location.hash = route; }, r); await page.waitForTimeout(700);
+      const m = await page.evaluate(MAP_LABEL_PX);
+      if (m.min < 10.9) failures.push(`1440px ${r}: map labels draw at ${m.min.toFixed(1)}px (need 11 or more)`);
+      if (!m.inView) failures.push(`1440px ${r}: the map fit shows no domain`);
+      if (r.includes('/t/')) { const cut = await page.evaluate(CUT_LABELS); if (cut.length) failures.push(`1440px ${r}: map labels cut off: ${cut.slice(0, 3).join(' | ')}`); }
+      visits++;
+    }
+    // A topic page hides the map by default and gives the text the room; the toggle shows it and remembers.
+    await page.evaluate(() => { localStorage.removeItem('playable.hideMap'); location.hash = '#/map/t/decisions/overview'; }); await page.waitForTimeout(300);
+    await page.evaluate(() => { location.hash = '#/map/t/core-loop/overview'; }); await page.waitForTimeout(400);
+    const col = await page.evaluate(() => { const p = document.getElementById('pane'), h = document.querySelector('#pane h1'), lh = parseFloat(getComputedStyle(h).lineHeight) || 30; return { w: p.getBoundingClientRect().width - 40, lines: Math.round(h.getBoundingClientRect().height / lh), toggle: !!document.querySelector('#pane [data-action="toggle-map"]'), map: getComputedStyle(document.getElementById('mapstage')).display }; });
+    if (col.w < 640) failures.push(`1440px topic page: text column is ${Math.round(col.w)}px, need 640 or more`);
+    if (col.lines > 2) failures.push(`1440px topic page: title wraps to ${col.lines} lines`);
+    if (col.map !== 'none') failures.push('1440px topic page: the map is not hidden by default');
+    if (!col.toggle) failures.push('1440px topic page: no Show map toggle');
+    else {
+      await page.click('#pane [data-action="toggle-map"]'); await page.waitForTimeout(700);
+      const shown = await page.evaluate(() => ({ map: getComputedStyle(document.getElementById('mapstage')).display, rail: getComputedStyle(document.getElementById('rail')).display, w: document.getElementById('mapwrap').getBoundingClientRect().width }));
+      shown.cut = await page.evaluate(CUT_LABELS);
+      if (shown.map === 'none' || shown.rail !== 'none') failures.push('1440px topic page: Show map should show the map and fold the index ' + JSON.stringify(shown));
+      if (shown.cut.length) failures.push('1440px topic page: map labels cut off: ' + shown.cut.slice(0, 3).join(' | '));
+      await page.reload(); await page.waitForTimeout(500);
+      if (await page.evaluate(() => getComputedStyle(document.getElementById('mapstage')).display) === 'none') failures.push('1440px topic page: the Show map choice was not remembered');
+      await page.click('#pane [data-action="toggle-map"]'); await page.waitForTimeout(300);
+      if (await page.evaluate(() => getComputedStyle(document.getElementById('rail')).display) === 'none') failures.push('1440px topic page: hiding the map did not bring the index back');
+    }
+    // Each section shows the list that fits it in the left column, or gives the column back.
+    const rail = async route => { await page.evaluate(r => { location.hash = r; }, route); await page.waitForTimeout(250); return page.evaluate(() => ({ shown: getComputedStyle(document.getElementById('rail')).display !== 'none', links: [...document.querySelectorAll('#rail a.railproj')].map(a => a.textContent.trim()), domains: document.querySelectorAll('#rail .raildom').length, projects: document.querySelectorAll('#rail a[href="#/experience"]').length })); };
+    const eng = await rail('#/engines'), make = await rail('#/build'), diag = await rail('#/diagnose'), chk = await rail('#/checklists');
+    if (!eng.shown || eng.domains || !eng.links.some(t => /Godot/.test(t))) failures.push('#/engines: left column is not the engine list');
+    if (!make.shown || make.domains || make.links.length < 11) failures.push('#/build: left column is not the tool list');
+    if (!diag.shown || diag.domains || diag.links.length < 8) failures.push('#/diagnose: left column is not the symptom list');
+    if (!chk.shown || chk.domains || chk.links.length < 3) failures.push('#/checklists: left column is not the checklist list');
+    for (const route of ['#/games', '#/prompts', '#/platforms', '#/ai', '#/experience']) { const x = await rail(route); if (x.shown) failures.push(route + ': the left column stays open with nothing that fits'); }
+    const home = await rail('#/map/home');
+    if (!home.shown || !home.domains) failures.push('#/map/home: the concept index is missing from the left column');
+    if (home.projects) failures.push('Projects has a second entry point in the left column');
+    // Make: tools grouped by job, each with a "use this when", a link to why, and one start-here mark.
+    await page.evaluate(() => { location.hash = '#/build'; }); await page.waitForTimeout(250);
+    const mk = await page.evaluate(() => ({ groups: document.querySelectorAll('#pane .toolgrid').length, cards: document.querySelectorAll('#pane .toolcard').length, when: document.querySelectorAll('#pane .toolcard .toolwhen').length, why: document.querySelectorAll('#pane .toolcard .toollinks a[href^="#/map/t/"]').length, start: document.querySelectorAll('#pane .toolcard.start').length, tools: TOOLS.length }));
+    if (mk.groups < 4 || mk.cards !== mk.tools || mk.when !== mk.tools || mk.why !== mk.tools || mk.start !== 1) failures.push('#/build: tools are not grouped with a use-when line, a why link and one start-here mark ' + JSON.stringify(mk));
+    // Library: topic chips filter to the games that teach the topic. A smell links to games that show it.
+    await page.evaluate(() => { location.hash = '#/games'; }); await page.waitForTimeout(250);
+    const chips = await page.evaluate(() => [...document.querySelectorAll('#pane .libteach [data-k="topic"]')].map(b => b.dataset.v));
+    if (chips.length < 8 || !chips.includes('economy-and-resources') || !chips.includes('onboarding')) failures.push('#/games: topic chips missing (' + chips.length + ')');
+    else {
+      const before = await page.evaluate(() => document.querySelectorAll('#pane .refcard').length);
+      await page.click('#pane .libteach [data-v="onboarding"]'); await page.waitForTimeout(200);
+      const after = await page.evaluate(() => document.querySelectorAll('#pane .refcard').length);
+      if (!(after > 0 && after < before)) failures.push(`#/games: the Onboarding chip left ${after} of ${before} games`);
+    }
+    await page.evaluate(() => { location.hash = '#/smell/repetitive'; }); await page.waitForTimeout(250);
+    const sg = await page.evaluate(() => [...document.querySelectorAll('#pane .smellgames a')].map(a => a.getAttribute('href')));
+    if (sg.length < 2 || !sg.some(h => /^#\/games\/topic\//.test(h))) failures.push('smell page: no "See it in games" row ' + JSON.stringify(sg));
+    else {
+      await page.evaluate(h => { location.hash = h; }, sg[sg.length - 1]); await page.waitForTimeout(250);
+      if (!await page.evaluate(() => document.querySelectorAll('#pane .refcard').length)) failures.push('"See it in games" leads to an empty library');
+    }
+    // The path bar shows its whole line: no clipping, no ellipsis.
+    const clipped = await page.evaluate(async () => {
+      const bad = [];
+      for (const p of PATHS.slice(0, 6)) for (const st of p.stages.slice(0, 2)) for (const step of st.steps.slice(0, 3)) {
+        location.hash = stepHref(step, p.id, st.id); await new Promise(r => setTimeout(r, 40));
+        const el = document.querySelector('#pane .pathbar-info'); if (!el) continue;
+        const cs = getComputedStyle(el);
+        if (el.scrollWidth > el.clientWidth + 1 || cs.textOverflow === 'ellipsis' || cs.whiteSpace === 'nowrap') bad.push(location.hash);
+      }
+      return bad;
+    });
+    if (clipped.length) failures.push('1440px path bar clips its text on ' + clipped.slice(0, 2).join(', '));
+    await ctx.close();
+  }
+  // Tablet: a topic opens as a page with the map hidden; with the map shown no label is cut.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
+    const page = await ctx.newPage();
+    await page.goto(base + '#/map/t/core-loop/overview'); await page.waitForTimeout(500);
+    const pane = await page.evaluate(() => document.getElementById('pane').getBoundingClientRect().width);
+    if (pane < 1000) failures.push('1024px topic page: the map is not hidden by default (pane ' + Math.round(pane) + 'px)');
+    await page.click('#pane [data-action="toggle-map"]'); await page.waitForTimeout(800);
+    const cut = await page.evaluate(CUT_LABELS);
+    if (cut.length) failures.push('1024px topic page: map labels cut off: ' + cut.slice(0, 3).join(' | '));
+    visits++;
+    await ctx.close();
+  }
+  // Phone: every section is reachable with a whole label, and a topic is a full page with the map one tap away.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });
+    const page = await ctx.newPage();
+    await page.goto(base);
+    await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
+    await page.evaluate(() => { location.hash = '#/map/home'; }); await page.waitForTimeout(300);
+    const bar = await page.evaluate(() => [...document.querySelectorAll('#primaryNav button')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return { t: b.textContent.trim(), left: r.left, right: r.right, clipped: b.scrollWidth > b.clientWidth + 1, font: parseFloat(getComputedStyle(b).fontSize) }; }));
+    for (const b of bar) if (b.left < 0 || b.right > 376 || b.clipped || b.font < 11) failures.push(`375px header: "${b.t}" is clipped or too small ${JSON.stringify(b)}`);
+    const names = await page.evaluate(() => [...document.querySelectorAll('#primaryNav button[data-group]')].map(b => b.textContent.trim()));
+    await page.click('#navMore'); await page.waitForTimeout(100);
+    const more = await page.evaluate(() => [...document.querySelectorAll('#primaryNav .nav-extra')].map(b => { const r = b.getBoundingClientRect(); return { t: b.textContent.trim(), ok: r.width > 0 && r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight }; }));
+    for (const n of names.slice(5)) if (!more.some(m => m.t === n && m.ok)) failures.push(`375px header: "${n}" is not reachable from More`);
+    await page.locator('#primaryNav .nav-extra').last().click(); await page.waitForTimeout(250);
+    if (await page.evaluate(() => location.hash) !== '#/experience') failures.push('375px header: More did not open Projects');
+    await page.evaluate(() => { location.hash = '#/map/t/core-loop/overview'; }); await page.waitForTimeout(400);
+    const pg = await page.evaluate(() => { const p = document.getElementById('pane').getBoundingClientRect(); return { left: p.left, right: p.right, scrim: document.getElementById('scrim').classList.contains('show'), btn: document.getElementById('drawerClose').textContent.trim() }; });
+    if (pg.left > 1 || pg.right < 374 || pg.scrim) failures.push('375px topic: not a full page ' + JSON.stringify(pg));
+    if (!/Map/.test(pg.btn)) failures.push('375px topic: no Map button to leave the page ' + JSON.stringify(pg));
+    await page.keyboard.press('Escape'); await page.waitForTimeout(250);
+    if (await page.evaluate(() => document.getElementById('pane').classList.contains('open'))) failures.push('375px topic: Escape did not return to the map');
+    await page.evaluate(() => { location.hash = '#/map/t/decisions/overview'; }); await page.waitForTimeout(300);
+    await page.click('#drawerClose'); await page.waitForTimeout(250);
+    if (await page.evaluate(() => document.getElementById('pane').classList.contains('open'))) failures.push('375px topic: the Map button did not show the map');
     visits++;
     await ctx.close();
   }

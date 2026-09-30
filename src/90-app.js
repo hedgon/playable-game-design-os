@@ -71,6 +71,7 @@ document.addEventListener('input', e => { const k = e.target.dataset && e.target
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
 ACTIONS.copy = el => copyText(el.closest('.promptbox').querySelector('pre').textContent);
 ACTIONS['fit-map'] = () => fitMap();
+ACTIONS['toggle-map'] = el => { const h = !store.get('hideMap', true); store.set('hideMap', h); keepScroll = true; route(); if(isNarrow() && !h){ $('#pane').classList.remove('open'); syncScrim(); } };
 ACTIONS.lens = el => setLens(el.dataset.lens);
 ACTIONS.focus = el => document.getElementById(el.dataset.target).focus();
 ACTIONS['toggle-parent'] = el => el.parentElement.classList.toggle('open');
@@ -89,7 +90,7 @@ const NAV = [
   { id:'library', t:'Library', views:[['games','Reference games'],['platforms','Platforms'],['engines','Engines'],['checklists','Checklists'],['prompts','Prompts'],['sources','Sources']] },
   { id:'make', t:'Make', views:[['lab','Idea Lab'],['build','Build tools']] },
   { id:'diagnose', t:'Diagnose', views:[['diagnose','Diagnose'],['playtest','Playtest']] },
-  { id:'ai', t:'AI Workflow', short:'AI', views:[['ai','AI Workflow']] },
+  { id:'ai', t:'AI Workflow', views:[['ai','AI Workflow']] },
   { id:'experience', t:'Projects', views:[['experience','Projects']] }
 ];
 const VIEW_GROUP = {};
@@ -113,6 +114,9 @@ function mapOnly(parts){
   if(v === 'experience' && a && b && !c) return !['workflows', 'interview', 'flow', 'overview'].includes(b);
   return false;
 }
+// A topic, domain or smell page is read beside the map; the reader can fold the
+// map away to give the text the whole width (see .shell.nomap).
+const mapReading = parts => (parts[0] === 'map' && ['t', 'd', 's'].includes(parts[1])) || parts[0] === 'topic';
 // Views with nothing on the map use the work layout (see .shell.work).
 function usesMap(parts){
   const [v, a] = parts;
@@ -165,12 +169,20 @@ function route(){
   const parts = h.split('/').filter(Boolean);
   const view = parts[0];
   const group = VIEW_GROUP[view || 'map'];
-  $$('#primaryNav button').forEach(b => { const on = !!group && b.dataset.group === group.id; b.classList.toggle('active', on); if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  $$('#primaryNav button[data-group]').forEach(b => { const on = !!group && b.dataset.group === group.id; b.classList.toggle('active', on); if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  $('#navMore').classList.toggle('active', !!group && NAV.indexOf(group) >= NAV_BAR); closeNavMore();
   closeModals();
   syncMapMode(view, parts[1]);
   render(view, parts);
   rememberPage();
   $("#shell").classList.toggle("work", !usesMap(parts));
+  $("#shell").classList.toggle("reading", mapReading(parts));
+  // On a topic page the map is folded away until the reader asks for it. Once shown it
+  // takes the place of the concept index (one click back), so no node is cut.
+  const sh = $("#shell"), reading = mapReading(parts), hideIt = reading && store.get('hideMap', true);
+  sh.classList.toggle("nomap", hideIt);
+  if(reading && !hideIt && !isNarrow()){ if(!sh.classList.contains('hide-left')){ sh.classList.add('hide-left'); sh.dataset.autofold = '1'; } }
+  else if(sh.dataset.autofold){ delete sh.dataset.autofold; if(!store.get('hideLeft')) sh.classList.remove('hide-left'); }
   showPaneFor(parts);
   const key = routeKey(parts), samePage = key === lastRouteKey;
   lastRouteKey = key;
@@ -215,7 +227,13 @@ function render(view, parts){
 }
 window.addEventListener('hashchange', route);
 // On a phone a long group name shows its short form; the accessible name stays whole.
-$('#primaryNav').innerHTML = NAV.map(g => `<button data-group="${g.id}" data-href="#/${g.views[0][0]}"${g.short ? ` aria-label="${g.t}"` : ''}>${g.short ? `<span class="nav-long">${g.t}</span><span class="nav-short">${g.short}</span>` : g.t}</button>`).join('');
+// On a phone the first five sections sit in the bar and the rest open from "More",
+// so every label is whole and nothing is clipped.
+const NAV_BAR = 5;
+$('#primaryNav').innerHTML = NAV.map((g, i) => `<button data-group="${g.id}" data-href="#/${g.views[0][0]}"${i >= NAV_BAR ? ' class="nav-extra"' : ''}>${g.t}</button>`).join('') + '<button type="button" class="nav-morebtn" id="navMore" data-action="nav-more" aria-haspopup="true" aria-expanded="false">More</button>';
+const closeNavMore = () => { $('#primaryNav').classList.remove('more-open'); $('#navMore').setAttribute('aria-expanded', 'false'); };
+ACTIONS['nav-more'] = el => { const on = $('#primaryNav').classList.toggle('more-open'); el.setAttribute('aria-expanded', on); };
+document.addEventListener('click', e => { if(!e.target.closest('#navMore')) closeNavMore(); });
 $('#brandBtn').onclick = () => go('#/map');
 $('#railToggle').onclick = () => { const r = $('#rail'); if(r){ r.classList.toggle('open'); syncScrim(); } };
 
@@ -251,8 +269,8 @@ function wireShell(){
   if(store.get('hideRight')) shell.classList.add('hide-right');
   const dragSplit = (handle, which) => handle.addEventListener('pointerdown', e => {
     e.preventDefault(); const startX = e.clientX;
-    const startRail = parseInt(getComputedStyle(shell).getPropertyValue('--railW')) || 300;
-    const startPane = parseInt(getComputedStyle(shell).getPropertyValue('--paneW')) || 460;
+    const startRail = $('#rail').getBoundingClientRect().width || 300;
+    const startPane = $('#pane').getBoundingClientRect().width || 460;
     const move = ev => { if(which === 'L'){ const w = Math.max(200, Math.min(560, startRail + (ev.clientX - startX))); shell.style.setProperty('--railW', w + 'px'); store.set('railW', w); } else { const w = Math.max(300, Math.min(820, startPane - (ev.clientX - startX))); shell.style.setProperty('--paneW', w + 'px'); store.set('paneW', w); } };
     const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
@@ -271,7 +289,7 @@ function wireShell(){
   const closeTopDrawer = () => { const top = drawerOrder[drawerOrder.length - 1]; if(top) top.classList.remove('open'); syncScrim(); };
   scrim.onclick = closeTopDrawer;
   $('#drawerClose').onclick = closeTopDrawer;
-  $('#collapseLeft').onclick = () => { if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
+  $('#collapseLeft').onclick = () => { delete shell.dataset.autofold; if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
   $('#collapseRight').onclick = () => { if(isNarrow()){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
   renderTree('home');
 }
@@ -282,7 +300,6 @@ function railHTML(activeDom, activeTopic){
       <div class="lens-switch" role="group" aria-label="Map lens">${LENSES.map(([id, t]) => `<button type="button" data-action="lens" data-lens="${id}" aria-pressed="${id === lens}">${esc(t)}</button>`).join('')}</div>
       <button class="railgraph" id="railFit" data-action="fit-map">⤢ Fit map</button>
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
-      <a class="railgraph" href="#/experience">❖ Projects</a>
       <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
     <div class="raillist">${DOMAINS.filter(d => d.lens === lens).map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
@@ -332,7 +349,17 @@ function railActive(){
   if(parts[0]==='explore' && DOM[parts[1]]) return { dom: parts[1], topic: null };
   return { dom: null, topic: null };
 }
-function syncScrim(){ const open = ($('#rail').classList.contains('open') || $('#pane').classList.contains('open')) && isNarrow(); $('#scrim').classList.toggle('show', open); const dc = $('#drawerClose'); if(dc) dc.classList.toggle('show', open); }
+// On a phone the content opens as a full page: no dimmed map behind it, and the
+// way out is a labelled "Map" button instead of a round close mark.
+const phoneMQ = window.matchMedia('(max-width: 700px)');
+function syncScrim(){
+  const railOpen = $('#rail').classList.contains('open'), paneOpen = $('#pane').classList.contains('open'), narrow = isNarrow();
+  $('#scrim').classList.toggle('show', narrow && (railOpen || (paneOpen && !phoneMQ.matches)));
+  const dc = $('#drawerClose'); if(!dc) return;
+  const page = narrow && paneOpen && !railOpen && phoneMQ.matches;
+  dc.classList.toggle('show', narrow && (railOpen || paneOpen)); dc.classList.toggle('text', page);
+  dc.textContent = page ? '◂ Map' : '✕'; dc.setAttribute('aria-label', page ? 'Back to the map' : 'Close panel');
+}
 function closeRailDrawer(r){ if(isNarrow()){ r.classList.remove('open'); syncScrim(); } }
 // Crossing the narrow width swaps drawers for panes: drop drawer state when
 // widening, and apply the route's pane rule when narrowing.
@@ -349,9 +376,39 @@ function railFilter(r, sel){
       de.style.display = (!q || any || dn.includes(q)) ? '' : 'none';
       if(q && any) de.classList.add('open'); }); });
 }
+// What the left column shows outside the map: the list that fits the section
+// (engines, Make's tools, Diagnose's symptoms, the checklists), or nothing.
+function railSection(p){
+  const v = p[0];
+  if(v === 'engines') return { id: 'engines', toggle: 'Browse engines' };
+  if(v === 'lab' || v === 'build') return { id: 'make', toggle: 'Browse tools' };
+  if(v === 'diagnose' || v === 'smell') return { id: 'diagnose', toggle: 'Browse symptoms' };
+  if(v === 'checklists') return { id: 'checklists', toggle: 'Browse checklists' };
+  return null;
+}
+function sectionRailHTML(sec, p){
+  const link = (href, t, on, sub) => `<a class="railproj ${on ? 'active' : ''}" href="${href}"${on ? ' aria-current="page"' : ''}>${esc(t)}${sub ? `<small class="railsub">${esc(sub)}</small>` : ''}</a>`;
+  const group = (title, links) => `<div class="railprojects"><span class="railtitle">${esc(title)}</span>${links.join('')}</div>`;
+  const idx = `<div class="railfoot"><a class="railgraph" href="#/map">⌘ Design concept index</a></div>`;
+  if(sec.id === 'engines') {
+    return [['engine', 'Game engines'], ['web', 'The web stack'], ['tool', 'Tools']].map(([k, t]) => { const xs = ENGINES.filter(e => e.kind === k); return xs.length ? group(t, xs.map(e => link('#/engines/' + e.id, e.t, p[1] === e.id))) : ''; }).join('') + idx;
+  }
+  if(sec.id === 'make') {
+    const cur = p[0] === 'build' ? p[1] : '';
+    return group('Ideation', [link('#/lab', 'Idea Lab', p[0] === 'lab', 'Observe, tension, idea card')]) +
+      TOOL_GROUPS.map(([gid, t, ids]) => group(t, ids.map(id => { const x = TOOLS.find(y => y[0] === id); return link('#/build/' + id, x[1], cur === id, id === TOOL_START ? 'Start here' : ''); }))).join('') + idx;
+  }
+  if(sec.id === 'diagnose') {
+    const cur = p[0] === 'smell' ? p[1] : p[2];
+    return group('What are you seeing?', A.SYMPTOMS.map(([s, id]) => link('#/smell/' + id, s, cur === id))) +
+      group('Other diagnostics', [link('#/diagnose/smells', `All ${SMELLS.length} smells`, p[0] === 'diagnose' && (!p[1] || p[1] === 'smells') && !cur), ...DIAGNOSTICS.map(([id, t]) => link('#/diagnose/' + id, t, p[0] === 'diagnose' && p[1] === id))]) + idx;
+  }
+  return group('Checklists', CHECKLISTS.map(c => link('#/checklists/' + c.id, c.t, (p[1] || CHECKLISTS[0].id) === c.id))) + idx;
+}
 function updateRail(){
   ensureShell(); const r = $('#rail'); if(!r) return;
-  const hash = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  $('#shell').classList.remove('norail');
+  const hash =location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   const proj = hash[0] === 'experience' && hash[1] ? CASE_STUDIES.find(x => x.id === hash[1]) : null;
   if(proj){
     r.innerHTML = railProjectHTML(proj, hash[2], hash[3]);
@@ -368,6 +425,12 @@ function updateRail(){
     railFilter(r, '.railtopic');
     return;
   }
+  // Outside the map the column shows what fits the section, or collapses
+  // (the concept index is still in the drawer on a phone, and on the Map).
+  const sec = railSection(hash);
+  if(sec){ r.innerHTML = sectionRailHTML(sec, hash); $('#railToggle').title = $('#railToggle').ariaLabel = sec.toggle; return; }
+  $('#shell').classList.toggle('norail', !usesMap(hash));
+  $('#railToggle').title = 'Browse concepts'; $('#railToggle').ariaLabel = 'Browse concepts';
   const a = railActive(); r.innerHTML = railHTML(a.dom, a.topic);
   r.querySelectorAll('.raildom-btn').forEach(b => b.addEventListener('click', () => { const dom = b.parentElement; dom.classList.toggle('open'); store.set('sideOpen', [...r.querySelectorAll('.raildom.open')].map(x => x.dataset.dom)); }));
   r.querySelectorAll('.railtopic').forEach(b => b.addEventListener('click', () => { go('#/map/t/' + b.dataset.topic); closeRailDrawer(r); }));
@@ -413,7 +476,9 @@ function subNavHTML(){
   if(!g || g.views.length < 2) return '';
   const cur = v === 'smell' ? 'diagnose' : v;
   const due = g.id === 'paths' ? reviewDue().length : 0;
-  return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}</nav>`;
+  const hidden = store.get('hideMap', true);
+  const toggle = mapReading(p) ? `<button type="button" class="btn sm ghost maptoggle" data-action="toggle-map" aria-pressed="${hidden}">${hidden ? 'Show map' : 'Hide map'}</button>` : '';
+  return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}${toggle}</nav>`;
 }
 function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button data-href="${it[1]}">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
@@ -431,13 +496,25 @@ function gameArt(g){
 const familyLabel = id => (GAME_FAMILIES.find(f => f[0] === id) || [id, id])[1];
 const lensLabel = key => (GAME_LENSES.find(l => l[0] === key) || [key, key])[1];
 // The library's view and filters are a per-browser convenience.
-const libState = () => { const s = store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'' }); if (s.tag && !GAME_TAGS.includes(s.tag)) s.tag = ''; if (s.shelf && !GAME_SHELVES.some(x => x[0] === s.shelf)) s.shelf = ''; return s; };
+const libState = () => { const s = store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'', topic:'', lensk:'' }); if (s.tag && !GAME_TAGS.includes(s.tag)) s.tag = ''; if (s.shelf && !GAME_SHELVES.some(x => x[0] === s.shelf)) s.shelf = ''; return s; };
 // From a game page: open the library showing that game's family.
-ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { shelf: '', family: el.dataset.v, tag: '', lens: '' }));
+ACTIONS['lib-family'] = el => store.set('library', Object.assign(libState(), { shelf: '', family: el.dataset.v, tag: '', lens: '', topic: '', lensk: '' }));
 ACTIONS['lib-set'] = el => { const s = libState(); s[el.dataset.k] = s[el.dataset.k] === el.dataset.v ? '' : el.dataset.v; if(el.dataset.k === 'view') s.view = el.dataset.v; store.set('library', s); keepScroll = true; renderGames(); };
+// The games whose lenses name a topic (see gameLinks), as a set of game ids.
+const topicGameIds = tid => new Set((gameLinks()[tid] || []).map(x => x.g.id));
+// What a game teaches, for the chips at the top of the library: the topics that
+// games actually list in their lenses. A topic nearly every game lists (art,
+// sound, business model) tells the reader nothing, so those are left out.
+function libraryTopics(){
+  const n = REFERENCE_GAMES.length;
+  return Object.keys(gameLinks()).filter(t => TOPICS[t]).map(t => [t, topicGameIds(t).size]).filter(([, c]) => c >= 6 && c <= n * 0.5).sort((x, y) => y[1] - x[1] || TOPICS[x[0]].t.localeCompare(TOPICS[y[0]].t)).slice(0, 32);
+}
+const shortTopic = t => TOPICS[t].t.split(/:| and | vs /)[0].trim();
 function libraryHTML(){
   const s = libState(), analysed = REFERENCE_GAMES.filter(g => g.lens).length;
-  const pick = g => (!s.shelf || onShelf(g, s.shelf)) && (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!g.lens);
+  const wantTopics = s.topic ? s.topic.split('+').filter(t => TOPICS[t]) : [];
+  const wantIds = new Set(wantTopics.flatMap(t => [...topicGameIds(t)]));
+  const pick = g => (!s.shelf || onShelf(g, s.shelf)) && (!s.family || g.family === s.family) && (!s.tag || (g.tags || []).includes(s.tag)) && (!s.lens || !!g.lens) && (!wantTopics.length || wantIds.has(g.id)) && (!s.lensk || !!(g.lens && g.lens[s.lensk] && !g.lens[s.lensk].na));
   const shelves = GAME_SHELVES.filter(([id]) => REFERENCE_GAMES.some(g => onShelf(g, id)));
   const list = REFERENCE_GAMES.filter(pick);
   const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
@@ -449,7 +526,11 @@ function libraryHTML(){
     : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${gameYears(x)}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
     : s.family || s.shelf ? grid(list)
     : GAME_FAMILIES.map(([f, label]) => { const xs = list.filter(x => x.family === f); return xs.length ? `<div class="section-head"><h2>${esc(label)}</h2><span class="muted">${xs.length}</span></div>${grid(xs)}` : ''; }).join('');
+  const topics = libraryTopics();
+  const teaches = `<div class="librow libteach"><span class="overline">What it teaches</span><span class="chips libscroll">${wantTopics.length > 1 ? btn('topic', s.topic, 'Topics of one smell (clear)', true) : ''}${topics.map(([t, c]) => btn('topic', t, `${shortTopic(t)} ${c}`, s.topic === t)).join('')}</span></div>
+    <div class="librow libteach"><span class="overline">Read by lens</span><span class="chips libscroll">${GAME_LENSES.map(([k, t]) => btn('lensk', k, t, s.lensk === k)).join('')}</span></div>`;
   return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed === REFERENCE_GAMES.length ? ', each read through ten lenses, from UI and art direction to business and lineage' : analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
+    ${teaches}
     ${shelves.length ? `<div class="librow"><span class="overline">Shelves</span><span class="chips libscroll">${shelves.map(([id, t]) => btn('shelf', id, t, s.shelf === id)).join('')}</span></div>` : ''}
     <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span><span class="overline">Genre</span><span class="chips libscroll">${GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => btn('family', f, t, s.family === f)).join('')}</span></div>
     <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag, or show only games analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
@@ -528,6 +609,8 @@ function receptionHTML(g){
     <h4>What the difference teaches</h4><p>${esc(g.receptionLesson)}</p></div>`;
 }
 function renderGames(id, lensId){
+  // #/games/topic/<id> (or <id>+<id>) opens the library on the games that teach it.
+  if(id === 'topic' && lensId) store.set('library', Object.assign(libState(), { shelf: '', family: '', tag: '', lens: '', lensk: '', topic: lensId.split('+').filter(t => TOPICS[t]).join('+') }));
   const g = REFERENCE_GAMES.find(x => x.id === id);
   if(!g){ setView(libraryHTML()); return; }
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
@@ -940,6 +1023,18 @@ function renderDiagnose(sub='smells', arg){
 }
 
 function smellCard(s){ return `<a class="smell lnk blk" href="#/smell/${s.id}"><h3>${esc(s.t)}</h3><div class="small dim">${esc(s.sym)}</div><div class="chips" style="margin-top:6px">${s.dom.map(domChip).join('')}</div></a>`; }
+// Games that show a smell's causes: those whose lenses list the topics its causes
+// name, best match first, each with the lens that lists the topic.
+function smellGames(s){
+  const tops = [...new Set(s.causes.map(c => c.top))].filter(t => TOPICS[t]), by = {};
+  tops.forEach(t => (gameLinks()[t] || []).forEach(({ g, label }) => { const e = by[g.id] || (by[g.id] = { g, topics: new Set(), lens: '' }); e.topics.add(t); const k = (GAME_LENSES.find(l => l[1] === label) || [''])[0]; if(k && !e.lens) e.lens = k; }));
+  return { tops, games: Object.values(by).sort((a, b) => b.topics.size - a.topics.size || a.g.t.localeCompare(b.g.t)) };
+}
+function smellGamesHTML(s){
+  const { tops, games } = smellGames(s); if(!games.length) return '';
+  const shown = games.slice(0, 6);
+  return `<div class="smellgames"><b>See it in games</b><span class="chips">${shown.map(e => `<a class="chip lnk" href="#/games/${e.g.id}${e.lens ? '/' + e.lens : ''}" title="Lists ${[...e.topics].map(t => esc(TOPICS[t].t)).join(', ')}">${esc(e.g.t)}</a>`).join('')}<a class="chip lnk" href="#/games/topic/${tops.join('+')}">All ${games.length} games →</a></span></div>`;
+}
 function smellsView(id){
   const s = SMELLS.find(x => x.id === id);
   if(s){
@@ -948,6 +1043,7 @@ function smellsView(id){
       ${s.dims ? `<div class="chips" style="margin-bottom:10px"><span class="small muted">Fun dimensions implicated:</span>${s.dims.map(d => `<a class="chip lnk" style="cursor:pointer" href="#/diagnose/fun/${d}">${d}</a>`).join('')}</div>` : ''}
       <h3>Likely causes and the experiment for each</h3>
       ${s.causes.map((c, i) => `<div class="cause"><div class="t"><span class="badge-num" style="--dc:var(--accent)">${i+1}</span>${esc(c.c)} <span class="chip">${topicLink(c.top)}</span></div><div class="exp"><b>Experiment:</b> ${esc(c.exp)}</div></div>`).join('')}
+      ${smellGamesHTML(s)}
       <h3 style="margin-top:16px">Ask AI to help diagnose</h3>${promptBox('Diagnostic prompt', s.prompt)}
       <div class="callout"><b>Then:</b> write the hypothesis for the cause you believe most, in the <a href="#/build/hypothesis">Hypothesis Builder</a>. Test the cheapest experiment. Change one important variable. Test again.</div>`;
   }
@@ -1049,9 +1145,27 @@ function wireContentTree(){
 /* =====================================================================
    BUILD (tools)
    ===================================================================== */
-function renderBuild(tool='idea'){
-  const head = `${crumbs([['Make','#/lab'],['Build tools']])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
-    <div class="tool-nav">${TOOLS.map(([id, t, s]) => `<button class="${id===tool?'active':''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`).join('')}</div>`;
+// The first path step that uses a tool, so a card can say where it is taught.
+function toolPathStep(id){
+  for(const p of PATHS) for(const st of p.stages){ const step = st.steps.find(s => s.kind === 'tool' && s.ref === id); if(step) return { p, st, step }; }
+  return null;
+}
+function toolCardHTML(id){
+  const [, t, pitch, when, topic] = TOOLS.find(x => x[0] === id), ps = toolPathStep(id);
+  return `<article class="toolcard ${id === TOOL_START ? 'start' : ''}"><a class="toolcard-main" href="#/build/${id}"><b>${esc(t)}</b>${id === TOOL_START ? '<span class="chip ok">Start here</span>' : ''}<span class="small dim">${esc(pitch)}</span></a>
+    <p class="small toolwhen"><b>Use this when</b> ${esc(when)}</p>
+    <div class="small toollinks">${TOPICS[topic] ? `<a href="#/map/t/${topic}">Why: ${esc(TOPICS[topic].t)}</a>` : ''}${ps ? `<a href="${stepHref(ps.step, ps.p.id, ps.st.id)}">In the path: ${esc(ps.p.t)}</a>` : ''}</div></article>`;
+}
+function renderBuild(tool){
+  const cur = TOOLS.find(x => x[0] === tool);
+  if(!cur){
+    setView(`${crumbs([['Make','#/lab'],['Build tools']])}<h1>Build tools</h1><p class="dim" style="max-width:820px">Lightweight canvases that force the questions this guide keeps asking, grouped by the job you are doing. Everything saves in your browser and exports Markdown you can paste into a document or a prompt. Not sure where to begin? Open the <a href="#/build/${TOOL_START}">${esc(TOOLS.find(x => x[0] === TOOL_START)[1])}</a>, or the <a href="#/lab">Idea Lab</a> if you have no idea yet.</p>
+      ${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="section-head"><h2>${esc(gt)}</h2></div><div class="toolgrid">${ids.map(toolCardHTML).join('')}</div>`).join('')}`);
+    return;
+  }
+  const head = `${crumbs([['Make','#/lab'],['Build tools','#/build'],[cur[1]]])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
+    <p class="small toolwhen"><b>Use this when</b> ${esc(cur[3])} ${TOPICS[cur[4]] ? `<a href="#/map/t/${cur[4]}">Why: ${esc(TOPICS[cur[4]].t)}</a>` : ''}</p>
+    <div class="toolgroups">${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="overline">${esc(gt)}</span><div class="tool-nav">${ids.map(id => { const [, t, s] = TOOLS.find(x => x[0] === id); return `<button class="${id === tool ? 'active' : ''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
   const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt, gameai: toolGameAI }[tool] || toolIdea;
   setView(head + `<div class="tool" id="tool"></div>`);
   fn($('#tool'));
@@ -2215,7 +2329,7 @@ $('#skipBtn').onclick = () => {
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='Escape'){ closeModals(); return; }
+  if(e.key==='Escape'){ if(!document.querySelector('.modal-bg.show') && isNarrow() && $('#drawerClose').classList.contains('show') && !typing){ $('#drawerClose').click(); return; } closeModals(); return; }
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ openModal('helpModal', 'h2'); return; }

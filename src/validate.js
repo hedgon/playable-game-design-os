@@ -23,7 +23,7 @@ function imageSize(file) {
 }
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -137,6 +137,18 @@ for (const [name, list] of [['TOOLS', TOOLS], ['DIAGNOSTICS', DIAGNOSTICS]]) {
   const ids = list.map(x => x[0]);
   if (new Set(ids).size !== ids.length) errors.push(`${name}: duplicate id`);
   list.forEach(x => { if (x.some(v => !String(v).trim())) errors.push(`${name}: ${x[0]} has an empty field`); });
+}
+// Each tool names when to use it and the topic that motivates it; the Build view
+// groups every tool under exactly one job and marks one as the place to start.
+{
+  const toolIds = new Set(TOOLS.map(([id]) => id)), grouped = ctx.TOOL_GROUPS.flatMap(([, , ids]) => ids);
+  TOOLS.forEach(([id, , , when, topic]) => {
+    if (!when || when.length < 20) errors.push(`TOOLS: ${id} needs a "use this when" line`);
+    if (!TOPICS[topic]) errors.push(`TOOLS: ${id} names topic ${topic}, which does not exist`);
+  });
+  grouped.forEach(id => { if (!toolIds.has(id)) errors.push(`TOOL_GROUPS: ${id} is not a tool`); });
+  TOOLS.forEach(([id]) => { const n = grouped.filter(x => x === id).length; if (n !== 1) errors.push(`TOOL_GROUPS: tool ${id} is in ${n} groups, expected 1`); });
+  if (!toolIds.has(ctx.TOOL_START)) errors.push(`TOOL_START: ${ctx.TOOL_START} is not a tool`);
 }
 const domIds = new Set(DOMAINS.map(d => d.id));
 const lensIds = new Set(ctx.LENSES.map(([id]) => id));

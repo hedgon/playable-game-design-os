@@ -6,21 +6,30 @@
    them used to keep its own copy.
    ===================================================================== */
 
-// [id, title, one-line pitch]. A path's 'tool' step refs an id; the Build
-// view lists them in this order.
+// [id, title, one-line pitch, use this when, motivating topic id]. A path's
+// 'tool' step refs an id; the Build view lists them by job (TOOL_GROUPS).
 const TOOLS = [
-  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it'],
-  ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded'],
-  ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check'],
-  ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not'],
-  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic'],
-  ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE'],
-  ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…'],
-  ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required'],
-  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated'],
-  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE'],
-  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view']
+  ['idea','Idea Shaper','Read a market for an unserved want, then shape one core idea to fill it','You have a genre or a hunch, but no idea yet.','finding-an-idea'],
+  ['dissect','Reference Dissection','Is my idea actually good? Cross-reference it against games that succeeded','You have an idea and want to know whether it is good before you build it.','learning-from-success'],
+  ['loop','Game Loop Builder','Action → Decision → Feedback → Reward → New situation, with a weak-link check','Your idea is a list of features and you cannot tell whether it repeats.','core-loop'],
+  ['canvas','Core Experience Canvas','Player, fantasy, emotions, goals, what it is not','You need one page that says who it is for and what it should feel like.','core-experience'],
+  ['ladder','Behavior Ladder','From a feature idea to the behavior and back to the smallest mechanic','Someone asks for a feature and you need the behavior it should cause.','feature-vs-experience'],
+  ['feature','Should We Build This?','Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE','A feature is on the table and the team is about to commit.','scope-control'],
+  ['hypothesis','Playtest Hypothesis Builder','We believe… we will know when… we will kill it if…','You are about to run a playtest and want it to settle a question.','hypothesis-driven-design'],
+  ['delegate','AI Delegation Planner','Human, AI, both, or player evidence required','You are deciding which parts of the work to hand to an AI.','ai-roles'],
+  ['sysmap','System Relationship Map','Nodes and typed edges. Collision questions generated','Two systems touch and you suspect they collide.','systemic-design'],
+  ['prompt','AI Prompt Generator','CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE','You are about to ask an AI for design help and want a prompt that gets a usable answer.','prompting-framework'],
+  ['gameai','In-game AI Technique Chooser','Decision shape + team + budget → primary technique, trade-offs, debug view','A character needs to decide things in play and you must pick a technique.','choosing-ai-technique']
 ];
+// The Build view groups the tools by job: [group id, title, tool ids]. The
+// one marked here is the tool to open first.
+const TOOL_GROUPS = [
+  ['shape','Shape an idea',['idea','canvas','ladder']],
+  ['test','Test an idea',['dissect','feature','hypothesis']],
+  ['systems','Systems',['loop','sysmap']],
+  ['ai','AI',['delegate','prompt','gameai']]
+];
+const TOOL_START = 'idea';
 
 // [id, tab label, full title]. The Diagnose view's tabs after "Design
 // smells", in this order; a path's 'diagnostic' step refs an id.

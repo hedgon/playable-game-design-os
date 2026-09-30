@@ -47,7 +47,9 @@ npx -y -p typescript@5 tsc -p jsconfig.json
 
 `src/smoke.js` opens the built page in Chromium at 375, 1024 and 1440 px, visits
 one route of every kind, and fails on a page or console error, an empty content
-pane, or a narrow-screen pane rule that is not met. It needs Playwright, which is
+pane, content that runs past the pane's right edge outside a horizontal scroller,
+a narrow-screen pane rule that is not met, map labels under 11 px, a phone header
+that clips a section, or a Make, library or Diagnose page missing its grouping. It needs Playwright, which is
 not a dependency of the guide:
 
 ```bash
@@ -277,6 +279,12 @@ terms are dated facts. Engine tabs inside topics stay Godot and Unity only.
 Add a smell to `SMELLS` in `12-diagnostics.js` with `causes[{c, top, exp}]`, where
 `top` is a topic id. Tools and diagnostics are declared once in `05-registry.js`;
 paths, the validator, the inventory and the layout check all read that list.
+A tool is `[id, title, pitch, use this when, motivating topic id]`; `TOOL_GROUPS`
+files every tool under one job (shape an idea, test an idea, systems, AI) and
+`TOOL_START` marks the one to open first. The Build view, the left column on Make
+and the validator read them. The "See it in games" row on a smell and the topic
+chips at the top of the library are derived from the topics games list in their
+lenses, so nothing is written by hand for them.
 
 ### Projects
 

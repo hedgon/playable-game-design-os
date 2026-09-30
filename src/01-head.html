@@ -64,7 +64,6 @@ h1[tabindex="-1"]:focus{outline:none}
 .subnav a{padding:5px 10px;border-radius:var(--r3);color:var(--fg2);font-weight:600;font-size:.85rem}
 .subnav a:hover{background:var(--bg3);color:var(--fg);text-decoration:none}
 .subnav a.active{background:var(--bg3);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
-.nav-short{display:none}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
@@ -274,7 +273,7 @@ pre.snippet{white-space:pre;overflow-x:auto;border-left:3px solid var(--dc,var(-
 .mapwrap .node circle{transition:filter .15s}
 .mapwrap .node:hover circle.main{filter:brightness(1.15)}
 .mapwrap .node text{fill:var(--fg);font-weight:700;pointer-events:none;font-size:13px}
-.mapwrap .node text.sub{fill:var(--fg3);font-weight:500;font-size:10.5px}
+.mapwrap .node text.sub{fill:var(--fg3);font-weight:500;font-size:12px}
 .mapwrap .edge{stroke:var(--line2);stroke-width:1.2;opacity:.55;transition:opacity .15s,stroke-width .15s}
 .mapwrap .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
 .mapwrap .edge.dim{opacity:.12}
@@ -563,8 +562,16 @@ h4{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--fg
 nav.primary button{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border-radius:0;padding:9px 10px}
 nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(--accent);color:var(--accent)}
 /* phones: short group names and tighter padding so all six fit on one row (after the rule above, which sets padding) */
-@media (max-width:700px){ .nav-long{display:none} .nav-short{display:inline} nav.primary button{padding:7px 6px} }
-@media (max-width:420px){ nav.primary{justify-content:space-between} nav.primary button{padding:7px 3px;min-width:26px;font-size:.68rem;letter-spacing:.04em} }
+.nav-morebtn{display:none}
+@media (max-width:700px){
+  nav.primary{overflow:visible;justify-content:space-between}
+  nav.primary button{padding:7px 5px;font-size:.78rem;letter-spacing:.04em}
+  .nav-morebtn{display:block}
+  nav.primary .nav-extra{display:none}
+  nav.primary.more-open .nav-extra{display:block;position:absolute;right:10px;z-index:60;min-width:150px;min-height:44px;text-align:left;padding:10px 14px;background:var(--panel);border:1px solid var(--line2);box-shadow:var(--shadow)}
+  nav.primary.more-open .nav-extra:nth-of-type(6){top:calc(100% - 2px)}
+  nav.primary.more-open .nav-extra:nth-of-type(7){top:calc(100% + 42px)}
+}
 .searchbtn,.iconbtn{border-radius:2px}
 .tabs button{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border-radius:0}
 .pill-tabs button{border-radius:2px;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
@@ -704,7 +711,7 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .kgraph .node.topic .lbl.topic-lbl{font-weight:600}
 .kgraph .node.topic.active .lbl{font-weight:800}
 .kgraph .leaf-lbl{font-weight:600;fill:var(--fg2)}
-.kgraph .lbl.sub{font-size:9.5px}
+.kgraph .lbl.sub{font-size:12px}
 .topicnum{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:var(--bg3);border:1px solid var(--line2);font-family:var(--mono);font-size:.66rem;color:var(--fg2);vertical-align:1px}
 .maptip{position:absolute;max-width:260px;background:var(--bg);border:1px solid var(--line2);border-radius:2px;padding:8px 10px;font-size:.8rem;line-height:1.35;pointer-events:none;box-shadow:4px 4px 0 var(--line2);z-index:5}
 .maptip b{display:block;margin-bottom:2px}
@@ -896,7 +903,9 @@ details.comp .body{padding-top:6px}
 .casesub{color:var(--fg2);font-size:.95rem;margin:0 0 8px}
 .card .casesub{font-size:.86rem;margin:2px 0 4px}
 /* ---------- persistent shell: index | mind map | content ---------- */
-.shell{display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--paneW,460px);align-items:start}
+.shell{--pw:var(--paneW,460px);display:grid;grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 6px var(--pw);align-items:start}
+/* a wide screen gives the reading pane a real column (about 690px at 1440) */
+@media (min-width:1300px){.shell.reading{--pw:var(--paneW,min(48vw,720px))}}
 .rail{position:sticky;top:74px;height:calc(100vh - 74px);overflow:auto;padding:12px;border-right:1px solid var(--line);background:var(--panel)}
 /* .splitter is the shell's drag divider; .split (above) is the two-column
    page layout used by Prompts, Explore and the tools. Keep them apart. */
@@ -907,7 +916,7 @@ details.comp .body{padding-top:6px}
 .mapbar .mapcrumbs{margin:0}
 .mapwrap{flex:1;min-height:0;border:0;border-radius:0;touch-action:none;cursor:grab;background:var(--panel)}
 .pane{min-width:0;padding:16px 20px 60px;overflow-x:clip}
-.hide-left{grid-template-columns:0 0 minmax(0,1fr) 6px var(--paneW,460px)}
+.hide-left{grid-template-columns:0 0 minmax(0,1fr) 6px var(--pw)}
 .hide-left #rail,.hide-left #splitL{display:none}
 .hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
 .hide-right #pane,.hide-right #splitR{display:none}
@@ -921,11 +930,14 @@ details.comp .body{padding-top:6px}
 /* Work views (tools, lists, diagnostics) have nothing to show on the map:
    on a wide screen the content takes the centre and the index stays. */
 @media (min-width:1101px){
-  .shell.work{grid-template-columns:var(--railW,300px) 6px 0 0 minmax(0,1fr)}
-  .shell.work.hide-left{grid-template-columns:0 0 0 0 minmax(0,1fr)}
-  .shell.work > .mapstage,.shell.work > #splitR{display:none}
-  .shell.work > #pane{display:block}
+  .shell.work,.shell.nomap{grid-template-columns:var(--railW,300px) 6px 0 0 minmax(0,1fr)}
+  .shell.work.hide-left,.shell.nomap.hide-left,.shell.work.norail{grid-template-columns:0 0 0 0 minmax(0,1fr)}
+  .shell.work > .mapstage,.shell.work > #splitR,.shell.nomap > .mapstage,.shell.nomap > #splitR{display:none}
+  .shell.work > #pane,.shell.nomap > #pane{display:block}
   .shell.work .view{max-width:1100px}
+  .shell.nomap .view{max-width:900px}
+  /* a section with no list of its own gives the column back */
+  .shell.norail > .rail,.shell.norail > #splitL{display:none}
 }
 .railhead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 /* map lens: two segments, the pressed one filled */
@@ -977,11 +989,29 @@ details.comp .body{padding-top:6px}
 .railproj{display:block;text-decoration:none;color:var(--fg2);border-left:2px solid var(--line);padding:5px 8px;font-size:.86rem;line-height:1.25}
 .railproj:hover{color:var(--fg);background:var(--bg3);text-decoration:none}
 .railproj.active{border-left-color:var(--accent2);color:var(--fg);font-weight:700;background:var(--bg3)}
+.railsub{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent2);margin-top:1px}
+.smellgames{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:14px 0 4px;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--accent2);background:var(--panel)}
+.libteach{margin-bottom:6px}
+.mapwrap.fade-right{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent)}
+.libteach .chip{font-size:.66rem;padding:3px 7px}
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:8px}
+.toolcard{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px}
+.toolcard.start{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.toolcard-main{display:flex;flex-direction:column;gap:4px;color:var(--fg);text-decoration:none}
+.toolcard-main b{font-family:var(--display);font-stretch:92%;font-size:1.05rem}
+.toolcard-main .chip{align-self:flex-start}
+.toolwhen{margin:0}
+.toollinks{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:auto}
+.toolgroup{margin-bottom:8px}
+@media (min-width:1101px){.toolgroups{display:none}}
+.railfoot{margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.subnav .maptoggle{margin-left:auto;align-self:center}
 .railbtn{display:none}
 .scrim{display:none}
 .drawer-close{display:none}
 @media (max-width:1100px){
   .scrim.show{display:block;position:fixed;inset:var(--hdr,0px) 0 0 0;z-index:79;background:rgba(0,0,0,.45)}
+  .drawer-close.show.text{width:auto;border-radius:19px;padding:0 16px;font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase}
   .drawer-close.show{display:grid;place-items:center;position:fixed;top:calc(var(--hdr,0px) + 10px);right:10px;z-index:82;width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--line2);color:var(--fg);font-size:1rem;box-shadow:var(--shadow)}
 }
 /* horizontal mind-map nodes and edges */
@@ -1036,7 +1066,7 @@ details.comp .body{padding-top:6px}
 .symptom.more{border-left-color:var(--accent);color:var(--accent);text-decoration:none}
 /* ---------- learning paths ---------- */
 .pathbar{position:sticky;top:var(--barTop,74px);z-index:20;display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:var(--r2);padding:8px 12px;margin:0 0 14px}
-.pathbar-info{flex:1 1 auto;min-width:0;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pathbar-info{flex:1 1 220px;min-width:0;font-size:.88rem;overflow-wrap:anywhere}
 .pathbar-info b{font-family:var(--display);font-stretch:92%}
 .pathbar-actions{display:flex;gap:6px;flex-wrap:nowrap;flex:none}
 .pathbar-task{order:3;flex:1 0 100%;display:flex;gap:8px;align-items:baseline;font-size:.86rem;border-top:1px solid var(--line);padding-top:6px}
@@ -1076,7 +1106,7 @@ details.comp .body{padding-top:6px}
   .pane.open{transform:none}
   /* a work view (library, tools, lists) has nothing to show on the map, so
      its drawer takes the whole width instead of leaving a strip of map. */
-  .shell.work .pane{width:100vw;border-left:0}
+  .shell.work .pane,.shell.nomap .pane{width:100vw;border-left:0}
   /* every pixel the wrapper does not take is a pixel the chart renders at,
      and in the drawer the chart is already the widest thing on the page. */
   .flowwrap{padding:10px 2px}
@@ -1085,11 +1115,15 @@ details.comp .body{padding-top:6px}
   .pathbar-task.open .pt-text{display:block;overflow:visible}
   .pt-more{display:inline-flex}
   .pathbar-task{max-height:none}
-  .pathbar-info{white-space:nowrap}
+  .pathbar-info{flex:0 0 auto}
   .pathbar-actions{justify-content:flex-end}
   .pathstep input{width:22px;height:22px}
 }
-@media (max-width:700px){ .mapbar .mapcrumbs{display:none} }
+@media (max-width:700px){
+  .mapbar .mapcrumbs{display:none}
+  /* a topic or path is a page of its own here, with the map one tap away */
+  .pane{width:100vw;border-left:0}
+}
 </style>
 </head>
 <body>
