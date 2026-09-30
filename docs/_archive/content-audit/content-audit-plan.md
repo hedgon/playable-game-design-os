@@ -1,5 +1,5 @@
 ---
-status: active
+status: shipped
 updated: 2026-09-30
 ---
 
@@ -52,7 +52,7 @@ Status: `todo`, `doing`, `done`.
 | G1 | "In real games" links: remove mis-tags, add real ones | todo | game data files |
 | P2 | Paths fixes and placement of the new topics | done | 30 of 32 findings fixed; P-26, P-29 and P-32 kept with reasons; prereqAny, a real prototype in idea-to-prototype, netcode prediction and rollback stage, coding and math practice, engine fundamentals stages, real builds, 48 recall questions reworded to the stage goal, stable stage ids; chooser picks a mentor would give, and time changes only the weeks; 12 new topics placed |
 | R1 | Independent fact-check and code review of every batch | done | fa, fb, na, nb, nc, game links and paths each reviewed by a second agent (about 45 more fixes, including stage-id stability and snippet bugs) |
-| V1 | Checks, CI replay, archive | todo | |
+| V1 | Checks, CI replay, archive | done | validate 0 errors (path coverage 198/198 topics, 107/107 games, 9/9 engines, 12/12 platforms, 12/12 checklists); check-layout 0 overlaps; tsc; smoke 242 visits; e2e 88/88; CI replay before every push |
 
 ## Findings and decisions
 
@@ -86,3 +86,27 @@ Not added: economy balancing already has a real home in `economy-and-resources`,
 - Unrealistic times are fixed.
 - The six chooser rows a mentor would not give are fixed.
 - The new topics are placed in the paths where they teach best.
+
+## Outcome
+
+- **Topics.** All 186 original topics were audited against a fixed rubric, and about 115 findings were fixed. Most of the high findings were engine snippets that would not have compiled or run; they now declare what they use and call real Godot 4 and Unity 6 APIs. Wrong facts and dates were corrected, and dated facts were refreshed against official pages. Every batch was reviewed by a second agent against the git diff.
+- **Curriculum.** 12 new topics fill the gaps the audit confirmed against the data:
+  - rollback netcode, gameplay math, the game loop and fixed timestep, entities and scenes, physics and collision, save systems;
+  - coding interviews for game roles;
+  - audio implementation, monetisation design, multiplayer design;
+  - feedback and performance, conflict and growing people.
+  
+  Server-authority also gained a worked lag-compensation example. The library now has 198 topics.
+- **Games to topics.** 349 "In real games" tags that did not fit were removed and about 88 real ones added. Topics shown by at least one game went from 82 to over 95.
+- **Paths.** 30 of 32 findings were fixed. The main changes:
+  - a path can ask for any one of several base paths;
+  - idea-to-prototype builds a real prototype;
+  - netcode, interview prep and the gameplay paths gained the stages they lacked;
+  - builds are real builds, and recall questions test the stage goal;
+  - stage ids stay stable, so saved progress is kept;
+  - the chooser gives a mentor's pick, and time changes only the weeks.
+- **Kept on purpose:** P-26 (optional guides stay in ship-it so every guide is in a path), P-29 (the Godot topics teach 3D), P-32 (there is no advanced design path yet).
+- **Open for later:**
+  - an advanced design path (P-32);
+  - the claims that rest on secondary sources because the primary page was unreachable (PEGI, the Belgian and Dutch rulings, China 2017, FMOD and Wwise licence terms), each flagged in its topic;
+  - engine snippets are checked by reading against the docs, not compiled, because no Godot or Unity install is available here.
