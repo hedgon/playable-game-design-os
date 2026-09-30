@@ -298,7 +298,7 @@ INTERVIEW('feedback-and-affordance',{
   ] });
 
 T('onboarding',{ d:'ux', t:'Onboarding: the first minutes', tag:'Do not explain. Let the player learn by doing, and design what they will do first.',
-  what:`The design of the first 30 seconds, the first 5 minutes, and the first session: the first action, the first meaningful decision, the first failure, the first mastery moment, the first reward, and the first reason to return. Good onboarding is invisible. It is level design and feedback doing the teaching. Text is the fallback, not the plan. Plants vs. Zombies opens with a single strip of lawn and one seed packet, so the whole loop is played on one row before a second row is laid. Dota 2 shows the limit of teaching by doing: its bot matches and tutorial can teach the buttons in one session, but the real barrier, what each of 127 heroes’ kits actually does to you, is knowledge no first session can front-load, however invisible the interface.`,
+  what:`The design of the first 30 seconds, the first 5 minutes, and the first session: the first action, the first meaningful decision, the first failure, the first mastery moment, the first reward, and the first reason to return. Good onboarding is invisible. It is level design and feedback doing the teaching. Text is the fallback, not the plan. Plants vs. Zombies opens with a single strip of lawn and one seed packet, so the whole loop is played on one row before a second row is laid. Dota 2 shows the limit of teaching by doing: its bot matches and tutorial can teach the buttons in one session, but the real barrier, what each of the game’s well over a hundred heroes’ kits actually does to you, is knowledge no first session can front-load, however invisible the interface.`,
   why:[`Retention curves drop hardest in the first session, and the early quits a team can fix are usually onboarding failures: confusion, aimlessness, or a wall of instruction.`,`Players do not read. What they do in the first minutes is what they learn.`,`The first session sets expectations for the whole game. A slow start promises a slow game.`],
   think:{ q:[`What does the player do in the first 30 seconds with their hands? Is it the core verb?`,`What is the first meaningful decision, and when? Later than five minutes is late for most games.`,`What is the first failure, and does it teach?`,`What is the first moment the player feels competent? The first reward that matters?`,`What will they think about after closing the game?`],
     trade:[`Fast onboarding into the core verb excites and can confuse.`,`Thorough onboarding reassures and bores veterans.`],
@@ -417,11 +417,19 @@ ENGINE('controls-and-friction',{
     api:['InputMap.action_erase_events() / action_add_event()','InputEventKey / InputEventJoypadButton','ConfigFile.set_value() / save() / load()','Input.get_action_strength()','ProjectSettings input deadzone','Input.set_use_accumulated_input()'],
     snippet:`extends Node                                   # remap flow, persisted in user://
 const PATH := "user://input.cfg"
-func rebind(action: StringName, event: InputEvent) -> void:
+func apply_bind(action: StringName, event: InputEvent) -> void:
 \tInputMap.action_erase_events(action)
 \tInputMap.action_add_event(action, event)
-\tvar cfg := ConfigFile.new()
-\tcfg.set_value("bind", action, event)
+
+func rebind(action: StringName, event: InputEvent) -> void:
+\tapply_bind(action, event)
+\tsave_binds()
+
+func save_binds() -> void:
+\tvar cfg := ConfigFile.new()             # one file holding every action
+\tfor a in InputMap.get_actions():
+\t\tif not a.begins_with("ui_"):
+\t\t\tcfg.set_value("bind", a, InputMap.action_get_events(a))
 \tcfg.save(PATH)                             # InputMap changes are runtime only
 
 func load_binds() -> void:
@@ -429,7 +437,9 @@ func load_binds() -> void:
 \tif cfg.load(PATH) != OK:
 \t\treturn
 \tfor a in cfg.get_section_keys("bind"):
-\t\trebind(a, cfg.get_value("bind", a))`,
+\t\tInputMap.action_erase_events(a)
+\t\tfor e in cfg.get_value("bind", a):
+\t\t\tInputMap.action_add_event(a, e)`,
     pitfall:`Assuming InputMap edits persist. They live only in the running process and never touch project.godot, so a remap survives until the player quits and is silently gone next launch. Save the events yourself and reapply them at startup, before the first scene reads any action.`,
     map:`Godot InputMap plus a saved ConfigFile is Unity’s Input System with SaveBindingOverridesAsJson.` },
   unity:{ term:`Interactive rebinding on the InputAction, with the pointer and the cancel key excluded, then binding overrides serialised to JSON. Latency budget is set by the frame rate cap and the update mode.`,
@@ -441,6 +451,7 @@ func load_binds() -> void:
         action.Disable();
         action.PerformInteractiveRebinding(part)
             .WithControlsExcluding("<Mouse>/position")   // or the pointer binds itself
+            .WithControlsExcluding("<Mouse>/delta")
             .WithCancelingThrough("<Keyboard>/escape")
             .OnComplete(op => {
                 op.Dispose();

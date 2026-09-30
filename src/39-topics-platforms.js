@@ -42,7 +42,6 @@ func _ready() -> void:
 \t\t_set_ui_scale(1.25)
 \telif OS.has_feature("mobile"):
 \t\t_set_ui_scale(1.0)
-\t\tget_viewport().gui_embed_subwindows = true
 \telse:
 \t\t_set_ui_scale(1.0)
 
@@ -54,10 +53,12 @@ func _set_ui_scale(s: float) -> void:
     api:['BuildProfile asset','PlayerSettings.GetScriptingDefineSymbols(NamedBuildTarget)','EditorUserBuildSettings.activeBuildTarget','#if UNITY_STANDALONE / UNITY_ANDROID / UNITY_IOS','BuildPipeline.BuildPlayer(BuildPlayerWithProfileOptions)'],
     snippet:`public class PlatformUi : MonoBehaviour {
     void Start() {
-#if UNITY_STANDALONE
-        SetScale(1f);
-#elif UNITY_ANDROID || UNITY_IOS
+#if STEAMDECK_UI          // a custom define set on the Steam Deck Build Profile
         SetScale(1.25f);
+#elif UNITY_ANDROID || UNITY_IOS
+        SetScale(1.0f);
+#else
+        SetScale(1f);
 #endif
     }
     void SetScale(float s) =>
@@ -103,7 +104,7 @@ INTERVIEW('platform-choice',{
 FACTS('platform-choice',[
   { claim:`Steam’s Deck/Machine compatibility review is optional and sorts a game into Verified, Playable, Unsupported or Unknown, checking input, performance, seamlessness and display; you request it from the app’s Technical Tools or it can be queued automatically.`, asOf:'2026-09-24', src:'https://partner.steamgames.com/doc/steamdeck/compat' },
   { claim:`Godot has no official console export because console SDKs are NDA-bound and Godot is MIT-licensed; the Godot Foundation instead lists console middleware (W4 Games, RAWRLAB Games) and porting houses.`, asOf:'2026-09-24', src:'https://godotengine.org/consoles/' },
-  { claim:`W4 Consoles supports Switch, PS5 and Xbox Series X|S, with Switch 2 in early beta; the Starter plan costs $800 per platform or $2,000 for all platforms a year.`, asOf:'2026-09-24', src:'https://www.w4games.com/w4consoles' },
+  { claim:`W4 Consoles supports Switch, PS5 and Xbox Series X|S, with Switch 2 in early beta; the Starter plan costs $800 per platform or $2,000 for all platforms a year, and is limited to companies with up to 30 staff and under $300,000 in revenue or funding.`, asOf:'2026-09-24', src:'https://www.w4games.com/w4consoles' },
   { claim:`From SDK v74, Meta names OpenXR a recommended path for Unity, Unreal and Godot on Quest.`, asOf:'2026-09-24', src:'https://developers.meta.com/horizon/blog/openxr-standard-quest-horizonos-unity-unreal-godot-developer-success/' }
 ]);
 T('platform-access',{ d:'platforms', t:'Getting access: programmes, NDAs and dev kits', tag:'A console does not hand you an SDK. It hands you a queue: an entity, an NDA, then maybe a dev kit.',
@@ -206,7 +207,10 @@ func _notification(what: int) -> void:
 
 func _save_now() -> void:
 \tvar f := FileAccess.open("user://save.dat", FileAccess.WRITE)
-\tf.store_var(GameState.snapshot())
+\tif f == null:
+\t\treturn                       # a failed open must not crash the suspend handler
+\tf.store_var(GameState.snapshot())   # FOCUS_OUT also fires on every desktop alt-tab, so keep saves cheap
+
 func _on_pad(device: int, connected: bool) -> void:
 \tif not connected:
 \t\tget_tree().paused = true`,
@@ -221,7 +225,7 @@ func _on_pad(device: int, connected: bool) -> void:
         if (paused) Save();
     }
     void OnDevice(InputDevice d, InputDeviceChange c) {
-        if (c == InputDeviceChange.Disconnected)
+        if (c == InputDeviceChange.Disconnected || c == InputDeviceChange.Removed)
             Time.timeScale = 0f;
     }
     void Save() {
@@ -275,7 +279,7 @@ FACTS('platform-requirements',[
 ]);
 T('certification-and-review',{ d:'platforms', t:'Certification and store review', tag:'Every platform has a gate, a clock and a list of reasons it says no. Plan the calendar around the clock, not around hope.',
   what:`The review or certification gate every platform runs before a build (and often every update) reaches players: Steam’s separate store-page and build reviews, Xbox certification, Apple App Review, Google Play review, and Nintendo and PlayStation’s confidential processes. Each has its own turnaround, its own common rejection causes, and its own resubmission cost, and a release plan has to treat the gate’s timing as a fixed calendar commitment rather than an afterthought.`,
-  why:[`A rejection this week is not just a delay; it usually means a resubmission queue, so the real cost of a miss is the turnaround time twice over.`,`The gates differ enormously in speed: a same-day iteration on Apple is a different planning problem than Steam’s 3-to-5-business-day reviews or a confidential console process with no published clock.`,`Most rejections come from a short, well-known list: crashes, placeholder content, a store page promising what the build does not do, and missing privacy or content-disclosure forms.`,`On consoles and mobile stores the update path is also a gate, so passing once does not exempt a patch; Steam and Meta Quest let updates go live without a new review.`],
+  why:[`A rejection this week is not just a delay; it usually means a resubmission queue, so the real cost of a miss is the turnaround time twice over.`,`The gates differ enormously in speed: a same-day iteration on Apple is a different planning problem than Steam’s 3-to-5-business-day reviews or a confidential console process with no published clock.`,`Most rejections come from a short, well-known list: crashes, placeholder content, a store page promising what the build does not do, and missing privacy or content-disclosure forms.`,`On consoles and mobile stores the update path is also a gate, so passing once does not exempt a patch; Steam and Meta Quest let updates go live without a binary review (Meta still reviews metadata changes).`],
   think:{ q:[`Have we scheduled the review window as a fixed date on the calendar, with buffer for at least one resubmission?`,`Does the store page describe only what ships at launch, with nothing promised that the build does not do?`,`Have we run the platform’s own validator or pre-check before the real submission?`,`Is a content or privacy disclosure form (Steam’s Content Survey, Google’s Data safety form, Apple’s privacy labels) filled in and accurate?`,`What is the resubmission cost if this specific build fails, and can the schedule absorb it?`],
     trade:[`Submitting early with buffer costs calendar time up front and protects the launch date; submitting late to maximize content risks the date entirely.`,`An expedited or Fastlane review (Apple expedited review; Xbox Fastlane, 48 hours instead of 4 business days) buys days back, but it is a request the platform can refuse, so spending it on routine lateness leaves nothing for a real emergency.`],
     traps:[`Treating review turnaround as a best case rather than the number to plan around.`,`Submitting a build with placeholder content, assuming reviewers will understand it is temporary.`,`A store page that promises a feature not yet in the submitted build.`,`Forgetting that routine content updates on consoles go through certification again, not just the initial release.`,`Skipping a disclosure form because “we don’t think it applies to us.”`],
@@ -449,7 +453,7 @@ FACTS('store-presence',[
   { claim:`Steam’s revenue share is reported as 30% up to $10M in lifetime revenue, 25% from $10M to $50M, and 20% above $50M, counting packages, DLC, in-game sales and Marketplace fees together.`, asOf:'2026-09-24', src:'https://gameinformer.com/2018/11/30/valve-adjusting-revenue-share-for-steams-most-popular-games' },
   { claim:`Apple’s App Store commission is 30% standard, or 15% on auto-renewable subscriptions after a subscriber’s first year of paid service. Members of Apple’s Small Business Program (no more than $1 million in proceeds in the prior calendar year, or new to the App Store; enrolment required) pay 15% on paid apps and in-app purchases.`, asOf:'2026-09-24', src:'https://developer.apple.com/app-store/small-business-program/' },
   { claim:`Microsoft Store charges a 12% fee on games sold through its own commerce platform on PC (15% for apps), with no registration fee under its current onboarding flow.`, asOf:'2026-09-24', src:'https://learn.microsoft.com/en-us/windows/apps/publish/get-started' },
-  { claim:`Developers keep 100% of the first $1M in net revenue per product per year on the Epic Games Store (the threshold resets each January 1), then splits 88/12 above that; there is a recoupable $100 submission fee per game.`, asOf:'2026-09-24', src:'https://store.epicgames.com/en-US/news/epic-games-store-updates-revenue-share-keep-100-of-the-first-1m-per-product-per-year' },
+  { claim:`Developers keep 100% of the first $1M in net revenue per product per year on the Epic Games Store (the threshold resets each January 1), then splits 88/12 above that, for payments Epic processes (the opt-in Epic First Run program instead gives 100% for six months in exchange for exclusivity); there is a recoupable $100 submission fee per game.`, asOf:'2026-09-24', src:'https://store.epicgames.com/en-US/news/epic-games-store-updates-revenue-share-keep-100-of-the-first-1m-per-product-per-year' },
   { claim:`Google Play’s new fee structure lowers the rate on a developer’s first $1M of annual earnings to 10%, plus a billing fee where it applies, phasing in by region: US/UK/EEA from 2026-06-30, Australia and Japan from 2026-09-30, South Korea from 2026-12-31, and the rest of the world from 2027-09-30.`, asOf:'2026-09-24', src:'https://support.google.com/googleplay/android-developer/answer/16954621' }
 ]);
 T('release-and-updates',{ d:'platforms', t:'Release day, patches and early access', tag:'Release is a button on some stores and a scheduled, staged rollout on others; either way, the save has to survive what comes after.',
@@ -484,9 +488,13 @@ func _ready() -> void:
 \t\treturn
 \tvar saved: int = cfg.get_value("meta", "version", 1)
 \tif saved < SAVE_VERSION:
-\t\t_migrate(saved, build)
-func _migrate(from_v: int, build) -> void:
-\tprint("save v", from_v, " -> v", SAVE_VERSION, " (build ", build, ")")`,
+\t\t_migrate(cfg, saved, build)
+func _migrate(cfg: ConfigFile, from_v: int, build) -> void:
+\tprint("save v", from_v, " -> v", SAVE_VERSION, " (build ", build, ")")
+\tif from_v < 2:
+\t\tcfg.set_value("player", "volume", cfg.get_value("player", "volume", 0.8))   # a field added in v2
+\tcfg.set_value("meta", "version", SAVE_VERSION)   # write the new version back
+\tcfg.save("user://save.cfg")`,
     pitfall:`Bumping only the export preset’s platform version fields (what the store shows) without also touching application/config/version (what the game itself reports), so the in-game version and the store listing disagree; or shipping a save-format change with no stored version at all, so an old save loads as if it already matched the new layout.`,
     map:`Godot’s application/config/version plus its export-preset version fields are Unity’s PlayerSettings.bundleVersion plus its per-platform build-number fields.` },
   unity:{ term:`Unity separates the human-readable version players see (PlayerSettings.bundleVersion, which also sets Application.version at runtime) from the per-platform build numbers stores use to order submissions (Android’s bundleVersionCode must rise with every upload, and iOS’s buildNumber must be new within each version). A save-format version, stored with the save itself, is a separate check the engine does not provide for you.`,
@@ -502,6 +510,8 @@ func _migrate(from_v: int, build) -> void:
     void Migrate(int from) {
         Debug.Log("save v" + from + " -> v" + SaveVersion +
             " (build " + Application.version + ")");
+        if (from < 2 && !PlayerPrefs.HasKey("volume"))
+            PlayerPrefs.SetFloat("volume", 0.8f);         // a field added in v2
         PlayerPrefs.SetInt("save_version", SaveVersion);
     }
 }`,

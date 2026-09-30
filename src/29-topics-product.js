@@ -125,12 +125,15 @@ ENGINE('platform-and-session',{
     snippet:`extends Node
 
 func _ready() -> void:
-\tget_tree().auto_accept_quit = false        # the back button must not skip the save
-
+\tget_tree().auto_accept_quit = false        # a window close no longer quits by itself
+\tget_tree().quit_on_go_back = false         # nor does the Android back button
 func _notification(what: int) -> void:
 \tmatch what:
-\t\tNOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_GO_BACK_REQUEST:
-\t\t\t_write_resume_point()              # the only save points the OS guarantees
+\t\tNOTIFICATION_APPLICATION_PAUSED:
+\t\t\t_write_resume_point()              # the only save point the OS guarantees on a handheld
+\t\tNOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_WM_GO_BACK_REQUEST:
+\t\t\t_write_resume_point()
+\t\t\tget_tree().quit()                  # quit only after the save
 
 func _write_resume_point() -> void:
 \tvar f := FileAccess.open("user://resume.json", FileAccess.WRITE)
@@ -197,7 +200,7 @@ INTERVIEW('platform-and-session',{
   ] });
 
 T('business-model',{ d:'product', t:'Business model and monetisation', tag:'The model should pay for the fun without becoming the design. Where they conflict, players notice first.',
-  what:`How the game earns: premium, free-to-play with purchases, subscription, ads, DLC, live service. Each model applies pressure to the design economy, progression, session design and social systems. Ethical monetisation sells things players value without manufacturing the pain it relieves. Plants vs. Zombies shows one design under two models: the 2009 original sold once, its shop taking only coins earned in play, while the free mobile edition Electronic Arts released in 2014 now sells those same coins in packs. Grand Theft Auto V bundles a third pattern inside one premium purchase: Grand Theft Auto Online is free once the game is bought, and Rockstar sells Shark Cards for its economy instead, a live-service mode whose microtransactions Take-Two named its largest source of digital revenue within months of launch, sustained across more than a decade of updates.`,
+  what:`How the game earns: premium, free-to-play with purchases, subscription, ads, DLC, live service. Each model applies pressure to the design economy, progression, session design and social systems. Ethical monetisation sells things players value without manufacturing the pain it relieves. Plants vs. Zombies shows one design under two models: the 2009 original sold once, its shop taking only coins earned in play, while the free mobile edition Electronic Arts released in 2014 now sells those same coins in packs. Grand Theft Auto V bundles a third pattern inside one premium purchase: Grand Theft Auto Online is free once the game is bought, and Rockstar sells Shark Cards for its economy instead, a live-service mode that Take-Two counts among its largest contributors to net bookings through the recurrent consumer spending it reports, sustained across more than a decade of updates.`,
   why:[`Monetization pressure is the most common corrupter of design: timers to sell skips, grind to sell boosts, gacha to sell hope.`,`Players sense when a system exists to sell rather than to play, and it poisons trust in adjacent systems.`,`The model decides what “retention” means and which metrics the team will be pushed to optimise.`],
   think:{ q:[`What does the player pay for, and would they value it if the game had no store?`,`Which design decisions exist only because of the model? Would the game be better without them?`,`What pain does a purchase relieve, and did the design create that pain on purpose?`,`Which metric will the model push us to optimise, and does that metric align with fun?`],
     trade:[`Premium aligns incentives with fun and limits reach and revenue tail.`,`Free-to-play widens reach and creates constant pressure to monetise friction.`],
@@ -414,18 +417,16 @@ TECH('learning-from-success',[
 ]);
 ENGINE('learning-from-success',{
   godot:{ term:`Decisions per minute is a measurement, not an estimate. A logger writes every meaningful action with a timestamp so your prototype and the comparable are compared on the same number.`,
-    api:['Node._unhandled_input()','InputEvent.is_action_pressed()','InputEventKey.echo','FileAccess.open("user://…", WRITE) / store_line()','Time.get_ticks_msec()','OS.has_feature("editor") to separate editor runs'],
+    api:['Node._unhandled_input()','InputEvent.is_action_pressed()','FileAccess.open("user://…", WRITE) / store_line()','Time.get_ticks_msec()','OS.has_feature("editor") to separate editor runs'],
     snippet:`extends Node                                   # measured in an export build, not the editor
 var _log := FileAccess.open("user://decisions.csv", FileAccess.WRITE)
-const MEANINGFUL := [&"attack", &"dodge", &"swap", &"buy"]
-
+const MEANINGFUL := [&"attack", &"dodge", &"swap", &"buy"]   # in priority order
 func _unhandled_input(e: InputEvent) -> void:
-\tif e is InputEventKey and e.echo:
-\t\treturn                                 # autorepeat is not a decision
 \tfor a in MEANINGFUL:
-\t\tif e.is_action_pressed(a):
-\t\t\t_log.store_line("%d,%s" % [Time.get_ticks_msec(), a])`,
-    pitfall:`Counting every input event as a decision. Held keys emit echo events at the OS repeat rate, so leaning on a direction for two seconds logs dozens of decisions and your prototype appears to be denser than the game you are measuring it against. Filter echo, and count only the actions that change the plan.`,
+\t\tif e.is_action_pressed(a):          # allow_echo is false by default, so held keys log once
+\t\t\t_log.store_line("%d,%s" % [Time.get_ticks_msec(), a])
+\t\t\tbreak                           # one press is one decision, even if bound to several actions`,
+    pitfall:`Logging every action an input matches. One key bound to several actions (Space for both dodge and swap, say) matches several entries in the list, so a single press writes several rows and your prototype appears denser than the game you are measuring it against. Log one row per press, and count only the actions that change the plan.`,
     map:`A Godot _unhandled_input action log is a Unity InputAction callback log.` },
   unity:{ term:`Subscribe to performed on the actions you called meaningful, and write the rows out at the end of the session. Interactions on an action fire three separate callbacks, so only one of them is a decision.`,
     api:['InputAction.performed / started / canceled','InputActionAsset.FindActionMap()','InputAction.CallbackContext','Time.realtimeSinceStartup','File.WriteAllLines() + Application.persistentDataPath','Development Build for honest frame times'],
@@ -509,7 +510,7 @@ TECH('launch-and-discoverability',[
 ENGINE('launch-and-discoverability',{
   godot:{ term:`The demo and the trailer are both export presets. A trailer feature tag switches on a scripted camera rig, and the engine’s movie writer renders deterministic frames at a fixed rate instead of screen-recording a laggy session.`,
     api:['Export preset custom features + OS.has_feature()','godot --write-movie file.avi --fixed-fps 60','Movie Maker mode in Project Settings','SceneTree.quit()','ProjectSettings application/config/version','Marker3D camera path'],
-    snippet:`extends Node                       # godot --write-movie trailer.avi --fixed-fps 60
+    snippet:`extends Node                       # run the exported "trailer" preset: game.exe --write-movie trailer.avi --fixed-fps 60
 @export var path: Array[Marker3D] = []
 @export var seconds := 20.0
 var _t := 0.0
@@ -851,7 +852,7 @@ TECH('localization-and-culture',[
 ]);
 ENGINE('localization-and-culture',{
   godot:{ term:`Strings live in translation files imported as Translation resources, and the game asks for them with tr. One key carries the whole sentence including its placeholders, so word order stays with the translator.`,
-    api:['tr() / tr_n() / atr()','TranslationServer.set_locale() / get_loaded_locales()','String.format() with named placeholders','POT generation in Project Settings > Localization','Node.auto_translate_mode','OS.get_locale()'],
+    api:['tr() / tr_n() / atr()','TranslationServer.set_locale() / get_loaded_locales()','String.format() with named placeholders','POT generation in Project Settings > Localization','Node.auto_translate_mode (Godot 4.3+)','OS.get_locale()'],
     snippet:`extends Label
 
 func _ready() -> void:
@@ -961,7 +962,7 @@ func track(event: String, props: Dictionary) -> void:
 \t$HTTPRequest.request(ENDPOINT, [], HTTPClient.METHOD_POST, JSON.stringify(props))`,
     pitfall:`Keying players on OS.get_unique_id(). It is a device identifier that survives reinstalls, which is exactly the property that makes it a privacy liability and a platform policy problem, and it is unavailable on some targets so the code also breaks. Generate a random id, store it in user://, and let the player reset it.`,
     map:`Godot’s HTTPRequest client behind a user:// consent flag is Unity’s analytics service gated on StartDataCollection.` },
-  unity:{ term:`The service is initialised early so the consent screen can show, but collection waits for the answer: StartDataCollection before Unity 6.2, and from Analytics SDK 6.1 EndUserConsent.SetConsentState with AnalyticsIntent, which also stores the answer between sessions. Nothing is gathered until the player says yes, and a no is followed by a deletion request rather than silence.`,
+  unity:{ term:`The service is initialised early so the consent screen can show, but collection waits for the answer: StartDataCollection before Analytics SDK 6.1, and from Analytics SDK 6.1 EndUserConsent.SetConsentState with AnalyticsIntent, which also stores the answer between sessions. Nothing is gathered until the player says yes, and a no is followed by a deletion request rather than silence.`,
     api:['UnityServices.InitializeAsync()','AnalyticsService.Instance.StartDataCollection() / StopDataCollection()','AnalyticsService.Instance.RequestDataDeletion()','PlayerPrefs for the recorded answer','SystemInfo.deviceUniqueIdentifier (the identifier not to send)','Application.RequestAdvertisingIdentifierAsync()'],
     snippet:`public class Telemetry : MonoBehaviour {
     async void Start() {

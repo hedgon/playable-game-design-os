@@ -42,24 +42,20 @@ func set_threat(v: float) -> void:
 \tset_instance_shader_parameter(&"threat", threat)   # per node, shared material untouched`,
     pitfall:`Calling set_shader_parameter on the shared ShaderMaterial to tint one enemy. Materials are Resources, so every object using that material changes with it and the whole room turns red. The matching mistake is material_override, which replaces all surfaces of the mesh and wipes the very grammar the second surface was carrying.`,
     map:`Godot instance shader parameters are Unity’s MaterialPropertyBlock.` },
-  unity:{ term:`One Shader Graph with an exposed property per meaning, and a MaterialPropertyBlock per renderer. The grammar is enforced by the shader, the variation is per instance, and batching survives.`,
-    api:['Shader Graph exposed properties','Shader.PropertyToID()','MaterialPropertyBlock + Renderer.GetPropertyBlock() / SetPropertyBlock()','Renderer.sharedMaterial vs Renderer.material','Volume + ColorAdjustments for the desaturation test','Shader.SetGlobalColor()'],
+  unity:{ term:`One Shader Graph with an exposed property per meaning, and one shared material per discrete step of that meaning. The grammar is enforced by the shader. In URP and HDRP, the Unity 6 defaults, shared materials keep the SRP Batcher working; a MaterialPropertyBlock per renderer does not, and only suits the Built-in Render Pipeline.`,
+    api:['Shader Graph exposed properties','Material assets shared per step (SRP Batcher friendly)','MaterialPropertyBlock (Built-in RP only, breaks the SRP Batcher)','Renderer.sharedMaterial vs Renderer.material','Volume + ColorAdjustments for the desaturation test','Shader.SetGlobalColor()'],
     snippet:`[RequireComponent(typeof(Renderer))]
 public class ThreatTint : MonoBehaviour {
-    static readonly int Threat = Shader.PropertyToID("_Threat");   // Shader Graph property
-    static MaterialPropertyBlock block;
+    [SerializeField] Material[] threatLevels;  // shared assets, one per step, all from the one Shader Graph
     Renderer r;
-
-    void Awake() { r = GetComponent<Renderer>(); block ??= new MaterialPropertyBlock(); }
-
+    void Awake() => r = GetComponent<Renderer>();
     public void SetThreat(float v) {
-        r.GetPropertyBlock(block);
-        block.SetFloat(Threat, Mathf.Clamp01(v));
-        r.SetPropertyBlock(block);             // no material instance, batching survives
+        int i = Mathf.RoundToInt(Mathf.Clamp01(v) * (threatLevels.Length - 1));
+        r.sharedMaterial = threatLevels[i];    // no clone, and the SRP Batcher keeps batching
     }
 }`,
-    pitfall:`Touching Renderer.material to change a colour. The getter clones the material for that renderer, so you get one extra material instance per object, batching breaks, and the clone leaks because nothing destroys it. The grammar still looks right and the frame rate quietly halves in a crowded room.`,
-    map:`A Unity MaterialPropertyBlock is a Godot instance shader parameter.` }});
+    pitfall:`Touching Renderer.material to change a colour. The getter clones the material for that renderer, so you get one extra material instance per object, batching breaks, and the clone leaks because nothing destroys it. The grammar still looks right and the frame rate quietly halves in a crowded room. Reaching for MaterialPropertyBlock to dodge the clone is the other trap in URP or HDRP: a block makes that renderer incompatible with the SRP Batcher and usually costs more than it saves, so use a few shared material variants instead.`,
+    map:`A Unity shared material per step does what a Godot instance shader parameter does, per-object variation without a private copy of the material.` }});
 INTERVIEW('visual-language',{
   junior:[
     { q:`What is visual language, and how is it different from art direction?`,
@@ -236,13 +232,12 @@ func set_intensity(u: float) -> void:
 \tfor i in layers.size():
 \t\tvar amp := clampf(u * layers.size() - i, 0.0, 1.0)
 \t\tlayers[i].volume_db = linear_to_db(maxf(amp, 0.0001))`,
-    pitfall:`Lerping volume_db directly, and reading zero as silence. Decibels are logarithmic, so a linear ramp from minus eighty to zero is inaudible for most of its length and then arrives all at once, and volume_db of zero is full volume, not muted. Interpolate amplitude and convert with linear_to_db.`,
+    pitfall:`Reading the ends of the decibel scale wrongly. volume_db of zero is full volume, not muted, and silence sits at the minus eighty floor, so a layer left at its default plays at full level and a fade that starts at the floor is inaudible until it climbs out of it. Decibel ramps are roughly even to the ear, so the trouble is the ends, not the slope: set the starting level explicitly, ease the amplitude, and convert with linear_to_db.`,
     map:`Godot audio buses with a sidechained compressor are Unity AudioMixer groups with a duck volume and snapshots.` },
   unity:{ term:`AudioMixer groups are the hierarchy, exposed parameters are the sliders, snapshots are the states. Layers are scheduled against the audio clock so they stay in phase with each other.`,
     api:['AudioMixer.SetFloat() with exposed parameters','AudioMixerSnapshot.TransitionTo()','AudioSource.PlayScheduled() / AudioSettings.dspTime','Duck Volume effect + send','AudioSource.PlayOneShot()','AudioSource.outputAudioMixerGroup'],
     snippet:`public class MusicLayers : MonoBehaviour {
     [SerializeField] AudioSource[] layers;             // all routed to a Music mixer group
-    [SerializeField] AudioMixer mixer;
 
     void Start() {
         double at = AudioSettings.dspTime + 0.2;       // sample accurate, layers stay in phase
@@ -252,7 +247,6 @@ func set_intensity(u: float) -> void:
     public void SetIntensity(float u) {
         for (int i = 0; i < layers.Length; i++)
             layers[i].volume = Mathf.Clamp01(u * layers.Length - i);
-        mixer.SetFloat("MusicVol", Mathf.Log10(Mathf.Max(u, 0.0001f)) * 20f);
     }
 }`,
     pitfall:`Starting music layers with Play() on separate AudioSources. Each one begins at the next frame boundary rather than the next sample, so the layers drift apart by milliseconds that a listener hears as phasing and smear. Schedule them all against one AudioSettings.dspTime value.`,

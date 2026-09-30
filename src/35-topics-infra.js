@@ -159,9 +159,9 @@ func _ready() -> void:
 func _drain(_id: int) -> void:
 \tif multiplayer.get_peers().is_empty():
 \t\tget_tree().quit(0)     # exit when the last match ends, then be restarted`,
-    pitfall:`Exporting the server from the client preset. It runs headless only when every launch remembers --headless, and the pack still carries full textures and materials; Dedicated Server mode forces headless and swaps them for size-only placeholders, which is memory and money not spent on pixels nobody sees. On a fleet that is memory and money spent on pixels nobody sees.`,
+    pitfall:`Exporting the server from the client preset. It runs headless only when every launch remembers --headless, and the pack still carries full textures and materials; Dedicated Server mode forces headless and swaps them for size-only placeholders, which is memory and money not spent on pixels nobody sees.`,
     map:`Godot’s dedicated_server feature tag is Unity’s Dedicated Server build subtarget.` },
-  unity:{ term:`The Dedicated Server build subtarget produces a headless player from the same project. It is a build target, not a define, and it strips the graphics pipeline rather than merely disabling it.`,
+  unity:{ term:`The Dedicated Server build subtarget produces a headless player from the same project. It is a build target that also sets the UNITY_SERVER define, so server-only code can be compiled in or out, and it strips the graphics pipeline rather than merely disabling it.`,
     api:['NamedBuildTarget.Server / StandaloneBuildSubtarget.Server','Application.targetFrameRate','Application.Quit(int)','NetworkManager.StartServer()','UnityTransport.SetConnectionData()','SystemInfo.graphicsDeviceType'],
     snippet:`public class ServerBoot : MonoBehaviour {      // Dedicated Server subtarget
     [SerializeField] ushort port = 7777;
@@ -265,6 +265,7 @@ func _init() -> void:
     api:['-batchmode -nographics -logFile -','-executeMethod <Class>.<Method>','BuildPipeline.BuildPlayer(BuildPlayerOptions)','BuildReport.summary.result / totalErrors','BuildOptions.StrictMode','EditorApplication.Exit(int)'],
     snippet:`public static class CiBuild {                 // -executeMethod CiBuild.Player
     public static void Player() {
+        EditorUserBuildSettings.buildAppBundle = true;   // .aab, not .apk
         var opts = new BuildPlayerOptions {
             scenes = EditorBuildSettings.scenes.Where(s => s.enabled)
                                                .Select(s => s.path).ToArray(),
@@ -512,7 +513,7 @@ INTERVIEW('infra-secrets',{
   ],
   senior:[
     { q:`You inherit a project with the keystore, its password and a service-account key all committed. What is your first week?`,
-      a:`Triage by irreversibility, not by count. The store keystore is unrecoverable and must not be rotated casually, so it goes into restricted storage and out of the repository first, with access limited to the build system. Every rotatable credential gets rotated, starting with the widest blast radius. Then close the door: secret store, deploy-time injection, a pre-push checker in CI. Communicate it as a system failure rather than a person’s mistake, because that is what gets the rest of the team to report the ones you have not found.`,
+      a:`Triage by irreversibility, not by count. The store keystore is unrecoverable wherever the store holds no copy (with Play App Signing you can reset the upload key, but not a key only you hold) and must not be rotated casually, so it goes into restricted storage and out of the repository first, with access limited to the build system. Every rotatable credential gets rotated, starting with the widest blast radius. Then close the door: secret store, deploy-time injection, a pre-push checker in CI. Communicate it as a system failure rather than a person’s mistake, because that is what gets the rest of the team to report the ones you have not found.`,
       follow:`You cannot rotate the signing key without breaking every installed copy. How does that change the plan?`,
       red:`Proposes rewriting history as the main action, or rotates the signing key without understanding what depends on it.` },
     { q:`How do you make the secure path also the easy path for developers?`,
@@ -551,11 +552,13 @@ ENGINE('infra-cdn-assets',{
 func fetch_pack(entry: Dictionary) -> bool:
 \tvar dest := "user://packs/%s.pck" % entry.hash   # hash in the name: no stale hit
 \tif not FileAccess.file_exists(dest):
+\t\tDirAccess.make_dir_recursive_absolute("user://packs")   # download_file needs the folder
 \t\tvar http := HTTPRequest.new()
 \t\tadd_child(http)
 \t\thttp.download_file = dest
 \t\thttp.request("%s/%s/%s" % [cdn, entry.hash, entry.file])
 \t\tawait http.request_completed
+\t\thttp.queue_free()
 \tif FileAccess.get_md5(dest) != entry.md5:
 \t\tDirAccess.remove_absolute(dest)              # never mount a partial download
 \t\treturn false
@@ -747,7 +750,12 @@ ENGINE('infra-monitoring',{
 var _worst := 0.0
 var _crumbs: Array[String] = []
 func _ready() -> void:
-\tPerformance.add_custom_monitor("game/worst_frame_ms", func(): return _worst)
+\tPerformance.add_custom_monitor("game/worst_frame_ms", _read_worst)
+
+func _read_worst() -> float:              # each monitor sample covers one window
+\tvar w := _worst
+\t_worst = 0.0                          # reset, or it reports the worst frame since launch
+\treturn w
 
 func _process(delta: float) -> void:
 \t_worst = maxf(_worst, delta * 1000.0)     # spikes, not the average

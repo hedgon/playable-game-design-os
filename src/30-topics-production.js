@@ -47,10 +47,13 @@ func record(event: String) -> void:
     map:`Godot @export_range is Unity [SerializeField] with [Range], a .tscn is a scene or prefab asset, and user:// is Application.persistentDataPath.` },
   unity:{ term:`A prototype is its own Scene plus one MonoBehaviour. Primitives from GameObject.CreatePrimitive stand in for art, [Range] exposes the knobs, and the knobs live on a ScriptableObject asset so the values you tuned during the session still exist after you press Stop.`,
     api:['[SerializeField] / [Range] / [Header]','GameObject.CreatePrimitive(PrimitiveType.Cube)','ScriptableObject + [CreateAssetMenu]','Application.persistentDataPath','StreamWriter','Time.realtimeSinceStartup'],
-    snippet:`[CreateAssetMenu(menuName = "Proto/DodgeTuning")]      // asset survives Play mode
+    snippet:`// DodgeTuning.cs
+[CreateAssetMenu(menuName = "Proto/DodgeTuning")]      // asset survives Play mode
 public class DodgeTuning : ScriptableObject {
     [Range(0.1f, 2f)] public float telegraph = 0.6f;   // the one knob under test
     [Range(1, 40)] public int spawnCount = 8; }
+
+// DodgeProto.cs (a separate file: Unity needs one script class per file)
 public class DodgeProto : MonoBehaviour {              // Scenes/Proto_Dodge.unity
     [SerializeField] DodgeTuning tuning;
     StreamWriter log;
@@ -214,7 +217,7 @@ T('playtesting',{ d:'production', t:'Playtesting: the truth machine', tag:'What 
   ai:{ yes:[`Draft observation protocols and interview guides.`,`Transcribe and code recordings and notes into behaviour categories.`,`Cluster findings across testers and surface patterns and outliers.`,`Analyze telemetry and correlate with observed events.`],
        no:[`Interpret what a behaviour means for the design without you. It lacks the context.`,`Decide what to change. That is the design decision.`,`Replace players. AI has never played your game as a human would.`] },
   prompts:[{l:'Observation protocol',p:`We are testing the hypothesis “[HYPOTHESIS]” with [N] players matching [PLAYER MODEL] for [MINUTES]. Design a silent observation protocol: what to log with timestamps (hesitations, repeats, drift, experiments, quits, speech), a task list if needed, and an interview guide of open, non-leading questions ordered from behaviour to opinion. Include a coding scheme for the notes and a template for the results summary that separates behaviour from self-report.`},
-    {l:'Playtest synthesis',p:`Here are observer notes and interview transcripts from [N] playtests: [DATA]. Code every observation as behaviour or self-report. Cluster behaviours by pattern and report frequency per cluster. Separate patterns (2 or more testers) from outliers, and list outliers separately with why they might matter. Identify contradictions between what players did and what they said. State what the evidence supports about the hypothesis “[HYPOTHESIS]” and what it does not. Do not recommend design changes.`}],
+    {l:'Playtest synthesis',p:`Here are observer notes and interview transcripts from [N] playtests: [DATA]. Code every observation as behaviour or self-report. Cluster behaviours by pattern and report frequency per cluster. Separate patterns (3 or more testers from a matched group) from hints (2 testers) and outliers (1), and list outliers separately with why they might matter. Identify contradictions between what players did and what they said. State what the evidence supports about the hypothesis “[HYPOTHESIS]” and what it does not. Do not recommend design changes.`}],
   verify:[`Did it treat one tester’s statement as a finding?`,`Did it merge behaviour and opinion?`,`Did it recommend changes when asked only to synthesize?`],
   test:[`This topic is the test. Questions to answer in every session: Do players understand the goal without explanation? Do they notice the meaningful choice? Do they make different choices? Do they understand why they succeeded or failed? Do they voluntarily repeat? Do they experiment? Do they develop strategies? Do they create their own goals? Where do they get bored, confused, or lose agency?`],
   rel:[['hypothesis-driven-design','Tests need a hypothesis.'],['iteration-and-evidence','Tests produce the evidence that drives iteration.'],['who-is-the-player','Recruiting is where the player model meets reality.'],['ai-for-playtest-analysis','AI helps analyse. Humans interpret.'],['playtest-view','The Playtest view has the question bank and hypothesis builder.']] });
@@ -428,7 +431,7 @@ func _ready() -> void:
 # godot --headless --export-release "Slice Win64" build/slice.exe`,
     pitfall:`A feature tag hides a system, it does not remove it. The export still packs every resource the filters let through, so the cut content ships inside the slice, inflates the download and is still reachable by anything that loads it by path. If it is cut, exclude it in the preset’s filters and let the missing resource fail loudly.`,
     map:`Godot export presets and feature tags are Unity Build Profiles and scripting define symbols, and --export-release is a BuildPipeline call behind -executeMethod.` },
-  unity:{ term:`The slice is a build script with its own scene list and its own scripting defines. Scenes In Build decides what exists, a define decides what compiles, and the BuildReport is where the cost-per-unit number comes from.`,
+  unity:{ term:`The slice is a build script with its own scene list and its own scripting defines. Scenes In Build decides what exists, a define decides what compiles, and the BuildReport gives the size and build time of what shipped; effort per unit comes from time tracking, not from the build.`,
     api:['BuildPlayerOptions / BuildPipeline.BuildPlayer()','BuildReport.summary.result / totalSize / totalTime','extraScriptingDefines / #if SLICE_BUILD','EditorBuildSettings.scenes','Application.version','EditorApplication.Exit()'],
     snippet:`public static class SliceBuild {           // Assets/Editor/SliceBuild.cs
     [MenuItem("Build/Slice")]
@@ -444,7 +447,7 @@ func _ready() -> void:
         if (r.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
     }
 }`,
-    pitfall:`Reading cost per unit out of the Editor. Play mode runs Mono with nothing stripped and every asset already imported, so the memory, load time and build time you quote are not the slice’s numbers. Build the slice once with the backend you will ship and read BuildReport.summary and the packed-asset list, because the whole scope plan gets built on that figure.`,
+    pitfall:`Reading size and load figures out of the Editor. Play mode runs Mono with nothing stripped and every asset already imported, so the memory, load time and build time you quote are not the slice’s numbers. Build the slice once with the backend you will ship and read BuildReport.summary and the packed-asset list, and take effort per unit from time tracking, because the whole scope plan gets built on both figures.`,
     map:`Unity Scenes In Build plus scripting defines are Godot’s export filters plus feature tags, and BuildReport is what --export-release produces.` } });
 INTERVIEW('vertical-slice-mvp',{
   junior:[
@@ -602,7 +605,7 @@ ENGINE('polish-when',{
   godot:{ term:`Legibility is code, emphasis is a Tween. The rule resolves and the sound plays on the frame of the input, then create_tween() layers the squash, the camera nudge and the particles on top, where they can be added late and deleted just as fast.`,
     api:['create_tween() / Tween.tween_property()','Tween.set_trans() / set_ease() / kill()','AnimationPlayer with call method tracks','Camera2D.offset / GPUParticles2D.emitting','AudioStreamPlayer.play()','Engine.time_scale'],
     snippet:`var _hit: Tween
-
+var _cam: Tween
 func on_hit(dir: Vector2) -> void:
 \t_apply_damage()                # legibility: the rule resolves first
 \t$Hit.play()                    # and the sound is on this frame, not later
@@ -612,7 +615,10 @@ func on_hit(dir: Vector2) -> void:
 \t_hit.tween_property($Sprite, "scale", Vector2(1.25, 0.8), 0.06)
 \t_hit.tween_property($Sprite, "scale", Vector2.ONE, 0.12)
 \t$Camera2D.offset = dir * 6.0
-\tcreate_tween().tween_property($Camera2D, "offset", Vector2.ZERO, 0.15)`,
+\tif _cam and _cam.is_running():
+\t\t_cam.kill()
+\t_cam = create_tween()
+\t_cam.tween_property($Camera2D, "offset", Vector2.ZERO, 0.15)`,
     pitfall:`Calling create_tween() on every hit without killing the last one. Tweens stack, each still writing the same property, and the sprite jitters or never returns to scale. Keep the reference and kill it before starting the next. A tween is bound to its node, so a flourish on an enemy that gets freed mid-animation simply stops, which is what you want and not what you expect.`,
     map:`Godot create_tween() is a coroutine driving an AnimationCurve in Unity, AnimationPlayer is the Animator, and Engine.time_scale is Time.timeScale.` },
   unity:{ term:`Split the response from the flourish. The state change, the sound and the hit flash happen in code on the input frame. The Animator plays the emphasis on top. Anything sitting behind a transition with Has Exit Time is emphasis by definition.`,

@@ -8,7 +8,7 @@ DOMAINS.push({ id:'narrative', lens:'design', t:'Narrative', short:'Premise, wor
     links:[['experience','Story is the most direct tool for the fantasy and the long-term emotional arc.'],['content','Quests, characters and environmental detail deliver narrative through content.'],['systems','Systems can tell stories no script can: emergent narrative comes from rules colliding.'],['level','Environmental storytelling is level design with authorial intent.']] });
 
 T('premise-and-world',{ d:'narrative', t:'Premise, world and characters', tag:'The premise is why the fantasy matters. The world is where the systems live. Characters are who cares.',
-  what:`The narrative foundation: a premise (the situation and the stakes), a world (rules, places, factions, history that the systems inhabit), and characters (people whose wants create conflict and give the player someone to be and someone to care about). In games these exist to make the fantasy legible and the mechanics meaningful. Steins;Gate builds its central conspiracy on a real internet hoax, the “John Titor” time-traveller posts of 1998 to 2001, rather than inventing an equivalent myth from scratch.`,
+  what:`The narrative foundation: a premise (the situation and the stakes), a world (rules, places, factions, history that the systems inhabit), and characters (people whose wants create conflict and give the player someone to be and someone to care about). In games these exist to make the fantasy legible and the mechanics meaningful. Steins;Gate builds its central conspiracy on a real internet hoax, the “John Titor” time-traveller posts of 2000 to 2001, rather than inventing an equivalent myth from scratch.`,
   why:[`Premise supplies stakes: why should the player care whether they win?`,`World rules and system rules should be the same rules. When they diverge players stop believing either.`,`Characters are the fastest route to relatedness and to memorable moments.`],
   think:{ q:[`Can the premise be said in one sentence that includes the player’s role and the stakes?`,`Does the world explain the mechanics? Why can the player do what they can do?`,`Which character wants something the player must decide about?`,`What does the player do in this world that no other world would let them do?`],
     trade:[`Deep lore rewards invested players and costs more than most will read.`,`Original settings differentiate and require more teaching.`],
@@ -434,13 +434,14 @@ func _unhandled_input(e: InputEvent) -> void:
     public void Skip() {
         // Setting time and calling Evaluate skips every SignalTrack marker in between,
         // so apply the scene's state changes explicitly instead of relying on them.
+        director.extrapolationMode = DirectorWrapMode.Hold;   // keep the end pose; Stop would revert it
         director.time = director.duration;
         director.Evaluate();
-        director.Stop();
-        onSceneStateApplied.Invoke();
+        director.Pause();
+        onSceneStateApplied.Invoke();              // call director.Stop() only after the state is applied
     }
 }`,
-    pitfall:`Skipping by seeking the director and trusting the signals. Timeline markers only fire when playback passes over them in real time, so a jump to the end silently drops every signal between, and Stop with DirectorWrapMode.None also snaps bound transforms back to their pre-scene pose. Apply state outside the timeline, and choose the wrap mode deliberately.`,
+    pitfall:`Skipping by seeking the director and trusting the signals. Timeline markers only fire when playback passes over them in real time, so a jump to the end silently drops every signal between, and Stop with DirectorWrapMode.None also snaps bound transforms back to their pre-scene pose. Apply state outside the timeline, choose the wrap mode deliberately (Hold keeps the final pose), and call Stop only after the state has been applied.`,
     map:`A Unity Timeline signal track is a Godot AnimationPlayer method call track.` }});
 INTERVIEW('narrative-pacing',{
   junior:[

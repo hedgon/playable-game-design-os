@@ -50,7 +50,7 @@ ENGINE('design-documents',{
   unity:{ term:`A ScriptableObject is the document the build reads. CreateAssetMenu makes it an asset a designer can open, Tooltip and Header carry the intent, and HelpURL puts the long form one click from the component.`,
     api:['[CreateAssetMenu(menuName = "...")]','[Tooltip("")] / [Header("")]','[Range(min, max)]','[HelpURL("...")] on the class','[FormerlySerializedAs("old")] when a field is renamed','AssetDatabase.LoadAssetAtPath<T>() for an editor check'],
     snippet:`[CreateAssetMenu(menuName = "Design/Encounter Tuning")]
-[HelpURL("docs/encounters.md")]              // the long form, one click away
+[HelpURL("https://wiki.example.com/design/encounters")]   // HelpURL wants a full URL: your wiki page
 public class EncounterTuning : ScriptableObject {
     [Header("Pacing")]
     [Tooltip("Seconds of quiet after a wave clears. Below 2 reads as exhausting.")]
@@ -134,15 +134,29 @@ var _queue: Array[Dictionary] = []
 func _ready() -> void:
 \tget_tree().auto_accept_quit = false   # or the last flush never happens
 
-func log_event(name: String, props: Dictionary) -> void:
-\tprops["e"] = name
+func log_event(event_name: String, props: Dictionary) -> void:
+\tprops["e"] = event_name
 \tprops["t"] = Time.get_unix_time_from_system()
 \t_queue.append(props)              # the decision it informs is in the name
+
+func flush() -> void:             # disk first: a file write is finished before the process exits
+\tif _queue.is_empty():
+\t\treturn
+\tvar path := "user://spill.jsonl"
+\tvar f := FileAccess.open(path, FileAccess.READ_WRITE if FileAccess.file_exists(path) else FileAccess.WRITE)
+\tif f == null:
+\t\treturn
+\tf.seek_end()
+\tfor e in _queue:
+\t\tf.store_line(JSON.stringify(e))
+\t_queue.clear()                # the next launch uploads the spill file
 
 func _notification(what: int) -> void:
 \tif what == NOTIFICATION_WM_CLOSE_REQUEST:
 \t\tflush()                   # session_end, the event everyone forgets
-\t\tget_tree().quit()`,
+\t\tget_tree().quit()
+\telif what == NOTIFICATION_APPLICATION_PAUSED:
+\t\tflush()                   # mobile: suspending is where a session ends`,
     pitfall:`Flushing over the network on close while auto_accept_quit is at its default. Every node still receives NOTIFICATION_WM_CLOSE_REQUEST, but the engine quits at the end of that frame, so an HTTPRequest started in the handler never completes, every clean exit loses its session end and a crash becomes indistinguishable from a quit. The metric the whole funnel rests on is the one that never arrives. Turn auto_accept_quit off, handle NOTIFICATION_WM_CLOSE_REQUEST, and keep a Timer flush so a kill still leaves most of the session on disk.`,
     map:`Godot’s NOTIFICATION_WM_CLOSE_REQUEST is Unity’s Application.wantsToQuit, and an autoload is a DontDestroyOnLoad component.` },
   unity:{ term:`One DontDestroyOnLoad component owns the queue, serializes flat structs with JsonUtility and posts with UnityWebRequest. On mobile the flush that matters is the one in OnApplicationPause, because that is where sessions end.`,
@@ -151,7 +165,7 @@ func _notification(what: int) -> void:
     if (paused) Flush();            // on Android and iOS this IS the quit
 }
 
-void OnApplicationQuit() => Flush();      // desktop only, never fires on mobile
+void OnApplicationQuit() => Flush();      // desktop; not reliable on mobile
 
 void Flush() {
     if (queue.Count == 0) return;
@@ -227,7 +241,7 @@ ENGINE('team-and-collaboration',{
     api:['PackedScene instances and scene inheritance','Editable Children on an instanced scene','uid:// identifiers inside .tscn and .tres','*.import sidecar files, which belong in the repository','.godot/ , which does not','Project Settings > Version Control plugin'],
     snippet:`extends Node3D                     # res://level/atrium/atrium.tscn
 ## Each instanced child is one file with one owner. Merge at the file level.
-## References inside a .tscn resolve by index, so a hand merge renumbers them.
+## References inside a .tscn resolve by string ids (id="1_abcde"), so a hand merge can duplicate or orphan them.
 
 @export var encounter: PackedScene      # owner: combat design
 @export var set_dressing: PackedScene   # owner: environment art
@@ -237,7 +251,7 @@ func _ready() -> void:
 \tfor s in [encounter, set_dressing, audio_zones]:
 \t\tif s:
 \t\t\tadd_child(s.instantiate())`,
-    pitfall:`Hand resolving a merge conflict inside a .tscn. The format is text, which makes it look mergeable, but a scene is a web of cross-references (resource ids, parent paths, signal connection lines), so a conflict resolved by taking both sides can leave a reference pointing at a resource or node the other side removed or duplicated, and the scene opens with scripts and meshes attached to the wrong nodes, or refuses to open. Take one side whole and redo the other edit in the editor, and split scenes so that choice costs an hour rather than a day. Commit the .import files and ignore .godot/.`,
+    pitfall:`Hand resolving a merge conflict inside a .tscn. The format is text, which makes it look mergeable, but a scene is a web of cross-references (resource ids, parent paths, signal connection lines), so a conflict resolved by taking both sides can leave a reference pointing at a resource or node the other side removed or duplicated, and the scene opens with scripts and meshes attached to the wrong nodes, or refuses to open. Take one side whole and redo the other edit in the editor, and split scenes so that choice costs an hour rather than a day. Commit the .import files, and from Godot 4.4 the .uid files that sit beside scripts and shaders (they keep references stable when a file moves), and ignore .godot/.`,
     map:`A Godot instanced sub scene is a nested prefab, and uid:// is the GUID inside a .meta file.` },
   unity:{ term:`Ownership follows the prefab, and identity lives in the .meta file beside every asset. Force Text serialization plus the UnityYAMLMerge tool makes scene and prefab conflicts survivable, and prefab variants give each discipline a file of its own.`,
     api:['Prefab variants and nested prefabs','.meta files, committed with every asset','Editor Settings > Asset Serialization: Force Text','Tools/UnityYAMLMerge registered as the git mergetool','Assembly Definition files for compile ownership','AssetPostprocessor.OnPostprocessAllAssets()'],
@@ -325,7 +339,7 @@ func _initialize() -> void:
 \tfor f in DirAccess.get_files_at("res://level"):
 \t\tif not f.ends_with(".tscn"): continue
 \t\tvar packed: PackedScene = load("res://level/" + f)
-\t\tvar node := packed.instantiate() if packed else null
+\t\tvar node: Node = packed.instantiate() if packed else null
 \t\tif node == null:
 \t\t\tpush_error("cannot instantiate " + f)
 \t\t\tbad += 1
@@ -347,10 +361,10 @@ func _initialize() -> void:
         };
         var report = BuildPipeline.BuildPlayer(opts);
         var ok = report.summary.result == BuildResult.Succeeded;
-        EditorApplication.Exit(ok ? 0 : 1);   // batchmode exits 0 without this
+        EditorApplication.Exit(ok ? 0 : 1);   // without -quit or Exit the editor stays open
     }
 }`,
-    pitfall:`Trusting the process exit code of a batchmode run. BuildPipeline.BuildPlayer reports a failed build in its BuildReport rather than by throwing, so a method that ignores the report returns normally, Unity exits 0, and a runner that checks only the exit code reports a green milestone over a player that does not exist. Read BuildReport.summary.result and call EditorApplication.Exit yourself, and remember that -quit kills anything asynchronous the moment the method returns, so a build step that yields is cut off half way.`,
+    pitfall:`Trusting the process exit code of a batchmode run. BuildPipeline.BuildPlayer reports a failed build in its BuildReport rather than by throwing, so a method that ignores the report returns normally, Unity run with -quit exits 0 (and without -quit or Exit it never exits at all), and a runner that checks only the exit code reports a green milestone over a player that does not exist. Read BuildReport.summary.result and call EditorApplication.Exit yourself, and remember that -quit kills anything asynchronous the moment the method returns, so a build step that yields is cut off half way.`,
     map:`unity -batchmode -executeMethod is godot --headless -s, and EditorApplication.Exit is SceneTree.quit.` } });
 INTERVIEW('planning-and-milestones',{
   junior:[
@@ -418,10 +432,11 @@ ENGINE('quality-and-build-health',{
     snippet:`extends GdUnitTestSuite            # res://test/test_wave_budget.gd
 
 func test_wave_never_exceeds_budget() -> void:
-\tvar director := auto_free(Director.new())   # auto_free or the run leaks
-\tadd_child(director)
-\tdirector.tension = 1.0
-\tvar wave: Array = director.build_wave(120)
+\t# WaveBuilder is your own Node class (class_name WaveBuilder), not the Director autoload
+\tvar builder: WaveBuilder = auto_free(WaveBuilder.new())   # auto_free or the run leaks
+\tadd_child(builder)
+\tbuilder.tension = 1.0
+\tvar wave: Array = builder.build_wave(120)
 \tvar cost := 0
 \tfor e in wave:
 \t\tcost += e.budget_cost
@@ -431,14 +446,16 @@ func test_wave_never_exceeds_budget() -> void:
     map:`GdUnit4's assert_that is NUnit’s Assert.That under the Unity Test Framework, and auto_free is a teardown Object.DestroyImmediate.` },
   unity:{ term:`The Unity Test Framework runs from the same batchmode entry point as the build. EditMode tests are fast and prove logic, PlayMode tests prove the scene, and only a development build on the device proves the thing a tester will open.`,
     api:['unity -batchmode -runTests -testPlatform EditMode -testResults results.xml','[Test] / [UnityTest] in an asmdef with Test Assemblies ticked','UnityEngine.TestTools: LogAssert, yield return null','SceneManager.LoadSceneAsync() inside a [UnityTest]','LogAssert.NoUnexpectedReceived()','BuildOptions.Development for the device smoke run'],
-    snippet:`public class WaveBudgetTests {          // Tests/Editor asmdef, tests-only
+    snippet:`public class WaveBudgetTests {          // Tests/Editor asmdef (Edit Mode), tests-only
     [Test]
     public void WaveNeverExceedsBudget() {
         var tuning = ScriptableObject.CreateInstance<DirectorTuning>();
-        var wave = Director.BuildWave(tuning, budget: 120);
+        var wave = WaveBuilder.Build(tuning, budget: 120);   // your own static class, not Director
         Assert.That(wave.Sum(e => e.BudgetCost), Is.LessThanOrEqualTo(120));
     }
+}
 
+public class ArenaSmokeTests {          // Tests/PlayMode asmdef; "Arena" must be in Build Settings
     [UnityTest]
     public IEnumerator ArenaSceneLoadsWithNoErrors() {
         yield return SceneManager.LoadSceneAsync("Arena");

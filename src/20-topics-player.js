@@ -31,12 +31,16 @@ TECH('who-is-the-player',[
 ENGINE('who-is-the-player',{
   godot:{ term:`The player model becomes a Resource the game loads at boot. Control scheme, assumed session length and the starting difficulty row live in one .tres asset, and every system that depends on who is playing reads that asset instead of guessing for itself.`,
     api:['class_name / extends Resource','@export / @export_range','ResourceLoader.load() and Resource.duplicate()','DisplayServer.is_touchscreen_available()','Input.get_connected_joypads()','OS.has_feature()'],
-    snippet:`class_name PlayerProfile extends Resource
+    snippet:`# player_profile.gd
+class_name PlayerProfile extends Resource
 @export var scheme := "keyboard"           # keyboard, pad, touch
 @export var session_minutes := 25
 @export var assumes_genre_literacy := true
 
-# autoload: Profile
+# profile.gd, registered as the autoload "Profile"
+extends Node
+var current: PlayerProfile
+
 func _ready() -> void:
 \tvar p: PlayerProfile = load("res://profiles/default.tres").duplicate()
 \tif Input.get_connected_joypads().size() > 0:
@@ -248,12 +252,16 @@ func _perform(verb: String) -> void:
     [SerializeField] Animator animator;
     public UnityEvent<string> VerbPerformed;
     static readonly string[] Verbs = { "Steal", "Hide", "SlipAway" };
+    readonly Dictionary<string, Action<InputAction.CallbackContext>> handlers = new();
     void OnEnable() {
         foreach (var verb in Verbs) {
             var a = map.FindAction(verb, throwIfNotFound: true);
-            a.performed += _ => { animator.CrossFade(verb, 0.08f); VerbPerformed.Invoke(verb); };
+            a.performed += handlers[verb] = _ => { animator.CrossFade(verb, 0.08f); VerbPerformed.Invoke(verb); };
             a.Enable();                       // an action left disabled fires nothing
         }
+    }
+    void OnDisable() {
+        foreach (var verb in Verbs) map.FindAction(verb).performed -= handlers[verb];
     }
 }`,
     pitfall:`Letting an Animation Event on the clip apply the effect. Events near the end of a clip are skipped when a transition blends it out, and renaming the handler leaves a console warning rather than a compile error, so the verb stops happening on exactly the machines where transitions are fastest.`,

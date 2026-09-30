@@ -16,7 +16,7 @@ DOMAINS.push({ id:'craft', lens:'eng', eng:'optional', t:'Code craft', short:'AI
 // Batch craft-v: Engineering in the AI era (plan rows V1 to V4). Domain 'craft', engine views optional.
 
 T('craft-ai-orchestrates-tools-compute',{ d:'craft', t:'AI orchestrates, tools compute', tag:'Let the model read the question and pick the tool. Let code do the arithmetic. Know which half of your pipeline can be wrong in which way.',
-  what:`A design rule for systems that use a language model: the model does the probabilistic work (reading an ambiguous question, choosing a tool, filling its arguments, explaining the result) and deterministic code does the computation (the simulation, the query, the sum, the chart). The pipeline is question, interpretation, tool selection, structured input, computation, result, explanation, visualisation. Only the computation and the rendering are deterministic; every step around them is a sampled guess that can be checked but not assumed. The evidence is real but mixed. Program-aided models (PAL, Gao et al. 2022) had the model write Python and let an interpreter compute, and beat PaLM-540B reasoning in text on grade-school maths. Toolformer (Schick et al. 2023) showed a model can teach itself when to call a calculator or a search API. Part of the claim is now dated: reasoning models score high on competition maths with no tools at all, so "models cannot count" is a much weaker reason than it was in 2022, though a 2024 study still found model maths shifts when only the numbers change or a distracting clause is added. The reasons that survive are different: a tool is reproducible, auditable and cheap to re-run, which a sampled answer is not, and it computes over live game data the model has never seen. And the claim fails where the orchestration itself fails: agents pick the wrong tool, pass the wrong argument or stop early, and a 2024 benchmark of tool-using agents (tau-bench) found them unreliable across repeated runs.`,
+  what:`A design rule for systems that use a language model: the model does the probabilistic work (reading an ambiguous question, choosing a tool, filling its arguments, explaining the result) and deterministic code does the computation (the simulation, the query, the sum, the chart). The pipeline is question, interpretation, tool selection, structured input, computation, result, explanation, visualisation. Only the computation and the rendering are deterministic; every step around them is a sampled guess that can be checked but not assumed. The evidence is real but mixed. Program-aided models (PAL, Gao et al. 2022) had the model write Python and let an interpreter compute, and beat PaLM-540B reasoning in text on grade-school maths. Toolformer (Schick et al. 2023) showed a model can teach itself when to call a calculator or a search API. Part of the claim is now dated: reasoning models score high on competition maths with no tools at all, so "models cannot count" is a much weaker reason than it was in 2022, though a 2024 study still found model maths shifts when only the numbers change or a distracting clause is added. The reasons that survive are different: a tool is reproducible, auditable and cheap to re-run, which a sampled answer is not, and it computes over live game data the model has never seen. And the claim fails where the orchestration itself fails: agents pick the wrong tool, pass the wrong argument or stop early, and a 2024 benchmark of tool-using agents (tau-bench) found the 2024 models it tested unreliable across repeated runs (newer models were not re-tested here, so re-measure on yours).`,
   why:[`Game questions are numeric more often than they look: is the economy inflating, is this drop rate fair, how long is the grind to level 40. A fluent wrong number is worse than no number, because it gets pasted into a design doc.`,`A deterministic tool can be tested once and trusted on every call. A model answer has to be checked every time.`,`Splitting the pipeline tells you where to spend verification: on the interpretation and the arguments, not on arithmetic a unit test already covers.`,`The same split makes the result reproducible. Two people asking the same question get the same curve if the tool and its inputs are the same, which is what lets a team argue about the design instead of the numbers.`],
   think:{ q:[`Which steps in this pipeline are sampled and which are computed? Can you point to the line where the model stops and code starts?`,`Does the tool accept a typed, validated input, or free text the model might fill with a unit error?`,`Would you notice if the model picked the wrong tool, or a right tool with the wrong time window?`,`Is the computation seeded and versioned, so the result can be reproduced next week?`,`Does the explanation step only describe the result, or does it add numbers of its own?`,`Is a tool even needed here, or is a single model answer, read by a person, good enough?`],
     trade:[`Tools add a schema, a runtime and a maintenance cost. For a one-off rough estimate a direct model answer checked by eye can be the cheaper right call.`,`A strict schema catches bad arguments and also rejects questions the tool designer did not foresee.`,`Letting the model write its own code for each question (code execution) is flexible and gives up the "tested once" guarantee; a fixed tool is the reverse.`,`The more steps the model orchestrates, the more places a sampled error can enter; a fixed workflow with one model call is more predictable than a free agent.`],
@@ -38,7 +38,7 @@ T('craft-ai-orchestrates-tools-compute',{ d:'craft', t:'AI orchestrates, tools c
     {claim:`Toolformer (Schick et al., 2023) learned to call a calculator, a Q&A system, two search engines, a translator and a calendar from a handful of demonstrations per API, and was often competitive with much larger models.`,asOf:'2026-09-28',src:'https://arxiv.org/abs/2302.04761'},
     {claim:`GSM-Symbolic (2024) found all tested models drop when only the numbers in a maths question change, and adding one clause that seems relevant but does not bear on the answer cut performance by up to 65%.`,asOf:'2026-09-28',src:'https://arxiv.org/abs/2410.05229'},
     {claim:`DeepSeek-R1 (2025) reports 79.8% pass@1 on AIME 2024 and 97.3% on MATH-500, with no tool or code interpreter described in the evaluation.`,asOf:'2026-09-28',src:'https://arxiv.org/html/2501.12948v1'},
-    {claim:`On tau-bench (2024), state-of-the-art function-calling agents such as GPT-4o succeeded on under 50% of tasks, and pass^8 fell below 25% in the retail domain.`,asOf:'2026-09-28',src:'https://arxiv.org/abs/2406.12045'},
+    {claim:`On tau-bench (2024), state-of-the-art function-calling agents such as GPT-4o succeeded on under 50% of tasks, and pass^8 fell below 25% in the retail domain. These are 2024 models; re-measure on the model you use.`,asOf:'2026-09-28',src:'https://arxiv.org/abs/2406.12045'},
     {claim:`Anthropic’s code execution tool runs Bash and Python in a sandboxed container so the model can do calculations, analyse data and create visualisations inside the API conversation.`,asOf:'2026-09-28',src:'https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool'}],
   rel:[['models-hallucination-sycophancy','Why a number the model states from memory cannot be trusted as it stands.'],['models-sampling','The probabilistic steps are sampled, so the same question can route differently twice.'],['craft-verification-as-the-job','Where to check the steps the diagram marks probabilistic.'],['ai-agentic-implementation','Agents are this pipeline with more steps the model controls.']] });
 
@@ -117,7 +117,7 @@ INTERVIEW('craft-ai-orchestrates-tools-compute',{
       red:`Says always use tools, or never bother.` }] });
 
 T('craft-core-values-that-last',{ d:'craft', t:'Core values that last', tag:'Values that only held while code was expensive were habits. Test each one against a world where code is cheap and see what survives.',
-  what:`A starting set of engineering values, as the owner wrote them: clarity, correctness, reasoning over over-engineering, completeness or polish, and a clear line between probabilistic and deterministic parts. The test for each is one question: does it still matter, or matter more, when a model can write the code in seconds? Clarity survives and arguably grows, because code is now read far more than it is written, by people and by agents, and an agent follows the clarity of the spec it was given. Correctness survives unchanged in value and changes in method: it is now shown by checks, not by the author’s care. "Reasoning over over-engineering" is right but vague; sharpened, it becomes the simplest design that meets a stated need, with added complexity justified by a measured failure, which is also Anthropic’s published advice for building agent systems. "Completeness or polish" is the one that needs splitting: cheap generation makes surface polish nearly free and makes it dangerous, because finished-looking work hides unfinished thinking; the value that lasts is completeness of the job (edge cases, failure paths, handover), not finish. The probabilistic and deterministic line survives and generalises into knowing, for every part, how it can be wrong and how you would find out.`,
+  what:`A starting set of engineering values: clarity, correctness, reasoning over over-engineering, completeness or polish, and a clear line between probabilistic and deterministic parts. The test for each is one question: does it still matter, or matter more, when a model can write the code in seconds? Clarity survives and arguably grows, because code is now read far more than it is written, by people and by agents, and an agent follows the clarity of the spec it was given. Correctness survives unchanged in value and changes in method: it is now shown by checks, not by the author’s care. "Reasoning over over-engineering" is right but vague; sharpened, it becomes the simplest design that meets a stated need, with added complexity justified by a measured failure, which is also Anthropic’s published advice for building agent systems. "Completeness or polish" is the one that needs splitting: cheap generation makes surface polish nearly free and makes it dangerous, because finished-looking work hides unfinished thinking; the value that lasts is completeness of the job (edge cases, failure paths, handover), not finish. The probabilistic and deterministic line survives and generalises into knowing, for every part, how it can be wrong and how you would find out.`,
   why:[`A team copies what its leads value. If the values are vague, agents and juniors fill the gap with whatever looks finished.`,`Values that only made sense when writing code was slow, such as "write it all by hand to understand it", fade quietly and leave nothing in their place unless someone names what replaced them.`,`Refined values turn into review rules and agent instructions; vague ones cannot.`],
   think:{ q:[`For each value: would it still matter if producing code were free? If not, it was a cost habit, not a value.`,`Can you check the value in a review, or is it only a feeling?`,`Which value is currently used to justify gold-plating, and which to justify skipping work?`,`Where do two values conflict (clarity and completeness, simplicity and correctness), and which wins?`],
     trade:[`Simplicity against completeness: the smallest design can leave a failure path out. The rule is simplest design that handles the failures you know about, not the smallest code.`,`Clarity against speed: a spec clear enough for an agent takes longer to write than a vague prompt, and saves the rework.`,`Polish against evidence: polishing a prototype before the question it tests is answered spends effort where it may be thrown away.`],
@@ -336,6 +336,16 @@ ENGINE('craft-memory-and-gc',{
     snippet:`using UnityEngine;
 using UnityEngine.Pool;
 
+public class Bullet : MonoBehaviour {              // your own bullet component
+    ObjectPool<Bullet> home;
+    public void Launch(Transform muzzle, ObjectPool<Bullet> pool) {
+        home = pool;                               // remembers its pool, returns itself when spent
+        transform.SetPositionAndRotation(muzzle.position, muzzle.rotation);
+    }
+    public void ResetState() { /* clear velocity, timers, trails */ }
+    public void Despawn() => home.Release(this);
+}
+
 public class Gun : MonoBehaviour {
     [SerializeField] Bullet prefab;
     ObjectPool<Bullet> pool;
@@ -384,7 +394,8 @@ func take() -> Node2D:
 \treturn b
 
 func give_back(b: Node2D) -> void:
-\tb.call("reset")        # clear velocity, timers, connections
+\tif b.has_method("reset"):
+\t\tb.call("reset")    # bullet.gd, the root script of bullet_scene, defines func reset(): clear velocity, timers, connections
 \t_park(b)
 
 func _park(b: Node2D) -> void:
@@ -478,10 +489,13 @@ public class Swarm : MonoBehaviour {
 var pos := PackedVector2Array()
 var vel := PackedVector2Array()
 var _steer_ms := 0.0
+var _last_warn_ms := 0
 
 func _ready() -> void:
 \tpos.resize(5000)
 \tvel.resize(5000)
+\tfor i in pos.size():
+\t\tpos[i] = Vector2(i % 100, floorf(i / 100.0))   # non-zero start, so the loop moves something
 \tPerformance.add_custom_monitor("game/steer_ms", func(): return _steer_ms)
 
 func _process(dt: float) -> void:
@@ -490,7 +504,9 @@ func _process(dt: float) -> void:
 \t\tvel[i] += -pos[i] * 0.1 * dt
 \t\tpos[i] += vel[i] * dt
 \t_steer_ms = (Time.get_ticks_usec() - t0) / 1000.0
-\tif Performance.get_monitor(Performance.TIME_PROCESS) > 1.0 / 60.0:
+\tvar now := Time.get_ticks_msec()
+\tif Performance.get_monitor(Performance.TIME_PROCESS) > 1.0 / 60.0 and now - _last_warn_ms > 1000:
+\t\t_last_warn_ms = now                      # at most one warning a second, not one per frame
 \t\tpush_warning("process over 60 fps budget")`,
     pitfall:`Optimising GDScript loops that should not be in GDScript. A tight loop over thousands of elements is where moving to typed packed arrays, a server API, C# or a GDExtension pays; measure first, and move only the hot part.`,
     map:`Godot’s custom monitor shows in the Monitors tab the way a Unity ProfilerMarker shows in the Profiler.` },
@@ -591,6 +607,9 @@ signal state_changed(from: State, to: State)
 @export var target: Node2D
 var state := State.PATROL
 var stun_left := 0.0
+
+func _ready() -> void:
+\tassert(target != null, "assign target in the inspector")   # validate the wiring once
 
 func _physics_process(dt: float) -> void:
 \tmatch state:
@@ -725,7 +744,7 @@ ENGINE('craft-over-defensive-code',{
 
 // After: wiring is validated once; the one runtime guard is the
 // real boundary (the target can be destroyed during play).
-[SerializeField] Health targetHealth;
+[SerializeField] Health targetHealth;   // Health: your own MonoBehaviour with a Tick() method
 
 void OnValidate() {
     if (targetHealth == null)
@@ -742,7 +761,7 @@ void Update() {
     api:['is_instance_valid()','Node.queue_free()','Node.is_queued_for_deletion()','assert()','@export'],
     snippet:`extends Node
 
-@export var target_health: Health
+@export var target_health: Health   # Health: your own component script (class_name Health)
 
 # Before: layered checks on every frame, some of them useless.
 # func _process(delta):

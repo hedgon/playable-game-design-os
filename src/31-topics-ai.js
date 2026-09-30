@@ -136,20 +136,26 @@ extends Node                       # content-generator role, editor only
 \t\t\t_generate()            # runtime must never regenerate content
 
 func _generate() -> void:
+\tDirAccess.make_dir_recursive_absolute("res://content")
 \tfor i in count:
-\t\tvar v := VariantSpec.new()
+\t\tvar v := VariantSpec.new()          # your own Resource script, class_name VariantSpec
 \t\tv.seed_value = i
 \t\tResourceSaver.save(v, "res://content/variant_%02d.tres" % i)`,
     pitfall:`A @tool script runs inside the editor. Generated code with side effects in _ready() or in a property setter executes against your project the moment somebody opens that scene, and a ResourceSaver call on that path overwrites real assets with no undo step. Guard every write with Engine.is_editor_hint() and an explicit trigger, and read a generated @tool script before you open its scene.`,
     map:`Godot @tool is Unity [ExecuteAlways], EditorScript._run() is a [MenuItem] method, and addons/ is the Editor/ folder.` },
   unity:{ term:`The role decides the assembly. Tool roles live in an Editor/ folder and never ship, content-generator output is ScriptableObject assets created through AssetDatabase, and runtime MonoBehaviours are the only thing the prototype-engineer role hands over.`,
     api:['[MenuItem] inside an Editor/ folder','ScriptableObject.CreateInstance<T>()','AssetDatabase.CreateAsset() / SaveAssets()','EditorUtility.DisplayDialog()','Undo.RecordObject()','[InitializeOnLoad] / [ExecuteAlways]'],
-    snippet:`public static class VariantGen {                 // Assets/Editor/VariantGen.cs
+    snippet:`public class VariantSpec : ScriptableObject { public int seedValue; }   // Assets/VariantSpec.cs
+
+public static class VariantGen {                 // Assets/Editor/VariantGen.cs
+    const int count = 24;
     [MenuItem("Design/Generate variants")]
     static void Run() {
         if (!EditorUtility.DisplayDialog("Generate",
-                "Overwrite 24 variant assets?", "Generate", "Cancel")) return;
-        for (int i = 0; i < 24; i++) {
+                $"Overwrite {count} variant assets?", "Generate", "Cancel")) return;
+        if (!AssetDatabase.IsValidFolder("Assets/Content"))
+            AssetDatabase.CreateFolder("Assets", "Content");
+        for (int i = 0; i < count; i++) {
             var v = ScriptableObject.CreateInstance<VariantSpec>();
             v.seedValue = i;
             AssetDatabase.CreateAsset(v, $"Assets/Content/Variant_{i:00}.asset");
@@ -510,17 +516,25 @@ ENGINE('ai-failure-modes',{
     api:['Export preset Export Mode: all resources vs selected scenes','DirAccess.get_files_at()','ResourceLoader.get_dependencies()','String.get_slice()','godot --headless -s res://tools/audit.gd','push_warning()'],
     snippet:`extends SceneTree                  # godot --headless -s res://tools/audit.gd
 
+var reachable := {}
+
 func _initialize() -> void:
-\tvar reachable := {}
 \tfor scene in DirAccess.get_files_at("res://levels"):
-\t\tfor dep in ResourceLoader.get_dependencies("res://levels/" + scene):
-\t\t\treachable[dep.get_slice("::", 2)] = true
+\t\t_walk("res://levels/" + scene)
 \tvar orphans := 0
 \tfor f in DirAccess.get_files_at("res://content"):
 \t\tif not reachable.has("res://content/" + f):
 \t\t\torphans += 1
-\tprint("%d generated files no level references, all of them still exported" % orphans)
-\tquit()`,
+\t# an upper bound: files that code loads by a built path never show up here
+\tprint("up to %d generated files no level references, all of them still exported" % orphans)
+\tquit()
+
+func _walk(path: String) -> void:
+\tif reachable.has(path):
+\t\treturn
+\treachable[path] = true
+\tfor dep in ResourceLoader.get_dependencies(path):   # direct dependencies only, so recurse
+\t\t_walk(dep.get_slice("::", dep.get_slice_count("::") - 1))   # last part is the path`,
     pitfall:`The default export mode packs the whole project, not the dependency graph. A thousand generated .tres files that nothing loads still ship, still cost install size, and never appear as a code problem or a compile warning. Switch the preset to selected scenes with explicit filters, or run the orphan count on a cadence, because content spam is invisible until someone looks at the package.`,
     map:`Godot’s export-all default is Unity’s Resources folder rule applied to the whole project, and ResourceLoader.get_dependencies is AssetDatabase.GetDependencies.` },
   unity:{ term:`Unity has the opposite default: only what a build scene, a Resources folder or an Addressables group reaches gets built. So generated spam costs import time and domain reloads rather than install size, and the exception is anything sitting in a Resources folder.`,
@@ -707,9 +721,14 @@ signal logged(event: String, value: float)     # the only way data leaves
 @export_range(0.1, 8.0) var sim_speed := 1.0
 var _gold := 0.0
 
+func _ready() -> void:
+\tEngine.time_scale = sim_speed
+
+func _exit_tree() -> void:
+\tEngine.time_scale = 1.0          # a disposable build hands the clock back
+
 func on_kill() -> void:
 \t_gold += gold_per_kill
-\tEngine.time_scale = sim_speed
 \tlogged.emit("gold", _gold)
 \tif _gold >= upgrade_cost:
 \t\tlogged.emit("upgrade", _gold)`,
@@ -720,15 +739,14 @@ func on_kill() -> void:
     snippet:`public class EconomyProto : MonoBehaviour {
     [SerializeField] EconomyTuning t;                // knobs live on the asset
     public UnityEvent<string, float> Logged;         // the only way data leaves
-    readonly StringBuilder line = new StringBuilder();
     float gold;
+
+    void Start()     => Time.timeScale = t.simSpeed;
+    void OnDestroy() => Time.timeScale = 1f;         // a disposable build hands the clock back
 
     public void OnKill() {
         gold += t.goldPerKill;
-        Time.timeScale = t.simSpeed;
-        line.Clear();
-        line.Append("gold ").Append(gold);           // no concat in the hot path
-        Logged.Invoke("gold", gold);
+        Logged.Invoke("gold", gold);                 // no string building in the hot path
         if (gold >= t.upgradeCost) Logged.Invoke("upgrade", gold);
     }
 }`,

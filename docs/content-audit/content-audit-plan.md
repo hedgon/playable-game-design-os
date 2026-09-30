@@ -47,11 +47,11 @@ Status: `todo`, `doing`, `done`.
 | T5 | Topics: management, leadership, platforms (25) | done | 16 findings (0 high, 4 medium, 12 low); platform rules verified against official pages (Play, Apple, Steam, Xbox, PEGI, Meta, Roblox, Fortnite, Epic) |
 | T6 | Topics: models, craft, careers (34) | done | 13 findings (0 high, 3 medium, 10 low); dated model, pricing and caching facts verified against vendor pages |
 | X1 | Triage: merge findings, decide fixes (debate where unsure) | done | decisions below |
-| F1 | Fixes: correctness first, then clarity, gaps and structure; new material fact-checked | doing | fa: T1 and T2 findings (topic files 20 to 30); fb: T3 to T6 findings (topic files 31 to 39c) |
+| F1 | Fixes: correctness first, then clarity, gaps and structure; new material fact-checked | done | fa 40 fixes, fb about 75 fixes; 25 game-link findings passed to G1 |
 | N1 | New topics for the confirmed gaps (10 topics plus the lag-compensation example), fact-checked and code-reviewed | todo | after fa and fb, which own the topic files |
 | G1 | "In real games" links: remove mis-tags, add real ones | todo | game data files |
 | P2 | Paths fixes and placement of the new topics | todo | after N1 |
-| R1 | Independent fact-check and code review of every batch | todo | |
+| R1 | Independent fact-check and code review of every batch | doing | fa reviewed (4 fixes, restructures checked against the diff); fb reviewed (1 fix; Sonnet 5.5 price, METR, Epic and W4 facts checked); N1, G1 and P2 reviews to come |
 | V1 | Checks, CI replay, archive | todo | |
 
 ## Findings and decisions

@@ -45,9 +45,19 @@ func wind_up() -> void:
 \tawait anim.animation_finished    # committed: no retarget during the tell
 \t_charge()
 
+var _charge_left := 0.0
+var _charge_dir := Vector3.ZERO
+
 func _charge() -> void:
-\tvelocity = -global_transform.basis.z * 14.0
-\tmove_and_slide()`,
+\t_charge_dir = -global_transform.basis.z   # direction is locked at the end of the tell
+\t_charge_left = 0.6                        # a fixed duration, so the charge is fair
+
+func _physics_process(delta: float) -> void:
+\tif _charge_left <= 0.0:
+\t\treturn
+\t_charge_left -= delta
+\tvelocity = _charge_dir * 14.0
+\tmove_and_slide()                          # moves every physics tick while charging`,
     pitfall:`Opening the hitbox from an animation call method track and leaving the callback mode alone. AnimationMixer.callback_mode_method defaults to deferred, so the method runs at the end of the frame rather than on the animation frame that was keyed, and the hit lands one step after the pose the player read and reacted to. Set the mode to immediate for gameplay clips, or better, keep the animation for the tell and resolve the rule in code.`,
     map:`Godot’s AnimationPlayer is Unity’s Animator, a call method track is an AnimationEvent, and a signal is a UnityEvent.` },
   unity:{ term:`An agent is a prefab: an Animator for the tells, a decision component, and a movement component. The Animator parameters are the contract between what the agent decided and everything the player is allowed to see.`,
@@ -63,8 +73,18 @@ func _charge() -> void:
         Telegraphed.Invoke("charge");
     }
 
-    public void OnWindUpEnded() {            // called from the state behaviour
-        controller.Move(transform.forward * 14f * Time.deltaTime);
+    float chargeLeft;
+    Vector3 chargeDir;
+
+    public void OnWindUpEnded() {            // an Animation Event on the last frame of the wind-up clip
+        chargeDir = transform.forward;       // direction locked at the end of the tell
+        chargeLeft = 0.6f;                   // a fixed duration, so the charge is fair
+    }
+
+    void Update() {
+        if (chargeLeft <= 0f) return;
+        chargeLeft -= Time.deltaTime;
+        controller.Move(chargeDir * 14f * Time.deltaTime);   // moves every frame while charging
     }
 }`,
     pitfall:`Animator.SetTrigger stays set until some transition consumes it. Set one while the agent is in a state with no outgoing Charge transition and it sits in the parameter, then fires the wind-up the moment the agent returns to idle, seconds late and pointed at nothing. The player reads a lie and calls the enemy broken. ResetTrigger before you set one, or use a bool you clear yourself.`,
@@ -266,7 +286,7 @@ void Sense() {
         knowledge.Saw(hits[i].transform.position, Time.time);
     }
 }`,
-    pitfall:`Leaving the line of sight check on the default trigger setting. Physics.queriesHitTriggers is true, so the Linecast stops on the first trigger volume between the eye and the target: a checkpoint, a music zone, a reverb box. The guard goes blind in exactly the rooms with the most design in them and nothing in the scene looks wrong. Pass QueryTriggerInteraction.Ignore and keep occluders on their own layer.`,
+    pitfall:`Leaving the line of sight check on the default trigger setting. Physics.queriesHitTriggers is true, so if a trigger volume sits on one of the occluder layers (a checkpoint, a music zone, a reverb box), the Linecast stops on it between the eye and the target. The guard goes blind in exactly the rooms with the most design in them and nothing in the scene looks wrong. Pass QueryTriggerInteraction.Ignore and keep occluders on their own layer.`,
     map:`Unity’s LayerMask is Godot’s collision_mask, OverlapSphere is Area3D.get_overlapping_bodies, and Physics.Linecast is intersect_ray.` } });
 INTERVIEW('perception-and-awareness',{
   junior:[
@@ -533,6 +553,7 @@ ENGINE('adaptive-and-director-ai',{
 @export var pressure: Curve           # tuned in the editor, not in code
 @export var table: Resource
 var _rng := RandomNumberGenerator.new()   # its own stream, never global randi()
+var run_seed := 0                     # set from the run's saved seed
 var tension := 0.0
 
 func _ready() -> void:
@@ -543,7 +564,10 @@ func on_encounter_ended(deaths: int) -> void:
 \t$Beat.wait_time = lerpf(9.0, 3.0, pressure.sample(tension))
 
 func _on_beat_timeout() -> void:
-\tspawn(table.pick(_rng))       # frequency and composition, never hidden power`,
+\tspawn(table.pick(_rng))       # frequency and composition, never hidden power
+
+func spawn(entry) -> void:            # your spawner: place entry outside the player's view
+\tpass`,
     pitfall:`Letting the director draw from the global randi() and randf(). Those share one generator with every other script in the project, so a particle burst or a footstep variation added three months later shifts the whole sequence, and a seeded replay of a “the director cheated me” report no longer reproduces the session. Give the director its own RandomNumberGenerator with its own seed and leave cosmetic randomness on the global one, where it cannot move a decision.`,
     map:`A Godot autoload director is a DontDestroyOnLoad component, and a Curve resource is an AnimationCurve.` },
   unity:{ term:`The director is one component with its tuning on a ScriptableObject, reacting to events the encounters raise. Response curves are AnimationCurves, and every adjustment lands on frequency, composition or support rather than on hidden power.`,
@@ -630,11 +654,12 @@ T('allies-and-companions', { d:'gameai', t:'Allies and companions', tag:'An ally
   rel:[['social-experience','Companions are the main carrier of relatedness in single-player.'],['navigation-and-pathfinding','Follow behaviour lives or dies on navigation.'],['readable-and-fair-ai','The ally must be legible and never cheat the player of a moment.'],['ux-as-design','Commands and state feedback are UX problems.'],['onboarding','An ally is often a diegetic tutorial.'],['premise-and-world','Companions carry character and emergent narrative.'],['generative-characters','A companion that answers free text is the most common generative character.']] });
 ENGINE('allies-and-companions',{
   godot:{ term:`The companion is a CharacterBody3D with its own NavigationAgent3D, pathing to a slot behind the player rather than to the player. Barks are an AudioStreamPlayer3D gated by a Timer, and the leash plus a recovery teleport is what keeps it out of the player’s way.`,
-    api:['NavigationAgent3D.target_position with a follow offset','NavigationAgent3D.target_desired_distance','NavigationServer3D.map_get_closest_point() for recovery','CollisionObject3D.set_collision_mask_value()','Timer for the bark cooldown','AudioStreamPlayer3D.play() / finished'],
+    api:['NavigationAgent3D.target_position with a follow offset','NavigationAgent3D.target_desired_distance','NavigationServer3D.map_get_closest_point() for recovery','CollisionObject3D.set_collision_mask_value()','VisibleOnScreenNotifier3D.is_on_screen() for the off camera test','VisibleOnScreenNotifier3D.is_on_screen() for the off camera test','Timer for the bark cooldown','AudioStreamPlayer3D.play() / finished'],
     snippet:`func _physics_process(_delta: float) -> void:
 \tvar slot := player.global_position + player.global_transform.basis.z * 1.8
 \tnav.target_position = slot
-\tif global_position.distance_to(player.global_position) > leash:
+\tvar far := global_position.distance_to(player.global_position) > leash
+\tif far and not $OnScreen.is_on_screen():       # VisibleOnScreenNotifier3D child
 \t\tvar map := get_world_3d().navigation_map    # last resort, off camera only
 \t\tglobal_position = NavigationServer3D.map_get_closest_point(map, slot)
 \t\treturn
@@ -650,15 +675,20 @@ ENGINE('allies-and-companions',{
     agent.stoppingDistance = 1.6f;
 }
 
+Vector3 lastSlot = new Vector3(float.MaxValue, 0f, 0f);
+
 void Update() {
-    agent.SetDestination(followSlot.position);
+    if ((followSlot.position - lastSlot).sqrMagnitude > 0.25f) {   // repath only when the slot moved
+        agent.SetDestination(followSlot.position);
+        lastSlot = followSlot.position;
+    }
     if (Vector3.Distance(transform.position, player.position) > leash &&
         NavMesh.SamplePosition(followSlot.position, out var hit, 3f,
                                NavMesh.AllAreas))
         agent.Warp(hit.position);      // last resort, and only off camera
     animator.SetFloat("Speed", agent.velocity.magnitude);
 }`,
-    pitfall:`Reading avoidancePriority the way it is spelled. A lower number means a higher priority and an agent largely ignores agents numbered above it, so leaving every follower on the default 50 makes the companion and the other allies treat each other as immovable and deadlock in a corridor. The matching mistake is moving the companion with transform.position instead of Warp, which leaves the agent’s internal position behind and sends it walking back to where it thinks it is.`,
+    pitfall:`Reading avoidancePriority the way it is spelled. A lower number means a higher priority and an agent largely ignores agents numbered above it, so leaving every follower on the default 50 makes the companion and the other allies treat each other as equals, and in a narrow corridor they jostle instead of one yielding. The matching mistake is moving the companion with transform.position instead of Warp, which leaves the agent’s internal position behind and sends it walking back to where it thinks it is.`,
     map:`Unity’s avoidancePriority is Godot’s NavigationAgent3D avoidance_priority inverted, and Warp is assigning global_position with a fresh target_position.` } });
 INTERVIEW('allies-and-companions',{
   junior:[
@@ -734,15 +764,21 @@ func _initialize() -> void:
 \t_start_episode(0)
 
 func _process(_delta: float) -> bool:
+\t_link.poll()                   # advances the connection and the buffers
+\tif _link.get_status() != StreamPeerTCP.STATUS_CONNECTED:
+\t\treturn false               # still connecting: skip this step
 \t_link.put_utf8_string(JSON.stringify(_observation()))
+\twhile _link.get_available_bytes() == 0 and _link.get_status() == StreamPeerTCP.STATUS_CONNECTED:
+\t\t_link.poll()
+\t\tOS.delay_usec(100)
 \t_apply(JSON.parse_string(_link.get_utf8_string()))
 \tif _episode_done():
 \t\t_start_episode(_episode + 1)
 \treturn _episode > 5000         # returning true ends the loop`,
     pitfall:`Speeding the environment up with Engine.time_scale. time_scale scales delta while physics_ticks_per_second stays where it is, so every physics step covers more simulated distance, contacts are missed and movement resolves differently from the build a player runs. The policy learns a game that does not ship, and the sweep results are about that other game. Remove the frame cap and advance episodes on a fixed step you control, then replay one episode at real speed and confirm the outcome matches.`,
     map:`A headless Godot SceneTree environment is a player built with -batchmode -nographics, and Engine.max_fps is Application.targetFrameRate.` },
-  unity:{ term:`Unity has the parts on the shelf: ML-Agents trains against a built player and Sentis runs an exported ONNX policy in game. That makes the shipping question sharper rather than softer, because the decision period and the model file are both baked at training time.`,
-    api:['com.unity.ml-agents: Agent, CollectObservations(), OnActionReceived()','VectorSensor.AddObservation() / ActionBuffers','DecisionRequester.DecisionPeriod','-batchmode -nographics for the training player','com.unity.sentis: ModelAsset, Worker.Schedule()','Application.targetFrameRate / Time.captureDeltaTime'],
+  unity:{ term:`Unity has the parts on the shelf: ML-Agents trains against a built player and Sentis (package com.unity.ai.inference, also called Inference Engine) runs an exported ONNX policy in game. That makes the shipping question sharper rather than softer, because the decision period and the model file are both baked at training time.`,
+    api:['com.unity.ml-agents: Agent, CollectObservations(), OnActionReceived()','VectorSensor.AddObservation() / ActionBuffers','DecisionRequester.DecisionPeriod','-batchmode -nographics for the training player','com.unity.ai.inference (Sentis): ModelAsset, Worker.Schedule()','Application.targetFrameRate / Time.captureDeltaTime'],
     snippet:`public class Brawler : Agent {                        // com.unity.ml-agents
     [SerializeField] FairnessEnvelope fairness;       // authored, patchable
     [SerializeField] HeuristicBrain fallback;
@@ -942,13 +978,18 @@ func _physics_process(_d: float) -> void:
     map:`Performance.add_custom_monitor is a ProfilerRecorder over a ProfilerMarker, and phase slicing by physics frame is the same trick with Time.frameCount.` },
   unity:{ term:`Wrap the AI work in a ProfilerMarker so it has a name in the timeline, read it back at runtime with a ProfilerRecorder, and slice agents by frame index so thirty of them never think on the same frame.`,
     api:['ProfilerMarker / Profiler.BeginSample()','ProfilerRecorder.StartNew(ProfilerCategory.Scripts, ...)','Time.frameCount % N for the phase','Application.SetStackTraceLogType()','[Conditional("AI_DEBUG")] on debug calls','Debug.DrawRay() / OnDrawGizmosSelected()'],
-    snippet:`static readonly ProfilerMarker Decide = new ProfilerMarker("AI.Decide");
+    snippet:`static readonly ProfilerMarker Decide =
+    new ProfilerMarker(ProfilerCategory.Scripts, "AI.Decide");
+ProfilerRecorder decideRec;
 
 void Awake() {                     // a stack trace per log is the real cost
     Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
 }
 
-void FixedUpdate() {
+void OnEnable()  => decideRec = ProfilerRecorder.StartNew(ProfilerCategory.Scripts, "AI.Decide");
+void OnDisable() => decideRec.Dispose();   // decideRec.LastValue is nanoseconds, for your HUD
+
+void Update() {                    // runs once per rendered frame, so no slice is skipped or doubled
     int phase = Time.frameCount % slices;
     using (Decide.Auto()) {
         for (int i = phase; i < agents.Count; i += slices)
@@ -1022,12 +1063,12 @@ T('scripted-vs-simulated', { d:'gameai', t:'Scripted vs simulated: pick the chea
   rel:[['ingame-ai-purpose','The purpose is the experience, not the capability.'],['scope-control','AI capability is scope. Cut what does not earn its place.'],['ai-budgets-and-debugging','Simulation cost and debug burden are permanent.'],['choosing-ai-technique','Most memorable moments are cheaper than they look.'],['prototyping','Prefer the smallest shippable mechanism, as with any system.']] });
 ENGINE('scripted-vs-simulated',{
   godot:{ term:`The cheap rung is a scene with an Area3D, an AnimationPlayer and one connection. The trigger fires once, the animation owns the beat, and nothing decides anything at runtime until the beat hands the agents over.`,
-    api:['Area3D.body_entered connected with CONNECT_ONE_SHOT','AnimationPlayer.play() and call method tracks','Marker3D spawn points authored in the scene','PackedScene.instantiate()','Area3D.monitoring via set_deferred()','Node.queue_free() once the beat is spent'],
+    api:['Area3D.body_entered filtered with is_in_group()','AnimationPlayer.play() and call method tracks','Marker3D spawn points authored in the scene','PackedScene.instantiate()','Area3D.monitoring via set_deferred()','Node.queue_free() once the beat is spent'],
     snippet:`extends Area3D                     # res://level/ambush/balcony_ambush.tscn
 @export var grunt: PackedScene
 
 func _ready() -> void:
-\tbody_entered.connect(_fire, CONNECT_ONE_SHOT)   # fires once, ever
+\tbody_entered.connect(_fire)      # a normal connection: the filter below decides
 
 func _fire(body: Node3D) -> void:
 \tif not body.is_in_group("player"):
@@ -1038,7 +1079,7 @@ func _fire(body: Node3D) -> void:
 \t\tvar e := grunt.instantiate()
 \t\te.global_position = m.global_position       # then hand over to behaviour
 \t\tget_parent().add_child(e)`,
-    pitfall:`Assuming body_entered fires once because one player walked in. It fires per body, and a player built as a CharacterBody3D with a separate hurtbox body, a carried object or a dropped ragdoll enters as several, so the authored beat plays two or three times over itself and the ambush spawns a double wave. Connect with CONNECT_ONE_SHOT, filter by group, and stop monitoring inside the handler with set_deferred.`,
+    pitfall:`Assuming body_entered fires once because one player walked in. It fires per body, and a player built as a CharacterBody3D with a separate hurtbox body, a carried object or a dropped ragdoll enters as several, so the authored beat plays two or three times over itself and the ambush spawns a double wave. Connect normally and filter by group first. Do not use CONNECT_ONE_SHOT here: it disconnects on the first body of any kind, so a crate or an enemy crossing the volume would spend the trigger before the player arrives. Once the player passes the filter, stop monitoring inside the handler with set_deferred.`,
     map:`An Area3D trigger driving an AnimationPlayer beat is a trigger Collider driving a Timeline PlayableDirector.` },
   unity:{ term:`The cheap rung is a trigger collider and a Timeline. A PlayableDirector plays the authored beat with camera, audio and animation on tracks, then gives the agents back to their own behaviour when it stops.`,
     api:['OnTriggerEnter() with a tag or layer check','PlayableDirector.Play() and the stopped event','PlayableDirector.extrapolationMode (post-playback state)','TimelineAsset tracks and SignalReceiver','Collider.enabled = false after the beat','Animator.applyRootMotion during the clip'],

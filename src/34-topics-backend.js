@@ -341,13 +341,13 @@ T('backend-api-protocol',{ d:'backend', t:'API protocol choices', tag:'REST/JSON
     {n:'GraphQL', how:`One endpoint, the client declares the shape it wants, the server resolves fields.`, fit:`Companion apps and internal tools with many varied read shapes.`, cost:`Query cost control becomes your problem and response caching stops being free.`, alt:`Fixed endpoints for the game client, GraphQL for tooling if it earns its keep.`}] });
 ENGINE('backend-api-protocol',{
   godot:{ term:`HTTPRequest is the node level API for one call at a time, and HTTPClient is the lower level one when you need connection reuse. Protobuf is not built in, so a response arrives as a PackedByteArray and is decoded by a generated script or a GDExtension you now maintain.`,
-    api:['HTTPRequest.request_raw()','HTTPRequest.request_completed signal','HTTPClient.METHOD_POST','PackedByteArray','JSON.parse_string()','ProjectSettings.get_setting("application/config/version")'],
+    api:['HTTPRequest.request_raw()','HTTPRequest.request_completed signal','HTTPClient.METHOD_POST','PackedByteArray','JSON.parse_string()','FileAccess + JSON.parse_string() for the injected build_info.json'],
     snippet:`@onready var http: HTTPRequest = $HTTPRequest
 
 func post_proto(path: String, payload: PackedByteArray) -> PackedByteArray:
 \tvar headers := PackedStringArray([
 \t\t"Content-Type: application/x-protobuf",
-\t\t"X-Client-Version: " + ProjectSettings.get_setting("application/config/version"),
+\t\t"X-Client-Version: " + BuildInfo.version,   # from the build_info.json the pipeline injects
 \t\t"X-Session: " + Session.token,
 \t])
 \thttp.request_raw("https://api.example.test" + path, headers, HTTPClient.METHOD_POST, payload)
@@ -368,9 +368,14 @@ func post_proto(path: String, payload: PackedByteArray) -> PackedByteArray:
     };
     www.SetRequestHeader("Content-Type", "application/x-protobuf");
     www.SetRequestHeader("X-Client-Version", Application.version);
+    using var reg = ct.Register(www.Abort);            // cancelling the token aborts the request
     await www.SendWebRequest();
-    if (www.result != UnityWebRequest.Result.Success)
-        throw new ApiException(www.responseCode, www.error);
+    if (www.result != UnityWebRequest.Result.Success) {
+        var data = www.downloadHandler.data;           // the server's error body carries the domain code
+        var code = data is { Length: > 0 } ? (ErrorCode)ErrorBody.Parser.ParseFrom(data).Code
+                                           : ErrorCode.Unknown;
+        throw new ApiException(code, www.responseCode, www.error);   // e.Code is the domain code
+    }
     return parser.ParseFrom(www.downloadHandler.data);
 }`,
     pitfall:`Not disposing the UnityWebRequest, or letting one outlive the screen that awaited it. On IL2CPP the native handlers are not collected promptly, so a screen that fires a request per frame leaks native memory. Wrap it in using and pass destroyCancellationToken.`,
@@ -740,8 +745,8 @@ var generation := 0
 var _dirty := false
 
 func apply_delta(delta: Dictionary, gen: int) -> void:
-\tfor name in delta:
-\t\ttables[name] = delta[name]    # the server sends whole tables, never patches
+\tfor table in delta:
+\t\ttables[table] = delta[table]  # the server sends whole tables, never patches
 \tgeneration = gen
 \t_dirty = true
 
@@ -752,9 +757,11 @@ func flush() -> void:                 # called on pause, not on every apply
     pitfall:`Saving on every apply. store_var writes synchronously, so a busy screen stutters on a phone’s storage. Mark the store dirty and flush on a timer or when the app is backgrounded, and write to a temporary file before replacing the real one.`,
     map:`Godot user:// with store_var is Unity’s Application.persistentDataPath with a binary writer.` },
   unity:{ term:`A local store keyed by table name, serialized into Application.persistentDataPath, plus the generation counter sent on every request so the server knows what this client is missing. PlayerPrefs is for settings, never for game state.`,
-    api:['Application.persistentDataPath','File.WriteAllBytes / File.Replace','Dictionary<string, object> of tables','JsonUtility or Google.Protobuf serialization','OnApplicationPause / OnApplicationFocus','PlayerPrefs for settings only'],
+    api:['Application.persistentDataPath','File.WriteAllBytes / File.Replace','Dictionary<string, object> of tables','Newtonsoft.Json or Google.Protobuf serialization (JsonUtility cannot serialise a Dictionary)','OnApplicationPause / OnApplicationFocus','PlayerPrefs for settings only'],
     snippet:`public sealed class LocalStore {
     readonly Dictionary<string, object> _tables = new();
+    readonly string _statePath  = Path.Combine(Application.persistentDataPath, "state.dat");
+    readonly string _backupPath = Path.Combine(Application.persistentDataPath, "state.bak");
     public int Generation { get; private set; } bool _dirty;
     public void ApplyDelta(IReadOnlyDictionary<string, object> delta, int generation) {
         foreach (var pair in delta) _tables[pair.Key] = pair.Value;   // whole tables
@@ -764,8 +771,12 @@ func flush() -> void:                 # called on pause, not on every apply
     public void FlushIfDirty() {                       // called from OnApplicationPause
         if (!_dirty) return;
         var tmp = Path.Combine(Application.persistentDataPath, "state.tmp");
-        File.WriteAllBytes(tmp, Serialize());
-        File.Replace(tmp, _statePath, _backupPath);    // atomic, with a fallback copy
+        var json = JsonConvert.SerializeObject(_tables);          // Newtonsoft.Json
+        File.WriteAllBytes(tmp, Encoding.UTF8.GetBytes(json));
+        if (File.Exists(_statePath))
+            File.Replace(tmp, _statePath, _backupPath);    // atomic, with a fallback copy
+        else
+            File.Move(tmp, _statePath);                    // first save: nothing to replace yet
         _dirty = false; }
 }`,
     pitfall:`Writing the save file in place. A process kill during the write leaves a truncated file and the player loses everything local, including the generation counter, which turns the next login into a full resync at best.`,
@@ -875,7 +886,8 @@ ENGINE('backend-caching-redis',{
 \tif FileAccess.file_exists(path):
 \t\treturn FileAccess.open(path, FileAccess.READ).get_var()
 \tvar body := await Api.call_once("master", "/master/get", PackedByteArray())
-\tvar data: Dictionary = bytes_to_var(body)
+\t# JSON here; with protobuf, use the generated decoder. bytes_to_var only reads Godot's own format
+\tvar data: Dictionary = JSON.parse_string(body.get_string_from_utf8())
 \tFileAccess.open(path, FileAccess.WRITE).store_var(data)
 \t_prune_other_versions(version)     # older versions died the moment this landed
 \treturn data`,
@@ -1034,7 +1046,7 @@ INTERVIEW('backend-migrations-config',{
       follow:`Which goes first for an added column, and which for a dropped one?`,
       red:`Bundles schema and code and assumes both revert together.` },
     { q:`What is expand and contract?`,
-      a:`Add the new shape, write to both, backfill, switch reads, then drop the old shape in a later release. Three deploys instead of one, and at no point is a running build looking at a shape it does not understand. Say when you would skip it: a additive nullable column.`,
+      a:`Add the new shape, write to both, backfill, switch reads, then drop the old shape in a later release. Three deploys instead of one, and at no point is a running build looking at a shape it does not understand. Say when you would skip it: an additive nullable column.`,
       follow:`Where in that sequence is it safe to roll back the code?`,
       red:`Renames a column in one step and does not see the problem.` },
     { q:`Where do database credentials live?`,
@@ -1256,22 +1268,24 @@ T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Th
     {n:'End to end suite against a running binary', how:`A separate suite speaking the real protocol to a booted server with generated clients.`, fit:`Protocol compatibility, middleware behaviour, and the flows a player performs.`, cost:`Slow, order sensitive, and the most expensive tier to keep trustworthy.`, alt:`Handler level integration tests for most of it, end to end only for flows crossing process roles.`}] });
 ENGINE('backend-testing',{
   godot:{ term:`Godot ships no official test framework, so teams use GUT or gdUnit4 and run them headless from the command line in CI. The structure is the same as the server’s: pure logic tested directly, gateways replaced by a stub, scene tests only where the tree is the thing under test.`,
-    api:['godot --headless --script for the CI entry point','GUT or gdUnit4 test scripts','assert_eq / assert_true','RefCounted doubles injected through _init','var_to_bytes() for fixtures','SceneTree.create_timer() for time control'],
+    api:['godot --headless --script for the CI entry point','GUT or gdUnit4 test scripts','assert_eq / assert_true','ApiClient subclass doubles injected through _init','plain Dictionary fixtures','SceneTree.create_timer() for time control'],
     snippet:`extends GutTest
 
-class StubApi extends RefCounted:
-\tvar body: PackedByteArray
-\tfunc post(_path: String, _payload: PackedByteArray) -> PackedByteArray:
+class StubApi extends ApiClient:          # the gateway's _init wants an ApiClient
+\tvar body := {}
+\tfunc _init() -> void:
+\t\tsuper("")                          # no real base url
+\tfunc post(_path: String, _payload: Dictionary) -> Dictionary:
 \t\treturn body
 
 func test_gateway_maps_rows_to_player() -> void:
 \tvar stub := StubApi.new()
-\tstub.body = var_to_bytes({"id": 7, "name": "ada"})
+\tstub.body = {"id": 7, "name": "ada"}
 \tvar player: Player = await PlayerGateway.new(stub).fetch(7)
 \tassert_eq(player.id, 7)
 \tassert_eq(player.name, "ada")`,
     pitfall:`Writing every test as a scene test. Instancing scenes is slow, _ready side effects fire, and a failure tells you a node was null rather than which rule broke. Keep rules in RefCounted classes a test can construct in one line.`,
-    map:`A RefCounted stub injected through _init is the same hand written fake a Go interactor test uses instead of a generated mock.` },
+    map:`A stub subclass injected through _init is the same hand written fake a Go interactor test uses instead of a generated mock.` },
   unity:{ term:`Unity Test Framework with NUnit, split into EditMode tests for pure logic and PlayMode tests for anything that needs the player loop. If the rules assembly has no UnityEngine dependency, its tests run in milliseconds in EditMode.`,
     api:['[Test] and [UnityTest] attributes','Assert.That / Is.EqualTo','a test .asmdef referencing the rules asmdef','UnityEngine.TestTools.LogAssert','NSubstitute or a hand written fake','[SetUp] / [TearDown]'],
     snippet:`public class GetPlayerTests {

@@ -34,6 +34,7 @@ ENGINE('core-experience',{
 \tawait RenderingServer.frame_post_draw    # without this you save the previous frame
 \tvar img := get_viewport().get_texture().get_image()
 \tvar stamp := Time.get_datetime_string_from_system().replace(":", "-")
+\tDirAccess.make_dir_recursive_absolute("user://shots")   # save_png fails if the folder is missing
 \timg.save_png("user://shots/%s_%s.png" % [stamp, label])
 \tvar fps := Performance.get_monitor(Performance.TIME_FPS)
 \tprint("[%s] %s fps=%.0f" % [stamp, label, fps])`,
@@ -281,7 +282,7 @@ INTERVIEW('goals-horizons',{
   ] });
 
 T('tension-release',{ d:'experience', t:'Tension and release', tag:'Emotion is a rhythm. Flat tension is boredom. Constant tension is exhaustion.',
-  what:`The rise and fall of stakes, pressure and uncertainty over time. Tension comes from uncertain outcomes the player cares about. Release comes from resolution, safety, reward or humor. Pacing is the deliberate shaping of this rhythm across a level, a session and a whole game. Pac-Man turns its tension round with the power pellet, which makes the ghosts blue and edible for a few seconds, and after some levels it plays a short comic intermission, which Toru Iwatani added to relieve the pressure of constant pursuit. Super Smash Bros. makes damage raise the stakes rather than end the round: a rising percentage only increases how far the next hit launches a fighter, so tension climbs through a stock until the edge of the stage releases it. Five Nights at Freddy’s releases its tension only with the clock: reaching 6 AM ends the shift, and when power runs out first, Freddy’s Toreador Song turns the last seconds into a wait on the clock.`,
+  what:`The rise and fall of stakes, pressure and uncertainty over time. Tension comes from uncertain outcomes the player cares about. Release comes from resolution, safety, reward or humor. Pacing is the deliberate shaping of this rhythm across a level, a session and a whole game. Pac-Man turns its tension round with the power pellet, which makes the ghosts blue and edible for a few seconds, and after some levels it plays a short comic intermission, which Toru Iwatani added to relieve the pressure of constant pursuit. Super Smash Bros. makes damage raise the stakes rather than end the round: a rising percentage only increases how far the next hit launches a fighter, so tension climbs through a stock until the edge of the stage releases it. Five Nights at Freddy’s releases its tension only with the clock: reaching 6 AM ends the shift, and when power runs out first, Freddy’s music box playing the Toreador Song turns the last seconds into a wait on the clock.`,
   why:[`Players judge an experience mostly by its most intense moment and its ending, not its average (Kahneman’s peak-end rule). A well-placed peak is worth an hour of even content.`,`Release is what makes the next tension legible. Without rest, players habituate and stop feeling.`,`Tension needs real stakes. If failure costs nothing, nothing is tense.`],
   think:{ q:[`Where in a typical session does the player feel safest? Most pressured? Is that where I intended?`,`What does the player stand to lose at the peak? Do they know it?`,`How long is the longest stretch without release? Without tension?`,`Does the release reward reflection (loot, story, view) or just stop the pressure?`],
     trade:[`Higher stakes make peaks stronger and failure costlier. Casual players may bounce.`,`Frequent release keeps the game comfortable and dulls the peaks.`],
@@ -524,6 +525,11 @@ func _ready() -> void:
         cheers.Value++;                       // only the server may write this
         ShowCheerRpc(from, RpcTarget.Single(targetId, RpcTargetUse.Temp));
     }
+
+    [Rpc(SendTo.SpecifiedInParams)]
+    void ShowCheerRpc(ulong from, RpcParams p = default) {
+        Debug.Log($"Client {from} cheered you");   // play the cheer on the target only
+    }
 }`,
     pitfall:`Writing a NetworkVariable from a client. The default write permission is Server, so the assignment never happens. NGO 2.x logs a write-permission error and leaves the value unchanged, 1.x throws InvalidOperationException, and the player who pressed the button sees nothing happen, which reads as lag rather than as a permission error. Decide ownership per variable and let clients ask through an Rpc.`,
     map:`A Unity NetworkVariable is a Godot MultiplayerSynchronizer property, and SendTo.Server is an @rpc called on the authority.` },
@@ -695,9 +701,11 @@ func _init() -> void:
 \tfor f in DirAccess.get_files_at("res://levels"):
 \t\tvar scene: Node = load("res://levels/%s" % f).instantiate()
 \t\t# pillar: every room has a way out that does not require combat
-\t\tif scene.find_children("*", "EscapeRoute").is_empty():
+\t\tvar exits := scene.find_children("*", "", true, false).filter(func(n): return n.is_in_group("escape_route"))
+\t\tif exits.is_empty():
 \t\t\tpush_error("%s violates the escape pillar" % f)
 \t\t\tbad += 1
+\t\tscene.free()
 \tquit(1 if bad > 0 else 0)`,
     pitfall:`Writing the checker as a @tool script on a game node without guarding with Engine.is_editor_hint(). _ready then runs inside the editor, so gameplay code fires on the open scene, and any property it changes on nodes the scene owns is saved the next time someone saves. Editor-time code and runtime code share one file in Godot, and that guard is the only thing separating them.`,
     map:`A Godot @tool script is a Unity [ExecuteAlways] component, and --headless --script is -batchmode -executeMethod.` },

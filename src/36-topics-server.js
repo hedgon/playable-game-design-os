@@ -145,39 +145,52 @@ T('server-determinism',{ d:'server', t:'Deterministic simulation and parity', ta
     {n:'Periodic state hashing', how:`Hash the simulation state every N ticks and exchange the hash. On mismatch, stop and report the tick, the hash and the recent inputs.`, fit:`Lockstep and any peer simulation, as the detection net that catches drift you did not predict.`, cost:`Bandwidth and a hash cost every N ticks. Tells you that you desynced, never why.`, alt:`Full trace diffing offline, which finds the cause but cannot run live.`}
   ] });
 ENGINE('server-determinism',{
-  godot:{ term:`Determinism is not a Godot feature, it is a boundary you enforce. The simulation becomes a plain RefCounted class outside the scene tree, seeded by RandomNumberGenerator, stepped by a tick count rather than by delta.`,
-    api:['RandomNumberGenerator.seed / randi_range()','RefCounted (simulation outside the SceneTree)','Engine.physics_ticks_per_second','PackedInt64Array / PackedByteArray','hash() / String.sha256_buffer()','Node._physics_process(delta) for presentation only'],
+  godot:{ term:`Determinism is not a Godot feature, it is a boundary you enforce. The simulation becomes a plain RefCounted class outside the scene tree, seeded by its own small integer generator, stepped by a tick count rather than by delta. Built-in generators such as RandomNumberGenerator are not a cross-runtime specification, so a server in another language cannot reproduce them; both sides implement the same few lines.`,
+    api:['a hand-written integer generator (an LCG), not RandomNumberGenerator, when the server is not Godot','RefCounted (simulation outside the SceneTree)','Engine.physics_ticks_per_second','PackedInt64Array / PackedByteArray','hash() / String.sha256_buffer()','Node._physics_process(delta) for presentation only'],
     snippet:`class_name Sim extends RefCounted
 
-var _rng := RandomNumberGenerator.new()
+var _s := 0
 
-func run(seed: int, inputs: PackedInt32Array) -> PackedInt64Array:
-\t_rng.seed = seed                         # seed, never randomize()
+func _next() -> int:                         # the same three lines exist in the Go server
+\t_s = (_s * 1103515245 + 12345) & 0x7fffffff
+\treturn _s
+
+func run(run_seed: int, inputs: PackedInt32Array) -> PackedInt64Array:
+\t_s = run_seed & 0x7fffffff               # seed, never randomize()
 \tvar trace := PackedInt64Array()
 \tvar x := 0
 \tfor i in inputs.size():
-\t\tx += inputs[i] * 16 + _rng.randi_range(0, 15)   # integers only
+\t\tx += inputs[i] * 16 + _next() % 16       # integers only
 \t\ttrace.append(x)
 \treturn trace                             # hash this and send it with the result`,
-    pitfall:`Reaching for the global randi() or calling randomize() anywhere in the project. The global generator is shared with particles, spawn jitter and anything else that pulls from it, so the sequence your simulation sees depends on what else happened to run that frame. The same applies to iterating a Dictionary and assuming order. Own your generator, own your iteration order.`,
-    map:`Godot RandomNumberGenerator with an explicit seed is Unity’s System.Random instance, and the global randi() is Unity’s static UnityEngine.Random.` },
+    pitfall:`Reaching for the global randi() or calling randomize() anywhere in the project. The global generator is shared with particles, spawn jitter and anything else that pulls from it, so the sequence your simulation sees depends on what else happened to run that frame. The same applies to iterating a Dictionary: Godot 4 keeps insertion order, so the order is stable only if both sides insert in the same order, and a Go map has no order at all. Own your generator, own your iteration order.`,
+    map:`On both engines the hand-written generator replaces the built-in ones (RandomNumberGenerator, System.Random), and the global randi() is Unity’s static UnityEngine.Random.` },
   unity:{ term:`Determinism means the simulation is a plain C# class with no UnityEngine dependency: no Time, no Random, no physics. It takes a seed and an input array and returns a trace, so an EditMode test and the server can both run it.`,
-    api:['System.Random (instance, never UnityEngine.Random)','Time.fixedDeltaTime (presentation only)','Physics.simulationMode = SimulationMode.Script / Physics.Simulate()','System.Runtime.CompilerServices.MethodImpl','decimal or long fixed-point maths','UnityEngine.TestTools EditMode tests'],
+    api:['a hand-written integer generator (never UnityEngine.Random, and System.Random is not a cross-runtime spec)','Time.fixedDeltaTime (presentation only)','Physics.simulationMode = SimulationMode.Script / Physics.Simulate()','System.Runtime.CompilerServices.MethodImpl','decimal or long fixed-point maths','UnityEngine.TestTools EditMode tests'],
     snippet:`public static class Sim {
     const int TickMs = 16;                       // integer step, not deltaTime
 
     public static long[] Run(int seed, int[] inputs) {
-        var rng = new System.Random(seed);       // instance: no shared global state
+        long s = seed & 0x7fffffff;              // own generator, the same lines exist in the Go server
         var trace = new long[inputs.Length];
         long x = 0;
         for (int i = 0; i < inputs.Length; i++) {
-            x += inputs[i] * TickMs + rng.Next(0, 16);
+            s = (s * 1103515245 + 12345) & 0x7fffffff;
+            x += inputs[i] * TickMs + s % 16;
             trace[i] = x;
         }
         return trace;                            // the server re-runs this exact function
     }
+
+    public static long Hash(long[] trace) {      // FNV-1a style, easy to port
+        unchecked {
+            long h = 1469598103934665603;
+            foreach (var v in trace) h = (h ^ v) * 1099511628211;
+            return h;
+        }
+    }
 }`,
-    pitfall:`Assuming PhysX gives the same result on two machines. Unity’s PhysX repeats results at best on one machine and one build, with Enhanced Determinism on and objects added in the same order, and is not deterministic across platforms or builds, so a simulation built on Rigidbody results cannot be verified server side. If the outcome must match, the outcome cannot come from the physics engine. Use physics for feel and a separate integer simulation for anything the server checks.`,
+    pitfall:`Assuming PhysX gives the same result on two machines. Unity’s PhysX repeats results at best on one machine and one build when objects are added in the same order, and is not deterministic across platforms or builds, so a simulation built on Rigidbody results cannot be verified server side. If the outcome must match, the outcome cannot come from the physics engine. Use physics for feel and a separate integer simulation for anything the server checks.`,
     map:`Unity’s rule of keeping the simulation free of UnityEngine types is Godot’s rule of keeping it in a RefCounted outside the SceneTree.` },
   note:`The engine side of parity is mostly subtraction. Everything convenient the engine offers inside a frame, from its global random source to its physics solver, is a machine-specific result. What survives the trip to a server is the code that would run identically in a console application.` });
 INTERVIEW('server-determinism',{
@@ -247,7 +260,6 @@ ENGINE('server-state-sync',{
     api:['MultiplayerSynchronizer.replication_config','SceneReplicationConfig.add_property() / property_set_sync()','MultiplayerSpawner.spawn_function','MultiplayerSynchronizer.replication_interval / delta_interval','Node.set_multiplayer_authority()','@rpc("authority", "unreliable_ordered")'],
     snippet:`extends CharacterBody2D
 
-@onready var sync: MultiplayerSynchronizer = $MultiplayerSynchronizer
 var net_position := Vector2.ZERO          # the replicated property
 
 func _physics_process(delta: float) -> void:
@@ -255,7 +267,7 @@ func _physics_process(delta: float) -> void:
 \t\tvelocity = _server_step()
 \t\tmove_and_slide()
 \t\tnet_position = global_position
-\telse:                                  # remote peers live one buffer in the past
+\telse:                                  # remote peers ease toward the last received state
 \t\tglobal_position = global_position.lerp(net_position, 1.0 - pow(0.001, delta))`,
     pitfall:`Leaving replication_interval (and delta_interval) at 0, which syncs on every network process frame, so the send rate follows the frame rate rather than a rate anyone chose, and bandwidth is spent before anyone has looked at it. Set the interval per synchronizer against what that entity needs, and put anything that only changes on an event behind an RPC instead of a replicated property.`,
     map:`Godot MultiplayerSynchronizer is Unity NetworkTransform plus NetworkVariable, and MultiplayerSpawner is the NetworkObject spawn path.` },
@@ -365,13 +377,17 @@ func send(op: int, id: int, body: PackedByteArray) -> void:
     api:['System.Net.WebSockets.ClientWebSocket.ReceiveAsync() / SendAsync()','SynchronizationContext.Current / Post()','CancellationTokenSource','BitConverter / System.Buffers.Binary.BinaryPrimitives','UnityWebRequest for the request-response tier','Application.focusChanged and OnApplicationPause for socket teardown'],
     snippet:`async Task ReadLoop(ClientWebSocket ws, SynchronizationContext ctx, CancellationToken ct) {
     var buf = new byte[8192];
+    using var msg = new MemoryStream();                      // one whole message, however many fragments
     while (ws.State == WebSocketState.Open) {
         var r = await ws.ReceiveAsync(new ArraySegment<byte>(buf), ct);
-        if (!r.EndOfMessage) { Grow(buf, r); continue; }     // frames can split
+        msg.Write(buf, 0, r.Count);                          // append each fragment at the running offset
+        if (!r.EndOfMessage) continue;                       // parse only a complete message
+        var data = msg.ToArray();
+        msg.SetLength(0);
         if (r.MessageType != WebSocketMessageType.Binary) continue;
-        ushort op = BitConverter.ToUInt16(buf, 0);           // [2 op][4 id][payload]
-        uint id = BitConverter.ToUInt32(buf, 2);
-        var body = new ArraySegment<byte>(buf, 6, r.Count - 6).ToArray();
+        ushort op = BitConverter.ToUInt16(data, 0);          // [2 op][4 id][payload]
+        uint id = BitConverter.ToUInt32(data, 2);
+        var body = data.AsSpan(6).ToArray();
         ctx.Post(_ => Dispatch(op, id, body), null);         // back to the main thread
     }
 }`,
@@ -458,7 +474,7 @@ func _on_ticket(_r, _code, _h, body: PackedByteArray) -> void:
 \t\t_show_join_failed(); return
 \tmultiplayer.server_disconnected.connect(_end_session)   # decide this, do not skip it
 \tmultiplayer.multiplayer_peer = peer`,
-    pitfall:`Putting the node that owns multiplayer_peer inside the gameplay scene. Loading the match scene frees that node, which drops the peer in the middle of joining, and the symptom looks like a flaky server. The session owner belongs on an autoload or on a node explicitly kept across scene changes, with its lifetime tied to the session rather than to the level.`,
+    pitfall:`Putting the node that handles the session inside the gameplay scene. The multiplayer_peer itself lives on the SceneTree’s MultiplayerAPI and survives a scene change, but loading the match scene frees the node that connected server_disconnected and any function suspended in an await on it, so a dropped server goes unnoticed and the join hangs; the symptom looks like a flaky server. The session owner belongs on an autoload or on a node explicitly kept across scene changes, with its lifetime tied to the session rather than to the level.`,
     map:`Godot’s HTTPRequest to your own matchmaker plus ENetMultiplayerPeer is what Unity’s Lobby and Relay services, or a Fusion NetworkRunner.StartGame call, package for you.` },
   unity:{ term:`With Photon Fusion, a third-party SDK rather than part of Unity, a NetworkRunner owns the session. You start it in host or client mode against a session name, and Photon’s lobby and relay handle discovery and traversal, so the room code is really a session name you construct. Unity’s own equivalent is the Sessions API in Multiplayer Services.`,
     api:['NetworkRunner.StartGame(StartGameArgs)','GameMode.Host / GameMode.Client','StartGameArgs.SessionName / PlayerCount','NetworkRunner.SessionInfo / GetSessionList','NetworkManager.OnClientDisconnectCallback','Object.DontDestroyOnLoad(runner.gameObject)'],
@@ -544,7 +560,7 @@ T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts
 ENGINE('server-scaling',{
   godot:{ term:`The client’s share of scaling is routing and re-subscription. It asks a directory where its room lives instead of holding an address, and it treats every reconnect as a peer that has forgotten it.`,
     api:['HTTPRequest for the room directory call','WebSocketPeer.get_ready_state() / STATE_CLOSED','MultiplayerAPI.server_disconnected','Timer with exponential backoff','Array[String] of active channel names','ProjectSettings for the directory endpoint per build'],
-    snippet:`extends Node
+    snippet:`extends Node                       # Net.send(op, body) wraps the protocol topic's send(op, id, body)
 
 var _channels: Array[String] = []
 var _last_seq := 0
@@ -561,7 +577,8 @@ func _on_socket_reopened() -> void:        # a shard restarted or we were moved
     map:`Godot’s directory call plus manual re-subscription is what a managed relay service does invisibly in Unity, and the resync sequence number is your own version of a NetworkVariable’s initial state sync.` },
   unity:{ term:`The client resolves its shard through a route call and reopens against whatever endpoint comes back, replaying its subscriptions. Nothing about the topology is compiled into the build.`,
     api:['UnityWebRequest for the route call','ClientWebSocket.ConnectAsync(uri, ct)','Application.internetReachability','NetworkRunner.SessionInfo.Region','PlayerPrefs for the last-seen sequence only','CancellationTokenSource for teardown on route change'],
-    snippet:`public class ShardRouter : MonoBehaviour {
+    snippet:`// socket.Send(op, body) is shorthand for the protocol topic's framed send(op, id, body)
+public class ShardRouter : MonoBehaviour {
     readonly List<string> channels = new();
     long lastSeq;
 
@@ -644,28 +661,29 @@ T('server-anticheat',{ d:'server', t:'Anti-cheat and abuse handling', tag:'The c
   ] });
 ENGINE('server-anticheat',{
   godot:{ term:`On the client side the useful work is refusing to be the authority. Every gameplay RPC entry point is an untrusted boundary, and the sender id is the only identity you may believe.`,
-    api:['MultiplayerAPI.get_remote_sender_id()','@rpc("any_peer", "call_remote", "reliable")','SceneMultiplayer.auth_callback / auth_timeout','PackedByteArray size checks before decoding','Crypto.hmac_digest() for submission signing','OS.has_feature("debug") to keep debug paths out of release'],
+    api:['MultiplayerAPI.get_remote_sender_id()','@rpc("any_peer", "call_remote", "reliable")','SceneMultiplayer.auth_callback / auth_timeout','PackedByteArray size checks before decoding','Crypto.hmac_digest() (only catches accidental corruption: a key shipped in the client is not a secret)','OS.has_feature("debug") to keep debug paths out of release'],
     snippet:`@rpc("any_peer", "call_remote", "reliable")
-func submit_run(seed: int, inputs: PackedByteArray, claimed: int) -> void:
+func submit_run(run_seed: int, inputs: PackedInt32Array, claimed: String) -> void:
 \tif not multiplayer.is_server(): return
 \tvar who := multiplayer.get_remote_sender_id()
-\tif inputs.size() > MAX_INPUT_BYTES: return          # bound before you simulate
-\tvar actual: int = Sim.new().run(seed, inputs).hash()
+\tif inputs.size() > MAX_INPUTS: return               # bound before you simulate
+\tvar trace := Sim.new().run(run_seed, inputs)
+\tvar actual := trace.to_byte_array().hex_encode().sha256_text()   # a hash the Go server can compute
 \tif actual != claimed:
-\t\tReplays.keep(who, seed, inputs, claimed, actual) # evidence, not a ban
+\t\tReplays.keep(who, run_seed, inputs, claimed, actual) # evidence, not a ban
 \t\treturn
 \tScores.commit(who, actual)`,
     pitfall:`Shipping the debug and cheat helpers that made development bearable. A Godot export includes every script in the project, so a console command that grants currency is in the release build whether or not any UI reaches it. Gate them behind OS.has_feature(“debug”) at the definition, not at the call site, and check an export build for what is still reachable.`,
     map:`Godot’s get_remote_sender_id() is Unity’s ServerRpcParams.Receive.SenderClientId, and both are the only identity in the message you are allowed to trust.` },
   unity:{ term:`The client side is ownership discipline plus build hygiene. ServerRpc with required ownership fixes who may call, the sender id fixes who called, and the obfuscation configuration decides whether the netcode still works on device.`,
-    api:['[ServerRpc(RequireOwnership = true)]','ServerRpcParams.Receive.SenderClientId','[DoNotObfuscateClass] on weaved network types','Conditional("UNITY_EDITOR") on debug helpers','NetworkManager.DisconnectClient(clientId)','Application.genuineCheckAvailable'],
-    snippet:`[DoNotObfuscateClass]                        // the weaver resolves members by name
+    api:['[ServerRpc(RequireOwnership = true)]','ServerRpcParams.Receive.SenderClientId','[Obfuscation(Exclude = true)] (or your obfuscator’s own exclusion) on weaved network types','Conditional("UNITY_EDITOR") on debug helpers','NetworkManager.DisconnectClient(clientId)','Application.genuineCheckAvailable'],
+    snippet:`[System.Reflection.Obfuscation(Exclude = true)]   // honoured by most .NET obfuscators; the weaver resolves members by name
 public class RunSubmit : NetworkBehaviour {
 
     [ServerRpc(RequireOwnership = true)]
-    void SubmitServerRpc(int seed, byte[] inputs, long claimed,
+    void SubmitServerRpc(int seed, int[] inputs, long claimed,
                          ServerRpcParams p = default) {
-        if (inputs.Length > MaxInputBytes) return;      // bound before simulating
+        if (inputs.Length > MaxInputs) return;          // bound before simulating
         long actual = Sim.Hash(Sim.Run(seed, inputs));
         ulong who = p.Receive.SenderClientId;
         if (actual != claimed) { Replays.Keep(who, seed, inputs, claimed, actual); return; }
@@ -730,12 +748,17 @@ T('server-liveops',{ d:'server', t:'Live operations on the server', tag:'The gam
     {l:'Batch job spec',p:`This job does [WHAT] and is expected to run [SCHEDULE]. Write its header block: exact schedule, whether it is scheduled or manual recovery only, what it reads and writes, why it is safe to run twice, what happens if it is skipped for one cycle and for a week, and the alert that should fire if it does not complete. Then list the failure modes that would leave data half written.`}],
   verify:[`Is the maintenance allow list short, reviewed, and does it include the path that tells a client to update?`,`Does every batch record its last successful run somewhere a person can see?`,`Has the release order been followed in a rehearsal, with a player in a session when the gate closed?`],
   test:[`Enable maintenance mode with live sessions running in a test environment. Measure what those players see, whether the client recovers on retry, and how long the whole close takes.`,`Run the previous client build against the current server. Measure exactly what the player is shown, and whether they can reach the update prompt.`,`Skip a batch deliberately in a test environment and measure how long it takes for anything to alert. If nothing alerts, the job is unmonitored.`],
+  tech:[
+    {n:'Maintenance gate with an allow list', how:`A switch in configuration, checked in the request path before any handler, that answers every path except a short reviewed list with a maintenance response.`, fit:`Any risky data, schema or server change on a game with players in sessions.`, cost:`The most visible failure a live game can show, and a wrong allow list strands clients on a screen with no way out.`, alt:`A rolling deploy with backward compatible changes, so no gate is needed.`},
+    {n:'Client version gate with force update', how:`Every request carries the client version. The server compares it with the minimum supported version, compared as parsed numbers rather than as strings, and answers the update prompt path even to blocked clients.`, fit:`When an old client cannot safely talk to the current server or master data.`, cost:`Locks out anyone who cannot update right now, so the minimum must be a business decision.`, alt:`Keep serving old versions through a compatibility layer, at the cost of carrying it.`},
+    {n:'Versioned master data', how:`Balance and content ship as data with a version. The client downloads it at boot, and the server validates it against the client versions that will receive it.`, fit:`Drop rates, prices, event schedules: anything that should change without a client release.`, cost:`Anyone who can edit it can break the game, and data that references content the installed client lacks is a compatibility break.`, alt:`Ship the values in the build, which is safe and slow.`},
+    {n:'Idempotent scheduled jobs with a run record', how:`Each batch (season end, reward grant, sweep) has a stated schedule, is safe to run twice, and writes the time of its last successful run where a person and an alert can see it.`, fit:`Any work no request triggers: seasons, rewards, cleanup.`, cost:`Needs a run table, an alert and a documented recovery for every job.`, alt:`A manual runbook step, which is fine for rare jobs and fails silently for nightly ones.`}],
   rel:[['live-operations','This is the server half of the live-operations plan, and the two are the same calendar.'],['metrics-and-success','A live change is only a change if you can see its effect, which means the measurement exists before the release.'],['server-scaling','Deploys, drains and capacity are the operations the gates are protecting.'],['backend-migrations-config','Schema migrations and environment configuration are the other half of the release order.'],['pm-liveops-cadence','The cadence decides how often this machinery runs, and machinery that runs rarely is machinery nobody trusts.']] });
 ENGINE('server-liveops',{
   godot:{ term:`The boot sequence is the client’s live-operations surface. Before any gameplay scene loads, one call decides whether the game is open, whether this build may still play, and which master data version to fetch.`,
     api:['HTTPRequest.request() at boot, before change_scene_to_file()','ProjectSettings.get_setting("application/config/version")','SceneTree.change_scene_to_file()','ResourceLoader.load_threaded_request() for downloaded data','FileAccess / user:// for the cached master payload','OS.shell_open() for the store page'],
     snippet:`func _on_boot_response(body: Dictionary) -> void:
-\tif body.min_client_version > APP_VERSION:
+\tif _older(APP_VERSION, body.min_client_version):   # numeric compare: "1.9.0" < "1.10.0"
 \t\tUi.force_update(body.store_url)         # no path past this screen
 \t\treturn
 \tif body.maintenance_until > 0:
@@ -743,14 +766,24 @@ ENGINE('server-liveops',{
 \t\treturn
 \tif body.master_version != Master.loaded_version:
 \t\tawait Master.download(body.master_version)   # data first, scene second
-\tget_tree().change_scene_to_file("res://scenes/home.tscn")`,
+\tget_tree().change_scene_to_file("res://scenes/home.tscn")
+
+func _older(a: String, b: String) -> bool:     # string comparison would sort "1.10.0" below "1.9.0"
+\tvar pa := a.split(".")
+\tvar pb := b.split(".")
+\tfor i in maxi(pa.size(), pb.size()):
+\t\tvar x := int(pa[i]) if i < pa.size() else 0
+\t\tvar y := int(pb[i]) if i < pb.size() else 0
+\t\tif x != y:
+\t\t\treturn x < y
+\treturn false`,
     pitfall:`Loading the home scene first and checking the gates afterwards, because the boot call is asynchronous and the scene change is not. The player reaches a screen built from stale master data, then gets thrown out of it, and any request they fired in between is already rejected. Gate before the first scene change, and keep the boot scene able to display maintenance and update messages on its own.`,
     map:`Godot’s boot HTTPRequest before change_scene_to_file is Unity’s boot await before SceneManager.LoadScene, and Master.download is Addressables.UpdateCatalogs.` },
   unity:{ term:`A boot scene runs the gate call, then the content catalogue check, then loads the first real scene. Version comes from the build, catalogue state from the remote content system.`,
     api:['UnityWebRequest at boot','Application.version','Addressables.UpdateCatalogs() / CheckForCatalogUpdates()','Addressables.LoadContentCatalogAsync()','SceneManager.LoadSceneAsync()','Application.OpenURL() for the store page'],
     snippet:`async Task Boot() {
     var gate = await Api.Post<BootResponse>("/boot");
-    if (gate.MinClientVersion > Application.version) { Ui.ForceUpdate(gate.StoreUrl); return; }
+    if (new Version(gate.MinClientVersion) > new Version(Application.version)) { Ui.ForceUpdate(gate.StoreUrl); return; }
     if (gate.MaintenanceUntil > 0) { Ui.Maintenance(gate.Message, gate.MaintenanceUntil); return; }
 
     if (gate.CatalogHash != PlayerPrefs.GetString("catalog")) {
