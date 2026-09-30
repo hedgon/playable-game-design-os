@@ -2044,6 +2044,12 @@ function levelLabel(id){ const x = LEVELS.find(l => l[0] === id); return x ? x[1
 /** True when a path names any prerequisite, all-of or one-of. */
 function hasPrereq(p){ return p.prereq.length > 0 || (p.prereqAny || []).length > 0; }
 /** A path's prerequisites as HTML: the all-of ones, then "one of A or B" for prereqAny. @param {{prereq:string[], prereqAny?:string[]}} p @param {(id:string)=>string} fmt @param {string} join */
+/** A long prereqAny list, shortened to one line with the full list in an expander. @param {{prereq:string[], prereqAny?:string[]}} p */
+function prereqSummaryHtml(p){
+  const any = p.prereqAny || [], design = any.every(id => (PATHS.find(x => x.id === id) || {}).track === 'design'), eng = any.every(id => (PATHS.find(x => x.id === id) || {}).track === 'engineering');
+  const kind = design ? 'design ' : eng ? 'engineering ' : '';
+  return `${p.prereq.length ? p.prereq.map(pathLinkChip).join(', ') + ', and ' : ''}Any one ${kind}path (or equivalent experience) <details class="small" style="display:inline-block;vertical-align:top"><summary>Show the list</summary>${any.map(pathLinkChip).join(', ')}</details>`;
+}
 function prereqHtml(p, fmt, join){ const parts = p.prereq.map(fmt); if((p.prereqAny || []).length) parts.push(`one of ${p.prereqAny.map(fmt).join(', ')}`); return parts.join(join); }
 function pathLinkChip(id){ const p = PATHS.find(x => x.id === id); return p ? `<a class="chip lnk" style="cursor:pointer" href="#/paths/${p.id}">${esc(p.t)}</a>` : esc(id); }
 // The stage a path page opens on when the URL does not name one: the first
@@ -2216,10 +2222,15 @@ function chooserHTML(ans, rec){
   let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
   if(rec){
     const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)} at ${hpw} hours a week.`)];
-    if(ans.level === 'senior' && p.level === 'beginner') why.push('Use “I already know this” on the stages you have covered.');
-    if(rec.alt.length) why.push(`Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
-    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${rec.alt.length ? ` Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
-      : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}${rec.anyOf.length ? ` A good base first: one of ${rec.anyOf.map(a => pathLinkChip(a.id)).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
+    // An experienced learner is not offered easier paths as alternatives, and never more than three.
+    const rank = x => LEVELS.findIndex(l => l[0] === x.level);
+    const alts = ans.level === 'senior' ? rec.alt.filter(a => rank(a) >= rank(p)).slice(0, 3) : rec.alt;
+    const goalLabel = (CHOOSER.goals.find(g => g[0] === ans.goal) || [0, ans.goal])[1], levelLabel = (CHOOSER.levels.find(l => l[0] === ans.level) || [0, ans.level])[1];
+    const fit = ans.level === 'senior' ? 'it assumes you have shipped work' : ans.level === 'some' ? 'it builds on the basics you already have' : 'it starts from the ground up' + (hasPrereq(p) ? ', after the paths it builds on' : '');
+    const because = `<p class="small muted" style="margin:0 0 8px">${esc(`Suggested because you chose ${goalLabel} and ${levelLabel}: ${fit}.`)}</p>`;
+    if(alts.length) why.push(`Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
+    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${alts.length ? ` Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
+      : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}${rec.anyOf.length ? ` A good base first: one of ${rec.anyOf.map(a => pathLinkChip(a.id)).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
     out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)">${head}</div>`;
   }
   return `<section class="chooser"><div class="section-head"><h2>Which path is for me?</h2></div>
@@ -2282,7 +2293,7 @@ function pathPageHTML(pth, stageIdParam){
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
-    ${hasPrereq(pth) ? `<p class="small muted">Prereq: ${prereqHtml(pth, pathLinkChip, ', ')}</p>` : ''}
+    ${hasPrereq(pth) ? `<div class="small muted" style="margin:1em 0">Prereq: ${(pth.prereqAny || []).length > 3 ? prereqSummaryHtml(pth) : prereqHtml(pth, pathLinkChip, ', ')}</div>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
     <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
     ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`;
@@ -2427,20 +2438,32 @@ function search(q){
   const hits = [];
   for(const it of ensureIndex()){
     if(!it._t){ it._t = searchWords(it.t); it._a = (it.aka || []).flatMap(searchWords); it._s = ' ' + searchWords(it.snip).join(' ') + ' '; it._b = ' ' + searchWords(it.text).join(' ') + ' '; }
-    let score = 0, ok = true;
+    // tier per word: 3 whole word in the title or a synonym, 2 whole word in the snippet or body,
+    // 1 prefix match, 0 typo-forgiven; a hit is only as good as its weakest word.
+    let score = 0, ok = true, tier = 3;
     for(const w of qs){
-      const s = it._t.includes(w) ? 20 : it._t.some(t => t.startsWith(w)) ? 14 : it._a.some(a => a === w || a.startsWith(w)) ? 12
-        : it._s.includes(' ' + w) ? 6 : it._b.includes(' ' + w) ? 2 : (w.length >= 5 && (it._t.some(t => oneEdit(t, w)) || it._a.some(a => oneEdit(a, w)))) ? 8 : 0;
-      if(!s){ ok = false; break; }
-      score += s;
+      let s, tw;
+      if(it._t.includes(w)){ s = 20; tw = 3; }
+      else if(it._a.includes(w)){ s = 12; tw = 3; }
+      else if(it._s.includes(' ' + w + ' ')){ s = 6; tw = 2; }
+      else if(it._b.includes(' ' + w + ' ')){ s = 4 + Math.min(it._b.split(' ' + w + ' ').length - 1, 15); tw = 2; } // a topic that keeps returning to the word is about it
+      else if(it._t.some(t => t.startsWith(w))){ s = 14; tw = 1; }
+      else if(it._a.some(a => a.startsWith(w))){ s = 12; tw = 1; }
+      else if(it._s.includes(' ' + w)){ s = 5; tw = 1; }
+      else if(it._b.includes(' ' + w)){ s = 2; tw = 1; }
+      else if(w.length >= 5 && (it._t.some(t => oneEdit(t, w)) || it._a.some(a => oneEdit(a, w)))){ s = 8; tw = 0; }
+      else { ok = false; break; }
+      score += s; tier = Math.min(tier, tw);
     }
     if(!ok) continue;
     const t = it.t.toLowerCase();
     if(t === whole) score += 100; else if(t.startsWith(whole)) score += 40;
     if(it.type === 'page') score += 5;
-    hits.push([score, it]);
+    hits.push([score, it, tier]);
   }
-  return hits.sort((a, b) => b[0] - a[0]).map(x => x[1]);
+  // Exact whole-word matches lead; prefix and typo matches are dropped once three exact ones exist.
+  const exact = hits.filter(h => h[2] >= 2).length;
+  return hits.filter(h => exact < 3 || h[2] >= 2).sort((a, b) => b[2] - a[2] || b[0] - a[0]).map(x => x[1]);
 }
 // The results list, grouped by kind; each group shows its first six and can
 // be opened in full. With an empty box it is a jump list: pages visited in

@@ -1983,7 +1983,7 @@ const PROMPT_TEMPLATES = [
     p:`This prototype code is being promoted to production: {{CODE}}. Its validated behaviour that must not change: {{BEHAVIOR}}. Propose a refactor plan: what to keep, what to rewrite, what to delete, in what order, with the tests that would prove behaviour is preserved at each step. Flag hard-coded values that are design decisions and should become data.` },
   { id:'postmortem', topics:['pm-postmortems','iteration-and-evidence'], cat:'Production', t:'Postmortem', vars:['GOALS','HAPPENED','LOG'],
     p:`Goals at the start: {{GOALS}}. What happened: {{HAPPENED}}. Iteration log: {{LOG}}. Identify five things: assumptions that turned out false and when we could have known, decisions made on opinion rather than evidence, steps of the loop we skipped, scope added without validation, and the moment the project would have changed most if we had playtested. Produce 5 lessons stated as rules we could apply next time, each with the evidence from this project that supports it.` },
-  { id:'verify', topics:['verifying-ai-output','ai-evals'], cat:'Critique', t:'Verification pass on any AI output', vars:[],
+  { id:'verify', topics:['verifying-ai-output','ai-evals','craft-verification-as-the-job'], cat:'Critique', t:'Verification pass on any AI output', vars:[],
     p:`About your previous output: 1. List every assumption and mark each as given by me, inferred, or invented. 2. For each factual or “best practice” claim, give the source or say you have none. 3. What player behaviour would prove the proposal wrong? 4. Is this solving the problem I stated, or a nearby one? Quote my problem. 5. Which complexity is necessary and which could be removed? 6. What is the smallest prototype that tests this and what result would kill it? 7. What alternatives did you reject and why? 8. What trade-off are we making?` }
 ];
 /* ---------------- CHECKLISTS ---------------- */
@@ -2003,7 +2003,7 @@ const CHECKLISTS = [
       ['First 5 minutes',['The first meaningful decision happened, and the player hesitated over it.','The first failure happened, and the player could say why.','The player did not skip or ignore a required teaching moment.']],
       ['First session',['A moment of visible competence happened (“I got it”).','A reward changed what the player could do, not just a number.','The player can state what they would do next time.','The player used at least two mechanics without prompting.']],
       ['Observer discipline',['I did not speak during play.','I logged every hesitation with a timestamp.','I asked open questions only after play ended.']] ] },
-  { id:'ai-verify', topics:['verifying-ai-output','ai-failure-modes'], t:'AI output verification', desc:'Before acting on any AI design output. If you cannot check a box, do not act on the output yet.',
+  { id:'ai-verify', topics:['verifying-ai-output','ai-failure-modes','craft-verification-as-the-job','craft-security-review-of-generated-code'], t:'AI output verification', desc:'Before acting on any AI design output. If you cannot check a box, do not act on the output yet.',
     groups:[
       ['Assumptions and evidence',['I know which claims came from my context and which were imported or invented.','Every “best practice” or “studies show” has a source I checked, or is marked as a heuristic.','The output uses the evidence I provided. It did not ignore it.']],
       ['Problem fit',['It solves the problem I stated, not a neighbouring one.','It respects every constraint I stated.','It did not add complexity that creates no decision.']],
@@ -2075,12 +2075,12 @@ function featureVerdict(score, answers){
 }
 
 CHECKLISTS.push(
-  { id:'agent-rules-file', topics:['ai-agentic-implementation','craft-teaching-agents','models-agent-harnesses'], t:'Agent rules file (CLAUDE.md, AGENTS.md)', desc:'Run when writing or pruning the rules file an AI coding agent loads every session. A line earns its place only if the agent would get it wrong without it and nothing else can enforce it.',
+  { id:'agent-rules-file', topics:['ai-agentic-implementation','craft-teaching-agents','models-agent-harnesses','lead-conventions'], t:'Agent rules file (CLAUDE.md, AGENTS.md)', desc:'Run when writing or pruning the rules file an AI coding agent loads every session. A line earns its place only if the agent would get it wrong without it and nothing else can enforce it.',
     groups:[
       ['What belongs in it',['The exact commands to build, test and lint, copied from the ones CI runs.','Where things live: the folders an agent must not guess about, such as generated code and engine-owned files.','Project conventions a reader cannot infer from the code, each stated once, with the reason.','The pitfalls that are expensive in this project (engine lifetime, save compatibility, platform APIs), each with a short example of the house pattern.','What the agent must ask before doing: deleting files, changing dependencies, touching save formats or build settings.']],
       ['What should be a hook or a test instead',['Every rule that can be checked by a machine (formatting, forbidden APIs, file layout) is a linter, hook or test, not a sentence.','A rule the agent broke twice is moved into a check that fails, not repeated in bolder words.','Anything that must never happen (a push to main, a secret in a commit) is blocked by a hook or permission, not by a request.','Each hook was triggered on purpose: it blocks the case it was written for, including other spellings of the same command, and lets a legitimate command through.']],
       ['Keeping it healthy',['The always-loaded file is short: Claude Code’s docs target under 200 lines per CLAUDE.md and say longer files are followed less.','No two rules contradict each other, and none restates what the code, the linter, the README or the engine docs already say.','Each rule names the incident or reason behind it, so a later reader can tell when it no longer applies.','There is one source of truth: where both files exist, CLAUDE.md imports AGENTS.md with @AGENTS.md, because by default Claude Code reads AGENTS.md only when there is no CLAUDE.md.','Rules that apply to some paths only load there (path-scoped .claude/rules files, nested AGENTS.md, Cursor rules by file pattern) and hold only what differs for those paths.','The files are reviewed for stale and contradictory entries on a schedule.']] ] },
-  { id:'ai-architecture-boundary', topics:['ai-budgets-and-debugging','ingame-ai-purpose','ai-failure-modes'], t:'AI in the architecture: the boundary', desc:'Run before a model call ships inside a game or its tools. Every group must say where the probabilistic part ends and what deterministic code does with its output.',
+  { id:'ai-architecture-boundary', topics:['ai-budgets-and-debugging','ingame-ai-purpose','ai-failure-modes','craft-ai-cost-latency-budget','models-security-and-operations'], t:'AI in the architecture: the boundary', desc:'Run before a model call ships inside a game or its tools. Every group must say where the probabilistic part ends and what deterministic code does with its output.',
     groups:[
       ['Boundary',['The model’s output is data the game validates, never code or state it applies directly.','The rules a player can see (damage, prices, quest state) stay in deterministic code the model cannot change.','Output is constrained by a schema or a fixed set of choices, and parsed strictly.']],
       ['Validation',['Every field is checked for type, range and allowed values before use.','Player-visible text passes the same content filter and length limit as any other user-generated text.','Prompt injection from player input is assumed: player text is never placed where it can change instructions or tool access.']],
@@ -41211,10 +41211,10 @@ PATH('senior-game-designer', {
       goal:'Turn a game’s intent into pillars that settle real arguments, and defend or change them on purpose.', hours:4,
       steps:[
         { kind:'topic', ref:'design-pillars', why:'At this level the pillars are a team’s decision tool, so they need forbidden things, a rank for the pairs that collide, an owner and a written change rule.', do:'Take a game you know well and write three pillars, what each forbids, the tie-break for the pair most likely to collide, and who may change them and on what evidence.', min:40 },
-        { kind:'topic', ref:'core-experience', why:'Pillars are the core experience turned into decisions, so a vague experience gives vague pillars.', do:'Write the core experience of the same game in three sentences, and mark which sentence each pillar came from.', min:30 },
+        { kind:'topic', ref:'core-experience', why:'Pillars are the core experience turned into decisions, so a vague experience gives vague pillars.', do:'Audit the core experience of a shipped game (or your own live game) against its pillars: write where the pillars serve it and where they do not, and what you would change and why.', min:30 },
         { kind:'tool', ref:'canvas', why:'One page that holds player, fantasy, emotions and what the game is not gives reviewers something to hold a feature against.', do:'Fill in the Core Experience Canvas for the same game and check that its “what it is not” box matches your pillars’ forbidden lists.', min:30 },
         { kind:'game', ref:'hades', lens:'gameplay', why:'The lens shows one rule held on purpose: boons are a small, legible choice at a door, never a random pickup mid-fight, and that shows what a built pillar forbids and costs.', do:'Read the gameplay lens and write the rule Hades holds (what it forbids), the player experience that rule protects, and the cost the lens names for it. Then phrase the rule as a pillar with its forbidden thing.', min:25 },
-        { kind:'topic', ref:'audience-and-positioning', why:'A pillar set has to survive contact with a market, and the positioning sentence is where pillars meet the audience.', do:'Write the one-sentence promise your pillars would let you make, and the player it excludes.', min:30 },
+        { kind:'topic', ref:'audience-and-positioning', why:'A pillar set has to survive contact with a market, and the positioning sentence is where pillars meet the audience.', do:'Audit the positioning of a shipped game (or your own live game) against its pillars: does the store promise match what the pillars deliver, who does it exclude, and what would you change and why?', min:30 },
         { kind:'smell', ref:'pillars-are-slogans', why:'The most common failure is a pillar that sounds good and cannot decide anything, and this smell is the test.', do:'Run the smell on your three pillars, then take five decisions the team is debating and mark which pillars settle them. Rewrite any pillar that settles none.', min:25 },
         { kind:'game', ref:'celeste', lens:'gameplay', why:'A second game read for the same question, what rule does it hold on purpose, keeps the first one from looking like a special case.', do:'Read the gameplay lens and list three of the grace windows Celeste builds in, the difficulty style it refuses by doing so, and the pillar you infer they protect.', min:20 },
         { kind:'reflect', why:'The hardest part of owning a vision is the moment someone senior asks for something that breaks it.', do:'Write the reply you would give a publisher or a lead who asks for a feature that breaks your top pillar: what it costs in the pillar’s terms and an alternative that meets their need.', min:40 }
@@ -42641,7 +42641,7 @@ PATH('interview-prep-engineer', {
 
 PATH('senior-game-developer-ai-era', {
   t:'Senior game developer in the AI era', tag:'Own the architecture, the checks and the team’s growth when agents write much of the code, and measure whether it helps.',
-  pick:'Own the architecture, checks and team when AI codes',
+  pick:'Own architecture, checks and team when agents write code',
   track:'engineering', level:'advanced', hours:23,
   audience:'Working developers with shipped work, who have led features and whose role is shifting as AI takes over much of the typing: less writing modules, more owning boundaries, specifications, checks, review and other engineers’ growth.',
   outcome:'You can hold an architecture together under frame and memory budgets, turn a feature into a spec and an eval suite an agent or a colleague can be checked against, review AI-written changes for correctness, security and performance, budget the cost and latency of an AI feature, and plan a local measurement of whether AI helps your team. The evidence does not promise a speedup, so the path teaches you to measure it on your own code and to keep juniors learning.',
@@ -42715,7 +42715,7 @@ PATH('senior-game-developer-ai-era', {
     { id:'s4', t:'Measure, budget and choose', level:'advanced',
       goal:'Decide from your own measurements where AI helps, and work out what an AI feature costs and how slow it can be.', hours:4,
       steps:[
-        { kind:'topic', ref:'craft-measuring-ai-uplift', why:'A randomised trial found tasks 19% slower while the developers believed they were 20% faster, and other studies found gains, so only your own comparison answers for your team.', do:'Write a paired-task plan: task types, how tasks are assigned, the baseline, and metrics that include review time and stability.', min:60 },
+        { kind:'topic', ref:'craft-measuring-ai-uplift', why:'A randomised trial (16 experienced developers, early-2025 tools) found tasks 19% slower while they believed they were 20% faster; METR’s 2026 update is inconclusive, its intervals cross zero, and other studies found gains, so only your own comparison answers for your team.', do:'Write a paired-task plan: task types, how tasks are assigned, the baseline, and metrics that include review time and stability.', min:60 },
         { kind:'topic', ref:'models-reasoning-and-scaling', why:'Vendor and benchmark claims move quickly, so a senior needs to know what a benchmark number can and cannot say.', do:'Take one benchmark claim from a tool you use and write what it does not show about your work: is the benchmark saturated, public long enough to be contaminated, or a mismatch with your task?', min:30 },
         { kind:'topic', ref:'models-prompt-caching', why:'Caching is often the largest cost lever on the input side, and it changes what a prompt should look like.', do:'Take one prompt with a large fixed prefix, write it in the order the topic gives with everything dynamic below the cache point, and work out the saving using the cache-read and cache-write multipliers from your vendor’s pricing page (note its date).', min:25 },
         { kind:'topic', ref:'craft-ai-cost-latency-budget', why:'A feature that works in a demo can lose money per player or miss a frame budget at p95, so the budget comes before the build.', do:'Work out cost per request, per player and per day for one AI feature, and the slowest response you will accept.', min:60 },
@@ -42759,8 +42759,8 @@ PATH('senior-game-developer-ai-era', {
         { kind:'topic', ref:'lead-incidents', why:'An incident needs roles, a rollback and a blameless review, and the review can ask whether an AI-assisted change contributed and whether the rollback had been rehearsed.', do:'Write the incident plan for a bad build: who decides, the rollback step, and the first message to players.', min:40 },
         { kind:'topic', ref:'pm-postmortems', why:'A postmortem turns one failure into a rule, and only if it finds a cause you can change.', do:'Write a postmortem for a past bug: timeline, cause, and one check that would have caught it.', min:30 },
         { kind:'topic', ref:'quality-and-build-health', why:'A regular playable build, blocker triage and regressions traced to a change are the early signals that a fast stream of changes is breaking the project.', do:'List three build-health signals you would watch weekly and the threshold that triggers a stop.', min:30 },
-        { kind:'topic', ref:'lead-saying-no', why:'A senior is asked for expensive things, and a reasoned no with options is a part of the job.', do:'Write the reply to a design request that is expensive to build: cost, options and what to cut.', min:30 },
-        { kind:'topic', ref:'pm-cross-discipline', why:'Cost has to be stated in units that design and production can compare.', do:'Restate the cost of that request in each discipline’s own units (engineer-weeks, art-days, QA cases) with a range, and what each would drop to fit.', min:30 },
+        { kind:'topic', ref:'lead-saying-no', why:'A senior is asked for expensive things, and a reasoned no with options is a part of the job. The designer path uses this topic from the other side, as the one making the request.', do:'Write your reply to a design request from your own codebase’s point of view: the engineering cost, the risk to the build, two cheaper options and what you would cut.', min:30 },
+        { kind:'topic', ref:'pm-cross-discipline', why:'Cost has to be stated in units that design and production can compare. The designer path uses this topic from the other side, as the one receiving the estimate.', do:'Restate the engineering cost of that request in engineer-weeks, art-days and QA cases with a range, and what each discipline would drop to fit.', min:30 },
         { kind:'reflect', why:'A short note forces a technical direction to be stated, not implied.', do:'Write a one-page technical direction note for a design request that is expensive to build: cost, options, the cut, and the rollback plan if an AI-assisted change breaks a live build.', min:20 }
       ],
       review:['craft-measuring-ai-uplift'],
@@ -46144,6 +46144,12 @@ function levelLabel(id){ const x = LEVELS.find(l => l[0] === id); return x ? x[1
 /** True when a path names any prerequisite, all-of or one-of. */
 function hasPrereq(p){ return p.prereq.length > 0 || (p.prereqAny || []).length > 0; }
 /** A path's prerequisites as HTML: the all-of ones, then "one of A or B" for prereqAny. @param {{prereq:string[], prereqAny?:string[]}} p @param {(id:string)=>string} fmt @param {string} join */
+/** A long prereqAny list, shortened to one line with the full list in an expander. @param {{prereq:string[], prereqAny?:string[]}} p */
+function prereqSummaryHtml(p){
+  const any = p.prereqAny || [], design = any.every(id => (PATHS.find(x => x.id === id) || {}).track === 'design'), eng = any.every(id => (PATHS.find(x => x.id === id) || {}).track === 'engineering');
+  const kind = design ? 'design ' : eng ? 'engineering ' : '';
+  return `${p.prereq.length ? p.prereq.map(pathLinkChip).join(', ') + ', and ' : ''}Any one ${kind}path (or equivalent experience) <details class="small" style="display:inline-block;vertical-align:top"><summary>Show the list</summary>${any.map(pathLinkChip).join(', ')}</details>`;
+}
 function prereqHtml(p, fmt, join){ const parts = p.prereq.map(fmt); if((p.prereqAny || []).length) parts.push(`one of ${p.prereqAny.map(fmt).join(', ')}`); return parts.join(join); }
 function pathLinkChip(id){ const p = PATHS.find(x => x.id === id); return p ? `<a class="chip lnk" style="cursor:pointer" href="#/paths/${p.id}">${esc(p.t)}</a>` : esc(id); }
 // The stage a path page opens on when the URL does not name one: the first
@@ -46316,10 +46322,15 @@ function chooserHTML(ans, rec){
   let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
   if(rec){
     const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)} at ${hpw} hours a week.`)];
-    if(ans.level === 'senior' && p.level === 'beginner') why.push('Use “I already know this” on the stages you have covered.');
-    if(rec.alt.length) why.push(`Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
-    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${rec.alt.length ? ` Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
-      : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}${rec.anyOf.length ? ` A good base first: one of ${rec.anyOf.map(a => pathLinkChip(a.id)).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
+    // An experienced learner is not offered easier paths as alternatives, and never more than three.
+    const rank = x => LEVELS.findIndex(l => l[0] === x.level);
+    const alts = ans.level === 'senior' ? rec.alt.filter(a => rank(a) >= rank(p)).slice(0, 3) : rec.alt;
+    const goalLabel = (CHOOSER.goals.find(g => g[0] === ans.goal) || [0, ans.goal])[1], levelLabel = (CHOOSER.levels.find(l => l[0] === ans.level) || [0, ans.level])[1];
+    const fit = ans.level === 'senior' ? 'it assumes you have shipped work' : ans.level === 'some' ? 'it builds on the basics you already have' : 'it starts from the ground up' + (hasPrereq(p) ? ', after the paths it builds on' : '');
+    const because = `<p class="small muted" style="margin:0 0 8px">${esc(`Suggested because you chose ${goalLabel} and ${levelLabel}: ${fit}.`)}</p>`;
+    if(alts.length) why.push(`Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
+    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${alts.length ? ` Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
+      : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}${rec.anyOf.length ? ` A good base first: one of ${rec.anyOf.map(a => pathLinkChip(a.id)).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
     out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)">${head}</div>`;
   }
   return `<section class="chooser"><div class="section-head"><h2>Which path is for me?</h2></div>
@@ -46382,7 +46393,7 @@ function pathPageHTML(pth, stageIdParam){
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
-    ${hasPrereq(pth) ? `<p class="small muted">Prereq: ${prereqHtml(pth, pathLinkChip, ', ')}</p>` : ''}
+    ${hasPrereq(pth) ? `<div class="small muted" style="margin:1em 0">Prereq: ${(pth.prereqAny || []).length > 3 ? prereqSummaryHtml(pth) : prereqHtml(pth, pathLinkChip, ', ')}</div>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
     <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
     ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`;
@@ -46527,20 +46538,32 @@ function search(q){
   const hits = [];
   for(const it of ensureIndex()){
     if(!it._t){ it._t = searchWords(it.t); it._a = (it.aka || []).flatMap(searchWords); it._s = ' ' + searchWords(it.snip).join(' ') + ' '; it._b = ' ' + searchWords(it.text).join(' ') + ' '; }
-    let score = 0, ok = true;
+    // tier per word: 3 whole word in the title or a synonym, 2 whole word in the snippet or body,
+    // 1 prefix match, 0 typo-forgiven; a hit is only as good as its weakest word.
+    let score = 0, ok = true, tier = 3;
     for(const w of qs){
-      const s = it._t.includes(w) ? 20 : it._t.some(t => t.startsWith(w)) ? 14 : it._a.some(a => a === w || a.startsWith(w)) ? 12
-        : it._s.includes(' ' + w) ? 6 : it._b.includes(' ' + w) ? 2 : (w.length >= 5 && (it._t.some(t => oneEdit(t, w)) || it._a.some(a => oneEdit(a, w)))) ? 8 : 0;
-      if(!s){ ok = false; break; }
-      score += s;
+      let s, tw;
+      if(it._t.includes(w)){ s = 20; tw = 3; }
+      else if(it._a.includes(w)){ s = 12; tw = 3; }
+      else if(it._s.includes(' ' + w + ' ')){ s = 6; tw = 2; }
+      else if(it._b.includes(' ' + w + ' ')){ s = 4 + Math.min(it._b.split(' ' + w + ' ').length - 1, 15); tw = 2; } // a topic that keeps returning to the word is about it
+      else if(it._t.some(t => t.startsWith(w))){ s = 14; tw = 1; }
+      else if(it._a.some(a => a.startsWith(w))){ s = 12; tw = 1; }
+      else if(it._s.includes(' ' + w)){ s = 5; tw = 1; }
+      else if(it._b.includes(' ' + w)){ s = 2; tw = 1; }
+      else if(w.length >= 5 && (it._t.some(t => oneEdit(t, w)) || it._a.some(a => oneEdit(a, w)))){ s = 8; tw = 0; }
+      else { ok = false; break; }
+      score += s; tier = Math.min(tier, tw);
     }
     if(!ok) continue;
     const t = it.t.toLowerCase();
     if(t === whole) score += 100; else if(t.startsWith(whole)) score += 40;
     if(it.type === 'page') score += 5;
-    hits.push([score, it]);
+    hits.push([score, it, tier]);
   }
-  return hits.sort((a, b) => b[0] - a[0]).map(x => x[1]);
+  // Exact whole-word matches lead; prefix and typo matches are dropped once three exact ones exist.
+  const exact = hits.filter(h => h[2] >= 2).length;
+  return hits.filter(h => exact < 3 || h[2] >= 2).sort((a, b) => b[2] - a[2] || b[0] - a[0]).map(x => x[1]);
 }
 // The results list, grouped by kind; each group shows its first six and can
 // be opened in full. With an empty box it is a jump list: pages visited in

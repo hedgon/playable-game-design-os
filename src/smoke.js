@@ -347,12 +347,16 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       return { license: search('license').filter(r => r.type === 'topic').length, licence: search('licence').filter(r => r.type === 'topic').length,
         oneOnOne: hrefs('one on one').includes('#/map/t/lead-one-on-ones'), oneToOne: hrefs('1:1').includes('#/map/t/lead-one-on-ones'),
         rules: hrefs('3.1.1 loot boxes').includes('#/map/t/monetisation-design'), n311: search('3.1.1').length,
+        metr: hrefs('METR').slice(0, 3), licTop: hrefs('license').slice(0, 5), rollFirst: hrefs('rollback')[0],
         gacha: hrefs('gacha').includes('#/map/t/monetisation-design'), netcode: hrefs('networking').includes('#/map/t/server-rollback-netcode') };
     });
     if (!found.license || found.license !== found.licence) failures.push(`search: "license" finds ${found.license} topics, "licence" ${found.licence}`);
     if (!found.oneOnOne || !found.oneToOne) failures.push('search: "one on one" / "1:1" does not find lead-one-on-ones');
     if (!found.rules) failures.push('search: "3.1.1 loot boxes" does not find monetisation-design');
     if (!found.n311) failures.push('search: "3.1.1" finds nothing');
+    if (!found.metr.some(h => h.endsWith('craft-measuring-ai-uplift'))) failures.push('search: "METR" top 3 lacks craft-measuring-ai-uplift: ' + found.metr.join(', '));
+    if (!found.licTop.includes('#/map/t/models-open-and-closed')) failures.push('search: "license" top 5 lacks models-open-and-closed: ' + found.licTop.join(', '));
+    if (found.rollFirst !== '#/map/t/server-rollback-netcode') failures.push('search: "rollback" first result is ' + found.rollFirst);
     if (!found.gacha) failures.push('search: "gacha" does not find monetisation-design');
     if (!found.netcode) failures.push('search: "networking" does not find server-rollback-netcode');
     if (errors.length) failures.push('cross-links page errors: ' + errors.slice(0, 3).join(' | '));
