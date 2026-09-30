@@ -728,9 +728,6 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .refcard .tile{display:block;width:100%;aspect-ratio:460/215;background:var(--bg3)}
 .refart{position:relative;overflow:hidden;aspect-ratio:460/215;background:var(--bg3)}
 .refart img{position:relative;display:block;width:100%;height:100%;object-fit:cover}
-/* A header far from the card shape shows whole, over a blurred copy of itself (set on load in 90-app.js) */
-.refart.fit img{object-fit:contain}
-.refart.fit::before{content:'';position:absolute;inset:-14px;background:var(--art) center/cover;filter:blur(14px)}
 .refcard .tile{display:flex;align-items:center;justify-content:center;padding:10px;text-align:center;font-family:var(--display);font-stretch:92%;font-weight:700;font-size:1rem;background-image:linear-gradient(135deg,color-mix(in srgb,var(--accent) 20%,var(--bg3)),var(--bg3))}
 .refcard .meta{padding:8px 10px}
 .refcard .meta b{display:block;font-size:.9rem;line-height:1.2}
@@ -769,7 +766,10 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .lenscard .steal{border-left:3px solid var(--accent);padding-left:10px}
 .lenscard .lensclaim{font-size:1.08rem;margin:4px 0 10px;line-height:1.35}
 .lensnav{margin:0 0 12px}
-.lenscard{scroll-margin-top:112px}
+.lenscard{scroll-margin-top:170px}
+.lenscard.flash{outline:2px solid var(--accent2);outline-offset:-2px}
+.lenscontents{align-items:center;margin:12px 0}
+.seriestake{margin-bottom:14px}
 .lenssrc{margin-top:8px}
 .lenslist dt{font-family:var(--display);font-stretch:92%;font-weight:700;margin-top:10px}
 .lenslist dt:first-child{margin-top:0}
@@ -906,7 +906,7 @@ details.comp .body{padding-top:6px}
 .mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
 .mapbar .mapcrumbs{margin:0}
 .mapwrap{flex:1;min-height:0;border:0;border-radius:0;touch-action:none;cursor:grab;background:var(--panel)}
-.pane{min-width:0;padding:16px 20px 60px;overflow-x:auto}
+.pane{min-width:0;padding:16px 20px 60px;overflow-x:clip}
 .hide-left{grid-template-columns:0 0 minmax(0,1fr) 6px var(--paneW,460px)}
 .hide-left #rail,.hide-left #splitL{display:none}
 .hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
@@ -1035,10 +1035,13 @@ details.comp .body{padding-top:6px}
 .symptom:hover{border-color:var(--bad);color:var(--fg)}
 .symptom.more{border-left-color:var(--accent);color:var(--accent);text-decoration:none}
 /* ---------- learning paths ---------- */
-.pathbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:var(--r2);padding:8px 12px;margin:0 0 14px}
+.pathbar{position:sticky;top:var(--barTop,74px);z-index:20;display:flex;align-items:center;justify-content:space-between;gap:6px 10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent2);border-radius:var(--r2);padding:8px 12px;margin:0 0 14px}
 .pathbar-info{flex:1 1 auto;min-width:0;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pathbar-info b{font-family:var(--display);font-stretch:92%}
 .pathbar-actions{display:flex;gap:6px;flex-wrap:nowrap;flex:none}
+.pathbar-task{order:3;flex:1 0 100%;display:flex;gap:8px;align-items:baseline;font-size:.86rem;border-top:1px solid var(--line);padding-top:6px}
+.pathbar-task .pt-text{flex:1;min-width:0}
+.pt-more{display:none}
 .pathstages{display:flex;flex-direction:column;gap:10px;margin:14px 0}
 .pathstage{border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);overflow:hidden}
 .pathstage.done{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
@@ -1077,8 +1080,12 @@ details.comp .body{padding-top:6px}
   /* every pixel the wrapper does not take is a pixel the chart renders at,
      and in the drawer the chart is already the widest thing on the page. */
   .flowwrap{padding:10px 2px}
-  .pathbar{flex-direction:column;align-items:stretch;flex-wrap:wrap}
-  .pathbar-info{white-space:normal}
+  .pathbar{top:48px;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:4px}
+  .pathbar-task .pt-text{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .pathbar-task.open .pt-text{display:block;overflow:visible}
+  .pt-more{display:inline-flex}
+  .pathbar-task{max-height:none}
+  .pathbar-info{white-space:nowrap}
   .pathbar-actions{justify-content:flex-end}
   .pathstep input{width:22px;height:22px}
 }

@@ -19,7 +19,7 @@ const server = http.createServer((req, res) => {
   const BASE = `http://localhost:${server.address().port}/playable.html`;
   const browser = await chromium.launch(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {});
   const results = [];
-  const check = (name, ok, detail = '') => results.push({ name, ok: !!ok, detail: ok ? '' : String(detail).slice(0, 240) });
+  const check = (name, ok, detail = '') => results.push({ name, ok: !!ok, detail: ok ? '' : String(detail).slice(0, 900) });
   for (const [w, h] of [[1440, 900], [375, 812]]) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } });
     const page = await ctx.newPage();
@@ -101,11 +101,52 @@ const server = http.createServer((req, res) => {
 
     // --- chooser: three answers suggest one path, and its card is marked
     await nav('#/paths');
-    for (const [q, v] of [['goal', 'ship'], ['level', 'new'], ['time', 'short']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+    for (const [q, v] of [['goal', 'ship'], ['level', 'new'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
     const pick = await page.evaluate(() => ({ title: document.querySelector('#pane .chooser-pick h3')?.textContent, picked: [...document.querySelectorAll('#pane .card.picked')].map(c => c.dataset.pathCard), pressed: document.querySelectorAll('#pane .chooser [aria-pressed="true"]').length }));
     check(`${tag} the chooser suggests a path and marks its card`, pick.title === 'Ship a game on PC, console and mobile' && pick.picked.length === 1 && pick.picked[0] === 'ship-it' && pick.pressed === 3, JSON.stringify(pick));
     const allCombos = await page.evaluate(() => { let n = 0, bad = []; for (const [g] of CHOOSER.goals) for (const [l] of CHOOSER.levels) for (const [t] of CHOOSER.times) { n++; const r = choosePath(g, l, t); if (!r || !PATHS.includes(r.path)) bad.push([g, l, t].join('/')); } return { n, bad, expect: CHOOSER.goals.length * CHOOSER.levels.length * CHOOSER.times.length }; });
     check(`${tag} every chooser combination (${allCombos.n}) suggests a path`, allCombos.n === allCombos.expect && !allCombos.bad.length, JSON.stringify(allCombos.bad));
+
+    // --- the chooser sends an unprepared learner to the prerequisite first, with weeks and links
+    for (const [q, v] of [['goal', 'gameplay'], ['level', 'new'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+    const pre = await page.evaluate(() => ({ over: document.querySelector('#pane .chooser-pick .overline')?.textContent, h: document.querySelector('#pane .chooser-pick h3')?.textContent, txt: document.querySelector('#pane .chooser-pick p')?.textContent, links: [...document.querySelectorAll('#pane .chooser-pick a')].map(a => a.getAttribute('href')) }));
+    check(`${tag} an unprepared engineer is told to start with the prerequisite, with weeks`, pre.over === 'Start here first' && pre.h === 'Game designer foundations' && /about \d+ weeks?/.test(pre.txt) && pre.links.includes('#/paths/game-designer-foundations') && pre.links.includes('#/paths/gameplay-engineer-godot'), JSON.stringify(pre));
+    for (const [q, v] of [['goal', 'gameplay'], ['level', 'some'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+    const exp = await page.evaluate(() => document.querySelector('#pane .chooser-pick h3')?.textContent);
+    check(`${tag} an engineer with some experience is not sent to a path that needs two unfinished paths`, exp === 'Gameplay engineer, Godot', exp);
+
+    // --- the path bar keeps the step's task in view; continue ticks and moves on
+    await nav('#/paths/game-ai-programmer'); await page.waitForTimeout(200);
+    const S = await page.evaluate(() => { const st = PATHS.find(p => p.id === 'game-ai-programmer').stages[0]; return { h0: stepHref(st.steps[0], 'game-ai-programmer', st.id), h1: stepHref(st.steps[1], 'game-ai-programmer', st.id), do0: st.steps[0].do, min0: st.steps[0].min }; });
+    await nav(S.h0); await page.waitForTimeout(200);
+    const tk = await page.evaluate(() => { const t = document.querySelector('#pane .pathbar-task'); const r = t && t.getBoundingClientRect(); const more = t && t.querySelector('.pt-more'); return t ? { text: t.textContent, top: r.top, moreShown: getComputedStyle(more).display !== 'none' } : null; });
+    check(`${tag} a page opened from a step shows the step's task and time in the bar`, tk && tk.text.includes(S.do0) && tk.text.includes(S.min0 + ' min'), JSON.stringify(tk));
+    if (w < 700) {
+      const tg = await page.evaluate(() => { const t = document.querySelector('#pane .pathbar-task'), tx = t.querySelector('.pt-text'), before = tx.scrollHeight > tx.clientHeight + 2; t.querySelector('.pt-more').click(); const after = document.querySelector('#pane .pathbar-task .pt-text'); return { clipped: before, open: document.querySelector('#pane .pathbar-task').classList.contains('open'), full: after.scrollHeight <= after.clientHeight + 2 }; });
+      check(`${tag} on a phone the task is one line and expands to the whole text`, tg.clipped && tg.open && tg.full, JSON.stringify(tg));
+    }
+    await page.evaluate(() => { document.getElementById('pane').scrollTo(0, 600); window.scrollTo(0, 600); }); await page.waitForTimeout(100);
+    const stuck = await page.evaluate(() => { const t = document.querySelector('#pane .pathbar-task'); const r = t.getBoundingClientRect(); return { top: r.top, visible: r.top >= 0 && r.bottom <= innerHeight }; });
+    const innerH = h;
+    check(`${tag} the task line stays visible while scrolling`, stuck.visible && stuck.top < innerH * 0.4, JSON.stringify(stuck));
+    await page.evaluate(() => document.querySelector('.pathbar [data-action="path-continue"]')?.click()); await page.waitForTimeout(250);
+    const cont = await page.evaluate(() => ({ hash: location.hash, ticked: JSON.parse(localStorage.getItem('playable.path.game-ai-programmer') || '{}').steps }));
+    check(`${tag} "Mark done and continue" ticks the step and opens the next one`, cont.hash === S.h1 && cont.ticked && cont.ticked['s1/0'], JSON.stringify(cont));
+
+    // --- a game lens has its own address and lands on the lens
+    await nav('#/games/pac-man/gameplay'); await page.waitForTimeout(300);
+    const ln = await page.evaluate(() => { const c = document.getElementById('lens-gameplay'); const r = c && c.getBoundingClientRect(); return { top: r && r.top, inView: !!r && r.top >= 0 && r.top < innerHeight * 0.6, strip: document.querySelectorAll('#pane .lenscontents a[href^="#/games/pac-man/"]').length }; });
+    check(`${tag} #/games/pac-man/gameplay scrolls the gameplay lens into view, with a contents strip`, ln.inView && ln.strip >= 5, JSON.stringify(ln));
+    const stepLens = await page.evaluate(() => { const st = PATHS.find(p => p.id === 'game-ai-programmer').stages[0].steps[1]; return { kind: st.kind, href: stepHref(st, 'game-ai-programmer', 's1') }; });
+    check(`${tag} a step that reads one lens links to it`, stepLens.href === '#/games/pac-man/gameplay', JSON.stringify(stepLens));
+    await nav('#/games/zelda'); await page.waitForTimeout(200);
+    const ser = await page.evaluate(() => { const t = document.querySelector('#pane .seriestake'), w = document.querySelector('#pane .view .card:not(.seriestake)'); return !!t && !!w && (t.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0; });
+    check(`${tag} a series page leads with the series takeaway`, ser);
+
+    // --- the review queue answers on #/paths/review too
+    await nav('#/paths/review'); await page.waitForTimeout(250);
+    const rv = await page.evaluate(() => ({ hash: location.hash, h1: document.querySelector('#pane h1')?.textContent }));
+    check(`${tag} #/paths/review opens the Review queue`, rv.hash === '#/review' && rv.h1 === 'Review', JSON.stringify(rv));
 
     // --- checkpoint recall: answer outline, review later, coming up, remove
     await nav('#/paths/ship-it/s1');

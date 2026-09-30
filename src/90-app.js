@@ -66,8 +66,6 @@ document.addEventListener('click', e => {
   const act = ACTIONS[el.dataset.action];
   if(act) act(el, e);
 });
-// Library card art: near the card shape it fills the card; otherwise it shows whole over a blurred copy of itself.
-document.addEventListener('load', e => { const i = e.target, a = i.tagName === 'IMG' && i.parentNode.classList && i.parentNode.classList.contains('refart') ? i.parentNode : null; if(!a || !i.naturalHeight) return; if(Math.abs(i.naturalWidth / i.naturalHeight / (460 / 215) - 1) > 0.15){ a.style.setProperty('--art', `url("${i.currentSrc}")`); a.classList.add('fit'); } }, true);
 document.addEventListener('keydown', e => { if(e.target.closest && e.target.closest('.topictabs [role="tab"]')) tabKey(e); });
 document.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.story; if(k) store.set(k, e.target.value); });
 document.addEventListener('change', e => { const d = e.target.dataset; if(d && d.step !== undefined && d.path) togglePathStep(d.path, d.step, e.target.checked); });
@@ -155,7 +153,7 @@ function placeFocus(parts, samePage){
   if(!t.matches('a, button, input, select, textarea')) t.setAttribute('tabindex', '-1');
   t.focus({ preventScroll: true });
 }
-let lastRouteKey = null, booted = false;
+let lastRouteKey = null, booted = false, afterRoute = null;
 function route(){
   const raw = location.hash.replace(/^#\/?/, '');
   // First-ever load (no hash, nothing in this browser yet) opens the door
@@ -179,6 +177,7 @@ function route(){
   // The first render keeps the browser's own focus; later ones move it.
   if(booted) placeFocus(parts, samePage);
   booted = true;
+  if(afterRoute){ const f = afterRoute; afterRoute = null; f(); }
 }
 // The last pages this browser visited, for the empty search box: a capped,
 // per-browser convenience, keyed by route.
@@ -206,7 +205,7 @@ function render(view, parts){
     case 'experience': return renderExperience(parts[1], parts[2], parts[3]);
     case 'review': return renderReview();
     case 'sources': return renderSources();
-    case 'games': return renderGames(parts[1]);
+    case 'games': return renderGames(parts[1], parts[2]);
     case 'platforms': return renderPlatforms(parts[1]);
     case 'engines': return renderEngines(parts[1]);
     case 'guide': return renderGuide();
@@ -444,7 +443,7 @@ function libraryHTML(){
   const btn = (k, v, t, on) => `<button type="button" class="chip lnk ${on ? 'on' : ''}" data-action="lib-set" data-k="${k}" data-v="${esc(v)}" aria-pressed="${!!on}">${esc(t)}</button>`;
   const usedTags = GAME_TAGS.filter(t => REFERENCE_GAMES.some(g => (g.tags || []).includes(t)));
   const deepLenses = REFERENCE_GAMES.some(g => g.lens) ? [['analysed', 'Analysed through ten lenses']] : [];
-  const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<div class="refart"><img src="${x.img}" alt="" loading="lazy"></div>` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${gameYears(x)} · ${esc(x.kind === 'series' ? 'series · ' + x.genre : x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
+  const card = x => `<a class="refcard lnk" href="#/games/${x.id}">${x.img ? `<div class="refart"><img src="${x.card || x.img}" alt="" loading="lazy"${!x.card && x.cardPos ? ` style="object-position:${esc(x.cardPos)}"` : ''}></div>` : `<div class="tile">${esc(x.t)}</div>`}<div class="meta"><b>${esc(x.t)}</b><small>${gameYears(x)} · ${esc(x.kind === 'series' ? 'series · ' + x.genre : x.genre)}</small><div class="want">${esc(x.signature ? x.signature.idea : x.want)}</div></div></a>`;
   const grid = xs => `<div class="reflib">${xs.map(card).join('')}</div>`;
   const body = !list.length ? '<div class="empty">No game matches these filters.</div>'
     : s.view === 'list' ? `<div class="tablewrap"><table class="reflist"><thead><tr><th>Game</th><th>Year</th><th>Family</th><th>The idea worth stealing</th></tr></thead><tbody>${list.map(x => `<tr><td><a href="#/games/${x.id}">${esc(x.t)}</a></td><td>${gameYears(x)}</td><td>${esc(familyLabel(x.family))}</td><td>${esc(x.signature ? x.signature.idea : x.want)}</td></tr>`).join('')}</tbody></table></div>`
@@ -492,6 +491,8 @@ function lensesHTML(g){
       ${row('Evidence.', l.evidence)}${shots(k)}${row('How it works.', l.mechanism)}${row('What it does to the player.', l.effect)}${row('Compared with.', l.compare)}${row('The cost.', l.cost)}${row('Context.', l.context)}${row('Principle.', l.principle, 'steal')}`}
       ${topicChips(l, k)}${src(l)}</section>`; }).join('')}`;
 }
+// A compact contents strip under the summary: each lens is a link that opens the page on it.
+const lensContents = g => `<nav class="lensnav chips lenscontents" aria-label="Lenses on this page"><span class="small muted">Jump to</span>${GAME_LENSES.filter(([k]) => g.lens[k]).map(([k, label]) => `<a class="chip lnk" href="#/games/${g.id}/${k}">${esc(label)}</a>`).join('')}</nav>`;
 ACTIONS['lens-jump'] = el => { const c = document.getElementById('lens-' + el.dataset.lens); if(c) c.scrollIntoView({ block: 'start' }); };
 function signatureHTML(g){
   const s = g.signature; if(!s) return '';
@@ -526,7 +527,7 @@ function receptionHTML(g){
       <div class="small muted">Sources: ${r.src.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(host(u))}</a>`).join(' · ')}</div></div>`; }).join('')}
     <h4>What the difference teaches</h4><p>${esc(g.receptionLesson)}</p></div>`;
 }
-function renderGames(id){
+function renderGames(id, lensId){
   const g = REFERENCE_GAMES.find(x => x.id === id);
   if(!g){ setView(libraryHTML()); return; }
   const row = (label, v) => v ? `<p><b>${label}</b> ${esc(v)}</p>` : '';
@@ -534,13 +535,23 @@ function renderGames(id){
     <div class="chips" style="margin:-4px 0 12px"><a class="chip dom lnk" href="#/games" data-action="lib-family" data-v="${esc(g.family)}">${esc(familyLabel(g.family))}</a>${(g.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>
     ${gameAwards(g).length ? `<p class="small gameawards"><b>Awards.</b> ${gameAwards(g).map(a => `<a href="${esc(a.src)}" target="_blank" rel="noopener noreferrer">${esc((AWARDS.find(x => x[0] === a.id) || [, a.id])[1])} (${a.year}${a.for ? ', ' + esc(a.for) : ''})</a>`).join(' · ')}</p>` : ''}
     ${gameArt(g)}
+    ${g.kind === 'series' && g.lesson ? `<section class="card sigcard seriestake"><div class="overline">The takeaway across the series</div><p><b>${esc(g.lesson)}</b></p></section>` : ''}
     <div class="card">${row('Want served.', g.want)}${row('Core verb.', g.verb)}${row('First 30 seconds.', g.first30)}${row('The decision every minute.', g.minute)}</div>
+    ${g.lens ? lensContents(g) : ''}
     ${g.kind === 'series' ? seriesHTML(g) : ''}
     ${signatureHTML(g)}
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
     ${lensesHTML(g)}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}${pathChips('game:' + g.id, 'game')}</div>
     <div class="row"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`);
+  // #/games/<id>/<lens> lands on that lens.
+  // Runs once the route has settled its layout; pictures above the lens load late and
+  // move it, so it re-aligns until the reader scrolls.
+  const card = lensId && document.getElementById('lens-' + lensId);
+  if(card) afterRoute = () => {
+    const pane = $('#pane'), align = () => card.scrollIntoView({ block: 'start' }), stop = () => { pane.removeEventListener('load', align, true); ['wheel', 'touchstart', 'keydown'].forEach(e => removeEventListener(e, stop)); };
+    align(); card.classList.add('flash'); pane.addEventListener('load', align, true); ['wheel', 'touchstart', 'keydown'].forEach(e => addEventListener(e, stop, { once: true })); setTimeout(stop, 3000);
+  };
 }
 // Reverse index: topic -> the games that show it, from screen and loop
 // schematics and from lenses that go deep or name their topics. Default
@@ -610,23 +621,23 @@ function renderGuide(){
   const sec = (href, t, what, when) => `<a class="card clickable lnk blk" href="${href}"><b>${esc(t)}</b><div class="small" style="margin-top:4px">${esc(what)}</div><div class="small muted" style="margin-top:4px">${esc(when)}</div></a>`;
   const route = (t, steps) => `<div class="card"><b>${esc(t)}</b><ol class="small" style="margin:6px 0 0;padding-left:20px">${steps.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
   setView(`${crumbs([['How to use this site']])}<h1>How to use this site</h1>
-    <p class="dim" style="max-width:820px">A guide to making games, from design to engineering to shipping, built so you can follow a route or look one thing up. You do not need to use every feature: pick the route below that matches why you came, and ignore the rest until you need it.</p>
+    <p class="dim" style="max-width:820px">A guide to making games, from design to engineering to shipping. Pick the route that matches why you came and ignore the rest until you need it.</p>
     <div class="section-head"><h2>Pick your route</h2></div>
     <div class="grid auto">
-      ${route('New to game design', ['Open <a href="#/paths">Learning paths</a> and answer the three questions, or start <a href="#/paths/game-designer-foundations">Game designer foundations</a>.', 'Follow one step at a time; each step opens a topic, a tool or a game.', 'At the end of each stage, answer the checkpoint or skip it if you already know it.'])}
-      ${route('Programming or shipping a game', ['Switch the index to <b>Engineering &amp; Career</b>, or pick an engineering path on <a href="#/paths">Learning paths</a>.', 'On most engineering and design topics, the <b>Godot</b> and <b>Unity</b> tabs show the idea in code.', 'For shipping, read <a href="#/platforms">Platforms</a> and <a href="#/engines">Engines and tools</a>.'])}
-      ${route('Preparing for an interview', ['Start an interview prep path on <a href="#/paths">Learning paths</a>.', 'Every topic has an <b>Interview</b> tab: questions, answers, follow-ups and red flags.', 'Mark questions for <a href="#/review">Review</a>; they come back after 1, 2, 4, 8 and 16 days.'])}
+      ${route('New to game design', ['Open <a href="#/paths">Learning paths</a> and answer the three questions, or start <a href="#/paths/game-designer-foundations">Game designer foundations</a>.', 'Follow one step at a time: the banner keeps your current task in view, and each stage ends in a checkpoint you can skip.'])}
+      ${route('Programming or shipping a game', ['To program gameplay, start <a href="#/paths/gameplay-engineer-godot">Gameplay engineer, Godot</a> or <a href="#/paths/gameplay-engineer-unity">Gameplay engineer, Unity</a>. For servers, see the other engineering paths on <a href="#/paths">Learning paths</a>.', 'On most topics the <b>Godot</b> and <b>Unity</b> tabs show the idea in code.', 'To ship, follow <a href="#/paths/ship-it">Ship a game on PC, console and mobile</a>, then read <a href="#/platforms">Platforms</a> and <a href="#/engines">Engines and tools</a>.'])}
+      ${route('Preparing for an interview', ['Start <a href="#/paths/interview-prep-designer">Interview prep: designer</a> or <a href="#/paths/interview-prep-engineer">Interview prep, engineering</a>.', 'Every topic has an <b>Interview</b> tab: questions, answers, follow-ups and red flags.', 'Mark questions for <a href="#/review">Review</a>; they come back after 1, 2, 4, 8 and 16 days.'])}
       ${route('Stuck on a game you are making', ['Describe what players do in <a href="#/diagnose">Diagnose</a>: each symptom leads to causes, an experiment and a prompt.', 'Shape an idea in the <a href="#/lab">Idea Lab</a>, or a loop, canvas or hypothesis in <a href="#/build">Build tools</a>.', 'Compare it with the <a href="#/games">Reference games</a>, using <a href="#/build/dissect">Reference Dissection</a>.'])}
       ${route('Building with AI', ['Start <a href="#/paths/ai-engineering-for-game-devs">AI engineering for game developers</a>, or read the <b>How AI models work</b> and <b>Code craft</b> domains on the <a href="#/map">Map</a> under Engineering &amp; Career.', 'The checklists include an agent rules file, the AI architecture boundary and AI-assisted submission per platform.', 'Every vendor number (prices, cache rules, context sizes) is a dated fact with its source.'])}
       ${route('Making a casual mobile game', ['Start <a href="#/paths/casual-game-people-keep">Make a casual game people keep</a>: the loop, levels, a fair economy, soft launch and live ops.', 'The casual games in the <a href="#/games">Library</a> are taken apart lens by lens; Defold and Cocos in <a href="#/engines">Engines</a> cover playable ads and mini games.'])}
-      ${route('Thinking of leaving games', ['Open the <b>Careers beyond games</b> domain on the <a href="#/map">Map</a> under Engineering &amp; Career: transferable skills, where people go, the CV and the interview, and the farmer question answered properly.'])}
+      ${route('Thinking of leaving games', ['Start <a href="#/paths/game-skills-elsewhere">Take your game skills somewhere else</a>: transferable skills, where people go, the CV and the interview, and the farmer question answered properly.'])}
       ${route('Looking one thing up', ['Press <kbd>Ctrl</kbd>/<kbd>⌘</kbd> <kbd>K</kbd> or <kbd>/</kbd> and type: pages, topics, games, platforms and interview questions all appear.', 'Or open <a href="#/index">All pages</a>, or the <a href="#/concepts">Concept index</a> for topics A to Z.'])}
     </div>
     <div class="section-head"><h2>Where things are</h2></div>
     ${diagramCard(GUIDE_LAYOUT)}
     <div class="section-head"><h2>The seven sections</h2><span class="muted">keys 1 to 7</span></div>
     <div class="grid auto">
-      ${sec('#/paths', '1 · Paths', 'Guided routes through the guide, one visible next step at a time, with checkpoints and a spaced review queue.', 'When you want to learn a role, not one fact.')}
+      ${sec('#/paths', '1 · Paths', 'Guided routes, one visible next step at a time, with checkpoints and a spaced review queue.', 'When you want to learn a role, not one fact.')}
       ${sec('#/map', '2 · Map', 'Every topic as a mind map, a list, or a concept index, in two lenses: Design, and Engineering & Career (which includes How AI models work, Code craft and Careers beyond games). A topic page has the same eight parts everywhere, plus engine and interview tabs.', 'When you want to see how ideas connect, or read a topic.')}
       ${sec('#/games', '3 · Library', 'Reference games taken apart through ten lenses, with long-running series shown entry by entry and a shelf of top award winners; platform guides with step-by-step release walkthroughs; engine and tool guides from Godot to Blender; checklists; prompt templates; sources.', 'When you want examples, a store’s rules, an engine’s trade-offs, or a checklist.')}
       ${sec('#/lab', '4 · Make', 'The Idea Lab and build tools: loop builder, core experience canvas, behaviour ladder, playtest hypothesis, AI delegation planner and more. Your answers stay in this browser.', 'When you are shaping your own game.')}
@@ -637,7 +648,7 @@ function renderGuide(){
     <div class="section-head"><h2>Your progress</h2></div>
     <div class="card"><ul class="small" style="margin:0">
       <li>Opening a topic ticks it; the header shows how many you have read.</li>
-      <li>A path remembers your steps and stages; the banner above the page shows the next one, and <b>Leave path</b> hides it.</li>
+      <li>A path remembers your steps and stages; the banner above the page shows your current task, and <b>Leave path</b> hides it.</li>
       <li>Everything is saved in this browser only. Export or import it from the help dialog (<kbd>?</kbd>), which also lists every keyboard shortcut.</li>
     </ul></div>`);
 }
@@ -798,7 +809,7 @@ function setTopicTab(t, tab){
   const avail = tabsFor(t).map(x => x[0]);
   const want = tab || store.get('topicTab', 'overview');
   topicTab = avail.includes(want) ? want : 'overview';
-  if(tab) store.set('topicTab', topicTab);
+  if(tab){ store.set('topicTab', topicTab); if(topicTab === 'godot' || topicTab === 'unity') store.set('engine', topicTab); }
 }
 // Overview is omitted from the URL, so its hash equals the bare topic hash and
 // route() would re-resolve the tab from the store. Record the choice first.
@@ -1786,9 +1797,12 @@ function goPastStage(pathId, stageId){
 }
 // Ticking re-renders the same page in place, then brings the next unticked
 // step of the open stage into view.
-function togglePathStep(pathId, key, checked){
+function tickPathStep(pathId, key, checked){
   const prog = pathProgress(pathId); prog.steps[key] = !!checked; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
-  savePathProgress(pathId, prog); store.set('paths.active', pathId); keepScroll = true; route();
+  savePathProgress(pathId, prog); store.set('paths.active', pathId);
+}
+function togglePathStep(pathId, key, checked){
+  tickPathStep(pathId, key, checked); keepScroll = true; route();
   const nextRow = checked && document.querySelector('#pane .pathstage.open .pathstep:not(.done)');
   if(nextRow) nextRow.scrollIntoView({ block: 'nearest' });
 }
@@ -1805,11 +1819,19 @@ const showPathStep = (pathId, key) => { focusStep = key; go(`#/paths/${pathId}/$
 // A stage is never marked done from the path bar: "continue" at a checkpoint
 // opens the checkpoint, and marking it done stays a click inside it.
 let focusCheckpoint = null;
+// "Mark done and continue" ticks the step and moves on in one click: to the
+// next step, to the stage checkpoint after a stage's last step, or to the path
+// page once nothing is left.
 ACTIONS['path-continue'] = el => {
   const pathId = el.dataset.path, next = pathNextStep(pathId); if(!next) return;
-  if(next.type === 'step') togglePathStep(pathId, `${next.stage.id}/${next.index}`, true);
-  else { focusCheckpoint = next.stage.id; go(`#/paths/${pathId}/${next.stage.id}`); }
+  if(next.type === 'step'){
+    tickPathStep(pathId, `${next.stage.id}/${next.index}`, true);
+    const nx = pathNextStep(pathId);
+    if(nx && nx.type === 'checkpoint' && nx.stage.id === next.stage.id) focusCheckpoint = nx.stage.id;
+    keepScroll = false; go(nx ? nextStepHref(nx) : `#/paths/${pathId}`);
+  } else { focusCheckpoint = next.stage.id; go(`#/paths/${pathId}/${next.stage.id}`); }
 };
+ACTIONS['task-toggle'] = el => { const t = el.closest('.pathbar-task'), on = t.classList.toggle('open'); el.setAttribute('aria-expanded', on); el.textContent = on ? 'Less' : 'More'; };
 // Leaving while sitting on that path's own page would otherwise re-activate
 // it on the very next render (renderPaths always activates the path it
 // shows), so a leave taken from a #/paths/<id>... route steps back to the
@@ -1830,8 +1852,13 @@ function pathBarHTML(){
   const curIdx = pth.stages.findIndex(s => s.id === currentStageId(pth)) + 1;
   const href = nextStepHref(next);
   const onNext = next && location.hash.replace(/^#/, '') === href.replace(/^#/, '');
+  // The step this page belongs to (an asset page opened from a step), so its
+  // task stays in view: the unticked match first, else any match.
+  const here = location.hash, prog = pathProgress(pth.id); let cur = null;
+  for(const st of pth.stages) st.steps.forEach((s, i) => { if(s.kind !== 'reflect' && stepHref(s, pth.id, st.id) === here && (!cur || (cur.done && !prog.steps[`${st.id}/${i}`]))) cur = { step:s, done:!!prog.steps[`${st.id}/${i}`] }; });
+  const task = cur ? `<div class="pathbar-task"><span class="pt-text"><b>Your task:</b> ${esc(cur.step.do)}${cur.step.min ? ` <span class="muted">· ${cur.step.min} min</span>` : ''}</span><button type="button" class="btn sm ghost pt-more" data-action="task-toggle" aria-expanded="false">More</button></div>` : '';
   return `<div class="pathbar">
-    <div class="pathbar-info"><b>${esc(pth.t)}</b><span class="muted"> · Stage ${curIdx} of ${pth.stages.length} · Next: ${esc(nextStepLabel(next))}</span></div>
+    <div class="pathbar-info"><b>${esc(pth.t)}</b><span class="muted"> · Stage ${curIdx} of ${pth.stages.length} · Next: ${esc(nextStepLabel(next))}</span></div>${task}
     <div class="pathbar-actions">
       ${next ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Mark done and continue'}</button>` : `<a class="btn sm primary" href="${href}">Next →</a>`) : ''}
       <button class="btn sm ghost" data-action="leave-path">Leave path</button>
@@ -1856,7 +1883,7 @@ function pathsDoorHTML(){
     return `<div class="card tint" style="--dc:var(--accent2);margin-bottom:18px"><div class="overline">Continue</div><h3 style="margin:2px 0 4px">${esc(active.t)}</h3><p class="dim small">Next: ${esc(nextStepLabel(next))}</p>
       <div class="row"><a class="btn primary" href="${nextStepHref(next)}">Continue →</a><a class="btn ghost" href="#/paths/${active.id}">Open the path</a></div></div>`;
   })() : '';
-  const ans = chooserAnswers(), rec = ans.goal && ans.level && ans.time ? choosePath(ans.goal, ans.level, ans.time) : null;
+  const ans = chooserAnswers(), rec = ans.goal && ans.level && ans.time ? choosePath(ans.goal, ans.level, ans.time, donePathIds()) : null;
   const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<button class="path" data-href="#/paths/${p.id}"><b>${esc(p.pick)}</b><span>${esc(p.tag)}</span></button>`).join('')}</div>` : '';
   const tracks = TRACKS.map(([tid, tlabel]) => {
     const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
@@ -1864,7 +1891,7 @@ function pathsDoorHTML(){
   }).join('');
   // A first visit gets one dismissible pointer to the guide; after that, a
   // quiet link stays under the intro.
-  const hint = store.get('guideHint', true) ? `<div class="callout guidehint"><b>First time here?</b> <a href="#/guide">How to use this site</a> takes two minutes and shows which route fits you. <button type="button" class="btn sm ghost" data-action="guide-hint-close">Dismiss</button></div>` : `<p class="small"><a href="#/guide">How to use this site</a></p>`;
+  const hint = store.get('guideHint', true) ? `<div class="callout guidehint"><b>First time here?</b> <a href="#/guide">How to use this site</a> lists a route for each reason you might have come, and what each section is for. <button type="button" class="btn sm ghost" data-action="guide-hint-close">Dismiss</button></div>` : `<p class="small"><a href="#/guide">How to use this site</a></p>`;
   return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
     ${hint}
     ${continueCard}
@@ -1879,27 +1906,33 @@ function pathsDoorHTML(){
 const chooserAnswers = () => store.get('chooser', {});
 ACTIONS['guide-hint-close'] = () => { store.set('guideHint', false); keepScroll = true; renderPaths(); };
 ACTIONS.choose = el => { const a = chooserAnswers(); a[el.dataset.q] = el.dataset.v; store.set('chooser', a); keepScroll = true; renderPaths(); };
+const donePathIds = () => PATHS.filter(p => { const prog = pathProgress(p.id); return p.stages.every(s => prog.stages[s.id]); }).map(p => p.id);
 function chooserHTML(ans, rec){
   const q = (key, label, opts) => `<div class="chooser-q"><div class="overline" id="cq-${key}">${label}</div><div class="dims" role="group" aria-labelledby="cq-${key}">${opts.map(([v, t]) => `<button type="button" data-action="choose" data-q="${key}" data-v="${v}" class="${ans[key] === v ? 'active' : ''}" aria-pressed="${ans[key] === v}">${esc(t)}</button>`).join('')}</div></div>`;
+  const wk = (p, hpw) => `about ${pathWeeks(p, hpw)} week${pathWeeks(p, hpw) === 1 ? '' : 's'}`;
   let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
   if(rec){
-    const p = rec.path, why = [`${p.pick}.`, `About ${p.hours} hours${rec.over ? ', more than you have, so skip the stages you already know' : ''}.`];
-    if(ans.level === 'new' && p.prereq.length) why.push(`New to this? Start with ${p.prereq.map(pathTitle).join(' or ')}.`);
+    const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)} at ${hpw} hours a week.`)];
     if(ans.level === 'senior' && p.level === 'beginner') why.push('Use “I already know this” on the stages you have covered.');
-    if(rec.alt.length) why.push(`Also fits: ${rec.alt.map(a => a.t).join(', ')}.`);
-    out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)"><div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${esc(why.join(' '))}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a></div>`;
+    if(rec.alt.length) why.push(`Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
+    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${p.prereq.map(pathLinkChip).join(' and ')} (${esc(wk(p, hpw))}).${rec.alt.length ? ` Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
+      : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
+    out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)">${head}</div>`;
   }
   return `<section class="chooser"><div class="section-head"><h2>Which path is for me?</h2></div>
-    ${q('goal', 'I want to', CHOOSER.goals)}${q('level', 'My experience', CHOOSER.levels)}${q('time', 'Time I have', CHOOSER.times)}
+    ${q('goal', 'I want to', CHOOSER.goals)}${q('level', 'My experience', CHOOSER.levels)}${q('time', 'Hours a week I can give', CHOOSER.times)}
     <div class="chooser-out" aria-live="polite">${out}</div></section>`;
 }
+// A step that covers both engines shows the choice; it is remembered for every such step.
+ACTIONS['engine-pick'] = el => { store.set('engine', el.dataset.engine); keepScroll = true; route(); };
+const enginePickHTML = step => { const own = step.kind === 'engine' ? step.ref : step.tab, cur = pickedEngine(step); return `<span class="small enginepick" role="group" aria-label="Engine">Engine: ${[own, step.alt].map(e => `<button type="button" class="chip ${e === cur ? 'ok' : ''}" data-action="engine-pick" data-engine="${e}" aria-pressed="${e === cur}">${ENGINE_NAMES[e]}</button>`).join(' ')}</span>`; };
 function stepRowHTML(pth, st, i, step, prog, isNext){
   const key = `${st.id}/${i}`, checked = !!prog.steps[key], href = stepHref(step, pth.id, st.id);
   return `<label class="pathstep ${checked ? 'done' : ''} ${isNext ? 'next' : ''}" data-row="${key}">
     <input type="checkbox" ${checked ? 'checked' : ''} data-path="${pth.id}" data-step="${key}">
     <span class="chip kindchip">${isNext ? 'next' : esc(step.kind)}</span>
     <span class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
-      <div class="small dim">${esc(step.why)}</div><div class="small">${esc(step.do)}</div></span>
+      <div class="small dim">${esc(step.why)}</div><div class="small">${esc(step.do)}</div>${step.alt ? `<div>${enginePickHTML(step)}</div>` : ''}</span>
   </label>`;
 }
 function stageFooterHTML(pth, st, prog){
@@ -1952,6 +1985,7 @@ function pathPageHTML(pth, stageIdParam){
     ${pth.next.length ? `<div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : ''}`;
 }
 function renderPaths(id, stageId){
+  if(id === 'review') return location.replace('#/review');
   const pth = id && PATHS.find(p => p.id === id);
   if(pth){
     store.set('paths.active', pth.id);

@@ -23,7 +23,7 @@ function imageSize(file) {
 }
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -640,7 +640,22 @@ for (const pth of (PATHS || [])) {
         case 'reflect': if (step.ref !== undefined) errors.push(`${stw}: reflect steps take no ref`); runDomain = null; runLen = 0; break;
         default: errors.push(`${stw}: unknown kind ${step.kind}`);
       }
+      // lens: a game step that reads one lens deep-links to it; alt: a step covering both engines.
+      if (step.lens !== undefined) {
+        const g = (ctx.REFERENCE_GAMES || []).find(x => x.id === step.ref);
+        if (step.kind !== 'game') errors.push(`${stw}: lens is only for game steps`);
+        else if (g && !(g.lens && g.lens[step.lens] && !g.lens[step.lens].na)) errors.push(`${stw}: lens "${step.lens}" is not an analysed lens of ${step.ref}`);
+      }
+      if (step.alt !== undefined) {
+        const own = step.kind === 'engine' ? step.ref : step.tab;
+        if (step.kind !== 'topic' && step.kind !== 'engine') errors.push(`${stw}: alt is only for topic and engine steps`);
+        else if (!['godot', 'unity'].includes(own) || !['godot', 'unity'].includes(step.alt) || own === step.alt) errors.push(`${stw}: alt "${step.alt}" needs the other engine of godot/unity as its own tab or ref`);
+        else if (step.kind === 'topic' && !TOPICS[step.ref]?.eng?.[step.alt]) errors.push(`${stw}: alt "${step.alt}" but topic ${step.ref} has no eng.${step.alt}`);
+      }
     });
+    // The same title twice in one stage reads as a bug: the second step has to say what differs.
+    const titles = new Map();
+    st.steps.forEach((step, i) => { const tt = ctx.stepTitle(step).toLowerCase(); if (titles.has(tt)) errors.push(`${sw}: steps ${titles.get(tt)} and ${i} share the title "${ctx.stepTitle(step)}"`); else titles.set(tt, i); });
     if (!hasToolOrChecklist) errors.push(`${sw}: needs at least one tool or checklist step`);
     const target = st.hours * 60;
     if (target > 0 && Math.abs(minSum - target) / target > 0.1) errors.push(`${sw}: step minutes sum to ${minSum}, expected close to ${target} (hours*60, within 10%)`);
