@@ -1,5 +1,5 @@
 ---
-status: active
+status: shipped
 updated: 2026-09-30
 ---
 
@@ -42,4 +42,26 @@ Status: `todo`, `doing`, `done`.
 | E2 | New or deepened topics for the senior developer gaps, evidence-first, reviewed | done | ea: 4 topics, reviewed (5 fixes); eb: all 9 overstated claims corrected and 7 topics deepened, reviewed (4 fixes: METR skipped-task wording, SWE-bench wording from sources opened, SWE-bench Pro dated, GDC 2026 AI sentiment added). SWE-bench Verified audit stays labelled secondary (OpenAI page blocked) |
 | E3 | The advanced developer path, chooser picks, e2e checks, reviewed | done | senior-game-developer-ai-era: advanced, 23 h, 6 stages; outcome promises local measurement, not speed; reviewed with every linked topic read (18 fixes); chooser first at Experienced for gameplay, backend and AI |
 | B2 | Integration fixes, reviewed | done | topic pages show tools, guides, checklists, prompts and paths; no page kind is a dead end (smoke checks 14 kinds); search folds UK and US spelling, synonyms, version numbers and dated facts; guide lists all paths and explains the chip rows; Sources lists everything cited; wide layout on every page kind; UK spelling |
-| V1 | Checks, CI replay, second learner check as a senior designer, archive | doing | senior walk: both paths judged good (senior-level, evidence-honest, portfolio-grade builds, AI framed neither as hype nor dismissal); 10 findings being fixed in two batches ([findings-senior-walk.md](findings-senior-walk.md)) |
+| V1 | Checks, CI replay, second learner check as a senior designer, archive | done | senior walk: both paths judged good; its 10 findings fixed (search ranks exact matches first, chooser says why and trims alternatives, prerequisite lists collapse, METR step gives sample and update, stage 1 audits instead of basics, checklists link back); validate 0 errors, 206/206 topics in paths, layout, contrast, tsc, smoke 260, e2e 100/100 |
+
+## Outcome
+
+- **Two advanced paths, each researched before it was built.**
+  - `senior-game-designer` (22 h): vision, economies, live design, reviewing and growing designers, scope and pitching.
+  - `senior-game-developer-ai-era` (23 h): architecture under budgets, specs and evals, reviewing AI-written code for security, measuring AI uplift locally, cost and latency budgets, growing juniors, incidents and direction. It promises local measurement, not speed.
+  - The chooser gives each path first to Experienced learners with the matching goal, and says why.
+- **Eight new advanced topics built on opened primary evidence.**
+  - The developer evidence: METR's RCT and its 2026 update, field RCTs at three firms, Anthropic's skill-formation RCT, Perry and Pearce on insecure generated code, and DORA 2025.
+  - The design evidence: Kluger and DeNisi on feedback, Elsbach and Kramer on pitches, Johari, Deng and Fabijan on experiment pitfalls, Zendle and Cairns on loot boxes, and EVE's economic reports.
+  - Each claim carries its date, sample and limits. Practices without evidence are labelled as rules of thumb.
+- **Existing topics corrected.** Nine AI claims that overstated the evidence are fixed, and ten existing topics are deepened.
+- **The parts connect.**
+  - Topic pages show their tools, guides, checklists, prompts, paths and games, and no page kind is a dead end.
+  - Search folds UK and US spelling and synonyms, and ranks exact matches first.
+  - The guide lists every path and explains how the parts connect.
+  - Sources lists everything the site cites.
+- **Open for later.**
+  - The SWE-bench Verified audit is cited from secondary coverage, because OpenAI's page stayed blocked.
+  - Castronova 2001 and Nagappan 2008 are cited from summaries.
+  - No published game A/B test with numbers, and no measurement of how fast novelty effects fade, could be found. The topics say so.
+  - Engine snippets were checked against the docs, not compiled.
