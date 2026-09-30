@@ -455,7 +455,7 @@ T('craft-performance',{ d:'craft', t:'Performance: profile, budget, lay out data
   facts:[{claim:`Unity’s documentation says ProfilerMarker’s Begin and End methods carry ConditionalAttribute and are compiled away, with zero overhead, in non-development (release) builds.`,asOf:'2026-09-28',src:'https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Unity.Profiling.ProfilerMarker.html'},
     {claim:`Godot’s Performance class exposes the values shown in the editor Debugger’s Monitor tab through get_monitor(), including TIME_PROCESS, TIME_PHYSICS_PROCESS, OBJECT_COUNT and RENDER_TOTAL_DRAW_CALLS_IN_FRAME, and supports add_custom_monitor().`,asOf:'2026-09-28',src:'https://docs.godotengine.org/en/stable/classes/class_performance.html'},
     {claim:`Mike Acton’s CppCon 2014 talk "Data-Oriented Design and C++" argues that the purpose of code is to transform data and that design should start from the data and the hardware.`,asOf:'2026-09-28',src:'https://www.youtube.com/watch?v=rX0ItVEVjHc'}],
-  rel:[['backend-observability','Markers and monitors are the client-side form of the metrics and traces a service exports.'],['craft-memory-and-gc','Garbage collection spikes are one of the first things a profile shows.'],['craft-design-patterns','Data locality and update method are patterns with a direct performance cost.'],['craft-best-practice-now','A before and after capture is the test for a performance change.']] });
+  rel:[['backend-observability','Markers and monitors are the client-side form of the metrics and traces a service exports.'],['craft-memory-and-gc','Garbage collection spikes are one of the first things a profile shows.'],['craft-design-patterns','Data locality and update method are patterns with a direct performance cost.'],['craft-game-loop-timestep','A rising step count per frame is a performance signal, and the cap is how the loop survives a bad frame.'],['craft-best-practice-now','A before and after capture is the test for a performance change.'],['craft-entities-and-scenes','ECS is the last step of the performance ladder, after packed arrays.']] });
 ENGINE('craft-performance',{
   unity:{ term:`The Profiler shows CPU, GPU, memory and rendering per frame. ProfilerMarker names your own code in it, and ProfilerRecorder reads counters in code, so a build can report its own frame time.`,
     api:['Unity.Profiling.ProfilerMarker','ProfilerMarker.Auto()','Unity.Profiling.ProfilerRecorder','Window > Analysis > Profiler','Frame Debugger','Unity.Jobs / Burst / Entities'],
@@ -730,7 +730,7 @@ T('craft-over-defensive-code',{ d:'craft', t:'Over-defensive code', tag:'A null-
   verify:[`For each guard the change added, name the state and where it comes from. Anything without an answer is a candidate for removal.`,`Did any guard replace a crash with a silent return in code that should fail loudly?`,`Did the change use ?. or ?? on a UnityEngine.Object?`],
   test:[`Remove a suspect guard and run the tests plus a playtest of the path. If nothing fails and the state cannot be produced, it was redundant.`,`Break the wiring on purpose (clear a reference) and check the failure appears at load with a useful name.`,`Destroy an object mid-frame in a test scene and check the one real lifetime guard catches it.`],
   facts:[{claim:`Unity’s Object documentation states that destroyed (detached) objects compare equal to null through Unity’s overloaded == operator, while ReferenceEquals returns false, and that the ?. and ?? operators are not supported with Unity Objects because they cannot be overridden to treat detached objects as null.`,asOf:'2026-09-28',src:'https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Object.html'}],
-  rel:[['craft-clean-code-ai-era','Redundant guards are the most common readability cost in generated code.'],['craft-verification-as-the-job','A guard that hides a failure defeats the checks that should find it.'],['ai-failure-modes','Defensive noise is a typical failure of agents working with a partial view.'],['craft-teaching-agents','A rule about guard placement is one of the first worth writing into an agent rules file.']] });
+  rel:[['craft-save-systems','Loading a save is the boundary where validating outside input is justified.'],['craft-clean-code-ai-era','Redundant guards are the most common readability cost in generated code.'],['craft-verification-as-the-job','A guard that hides a failure defeats the checks that should find it.'],['ai-failure-modes','Defensive noise is a typical failure of agents working with a partial view.'],['craft-teaching-agents','A rule about guard placement is one of the first worth writing into an agent rules file.']] });
 ENGINE('craft-over-defensive-code',{
   unity:{ term:`UnityEngine.Object overloads == so a destroyed object equals null while the C# reference is still alive. ?. and ?? bypass that operator, so they treat a destroyed object as valid. Serialised references are wiring, validated once, not checked every frame.`,
     api:['UnityEngine.Object operator ==','Object.ReferenceEquals()','MonoBehaviour.OnValidate()','Debug.Assert()','Component.TryGetComponent<T>()'],
@@ -1079,4 +1079,510 @@ INTERVIEW('craft-source-control-for-games',{
       a:`Trunk-based main with feature flags, short-lived branches, and a release branch per shipped build for hotfixes cherry-picked back. Lock binaries on edit. Content locks are short so the trunk keeps moving.`,
       follow:`What breaks when a feature branch lives three weeks?`,
       red:`Uses long-lived branches per feature over shared scenes.` }
+  ] });
+
+// Batch na: core engine-side craft (gameplay math, game loop, entities and scenes, physics, saves). Domain 'craft', engine views included.
+
+T('craft-gameplay-math',{ d:'craft', t:'Gameplay math', tag:'Dot product for who is facing whom, cross product for which side, lerp for smooth, and quaternions so rotation never breaks.',
+  what:`The small set of maths that most gameplay code uses. A vector is a direction and length. The dot product of two unit vectors is 1 when they point the same way, 0 when perpendicular and -1 when opposite, so it answers "is that in front of me" and "how aligned". The cross product of two vectors gives a third, perpendicular to both, and its sign tells you which side something is on. Lerp (linear interpolation) blends a to b by t. Easing reshapes t so motion starts or ends gently. A quaternion is a four-number rotation that interpolates cleanly, where Euler angles (pitch, yaw, roll) can lock up. Spatial queries (raycasts, overlaps, distance checks) ask the physics world what is where.`,
+  why:[`Without the dot product, "can the guard see me" becomes a pile of angle conversions and special cases at the 0 and 360 degree seam.`,`Without frame-rate-independent smoothing, a camera that follows well at 60 Hz lags or snaps at 144 Hz or 30 Hz.`,`Euler angles interpolate wrongly and can lose a degree of freedom (gimbal lock). Camera and aim bugs of the "it flips at the top" kind come from here.`,`A sqrt hidden inside a distance check that runs for 5,000 entities every frame is a cost you can avoid by comparing squared distances.`],
+  think:{ q:[`Is this a direction (normalise it) or a position (subtract two to get a direction)? Which coordinate space is each value in: local, world, screen?`,`Do I need the angle, or only to compare to a threshold? A dot product against a cosine avoids the arccos.`,`Is the smoothing meant to be fixed duration (lerp with t from 0 to 1) or to chase a moving target (exponential smoothing)?`,`Does this rotation ever pass through straight up or down, or turn more than 180 degrees at once?`,`How often does this query run, and can it use squared distances, a cheaper layer mask, or a spatial grid?`],
+    trade:[`Quaternions avoid gimbal lock and interpolate well, and they are hard to read in the inspector. Keep Euler angles for authoring and quaternions for runtime.`,`Exponential smoothing (a = lerp(a, b, 1 - exp(-rate * dt))) is frame-rate independent and never quite arrives. A fixed-duration lerp with easing arrives exactly and needs a start value and a timer.`,`Physics queries are exact and cost real time. A distance check with a dot product is cheap and approximate.`],
+    traps:[`Writing a = lerp(a, b, 0.1) every frame and calling it smooth. The feel depends on frame rate. Use 1 - exp(-rate * dt).`,`Comparing a dot product against an angle in degrees. It returns a cosine, so compare with cos(angle).`,`Normalising a zero-length vector. The result is zero or NaN, and it turns up as an object that vanishes.`,`Building rotation by adding to Euler angles from mouse input, then reading them back. The angles can wrap or flip, and they mean different things in different engines.`,`Assuming the sign of a cross product is the same in 2D and 3D, or the same in a left-handed and right-handed system. Test on a known case.`,`Lerping between two angles in degrees across the 359 to 1 seam. It turns the long way round.`],
+    good:[`Field of view, facing and side tests are one or two lines built from dot and cross, with a comment on what a positive result means.`,`Camera and UI smoothing behave the same at 30, 60 and 144 frames per second.`,`Rotations are stored and blended as quaternions or basis, and only converted for display.`],
+    bad:[`Code full of atan2, degree-to-radian conversions and special cases at 0 and 360.`,`A follow camera that judders when the frame rate changes.`] },
+  how:[`Write down the coordinate space of every vector in the function name or comment. Most math bugs are a world vector used as if it were local.`,`For "is it in front, and within a cone": to_target = (target - self).normalized; in_cone = dot(forward, to_target) > cos(half_angle). Precompute the cosine once.`,`For "left or right of my facing": the sign of the cross product component along up (in 2D, cross(forward, to_target) as a scalar). Test with a known left and a known right case.`,`For smooth following: value = lerp(value, target, 1 - exp(-rate * dt)). For a timed move: t = elapsed / duration, then shape it with an easing function before the lerp.`,`For rotation: build a target rotation with look-at, then slerp (spherical lerp) toward it with the same exponential factor. Normalise quaternions if you combine many.`,`For "what is near me": compare squared distances, filter by layer mask first, then ask the physics world (raycast, overlap sphere) only for the survivors. Reuse result buffers to avoid garbage.`,`Cover the edges with tests: a zero vector, a target straight behind, straight above and exactly at the cone boundary.`],
+  ai:{ yes:[`Turn a plain-language rule (the guard sees the player within 60 degrees and 15 metres, unless behind a wall) into vector code, and list the edge cases.`,`Explain why a given rotation code gimbal-locks, and rewrite it with quaternions.`,`Write unit tests with hand-computable vectors for a facing, side or cone test.`,`Convert a per-frame lerp into a frame-rate-independent one.`],
+       no:[`Get a handedness or axis convention right without a test. The engine differs from the maths textbook, and the model guesses.`,`Tune an easing curve. That is feel, judged by eye and by playing.`,`Say a rotation is correct because the formula looks right. Run it at the poles and at 180 degrees.`] },
+  prompts:[{l:'Write the facing test',p:`In [ENGINE] ([2D or 3D], [Y-up or Z-up], [handedness]) write a function that returns whether [TARGET] is within [ANGLE] degrees of the forward direction of [OBSERVER] and within [RANGE] units. Use a dot product against a precomputed cosine and squared distance, not an angle or a square root. Then list five test inputs with the expected result each, including a zero-length offset and a target directly behind.`},
+    {l:'Make smoothing frame-rate independent',p:`This code smooths a value each frame: [PASTE]. Rewrite it to give the same result at 30, 60 and 144 frames per second, using exponential smoothing. Say what the rate parameter means in time (time to close 63 percent of the gap) and how to choose it.`}],
+  verify:[`Is the coordinate space of every vector clear from the code?`,`Does the smoothing feel the same at 30 and 144 frames per second?`,`Do zero-length and exactly-behind cases give the intended result rather than NaN or a flip?`],
+  test:[`Run the game with the frame rate capped at 30, 60 and 144 and record the camera position after two seconds. It should match to within a small tolerance.`,`Unit test the cone check at the boundary (just inside, just outside) and with the target at the observer’s own position.`,`Rotate an object through straight up and straight down with the mouse. It must not flip or jitter.`],
+  facts:[{claim:`Godot’s transform guide says that Euler angles have no unique construction of an orientation, that interpolating them suffers from gimbal lock, that quaternions interpolate with slerp, and that quaternions used repeatedly must eventually be normalised.`,asOf:'2026-09-30',src:'https://docs.godotengine.org/en/stable/tutorials/3d/using_transforms.html'},
+    {claim:`Unity’s Quaternion.Slerp(a, b, t) interpolates spherically between unit quaternions and clamps t to the range 0 to 1.`,asOf:'2026-09-30',src:'https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Quaternion.Slerp.html'},
+    {claim:`Godot’s vector maths tutorial covers the dot and cross products and their geometric meaning.`,asOf:'2026-09-30',src:'https://docs.godotengine.org/en/stable/tutorials/math/vector_math.html'}],
+  rel:[['craft-performance','Squared distances, layer masks and reused query buffers are the cheap end of spatial queries.'],['craft-game-loop-timestep','Frame-rate independent smoothing depends on the delta time the loop hands you.'],['craft-physics-and-collision','Raycasts, overlaps and sweeps are the query half of physics; the maths on this page is the vector half.'],['perception-and-awareness','A sight cone is a dot product and a raycast.'],['careers-game-coding-interviews','Interviewers turn these formulas into ten-minute questions; practise them aloud.']] });
+ENGINE('craft-gameplay-math',{
+  godot:{ term:`Vector2 and Vector3 have dot(), cross(), normalized(), direction_to() and distance_squared_to(). Rotations are Basis or Quaternion, and Node3D exposes quaternion. The global lerp functions are lerpf() and lerp_angle().`,
+    api:['Vector3.dot() / cross() / direction_to()','Vector3.distance_squared_to()','Basis.looking_at()','Quaternion.slerp()','Node3D.quaternion','lerp_angle()','PhysicsDirectSpaceState3D.intersect_ray()'],
+    snippet:`extends Node3D
+@export var target: Node3D
+@export var fov_deg := 90.0
+@export var turn_rate := 8.0
+
+func _process(delta: float) -> void:
+    var to := global_position.direction_to(target.global_position)
+    var fwd := -global_transform.basis.z             # Godot forward is -Z
+    if fwd.dot(to) > cos(deg_to_rad(fov_deg * 0.5)):  # inside the view cone
+        var goal := Quaternion(Basis.looking_at(to))
+        var k := 1.0 - exp(-turn_rate * delta)        # same feel at any frame rate
+        quaternion = quaternion.slerp(goal, k)`,
+    pitfall:`Basis.looking_at() fails when the direction is parallel to the up vector (a target straight above or below), and direction_to() returns a zero vector when target and observer are at the same point. Guard both cases, or pass a different up vector, before the look-at. This snippet also assumes the node has no rotated parent, because quaternion is local.`,
+    map:`Godot fwd.dot(to) is Unity Vector3.Dot(transform.forward, to). Godot forward is -Z, and Unity forward is +Z.` },
+  unity:{ term:`Vector3.Dot, Vector3.Cross, Vector3.SqrMagnitude, Quaternion.LookRotation and Quaternion.Slerp cover most cases. Mathf.Lerp and Mathf.SmoothDamp handle scalars. Physics.Raycast and Physics.OverlapSphere are the spatial queries.`,
+    api:['Vector3.Dot() / Cross() / sqrMagnitude','Quaternion.LookRotation()','Quaternion.Slerp()','Mathf.SmoothDamp()','Mathf.Deg2Rad','Physics.OverlapSphereNonAlloc()'],
+    snippet:`using UnityEngine;
+public class Watcher : MonoBehaviour {
+    [SerializeField] Transform target;
+    [SerializeField] float fovDeg = 90f, turnRate = 8f;
+
+    void Update() {
+        Vector3 to = (target.position - transform.position).normalized;
+        if (to == Vector3.zero) return;                 // same position: no direction
+        if (Vector3.Dot(transform.forward, to) > Mathf.Cos(fovDeg * 0.5f * Mathf.Deg2Rad)) {
+            Quaternion goal = Quaternion.LookRotation(to);
+            float k = 1f - Mathf.Exp(-turnRate * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, goal, k);
+        }
+    }
+}`,
+    pitfall:`Passing a zero vector to Quaternion.LookRotation logs an error and returns identity, so an object at the same position as its target snaps to face world forward. Also, Quaternion.Slerp clamps t, but the frame-rate-independent factor only helps if you compute it from Time.deltaTime and not a constant.`,
+    map:`Unity Quaternion.Slerp is Godot Quaternion.slerp, and Unity Mathf.Lerp is Godot lerpf().` },
+  note:`The maths is the same in both engines. What differs is the convention (which axis is forward, which way a cross product points) and the names. Test on one known left, right, front and back case whenever you move code between engines.` });
+INTERVIEW('craft-gameplay-math',{
+  junior:[
+    { q:`What does the dot product of two unit vectors tell you?`,
+      a:`How aligned they are. It is 1 for the same direction, 0 for perpendicular and -1 for opposite; it equals the cosine of the angle between them. So dot(forward, to_target) above cos(half_angle) means the target is inside a view cone, with no arccos needed.`,
+      follow:`What if the vectors are not normalised?`,
+      red:`Cannot say what the range of values is, or says it returns an angle.` },
+    { q:`Why is lerp(a, b, 0.1) each frame not a good smoothing method?`,
+      a:`The fraction applies per frame, so the result depends on the frame rate: a fast machine converges sooner. Use 1 - exp(-rate * dt) as the fraction.`,
+      follow:`What does rate mean in seconds?`,
+      red:`Says it is fine as long as the game runs at 60.` }
+  ],
+  mid:[
+    { q:`When would you use a quaternion, and when Euler angles?`,
+      a:`Store and interpolate rotation as a quaternion or basis because it avoids gimbal lock and slerps cleanly. Use Euler angles for what a person edits or reads, and for constrained cases such as a pitch clamped between two limits, where you keep pitch and yaw as separate floats.`,
+      follow:`How do you build a mouse look that never rolls?`,
+      red:`Says quaternions are always better and cannot name a case for Euler angles.` },
+    { q:`A guard should notice the player within 60 degrees and 15 metres. Write the check and say where it can go wrong.`,
+      a:`Squared distance first, then a dot product against cos(30 degrees), since 60 degrees is the full cone, then a raycast for line of sight. Failures: cone half-angle versus full angle, zero vector when positions coincide, eye height versus origin for the ray.`,
+      follow:`How do you test the boundary?`,
+      red:`Uses atan2 and degrees with no thought to the seam at 180.` },
+    { q:`How do you make a spatial query cheap when 5,000 entities each ask it every frame?`,
+      a:`Cheapest test first: squared distance, layer masks, a grid or spatial hash to skip far entities, staggered updates, and reused result buffers. Ask the physics world only for the survivors.`,
+      follow:`When would you stop updating an entity’s query altogether?`,
+      red:`Raycasts from every entity to every other.` }
+  ],
+  senior:[
+    { q:`Your team ports gameplay code between engines and camera and aim feel wrong. What do you check?`,
+      a:`Conventions: which axis is forward and up, handedness, rotation order, whether a cross product points the same way, radians versus degrees and the units of the world. Write small known-answer tests (a left, right, front and back case) and run them in both engines before touching feel.`,
+      follow:`How would you prevent it on the next port?`,
+      red:`Tunes numbers until it feels right without finding the convention difference.` }
+  ] });
+
+T('craft-game-loop-timestep',{ d:'craft', t:'The game loop and fixed timestep', tag:'Run the simulation in equal steps, draw as often as you like, and blend between the last two states so it looks smooth.',
+  what:`The game loop is the cycle every game runs: read input, update the world, draw, repeat. Two clocks matter. Rendering runs as fast as the display and the machine allow, and that rate varies frame to frame. Simulation, especially physics, wants a constant step. The standard fix is the fixed timestep with an accumulator: add the real elapsed time to a bucket, run the simulation in equal steps while the bucket holds enough time for one, and draw with a blend between the previous and current state using what is left in the bucket. Godot runs physics this way by default in _physics_process, and Unity in FixedUpdate.`,
+  why:[`Physics and gameplay with a variable delta time behave differently at different frame rates: a jump reaches another height, a fast object tunnels through a wall, and a spring explodes on a long frame.`,`A game that is not deterministic cannot replay, and cannot be rolled back or checked by a server. A fixed step is the base of every deterministic simulation.`,`If the simulation cannot keep up, the loop falls behind, runs more steps to catch up, falls further behind and freezes. This is the spiral of death, and it needs a cap.`,`With a 60 Hz physics step and a 144 Hz display, drawing only the latest physics state makes movement visibly stutter.`],
+  think:{ q:[`What must not change with frame rate: physics, gameplay timers, AI, network simulation?`,`What step rate: 30, 60, 120 Hz? Higher costs CPU per second of game time. Lower feels coarser.`,`How many catch-up steps do I allow per frame before I drop time instead?`,`Do I draw the latest state or blend between the last two? The blend adds up to one step of visual delay.`,`Does anything in my update read the real clock, or delta time, when it should read the tick count?`],
+    trade:[`Fixed step gives stability and reproducibility, and costs a bounded amount of delay and the work of interpolating rendering.`,`Variable step is simple and fine for visual-only effects and UI animation, and not for physics or anything you need to replay.`,`A higher tick rate makes controls and collision finer and costs CPU that grows with entity count.`],
+    traps:[`Putting gameplay in the variable-rate callback (Update or _process) and physics in the fixed one, then having them disagree about the same object.`,`Reading input in the fixed step and losing a button press when no step runs that frame. Sample input in the frame callback and latch it until the next step consumes it.`,`No cap on catch-up steps, so a long hitch freezes the game while it tries to simulate the missed time.`,`Moving a Rigidbody or physics body from the variable callback, which skips the fixed step and jitters.`,`Using delta time in a fixed step. It is a constant. Use the constant, so the code is the same at every rate.`],
+    good:[`The same recorded input gives the same simulation at any frame rate.`,`Motion of physics objects is smooth at 60 and 144 Hz displays because rendering blends between steps.`,`A long hitch skips time, and does not freeze.`],
+    bad:[`The game feels different on a fast machine.`,`Physics bugs that only appear at low frame rates.`] },
+  how:[`Choose the step, for example 1/60 s, and store it as a constant next to the simulation.`,`Each frame: accumulator += min(frame_time, max_frame_time). While accumulator >= step: sample latched input, run one simulation step, accumulator -= step.`,`Cap the number of steps per frame (for example 5). If the cap is hit, throw away the remaining accumulator rather than carrying it.`,`Keep the previous and the current simulation state. Draw at alpha = accumulator / step: position = lerp(previous, current, alpha).`,`Keep anything that changes simulation state inside the fixed step. Keep visual-only things (camera easing, particles, UI) in the frame callback.`,`In the engines, prefer the built-in fixed step for physics, and turn on the engine’s interpolation for rendering (Godot physics interpolation, Unity Rigidbody.interpolation) before writing your own loop.`,`Log frame time and step count per frame. A step count that rises steadily means the simulation is too slow for its step.`],
+  ai:{ yes:[`Convert a variable-delta update into a fixed-step loop with an accumulator and interpolation.`,`Find state that changes in the wrong callback: physics in Update, input read only in FixedUpdate.`,`Write a headless test that runs the simulation for a set number of ticks at two different frame times and compares the states.`,`Explain the difference between _process and _physics_process, or Update, FixedUpdate and LateUpdate, for a given engine version.`],
+       no:[`Pick the tick rate. It depends on your genre, platform and entity count.`,`Say the result is deterministic. Only a replay and checksum test on the target platforms says that.`,`Decide how much visual delay from interpolation is acceptable. That is a feel call.`] },
+  prompts:[{l:'Fix the loop',p:`This is our [ENGINE] update code: [PASTE]. List everything that changes simulation state in a variable-rate callback, everything that reads input only inside the fixed step, and every use of delta time inside the fixed step. Propose a fixed-step loop with an accumulator, a step cap and render interpolation, and say which of our objects need previous and current state kept.`},
+    {l:'Frame-rate independence test',p:`Write a headless test for [SIMULATION] that steps it for 10 seconds of game time at frame times of 1/30, 1/60 and 1/144 s with the same recorded inputs, and asserts that the final state hashes are equal. Say what would make them differ.`}],
+  verify:[`Is every piece of simulation state changed only inside the fixed step?`,`Is there a cap on catch-up steps, and what happens when it is hit?`,`Do two frame rates give the same final state from the same inputs?`],
+  test:[`Run the same recorded input at 30, 60 and 144 frames per second and compare a hash of the state at a set tick.`,`Force a 500 ms hitch and watch the step count on the next frame. It must stay at or below the cap and the game must resume, not freeze.`,`On a 144 Hz display with a 60 Hz step, film a moving object or record its screen position each frame. Without interpolation you will see repeated positions.`],
+  facts:[{claim:`Glenn Fiedler’s "Fix Your Timestep" recommends a fixed simulation step with an accumulator, interpolation of rendering between the previous and current state, and warns about the spiral of death when simulation is slower than the time it represents.`,asOf:'2026-09-30',src:'https://gafferongames.com/post/fix_your_timestep/'},
+    {claim:`Unity’s Time project settings define Fixed Timestep as the frame-rate independent interval for physics calculations and FixedUpdate events, and Maximum Allowed Timestep as a cap on the worst case when the frame rate is low.`,asOf:'2026-09-30',src:'https://docs.unity3d.com/6000.0/Documentation/Manual/class-TimeManager.html'},
+    {claim:`Godot’s Engine class exposes physics_ticks_per_second and max_physics_steps_per_frame, which set the physics step rate and the catch-up cap.`,asOf:'2026-09-30',src:'https://docs.godotengine.org/en/stable/classes/class_engine.html'}],
+  rel:[['server-determinism','A fixed step is the base of every deterministic simulation.'],['craft-physics-and-collision','Physics is the main reason for the fixed step and the main victim of a variable one.'],['craft-performance','A rising step count per frame is a performance signal, and the cap is how the loop survives a bad frame.'],['game-feel-and-juice','Interpolation delay and input latching are feel decisions.']] });
+ENGINE('craft-game-loop-timestep',{
+  godot:{ term:`_physics_process(delta) runs at Engine.physics_ticks_per_second (set in Project Settings under Physics > Common) with a constant delta. _process(delta) runs once per rendered frame. Physics interpolation is a project setting for smoothing rendering between physics ticks. To run your own simulation rate, use an accumulator in _process.`,
+    api:['Node._physics_process(delta)','Node._process(delta)','Engine.physics_ticks_per_second','Engine.max_physics_steps_per_frame','Engine.get_physics_interpolation_fraction()','lerpf()'],
+    snippet:`extends Node
+const STEP := 1.0 / 30.0
+const MAX_STEPS := 5
+var acc := 0.0
+var prev_x := 0.0
+var cur_x := 0.0
+@onready var sprite: Sprite2D = $Sprite2D      # child node named Sprite2D
+
+func _process(delta: float) -> void:
+    acc += minf(delta, 0.25)                    # clamp a huge hitch
+    var n := 0
+    while acc >= STEP and n < MAX_STEPS:
+        prev_x = cur_x
+        cur_x += 60.0 * STEP                    # simulation: constant step
+        acc -= STEP
+        n += 1
+    if acc >= STEP:
+        acc = 0.0                               # hit the cap: drop the backlog
+    sprite.position.x = lerpf(prev_x, cur_x, acc / STEP)`,
+    pitfall:`Moving physics bodies from _process. A CharacterBody2D or RigidBody moved in the frame callback runs at a variable rate against a fixed physics tick, so it jitters and can tunnel. Do the movement in _physics_process, and read input in _process or _input if a press must not be missed.`,
+    map:`Godot _physics_process is Unity FixedUpdate, and Godot _process is Unity Update. Godot’s physics interpolation setting is the counterpart of Unity’s Rigidbody.interpolation.` },
+  unity:{ term:`FixedUpdate runs zero or more times per frame at Time.fixedDeltaTime (Project Settings > Time > Fixed Timestep) before the physics step. Update runs once per frame. Maximum Allowed Timestep caps the catch-up. Rigidbody.interpolation smooths the rendered position between fixed steps.`,
+    api:['MonoBehaviour.FixedUpdate()','Time.fixedDeltaTime','Time.deltaTime','Time.maximumDeltaTime','Rigidbody.interpolation','Time.unscaledDeltaTime'],
+    snippet:`using UnityEngine;
+public class FixedLoop : MonoBehaviour {
+    const float Step = 1f / 30f;
+    const int MaxSteps = 5;
+    float acc, prevX, curX;
+
+    void Update() {
+        acc += Mathf.Min(Time.unscaledDeltaTime, 0.25f);   // clamp a huge hitch
+        int n = 0;
+        while (acc >= Step && n < MaxSteps) {
+            prevX = curX;
+            curX += 60f * Step;                             // simulation: constant step
+            acc -= Step; n++;
+        }
+        if (acc >= Step) acc = 0f;                          // hit the cap: drop the backlog
+        var p = transform.position;
+        p.x = Mathf.Lerp(prevX, curX, acc / Step);          // blend for display
+        transform.position = p;
+    }
+}`,
+    pitfall:`Reading Input.GetButtonDown (or an action WasPressedThisFrame) inside FixedUpdate. FixedUpdate may run zero times in a frame, so the press is lost, or twice, so it is seen twice. Read input in Update, store it, and let FixedUpdate consume it.`,
+    map:`Unity FixedUpdate is Godot _physics_process. Time.maximumDeltaTime caps how much time one frame may hand to FixedUpdate, which stops the spiral of death. Godot caps the number of physics steps instead, with Engine.max_physics_steps_per_frame (default 8).` },
+  note:`Use the engine’s own fixed step and interpolation for physics first. Write your own accumulator loop only for a simulation the engine does not run for you, such as a deterministic lockstep or rollback simulation. The pattern is the same as in the snippets: constant step, capped catch-up, blend for display.` });
+INTERVIEW('craft-game-loop-timestep',{
+  junior:[
+    { q:`What is the difference between Update and FixedUpdate in Unity, or _process and _physics_process in Godot?`,
+      a:`The first runs once per rendered frame with a varying delta. The second runs at a constant rate, zero or more times per frame, with a constant delta, before the physics step. Physics and simulation belong in the second. Input reading and visual effects belong in the first.`,
+      follow:`Why can FixedUpdate run twice in one frame?`,
+      red:`Thinks they are the same but at different speeds.` },
+    { q:`Why does a game with variable delta time behave differently on a fast machine?`,
+      a:`Integration steps of different sizes give different results: jump heights, collision and spring behaviour change with the step, and a big step can carry a body through a wall. A constant step gives the same result each time.`,
+      follow:`Give an example of a value that changes.`,
+      red:`Says it only affects speed.` }
+  ],
+  mid:[
+    { q:`Explain the fixed timestep with an accumulator and why the render interpolates.`,
+      a:`Real elapsed time goes into an accumulator. While it holds a step, the simulation runs one constant step and takes it out. What remains, divided by the step, is the fraction alpha through the next step. The renderer blends previous and current state by alpha. Without it, motion shows repeated positions when the display rate does not divide the step rate.`,
+      follow:`What does interpolation cost?`,
+      red:`Cannot explain what alpha is.` },
+    { q:`What is the spiral of death, and how do you prevent it?`,
+      a:`If a step takes longer than the time it represents, the accumulator grows, more steps run next frame, and the game falls further behind. Cap the steps per frame and drop the leftover time, and fix the underlying cost. The game slows down and recovers, rather than freezing.`,
+      follow:`What changes for the player when the cap is hit?`,
+      red:`Suggests removing the cap so no time is lost.` },
+    { q:`A button press sometimes does nothing. Input is read in FixedUpdate. What is wrong?`,
+      a:`FixedUpdate does not run every frame. Frame-based input flags are true for a single frame, so if no fixed step runs in that frame the press is missed. Sample input in Update and latch it until a step consumes it.`,
+      follow:`How do you avoid one press counting twice?`,
+      red:`Increases the tick rate to hide it.` }
+  ],
+  senior:[
+    { q:`You need the same simulation to run in the client, on a server and in a replay. How do you structure the loop?`,
+      a:`Make the simulation a function of state, input and a fixed step, in a module with no reference to the engine clock or rendering. Each host drives it with its own loop: the client with an accumulator and interpolation, the server at its tick rate, the replay as fast as it can. Test with a recorded input and a state hash.`,
+      follow:`What breaks it first in practice?`,
+      red:`Lets each host read time directly from the engine.` }
+  ] });
+
+T('craft-entities-and-scenes',{ d:'craft', t:'Entities, scenes and ECS', tag:'Build things from nodes and components you can see and edit, and reach for entity component systems only where thousands of the same thing need speed.',
+  what:`Two ways to structure the things in a game. In scene or object composition (Godot nodes and scenes, Unity GameObjects and prefabs), each thing in the world is an object that owns its behaviour, built from smaller reusable pieces and nested in a tree. In an entity component system (ECS, such as Unity DOTS), an entity is only an id, components are plain data attached to it, and systems are functions that run over every entity with a given set of components. Composition favours clarity and editing. ECS favours processing many similar things fast, because their data sits together in memory. Both are lenses: real games mix them.`,
+  why:[`A deep inheritance tree (Enemy, FlyingEnemy, FlyingShootingEnemy) breaks the first time a design asks for a flying enemy that also heals. Composition and components avoid it.`,`Without a scene structure, everything ends up in one manager that knows every other object. It cannot be tested or reused.`,`Using ECS for a game with forty complex actors buys build complexity and gives back no speed. Not using it for forty thousand bullets gives a frame you cannot fix.`,`The choice sets how designers work. Scenes and prefabs can be edited by hand in the editor. ECS data often has to be baked from authoring objects.`],
+  think:{ q:[`How many of these things exist at peak, and how many are the same kind?`,`Is a designer expected to edit and place each one by hand?`,`Which behaviours do many kinds share (health, movement, targeting)? Can they be components or child nodes?`,`Which code needs to touch every instance every frame, and is that a measured cost?`,`Who talks to whom? A parent that owns children can call down; children should signal up.`],
+    trade:[`Scene composition is easy to read and edit, and each object costs a virtual call, a cache miss, and sometimes garbage. It scales to hundreds or low thousands of active objects.`,`ECS is fast on large counts and needs a different style: data first, no per-object methods, more boilerplate, and tooling that is still changing between versions.`,`Component-style nodes reuse behaviour without inheritance, and too many tiny nodes make a scene harder to navigate.`],
+    traps:[`Reaching up and across the tree with long paths like get_node("../../UI/Bar"). Moving a node then breaks the code. Use signals up, exports or injected references across.`,`Making a "GameManager" singleton that every object calls. It is global state with a friendly name.`,`Adopting ECS for the whole game because one system, particles or crowds, needed it. Use it for that system.`,`Storing behaviour in components. In ECS a component is data. If it has logic, it belongs in a system.`,`Assuming an entity can be modified while a system iterates it. Structural changes (add or remove components, destroy) need a command buffer or a deferred step.`],
+    good:[`A new enemy type is a scene or prefab that combines existing pieces, with little new code.`,`Systems that touch thousands of things work on packed data and show in the profiler as one cheap loop.`,`A child node signals events up and does not know who listens.`],
+    bad:[`Adding a feature means editing a base class that twenty types inherit from.`,`A per-frame Update on ten thousand objects that each do almost nothing.`] },
+  how:[`Start with composition. Build each thing as a scene or prefab: a root with child pieces (health, hurtbox, movement, visuals). Prefer a small component for each behaviour over a subclass.`,`Connect by signals or events upward, and by exported references sideways. Keep tree paths to direct children.`,`Put shared data that designers tune in resources: Godot Resource files, Unity ScriptableObjects. The scene holds an instance, the resource holds the numbers.`,`Measure. If the profiler shows one system spending its time in per-object update on a large count of similar things, first try packed arrays and one loop (see craft-performance).`,`If that is still too slow, move that system to ECS: split the data into components (position, velocity), write a system that queries them, and keep the rest of the game in scenes.`,`In Unity DOTS, author with GameObjects in a subscene and bake them to entities. Do structural changes through an EntityCommandBuffer.`,`Write down which systems are ECS and why, so the split does not spread by habit.`],
+  ai:{ yes:[`Split a large class into components or child scenes and list what each owns.`,`Find long node paths and cross-tree calls and replace them with signals or exported references.`,`Convert a per-object Update loop into an ECS component and system, and list the boilerplate you now need.`,`Explain the component, system and command buffer rules of a specific DOTS version.`],
+       no:[`Decide that your game needs ECS. It cannot see your entity counts or your profile.`,`Keep DOTS code current. The API has changed between Entities versions, so check it against the docs for your version.`,`Decide the scene tree layout of a team project. That depends on who edits which scene.`] },
+  prompts:[{l:'Decompose an entity',p:`Here is our [ENTITY] class: [PASTE]. Propose a scene or prefab structure that replaces it: the root, the child pieces, what each piece owns, which signals go up, and what tunable data moves into a resource. Do not use inheritance. Point out any piece that other entity types could reuse.`},
+    {l:'Does this need ECS?',p:`Our game has up to [N] instances of [THING] alive at once, each updated every frame by [DESCRIBE UPDATE] on [PLATFORM]. The profiler shows [PASTE]. Say what the profile suggests, whether packed arrays in a single loop would be enough before ECS, and what the ECS version would cost us in authoring workflow.`}],
+  verify:[`Can each entity type be built from existing pieces without editing a base class?`,`Are cross-tree paths limited to direct children?`,`Is there a profile that shows the system where ECS is used is the one that needed it?`],
+  test:[`Instance each scene or prefab alone, outside its level, and check it works. Anything that fails is coupled to its surroundings.`,`Spawn ten times the peak count of a candidate ECS entity in a test scene, and compare frame time against the object version on target hardware.`,`Move a node to a different parent. Nothing but its transform should break.`],
+  facts:[{claim:`Godot’s scene organisation best practices advise designing scenes with no hard dependencies, warn that hard-coded node paths stop finding their targets when a scene is reused, and say a signal connection should respond to behaviour, not start it.`,asOf:'2026-09-30',src:'https://docs.godotengine.org/en/stable/tutorials/best_practices/scene_organization.html'},
+    {claim:`Unity’s Entities documentation defines an entity as a unique identifier, a component as data about the entity, and a system as the logic that processes entity data, and lists structural changes as something that affects performance.`,asOf:'2026-09-30',src:'https://docs.unity3d.com/Packages/com.unity.entities@1.3/manual/concepts-intro.html'},
+    {claim:`Robert Nystrom’s Game Programming Patterns chapter "Component" splits a large object into separate input, physics and graphics components to reduce coupling and avoid inheritance, and points to its Data Locality chapter for the cache reasons behind packed data.`,asOf:'2026-09-30',src:'https://gameprogrammingpatterns.com/component.html'}],
+  rel:[['craft-design-patterns','Component, observer and pool are the patterns that scene composition uses every day.'],['craft-performance','ECS is the last step of a performance ladder that starts with profiling and packed arrays.'],['craft-memory-and-gc','Per-object allocations and garbage are a cost of many small objects that ECS avoids.'],['server-state-sync','Entities with ids and plain data are also what a server replicates.']] });
+ENGINE('craft-entities-and-scenes',{
+  godot:{ term:`A scene is a saved tree of nodes that you instance as one node. Behaviour is added by child nodes (a Health node), by scripts on a node, or by Resources. Godot has no built-in ECS. For bulk data it offers packed arrays and the servers (RenderingServer, PhysicsServer) that work on ids.`,
+    api:['PackedScene.instantiate()','Node.get_node() / %UniqueName','signal / Signal.connect()','Resource / @export var res: Resource','class_name','Node.add_child()'],
+    snippet:`class_name Health
+extends Node
+signal died
+@export var max_hp := 100
+var hp := 0
+
+func _ready() -> void:
+    hp = max_hp
+
+func hurt(amount: int) -> void:
+    hp = maxi(hp - amount, 0)
+    if hp == 0:
+        died.emit()            # signal up; the parent decides what death means
+
+# On the enemy scene root (script enemy.gd):
+#   @onready var health: Health = $Health
+#   func _ready(): health.died.connect(queue_free)`,
+    pitfall:`Connecting to a node with a hard-coded path such as get_node("../../Player") from a reusable scene. It works in the level you wrote it in and fails when the scene is instanced elsewhere. Pass the reference in with an @export var or set it from the parent that spawns the scene.`,
+    map:`A Godot child node with a script plays the part of a Unity component on a GameObject, and a scene is roughly a prefab.` },
+  unity:{ term:`A GameObject holds MonoBehaviour components, saved and reused as prefabs. ScriptableObjects hold shared data. Entities (DOTS) is a separate ECS: components are IComponentData structs, systems are ISystem structs with OnUpdate, and authoring GameObjects are baked to entities. It is a package you add and its API depends on the version.`,
+    api:['GameObject / MonoBehaviour / prefab','ScriptableObject','Unity.Entities.IComponentData','Unity.Entities.ISystem / SystemAPI.Query','Unity.Transforms.LocalTransform','EntityCommandBuffer'],
+    snippet:`// Requires the Entities package (1.x). Component = data only.
+using Unity.Burst;
+using Unity.Entities;
+using Unity.Transforms;
+
+public struct Spin : IComponentData { public float Speed; }
+
+[BurstCompile]
+public partial struct SpinSystem : ISystem {
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state) {
+        float dt = SystemAPI.Time.DeltaTime;
+        foreach (var (xf, spin) in
+                 SystemAPI.Query<RefRW<LocalTransform>, RefRO<Spin>>()) {
+            xf.ValueRW = xf.ValueRO.RotateY(spin.ValueRO.Speed * dt);
+        }
+    }
+}`,
+    pitfall:`Destroying or adding components inside the loop that iterates them. Structural changes move entities between memory chunks and invalidate the iteration, so with safety checks on (in the Editor) the API throws. Record the change in an EntityCommandBuffer and let it play back after the loop. Also, an entity with a Spin component does nothing until a baker creates it from an authoring object in a subscene.`,
+    map:`A Unity MonoBehaviour bundles data and behaviour, where the Godot node does too. DOTS splits them: the struct holds data, the system holds the logic. Godot has no equivalent, so reach for packed arrays instead.` },
+  note:`Composition is the default in both engines. ECS is a targeted tool for large counts of similar things. The Health example shows the composition style, and the Spin system shows what ECS asks: data in a struct, logic in a system, and a bake step for authoring.` });
+INTERVIEW('craft-entities-and-scenes',{
+  junior:[
+    { q:`What does "prefer composition over inheritance" mean in a game?`,
+      a:`Build an enemy from parts (health, movement, attack) rather than a chain of subclasses. A new type combines existing parts. Inheritance breaks when a design needs a mix that the tree did not plan for, such as a flying enemy that also heals.`,
+      follow:`How is a Godot scene or a Unity prefab composition?`,
+      red:`Describes only inheritance and cannot give a case where it breaks.` },
+    { q:`What is an entity component system in one paragraph?`,
+      a:`Entities are ids. Components are plain data attached to them. Systems are functions that run over all entities with a given set of components. Because the data of one kind sits together in memory, the systems run fast over large counts.`,
+      follow:`Where does the logic live?`,
+      red:`Says ECS is just components on a GameObject.` }
+  ],
+  mid:[
+    { q:`Signals go up and calls go down. Why?`,
+      a:`A parent knows its children, so it can call them. A child should not know its parent, so it emits an event and whoever listens decides. The child then works in any scene. Long node paths and calls across the tree tie scenes to one layout.`,
+      follow:`How do two siblings talk?`,
+      red:`Uses global singletons for everything.` },
+    { q:`When does ECS pay off, and when does it not?`,
+      a:`It pays when a measured cost is per-entity update over thousands of similar things: bullets, crowds, particles, simulation. It does not for tens of unique actors with rich behaviour, nor for a team without time for the workflow. Try packed arrays first.`,
+      follow:`What would you measure to decide?`,
+      red:`Chooses ECS because it is newer or faster in general.` },
+    { q:`Your ECS system needs to destroy entities as it iterates. What do you do?`,
+      a:`Record the destroy in an EntityCommandBuffer and play it back after the iteration. Structural changes during iteration would move data the loop is reading.`,
+      follow:`What if the command depends on a result from another entity?`,
+      red:`Deletes inside the query and hopes.` }
+  ],
+  senior:[
+    { q:`Half your game is scenes and one system is ECS. How do you keep the boundary clean?`,
+      a:`Define the interface: authoring objects bake to entities at one point, ECS results come back through a small set of events or a read-only snapshot, and the rest of the game never touches component data directly. Document which systems are ECS and the measurement that justified each one, so the split does not creep.`,
+      follow:`What would make you move it back?`,
+      red:`Lets scene code and systems both write the same data.` }
+  ] });
+
+T('craft-physics-and-collision',{ d:'craft', t:'Physics and collision', tag:'Decide which bodies the engine moves and which you move yourself, sweep fast things, use layers, and never assume two runs will match.',
+  what:`The physics engine moves bodies, detects when their shapes touch and resolves the overlap. What you decide is how each object relates to it. A dynamic body is moved by forces and collisions. A kinematic or character body is moved by your code, and the engine only reports what it hits. A trigger reports overlaps without pushing. Collision layers and masks say which groups see which. Continuous collision detection (CCD) sweeps a fast body through its path so it cannot tunnel, which means skip through a thin wall between two steps. Player characters use character controllers, code-driven movers with slopes, steps and grounded checks, because a pure physics body feels wrong to control.`,
+  why:[`A bullet at 300 m/s moves five metres in one 60 Hz step. Discrete collision can put it on one side of a thin wall in one step and the other in the next, and nothing registers.`,`Making the player a dynamic physics body gives a character that slides on slopes, bounces and is pushed by boxes. It feels bad, and it is hard to tune.`,`Without layers every object tests against every other. Cost grows and a bullet hits its own shooter.`,`Physics engines are usually not deterministic across platforms, builds or engine versions. Anything that must replay or sync, like a lockstep sim or a rollback game, cannot rely on them.`],
+  think:{ q:[`Does this object need to be pushed by the world, or does it push the world? That decides dynamic or kinematic.`,`How fast is the fastest thing, and how thin the thinnest collider? Speed times step against thickness tells you if tunnelling is possible.`,`Which groups should see which? Write the layer matrix before making layers.`,`Is a physics result part of gameplay that must match on other machines?`,`Does an overlap need to push (collider) or only to tell (trigger, area)?`],
+    trade:[`Character controllers give tight control and you write the response: gravity, slopes, moving platforms, pushing. A dynamic body gives that behaviour for free and less control.`,`Continuous detection stops tunnelling and costs CPU. Use it for the few fast bodies, not for everything.`,`Physics queries (raycast, shape cast) are exact and cost more than a distance check.`,`Engine physics is quick to start with and uncontrollable at the bit level. A custom simulation is deterministic and you write every part.`],
+    traps:[`Moving a physics body by setting its position or transform. It teleports through colliders and confuses the solver. Move kinematic bodies with the character or move APIs, and dynamic ones with forces or velocity.`,`Running physics code in the variable frame callback. Use the fixed step.`,`Making a thin wall one unit thick and firing a fast projectile at it without CCD or a raycast.`,`Scaling a rigid body’s collider non-uniformly or giving bodies extreme size or mass ratios. Solvers become unstable at extreme mass ratios and scales.`,`Trusting a "grounded" flag for a jump. It flickers on edges and slopes, so add a short coyote time and a jump buffer.`],
+    good:[`Every fast body is either continuous or moved by a raycast or shape sweep, and a test proves it cannot pass a thin wall.`,`A written layer matrix, and code that names layers, not numbers.`,`Characters feel the same at every frame rate, because they move in the fixed step.`],
+    bad:[`Bullets that sometimes pass through enemies.`,`A player that slides down gentle slopes, or sticks on seams between floor tiles.`] },
+  how:[`Classify each object: static (never moves), kinematic or character (your code moves it), dynamic (physics moves it), trigger (reports only).`,`Write the layer matrix as a table: rows are layers, columns are the layers each sees. Give layers names in code.`,`Build the player as a character controller. Move it in the fixed step, apply gravity yourself, and handle slopes and moving platforms explicitly.`,`Add feel: a short coyote time (a jump still works for about 0.1 s after leaving a ledge) and a jump buffer (an early press is remembered for a few frames). Tune both by play.`,`For fast projectiles, either turn on continuous detection for that body, or skip bodies and sweep a ray or shape between last and current position each step.`,`Use queries for gameplay questions: raycast for line of sight, overlap for area damage, shape cast for a character’s next step. Pass a layer mask.`,`If physics results must match across machines, do not use the engine. Use integer or fixed-point movement and your own collision, or run physics on the server only and send results.`],
+  ai:{ yes:[`Generate a layer matrix from a list of object kinds and mark the pairs that should not collide.`,`Review a controller for logic in the wrong callback, position writes on physics bodies and missing masks.`,`Compute, for a given speed, step and collider thickness, whether tunnelling is possible.`,`Write a test that fires a fast projectile at a thin wall and asserts a hit.`],
+       no:[`Tune the character controller’s feel: acceleration, jump arc, coyote time. Those are set by playing.`,`Tell you the engine physics is deterministic. Measure it on your platforms.`,`Choose which objects are dynamic. That is a design decision about how the world responds.`] },
+  prompts:[{l:'Layer matrix',p:`Our game has these object kinds: [LIST]. Produce a table of collision layers and which layers each one should collide with or query, and mark the pairs that must never collide (for example a projectile and its owner). Say which are triggers and which are solid, and which need continuous detection or a sweep.`},
+    {l:'Tunnelling check',p:`Fastest projectile [SPEED] m/s, physics step [STEP] s, thinnest wall [THICKNESS] m, collider shape [SHAPE], engine [ENGINE]. Work out the distance moved per step and say whether tunnelling is possible. Give the fix for this engine, and a test that fires at the wall from three angles.`}],
+  verify:[`Can a fast body pass a thin wall in the test scene?`,`Are layers named in code, with a written matrix?`,`Does the character move in the fixed step and keep the same feel at 30 and 144 frames per second?`],
+  test:[`Fire the fastest projectile at the thinnest wall 1,000 times from random angles and assert every shot registers.`,`Walk the player along a slope, a seam between two tiles and a moving platform, and record the grounded flag and vertical velocity for jitter.`,`Run the same recorded inputs twice, and on two platforms, and compare positions after 60 seconds. If they differ, the physics is not something to synchronise.`],
+  facts:[{claim:`Unity’s Rigidbody.collisionDetectionMode has Discrete (default), Continuous, ContinuousDynamic and ContinuousSpeculative modes. The docs advise continuous detection to stop fast bodies passing through others, note the performance cost, and say continuous works only with sphere, capsule and box colliders.`,asOf:'2026-09-30',src:'https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Rigidbody-collisionDetectionMode.html'},
+    {claim:`Godot’s CharacterBody2D is for bodies controlled through code. move_and_slide() slides along surfaces, and movement should be done in _physics_process, not by setting position directly.`,asOf:'2026-09-30',src:'https://docs.godotengine.org/en/stable/tutorials/physics/using_character_body_2d.html'},
+    {claim:`Maddy Thorson’s article on Celeste and TowerFall physics explains how movement and collision between Actors and Solids are handled in both games, as a reference for code-driven character movement.`,asOf:'2026-09-30',src:'https://www.maddymakesgames.com/articles/celeste_and_towerfall_physics/index.html'}],
+  rel:[['craft-game-loop-timestep','Physics runs in the fixed step, and character control must too.'],['craft-gameplay-math','Sweeps, overlaps and slope tests are vector maths, and raycasts are the spatial query.'],['server-determinism','Engine physics is usually not bit-exact across platforms, so synchronised games avoid relying on it.'],['game-feel-and-juice','Coyote time, jump buffering and controller tuning are the feel of movement.']] });
+ENGINE('craft-physics-and-collision',{
+  godot:{ term:`CharacterBody2D and 3D are moved by setting velocity and calling move_and_slide() in _physics_process. RigidBody is simulated. Area2D and Area3D report overlaps. Collision layer says what this object is; mask says what it scans for. Shape casts and raycasts go through PhysicsDirectSpaceState.`,
+    api:['CharacterBody2D.move_and_slide()','CharacterBody2D.is_on_floor()','CollisionObject2D.collision_layer / collision_mask','Area2D.body_entered','PhysicsRayQueryParameters2D.create()','RigidBody2D.continuous_cd'],
+    snippet:`extends CharacterBody2D
+const SPEED := 220.0
+const JUMP := -420.0
+const COYOTE := 0.1
+var coyote := 0.0
+
+func _physics_process(delta: float) -> void:
+    if is_on_floor():
+        coyote = COYOTE
+    else:
+        coyote -= delta
+        velocity += get_gravity() * delta
+    # ui_accept is a built-in input action (Space or Enter)
+    if Input.is_action_just_pressed("ui_accept") and coyote > 0.0:
+        velocity.y = JUMP
+        coyote = 0.0
+    velocity.x = Input.get_axis("ui_left", "ui_right") * SPEED
+    move_and_slide()`,
+    pitfall:`Checking is_on_floor() before move_and_slide() has run this frame. The floor state is updated by move_and_slide(), so the value you read is from the previous call. That is fine for a jump, and wrong for anything that needs this frame’s result. Also, get_gravity() needs Godot 4.3 or later.`,
+    map:`Godot move_and_slide() is close to Unity CharacterController.Move plus your own slide, and collision layers and masks are Unity’s layers and the Layer Collision Matrix.` },
+  unity:{ term:`CharacterController.Move moves a code-driven capsule and reports collisions. Rigidbody is simulated, with Kinematic mode for code-driven bodies. Layers plus the Layer Collision Matrix decide what collides, and LayerMask arguments filter queries. Rigidbody.collisionDetectionMode selects discrete or continuous.`,
+    api:['CharacterController.Move() / isGrounded','Rigidbody.collisionDetectionMode','Physics.Raycast() / SphereCast()','LayerMask / Physics.IgnoreLayerCollision','Rigidbody.isKinematic','Physics.simulationMode'],
+    snippet:`using UnityEngine;
+using UnityEngine.InputSystem;   // needs the Input System package (com.unity.inputsystem)
+
+[RequireComponent(typeof(CharacterController))]
+public class Mover : MonoBehaviour {
+    [SerializeField] InputActionReference move;   // a Vector2 action, e.g. WASD
+    CharacterController cc;
+    float vy;
+
+    void OnEnable() => move.action.Enable();
+    void Awake() => cc = GetComponent<CharacterController>();
+
+    void Update() {
+        if (cc.isGrounded && vy < 0f) vy = -2f;          // keep the capsule on the ground
+        vy += Physics.gravity.y * Time.deltaTime;
+        Vector2 m = move.action.ReadValue<Vector2>();
+        Vector3 v = new Vector3(m.x * 5f, vy, m.y * 5f);
+        cc.Move(v * Time.deltaTime);
+    }
+}`,
+    pitfall:`Moving a CharacterController in Update with Time.deltaTime works, and it is a variable step. For a game whose feel or replay must not depend on frame rate, move it in FixedUpdate with Time.fixedDeltaTime. Also, CharacterController does not push Rigidbodies by itself: apply a force in OnControllerColliderHit if you want that.`,
+    map:`Unity’s CharacterController is Godot’s CharacterBody3D. The Layer Collision Matrix is one shared grid, where Godot sets layer and mask per object.` },
+  note:`The snippets show the control style, code moves the body, gravity is added by hand and the grounded flag is used with care. For tunnelling, choose CCD or a sweep; for anything that must replay across machines, do not rely on engine physics at all.` });
+INTERVIEW('craft-physics-and-collision',{
+  junior:[
+    { q:`What is the difference between a collider and a trigger?`,
+      a:`A collider is solid: the physics engine pushes things apart. A trigger (Area in Godot, isTrigger in Unity) only reports that something overlapped. Use triggers for pickups, zones and detection.`,
+      follow:`Which one would you use for a damage zone?`,
+      red:`Thinks a trigger is just an invisible wall.` },
+    { q:`Why do collision layers exist?`,
+      a:`To decide which groups see which. It saves cost, since fewer pairs are tested, and stops wrong hits such as a bullet hitting its owner. Write a matrix and name layers in code.`,
+      follow:`What is the difference between a layer and a mask in Godot?`,
+      red:`Sets everything to the default layer.` }
+  ],
+  mid:[
+    { q:`Fast bullets sometimes pass through a wall. Why, and what are the fixes?`,
+      a:`Tunnelling: in one step the bullet moves further than the wall is thick, so no overlap is ever detected. Fix with continuous collision detection for that body, or a raycast or shape sweep from last to current position each step. Thicker walls and a smaller step are patches.`,
+      follow:`Which fix costs less for 200 bullets?`,
+      red:`Suggests making the wall thicker only.` },
+    { q:`Why not make the player a dynamic rigidbody?`,
+      a:`Physics pushes it, bounces it and slides it on slopes, so it is hard to make responsive and consistent. A character controller lets code decide movement: acceleration, air control, jump arc, slopes. Physics only reports contacts.`,
+      follow:`What would you add for platformer feel?`,
+      red:`Applies forces and adds drag to fix it.` },
+    { q:`What is coyote time and why add it?`,
+      a:`A short window, about a tenth of a second, in which a jump still works after leaving a ledge. Players press slightly late and read the miss as unfair. Together with a jump buffer it makes controls forgiving. Tune by play.`,
+      follow:`How do you test it?`,
+      red:`Cannot explain why it exists.` }
+  ],
+  senior:[
+    { q:`Your game needs to sync physical interactions between players. What do you do?`,
+      a:`Decide the authority first. Engine physics is generally not deterministic across platforms or builds, so lockstep or rollback on top of it is fragile. Options: server-authoritative physics with snapshots and prediction, or a custom fixed-point simulation with your own collision that you can replay. Prove with a replay test on every target.`,
+      follow:`What would you give up in each option?`,
+      red:`Assumes the same engine on both sides gives the same result.` }
+  ] });
+
+T('craft-save-systems',{ d:'craft', t:'Save systems', tag:'Write to a temporary file, check it, swap it in, and keep the last good one. Number the format so old saves still load.',
+  what:`Everything that lets a game remember: serialising the state you need into bytes (JSON, a binary format), writing it to disk or the cloud, and loading it back into a running game, possibly months and several patches later. It has four separate problems. What to save (state, not the objects that hold it). How to write it without corrupting it if the power fails. How to change the format across versions. And how to sync it between devices without losing progress.`,
+  why:[`Losing a save is one of the few bugs a player never forgives. A crash or power cut in the middle of writing a file leaves half a file behind, and the old save is gone.`,`A patch adds a field, renames one or changes a meaning, and every existing save either fails to load or loads wrong. Without a version number nothing can tell which.`,`Saving live objects instead of plain data ties saves to your class layout, so refactoring becomes a save-breaking change.`,`Cloud sync with two devices and no rule for conflicts silently throws away hours of play.`],
+  think:{ q:[`What is the smallest set of state that recreates the game? Everything else is derived and should be rebuilt.`,`Which parts are a save the player controls, and which are settings or cache with different rules?`,`What happens if the write is interrupted at any byte?`,`What does version 1 look like in ten patches? How do old saves become new ones?`,`If two devices diverge, which wins, or does the player choose? What is the cloud provider’s quota?`],
+    trade:[`JSON or text is easy to read, debug and migrate, and easy for a player to edit, so it is also easy to cheat with. Binary is smaller and faster and harder to inspect. Neither is security: anything the player can read, they can change.`,`Saving often protects progress and adds hitches. Save on events (checkpoint, exit) and in a background step, not on every action.`,`Multiple save slots and backups protect against corruption and cost space and complexity.`],
+    traps:[`Writing directly over the only save file. An interruption destroys it.`,`Saving object graphs by reflection or engine serialisation of live classes. Renaming a field then breaks every save.`,`Having no version number, so a migration has to guess.`,`Ignoring failure: a full disk, a permission error or a cloud timeout all fail quietly and the player thinks progress was saved.`,`Trusting a loaded file. A truncated or edited file can crash the game or set impossible values, so validate on load.`,`Saving in the middle of an action, such as during a scene change, so the state is half-applied.`,`Storing saves in a folder that a reinstall or a store-update removes, or that a platform does not allow, instead of the platform’s save location.`],
+    good:[`Killing the game during a save at random points never loses more than the last save.`,`A save from the first public version still loads in the latest one.`,`A corrupt file falls back to the last good backup and tells the player.`],
+    bad:[`One save file, written in place, with no version.`,`A "save is corrupted" report that means the player has to start again.`] },
+  how:[`Define a plain save data type separate from your live objects: ids, numbers, strings, lists. Write functions that build it from the game and apply it back.`,`Put a version number and a save time in the file. Add a checksum of the contents so corruption can be detected.`,`Write safely: serialise to a temporary file next to the real one, read it back and check it, then replace the old file (or rename the old to a backup first). Keep at least one previous good save.`,`Load defensively: check the checksum and the version, migrate step by step (v1 to v2, v2 to v3), validate ranges, and on failure try the backup before giving up.`,`Write a migration function per version, and keep a fixture save from each released version in the tests.`,`Save at safe points and away from the frame: build the data on the main thread, write it on another, and show a save indicator.`,`For cloud saves, store the save time and a device id. On conflict, keep both and let the player choose, or merge by rule (for example the furthest progress). Use the platform’s service (Steam Cloud, iCloud, Google Play Games) rather than your own server unless you need accounts.`,`Follow platform rules: the path, size limits and required behaviour such as save-on-suspend on consoles and phones.`],
+  ai:{ yes:[`Write the migration functions between versions from two descriptions of the format, with tests on fixture saves.`,`Review a save path for non-atomic writes, missing error handling and unvalidated loads.`,`Generate a fuzzing test that truncates, flips bytes in and empties a save file and checks the game recovers.`,`List which fields in a class are state and which are derived.`],
+       no:[`Guarantee saves survive. Only killing the process at random points during a save proves it.`,`Decide the conflict rule for cloud saves. That is a player-trust decision.`,`Decide how much cheating you tolerate. Client-side saves can always be changed.`] },
+  prompts:[{l:'Audit the save path',p:`Here is our save and load code: [PASTE]. List every way an interruption at any point could lose or corrupt the player’s save, every place a failure is ignored, every field with no version or validation on load, and where live objects are serialised directly. Then propose the smallest changes for atomic writes, a backup and a version field.`},
+    {l:'Write a migration',p:`Save format v[N] is: [SCHEMA]. Version v[N+1] changes: [CHANGES]. Write the migration function and three test fixtures: a normal v[N] save, one with a missing optional field, and a corrupt one. Say what the loader does with the corrupt file.`}],
+  verify:[`Is the write to a temporary file, checked, then swapped in, with a previous good copy kept?`,`Does the file carry a version, and is there a fixture save from each released version?`,`Does load handle a failed read, a bad checksum and impossible values?`],
+  test:[`Kill the process at random moments during saves, 1,000 times, and assert a valid save exists each time.`,`Load a fixture save from every released version and compare to the expected state.`,`Truncate, empty and byte-flip a save file. The game must offer the backup and not crash.`],
+  facts:[{claim:`Godot maps user:// to a per-user folder that differs per platform (for example %APPDATA%\\Godot\\app_userdata\\[project_name] on Windows), and on mobile the folder is not accessible to other applications.`,asOf:'2026-09-30',src:'https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html'},
+    {claim:`Godot’s DirAccess.rename overwrites an existing destination if it is not access-protected, and the docs make no atomicity promise.`,asOf:'2026-09-30',src:'https://docs.godotengine.org/en/stable/classes/class_diraccess.html'},
+    {claim:`POSIX rename(): if the destination exists it is removed and the source renamed, and the destination name stays visible throughout, referring to either the old or the new file.`,asOf:'2026-09-30',src:'https://pubs.opengroup.org/onlinepubs/9799919799/functions/rename.html'},
+    {claim:`Windows MoveFileEx replaces the contents of an existing destination only when MOVEFILE_REPLACE_EXISTING is set, and the page states no atomicity guarantee.`,asOf:'2026-09-30',src:'https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw'},
+    {claim:`Unity’s Application.persistentDataPath returns a directory path for data files that persists between runs and updates, and differs per platform.`,asOf:'2026-09-30',src:'https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Application-persistentDataPath.html'},
+    {claim:`.NET’s File.Replace replaces the contents of a destination file with a source file and creates a backup of the replaced file (pass null to skip it). The destination must exist, or FileNotFoundException is thrown, and source and destination on different volumes raise an exception.`,asOf:'2026-09-30',src:'https://learn.microsoft.com/en-us/dotnet/api/system.io.file.replace'}],
+  rel:[['backend-migrations-config','A save format migrates across versions the way a database schema does.'],['craft-over-defensive-code','Load is the one place a file from outside needs real validation; the rest of the code should not repeat the checks.'],['live-operations','Cloud saves and migrations are what let a live game patch without wiping players.'],['craft-design-patterns','The memento idea, capturing state as plain data, is the pattern under a save system.']] });
+ENGINE('craft-save-systems',{
+  godot:{ term:`user:// is the writable per-user folder. FileAccess opens files for read or write, JSON turns Dictionaries to text and back, and DirAccess renames and removes. String.sha256_text() gives a checksum.`,
+    api:['FileAccess.open(path, mode)','FileAccess.get_open_error()','JSON.stringify() / JSON.parse_string()','DirAccess.rename_absolute()','DirAccess.remove_absolute()','String.sha256_text()'],
+    snippet:`extends Node
+const PATH := "user://save.json"
+const VERSION := 2
+
+func save(data: Dictionary) -> bool:
+    var body := JSON.stringify(data)
+    var text := JSON.stringify({"v": VERSION, "sum": body.sha256_text(), "body": body})
+    var f := FileAccess.open(PATH + ".tmp", FileAccess.WRITE)
+    if f == null:
+        return false
+    f.store_string(text)
+    f.close()
+    if FileAccess.file_exists(PATH):
+        DirAccess.rename_absolute(PATH, PATH + ".bak")   # keep the last good save
+    return DirAccess.rename_absolute(PATH + ".tmp", PATH) == OK
+
+func load_save() -> Dictionary:
+    for p in [PATH, PATH + ".bak"]:
+        if not FileAccess.file_exists(p):
+            continue
+        var w = JSON.parse_string(FileAccess.get_file_as_string(p))
+        if w is Dictionary and w.get("sum") == str(w.get("body")).sha256_text():
+            return JSON.parse_string(w["body"])
+    return {}`,
+    pitfall:`Treating the swap as one atomic step. POSIX rename() replaces a file atomically, but Godot’s docs promise only that DirAccess.rename overwrites the destination, and Windows MoveFileEx documents no atomicity. So the code makes two renames: old to .bak, then new into place. A crash between them leaves no main file, and load_save() then uses the .bak. Check the returned error code of both renames. Also, JSON turns integers into floats, so cast ids back with int() after loading.`,
+    map:`Godot FileAccess with user:// is C# System.IO with Application.persistentDataPath. The .bak rename plays the part of File.Replace’s backup argument.` },
+  unity:{ term:`Application.persistentDataPath is the writable per-user folder. System.IO reads and writes files. JsonUtility or a package such as Newtonsoft turns data into text. File.Replace swaps a new file over an old one and can keep a backup.`,
+    api:['Application.persistentDataPath','System.IO.File.WriteAllText()','System.IO.File.Replace()','JsonUtility.ToJson() / FromJson<T>()','System.Security.Cryptography.SHA256','Application.quitting'],
+    snippet:`using System.IO;
+using UnityEngine;
+
+[System.Serializable] public class SaveData { public int version = 2; public int level; public string sum; }
+
+public static class SaveIo {
+    static string FilePath => System.IO.Path.Combine(Application.persistentDataPath, "save.json");
+
+    public static void Write(SaveData d) {
+        d.sum = null;
+        d.sum = Hash(JsonUtility.ToJson(d));            // checksum of the body without sum
+        string tmp = FilePath + ".tmp";
+        File.WriteAllText(tmp, JsonUtility.ToJson(d));
+        if (File.Exists(FilePath)) File.Replace(tmp, FilePath, FilePath + ".bak");   // keeps the old one
+        else File.Move(tmp, FilePath);
+    }
+
+    public static SaveData Read() => TryRead(FilePath) ?? TryRead(FilePath + ".bak");
+
+    static SaveData TryRead(string path) {
+        if (!File.Exists(path)) return null;
+        try {
+            var d = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
+            string sum = d.sum; d.sum = null;
+            return sum == Hash(JsonUtility.ToJson(d)) ? d : null;
+        } catch (System.ArgumentException) { return null; }   // truncated or invalid JSON
+    }
+
+    static string Hash(string s) {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        return System.BitConverter.ToString(sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(s)));
+    }
+}`,
+    pitfall:`Writing the save from OnApplicationQuit or OnDestroy only. On phones and consoles the app is suspended and killed without a clean quit, so the write never runs. Save at safe points and when the platform reports pause, using OnApplicationPause. Also, JsonUtility cannot serialise dictionaries or polymorphic fields, so plan the save type as plain fields and lists.`,
+    map:`Unity’s File.Replace with a backup is the one-call form of Godot’s two renames, and Application.persistentDataPath is Godot’s user://.` },
+  note:`Neither engine gives a safe save system. Both give a folder and a file API. The safe part is your pattern: plain data with a version and a checksum, a temporary file, a swap that keeps a backup, and a load that falls back.` });
+INTERVIEW('craft-save-systems',{
+  junior:[
+    { q:`Why not write the save directly over the old file?`,
+      a:`If the game crashes or the power goes mid-write, the file is half written and the old save is gone. Write to a temporary file, check it, then swap it in and keep the previous file as a backup.`,
+      follow:`What is in the backup after a good save?`,
+      red:`Has never considered an interrupted write.` },
+    { q:`What is the first thing you put in a save file format?`,
+      a:`A version number. Later versions need to know what they are reading so they can migrate it. A checksum is a close second.`,
+      follow:`What do you do when you meet a save from a newer version?`,
+      red:`Says there is no need until the format changes.` }
+  ],
+  mid:[
+    { q:`How do you keep old saves working across patches?`,
+      a:`Version every save, write one migration per version step, and keep a fixture save for each shipped version in the test suite. Load runs the chain of migrations. Never rename or remove a field without a migration.`,
+      follow:`How do you handle a field that changes meaning?`,
+      red:`Reads whatever fields are there and hopes.` },
+    { q:`What do you save, and what do you rebuild?`,
+      a:`Save the minimum state that recreates the game: ids, counters, positions. Rebuild anything derived (caches, computed stats, references between objects). Serialising live objects couples the file to your class layout.`,
+      follow:`How do you save references between objects?`,
+      red:`Serialises the whole scene.` },
+    { q:`How do you test that saving is safe?`,
+      a:`Kill the process at random points during saves, many times, and check a valid save always exists. Fuzz load with truncated, empty and byte-flipped files. Load a fixture from each released version.`,
+      follow:`What does the player see when the main file is corrupt?`,
+      red:`Tests only the happy path.` }
+  ],
+  senior:[
+    { q:`Design cloud saves for a game on phone and PC with one account.`,
+      a:`Use the platform or account service for storage. Each save has a version, a save time, a device id and a progress counter. On conflict, do not silently pick one: keep both and let the player choose, or merge by a stated rule. Sync on launch, exit and pause, handle offline play, and keep local copies as the source when the cloud is down.`,
+      follow:`What if two devices played offline for a week?`,
+      red:`Last write wins with no mention of loss.` }
   ] });

@@ -1977,6 +1977,10 @@ function pathProgress(id){ return store.get('path.' + id, { steps:{}, stages:{},
 function savePathProgress(id, prog){ store.set('path.' + id, prog); }
 function trackLabel(id){ const x = TRACKS.find(t => t[0] === id); return x ? x[1] : id; }
 function levelLabel(id){ const x = LEVELS.find(l => l[0] === id); return x ? x[1] : id; }
+/** True when a path names any prerequisite, all-of or one-of. */
+function hasPrereq(p){ return p.prereq.length > 0 || (p.prereqAny || []).length > 0; }
+/** A path's prerequisites as HTML: the all-of ones, then "one of A or B" for prereqAny. @param {{prereq:string[], prereqAny?:string[]}} p @param {(id:string)=>string} fmt @param {string} join */
+function prereqHtml(p, fmt, join){ const parts = p.prereq.map(fmt); if((p.prereqAny || []).length) parts.push(`one of ${p.prereqAny.map(fmt).join(', ')}`); return parts.join(join); }
 function pathLinkChip(id){ const p = PATHS.find(x => x.id === id); return p ? `<a class="chip lnk" style="cursor:pointer" href="#/paths/${p.id}">${esc(p.t)}</a>` : esc(id); }
 // The stage a path page opens on when the URL does not name one: the first
 // stage that is neither done nor skipped, or the last stage once all are.
@@ -2100,7 +2104,7 @@ function pathCard(p, picked){
     <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span>${picked ? '<span class="chip ok">Suggested for you</span>' : ''}</div>
     <b>${esc(p.t)}</b><div class="small dim">${esc(p.tag)}</div>
     <div class="small clamp2" title="${esc(p.audience)}" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
-    <div class="small muted">${p.prereq.length ? `After ${p.prereq.map(id => esc(pathTitle(id))).join(', ')}` : 'No prerequisites'}</div>
+    <div class="small muted">${hasPrereq(p) ? `After ${prereqHtml(p, id => esc(pathTitle(id)), ', ')}` : 'No prerequisites'}</div>
     <div class="progress" style="margin-top:8px"><span class="small muted">${pct}%</span><span class="bar"><i style="width:${pct}%"></i></span></div></a>`;
 }
 // Progress lives in this browser only, so the backup controls sit where the learner looks for progress.
@@ -2150,8 +2154,8 @@ function chooserHTML(ans, rec){
     const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)} at ${hpw} hours a week.`)];
     if(ans.level === 'senior' && p.level === 'beginner') why.push('Use “I already know this” on the stages you have covered.');
     if(rec.alt.length) why.push(`Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
-    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${p.prereq.map(pathLinkChip).join(' and ')} (${esc(wk(p, hpw))}).${rec.alt.length ? ` Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
-      : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
+    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${rec.alt.length ? ` Also fits: ${rec.alt.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
+      : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}${rec.anyOf.length ? ` A good base first: one of ${rec.anyOf.map(a => pathLinkChip(a.id)).join(', ')}.` : ''}</p><a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
     out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)">${head}</div>`;
   }
   return `<section class="chooser"><div class="section-head"><h2>Which path is for me?</h2></div>
@@ -2214,7 +2218,7 @@ function pathPageHTML(pth, stageIdParam){
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
-    ${pth.prereq.length ? `<p class="small muted">Prereq: ${pth.prereq.map(pathLinkChip).join(', ')}</p>` : ''}
+    ${hasPrereq(pth) ? `<p class="small muted">Prereq: ${prereqHtml(pth, pathLinkChip, ', ')}</p>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
     <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
     ${pth.next.length ? `<div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : ''}`;

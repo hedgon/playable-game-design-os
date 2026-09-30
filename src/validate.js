@@ -607,10 +607,14 @@ for (const pth of (PATHS || [])) {
     if (!Array.isArray(pth[k])) { errors.push(`${where}: ${k} must be an array (may be empty)`); continue; }
     for (const id of pth[k]) if (!pathIds.has(id)) errors.push(`${where}: ${k} -> unknown path ${id}`);
   }
+  if (pth.prereqAny !== undefined) {
+    if (!Array.isArray(pth.prereqAny) || pth.prereqAny.length < 2) errors.push(`${where}: prereqAny must list two or more paths (one is enough)`);
+    else for (const id of pth.prereqAny) { if (!pathIds.has(id)) errors.push(`${where}: prereqAny -> unknown path ${id}`); if ((pth.prereq || []).includes(id)) errors.push(`${where}: ${id} is in both prereq and prereqAny`); if (id === pth.id) errors.push(`${where}: prereqAny names the path itself`); }
+  }
   if (!Array.isArray(pth.stages) || pth.stages.length < 4) { errors.push(`${where}: has ${Array.isArray(pth.stages) ? pth.stages.length : 'no'} stages, expected 4 or more`); continue; }
   if (pth.stages.length > 6) longs.push(`${where}: has ${pth.stages.length} stages (guide: 6)`);
   const stageIds = new Set();
-  let hoursSum = 0, prevLevelIdx = -1, levelDrop = false;
+  let hoursSum = 0, prevLevelIdx = -1, levelDrop = false, pathHasTool = false;
   pth.stages.forEach((st, si) => {
     const sw = `${where} stage ${st.id || '(no id)'}`;
     for (const k of ['id', 't', 'goal', 'level']) if (!st[k] || !String(st[k]).trim()) errors.push(`${sw}: ${k} empty`);
@@ -668,7 +672,7 @@ for (const pth of (PATHS || [])) {
     // The same title twice in one stage reads as a bug: the second step has to say what differs.
     const titles = new Map();
     st.steps.forEach((step, i) => { const tt = ctx.stepTitle(step).toLowerCase(); if (titles.has(tt)) errors.push(`${sw}: steps ${titles.get(tt)} and ${i} share the title "${ctx.stepTitle(step)}"`); else titles.set(tt, i); });
-    if (!hasToolOrChecklist) errors.push(`${sw}: needs at least one tool or checklist step`);
+    if (hasToolOrChecklist) pathHasTool = true;
     const target = st.hours * 60;
     if (target > 0 && Math.abs(minSum - target) / target > 0.1) errors.push(`${sw}: step minutes sum to ${minSum}, expected close to ${target} (hours*60, within 10%)`);
     if (Array.isArray(st.review)) { if (st.review.length > 2) longs.push(`${sw}: review names ${st.review.length} topics (guide: 2)`); for (const rid of st.review) if (!TOPICS[rid]) errors.push(`${sw}: review -> unknown topic ${rid}`); } else errors.push(`${sw}: review must be an array (may be empty)`);
@@ -689,14 +693,16 @@ for (const pth of (PATHS || [])) {
     }
     hoursSum += (typeof st.hours === 'number' ? st.hours : 0);
   });
+  if (!pathHasTool) errors.push(`${where}: needs at least one tool or checklist step somewhere in the path`);
+  { const order = (LEVELS || []).map(l => l[0]); const li = pth.stages.map(st => order.indexOf(st.level)); if (li[0] !== order.indexOf(pth.level)) errors.push(`${where}: first stage level ${pth.stages[0].level} must match the path level ${pth.level}`); li.forEach((v, k) => { if (k && v - li[k - 1] > 1) errors.push(`${where}: stage ${pth.stages[k].id} jumps more than one level`); }); }
   if (levelDrop) errors.push(`${where}: stage levels must be non-decreasing`);
   if (typeof pth.hours === 'number' && hoursSum > 0 && Math.abs(hoursSum - pth.hours) / pth.hours > 0.1) errors.push(`${where}: stage hours sum to ${hoursSum}, path declares ${pth.hours} (expected within 10%)`);
 }
 // A prerequisite points forward to the path that needs it: every path named
 // in a prereq lists this path in its own next.
-for (const pth of (PATHS || [])) for (const id of (pth.prereq || [])) {
+for (const pth of (PATHS || [])) for (const id of [...(pth.prereq || []), ...(pth.prereqAny || [])]) {
   const pre = (PATHS || []).find(p => p.id === id);
-  if (pre && !(pre.next || []).includes(pth.id)) errors.push(`path ${pth.id}: prereq ${id} does not list ${pth.id} in its next`);
+  if (pre && !(pre.next || []).includes(pth.id)) errors.push(`path ${pth.id}: prerequisite ${id} does not list ${pth.id} in its next`);
 }
 // Every page in PAGES is a route the app's router handles.
 const ROUTER_VIEWS = new Set([...((fs.readFileSync(path.join(__dirname, '90-app.js'), 'utf8').match(/function render\(view, parts\)\{([\s\S]*?)\n\}/) || ['', ''])[1].matchAll(/case '([\w-]+)'/g))].map(m => m[1]));

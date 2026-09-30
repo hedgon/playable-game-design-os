@@ -1966,7 +1966,7 @@ GAME({ id:'counter-strike-2', series:{ id:'counter-strike', t:'Counter-Strike', 
       compare: 'Valve had already tested a cosmetic economy in Team Fortress 2 from 2010, hats and crates traded for real value years before Arms Deal; Counter-Strike 2 inherited a mature, already-controversial version of that model rather than inventing it, so Valve’s 2016 and 2019 interventions read as damage control on a known risk, not an unforeseeable surprise.',
       cost: 'Free accounts feed smurfing and cheating that Prime Status only partly filters, and the skin market keeps attracting new gambling and laundering schemes faster than enforcement closes the last ones, an ongoing cost of an economy Valve never fully controls.',
       principle: 'A free-to-play switch and a tradeable virtual-goods market are each manageable alone, but combining them multiplies both audience and risk together, so plan who gets banned before the two decisions ship, not after operators have already built on top of them.',
-      topics: ['business-model', 'ethics-and-responsibility'],
+      topics: ['business-model', 'ethics-and-responsibility', 'monetisation-design'],
       sources: ['https://en.wikipedia.org/wiki/Counter-Strike:_Global_Offensive', 'https://www.espn.com/esports/story/_/id/17723033/washington-state-gambling-commission-orders-valve-stop-skins-gambling', 'https://www.espn.com/gaming/story/_/id/17115903/valve-sends-cease-desists-23-csgo-skin-betting-sites', 'https://www.gamespot.com/articles/valve-launches-steam-market/1100-6401485/'] },
     replay: {
       claim: 'Counter-Strike 2 stacks two separate costs of failure onto one death, a temporary one that empties the rest of the round of agency and an economic one that follows the player into the next round entirely.',
@@ -2099,7 +2099,7 @@ GAME({ id:'fortnite', img:'assets/games/fortnite.jpg', imgCredit:{ author:'Epic 
       compare: 'Counter-Strike 2 also sells only cosmetic skins, but mostly through paid, randomised weapon cases, and players resell them on the Steam Community Market at prices trading sets; Fortnite fixes every cosmetic’s price in its own shop, so a skin can never resell at a profit the way a rare Counter-Strike skin can.',
       cost: 'An engagement-based pool pays for attention, not creativity, so a shallow but highly replayed island can out-earn a more inventive one that players finish once, a cost paid by ambitious creators whose best work does not loop players the way a live-service treadmill does.',
       principle: 'When a platform’s own flagship mode and its outside creators share one revenue pool measured by engagement rather than sales, the platform commits to rewarding whatever keeps players logged in, even when that favours a shallow, replayable idea over an inventive one that ends.',
-      topics: ['business-model', 'ugc-platforms'],
+      topics: ['business-model', 'ugc-platforms', 'monetisation-design'],
       sources: ['https://en.wikipedia.org/wiki/Battle_pass', 'https://www.dexerto.com/fortnite/whats-in-the-fortnite-season-4-marvel-battle-pass-all-tiers-rewards-1411591/', 'https://www.gamedeveloper.com/business/epic-v-apple-trial-offers-rare-look-into-epic-financials-billions-of-i-fortnite-i-revenue', 'https://www.kitguru.net/gaming/mustafa-mahmoud/epic-revamps-fortnite-monetisation-giving-creators-40-of-net-revenue/', 'https://en.wikipedia.org/wiki/Counter-Strike_2'] },
     replay: {
       claim: 'Building is the one skill that survives every chapter’s map reset, so Fortnite anchors replay value to a portable mechanical skill rather than to any single season’s content, then split its own playerbase by offering the whole game again without it.',
@@ -2468,7 +2468,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'Counter-Strike 2’s footstep noise is a cost a player accepts only if they choose to move carelessly, and a careful player can avoid generating it at all; Dota 2’s teleport sound cannot be avoided by careful play, since the warning is built into the item’s use rather than into how the player uses it.',
       cost: 'The warning removes genuine surprise value from one of the cheapest items in the game, so an aggressive teleport play must rely on the enemy failing to react to information they were handed for free, rather than on the play being unseen in the first place.',
       principle: 'When an item is powerful enough to change a fight from anywhere on the map, consider taxing its use with mandatory, unavoidable information rather than relying on cost or cooldown alone, so its power is balanced by a window for reaction rather than by scarcity.',
-      topics: ['audio-and-music','feedback-and-affordance'],
+      topics: ['audio-and-music','feedback-and-affordance','multiplayer-design'],
       sources: ['https://liquipedia.net/dota2/Town_Portal_Scroll'] },
     lore: {
       claim: 'Dota 2 keeps its fiction around the match rather than in it: hero dialogue, short bios and free webcomics carry the lore, and when Valve finally told one long story it did so outside the game entirely, in a Netflix series.',
@@ -2508,7 +2508,7 @@ GAME({ id:'dota-2', series:{ id:'dota', t:'Dota', n:'the standalone successor to
       compare: 'League of Legends also monetises through cosmetics, but gates its roster behind a weekly rotation of twenty free champions plus a purchase economy in Blue Essence or Riot Points, so Riot’s free-to-play promise and Dota 2’s are not the same promise.',
       cost: 'A prize pool depending on fans buying a given year’s cosmetic pass is not a sum Valve can budget in advance: the pool halved to $18.9 million in 2022, and Valve then dropped Battle Passes altogether, saying most players never bought one.',
       principle: 'When free access removes a paywall the roster used to carry, fund what that paywall paid for through spending players choose, but never build a headline commitment on a source that depends on the crowd staying as excited as the year it peaked.',
-      topics: ['business-model', 'live-operations'],
+      topics: ['business-model', 'live-operations', 'monetisation-design'],
       sources: ['https://en.wikipedia.org/wiki/Dota_2', 'https://en.wikipedia.org/wiki/The_International_(esports)', 'https://www.pcgamer.com/dota-2-is-moving-away-from-the-battle-pass-model-as-valve-says-there-are-better-uses-of-dev-time-and-most-players-never-buy-one-anyway/', 'https://wiki.leagueoflegends.com/en-us/Free_champion_rotation'] },
     replay: {
       claim: 'Dota 2 shortens a session by speeding the game up rather than cutting it down: Turbo keeps every hero, item and rule but raises gold and experience and weakens the siege, so a complete match fits into a shorter sitting.',
@@ -2623,7 +2623,7 @@ GAME({ id:'rocket-league', series:{ id:'rocket-league-series', t:'Rocket League'
       compare: 'EA Sports FC, and FIFA before it, instead sustains its audience by renewing one recurring cost, a full-price release every year plus, until 2023, a licence fee for the FIFA name itself reported at about $150 million annually; Rocket League never re-releases, so its only lever for reach has been removing friction from the one game it already has.',
       cost: 'The September 2020 change that removed price and subscription friction installed a different friction in its place: Windows players who did not already own the game on Steam could no longer buy it there and had to move to the Epic Games Store, trading one platform lock for another rather than eliminating platform friction outright.',
       principle: 'When several separate things stand between an audience and a live game, a subscription gate, a platform wall, an opaque price, treat each as its own decision to revisit on its own timeline rather than waiting to bundle them into one relaunch, but check what any single fix costs before calling the friction gone, since removing one barrier can just as easily install a different one.',
-      topics: ['business-model', 'platform-choice'],
+      topics: ['business-model', 'platform-choice', 'monetisation-design'],
       sources: ['https://en.wikipedia.org/wiki/Rocket_League', 'https://www.espn.com/soccer/story/_/id/37628326/fifa-ea-sports-end-video-game-partnership-game-continue-new-name', 'https://store.steampowered.com/app/252950/Rocket_League/'] },
     replay: {
       claim: 'Rocket League ties its one content treadmill, Rocket Pass, to the same clock as its skill ladder, competitive Ranked seasons, so climbing in skill and finishing the pass reward exactly the same weeks of play.',
@@ -4362,7 +4362,7 @@ GAME({ id:'overwatch', series:{ id:'overwatch-series', t:'Overwatch', n:'first e
       compare: 'Dota 2 made every hero free from launch and has never sold one; Overwatch 2 put new heroes behind its battle pass first, then reversed it.',
       cost: 'Players paid in lost purchases and gated heroes; Blizzard paid in reputation and, later, in reversing the gating it had built its sequel around.',
       principle: 'In a game where counter-picking is the skill, putting a price on a hero sells a competitive answer, not a cosmetic.',
-      topics: ['business-model', 'live-operations'],
+      topics: ['business-model', 'live-operations', 'monetisation-design'],
       sources: ['https://en.wikipedia.org/wiki/Overwatch_(2016_video_game)', 'https://en.wikipedia.org/wiki/Overwatch_2'] },
     replay: {
       claim: 'Overwatch’s long-term play depended less on new maps than on repeated rule changes to team composition, each of which re-set what a winning team looked like.',

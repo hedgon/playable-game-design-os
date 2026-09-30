@@ -319,13 +319,14 @@ Add a path with `PATH('path-id', {...})` in `50-paths.js` or
 it; run `node src/inventory.js` first to see every id a step can reference. The
 shape and rules are documented in the header comment of `50-paths.js` and
 enforced by the validator: at least 4 stages and 3 steps per stage (about 6 and 8 as guides), at least one
-tool or checklist step per stage, a checkpoint on every stage, stage levels that
-never go down, step minutes within 10% of the stage hours, and stage hours within
+tool or checklist step somewhere in the path (a stage holds one only when its `why` serves the stage goal; do not add one to fill a rule), a checkpoint on every stage, stage levels that
+never go down (the first stage matches the path level and none rises more than one level), step minutes within 10% of the stage hours, and stage hours within
 10% of the path hours. A topic step's optional `tab` (`godot`, `unity` or
 `interview`) must exist on that topic. A `platform` step names a platform guide, and a `game` step names a reference game (`#/games/<id>`); a game step also shows on that game’s page under “Part of paths”.
 Every path has a `pick` line under 60 characters for the door; every recall
 question is `{q, a}` with a short answer outline; and every path in a `prereq`
-must list this path in its own `next`. If you add a path, place it in the
+or `prereqAny` must list this path in its own `next`. `prereq` means all of them; `prereqAny` (two or
+more ids) means one of them is enough, and the chooser only names it as a good base for someone new to the path rather than sending them there first. If you add a path, place it in the
 chooser's `CHOOSER.paths` table in `50-paths.js` where it fits; the validator
 checks that every combination of answers still picks a real path.
 

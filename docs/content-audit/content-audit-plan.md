@@ -48,10 +48,10 @@ Status: `todo`, `doing`, `done`.
 | T6 | Topics: models, craft, careers (34) | done | 13 findings (0 high, 3 medium, 10 low); dated model, pricing and caching facts verified against vendor pages |
 | X1 | Triage: merge findings, decide fixes (debate where unsure) | done | decisions below |
 | F1 | Fixes: correctness first, then clarity, gaps and structure; new material fact-checked | done | fa 40 fixes, fb about 75 fixes; 25 game-link findings passed to G1 |
-| N1 | New topics for the confirmed gaps (10 topics plus the lag-compensation example), fact-checked and code-reviewed | doing | na written (6 topics, about 2,000 to 2,700 words each, plus the lag-compensation example); review of na running; nb after |
+| N1 | New topics for the confirmed gaps (10 topics plus the lag-compensation example), fact-checked and code-reviewed | done | na: 6 topics plus the lag-compensation example, reviewed (17 fixes); nb: 4 topics, reviewed with primary sources where reachable (9 fixes, unsupported licence figures removed, secondary-only rules flagged) |
 | G1 | "In real games" links: remove mis-tags, add real ones | todo | game data files |
-| P2 | Paths fixes and placement of the new topics | todo | after N1 |
-| R1 | Independent fact-check and code review of every batch | doing | fa reviewed (4 fixes, restructures checked against the diff); fb reviewed (1 fix; Sonnet 5.5 price, METR, Epic and W4 facts checked); N1, G1 and P2 reviews to come |
+| P2 | Paths fixes and placement of the new topics | done | 30 of 32 findings fixed; P-26, P-29 and P-32 kept with reasons; prereqAny, a real prototype in idea-to-prototype, netcode prediction and rollback stage, coding and math practice, engine fundamentals stages, real builds, 48 recall questions reworded to the stage goal, stable stage ids; chooser picks a mentor would give, and time changes only the weeks; 12 new topics placed |
+| R1 | Independent fact-check and code review of every batch | done | fa, fb, na, nb, nc, game links and paths each reviewed by a second agent (about 45 more fixes, including stage-id stability and snippet bugs) |
 | V1 | Checks, CI replay, archive | todo | |
 
 ## Findings and decisions

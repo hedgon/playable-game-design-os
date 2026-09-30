@@ -747,7 +747,7 @@ ANALYSIS('celeste', {
       compare: 'I Wanna Be the Guy (2007), the touchstone of so-called masocore, builds its difficulty on traps all but impossible to avoid without prior knowledge; Celeste, which Polygon likened to masocore games, widens its windows instead, so its difficulty lives in readable geometry rather than in surprise.',
       cost: 'Widening so many windows at once makes a room’s true difficulty hard to judge from watching alone, since a jump that looks impossibly precise may in fact land inside a generous, invisible window, which, arguably, can undersell to onlookers how much of the challenge the design is quietly absorbing.',
       principle: 'A game can be very hard and very fair at once if its input system quietly errs towards the player, so every death traces to the player’s read of the room rather than to a strict window.',
-      topics: ['skill-and-mastery', 'challenge-failure-recovery'],
+      topics: ['skill-and-mastery', 'challenge-failure-recovery', 'craft-physics-and-collision'],
       sources: ['https://www.maddymakesgames.com/articles/celeste_and_forgiveness/index.html', 'https://en.wikipedia.org/wiki/Celeste_(video_game)'] },
     ui: {
       claim: 'Celeste shows Madeline’s two limited resources on her body and nowhere else, her hair’s colour for the dash and a red flash when climbing stamina is nearly gone, so a player reads both without looking away from her.',
@@ -1227,7 +1227,7 @@ ANALYSIS('among-us', {
       compare: 'A tabletop game such as Mafia, which Bromander named as a direct inspiration, has no public equivalent: an alibi there is a claimed story, and even Werewolf’s Seer checks roles only in private, never for the table. Among Us gives a minority of moments an objective, third-party witness instead.',
       cost: 'Because only some tasks are visible, players fixate on being seen at those specific stations rather than on finishing their list efficiently, and a crewmate stuck with an unlucky list of only invisible tasks has no way to ever prove anything at all.',
       principle: 'If a game asks players to lie to each other, give a minority of ordinary actions an objective witness; a system made entirely of unverifiable claims collapses into noise, while one that is entirely verifiable removes the lying altogether.',
-      topics: ['core-loop', 'mechanics-and-rules'],
+      topics: ['core-loop', 'mechanics-and-rules', 'multiplayer-design'],
       sources: ['https://en.wikipedia.org/wiki/Among_Us', 'https://www.innersloth.com/press-kit-among-us/'] },
     ui: {
       claim: 'Among Us gives every player, Impostor included, the same information tools, the Admin Table’s headcount, the security cameras, the map, and confines the asymmetry to a few private cues, so roles leak through behaviour or a glance at someone’s screen, never through shared data.',

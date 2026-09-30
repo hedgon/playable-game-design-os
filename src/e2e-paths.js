@@ -112,12 +112,16 @@ const server = http.createServer((req, res) => {
     check(`${tag} every chooser combination (${allCombos.n}) suggests a path`, allCombos.n === allCombos.expect && !allCombos.bad.length, JSON.stringify(allCombos.bad));
 
     // --- the chooser sends an unprepared learner to the prerequisite first, with weeks and links
-    for (const [q, v] of [['goal', 'gameplay'], ['level', 'new'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+    for (const [q, v] of [['goal', 'iv-design'], ['level', 'new'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
     const pre = await page.evaluate(() => ({ over: document.querySelector('#pane .chooser-pick .overline')?.textContent, h: document.querySelector('#pane .chooser-pick h3')?.textContent, txt: document.querySelector('#pane .chooser-pick p')?.textContent, links: [...document.querySelectorAll('#pane .chooser-pick a')].map(a => a.getAttribute('href')) }));
-    check(`${tag} an unprepared engineer is told to start with the prerequisite, with weeks`, pre.over === 'Start here first' && pre.h === 'Game designer foundations' && /about \d+ weeks?/.test(pre.txt) && pre.links.includes('#/paths/game-designer-foundations') && pre.links.includes('#/paths/gameplay-engineer-godot'), JSON.stringify(pre));
+    check(`${tag} an unprepared designer is told to start with the prerequisite, with weeks`, pre.over === 'Start here first' && pre.h === 'Game designer foundations' && /about \d+ weeks?/.test(pre.txt) && pre.links.includes('#/paths/game-designer-foundations') && pre.links.includes('#/paths/interview-prep-designer'), JSON.stringify(pre));
     for (const [q, v] of [['goal', 'gameplay'], ['level', 'some'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
     const exp = await page.evaluate(() => document.querySelector('#pane .chooser-pick h3')?.textContent);
-    check(`${tag} an engineer with some experience is not sent to a path that needs two unfinished paths`, exp === 'Gameplay engineer, Godot', exp);
+    check(`${tag} an engineer with some experience is taken straight to the engine path`, exp === 'Gameplay engineer, Godot', exp);
+    // a one-of prerequisite (prereqAny) never forces a detour: the pick is direct, with the good bases named
+    for (const [q, v] of [['goal', 'iv-eng'], ['level', 'new'], ['time', '5']]) { await page.evaluate(([q, v]) => document.querySelector(`#pane [data-action="choose"][data-q="${q}"][data-v="${v}"]`)?.click(), [q, v]); await page.waitForTimeout(80); }
+    const anyOf = await page.evaluate(() => ({ h: document.querySelector('#pane .chooser-pick h3')?.textContent, over: document.querySelector('#pane .chooser-pick .overline')?.textContent, txt: document.querySelector('#pane .chooser-pick p')?.textContent }));
+    check(`${tag} a one-of prerequisite is named as a good base, not forced first`, anyOf.over === 'Suggested path' && anyOf.h === 'Interview prep, engineering' && /A good base first: one of/.test(anyOf.txt), JSON.stringify(anyOf));
 
     // --- the path bar keeps the step's task in view; continue ticks and moves on
     await nav('#/paths/game-ai-programmer'); await page.waitForTimeout(200);
@@ -141,7 +145,7 @@ const server = http.createServer((req, res) => {
     await nav('#/games/pac-man/gameplay'); await page.waitForTimeout(300);
     const ln = await page.evaluate(() => { const c = document.getElementById('lens-gameplay'); const r = c && c.getBoundingClientRect(); return { top: r && r.top, inView: !!r && r.top >= 0 && r.top < innerHeight * 0.6, strip: document.querySelectorAll('#pane .lenscontents a[href^="#/games/pac-man/"]').length }; });
     check(`${tag} #/games/pac-man/gameplay scrolls the gameplay lens into view, with a contents strip`, ln.inView && ln.strip >= 5, JSON.stringify(ln));
-    const stepLens = await page.evaluate(() => { const st = PATHS.find(p => p.id === 'game-ai-programmer').stages[0].steps[1]; return { kind: st.kind, href: stepHref(st, 'game-ai-programmer', 's1') }; });
+    const stepLens = await page.evaluate(() => { const st = PATHS.find(p => p.id === 'game-ai-programmer').stages[0].steps.find(s => s.ref === 'pac-man'); return { kind: st.kind, href: stepHref(st, 'game-ai-programmer', 's1') }; });
     check(`${tag} a step that reads one lens links to it`, stepLens.href === '#/games/pac-man/gameplay', JSON.stringify(stepLens));
     await nav('#/games/zelda'); await page.waitForTimeout(200);
     const ser = await page.evaluate(() => { const t = document.querySelector('#pane .seriestake'), w = document.querySelector('#pane .view .card:not(.seriestake)'); return !!t && !!w && (t.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0; });

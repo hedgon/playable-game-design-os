@@ -524,7 +524,7 @@ GAME({ id:'angry-birds', series:{ id:'angry-birds', t:'Angry Birds', n:'the orig
       compare: 'Boom Blox, a 2008 Wii physics puzzler, also topples block towers with thrown objects, but reads each throw from a swung Wii Remote and recognises only four distinct speeds. Angry Birds folds angle and continuous power into one held drag that can be adjusted before release, so the shot is set rather than performed.',
       cost: 'Retries are free and instant, so any single pull carries little weight; the tension that remains comes entirely from a limited bird count and the three-star tally, not from any risk of losing progress.',
       principle: 'When the whole game is one gesture, let real physics resolve its outcome rather than scripting it, so a miss always traces back to the player’s own aim.',
-      topics: ['mechanics-and-rules', 'core-loop', 'decisions'],
+      topics: ['mechanics-and-rules', 'core-loop', 'decisions', 'craft-physics-and-collision'],
       sources: ['https://en.wikipedia.org/wiki/Angry_Birds_(video_game)', 'https://www.gamedeveloper.com/design/the-highs-and-lows-of-creating-i-angry-birds-i-', 'https://abcnews.com/Technology/angry-birds-tips-strategies-beating-game/story?id=12459800', 'https://en.wikipedia.org/wiki/Boom_Blox'] },
     ui: {
       claim: 'Angry Birds keeps its permanent interface to almost nothing, a score counter and a pause button, and saves the one number that matters, the star rating, for the moment the player can no longer act on it.',

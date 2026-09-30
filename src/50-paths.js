@@ -15,6 +15,7 @@
      audience:'', outcome:'',               // 1-2 sentences each
      pick:'',                               // under 60 characters: the quick-pick line on the door
      prereq:[''], next:[''],                // other path ids, may be empty
+     prereqAny:[''],                        // optional: paths of which ONE is enough (the learner has done any one of them)
      stages:[{
        id:'', t:'', level:'', goal:'', hours:0,
        steps:[{
@@ -48,10 +49,11 @@
    rounded to hours, within 10%; a path's hours is the sum of its stages,
    within 10%; every ref resolves for its kind; no stage runs more than 4
    consecutive 'topic' steps from one domain (interleave); at least one
-   'tool' or 'checklist' step per stage; every stage has a check with 2-4
+   'tool' or 'checklist' step in the path (a stage holds one only when it serves the stage goal); every stage has a check with 2-4
    recall questions, a non-empty build task, and 3-5 skip questions; stage
    levels are non-decreasing across a path; prereq and next resolve to
-   other path ids; ids are unique.
+   other path ids (prereqAny too, and a prereqAny path also lists this path in its
+   next); ids are unique.
    ===================================================================== */
 /**
  * @typedef {object} PathStep
@@ -87,6 +89,7 @@
  * @property {string} outcome
  * @property {string} pick
  * @property {string[]} prereq
+ * @property {string[]} [prereqAny]   one of these is enough
  * @property {string[]} next
  * @property {PathStage[]} stages
  */
@@ -98,19 +101,21 @@ const TRACKS = [['design','Design'],['engineering','Engineering'],['production',
 /* The chooser on the paths door: three answers pick one path. Each goal and
    level lists candidate paths in order of preference; paths whose
    prerequisites are not done move behind those whose are, and when the pick
-   still has an unmet prerequisite the door says to start there first. The
+   still has an unmet prerequisite the door says to start there first. A path's
+   prereqAny (one of several) never forces that detour: the door only names
+   the paths that make a good base for someone new to it. The
    time answer is hours per week: it only turns a path's own hours into
-   "about N weeks". validate.js checks that every combination picks a real
+   "about N weeks"; it never changes the pick. validate.js checks that every combination picks a real
    path. */
 const CHOOSER = {
   goals: [['design','Design games'],['gameplay','Program gameplay'],['backend','Build backends and servers'],['ship','Ship a game'],['lead','Lead a team'],['iv-design','Interview for a design job'],['iv-eng','Interview for an engineering job'],['ai','Build with AI'],['elsewhere','Take game skills elsewhere']],
   levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
-  times: /** @type {[string, string, number][]} */ ([['2','2 hours',2],['5','5 hours',5],['10','10 hours or more',10]]),
+  times: /** @type {[string, string, number][]} */ ([['2','2 hours a week',2],['5','5 hours a week',5],['10','10 hours a week or more',10]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
     design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
-    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'] },
+    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['game-ai-programmer','gameplay-engineer-godot','gameplay-engineer-unity'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['netcode-server-engineer','live-game-backend-engineer'] },
-    ship:{ new:['ship-it'], some:['ship-it','casual-game-people-keep','build-and-release-engineer'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
+    ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer','casual-game-people-keep'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
     lead:{ new:['technical-lead'], some:['technical-lead','studio-practice-ai-era'], senior:['technical-lead','studio-practice-ai-era'] },
     'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
     'iv-eng':{ new:['interview-prep-engineer'], some:['interview-prep-engineer'], senior:['interview-prep-engineer'] },
@@ -130,7 +135,9 @@ function choosePath(goal, level, time, done = []){
   const ranked = list.map(p => ({ p, gap: unmet(p).length > 0 })).sort((a, b) => +a.gap - +b.gap).map(x => x.p);
   const path = ranked[0]; let start = unmet(path)[0] || null;
   while(start && unmet(start).length) start = unmet(start)[0];
-  return { path, alt: ranked.slice(1), start, hpw, weeks: hpw ? pathWeeks(path, hpw) : 0 };
+  // prereqAny is a soft entry: it never forces a detour, but a learner new to it is told which paths make a good base.
+  const anyOf = level === 'new' && (path.prereqAny || []).length && !path.prereqAny.some(id => done.includes(id)) ? path.prereqAny.map(id => PATHS.find(x => x.id === id)).filter(x => !!x) : [];
+  return { path, alt: ranked.slice(1), start, anyOf, hpw, weeks: hpw ? pathWeeks(path, hpw) : 0 };
 }
 const LEVELS = [['beginner','Beginner'],['intermediate','Intermediate'],['advanced','Advanced'],['expert','Expert']];
 /* Level descriptors, shown on the door and on a path's header.
@@ -231,7 +238,7 @@ PATH('game-designer-foundations', {
   track:'design', level:'beginner', hours:9.75,
   audience:'Anyone starting in game design, or an engineer, producer or artist picking up design responsibility for the first time.',
   outcome:'You can name a player and a promise, build and defend a core loop, judge whether a feature idea creates a real decision, and turn a hunch into a hypothesis before you write a line of code.',
-  prereq:[], next:['systems-designer','level-and-ux-designer','games-that-broke-the-mould','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer'],
+  prereq:[], next:['systems-designer','level-and-ux-designer','games-that-broke-the-mould','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer','study-the-hits-play','study-the-hits-worlds','interview-prep-designer'],
   stages:[
     { id:'s1', t:'The player and the promise', level:'beginner',
       goal:'Name a real player, the fantasy you are selling them, and the one sentence that has to survive every later decision.', hours:2.75,
@@ -271,7 +278,7 @@ PATH('game-designer-foundations', {
       review:['fantasy'],
       check:{
         recall:[
-          { q:'How does Mario Kart 8 keep decisions alive for a player who is losing?', a:'Its item table is weighted towards whoever is behind, so a trailing player still gets strong items and a real choice about when to use them, and the leader still has a position to defend.' },
+          { q:'How can a game keep decisions alive for a player who is losing, and what does Mario Kart 8’s item table show about it?', a:'Its item table is weighted towards whoever is behind, so a trailing player still gets strong items and a real choice about when to use them, and the leader still has a position to defend.' },
           { q:'What are the five links in the core loop?', a:'Action, feedback, decision, consequence, and new situation: the player acts, the game responds legibly, they decide based on that response, the decision has consequences, and those consequences create a fresh situation demanding another action.' },
           { q:'What makes a decision meaningful rather than merely present?', a:'The options must be different with no dominant choice, the right answer must change with the situation, and different players must choose differently. The player needs enough information to reason but not enough to be certain.' },
           { q:'How do you tell a load-only mechanic from one that creates a decision?', a:'Ask what decision would disappear if you removed it. If none, it only adds a rule to track without changing any trade-off, so it is load-only rather than decision- or interaction-creating.' }
@@ -297,7 +304,7 @@ PATH('game-designer-foundations', {
           { q:'What did Breath of the Wild give up by handing out its core runes early?', a:'The series’ lock-and-key rule, where a dungeon item opens an obstacle elsewhere. In exchange every core tool is in hand from the opening area, and later obstacles are solved by combining those tools through shared physics rather than by finding a new key item.' },
           { q:'What is the difference between complexity and depth?', a:'Complexity is what the player must learn: rules, exceptions, state. Depth is what they can do with it: the meaningful, situationally different decisions those rules generate. Elegance means high depth for little complexity, so aim to buy depth, not complexity.' },
           { q:'Why does feedback need to show cause, not only outcome?', a:'Confirming that something happened without showing why gives the player nothing to correct. Cause feedback lets them update their understanding and act differently next time; without it, a failure feels unfair regardless of whether it was.' },
-          { q:'Which of the nine “Should we build this?” questions kills the most ideas in your experience so far?', a:'Personal, but in the tool’s own scoring the heaviest penalties sit on two questions: could a simpler change deliver the same experience, and what happens if we do not build it. An idea that a change to an existing system could deliver, or whose absence nobody would notice, loses the most points.' }
+          { q:'Which two of the nine “Should we build this?” questions carry the heaviest penalty in the tool’s scoring?', a:'In the tool’s own scoring the heaviest penalties sit on two questions: could a simpler change deliver the same experience, and what happens if we do not build it. An idea that a change to an existing system could deliver, or whose absence nobody would notice, loses the most points.' }
         ],
         build:'Run the design review checklist on one feature you are considering, and either cut it or write down what each group answered.',
         skip:['Can you say which of your withheld tools could be taught in the first area?','Can you run a rule audit on your own systems and say which rules earn their place?','Can you name the empty cell in your current feedback matrix?','Have you already used “Should we build this?” to kill an idea you liked?','Can you explain teaching by doing to someone in one sentence?']
@@ -348,7 +355,7 @@ PATH('systems-designer', {
       review:[],
       check:{
         recall:[
-          { q:'Why is a Civilization turn never a clean stopping point?', a:'Build queues, research and movement run on separate clocks that finish at different turns, so there is almost always something about to complete. The pull comes from how the parts relate in time, not from any one value.' },
+          { q:'Why do systems on separate clocks stop a turn being a clean stopping point, as in Civilization?', a:'Build queues, research and movement run on separate clocks that finish at different turns, so there is almost always something about to complete. The pull comes from how the parts relate in time, not from any one value.' },
           { q:'What is the difference between a relationship and a rule in a system?', a:'A relationship is the observed dependency between two parts, stated as “A affects B.” A rule is the exact mechanic that enforces that relationship. Naming the rule, not just the relationship, is what makes it changeable later.' },
           { q:'Why does listing sinks with no attached choice matter before you touch numbers?', a:'A sink with no meaningful choice attached is really a progress bar, not a resource decision, so tuning its numbers will not create engagement. Finding these first shows where the economy needs a new trade-off rather than a balance pass.' },
           { q:'What does a feedback loop look like on your relationship map that a spreadsheet would hide?', a:'It appears as a visible cycle of edges, where one node’s output loops back to affect itself or an earlier node, such as abundance lowering its own value. A spreadsheet’s linear rows of numbers make that cycle much harder to notice.' }
@@ -371,7 +378,7 @@ PATH('systems-designer', {
       review:['systemic-design'],
       check:{
         recall:[
-          { q:'How does a Diablo II drop stay a decision?', a:'The colour gives its tier instantly, but the affixes and where each one rolled in its range must be read and weighed against the equipped item, so the upgrade is judged, not handed over.' },
+          { q:'What keeps a loot drop a decision instead of a reflex, as in Diablo II?', a:'The colour gives its tier instantly, but the affixes and where each one rolled in its range must be read and weighed against the equipped item, so the upgrade is judged, not handed over.' },
           { q:'What breaks when progression and difficulty are tuned separately?', a:'Progression and difficulty are two names for the same pressure. If power grows faster than demand the game turns boringly easy, and if demand outpaces power it turns unfair; tuned apart, one curve silently undercuts the other.' },
           { q:'What is the test for whether an unlock is meaningful?', a:'Ask what new capability, decision, or experience the unlock creates, not what number it changes. A step that only raises a stat without changing what the player can do or choose is “number goes up,” not real progression.' },
           { q:'What does a currency need to justify existing, according to the smell you just read?', a:'It needs to create a spending decision, a trade-off, that no other currency in the game already creates. A currency added only to gate a system, with no unique choice attached, should be merged into an existing one or cut.' }
@@ -382,7 +389,7 @@ PATH('systems-designer', {
     { id:'s3', t:'Depth, content, and diminishing returns', level:'advanced',
       goal:'Tell a system problem from a content problem, and know when adding more stops helping.', hours:2.5,
       steps:[
-        { kind:'topic', ref:'depth-vs-complexity', why:'Depth and complexity look identical on a feature list. Only the player’s decisions tell them apart.', do:'Take ten rules from your system and classify each as creating a decision, enabling an interaction, or load only. Count each bucket.', min:25 },
+        { kind:'topic', ref:'depth-vs-complexity', why:'Depth and complexity look identical on a feature list. Only the player’s decisions tell them apart.', do:'Take the ten rules that drive your economy or progression (not your whole game) and, for each, write which decision disappears if you delete it. Count the rules whose deletion removes none.', min:25 },
         { kind:'topic', ref:'content-multiplies', why:'Content only multiplies a system’s value if the system can absorb it. Past that point, more content just adds cost.', do:'List the last five content items you added to this system, and mark which ones created a new decision versus just a new skin on an old one.', min:25 },
         { kind:'game', ref:'balatro', lens:'gameplay', why:'Balatro multiplies a small card vocabulary with Jokers that rewrite how a hand scores, a clear case of content that multiplies rather than adds.', do:'Read its gameplay lens and count how many rules a single Joker changes, then name one piece of your content that could work the same way.', min:15 },
         { kind:'game', ref:'cookie-clicker', why:'Cookie Clicker is the counterweight to Balatro in this stage: its twenty buildings are content that adds rather than multiplies, each changing only a production rate on the same 15% price curve, yet players stay for hundreds of hours.', do:'Read its gameplay and world lenses, then sort your own content into items that change a decision and items that change only a number, and write what each number-only item is for.', min:20 },
@@ -415,7 +422,7 @@ PATH('systems-designer', {
       review:['depth-vs-complexity'],
       check:{
         recall:[
-          { q:'What did Monster Hunter Wilds’ launch show about builds?', a:'Gear needs a harder rung to be tested against. Without enough endgame hunts, veterans reached the top of the available content within days and had nothing left to convert their gear into, so the replay loop stalled until Capcom pulled a major endgame patch forward.' },
+          { q:'What does a build need from the content around it to be tested, as Monster Hunter Wilds’ launch showed?', a:'Gear needs a harder rung to be tested against. Without enough endgame hunts, veterans reached the top of the available content within days and had nothing left to convert their gear into, so the replay loop stalled until Capcom pulled a major endgame patch forward.' },
           { q:'Why is an ignored mechanic a cost, not a neutral feature?', a:'The system still pays for it, in complexity budget, teaching cost and upkeep, even though no player ever uses the decision it was built to create. An ignored mechanic is a tax the game pays for a choice nobody makes.' },
           { q:'What turns a fix into an experiment?', a:'Writing it as a hypothesis with an observable signal and a kill criterion before shipping it. A fix with no predicted result and no way to know if it failed is an opinion that was shipped and hoped for, not tested.' },
           { q:'What are the two signals your hypothesis needs?', a:'The signal that would confirm the hypothesis worked, an observable behaviour you expect if it is true, and the kill criterion, the result that would make you revert or abandon the change. Both must be visible in a real playtest.' }
@@ -436,7 +443,7 @@ PATH('systems-designer', {
       review:['builds-and-loadouts'],
       check:{
         recall:[
-          { q:'Why does a jam in Cities: Skylines point at a cause?', a:'Each citizen is simulated with a home and a job, so congestion is the traceable result of a specific road or zoning decision, and the info-views isolate one variable so the player can find it.' },
+          { q:'Why should a simulated failure point at a traceable cause, as a traffic jam does in Cities: Skylines?', a:'Each citizen is simulated with a home and a job, so congestion is the traceable result of a specific road or zoning decision, and the info-views isolate one variable so the player can find it.' },
           { q:'What does flagging reward with no risk tell you about a decision point?', a:'It means the point is not really a risk-reward choice: there is a payoff but nothing at stake, so the “decision” is a formality. It needs a real, legible cost attached, or players will always take it.' },
           { q:'What is the difference between fixing a loop and moving its smell?', a:'Fixing a loop removes the underlying cause, such as adding a real counter or constraint that changes behaviour. Moving the smell just relocates the same symptom, like nerfing a dominant build only for the next-best one to take its place at the same rate.' },
           { q:'What has to be true of an audit for someone else to act on it without you?', a:'It has to name the smells found with evidence, the experiment run or planned, and the expected result on one page, with a build task concrete enough that another person could run it and interpret the result without asking you first.' }
@@ -470,7 +477,7 @@ PATH('level-and-ux-designer', {
       review:[],
       check:{
         recall:[
-          { q:'How does Half-Life 2 use level dressing to shape a fight?', a:'Props are placed as ammunition for the Gravity Gun, so reading a room means finding what can be thrown, and the designer controls the fight by what is left lying around rather than only by enemy count.' },
+          { q:'How can level dressing shape a fight, as props do for the Gravity Gun in Half-Life 2?', a:'Props are placed as ammunition for the Gravity Gun, so reading a room means finding what can be thrown, and the designer controls the fight by what is left lying around rather than only by enemy count.' },
           { q:'What are the six beats a level structure moves through?', a:'Teach, test, twist, combine, master, rest: introduce the idea safely, demand it under pressure, reframe it unexpectedly, mix it with something known, demand fluency, then release.' },
           { q:'Why can a level be well paced and still exhaust a player?', a:'Pacing has two curves, intensity and cognitive load, and a level can manage one while leaving the other constantly high, or vary intensity correctly but never give a genuine rest beat that carries a reward, so the player never recovers.' },
           { q:'How does a sightline control pacing before an encounter even starts?', a:'What is visible from the entrance, the goal, the danger, or the choice, sets the player’s expectation and readiness before anything happens, so the sightline paces anticipation and tension ahead of the encounter design itself.' }
@@ -492,10 +499,10 @@ PATH('level-and-ux-designer', {
       review:['level-structure'],
       check:{
         recall:[
-          { q:'Why does Doom’s monster design count as readability?', a:'Each monster has its own silhouette and attack range, so the player identifies the threat and chooses a response from the shape before the enemy acts, instead of learning it by being hit.' },
+          { q:'Why does distinct enemy silhouette and range count as readability, as in Doom?', a:'Each monster has its own silhouette and attack range, so the player identifies the threat and chooses a response from the shape before the enemy acts, instead of learning it by being hit.' },
           { q:'What are the four parts of an encounter as a small loop?', a:'Setup, where the player reads what is coming; engagement, the execution; shift, something that changes the plan partway through; and resolution. An encounter is a small core loop with its own version of feedback and consequence.' },
           { q:'What is the difference between a decision-space problem and a readability problem?', a:'A decision-space problem means the choices themselves are missing or bad, with nothing meaningful to decide. A readability problem means the choices exist but the player cannot perceive them in time, so the fix is feedback or hierarchy, not more content.' },
-          { q:'What causes did the “players do not know what to do” smell point to in your case?', a:'The smell lists four candidates: no visible short-term goal in the world, unclear affordances, a goal that exists only in text or a log the player skipped, or a poorly composed space with no sightlines or landmarks. The fix targets the world and feedback, not more text.' }
+          { q:'What causes does the “players do not know what to do” smell point to?', a:'The smell lists four candidates: no visible short-term goal in the world, unclear affordances, a goal that exists only in text or a log the player skipped, or a poorly composed space with no sightlines or landmarks. The fix targets the world and feedback, not more text.' }
         ],
         build:'Export your Game Loop Builder diagram for the encounter with its weak link marked and fixed.',
         skip:['Could a player tell your enemies apart by silhouette alone?','Can you name the weakest of the four parts in any encounter you are currently building?','Can you point to the exact visual element that should draw a player’s eye first, and check whether it does?','Have you already fixed a “players do not know what to do” report by changing readability instead of adding text?','Do you know the difference between a loop weak link and a readability weak link?']
@@ -503,7 +510,7 @@ PATH('level-and-ux-designer', {
     { id:'s3', t:'Feedback, feel and control', level:'advanced',
       goal:'Make every input confirm itself, and every outcome confirm the input that caused it.', hours:2.5,
       steps:[
-        { kind:'topic', ref:'feedback-and-affordance', why:'Without feedback a player cannot learn from what they just did, no matter how good the underlying decision was.', do:'Build a feedback matrix for your three most common player actions: what confirms the input, and what confirms the outcome. Find the empty cells.', min:30 },
+        { kind:'topic', ref:'feedback-and-affordance', why:'Without feedback a player cannot learn from what they just did, no matter how good the underlying decision was.', do:'Build a feedback matrix for one level: rows are its triggers (door, checkpoint, hazard, pickup), columns are what confirms the input and what confirms the outcome. Find the empty cells.', min:30 },
         { kind:'topic', ref:'controls-and-friction', why:'Every extra step between intent and action is friction, and friction reads to the player as the game fighting them.', do:'Count the inputs required for your three most common actions, and cut one step from whichever has the most.', min:25 },
         { kind:'game', ref:'fruit-ninja', why:'Fruit Ninja manufactures the physical impact a touchscreen cannot give: the whole feel of a hit comes from sound and splatter timed to the swipe, not from any resistance in the input itself.', do:'Read its sound and gameplay lenses, then list one action in your own game with no physical resistance behind it, and name the single feedback channel, sound, particles or screen shake, you would add first to sell the hit.', min:15 },
         { kind:'topic', ref:'animation-and-vfx', why:'Anticipation tells the player what is coming and impact tells them it happened; animation timing is where the outcome half of your feedback matrix is won or lost.', do:'For your most common action, write its anticipation, impact and follow-through timings and its commitment window, and mark which one currently carries no feedback.', min:20 },
@@ -558,7 +565,7 @@ PATH('level-and-ux-designer', {
         recall:[
           { q:'Why do players trust environmental storytelling more than text?', a:'They discover it themselves by reading the space, so the conclusion feels owned, while told story feels imposed; it also costs no player time, because it is read while playing.' },
           { q:'What are the three horizons a level’s pacing has to serve?', a:'Short-term, seconds to a minute; session, the current sitting; and long-term, across sessions. A level’s pacing has to support the immediate action while still advancing the session’s and the game’s larger goals.' },
-          { q:'What did dissecting someone else’s level show you about your own that reading could not?', a:'Dissection forces you to name the exact structural beats, sightlines and readability choices another designer made, giving concrete mechanisms to compare directly against your own level, which reading about level design in the abstract cannot surface.' },
+          { q:'What does dissecting someone else’s level show that reading about it cannot?', a:'Dissection forces you to name the exact structural beats, sightlines and readability choices another designer made, giving concrete mechanisms to compare directly against your own level, which reading about level design in the abstract cannot surface.' },
           { q:'What makes a playtest session test onboarding, rather than just running it again?', a:'A specific written question and hypothesis about onboarding or pacing, fresh matched players who have never seen the build, silent observation, and a protocol aimed at the exact change made. Without those it is just another playthrough, not a test.' }
         ],
         build:'Dissect one level from a game you know, then write the one change to your own level that dissection justified.',
@@ -570,7 +577,7 @@ PATH('level-and-ux-designer', {
 PATH('games-that-broke-the-mould', {
   t:'Learn from games that broke the mould', tag:'Rules that teach themselves, knowledge as progress, time bent, genres fused.',
   pick:'Study the games that invented something new',
-  track:'design', level:'intermediate', hours:13,
+  track:'design', level:'intermediate', hours:14,
   audience:'Designers who know the fundamentals and want to see how some of the most original games of the last twenty-five years solved problems the usual answers could not.',
   outcome:'You can take apart an unusual game through ten lenses, name the one idea it contributed, and adapt that idea to your own design without copying its surface.',
   prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer','study-the-hits-play'],
@@ -588,20 +595,20 @@ PATH('games-that-broke-the-mould', {
       review:[],
       check:{
         recall:[
-          { q:'How does The Witness teach a rule without words?', a:'It isolates the rule in a panel that can only be solved one way, then confirms it with variations that fail if the rule is misunderstood, then combines it with rules learned earlier. The panel sequence is the tutorial.' },
-          { q:'What makes Baba Is You different from a puzzle game with fixed rules?', a:'Its rules are written as word blocks in the level, and pushing the blocks rewrites the rules, so the player solves puzzles by changing what is true rather than by working within fixed rules.' },
+          { q:'How can a puzzle teach a rule without words, as The Witness does?', a:'It isolates the rule in a panel that can only be solved one way, then confirms it with variations that fail if the rule is misunderstood, then combines it with rules learned earlier. The panel sequence is the tutorial.' },
+          { q:'What changes when a puzzle’s rules are themselves manipulable objects, as in Baba Is You?', a:'Its rules are written as word blocks in the level, and pushing the blocks rewrites the rules, so the player solves puzzles by changing what is true rather than by working within fixed rules.' },
           { q:'What makes a puzzle fair?', a:'The answer can be reached and confirmed from information the player has already been given, so the aha is a realisation rather than a guess or a hunt for a hidden clue.' }
         ],
         build:'Design one wordless rule for your game as a three-step sequence: an isolated introduction, a confirmation that fails if misunderstood, and a combination with an earlier rule.',
         skip:['Can you name the three steps of a wordless teaching sequence and give an example of each?','Can you explain how a puzzle is confirmed as fair without playing it?','Have you already taught a rule in your own game with no text and watched a new player learn it?']
       } },
     { id:'s2', t:'Knowledge as progression', level:'intermediate',
-      goal:'Understand games where progress is what the player knows, and plan a gate that is understanding rather than a lock.', hours:2.75,
+      goal:'Understand games where progress is what the player knows, and plan a gate that is understanding rather than a lock.', hours:3,
       steps:[
         { kind:'topic', ref:'knowledge-as-progression', why:'Most games store progress in stats and items. A few store it only in the player’s head, which changes how every gate and reward works.', do:'List three gates in a game you know and say whether each is a lock (an item or stat) or an understanding (something the player must know).', min:25 },
         { kind:'game', ref:'outer-wilds', why:'Outer Wilds resets the solar system every 22 minutes and keeps only what the player learned, the clearest case of knowledge as the only progression.', do:'Read its analysis and write how the ship’s log keeps a player oriented without telling them the answer.', min:30 },
         { kind:'game', ref:'return-of-the-obra-dinn', why:'Obra Dinn turns deduction into a ledger and confirms fates only in sets of three, so single guesses cannot be checked and reasoning is rewarded.', do:'Read its analysis and explain in two sentences why confirming in threes changes how players reason.', min:30 },
-        { kind:'game', ref:'zero-escape-999', why:'999 rations its explanation across six mutually exclusive endings, so one run leaves the player with a wrong theory on purpose, and what they learned in earlier runs is the real progression.', do:'Read its lore and replay lenses, then write what a player knows after their first ending that changes their next run, and how the later flowchart changed the cost of reaching that knowledge.', min:15 },
+        { kind:'game', ref:'zero-escape-999', why:'999 rations its explanation across six mutually exclusive endings, so one run leaves the player with a wrong theory on purpose, and what they learned in earlier runs is the real progression.', do:'Read its lore and replay lenses, then write what a player knows after their first ending that changes their next run, and how the later flowchart changed the cost of reaching that knowledge.', min:25 },
         { kind:'tool', ref:'hypothesis', why:'Knowledge gates fail silently: players who miss a clue just stall. The hypothesis turns “they will figure it out” into something you can test.', do:'Write a playtest hypothesis for one knowledge gate: what a player must know, where they learn it, and how you will see whether they did.', min:25 },
         { kind:'smell', ref:'dont-know-what-to-do', why:'A knowledge game’s most common failure looks exactly like this smell, and the fixes differ from a normal game’s.', do:'Check the smell’s causes against your gate and mark which one a knowledge game is most exposed to.', min:20 },
         { kind:'game', ref:'ace-attorney', lens:'gameplay', why:'Ace Attorney never gates a verdict behind an item the player has not already found; the only thing that changes between a wrong guess and a right one is whether the player has understood which sentence is the lie.', do:'Read its gameplay lens, then write the one rule that keeps its Court Record fair (every possible answer already in the player’s hands) and check whether your own hardest gate follows the same rule.', min:25 }
@@ -609,43 +616,43 @@ PATH('games-that-broke-the-mould', {
       review:['puzzle-design'],
       check:{
         recall:[
-          { q:'Why does 999 leave a first run with a wrong theory?', a:'Its explanation is split across six exclusive endings, and only the true ending, reachable after one specific other ending, supplies all of it; the knowledge carried into later runs is what moves the player forward.' },
+          { q:'Why might a design withhold its explanation across several runs, as 999 does?', a:'Its explanation is split across six exclusive endings, and only the true ending, reachable after one specific other ending, supplies all of it; the knowledge carried into later runs is what moves the player forward.' },
           { q:'What is the difference between a lock and an understanding as a gate?', a:'A lock opens when the player has an item or stat, whoever they are; an understanding opens when the player knows something, so a new save with the same knowledge can pass it at once.' },
-          { q:'Why does Outer Wilds keep a ship’s log if progress is only knowledge?', a:'The log records what the player has found and where threads lead without solving them, so the player stays oriented across resets while the reasoning stays theirs.' },
+          { q:'What does a log do in a game where progress is only knowledge, as in Outer Wilds?', a:'The log records what the player has found and where threads lead without solving them, so the player stays oriented across resets while the reasoning stays theirs.' },
           { q:'What does Obra Dinn’s three-at-a-time confirmation prevent?', a:'Brute-force guessing: a single wrong answer hides which fates are right, so the player has to reason several deductions to certainty before the game confirms any of them.' }
         ],
         build:'Write the hypothesis for one knowledge gate in your game, including the observation that would prove players learned it and the one that would prove they guessed.',
         skip:['Can you name what a player carries from one run of your game into the next?','Can you tell a knowledge gate from a lock in a game you are designing?','Have you already playtested a gate that depends on the player noticing something?','Can you explain how a game keeps players oriented without giving answers away?']
       } },
     { id:'s3', t:'Time and turns', level:'intermediate',
-      goal:'Compare the ways games structure time, and choose the one that makes your core decision matter.', hours:2.5,
+      goal:'Compare the ways games structure time, and choose the one that makes your core decision matter.', hours:3,
       steps:[
         { kind:'topic', ref:'time-and-turns', why:'Real time, turns and everything between them decide what kind of skill a game asks for: thinking, reacting, or both.', do:'Place five games you know on a line from pure turns to pure real time, and write what skill each one tests.', min:25 },
         { kind:'game', ref:'valkyria-chronicles', lens:'gameplay', why:'Valkyria Chronicles puts real-time movement inside a turn, so a plan is tested by the player’s own run under fire.', do:'Read its gameplay lens and name the one rule that makes real-time movement risky rather than a slower way to click a tile.', min:25 },
-        { kind:'game', ref:'smt-iii-nocturne', why:'Press Turn makes the turn itself a resource: hitting weaknesses earns extra actions and missing costs them.', do:'Read its analysis and explain how Press Turn changes what a player wants to do on their first action of a turn.', min:20 },
-        { kind:'game', ref:'superhot', why:'Superhot slows time to a crawl whenever you stand still, turning an action game into a sequence of tiny decisions.', do:'Read its analysis and write what a player can do in Superhot that they cannot in a normal shooter.', min:20 },
+        { kind:'game', ref:'smt-iii-nocturne', why:'Press Turn makes the turn itself a resource: hitting weaknesses earns extra actions and missing costs them.', do:'Read its analysis and explain how Press Turn changes what a player wants to do on their first action of a turn.', min:28 },
+        { kind:'game', ref:'superhot', why:'Superhot slows time to a crawl whenever you stand still, turning an action game into a sequence of tiny decisions.', do:'Read its analysis and write what a player can do in Superhot that they cannot in a normal shooter.', min:28 },
         { kind:'game', ref:'worms-armageddon', lens:'gameplay', why:'Worms Armageddon splits each turn into a gamble on an aimed shot under random wind, then a few real-time seconds of retreat from the crater it made, so a turn-based game still tests execution.', do:'Read its gameplay lens, then write which part of one of your own turns is planning and which is execution, and what a short real-time window after the decision would add or cost.', min:15 },
         { kind:'tool', ref:'loop', why:'The time structure sits inside the core loop; drawing it shows where the decision and the execution happen.', do:'Build your core loop in the Game Loop Builder and mark which steps happen in real time and which in turns.', min:30 },
-        { kind:'game', ref:'final-fantasy', why:'Final Fantasy changed its own answer to the time question five times, from menu turns to Active Time Battle, strictly turn-based CTB, gambit-driven real time and full action, while keeping its crisis and motifs constant.', do:'Read its timeline and its changed section, then name which of those time structures best suits your own game’s core decision, and what the others would cost it.', min:20 }
+        { kind:'game', ref:'final-fantasy', why:'Final Fantasy changed its own answer to the time question five times, from menu turns to Active Time Battle, strictly turn-based CTB, gambit-driven real time and full action, while keeping its crisis and motifs constant.', do:'Read its timeline and its changed section, then name which of those time structures best suits your own game’s core decision, and what the others would cost it.', min:26 }
       ],
       review:['knowledge-as-progression'],
       check:{
         recall:[
-          { q:'What happens after the shot in a Worms Armageddon turn?', a:'The worm gets a few seconds of real-time retreat to get clear of the crater its own shot made, so the turn tests aim under wind and then quick movement.' },
-          { q:'What does BLiTZ in Valkyria Chronicles keep from turn-based tactics, and what does it change?', a:'It keeps turns, units and command points; it changes moving a unit into a real-time run in which enemies in sight open fire, so carrying out the plan becomes a skill.' },
+          { q:'What does a retreat window after the attack add to a turn, as in Worms Armageddon?', a:'The worm gets a few seconds of real-time retreat to get clear of the crater its own shot made, so the turn tests aim under wind and then quick movement.' },
+          { q:'What can a hybrid keep from turn-based tactics and what must it change, as Valkyria Chronicles’ BLiTZ does?', a:'It keeps turns, units and command points; it changes moving a unit into a real-time run in which enemies in sight open fire, so carrying out the plan becomes a skill.' },
           { q:'How does Press Turn reward hitting a weakness?', a:'A weakness or critical hit costs only half a turn icon, giving the side extra actions, while misses and blocked or nullified attacks cost more, so the turn itself becomes a resource.' },
-          { q:'What skill does Superhot test that a normal shooter does not?', a:'Planning under a near-frozen clock: because time runs at full speed only when the player moves, it tests reading the scene and choosing a sequence rather than reaction speed.' }
+          { q:'What skill does a game test when time moves only as the player moves, as in Superhot?', a:'Planning under a near-frozen clock: because time runs at full speed only when the player moves, it tests reading the scene and choosing a sequence rather than reaction speed.' }
         ],
         build:'Mark each step of your core loop as real time or turn-based in the Game Loop Builder, and write one sentence on why that choice fits the decision it serves.',
         skip:['Can you say which part of your turn is planning and which is execution?','Can you name four time structures between pure turns and pure real time with an example of each?','Can you say what skill your own game’s time structure tests?','Have you already changed a game’s time structure and seen what it did to players?']
       } },
     { id:'s4', t:'Genres blended', level:'intermediate',
-      goal:'Learn when two genres make one game and when they make two half-games, and test a blend of your own.', hours:2.5,
+      goal:'Learn when two genres make one game and when they make two half-games, and test a blend of your own.', hours:2.75,
       steps:[
         { kind:'topic', ref:'genre-hybrids', why:'A hybrid works when each loop feeds the other; otherwise the player plays one and tolerates the other.', do:'Pick a hybrid you know and draw an arrow from each loop to what it gives the other. Mark any arrow that is missing.', min:25 },
         { kind:'game', ref:'persona-5-royal', why:'Persona 5 Royal wraps a dungeon crawler in a school calendar, and each side makes the other stronger.', do:'Read its analysis and write the two arrows: what the calendar gives the dungeons, and what the dungeons give the calendar.', min:30 },
         { kind:'game', ref:'slay-the-spire', why:'Slay the Spire fused a deckbuilder with a roguelike so closely that it popularised a genre of its own.', do:'Read its analysis and name what each parent genre would lose if the other were removed.', min:20 },
-        { kind:'game', ref:'danganronpa', why:'Danganronpa takes Ace Attorney’s testimony argument and turns picking the lie into a timed shooting gallery, so working out the answer and hitting it in time become two separate skills in one blend.', do:'Read its gameplay and lineage lenses, then write the arrow each half gives the other, and say whether the shooting half feeds the deduction or only taxes it.', min:15 },
+        { kind:'game', ref:'danganronpa', why:'Danganronpa takes Ace Attorney’s testimony argument and turns picking the lie into a timed shooting gallery, so working out the answer and hitting it in time become two separate skills in one blend.', do:'Read its gameplay and lineage lenses, then write the arrow each half gives the other, and say whether the shooting half feeds the deduction or only taxes it.', min:24 },
         { kind:'tool', ref:'sysmap', why:'Mapping how systems feed each other shows whether a blend is one game or two.', do:'Map the two loops of your blend in the System Relationship Map and check that each has at least one arrow into the other.', min:25 },
         { kind:'smell', ref:'features-not-better', why:'A second genre bolted on without a feedback arrow is a common way features stop making the game better.', do:'Check your blend against the smell’s causes and mark whether the second loop is a feature or a partner.', min:20 },
         { kind:'game', ref:'touhou', lens:'business', why:'Touhou Luna Nights carries the Touhou shooters’ graze system into a Metroidvania, so bullets become something to approach, not only avoid: a blend that works by taking one rule from the source genre into the new one.', do:'Read its entries and business lens, then write the arrow the graze system gives Luna Nights’ exploration loop, and say whether Touhou: Scarlet Curiosity, faulted for combat where no special beat the basic combo, carried any such arrow across.', min:20 }
@@ -653,9 +660,9 @@ PATH('games-that-broke-the-mould', {
       review:['time-and-turns'],
       check:{
         recall:[
-          { q:'What does Danganronpa add to Ace Attorney’s core move?', a:'It keeps arguing testimony apart but makes selecting the lie a timed aiming task, so deduction and execution become two skills, and drops the law and judge in favour of persuasion alone.' },
+          { q:'How can a hybrid add an execution demand to a deduction move, as Danganronpa does to Ace Attorney’s?', a:'It keeps arguing testimony apart but makes selecting the lie a timed aiming task, so deduction and execution become two skills, and drops the law and judge in favour of persuasion alone.' },
           { q:'What makes a genre hybrid work?', a:'Each loop produces something the other needs, so playing one makes the player better at or more invested in the other; if a loop only consumes, it becomes a chore.' },
-          { q:'What does Persona 5 Royal’s calendar give its dungeons?', a:'Time spent with Confidants and on social stats unlocks abilities, fusion bonuses and options that make the party stronger, while the calendar’s deadlines give the dungeons urgency.' },
+          { q:'What can a calendar give the dungeons of a hybrid, as in Persona 5 Royal?', a:'Time spent with Confidants and on social stats unlocks abilities, fusion bonuses and options that make the party stronger, while the calendar’s deadlines give the dungeons urgency.' },
           { q:'How can you tell a blend is two half-games?', a:'Players skip or rush one side, its rewards do not change how the other side plays, and removing it would not change the other loop.' }
         ],
         build:'Map your blend in the System Relationship Map with at least one arrow from each loop into the other, and write what you would cut if one arrow is missing.',
@@ -677,9 +684,9 @@ PATH('games-that-broke-the-mould', {
       check:{
         recall:[
           { q:'What do players believe when play and story disagree?', a:'The play. Players spend far more time doing than watching, so the mechanics are the loudest narrator, and a gap between them breaks belief in both story and system unless it is deliberate and meant to be felt.' },
-          { q:'How does Papers, Please create pressure?', a:'Through the desk: limited space, documents that must be cross-checked, a day that ends with rent and family needs, so every careful check costs money and every shortcut risks a citation.' },
-          { q:'What does NieR: Automata’s plug-in chip HUD let the player do?', a:'Remove parts of the HUD to free chip space for abilities, and even remove the OS chip that keeps the android running, so the interface becomes a resource and part of the game’s theme.' },
-          { q:'Why does Undertale remembering resets matter?', a:'It removes the usual safety of reloading: some characters, such as Flowey and Sans, remember what a reload undid, so the player treats a choice as real rather than as a branch to try and undo.' }
+          { q:'How can a game create pressure from a desk and a clock, as Papers, Please does?', a:'Through the desk: limited space, documents that must be cross-checked, a day that ends with rent and family needs, so every careful check costs money and every shortcut risks a citation.' },
+          { q:'What does it mean for the HUD to be a system the player can change, as in NieR: Automata?', a:'Remove parts of the HUD to free chip space for abilities, and even remove the OS chip that keeps the android running, so the interface becomes a resource and part of the game’s theme.' },
+          { q:'Why does it matter when a game remembers the player’s resets, as Undertale does?', a:'It removes the usual safety of reloading: some characters, such as Flowey and Sans, remember what a reload undid, so the player treats a choice as real rather than as a branch to try and undo.' }
         ],
         build:'Design one piece of presentation (a HUD element, a menu, a save screen or a voice) that carries a rule or theme of your game, and run it through the design review checklist.',
         skip:['Can you say what your most repeated action tells the player about your story?','Can you name a piece of interface in a game that is also a mechanic?','Have you already designed presentation that carries a rule, not just information?','Can you explain how presentation can make a moral or thematic argument?']
@@ -690,10 +697,10 @@ PATH('games-that-broke-the-mould', {
 PATH('study-the-hits-play', {
   t:'Study the hits: how play holds people', tag:'Why some games are played for years: the dimensions of fun, skill you can feel, content that keeps asking, systems that surprise, stakes and other people.',
   pick:'Learn what keeps players playing from the hits',
-  track:'design', level:'intermediate', hours:12,
+  track:'design', level:'intermediate', hours:13,
   audience:'Designers who know the fundamentals and want to see, through fifteen well-known games, how play holds people past the first hour.',
   outcome:'You can name the dimensions of fun a game runs on, say what the player is getting better at, judge whether content asks a new question, and find the rhythm and the other people your own design depends on.',
-  prereq:[], next:['games-that-broke-the-mould','systems-designer'],
+  prereq:['game-designer-foundations'], next:['games-that-broke-the-mould','systems-designer'],
   stages:[
     { id:'s1', t:'What fun is made of', level:'intermediate',
       goal:'Split “fun” into named dimensions, and say what makes a player come back or leave.', hours:2.5,
@@ -710,7 +717,7 @@ PATH('study-the-hits-play', {
       check:{
         recall:[
           { q:'Why is “make it more fun” not actionable?', a:'Fun is a bundle of dimensions, so the useful question is which dimension is flat or missing, such as mastery, discovery or tension.' },
-          { q:'What brings Wordle players back after they have mastered it?', a:'The streak counter: one puzzle a day, no replay, and one failed day resets the number to zero, so what is at stake is the unbroken streak, not a fresh challenge.' },
+          { q:'What brings players back after mastery, as the streak does in Wordle?', a:'The streak counter: one puzzle a day, no replay, and one failed day resets the number to zero, so what is at stake is the unbroken streak, not a fresh challenge.' },
           { q:'What are the three engines of long-term engagement?', a:'Mastery (getting better at something perceivable), discovery (finding what you did not know was there) and expression (shaping the game to reflect yourself). Most great games run on at least two.' }
         ],
         build:'Write your game’s core experience on the Core Experience Canvas: its dominant dimension, the engine that keeps play going after novelty, and the reason a player returns.',
@@ -729,9 +736,9 @@ PATH('study-the-hits-play', {
       review:['mastery-discovery-expression'],
       check:{
         recall:[
-          { q:'Why does Celeste feel kind though it is difficult?', a:'It hides forgiving timing windows such as coyote time and jump buffering, so a death reads as a mistimed jump rather than an unregistered input, and players keep retrying.' },
-          { q:'What did the seven-bag generator change in Tetris?', a:'It removed droughts of unlucky pieces by dealing every shape once before reshuffling, so a high score measures placement skill more than surviving bad luck.' },
-          { q:'Why is a lost mech in Into the Breach traceable to the player?', a:'Attacks never miss, damage is fixed and every queued Vek attack shows on the tile it will hit, so a loss traces to one ignored icon rather than to chance.' }
+          { q:'How can a hard game feel kind, as Celeste does?', a:'It hides forgiving timing windows such as coyote time and jump buffering, so a death reads as a mistimed jump rather than an unregistered input, and players keep retrying.' },
+          { q:'What does a piece generator change about what a score measures, using Tetris’s seven-bag as the example?', a:'It removed droughts of unlucky pieces by dealing every shape once before reshuffling, so a high score measures placement skill more than surviving bad luck.' },
+          { q:'Why does showing every queued attack make a loss traceable to the player, as in Into the Breach?', a:'Attacks never miss, damage is fixed and every queued Vek attack shows on the tile it will hit, so a loss traces to one ignored icon rather than to chance.' }
         ],
         build:'Take one skill in your game and write how it is taught, how the player sees themselves improve, and the hypothesis that would show players did improve.',
         skip:['Can you list the skills your game asks for and say which one it never teaches?','Can you say whether a loss in your game reads as the player’s misread or as luck?','Have you already watched a new player and a veteran play the same level to compare?']
@@ -751,8 +758,8 @@ PATH('study-the-hits-play', {
       check:{
         recall:[
           { q:'What test does the encounters topic give an enemy?', a:'It should ask a distinct question that needs a distinct answer from the player’s verbs; an enemy that asks the same question with more health is a slower version of the same fight.' },
-          { q:'What makes a Hades build a series of trade-offs?', a:'Five ability slots (Attack, Special, Cast, Dash, Call) are contested by different gods, so taking one god’s boon for a slot means refusing or replacing another’s.' },
-          { q:'What does a Minecraft seed give players?', a:'A single value that reproduces a whole world, so the same ruleset gives an effectively unlimited number of distinct worlds and players can share a seed like a recipe.' },
+          { q:'What makes a build a series of trade-offs, as contested ability slots do in Hades?', a:'Five ability slots (Attack, Special, Cast, Dash, Call) are contested by different gods, so taking one god’s boon for a slot means refusing or replacing another’s.' },
+          { q:'What does a single seed value give players of a generated world, as in Minecraft?', a:'A single value that reproduces a whole world, so the same ruleset gives an effectively unlimited number of distinct worlds and players can share a seed like a recipe.' },
           { q:'How should a generator be judged?', a:'By whether it varies the player’s decision or only decoration; mathematically unique outputs that feel identical are oatmeal, not content.' }
         ],
         build:'List the enemies and items in your game with the question each asks, then mark any pair that asks the same question and say what you would change.',
@@ -771,19 +778,20 @@ PATH('study-the-hits-play', {
       check:{
         recall:[
           { q:'What separates agency from emergence?', a:'Agency is the player perceiving that their choices cause outcomes; emergence is behaviour arising from rule interactions that were not individually authored. Together they produce stories players tell as their own.' },
-          { q:'Why does Factorio never run out of problems?', a:'Solving one shortage always exposes the next limit, such as furnaces then belts then inserters, so the player keeps diagnosing what is starved.' },
-          { q:'What does Portal’s one tool change about its puzzles?', a:'It edits which two points in a level are adjacent, so puzzles ask where the two ends must sit rather than whether the player survives what stands in the way.' }
+          { q:'Why can a system game keep producing new problems, as Factorio does?', a:'Solving one shortage always exposes the next limit, such as furnaces then belts then inserters, so the player keeps diagnosing what is starved.' },
+          { q:'How can one tool change what a puzzle asks, as the portal gun does?', a:'It edits which two points in a level are adjacent, so puzzles ask where the two ends must sit rather than whether the player survives what stands in the way.' }
         ],
         build:'Connect two systems in your game that share no arrow, prototype the link, and write down the strategy that surprised you.',
         skip:['Can you point to a system in your game that cannot affect any other?','Can you say whether a strategy players found was one to celebrate, tune or remove?','Have you already watched players do something with your rules that you did not plan?']
       } },
     { id:'s5', t:'Stakes, rhythm and other people', level:'advanced',
-      goal:'Shape the rise and fall of stakes over a session, and design what your players do for, against and with each other.', hours:2.75,
+      goal:'Shape the rise and fall of stakes over a session, and design what your players do for, against and with each other.', hours:3.5,
       steps:[
         { kind:'topic', ref:'tension-release', why:'Emotion is a rhythm, and flat tension is boredom while constant tension is exhaustion.', do:'Draw the intended intensity curve for one session of a game you know, marking peaks, valleys and what causes each.', min:20 },
         { kind:'game', ref:'dark-souls', lens:'gameplay', why:'Dark Souls makes the bonfire the price of every resource, so each fork is weighed as a budget and finding a bonfire is a release.', do:'Read its gameplay lens and write what a bonfire refills and what it resets, then mark where the tension rises and falls on your curve.', min:25 },
         { kind:'game', ref:'age-of-empires-ii', lens:'gameplay', why:'Advancing an Age in Age of Empires II is paid up front and stops villager training, so it opens a window of risk the player chooses.', do:'Read its gameplay lens and write what an Age advance costs and what a rival can do while it runs.', min:25 },
         { kind:'topic', ref:'social-experience', why:'Who a player matters to changes how long a game lives, and the topic asks what the social act inside the game is.', do:'Name the social act your game supports (compete, cooperate, show, share, teach or be seen) and what it makes visible.', min:20 },
+        { kind:'topic', ref:'multiplayer-design', why:'Other players are the content: roles, counterplay and matching decide whether a shared game is fair before any server exists.', do:'Read the topic, then write the roles, one counter for each strong move and a matching rule for a 4v4 game, and simulate ten queue rounds on paper or in a spreadsheet to see how lopsided they get.', min:45 },
         { kind:'game', ref:'among-us', lens:'gameplay', why:'Among Us turns busywork into evidence, so completing a chore is also how a player is believed.', do:'Read its gameplay lens and write how a witnessed task clears a player and how a common task lets a claim be checked.', min:25 },
         { kind:'game', ref:'dota-2', lens:'gameplay', why:'Dota 2 gives the same creep two opposite actions, last-hit and deny, so farming becomes open conflict between players.', do:'Read its gameplay lens and write what each action gives its player and what a lane opponent who only does one still loses.', min:25 },
         { kind:'checklist', ref:'design-review', why:'A rhythm and a social act are still features, and they need the same review as any other.', do:'Run the design review checklist against the intensity curve or social act you designed, and note its weakest answer.', min:30 }
@@ -792,9 +800,9 @@ PATH('study-the-hits-play', {
       check:{
         recall:[
           { q:'What are the failures of flat and constant tension?', a:'Flat tension is boredom and constant tension is exhaustion; release is what makes the next tension legible and lets a peak be felt.' },
-          { q:'How does Among Us turn busywork into evidence?', a:'Most tasks are meaningless chores, but some animate for anyone nearby and Impostors cannot do tasks, so one witnessed animation clears a player; common tasks let a claimed route be checked.' },
-          { q:'What do last-hitting and denying give in Dota 2?', a:'Last-hitting takes the gold from a creep for yourself and denying takes experience away from the enemy, so two opposite actions on the same creep make farming into conflict.' },
-          { q:'What does an Age of Empires II Age advance cost?', a:'A lump sum paid when it is queued, which empties the stockpile, and Town Centre time in which no villagers are trained, so a rival can raid while resources are sunk.' }
+          { q:'How can busywork become evidence, as tasks do in Among Us?', a:'Most tasks are meaningless chores, but some animate for anyone nearby and Impostors cannot do tasks, so one witnessed animation clears a player; common tasks let a claimed route be checked.' },
+          { q:'How can two opposite actions on the same unit turn farming into open conflict, as last-hitting and denying do in Dota 2?', a:'Last-hitting takes the gold from a creep for yourself and denying takes experience away from the enemy, so two opposite actions on the same creep make farming into conflict.' },
+          { q:'How does a paid, chosen window of risk work, as an Age advance does in Age of Empires II?', a:'A lump sum paid when it is queued, which empties the stockpile, and Town Centre time in which no villagers are trained, so a rival can raid while resources are sunk.' }
         ],
         build:'Design one rhythm beat and one social act for your game: the intensity curve of a session, and what players do for, against or with each other, then run the design review checklist on both.',
         skip:['Can you draw the tension curve of a typical session of your game?','Can you name the social act your game supports and what it makes visible?','Have you watched a group play and seen where the falling-behind player ends up?']
@@ -805,7 +813,7 @@ PATH('study-the-hits-play', {
 PATH('idea-to-prototype-30-days', {
   t:'Idea to prototype in 30 days', tag:'A deliberately short path: one idea, one loop, one honest test.',
   pick:'Go from an idea to a tested prototype in 30 days',
-  track:'design', level:'beginner', hours:11.25,
+  track:'design', level:'beginner', hours:13.5,
   audience:'Solo or small-team builders who want a fast, motivating first win instead of a long syllabus.',
   outcome:'You end with a shaped idea, a tested core loop, a real hypothesis and playtest behind it, and a scoped 30-day plan you can run.',
   prereq:[], next:['game-designer-foundations','casual-game-people-keep'],
@@ -823,7 +831,7 @@ PATH('idea-to-prototype-30-days', {
       review:[],
       check:{
         recall:[
-          { q:'What did Psyonix do before building Rocket League?', a:'It diagnosed the specific reasons its 2008 predecessor underperformed and rebuilt the game around fixing each one, rather than abandoning the idea or repeating it unchanged.' },
+          { q:'What should you do with a failed predecessor before rebuilding its idea, as Psyonix did for Rocket League?', a:'It diagnosed the specific reasons its 2008 predecessor underperformed and rebuilt the game around fixing each one, rather than abandoning the idea or repeating it unchanged.' },
           { q:'What does dissecting a reference game give you that just enjoying it does not?', a:'It turns liking a game into specific, stealable structure, the exact mechanism of information, decision, time pressure, consequence and feedback that produces the feeling you admire, rather than a vague impression you cannot act on.' },
           { q:'What is the one gap your idea is supposed to fill?', a:'It should be an exit reason or an unmet want players state or work around in reviews and forums for close reference games, never a tolerated cost or your own taste, named precisely enough to quote a player’s own words for it.' },
           { q:'What would make you conclude your idea does not beat its closest reference?', a:'If you cannot name the specific gap your idea fills that the reference does not, if players of the reference do not recognise the gap when you describe it, or if an incumbent could ship your mechanism without breaking their own model.' }
@@ -832,14 +840,15 @@ PATH('idea-to-prototype-30-days', {
         skip:['Can you name why the closest failed game in your space failed?','Can you name the exact gap your idea fills in under one paragraph, right now?','Have you already dissected a close reference game for this exact idea?','Can you state your idea’s one-line pitch without checking your notes?','Do you know the one thing every close reference to your idea gets wrong?']
       } },
     { id:'s2', t:'Core experience and the loop', level:'beginner',
-      goal:'Turn the idea into one experience statement and the smallest loop that could test it.', hours:3.25,
+      goal:'Turn the idea into one experience statement and the smallest loop that could test it.', hours:4,
       steps:[
         { kind:'topic', ref:'core-experience', why:'The core experience statement is the target every later system exists to serve, and skipping it is how scope creeps in by day three.', do:'Write a one-paragraph core experience statement for your idea, and read it aloud to someone who has not heard the pitch yet.', min:35 },
         { kind:'topic', ref:'feature-vs-experience', why:'“We need crafting” is a feature; the experience it serves is the goal, and a 30-day prototype only has room for the goal.', do:'List the three features you already picture in your idea, rewrite each as the observable player behaviour it is meant to produce, and keep only the one your statement needs.', min:20 },
         { kind:'tool', ref:'canvas', why:'The Core Experience Canvas forces every part of the idea to answer to the same statement in one sitting.', do:'Fill the Core Experience Canvas for your idea end to end, leaving no box blank even if the answer is a guess.', min:40 },
         { kind:'tool', ref:'loop', why:'A loop is the smallest thing you can build and test. Everything else is scope you have not earned yet.', do:'Build the smallest loop that could test your core experience statement, and mark its weakest link before you build anything.', min:40 },
         { kind:'checklist', ref:'pre-prototype', why:'A prototype without a hypothesis, a scope cut and a way to observe it is a demo with extra steps.', do:'Run the pre-prototype checklist against the loop you just built, and fix whatever it fails before day one of the 30 days starts.', min:35 },
-        { kind:'engine', ref:'gamemaker', why:'A 2D-first engine built on objects, events and rooms shows how little machinery a first playable prototype needs.', do:'Read the guide’s architecture and pipeline stages, then build one room with a player object and a Step event, and export it to the web.', min:15 },
+        { kind:'engine', ref:'godot', alt:'unity', why:'Choose this one if you can code and want an engine you can carry into a full game.', do:'Choose this step or the GameMaker one, not both. Install Godot 4 (or Unity 6), create a project, read the guide’s architecture stage, and write which node (or GameObject) will hold your loop’s player verb.', min:25 },
+        { kind:'engine', ref:'gamemaker', why:'Choose this one if your loop is 2D and you want the shortest road to something playable: a 2D-first engine built on objects, events and rooms.', do:'Choose this step or the Godot and Unity one, not both. Read the guide’s architecture and pipeline stages, then build one room with a player object that moves and a Step event that applies your loop’s consequence, and export it to the web.', min:25 },
         { kind:'game', ref:'valheim', why:'Valheim shows a small team making gather-and-craft serve one clear goal, because each boss drop is the only key to the next material.', do:'Draw Valheim’s loop from gather to boss to unlock, then mark which step your own loop is missing: the thing that turns gathering into a goal.', min:15 }
       ],
       review:['finding-an-idea'],
@@ -854,14 +863,15 @@ PATH('idea-to-prototype-30-days', {
         skip:['Can you rewrite each feature in your idea as the experience it serves?','Can you say your core experience statement from memory, in one sentence?','Can you name your loop’s weakest link without opening the tool again?','Have you already run a pre-prototype checklist and cut scope because of what it found?','Do you know the smallest version of your idea that would still test the thing you care about?']
       } },
     { id:'s3', t:'Prototype and test', level:'intermediate',
-      goal:'Turn the loop into a real hypothesis, and get it in front of a player before you trust your own opinion of it.', hours:2.5,
+      goal:'Turn the loop into a real hypothesis, and get it in front of a player before you trust your own opinion of it.', hours:3.75,
       steps:[
         { kind:'topic', ref:'hypothesis-driven-design', why:'A hypothesis with a signal and a kill criterion is what turns thinking this works into something you can be wrong about.', do:'Write one hypothesis in the standard form: player, behaviour, reason, signal, kill criterion, based on the loop you just built.', min:25 },
-        { kind:'tool', ref:'hypothesis', why:'The Hypothesis Builder keeps the five parts honest and exports the brief that tells you, and anyone helping you build, what you are testing.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:35 },
+        { kind:'tool', ref:'hypothesis', why:'The Hypothesis Builder keeps the five parts honest and exports the brief that tells you, and anyone helping you build, what you are testing.', do:'Enter the hypothesis for the prototype you are about to build and export the brief, adding the first value you will test on the slider you build next.', min:35 },
+        { kind:'topic', ref:'prototyping', tab:'godot', alt:'unity', why:'A hypothesis needs something to test, and a grey-box prototype of your loop is the cheapest thing a stranger can play; without it the playtest below tests nothing.', do:'In the engine you set up in stage two, build the smallest playable version of your loop: grey boxes only, the player verb, the one consequence from your loop, and the number your hypothesis is least sure about as an exported slider. It must be playable for five minutes. In GameMaker, build the same in the room you made.', min:45 },
         { kind:'game', ref:'katamari-damacy', lens:'business', why:'Katamari Damacy began as a prototype built with about ten Namco Digital Hollywood Game Laboratory students, and an internal review of that prototype, not a design document, won it full development.', do:'Read its signature and business lens, then write your own next prototype as a single hypothesis: the one rule you would build first, and the sign that would tell a sceptical reviewer it was worth funding further.', min:15 },
         { kind:'topic', ref:'playtesting', why:'What a player says is useful. What a player does is evidence, and only one of those tests your hypothesis.', do:'Plan a fifteen-minute silent playtest: who you would recruit, what you would watch for, and the one question you ask only after they finish.', min:25 },
         { kind:'checklist', ref:'playtest-prep', why:'A playtest without a plan turns into a demo you narrate, which teaches you nothing you did not already believe.', do:'Run the playtest session preparation checklist for the session you just planned.', min:30 },
-        { kind:'reflect', why:'Predicting the result before you run the test is what makes a surprising result count as evidence.', do:'Write down what you predict will happen in the playtest, before you run it, so you can compare afterwards.', min:25 }
+        { kind:'reflect', why:'Predicting the result before you run the test is what makes a surprising result count as evidence, and the session is the whole point of the prototype.', do:'Before you run it, write what you predict the tester will do, and ask someone to play today (a message takes five minutes; allow a day for the reply). Then run the fifteen-minute silent playtest on your prototype with one person, say nothing while they play, and write what they did at each moment your signal names next to your prediction.', min:55 }
       ],
       review:['core-experience'],
       check:{
@@ -870,18 +880,18 @@ PATH('idea-to-prototype-30-days', {
           { q:'What is the difference between what a player says and what a player does?', a:'What players say is self-report, useful but unreliable since they report what they think they felt or think you want to hear. What they do is observed behaviour, the actual evidence. Believe the behaviour; treat the words as leads.' },
           { q:'Why does predicting the result beforehand matter?', a:'Writing the prediction before running the test is what lets a surprising result count as real evidence instead of being rationalised afterwards into whatever happened, which prevents you from unconsciously reading confirmation into an ambiguous outcome.' }
         ],
-        build:'Export your Hypothesis Builder brief and your playtest prep checklist, and run the fifteen-minute silent playtest they describe.',
+        build:'Attach your Hypothesis Builder brief and playtest prep checklist, the prototype you built, and your notes from the fifteen-minute silent playtest you ran on it: what the tester did at each moment your signal names.',
         skip:['Have you already written a hypothesis with a real kill criterion for this idea?','Can you name the one question you would ask a tester only after they finish playing?','Do you know what result would make you kill this version of the idea?','Have you predicted a playtest result in writing before running the session, and checked yourself against it?']
       } },
     { id:'s4', t:'One worked example and the 30-day plan', level:'intermediate',
-      goal:'See how a real project turned discipline into a written rule, then cut your own plan down to what 30 days can hold.', hours:2.5,
+      goal:'See how a real project turned discipline into a written rule, then cut your own plan down to what 30 days can hold.', hours:2.75,
       steps:[
         { kind:'part', ref:'cs-go-game-backend/process/process-red-first', why:'One real engineering team turned test-before-you-build into a written rule because skipping it under deadline pressure was too easy otherwise. Your 30 days needs the same kind of forcing function.', do:'Write the one rule that would stop you from quietly skipping your own kill criterion when day 25 gets tight, based on how this team enforces red-first discipline.', min:30 },
         { kind:'topic', ref:'vertical-slice-mvp', why:'A vertical slice proves the whole loop works end to end at the smallest scope that still tells the truth about the idea.', do:'Cut your 30-day plan down to the smallest vertical slice that would still test your hypothesis, and list what you are deliberately leaving out.', min:35 },
         { kind:'topic', ref:'risk-and-dependencies', why:'The riskiest, least certain part of your plan is the part that should happen first, not last, while you still have time to change course.', do:'List the three riskiest assumptions in your 30-day plan, and reorder your plan so the riskiest one gets tested in week one.', min:25 },
         { kind:'checklist', ref:'scope-sanity', why:'A 30-day plan with no scope check is a wish list with dates on it.', do:'Run the scope sanity checklist against your 30-day plan now, before day one, not after you are already behind.', min:30 },
         { kind:'reflect', why:'A plan you have written down in your own words is one you can be held to, including by yourself.', do:'Write your day-by-day 30-day plan in one page: what ships each week, and what you would cut first if you fall behind.', min:30 },
-        { kind:'engine', ref:'renpy', why:'If your idea is story-first, a script-only engine lets a vertical slice be a single scene and a menu, which makes the 30-day cut easy to see.', do:'Read the guide’s architecture and ai stages, then write one scene with a menu and two labels, and run Lint on it.', min:15 }
+        { kind:'engine', ref:'renpy', why:'If your idea is story-first, a script-only engine lets a vertical slice be a single scene and a menu, which makes the 30-day cut easy to see.', do:'Read the guide’s architecture and ai stages, then write one scene with a menu and two labels, and run Lint on it.', min:20 }
       ],
       review:['hypothesis-driven-design'],
       check:{
@@ -899,10 +909,10 @@ PATH('idea-to-prototype-30-days', {
 PATH('study-the-hits-worlds', {
   t:'Study the hits: worlds, stories and audiences', tag:'How fifteen well-known games build a place, let a story land, look and sound like themselves, and tell an audience who they are for.',
   pick:'Learn how hits build worlds, stories and audiences',
-  track:'design', level:'intermediate', hours:11.25,
+  track:'design', level:'intermediate', hours:12.5,
   audience:'Designers who know the fundamentals and want to see, through fifteen well-known games, how a world, a story and a presentation are built and pitched.',
   outcome:'You can state a premise a system backs up, make a choice leave a mark the player connects to it, place story beats on the play timeline, give sights and sounds a fixed grammar, and say who your game is for and what changes between markets.',
-  prereq:[], next:['interview-prep-designer'],
+  prereq:['game-designer-foundations'], next:['interview-prep-designer'],
   stages:[
     { id:'s1', t:'A premise the world backs up', level:'intermediate',
       goal:'Write a premise sentence and say which of your world’s rules a system also enforces.', hours:2.25,
@@ -917,9 +927,9 @@ PATH('study-the-hits-worlds', {
       review:[],
       check:{
         recall:[
-          { q:'How is Viewfinder’s world organised?', a:'Into five hubs: the first four belong to the simulation’s researchers, Aharon, Hiraya, Chi Leung and Mirren, each themed to its owner, and the fifth holds the finale. Their quirks show through Post-it notes and journals, which is easy to miss.' },
-          { q:'How does Subnautica hold several stories on one map?', a:'The Aurora’s crew, the Sunbeam, the Degasi and the Precursors all leave physical remains on the same fixed map, and the player reconstructs each fate independently, in whatever order their descent takes them.' },
-          { q:'What does Baldur’s Gate 3 gain and give up by borrowing the Forgotten Realms?', a:'It gains a setting that feels complete at once to anyone who knows Dungeons & Dragons; it gives up freedom to retire or contradict factions, gods or endings, because the canon belongs to a licensor, Wizards of the Coast.' }
+          { q:'How does a hub structure shape what a player takes from a world, as Viewfinder’s five hubs do?', a:'Into five hubs: the first four belong to the simulation’s researchers, Aharon, Hiraya, Chi Leung and Mirren, each themed to its owner, and the fifth holds the finale. Their quirks show through Post-it notes and journals, which is easy to miss.' },
+          { q:'How can one fixed map hold several stories, as Subnautica’s does?', a:'The Aurora’s crew, the Sunbeam, the Degasi and the Precursors all leave physical remains on the same fixed map, and the player reconstructs each fate independently, in whatever order their descent takes them.' },
+          { q:'What does borrowing an existing setting gain and cost, as Baldur’s Gate 3 shows?', a:'It gains a setting that feels complete at once to anyone who knows Dungeons & Dragons; it gives up freedom to retire or contradict factions, gods or endings, because the canon belongs to a licensor, Wizards of the Coast.' }
         ],
         build:'Write the premise sentence for your game, list three world rules with the system that enforces each, and cut or mark optional any lore no system or decision touches.',
         skip:['Can you say your game’s premise in one sentence to someone who has not seen it?','Can you name the system behind each of your world’s rules?','Is there lore in your game that nothing the player does can reach?']
@@ -938,8 +948,8 @@ PATH('study-the-hits-worlds', {
       check:{
         recall:[
           { q:'Why is choosing a faction in New Vegas a judgement?', a:'Caesar voices a coherent argument for order, and companions such as Boone argue back from lived experience, so the player weighs a case against testimony instead of picking the winner of a scoreboard.' },
-          { q:'What gap do some reviewers see in Grand Theft Auto V’s story?', a:'The plot frames the pursuit of wealth as corrosive, yet every heist pays the player in cash and nothing docks a character for succeeding at crime, so some read emptiness rather than critique.' },
-          { q:'Where do the stories in The Sims and Crusader Kings III come from?', a:'In The Sims from aspirations and a memory log with no authored plot, so a dull stretch has nothing scripted in reserve; in Crusader Kings III from stress gained by acting against a ruler’s personality.' }
+          { q:'What gap can open between a story’s message and its mechanics, as some reviewers see in Grand Theft Auto V?', a:'The plot frames the pursuit of wealth as corrosive, yet every heist pays the player in cash and nothing docks a character for succeeding at crime, so some read emptiness rather than critique.' },
+          { q:'Where can a game’s stories come from when no plot is authored, as in The Sims and Crusader Kings III?', a:'In The Sims from aspirations and a memory log with no authored plot, so a dull stretch has nothing scripted in reserve; in Crusader Kings III from stress gained by acting against a ruler’s personality.' }
         ],
         build:'Take three choices in your game and write each one’s consequence, when the player sees it and what shows the link to its cause, then replace one invisible branch with a visible acknowledgment.',
         skip:['Can you name a consequence in your game that a player can trace back to their choice?','Can you say which of your branches a player would never notice?','Does your reward loop agree with what your story says?']
@@ -957,8 +967,8 @@ PATH('study-the-hits-worlds', {
       review:['premise-and-world','narrative-agency'],
       check:{
         recall:[
-          { q:'How does Chrono Trigger tell the player the past has changed?', a:'It rarely says so: the player revisits a familiar place across eras and finds the change already there, and the payoff is noticing it before any character comments.' },
-          { q:'What is the turning point of Final Fantasy XII’s plot?', a:'Ashe rejects the Occuria’s revenge plan and has the Sun-cryst destroyed rather than use nethicite, which recasts the hunt for shards as a story about restraint.' },
+          { q:'How can a game show that the past has changed without saying so, as Chrono Trigger does?', a:'It rarely says so: the player revisits a familiar place across eras and finds the change already there, and the payoff is noticing it before any character comments.' },
+          { q:'What does a plot’s turning point do, using Final Fantasy XII’s as the example?', a:'Ashe rejects the Occuria’s revenge plan and has the Sun-cryst destroyed rather than use nethicite, which recasts the hunt for shards as a story about restraint.' },
           { q:'What does the Bloody Baron questline show about side content?', a:'That a side quest can carry main-plot craft: Family Matters becomes a story about the Baron’s drinking and violence towards his family, so players stop treating contracts as a lesser tier.' },
           { q:'Where does the topic put exposition?', a:'After the first meaningful play, delivered as answers to questions the play raised, with the longest cutscenes converted to in-play delivery where possible.' }
         ],
@@ -966,29 +976,30 @@ PATH('study-the-hits-worlds', {
         skip:['Can you see your story beats and play beats on one timeline?','Can you find the longest stretch of your game with no play in it?','Is there a reveal in your game that the player could notice before anyone says it?']
       } },
     { id:'s4', t:'What the eye and ear are told', level:'intermediate',
-      goal:'Give the important things in your game one look and one sound each, and keep them consistent.', hours:2.25,
+      goal:'Give the important things in your game one look and one sound each, and keep them consistent.', hours:3.25,
       steps:[
         { kind:'topic', ref:'visual-language', why:'Players read the world before the HUD, so a consistent visual grammar teaches by seeing.', do:'List five meanings the player must read in a game you know, and the shape, colour or motion that signals each.', min:20 },
         { kind:'game', ref:'elden-ring', lens:'art', why:'Elden Ring gives grace one colour, gold, so a player learns to follow a glow before reading what it does.', do:'Read its art lens and write the gold things it names, and what a player who has never seen the Guidance of Grace does with it.', min:25 },
         { kind:'topic', ref:'audio-and-music', why:'Sound reaches the player while their eyes are busy, and music sets the felt intensity without changing a rule.', do:'List a game’s critical signals and give each a sound and a visual backup, then map its music states to its intensity curve.', min:20 },
+        { kind:'topic', ref:'audio-implementation', tab:'godot', alt:'unity', why:'Choosing what should be heard is one job; making it play, mix and duck within a voice budget on real hardware is another, and speech buried by music fails at the second.', do:'Read the Godot tab (this step needs Godot 4 or Unity 6 installed; if you have neither, the engine guides cover setup, so allow extra time), then build Music, SFX and Voice buses, duck Music by 12 dB while Voice plays, wire a settings slider to the Music bus, and count the voices in your loudest scene. In Unity, use an AudioMixer with an exposed MusicVol.', min:45 },
         { kind:'game', ref:'animal-crossing-nh', lens:'sound', why:'New Horizons scores every hour of the real day differently, so the music tells the time with no HUD element.', do:'Read its sound lens and write what the hourly score tells a player, and what the season and weather variations add.', min:25 },
         { kind:'game', ref:'euro-truck-simulator-2', lens:'sound', why:'Euro Truck Simulator 2 hands its mood to live internet radio, which shows what a team gains and gives up when it does not score the drive.', do:'Read its sound lens and write what the player controls through the radio and what the designers give up against a fixed score.', min:20 },
-        { kind:'checklist', ref:'playtest-prep', why:'A visual grammar and a sound plan are claims about what players notice, and a session is how you find out.', do:'Run the checklist for a session with one written question: whether new players read your danger signal and your key sounds, and note what you expect to watch for.', min:25 }
+        { kind:'checklist', ref:'playtest-prep', why:'A visual grammar and a sound plan are claims about what players notice, and a session is how you find out.', do:'Run the checklist for a session with one written question: whether new players read your danger signal and your key sounds, and note what you expect to watch for. Then book one person (a message takes five minutes) and run a 15-minute session, watching which signals they miss.', min:45 }
       ],
       review:['narrative-pacing'],
       check:{
         recall:[
-          { q:'How does Elden Ring teach a player to trust the Guidance of Grace?', a:'It shares the warm gold of the Sites of Grace and the Erdtree, so a player follows the glow on sight, before reading the optional tip that explains it.' },
+          { q:'How can a consistent visual cue teach trust, as the gold of grace does in Elden Ring?', a:'It shares the warm gold of the Sites of Grace and the Erdtree, so a player follows the glow on sight, before reading the optional tip that explains it.' },
           { q:'What does New Horizons’ hourly score do?', a:'A distinct piece plays for each hour of the real day, with variations for season and weather, so an experienced player can tell roughly what time it is by music alone.' },
-          { q:'What trade does Euro Truck Simulator 2 make with its radio?', a:'It streams real internet stations and the player’s own files, giving up control of the mood in exchange for a soundtrack that is free and always changing.' }
+          { q:'What trade does a game make when it hands its mood to outside audio, as Euro Truck Simulator 2 does?', a:'It streams real internet stations and the player’s own files, giving up control of the mood in exchange for a soundtrack that is free and always changing.' }
         ],
         build:'List the meanings and critical signals in your game, give each a look and a sound with a backup in the other channel, then watch one session to see which the players missed.',
         skip:['Can you list what a player must read in your game and its signal for each?','Does the same signal ever mean two things in your game?','Have you played your game muted and with the screen squinted?']
       } },
     { id:'s5', t:'Who it is for, and where', level:'advanced',
-      goal:'Write the sentence that tells a stranger who your game is for, and list what changes when it crosses a market.', hours:2.25,
+      goal:'Write the sentence that tells a stranger who your game is for, and list what changes when it crosses a market.', hours:2.5,
       steps:[
-        { kind:'topic', ref:'audience-and-positioning', why:'A finished game nobody can describe is a game nobody recommends, so the promise has to be said for someone who has not played.', do:'Write your positioning sentence, then test it on one stranger and write what they expected.', min:20 },
+        { kind:'topic', ref:'audience-and-positioning', why:'A finished game nobody can describe is a game nobody recommends, so the promise has to be said for someone who has not played.', do:'Write your positioning sentence, then send it to three strangers first (replies take a day) and ask what game it describes; write what they expected.', min:35 },
         { kind:'game', ref:'ea-sports-fc', lens:'world', why:'FIFA builds its world by licensing the real one, and the fictional names Pro Evolution Soccer needed show what an unlicensed football game costs its player.', do:'Read its world lens and write what a licensed name saves a player compared with “Man Red”, and what licence FIFA 19 added.', min:25 },
         { kind:'game', ref:'clair-obscur', lens:'art', why:'Expedition 33 chose a Belle Époque France over a familiar Victorian steampunk so its look would be identifiably its makers’.', do:'Read its art lens and write what the team rejected and chose, and what players read before any exposition.', min:25 },
         { kind:'topic', ref:'localization-and-culture', why:'Text, layout and meaning change between languages and markets, and adapting a game removes things as well as smoothing them.', do:'List the strings, images and icons in your game that would break or change meaning in another market, and one thing adapting them would remove.', min:20 },
@@ -999,7 +1010,7 @@ PATH('study-the-hits-worlds', {
       check:{
         recall:[
           { q:'What does FIFA’s licensed world buy over Pro Evolution Soccer’s?', a:'A player does not have to decode fictional stand-ins such as “Man Red” or “West London Blue” back to real clubs, and FIFA added the Champions League and Europa League licences in FIFA 19 once Konami’s UEFA deal expired.' },
-          { q:'Why did Clair Obscur choose Belle Époque France?', a:'The team weighed a Steampunk Victorian England and chose a look tied to Sandfall’s French origin, so players read Lumière as a particular place before exposition and feel the impossible geometry as a break from it.' },
+          { q:'Why choose a setting tied to the team’s own culture, as Clair Obscur did with Belle Époque France?', a:'The team weighed a Steampunk Victorian England and chose a look tied to Sandfall’s French origin, so players read Lumière as a particular place before exposition and feel the impossible geometry as a break from it.' },
           { q:'What does the localization topic ask you to budget for?', a:'Externalised strings, text expansion in the longest language, translator context, locale-aware formats and early platform and rating checks, and to weigh what an adaptation removes as well as what it smooths.' }
         ],
         build:'Write your game’s positioning sentence and test it on three strangers, then list what would change for a second market: strings, images, icons and any rating or platform requirement.',
@@ -1011,19 +1022,21 @@ PATH('study-the-hits-worlds', {
 PATH('technical-lead', {
   t:'Technical lead', tag:'Delegation, review and the incident that becomes a rule instead of a scar.',
   pick:'Lead a small team and make its work better',
-  track:'leadership', level:'advanced', hours:10.75,
+  track:'leadership', level:'advanced', hours:12.25,
   audience:'Senior designers or engineers stepping into leading a small team, who already do the work and now have to make other people’s work better too.',
   outcome:'You can delegate and say no on purpose, run a review that improves the thing being reviewed, and turn an incident or a cut into a rule the team keeps.',
-  prereq:['systems-designer','level-and-ux-designer'], next:['studio-practice-ai-era'],
+  prereq:[], prereqAny:['systems-designer','level-and-ux-designer','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer'], next:['studio-practice-ai-era'],
   stages:[
     { id:'s1', t:'What a lead does', level:'advanced',
-      goal:'Separate what only you can do from what you are doing out of habit, and practice saying no on purpose.', hours:2.25,
+      goal:'Separate what only you can do from what you are doing out of habit, and practice saying no on purpose.', hours:3.75,
       steps:[
         { kind:'topic', ref:'lead-role', why:'The job changes from doing the work to making other people’s work better, and most new leads keep doing the first job by default.', do:'List everything you did last week, and mark each item as only I can do this or someone else could, and it is time they did.', min:15 },
         { kind:'topic', ref:'lead-one-on-ones', why:'A 1:1 is the one recurring room where you find out what is wrong before it becomes a postmortem.', do:'Write the three questions you will ask in your next 1:1 that are not status updates, and the one thing you will do differently if the answer surprises you.', min:15 },
+        { kind:'topic', ref:'lead-feedback-performance', why:'Feedback that fails needs a fair, documented next step, and a lead who cannot give one is the one who lets a problem grow.', do:'Write an observation-only feedback note for a real case (what you saw, its effect, what you ask for), then a mock improvement plan with the expectation, the support, the measures, a review date and the HR check.', min:40 },
         { kind:'topic', ref:'team-and-collaboration', why:'Most lead failures are collaboration failures wearing a technical costume: unclear ownership, silent handoffs, decisions nobody remembers making.', do:'Pick one recent handoff on your team that went badly, and write down where ownership was unclear before anything else went wrong.', min:20 },
         { kind:'topic', ref:'lead-saying-no', why:'Every yes you give away is a commitment someone else now has to keep, usually without the context you had when you said it.', do:'Write the last three requests you said yes to, and for each, the one sentence you should have said instead if you had said no on purpose.', min:20 },
         { kind:'tool', ref:'delegate', why:'A task feels un-delegatable right up until you write down what it would take to hand it off, which the Delegation Planner forces you to do.', do:'Run one task from your only-I-can-do-this list through the AI Delegation Planner, and change its category if the plan shows it is wrong.', min:30 },
+        { kind:'topic', ref:'lead-conflict-growth', why:'Leads settle disputes and grow people, and both go better when the decision is written down and the task handed over with a brief.', do:'Write a decision record for a real dispute (the options, who decides, the reason) and a delegation brief for one task you hold (the outcome, the limits, the check-in).', min:40 },
         { kind:'topic', ref:'lead-hiring', why:'A lead now decides who joins the team, and a loop that tests puzzles instead of the actual work produces noise that gets treated as signal, while a bad hire costs the team a year.', do:'Write the three tasks a new hire on your team does most in their first six months, and design one interview exercise that tests the most important of them.', min:20 },
         { kind:'reflect', why:'Naming the change in your own words is what makes it a decision instead of an intention.', do:'Write one thing you are currently doing that should be delegated or refused, and the first concrete step you will take this week to make that true.', min:20 }
       ],
@@ -1054,7 +1067,7 @@ PATH('technical-lead', {
       check:{
         recall:[
           { q:'What turns a preference into a convention someone can follow?', a:'Writing it down with the specific incident or cost that justifies it, stated in the imperative, dated, and placed where the decision happens. An unwritten rule is only a habit, and a written one with no origin is nearly as unfollowable.' },
-          { q:'What did comparing correctness comments to readability comments in your reviews show you?', a:'Whether review is only catching bugs or also protecting the next reader’s ability to safely change the code. A review skewed entirely towards correctness misses the slower failure of a codebase only its original author can maintain.' },
+          { q:'What does comparing correctness comments with readability comments in a review history show?', a:'Whether review is only catching bugs or also protecting the next reader’s ability to safely change the code. A review skewed entirely towards correctness misses the slower failure of a codebase only its original author can maintain.' },
           { q:'What test decides whether a written convention is working?', a:'Whether someone who has not been told directly, like a new hire, can find and follow the rule for a situation they have not met yet without asking. If they cannot, the convention is in the wrong place or was never really adopted.' }
         ],
         build:'Write down one previously unwritten rule with its justifying incident, and run the design review checklist on a piece of work you did not author.',
@@ -1129,7 +1142,7 @@ PATH('interview-prep-designer', {
   track:'interview', level:'intermediate', hours:11.75,
   audience:'Designers preparing for a job interview who already have the fundamentals and need to turn them into fast, concrete answers.',
   outcome:'You can answer a question in any core design category in under two minutes, back it with a real story, and speak to at least one engineering constraint you have worked against.',
-  prereq:['systems-designer','level-and-ux-designer'], next:['study-the-hits-worlds'],
+  prereq:['game-designer-foundations'], next:['study-the-hits-worlds'],
   stages:[
     { id:'s1', t:'Player, motivation and the story you tell', level:'intermediate',
       goal:'Rehearse the player and experience questions out loud, and have one game you can dissect on demand.', hours:2.25,
@@ -1146,7 +1159,7 @@ PATH('interview-prep-designer', {
         recall:[
           { q:'When a game designer moves into UX, what maps and what does not?', a:'Systems thinking, onboarding and feedback loops, prototyping and playtesting as observational research map. Formal research methods, accessibility standards, business metrics and designing for users who want to finish a task quickly do not map directly.' },
           { q:'What does defending a player mean in an interview answer?', a:'Naming a concrete player model, recent games they finished, session shape, device, the feeling they came for, then giving one real decision that model changed, such as a cut tutorial or a rejected control scheme, instead of a demographic label like “gamers.”' },
-          { q:'What word did you catch yourself using without defining it?', a:'Usual offenders are words like fun, engaging, immersive or deep. The exercise is noticing which undefined word you leaned on while answering, then replacing it with the specific emotion, behaviour or mechanism you meant.' },
+          { q:'Which words do designers lean on in answers without defining them, and how do you fix that?', a:'Usual offenders are words like fun, engaging, immersive or deep. The exercise is noticing which undefined word you leaned on while answering, then replacing it with the specific emotion, behaviour or mechanism you meant.' },
           { q:'What is the fastest way to have a concrete reference-game example ready?', a:'Dissect one game you did not design ahead of time, using Reference Dissection, so you already hold the two-sentence structural summary of what it does and why, instead of improvising an analysis live in the interview.' }
         ],
         build:'Write the two-sentence dissection summary and the full STAR story, then say both out loud once, timed.',
@@ -1165,7 +1178,7 @@ PATH('interview-prep-designer', {
       review:['who-is-the-player'],
       check:{
         recall:[
-          { q:'How does StarCraft keep three unlike races fair?', a:'Through the shared economy rather than matched units: every race gathers minerals and gas under a strict supply cap, so macro discipline is the same test for everyone however different the armies look.' },
+          { q:'How can unlike factions stay fair, as StarCraft’s races do?', a:'Through the shared economy rather than matched units: every race gathers minerals and gas under a strict supply cap, so macro discipline is the same test for everyone however different the armies look.' },
           { q:'What makes a core loop answer precise instead of just enthusiastic?', a:'Walking one concrete iteration of a real loop through its five beats, action, feedback, decision, consequence, new situation, and naming how long an iteration takes and what changes between iterations. Precision comes from specifics, not from calling the loop fun.' },
           { q:'How would you explain your economy’s central trade-off to someone non-technical?', a:'Name the one decision a currency forces, what a player gives up now to get something later, in plain terms, without spreadsheet vocabulary, and say why that tension is the actual point of the currency existing.' },
           { q:'What did the matchmaking part give you that pure design theory would not?', a:'A concrete design and engineering tradeoff: tickets carry capacity plus rule predicates and are scanned under one mutex, which keeps matching rules easy to evolve and correctness easy to reason about, at the cost of throughput that a later scaling pass must replace. It shows you have met the constraint, not just theorised about match quality.' }
@@ -1243,13 +1256,13 @@ PATH('interview-prep-designer', {
 PATH('casual-game-people-keep', {
   t:'Make a casual game people keep', tag:'From a one-thumb loop to a free-to-play game that survives soft launch and live ops.',
   pick:'Make a casual mobile game people keep',
-  track:'design', level:'intermediate', hours:10.25,
+  track:'design', level:'intermediate', hours:12.5,
   audience:'Designers and small teams building a casual or hyper-casual mobile game who want it played on day 30, not just installed on day 1.',
-  outcome:'You can design a loop a new player understands in seconds, tie progression and a free-to-play economy to it without breaking trust, prove retention and install cost in a soft launch with playable ads, and plan a live-ops cadence the team can sustain.',
+  outcome:'You can design a loop a new player understands in seconds, tie progression and a free-to-play economy to it without breaking trust, plan a soft launch with playable ads, with kill and scale thresholds and a worked LTV:CPI calculation, so retention and install cost can be judged, and plan a live-ops cadence the team can sustain.',
   prereq:[], next:['systems-designer','ship-it'],
   stages:[
     { id:'s1', t:'A loop that works in seconds', level:'intermediate',
-      goal:'Build a core loop a player grasps without text and wants to repeat at a bus stop.', hours:2,
+      goal:'Build a core loop a player grasps without text and wants to repeat at a bus stop.', hours:2.75,
       steps:[
         { kind:'topic', ref:'core-loop', why:'Players spend most of their time in the core loop, and in a casual game there is little else to carry the session.', do:'Write your loop in five sentences from the player’s point of view, one per link: action, feedback, decision, consequence, new situation. Then time how long one cycle takes.', min:20 },
         { kind:'game', ref:'flappy-bird', why:'Flappy Bird topped the free charts with exactly one input: a tap, a pipe gap, and a game-over panel one button press from the next try.', do:'Read its gameplay and ui lenses, then list every element on its play screen and mark which elements on your own play screen could move to the menus before and after a run.', min:15 },
@@ -1257,7 +1270,8 @@ PATH('casual-game-people-keep', {
         { kind:'topic', ref:'game-feel-and-juice', why:'Feel is the first thing players judge, but juice only amplifies feedback that already exists, so it goes on after the bare loop is replayed.', do:'Rank the outcomes of your main verb by importance, then plan emphasis for the top one in order (anticipation, impact, result), one channel at a time, and write how you will check it reads clearer rather than louder.', min:20 },
         { kind:'topic', ref:'platform-and-session', why:'Session length, interruptions and posture are design constraints, and a loop that needs twenty minutes fails where sessions last five.', do:'Write your session profile (median length, interruption pattern, device, posture), then where a player stops a session and what they see when they come back after a phone call.', min:15 },
         { kind:'topic', ref:'onboarding', why:'Players do not read, and the first session is where retention drops hardest.', do:'Storyboard your first 60 seconds with no text at all, and mark the first action, the first failure and the moment the player first succeeds.', min:20 },
-        { kind:'tool', ref:'loop', why:'The loop builder makes the chain from action to new situation explicit and checks it for a weak link before you build.', do:'Run your loop through the loop builder and keep the one weakest link it exposes.', min:15 }
+        { kind:'tool', ref:'loop', why:'The loop builder makes the chain from action to new situation explicit and checks it for a weak link before you build.', do:'Run your loop through the loop builder and keep the one weakest link it exposes.', min:15 },
+        { kind:'topic', ref:'prototyping', why:'The build for this stage needs something a stranger can play, and the cheapest medium that answers the question is the right one.', do:'Read the topic, then build the cheapest version of one level or run (paper, spreadsheet or grey box) with the number you are least sure about easy to change. Ask one person to play it (a message takes five minutes) and watch their first 60 seconds without explaining anything.', min:45 }
       ],
       review:[],
       check:{
@@ -1283,7 +1297,7 @@ PATH('casual-game-people-keep', {
       review:['core-loop'],
       check:{
         recall:[
-          { q:'What two problems does Angry Birds’ Mighty Eagle solve with one tool, and at what cost?', a:'It clears a level a stuck player cannot beat, and on a beaten level it opens a second goal, Total Destruction. Because it was sold, it invites the suspicion that hard levels are tuned to sell the skip.' },
+          { q:'How can one assist tool solve two problems for casual players, and at what cost, as the Mighty Eagle does?', a:'It clears a level a stuck player cannot beat, and on a beaten level it opens a second goal, Total Destruction. Because it was sold, it invites the suspicion that hard levels are tuned to sell the skip.' },
           { q:'How do you tune casual difficulty from data?', a:'Plot the intended curve and overlay observed failure rates per level, fix spikes by teaching before lowering demands, and track time to quit and time to pass as two numbers, as King does, since a hard level can still be fun if it is short.' },
           { q:'How can one board carry several modes?', a:'By changing only the rule for failure: none (Zen), a soft end when no move remains (Classic) or a clock (Lightning). Players then pick a mode by mood, with nothing new to learn.' }
         ],
@@ -1291,9 +1305,10 @@ PATH('casual-game-people-keep', {
         skip:['Can you name your player’s goal at each of the three horizons?','Do you have a difficulty curve with planned rest levels?','Can you say what each of your first unlocks teaches?']
       } },
     { id:'s3', t:'A free-to-play economy players trust', level:'intermediate',
-      goal:'Choose a business model and build currencies, sinks and offers that fund the game without souring it.', hours:2,
+      goal:'Choose a business model and build currencies, sinks and offers that fund the game without souring it.', hours:2.75,
       steps:[
         { kind:'topic', ref:'business-model', why:'The model decides what retention means and which metrics the team will be pushed to optimise, before any price is set.', do:'Pick your model, write which player behaviour it pays for, and list every system that exists only because of the model.', min:20 },
+        { kind:'topic', ref:'monetisation-design', tab:'godot', alt:'unity', why:'Once the model is chosen, the store, the prices and any random reward are the design, and they carry rules about odds disclosure that differ by market.', do:'Read the Godot tab, then write the rules table for one random reward (base rate, soft pity, hard pity), run its effective-rate function over 10,000 simulated pulls, and list the disclosure rules the topic names for the markets you ship in. In Unity, use the C# Gacha class.', min:45 },
         { kind:'game', ref:'candy-crush-saga', lens:'business', why:'Candy Crush Saga places its main purchase at the moment a player is about to fail: five extra moves, a life or a booster, under a five-life cap.', do:'Read its business lens, list each paid item it names with the failure it rescues, and write down the trust cost the lens records.', min:20 },
         { kind:'topic', ref:'economy-and-resources', why:'Sources and sinks decide whether a resource still forces a decision at hour 20, and small imbalances compound into surplus or starvation.', do:'Draw your resources as nodes with every source and sink, and mark where one would pile up unused.', min:25 },
         { kind:'game', ref:'cookie-clicker', why:'Cookie Clicker paces twenty buildings with one pricing rule, a 15% rise per copy owned, and its building list shows the game running out of straight-faced material.', do:'Read its gameplay and world lenses, then write the one pricing rule your own store could use, and mark the point in Cookie Clicker’s list where a new building stops feeling new.', min:15 },
@@ -1311,11 +1326,13 @@ PATH('casual-game-people-keep', {
         skip:['Have you picked ads, purchases or a hybrid and written what it rewards?','Does every currency in your game have a sink?','Have you checked your offers against dark patterns and odds disclosure?']
       } },
     { id:'s4', t:'Soft launch and playable ads', level:'advanced',
-      goal:'Test retention, monetisation and install cost in a limited market before paying for a global launch.', hours:2,
+      goal:'Test retention, monetisation and install cost in a limited market before paying for a global launch.', hours:2.75,
       steps:[
         { kind:'topic', ref:'soft-launch-and-playable-ads', why:'Soft launch is where retention and revenue guesses meet a small market before global acquisition spend, and a playable ad is the instrument that brings those players in.', do:'Write your kill, iterate and scale criteria before any test-market user arrives: the D1/D7/D30 line, the CPI ceiling and the LTV:CPI ratio needed to scale, plus the markets you would test in and why.', min:30 },
         { kind:'topic', ref:'metrics-and-success', why:'A soft launch without agreed metrics produces arguments, not decisions.', do:'Define the funnel events your build must log, from install to first purchase, the baseline for each and the decision each one feeds.', min:20 },
         { kind:'engine', ref:'defold', why:'Size is Defold’s main selling point: an empty HTML5 project is a compressed download of under 1 MB, which matters for a light casual game and for a playable ad under a network cap.', do:'Read the Defold guide and note its export targets and empty HTML5 build size, then set them against the 5 MB playable-ad caps listed in the soft-launch topic and estimate what your one-level ad’s art and sound could use.', min:20 },
+        { kind:'engine', ref:'web', why:'Playable ads and instant games are HTML5, so a web build is the cheapest thing that can be both the ad and the prototype.', do:'Read the guide’s pipeline and deploy stages, then build a one-screen HTML5 prototype of your ad moment and note its total size against the 5 MB cap.', min:25 },
+        { kind:'engine', ref:'cocos', why:'Cocos Creator publishes web and mini-game targets from one project, the route many casual games take into markets where the store is a super-app.', do:'Read the guide’s deploy stage, then write the command-line build with a saved config for one web target, and list what the WeChat mini game target adds.', min:20 },
         { kind:'game', ref:'subway-surfers', lens:'gameplay', why:'Subway Surfers shows its whole loop within seconds of the first run: the chase, three lanes and the first barrier, the material a playable ad is cut from.', do:'Read its first 30 seconds and gameplay lens, then storyboard a 15-second playable ad for your own game that shows only a moment a player really reaches, and mark the end-card moment.', min:20 },
         { kind:'platform', ref:'google-play', why:'An Android soft launch goes through Google Play’s test tracks first, and a new personal account must run a 12-tester, 14-day closed test before production.', do:'Read the Google Play guide and plan which track each soft-launch build goes to, whether the closed-test rule applies to your account, and how you would halt a staged rollout of a bad update.', min:15 },
         { kind:'tool', ref:'hypothesis', why:'Each soft-launch build should test one written guess, or the data will not tell you what changed.', do:'Write the hypothesis for your first soft-launch build and the metric that would disprove it.', min:15 }
@@ -1327,7 +1344,7 @@ PATH('casual-game-people-keep', {
           { q:'What makes a good playable ad?', a:'It is built from a real moment a player reaches in the current build, fits in one self-contained file under the network’s cap (5 MB at Unity, AppLovin, Google and Meta), routes its call to action through the network’s own click API, and is tested on strangers like the game itself.' },
           { q:'Why write the kill criteria before the data arrives?', a:'Otherwise the team moves the bar once disappointing numbers come in. A hypothesis without a signal and a kill criterion is a hope, and soft launch is a real gate: Supercell has launched 5 hits and killed more than 30 games.' }
         ],
-        build:'Write a soft-launch plan: markets, kill and scale gates for D1, D7 and D30 retention, install cost and LTV:CPI, the events to log, and a storyboard for one playable ad.',
+        build:'Write a soft-launch plan: markets, kill and scale gates for D1, D7 and D30 retention, install cost and LTV:CPI, the events to log, a storyboard for one playable ad, and one worked calculation (for example a CPI of $1.00 and an LTV of $1.40 give an LTV:CPI of 1.4, so say whether that clears your scale gate and what it does to your test budget).',
         skip:['Do you have numeric go and no-go gates for soft launch?','Can you list the funnel events your build logs?','Can you describe a playable ad’s limits and structure?']
       } },
     { id:'s5', t:'Live ops the team can sustain', level:'advanced',
@@ -1345,7 +1362,7 @@ PATH('casual-game-people-keep', {
       review:['soft-launch-and-playable-ads','economy-and-resources'],
       check:{
         recall:[
-          { q:'What does Subway Surfers’ World Tour show about sustaining live content?', a:'Since 2013 it has changed the visible city every three or four weeks while the lane-and-swipe run never changes, so the game stays current without touching the mechanic that makes it playable.' },
+          { q:'How can live content stay sustainable, as Subway Surfers’ World Tour shows?', a:'Since 2013 it has changed the visible city every three or four weeks while the lane-and-swipe run never changes, so the game stays current without touching the mechanic that makes it playable.' },
           { q:'What should be changeable without a client build at launch?', a:'Values you expect to tune often, such as level difficulty, prices and offers, and event dates and rewards, shipped as versioned data the installed clients can read, so changes do not wait on a store review.' },
           { q:'How do you know a live-ops cadence is sustainable?', a:'Measure planned against delivered items per cycle over a quarter and build the next calendar on the delivered number, with review, localisation and a buffer as fixed blocks and one quiet week per cycle.' }
         ],
@@ -1361,7 +1378,7 @@ PATH('game-skills-elsewhere', {
   track:'interview', level:'intermediate', hours:8,
   audience:'Experienced game developers in any discipline, laid off or choosing to leave, who want to move into another industry without starting over.',
   outcome:'You have a skill inventory stated as techniques and outcomes, one destination with named employers and a closing gap, a translated CV and one domain portfolio piece planned, and rehearsed answers for the interview formats and the why-leave-games question.',
-  prereq:[], next:['interview-prep-engineer','interview-prep-designer','ai-engineering-for-game-devs'],
+  prereq:[], next:['ai-engineering-for-game-devs','technical-lead'],
   stages:[
     { id:'s1', t:'What transfers', level:'intermediate',
       goal:'Turn five pieces of game work into techniques and outcomes a non-games reader recognises, and list the gaps honestly.', hours:2,
