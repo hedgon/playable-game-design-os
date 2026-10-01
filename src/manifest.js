@@ -8,6 +8,7 @@ const HEAD = '01-head.html';
 const DATA = [
   '05-registry.js',
   '06-glossary.js',
+  '07-snippet-scope.js',
   '10-schema.js',
   '12-diagnostics.js',
   '13-ai-workflow.js',
@@ -48,6 +49,7 @@ const DATA = [
   '42-case-systems-b.js',
   '43-case-systems-c.js',
   '44-worked-samples.js',
+  '45-go-samples.js',
   '50-paths.js',
   '51-paths-engineering.js'
 ];

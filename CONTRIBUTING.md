@@ -34,6 +34,7 @@ their own:
 node src/validate.js          # data checks only; PLAYABLE_STRICT=0 downgrades missing eng/iv to warnings
 node src/check-layout.js --list
 node src/inventory.js         # every id a learning-path step can reference, by kind
+node src/check-go.js          # gofmt and go vet on every GO() snippet (NOT MEASURED without Go)
 node src/serve.js             # optional local preview at http://localhost:8765
 ```
 
@@ -81,6 +82,7 @@ the type check, the smoke test and the paths test on every push and pull request
 01-head.html              CSS and the page shell (header, dialogs, toast)
 05-registry.js            ids declared once: TOOLS, DIAGNOSTICS, LENSES, VIEW_LINKS, PAGES (every page, for search and All pages)
 06-glossary.js            GLOSSARY: plain definitions of the words the guide uses, each linked to the topic that teaches it (#/glossary, and the Terms group in search)
+07-snippet-scope.js     UNITY_WHOLE: the topic ids whose Unity snippet compiled alone (drives the Whole script / Excerpt label)
 10-schema.js              JSDoc types, DOMAINS, TOPICS, section titles, and T, TECH, ENGINE, INTERVIEW, FACTS
 12-diagnostics.js         smells, fun dimensions, core-loop and unfairness diagnostics
 13-ai-workflow.js         AI roles, failure modes, responsibility matrix, loop steps, prompt templates, checklists, feature tree
@@ -104,6 +106,7 @@ the type check, the smoke test and the paths test on every push and pull request
 42-case-systems-b.js
 43-case-systems-c.js
 44-worked-samples.js     WORKED() sample tables and COMPARE() sample comparisons (to be replaced by real content)
+45-go-samples.js          GO() sample entries (the Go tab); replace with real content
 50-paths.js               PATH, PATHS, TRACKS, LEVELS, step titles and links; design, leadership and interview paths
 51-paths-engineering.js   engineering-track paths
 87-diagrams.js            data diagrams: loop, stack, matrix, quad, curve, economy, state, screen
@@ -148,6 +151,20 @@ Right after the topic, in the same file:
   APIs named in `api[]`. The domain decides whether its topics need them:
   `eng:'required'` (the default), `'optional'` or `'none'` in its
   `DOMAINS.push`. Project management and team leadership are `'none'`.
+  The tab shows a label saying whether the snippet is a whole script or an
+  excerpt. Unity: a topic id in `UNITY_WHOLE` (`07-snippet-scope.js`, measured by
+  compiling each snippet alone) is "Whole script", every other is an excerpt that
+  assumes names from the reader's project. Godot: a snippet whose first
+  non-comment line starts with `extends`, `class_name` or `@tool` is "Whole
+  script". Re-measure `UNITY_WHOLE` when a Unity snippet changes.
+- `GO('topic-id', {api:[...], snippet:'...', pitfall:'...'})` adds a Go tab. Only
+  backend, server and infra topics may have one. The snippet is a whole Go file:
+  it starts with `package `, carries its imports and compiles alone. Over 40
+  lines or 1,800 characters is reported as LONG, never an error. Check the
+  snippets with `node src/check-go.js`: it writes each into its own folder with a
+  `go.mod`, runs `gofmt -l` and `go vet`, and prints "NOT MEASURED: Go is not
+  installed" (exit 0) when `go` is not on the PATH. It is not part of the build.
+  Sample entries live in `45-go-samples.js`.
 - `INTERVIEW('topic-id', {junior:[...], mid:[...], senior:[...]})` adds the
   Interview tab: six to ten questions in total, at least one per level, each
   `{q, a, follow, red}` (question, model-answer outline, expected follow-up,
@@ -356,6 +373,7 @@ tool or checklist step somewhere in the path (a stage holds one only when its `w
 never go down (the first stage matches the path level and none rises more than one level), step minutes within 10% of the stage hours, and stage hours within
 10% of the path hours. A topic step's optional `tab` (`godot`, `unity` or
 `interview`) must exist on that topic. A `platform` step names a platform guide, and a `game` step names a reference game (`#/games/<id>`); a game step also shows on that game’s page under “Part of paths”.
+A stage's `check` may also carry `solution:{outline, selfcheck}`: a reference outline of a good answer to the build task (40 words or more) and 2 to 6 self-check questions. The path page shows it under the build task in a closed disclosure, "Reference solution: open after you try".
 Every path has a `pick` line under 60 characters for the door; every recall
 question is `{q, a}` with a short answer outline; and every path in a `prereq`
 or `prereqAny` must list this path in its own `next`. `prereq` means all of them; `prereqAny` (two or

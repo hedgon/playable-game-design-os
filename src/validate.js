@@ -187,6 +187,19 @@ for (const t of topics) {
       else if (v.snippet.length > 900) longs.push(`${t.id}: eng.${e}.snippet is ${v.snippet.length} chars (guide: 900)`);
     }
   }
+  // go: a whole Go file, only on backend, server and infra topics.
+  if (t.go !== undefined) {
+    const g = t.go;
+    if (!['backend', 'server', 'infra'].includes(t.d)) errors.push(`${t.id}: go present on a ${t.d} topic; Go is for backend, server and infra only`);
+    if (!g.snippet || !String(g.snippet).trim()) errors.push(`${t.id}: go.snippet empty`);
+    else {
+      if (!/^package /.test(g.snippet)) errors.push(`${t.id}: go.snippet must be a whole file and start with "package "`);
+      const lines = g.snippet.trimEnd().split('\n').length;
+      if (lines > 40 || g.snippet.length > 1800) longs.push(`${t.id}: go.snippet is ${lines} lines, ${g.snippet.length} chars (guide: 40 lines, 1800)`);
+    }
+    if (!Array.isArray(g.api) || !g.api.length || g.api.some(a => !String(a).trim())) errors.push(`${t.id}: go.api must be a non-empty array of non-empty strings`);
+    if (!g.pitfall || !String(g.pitfall).trim()) errors.push(`${t.id}: go.pitfall empty`);
+  }
   // iv: every topic needs interview questions, 6 to 10 of them, all three levels used.
   if (t.iv === undefined) { if (STRICT) errors.push(`${t.id}: missing iv`); else warns.iv++; }
   else {
@@ -690,6 +703,14 @@ for (const pth of (PATHS || [])) {
       if (!build || !String(build).trim()) errors.push(`${sw}: check.build empty`);
       if (!Array.isArray(skip) || skip.length < 3) errors.push(`${sw}: check.skip has ${Array.isArray(skip) ? skip.length : 'no'} questions, expected 3 or more`); else if (skip.length > 5) longs.push(`${sw}: check.skip has ${skip.length} questions (guide: 5)`);
       else skip.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.skip[${i}] empty`); });
+      const sol = st.check.solution;
+      if (sol !== undefined) {
+        const words = sol && typeof sol.outline === 'string' ? sol.outline.trim().split(/\s+/).filter(Boolean).length : 0;
+        if (words < 40) errors.push(`${sw}: check.solution.outline is ${words} words, expected 40 or more`);
+        const sc = sol && sol.selfcheck;
+        if (!Array.isArray(sc) || sc.length < 2 || sc.length > 6) errors.push(`${sw}: check.solution.selfcheck needs 2 to 6 questions`);
+        else sc.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.solution.selfcheck[${i}] empty`); });
+      }
     }
     hoursSum += (typeof st.hours === 'number' ? st.hours : 0);
   });

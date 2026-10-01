@@ -40,7 +40,7 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 | E0 | Research, decisions, plan | coordinator | done | this file |
 | X1 | App: `WORKED()` and `COMPARE()` kinds (schema, validator, rendering, downloads, Compare shelf and route, search) | worker | done | WORKED and COMPARE kinds with one sample each (src/44-worked-samples.js), downloads as CSV or Markdown, Compare shelf and route, "Compared with" on game pages, search groups; smoke 269/0, e2e 104/104 |
 | T1 | Topics `three-cs` and `camera-design`, with path steps | worker | done | three-cs in game designer foundations s4, camera-design in level and UX s3, 8 interview questions each, glossary +2; game claims written from memory and a legacy Input.GetButtonDown in the Unity 3Cs snippet go to R1 |
-| X2 | App: `check.solution`, Go tab (`GO()`), snippet scope label, glossary toggletips, "boss" synonym, `check-go.js` | worker | todo | 90-app, 01-head, 10-schema, validate |
+| X2 | App: `check.solution`, Go tab (`GO()`), snippet scope label, glossary toggletips, "boss" synonym, `check-go.js` | worker | done | check.solution disclosure; Go tab with whole-file label and src/check-go.js (NOT MEASURED here: no Go); Unity and Godot snippet labels; glossary toggletips on topic Overviews and path steps; boss, 3Cs and camera synonyms; smoke 269/0, e2e 104/104 |
 | T2 | Topic `server-stack-choices` with dated facts and a path step | worker | done | server-stack-choices in the netcode path s3; 5 dated facts opened at source (Multiplay deprecation per Unity notice 362941, GameLift Servers, Agones, Nakama, Mirror MIT); the GameLift rename and NGO-first-party facts dropped (sources would not load); glossary +2 |
 | S0 | `SNIPPET_SCOPE` data from the developer audit's compile results and a structural rule for GDScript | coordinator | done | new data file |
 | W1 | Worked tables (economy, difficulty) and documents (one-page spec, feature brief, decision log) | worker | todo | 23, 33 |
@@ -59,3 +59,4 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 - 2026-10-01: T2 done (build and tsc pass).
 - 2026-10-01: X1 done. P1 started (first-tiny-game path). X2 started.
 - 2026-10-01: P1 done. Phase A (X1, T1, T2, S0, P1) committed from a snapshot taken before X2 started, built in a clean worktree.
+- 2026-10-01: X2 done; coordinator added solution to the PathStage typedef. Phase B (X2) committed from a clean worktree.

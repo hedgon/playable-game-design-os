@@ -905,6 +905,62 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     if (errors.length) fail('page error ' + errors[0]);
     await ctx.close();
   }
+  // Reference solutions, the Go tab, snippet labels and glossary toggletips.
+  for (const [w, h] of [[375, 812], [1440, 900]]) {
+    const fail = m => failures.push(`${w}px reading aids: ${m}`);
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: w < 700, isMobile: w < 700 });
+    const page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
+    await page.goto(base); await page.evaluate(() => { localStorage.setItem('playable.visited', 'true'); localStorage.setItem('playable.hideMap', 'true'); });
+    const data = await page.evaluate(() => {
+      const withSol = PATHS.flatMap(p => p.stages.filter(s => s.check.solution).map(s => ({ path: p.id, stage: s.id })))[0] || null;
+      const go = Object.values(TOPICS).find(t => t.go);
+      return { withSol, go: go ? go.id : null, goWhole: go ? /^package /.test(go.go.snippet) : false };
+    });
+    const goto = async hash => { await page.goto(base + hash); await page.reload(); await page.waitForTimeout(500); };
+    // a path stage with a reference solution shows it closed, under the build task
+    if (data.withSol) {
+      await goto('#/paths/' + data.withSol.path + '/' + data.withSol.stage);
+      const sol = await page.evaluate(() => { const d = document.querySelector('details.pathsolution'); return d ? { open: d.open, text: d.querySelector('summary').textContent.trim(), items: d.querySelectorAll('li').length } : null; });
+      if (!sol) fail('a path stage with a reference solution does not show it');
+      else if (sol.open || !/^Reference solution: open after you try/.test(sol.text) || sol.items < 2) fail('reference solution disclosure is wrong ' + JSON.stringify(sol));
+    }
+    // the Go tab and the snippet labels
+    if (data.go) {
+      await goto('#/map/t/' + data.go + '/go');
+      const g = await page.evaluate(() => ({ tab: [...document.querySelectorAll('.topictabs [role=tab]')].map(b => b.textContent), note: (document.querySelector('.engview .snipnote') || {}).textContent || '', code: (document.querySelector('.engview pre.snippet') || {}).textContent || '', copy: !!document.querySelector('.engview .copybtn') }));
+      if (!g.tab.includes('Go')) fail('a topic with a GO entry has no Go tab ' + JSON.stringify(g.tab));
+      if (!/^package /.test(g.code) || !g.copy) fail('the Go tab has no whole-file snippet with a copy button');
+      if (!/Whole file/.test(g.note)) fail('the Go tab has no "Whole file" label');
+    }
+    for (const tab of ['godot', 'unity']) {
+      await goto('#/map/t/core-loop/' + tab);
+      const note = await page.evaluate(() => (document.querySelector('.engview .snipnote') || {}).textContent || '');
+      if (!/Whole script|Excerpt/.test(note)) fail(`the ${tab} tab has no snippet label (got "${note}")`);
+    }
+    // a toggletip opens on tap or click, speaks through a status region, and closes with Escape
+    await goto('#/map/t/core-loop/overview');
+    const gt = page.locator('.sec.open button.gt').first();
+    if (!await gt.count()) fail('no glossary toggletip on core-loop');
+    else {
+      const bubble = () => page.evaluate(() => { const b = document.getElementById('gtBubble'); return b ? { text: b.textContent, role: b.getAttribute('role') } : null; });
+      if (w < 700) await gt.tap(); else await gt.click();
+      await page.waitForTimeout(250);
+      const b1 = await bubble(), exp = await gt.getAttribute('aria-expanded');
+      if (!b1 || !b1.text.trim() || b1.role !== 'status' || exp !== 'true') fail('the toggletip did not open ' + JSON.stringify({ b1, exp }));
+      const box = await page.evaluate(() => { const r = document.getElementById('gtBubble').getBoundingClientRect(); return r.left >= 0 && r.right <= document.documentElement.clientWidth && r.top >= 0 && r.bottom <= innerHeight; });
+      if (!box) fail('the toggletip bubble runs off the screen');
+      await page.keyboard.press('Escape'); await page.waitForTimeout(150);
+      const b2 = await bubble();
+      if (b2 && b2.text.trim() || await gt.getAttribute('aria-expanded') !== 'false') fail('Escape did not close the toggletip');
+      if (w < 700) await gt.tap(); else await gt.click();
+      await page.waitForTimeout(250);
+      if (w < 700) await gt.tap(); else await gt.click();
+      await page.waitForTimeout(150);
+      if (await gt.getAttribute('aria-expanded') !== 'false') fail('a second tap did not close the toggletip');
+    }
+    if (errors.length) fail('page error ' + errors[0]);
+    await ctx.close();
+  }
   // Reduced motion: the camera moves in one step and CSS transitions are cut.
   {
     const probe = async reduce => {

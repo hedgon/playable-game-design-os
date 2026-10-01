@@ -1214,6 +1214,14 @@ table.worked th{background:var(--bg3)}
 .pathbar > .pathnote{flex:1 1 100%;margin:0}
 .kindchip{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:.66rem;flex:none;margin-top:3px}
 .pathcheck,.pathskip{border:1px dashed var(--line2);background:var(--bg2);border-radius:var(--r2)}
+.pathsolution{margin:10px 0}
+.pathsolution h4{margin:10px 0 4px}
+/* snippet scope label, glossary toggletip and its bubble */
+.snipnote{margin:8px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.gt{background:none;border:0;border-bottom:1px dotted var(--accent);padding:0;margin:0;min-height:0;min-width:0;font:inherit;color:inherit;cursor:help;border-radius:0}
+.gt[aria-expanded="true"]{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.gtbubble{position:fixed;z-index:95;left:12px;top:12px;max-width:min(320px,calc(100vw - 24px));background:var(--panel);color:var(--fg);border:1px solid var(--line2);border-left:4px solid var(--accent);border-radius:var(--r2);box-shadow:0 6px 20px rgba(0,0,0,.25);padding:10px 12px;font-size:.85rem;line-height:1.5}
+.gtbubble:empty{padding:0;border:0;box-shadow:none;width:0;height:0;overflow:hidden}
 @media (max-width:1100px){
   .shell{display:block}
   .splitter{display:none}

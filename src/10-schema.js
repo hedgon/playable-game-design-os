@@ -43,6 +43,7 @@
  * @property {Array<[string, string]>} rel   [topic id or VIEW_LINKS id, why it connects]
  * @property {Technique[]} [tech]   attached by TECH()
  * @property {Engine} [eng]         attached by ENGINE()
+ * @property {GoView} [go]          attached by GO(); backend, server and infra topics only
  * @property {Interview} [iv]       attached by INTERVIEW()
  * @property {Fact[]} [facts]       attached by FACTS()
  * @property {Worked[]} [worked]    attached by WORKED()
@@ -64,6 +65,7 @@
 /** @typedef {{n: string, how: string, fit: string, cost: string, alt: string}} Technique */
 /** @typedef {{term: string, api: string[], snippet: string, pitfall: string, map: string}} EngineView */
 /** @typedef {{godot: EngineView, unity: EngineView, note?: string}} Engine */
+/** @typedef {{api: string[], snippet: string, pitfall: string}} GoView  snippet is a whole Go file */
 /** @typedef {{q: string, a: string, follow: string, red: string}} Question */
 /** @typedef {{junior: Question[], mid: Question[], senior: Question[]}} Interview */
 
@@ -86,6 +88,8 @@ function T(id, o){ o.id = id; TOPICS[id] = o; }
      iv  = { junior:[{q,a,follow,red}], mid:[...], senior:[...] } */
 /** @param {string} id @param {Engine} o */
 function ENGINE(id, o){ const t = TOPICS[id]; if(!t) throw new Error('ENGINE: unknown topic '+id); t.eng = o; }
+/** @param {string} id @param {GoView} o */
+function GO(id, o){ const t = TOPICS[id]; if(!t) throw new Error('GO: unknown topic '+id); t.go = o; }
 /** @param {string} id @param {Interview} o */
 function INTERVIEW(id, o){ const t = TOPICS[id]; if(!t) throw new Error('INTERVIEW: unknown topic '+id); t.iv = o; }
 

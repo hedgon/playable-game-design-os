@@ -229,7 +229,7 @@ function route(){
   const group = VIEW_GROUP[view || 'map'];
   $$('#primaryNav button[data-group]').forEach(b => { const on = !!group && b.dataset.group === group.id; b.classList.toggle('active', on); if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   $('#navMore').classList.toggle('active', !!group && NAV.indexOf(group) >= NAV_BAR); closeNavMore();
-  closeModals();
+  closeModals(); closeTip();
   syncMapMode(view, parts[1]);
   drawView(view, parts);
   rememberPage();
@@ -1135,10 +1135,77 @@ function renderConcepts(){
     <div class="grid auto" id="ciList">${rows.map(card).join('')}</div>`);
   const f = $('#ciFilter'); f.addEventListener('input', () => { const q = f.value.trim().toLowerCase(); $('#ciList').innerHTML = rows.filter(r => r.t.t.toLowerCase().includes(q) || DOM[r.t.d].t.toLowerCase().includes(q)).map(card).join('') || '<div class="empty">No concept matches.</div>'; });
 }
-/* ---------- topic tabs: overview / godot / unity / interview ---------- */
-const TOPIC_TABS = [['overview','Overview'],['godot','Godot'],['unity','Unity'],['interview','Interview']];
+/* ---------- glossary toggletips ----------
+   glossify() turns the first use on a page of each glossary entry (its term or any aka) into a button.
+   It walks the text nodes of the rendered HTML, never the markup, and leaves headings, links,
+   buttons, code, chips and diagrams alone. One bubble at a time lives in <body>, in a
+   role="status" region so a screen reader hears the definition when it fills.
+   Each button is <button data-action="gloss-tip">, handled below. */
+let _GLOSS = null;
+function glossMatcher(){
+  if(_GLOSS) return _GLOSS;
+  const by = new Map();
+  GLOSSARY.forEach(g => [g.term, ...(g.aka || [])].forEach(w => { const k = w.toLowerCase(); if(w.length >= 3 && !by.has(k)) by.set(k, g); }));
+  const words = [...by.keys()].sort((a, b) => b.length - a.length).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return (_GLOSS = { by, re: new RegExp('(?<![\\w-])(' + words.join('|') + ')(?![\\w-])', 'gi') });
+}
+const GLOSS_SKIP = 'h1,h2,h3,h4,h5,h6,a,button,code,pre,summary,svg,textarea,.chip,.dgm-foot,.diagram-card';
+// opts.cur: the topic this page teaches (its own "Learn it" link is left out); opts.only: a selector the text must sit inside.
+function glossify(html, opts = {}){
+  const { by, re } = glossMatcher(), seen = new Set();
+  const tpl = document.createElement('template'); tpl.innerHTML = html;
+  const walker = document.createTreeWalker(tpl.content, NodeFilter.SHOW_TEXT), nodes = [];
+  for(let n; (n = walker.nextNode());) nodes.push(n);
+  for(const node of nodes){
+    const p = node.parentElement;
+    if(!p || p.closest(GLOSS_SKIP) || (opts.only && !p.closest(opts.only))) continue;
+    const text = node.nodeValue; let m, last = 0, frag = null; re.lastIndex = 0;
+    while((m = re.exec(text))){
+      const g = by.get(m[1].toLowerCase()); if(seen.has(g.id)) continue;
+      seen.add(g.id); frag = frag || document.createDocumentFragment();
+      frag.append(text.slice(last, m.index));
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'gt'; b.setAttribute('aria-expanded', 'false'); b.dataset.action = 'gloss-tip'; b.dataset.gloss = g.id;
+      if(g.topic && g.topic !== opts.cur && TOPICS[g.topic]) b.dataset.learn = g.topic;
+      b.textContent = m[1]; frag.append(b); last = m.index + m[1].length;
+    }
+    if(frag){ frag.append(text.slice(last)); node.replaceWith(frag); }
+  }
+  return tpl.innerHTML;
+}
+let tipBtn = null, tipEl = null, tipAt = 0;
+function tipNode(){
+  if(!tipEl){ tipEl = document.createElement('div'); tipEl.id = 'gtBubble'; tipEl.className = 'gtbubble'; tipEl.setAttribute('role', 'status'); document.body.appendChild(tipEl); }
+  return tipEl;
+}
+function closeTip(refocus){
+  if(!tipBtn) return;
+  const b = tipBtn; tipBtn = null; b.setAttribute('aria-expanded', 'false'); tipNode().textContent = '';
+  if(refocus && document.contains(b)) b.focus();
+}
+ACTIONS['gloss-tip'] = el => {
+  if(tipBtn === el){ closeTip(); return; }
+  closeTip();
+  const g = GLOSSARY.find(x => x.id === el.dataset.gloss); if(!g) return;
+  tipBtn = el; tipAt = Date.now(); el.setAttribute('aria-expanded', 'true');
+  // The region is already in the page and empty; filling it a moment later is what gets it announced.
+  setTimeout(() => {
+    if(tipBtn !== el) return;
+    const n = tipNode();
+    n.innerHTML = `<b>${esc(g.term)}</b> ${esc(g.def)}${el.dataset.learn ? ` <a href="#/map/t/${esc(el.dataset.learn)}">Learn it</a>` : ''}`;
+    const r = el.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    const w = n.offsetWidth, h = n.offsetHeight;
+    n.style.left = Math.max(12, Math.min(r.left, vw - w - 12)) + 'px';
+    n.style.top = (r.bottom + 6 + h > vh - 12 ? Math.max(12, r.top - h - 6) : r.bottom + 6) + 'px';
+  }, 30);
+};
+document.addEventListener('click', e => { if(tipBtn && !e.target.closest('.gt, #gtBubble')) closeTip(); });
+document.addEventListener('scroll', () => { if(tipBtn && Date.now() - tipAt > 400) closeTip(); }, true);
+window.addEventListener('resize', () => closeTip());
+/* ---------- topic tabs: overview / godot / unity / go / interview ---------- */
+const TOPIC_TABS = [['overview','Overview'],['godot','Godot'],['unity','Unity'],['go','Go'],['interview','Interview']];
 // A tab only exists when the topic carries its data, so nothing renders blank.
-function tabsFor(t){ return TOPIC_TABS.filter(([k]) => k === 'overview' || (k === 'interview' ? !!t.iv : !!(t.eng && t.eng[k]))); }
+function tabsFor(t){ return TOPIC_TABS.filter(([k]) => k === 'overview' || (k === 'interview' ? !!t.iv : k === 'go' ? !!t.go : !!(t.eng && t.eng[k]))); }
 let topicTab = 'overview';
 // The tab in the URL wins; otherwise the last one this browser used; unknown
 // or unavailable falls back to overview. Only an explicit URL tab is stored.
@@ -1163,12 +1230,31 @@ function tabKey(e){
   btns[n].click();
   setTimeout(() => { const b = $('.topictabs button.active'); if(b) b.focus(); }, 0);
 }
+// Says plainly whether a snippet stands alone or assumes the reader's project. Always visible text, never a tooltip.
+const GODOT_WHOLE = /^(extends|class_name|@tool)\b/;
+function snippetLabel(kind, t, v){
+  if(kind === 'go') return ['Whole file', 'A complete Go file. Save it as main.go in its own folder and it builds as it stands.'];
+  if(kind === 'unity') return UNITY_WHOLE.has(t.id) ? ['Whole script', 'Compiled on its own against the Unity engine assemblies.'] : ['Excerpt: assumes names from your project', 'Read it as a pattern. It will not compile on its own, because it uses types and fields from your project.'];
+  const first = String(v.snippet).split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#')) || '';
+  return GODOT_WHOLE.test(first) ? ['Whole script', 'A complete script: save it as a .gd file and attach it to a node.'] : ['Excerpt', 'A few lines to place inside your own script.'];
+}
+const snippetNote = ([label, why]) => `<p class="snipnote"><span class="chip">${esc(label)}</span> <span class="small dim">${esc(why)}</span></p>`;
+function goBody(t){
+  const v = t.go, d = DOM[t.d];
+  return `<div class="engview" style="--dc:${d.color}">
+    <div class="overline">Go · the same idea in a Go service</div>
+    <h4>Reach for</h4><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
+    ${snippetNote(snippetLabel('go', t, v))}
+    <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>
+    <div class="callout bad"><b>Pitfall.</b> ${esc(v.pitfall)}</div></div>`;
+}
 function engineBody(t, which){
   const v = t.eng[which], d = DOM[t.d];
   return `<div class="engview" style="--dc:${d.color}">
     <div class="overline">${which === 'godot' ? 'Godot 4' : 'Unity 6'} · what this is called here</div>
     <p>${esc(v.term)}</p>
     <h4>Reach for</h4><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
+    ${snippetNote(snippetLabel(which, t, v))}
     <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>
     <div class="callout bad"><b>Pitfall.</b> ${esc(v.pitfall)}</div>
     <div class="callout ok"><b>Same idea, different name.</b> ${esc(v.map)}</div>
@@ -1218,7 +1304,7 @@ function topicBody(id){
   const prev = idx > 0 ? d.topics[idx-1] : null, next = idx < d.topics.length-1 ? d.topics[idx+1] : null;
   const openSecs = new Set(store.get('openSecs', ['what','why','think']));
   const secTitle = key => (d.titles && d.titles[key]) || SECTION_META.find(m => m[0] === key)[2];
-  const secs = SECTION_META.map(([key, letter]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header data-action="toggle-sec"><span class="letter">${letter}</span><h3><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has(key)}">${esc(secTitle(key))}</button></h3><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join('');
+  const secs = glossify(SECTION_META.map(([key, letter]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header data-action="toggle-sec"><span class="letter">${letter}</span><h3><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has(key)}">${esc(secTitle(key))}</button></h3><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join(''), { cur: id });
   const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header data-action="toggle-sec"><span class="letter">T</span><h3><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has('tech')}">Techniques to compare</button></h3><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
   const rel = (t.rel||[]).map(([rid, why]) => { const rt = TOPICS[rid]; const v = VIEW_LINKS[rid]; const href = rt ? `#/map/t/${rid}` : (v ? v[0] : '#/explore'); const label = rt ? rt.t : (v ? v[1] : rid); const dc = rt ? DOM[rt.d].color : 'var(--accent)'; return `<a class="rel lnk blk" style="border-left:3px solid ${dc}" href="${href}"><b>${esc(label)}</b><div class="why">${esc(why)}</div></a>`; }).join('');
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
@@ -1254,7 +1340,7 @@ function topicBody(id){
     wideBlock('In real games', inGames.length ? gameFoot.replace(' wdup', '').replace('<span class="overline">In real games</span>', '') : '') +
     topicParts(id).map(([label, items]) => wideBlock(label, chipLinks(items))).join('') + wideBlock('Part of paths', pathsBlock(id)) +
     wideBlock('Related concepts', `<div class="related">${rel}</div>`) + (smells.length ? wideBlock('Design smells this topic helps diagnose', smellChips) : '');
-  const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : wide2(overview, side);
+  const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : tab === 'go' ? goBody(t) : wide2(overview, side);
   return `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       ${tab === 'overview' ? `<div class="row"><button class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
@@ -2445,8 +2531,13 @@ function stepRowHTML(pth, st, i, step, prog, isNext){
     <input type="checkbox" ${checked ? 'checked' : ''} data-path="${pth.id}" data-step="${key}">
     <span class="chip kindchip">${isNext ? 'next' : esc(step.kind)}</span>
     <span class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
-      <div class="small dim">${esc(step.why)}</div><div class="small">${esc(step.do)}</div>${step.alt ? `<div>${enginePickHTML(step)}</div>` : ''}</span>
+      <div class="small dim gl">${esc(step.why)}</div><div class="small gl">${esc(step.do)}</div>${step.alt ? `<div>${enginePickHTML(step)}</div>` : ''}</span>
   </label>${step.kind === 'reflect' ? '' : stepNoteHTML(`${pth.id}.${st.id}.${i}`)}`;
+}
+// The reference answer to the build task, closed so the reader tries first.
+function solutionHTML(st){
+  const s = st.check.solution; if(!s) return '';
+  return `<details class="pathsolution"><summary>Reference solution: open after you try</summary><div class="body"><h4>Outline of a good answer</h4><p>${esc(s.outline)}</p><h4>Check yourself</h4><ul>${s.selfcheck.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div></details>`;
 }
 function stageFooterHTML(pth, st, prog){
   const next = pathNextStep(pth.id), checkpointOpen = !!next && next.type === 'checkpoint' && next.stage.id === st.id;
@@ -2455,7 +2546,7 @@ function stageFooterHTML(pth, st, prog){
   return `${review ? `<div class="small" style="margin-top:10px"><b>Review:</b> ${review}</div>` : ''}
     <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>Checkpoint</summary><div class="body">
       <h4>Can you answer these?</h4>${recallHTML(pth, st)}
-      <h4>Build</h4><p>${esc(st.check.build)}</p>
+      <h4>Build</h4><p>${esc(st.check.build)}</p>${solutionHTML(st)}
       <button class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
     </div></details>
     <details class="pathskip" style="margin-top:6px"><summary>Skip ahead: I already know this</summary><div class="body">
@@ -2488,14 +2579,14 @@ function pathPageHTML(pth, stageIdParam){
   const curStage = (stageIdParam && pth.stages.some(s => s.id === stageIdParam)) ? stageIdParam : currentStageId(pth);
   const { prog, total, done, doneStages, pct } = pathProgressCounts(pth);
   const next = pathNextStep(pth.id);
-  const main = `<div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
+  const main = glossify(`<div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
     ${hasPrereq(pth) ? `<div class="small muted" style="margin:1em 0">Prereq: ${(pth.prereqAny || []).length > 3 ? prereqSummaryHtml(pth) : prereqHtml(pth, pathLinkChip, ', ')}</div>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
     <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
-    ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`;
+    ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`, { only: '.pathstep-body .gl' });
   const side = wideBlock('Stages', `<ol>${pth.stages.map(st => `<li><a class="lnk" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></li>`).join('')}</ol>`) + wideBlock('Where to go next', pth.next.length ? `<div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : '');
   return wide2(main, side, 'This path');
 }
@@ -2569,11 +2660,14 @@ const TOPIC_SYNONYMS = {
   'economy-modelling-and-balance':['balance','balancing','game balance'],
   'onboarding':['ftue','first time user experience'],
   'game-feel-and-juice':['juice','juicy'],
-  'difficulty':['flow','flow state','challenge and skill']
+  'difficulty':['flow','flow state','challenge and skill'],
+  'combat-design':['boss','bosses','boss fight','telegraph'],
+  'three-cs':['3cs','3 cs'],
+  'camera-design':['camera']
 };
 function buildIndex(){
   const INDEX = [];
-const engText = t => t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k].term, ...(t.eng[k].api||[]), t.eng[k].pitfall, t.eng[k].map] : []) : [];
+const engText = t => (t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k].term, ...(t.eng[k].api||[]), t.eng[k].pitfall, t.eng[k].map] : []) : []).concat(t.go ? [...t.go.api, t.go.pitfall] : []);
 const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map(x => x.q)) : [];
 TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, aka:TOPIC_SYNONYMS[t.id] || [], text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...(t.facts||[]).map(f=>f.claim), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
 TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
@@ -2797,7 +2891,7 @@ $('#skipBtn').onclick = () => {
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
-  if(e.key==='Escape'){ if(!document.querySelector('.modal-bg.show') && isNarrow() && $('#drawerClose').classList.contains('show') && (!typing || document.activeElement.closest('#rail'))){ $('#drawerClose').click(); return; } closeModals(); return; }
+  if(e.key==='Escape'){ if(tipBtn){ closeTip(true); return; } if(!document.querySelector('.modal-bg.show') && isNarrow() && $('#drawerClose').classList.contains('show') && (!typing || document.activeElement.closest('#rail'))){ $('#drawerClose').click(); return; } closeModals(); return; }
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
   if(e.key==='?'){ openModal('helpModal', 'h2'); return; }

@@ -75,7 +75,7 @@
  * @property {number} hours
  * @property {PathStep[]} steps
  * @property {string[]} review
- * @property {{recall: (string|{q: string, a: string})[], build: string, skip: string[]}} check
+ * @property {{recall: (string|{q: string, a: string})[], build: string, skip: string[], solution?: {outline: string, selfcheck: string[]}}} check
  */
 /**
  * @typedef {object} Path
