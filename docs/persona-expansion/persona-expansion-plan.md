@@ -48,7 +48,7 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 | G1 | Go tabs on backend, server and infra topics | worker | done | 29 Go tabs (11 backend, 8 infra, 10 server), standard library only, whole files; not compiled or vetted here (no Go): run src/check-go.js where Go is installed |
 | P1 | Path `first-tiny-game` and the chooser | worker | done | first-tiny-game: 4 stages, 8.25 h, one practice jumper carried through every task; the chooser sends Design games + New to it there first, then foundations; its Godot and GameMaker steps both count (alt covers Godot and Unity only) |
 | P2 | Reference solutions for engineering checkpoints | worker | done | 58 stages in 11 engineering paths have an outline and 3 to 5 self-checks; a repeated filler sentence the worker added to reach the length target was removed from 22 outlines (no padding) |
-| L1 | A known game in every design lesson's opening | worker | in progress | files 20-25: 24 of 38 topics gained a library-game example, 14 already had one; four claims written from memory go to R1 (Resident Evil 4 village, Halo dropship, Overwatch counters, Rocket League ball cam); files 26-30 running |
+| L1 | A known game in every design lesson's opening | worker | done | files 20-25: 24 of 38 topics gained a library-game example, 14 already had one; four claims written from memory go to R1 (Resident Evil 4 village, Halo dropship, Overwatch counters, Rocket League ball cam); files 26-30: 22 topics gained an example taken from the game pages' own lenses, 15 already had one |
 | R1 | Fact-check of all new content by a fresh reviewer, fixes | reviewer + worker | todo | |
 | V1 | Checks, browser verification at 1440 and 375, archive | coordinator | todo | |
 
@@ -63,3 +63,4 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 - 2026-10-01: W1 done; G1 backend done. Phase C (W1, G1) committed; its first CI replay failed the smoke download check, which joined cells with bare commas while real CSV quotes cells holding commas; the check now quotes like RFC 4180 from a clean worktree.
 - 2026-10-01: W2 done; phase D (W2) committed. P2 and L1 (files 20-25) running.
 - 2026-10-01: P2 done (padding removed by the coordinator). L1 files 20-25 done. Phase E (P2, L1 part 1) committed.
+- 2026-10-01: L1 done; phase F (L1 part 2) committed. R1b (engineering review) running.
