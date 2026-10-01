@@ -330,9 +330,10 @@ function ensureShell(){
         <div class="row mapctl" style="gap:4px">
         <a class="btn sm mapnext" id="mapNext" href="#/map" hidden>Next unread</a>
         <button class="btn sm ghost" id="mapLegendBtn" aria-expanded="false" aria-controls="maplegend" title="What the colours, marks and lines mean">Legend</button>
+        <div class="lens-switch mapviewsw" id="mapPhoneView" role="group" aria-label="Phone map view"><button type="button" data-view="map" aria-pressed="true">Map</button><button type="button" data-view="list" aria-pressed="false">List</button></div>
         <button class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">－</button>
         <button class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
-        <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢ fit</button>
+        <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢<span class="btn-long"> fit</span></button>
         <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺</button>
         <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲</button>
         <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>

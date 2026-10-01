@@ -102,6 +102,23 @@ const server = http.createServer((req, res) => {
       const flashed = await page.evaluate(() => { const r = document.querySelector('#pane .pathstep.flash'); if (!r) return null; const b = r.getBoundingClientRect(); return { row: r.dataset.row, inView: b.top >= 0 && b.bottom <= innerHeight, hash: location.hash }; });
       check(`${tag} clicking a step node shows that step in the stage view`, flashed && flashed.inView && /^#\/paths\/systems-designer\/[^/]+$/.test(flashed.hash), JSON.stringify(flashed));
     }
+    if (w < 700) {
+      // the phone map: the same path tree on the canvas (Map pill shows it), nothing wider than the screen, readable labels, a tap on a stage opens it; List keeps the outline
+      await page.evaluate(() => document.getElementById('drawerClose').click()); await page.waitForTimeout(700);
+      const pm = await page.evaluate(() => { const wr = document.getElementById('mapwrap').getBoundingClientRect(), lbl = [...document.querySelectorAll('#mapsvg .node[data-scope="path"] .lbl:not(.sub)')].map(t => t.getBoundingClientRect().height).filter(Boolean);
+        return { svg: getComputedStyle(document.getElementById('mapsvg')).display !== 'none', out: getComputedStyle(document.getElementById('mapoutline')).display !== 'none', nodes: document.querySelectorAll('#mapsvg .node[data-scope="path"]').length, sw: document.documentElement.scrollWidth, wrapH: wr.height, wide: [...document.querySelectorAll('body *')].filter(e => !e.closest('svg') && e.getBoundingClientRect().width > innerWidth + 1).length, minLbl: lbl.length ? Math.min(...lbl) : 0 }; });
+      check(`${tag} the path map is the canvas on a phone, fits the width, fills the stage`, pm.svg && !pm.out && pm.nodes > 0 && pm.sw <= 375 && !pm.wide && pm.wrapH > 350, JSON.stringify(pm));
+      const px = await page.evaluate(() => { const t = document.querySelector('#mapsvg .node[data-scope="path"] .lbl:not(.sub)'); return t ? parseFloat(getComputedStyle(t).fontSize) * (document.getElementById('mapsvg').getBoundingClientRect().width / document.getElementById('mapsvg').viewBox.baseVal.width) : 0; });
+      check(`${tag} path map labels are at least 11px on a phone`, px >= 10.9, px);
+      await page.evaluate(() => { const st = document.querySelector('#mapsvg .node[data-scope="path"][data-kind="domain"]:not(.open)'); st.dispatchEvent(new MouseEvent('click', { bubbles: true })); }); await page.waitForTimeout(600);
+      const stg = await page.evaluate(() => ({ hash: location.hash, sw: document.documentElement.scrollWidth }));
+      check(`${tag} tapping a stage on the phone path map opens it`, /^#\/paths\/[^/]+\/[^/]+$/.test(stg.hash) && stg.sw <= 375, JSON.stringify(stg));
+      await page.evaluate(() => { localStorage.setItem('playable.mapPhoneView', '"list"'); }); await nav('#/paths/' + P.id + '/' + P.s1); await page.reload(); await page.waitForTimeout(700);
+      await page.evaluate(() => document.getElementById('drawerClose').click()); await page.waitForTimeout(500);
+      const lst = await page.evaluate(() => ({ out: getComputedStyle(document.getElementById('mapoutline')).display !== 'none', svg: getComputedStyle(document.getElementById('mapsvg')).display !== 'none', rows: document.querySelectorAll('#mapoutline [data-scope="path"] .oi-row').length }));
+      check(`${tag} List shows the path as the outline`, lst.out && !lst.svg && lst.rows > 0, JSON.stringify(lst));
+      await page.evaluate(() => { localStorage.setItem('playable.mapPhoneView', '"map"'); }); await page.reload(); await page.waitForTimeout(500);
+    }
 
     // --- chooser: three answers suggest one path, and its card is marked
     await nav('#/paths');

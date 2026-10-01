@@ -89,13 +89,16 @@ window.PlayableGraph = (function(){
   // `root.oneSided` puts every branch on the right: on a phone the map reads
   // as columns, one level per screen, instead of two halves off both edges.
   function place(root, off, keyOf){
+    // a phone's stage is about 350px wide: the one-sided tree uses narrower cards and gaps so the
+    // root and a column, or an open branch and its children, fit at a readable size
+    if(root.oneSided){ const cap = { center:190, domain:150, topic:190 }; const shrink = n => { if(cap[n.kind]) n.w = Math.min(n.w, cap[n.kind]); n.children.forEach(shrink); }; shrink(root); }
     fitLabels(root);
     root.side = 0;
     const half = Math.ceil(root.children.length / 2);
     root.children.forEach((node, i) => { node.side = root.oneSided || i < half ? 1 : -1; });
     // a column sits beside its parent's far edge, so a wide card pushes its children on
     const xFor = (n, p) => {
-      const gap = GAP_X[n.kind] || 40;
+      const gap = root.oneSided ? Math.min(GAP_X[n.kind] || 40, 20) : GAP_X[n.kind] || 40;
       return n.side < 0 ? p.x - gap - n.w : p.x + p.w + gap;
     };
     const gapY = n => GAP_Y[n.kind] || 8;
@@ -315,13 +318,14 @@ window.PlayableGraph = (function(){
 
     // cross-branch links: faint dashed curves that leave the tree. Same-side
     // links bow away from the goal; cross-side links pass under it.
-    doms.forEach(d => (d.links || []).forEach(([to, why]) => {
+    // (not drawn on a phone: beside the cards they read as a hairball of dashes)
+    if(!state.phone) doms.forEach(d => (d.links || []).forEach(([to, why]) => {
       const a = c.byKey['d:' + d.id], b = c.byKey['d:' + to];
       if(!a || !b) return;
       const path = a.side === b.side ? link(innerX(a), a.y, innerX(b), b.y, -a.side * 55) : smooth(innerX(a), a.y, innerX(b), b.y);
       c.edges.push(`<path class="edge dd" data-a="d:${d.id}" data-b="d:${to}" d="${path}"><title>${esc(why)}</title></path>`);
     }));
-    if(state.dom){
+    if(state.dom && !state.phone){
       (DOMAINS.find(d => d.id === state.dom).topics || []).forEach(tid => {
         const tn = c.byKey['t:' + tid]; if(!tn) return;
         (TOPICS[tid].rel || []).forEach(([rid, why]) => {
@@ -331,7 +335,7 @@ window.PlayableGraph = (function(){
         });
       });
     }
-    if(sel) sel.children.forEach(gn => gn.children.filter(l => l.home && l.home !== state.dom).forEach(l => {
+    if(sel && !state.phone) sel.children.forEach(gn => gn.children.filter(l => l.home && l.home !== state.dom).forEach(l => {
       const dn = c.byKey['d:' + l.home]; if(!dn) return;
       c.edges.push(`<path class="edge home" data-a="${DKEY(l)}" data-b="d:${l.home}" d="${smooth(innerX(l), l.y, innerX(dn), dn.y)}"><title>${esc(l.label)} lives in ${esc(dtitle(l.home))}</title></path>`);
     }));

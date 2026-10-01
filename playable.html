@@ -1029,7 +1029,7 @@ details.comp .body{padding-top:6px}
 .kgraph .rd.on{fill:var(--ok);stroke:var(--ok)}
 .kgraph .chk{fill:var(--ink);font-weight:800;pointer-events:none}
 .kgraph .node.topic.sel .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 30%,var(--bg2));stroke:var(--dc,var(--accent));stroke-width:2}
-.kgraph .node.next .disc{stroke:var(--accent);stroke-width:2;stroke-dasharray:6 3}
+.kgraph .node.next .disc{stroke:var(--accent);stroke-width:2.5}
 .kgraph .whynote rect{fill:var(--bg);stroke:var(--accent);stroke-width:1.2}
 .kgraph .whynote text{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:500;letter-spacing:.01em}
 .maplegend-panel{padding:6px 12px 8px;border-bottom:1px solid var(--line);background:var(--panel);font-size:.86rem;line-height:1.35;max-height:44vh;overflow-y:auto}
@@ -1084,12 +1084,12 @@ details.comp .body{padding-top:6px}
 .mapoutline li:focus{outline:none}
 .oi-row{display:flex;align-items:center;gap:10px;min-height:44px;margin:3px 0;padding:6px 10px;border:1px solid var(--line2);border-left:4px solid var(--dc,var(--line2));border-radius:var(--r2);background:color-mix(in srgb,var(--dc,var(--accent)) 10%,var(--bg2));color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mapoutline li[data-kind="leaf"]>.oi-row,.mapoutline li[data-kind="item"]>.oi-row{background:var(--bg2);min-height:44px}
-.mapoutline li[data-type="other"]>.oi-row{border-style:dashed}
+.mapoutline li[data-type="other"]>.oi-row{border-color:var(--line)}
 .mapoutline li[data-kind="group"]>.oi-row{background:var(--bg3);border-left-color:var(--line2)}
 .mapoutline li[data-kind="center"]>.oi-row{background:var(--panel);border-color:var(--accent2)}
 .mapoutline li.open>.oi-row{background:color-mix(in srgb,var(--dc,var(--accent)) 24%,var(--bg2))}
 .mapoutline li[aria-selected="true"]>.oi-row{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.mapoutline li.next>.oi-row{border-style:dashed;border-color:var(--accent)}
+.mapoutline li.next>.oi-row{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .mapoutline li:focus-visible>.oi-row{outline:3px solid var(--fg);outline-offset:2px}
 .oi-mark{flex:none;width:22px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--fg2)}
 .oi-mark .rd-o,.oi-mark .rd-x{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1.6px solid var(--fg3);font-size:.7rem;line-height:1}
@@ -1101,12 +1101,34 @@ details.comp .body{padding-top:6px}
 .oi-why{font-size:.8rem;color:var(--fg2);line-height:1.3}
 .oi-flag{flex:none;font-family:var(--mono);font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:1px 5px}
 .mapfoot-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mapviewsw{display:none;margin:0}
 @media (max-width:700px){
-  .mapwrap{touch-action:auto;cursor:auto}
-  .mapwrap svg,.mapwrap .maptip{display:none}
-  .mapoutline{display:block;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:6px 10px 28px}
-  .mapbar #mapZoomIn,.mapbar #mapZoomOut,.mapbar #mapFit,.mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
+  /* the canvas is the phone view: one finger pans, two pinch, a tap is a click; the page never scrolls sideways */
+  .mapwrap{touch-action:none;cursor:auto;overscroll-behavior:contain}
+  .mapwrap .maptip{display:none}
+  .mapwrap .node.leaf.other .disc{stroke-dasharray:none}
+  .mapwrap .edge{stroke-dasharray:none}
+  .mapwrap .edge.dd{stroke-dasharray:4 5}.mapwrap .edge.cross{stroke-dasharray:3 5}.mapwrap .edge.home{stroke-dasharray:5 5}
+  .mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
+  .mapbar .mapctl{flex-wrap:wrap}
+  .mapbar .mapctl{gap:2px!important}
+  .mapbar .mapctl .mapnext{flex:1 0 100%;min-height:44px;display:flex;align-items:center}
+  .mapbar .mapctl .mapnext[hidden]{display:none}
+  .mapbar #mapResetDefault{display:none}
+  .mapbar .btn-long{display:none}
+  .mapbar #mapZoomIn,.mapbar #mapZoomOut,.mapbar #mapFit{font-size:1.2rem}
+  .mapbar #collapseLeft,.mapbar #collapseRight{font-size:.74rem;min-width:0;padding:0 2px}
+  .shell .mapstage{top:var(--hdr,0px);height:calc(100dvh - var(--hdr,0px) - 12px)}
+  .mapbar .mapctl .btn,.mapviewsw button{min-height:44px;min-width:44px;padding:0 6px}
+  .mapviewsw button{padding:0 8px}
+  .mapviewsw{display:inline-flex}
   .mapfind{flex:1 1 100%}
+  .mapfind input{min-height:44px}
+  /* List: the same tree as an expandable outline */
+  .mapstage.plist .mapwrap{touch-action:auto}
+  .mapstage.plist .mapwrap svg{display:none}
+  .mapstage.plist .mapoutline{display:block;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:6px 10px 28px}
+  .mapstage.plist .mapbar #mapZoomIn,.mapstage.plist .mapbar #mapZoomOut,.mapstage.plist .mapbar #mapFit{display:none}
 }
 @media (min-width:1101px){.shell:not(.hide-left) .pane .lens-switch.inpane{display:none}}
 /* cross-branch links: faint dashed curves, highlighted on hover */
@@ -44194,13 +44216,16 @@ window.PlayableGraph = (function(){
   // `root.oneSided` puts every branch on the right: on a phone the map reads
   // as columns, one level per screen, instead of two halves off both edges.
   function place(root, off, keyOf){
+    // a phone's stage is about 350px wide: the one-sided tree uses narrower cards and gaps so the
+    // root and a column, or an open branch and its children, fit at a readable size
+    if(root.oneSided){ const cap = { center:190, domain:150, topic:190 }; const shrink = n => { if(cap[n.kind]) n.w = Math.min(n.w, cap[n.kind]); n.children.forEach(shrink); }; shrink(root); }
     fitLabels(root);
     root.side = 0;
     const half = Math.ceil(root.children.length / 2);
     root.children.forEach((node, i) => { node.side = root.oneSided || i < half ? 1 : -1; });
     // a column sits beside its parent's far edge, so a wide card pushes its children on
     const xFor = (n, p) => {
-      const gap = GAP_X[n.kind] || 40;
+      const gap = root.oneSided ? Math.min(GAP_X[n.kind] || 40, 20) : GAP_X[n.kind] || 40;
       return n.side < 0 ? p.x - gap - n.w : p.x + p.w + gap;
     };
     const gapY = n => GAP_Y[n.kind] || 8;
@@ -44420,13 +44445,14 @@ window.PlayableGraph = (function(){
 
     // cross-branch links: faint dashed curves that leave the tree. Same-side
     // links bow away from the goal; cross-side links pass under it.
-    doms.forEach(d => (d.links || []).forEach(([to, why]) => {
+    // (not drawn on a phone: beside the cards they read as a hairball of dashes)
+    if(!state.phone) doms.forEach(d => (d.links || []).forEach(([to, why]) => {
       const a = c.byKey['d:' + d.id], b = c.byKey['d:' + to];
       if(!a || !b) return;
       const path = a.side === b.side ? link(innerX(a), a.y, innerX(b), b.y, -a.side * 55) : smooth(innerX(a), a.y, innerX(b), b.y);
       c.edges.push(`<path class="edge dd" data-a="d:${d.id}" data-b="d:${to}" d="${path}"><title>${esc(why)}</title></path>`);
     }));
-    if(state.dom){
+    if(state.dom && !state.phone){
       (DOMAINS.find(d => d.id === state.dom).topics || []).forEach(tid => {
         const tn = c.byKey['t:' + tid]; if(!tn) return;
         (TOPICS[tid].rel || []).forEach(([rid, why]) => {
@@ -44436,7 +44462,7 @@ window.PlayableGraph = (function(){
         });
       });
     }
-    if(sel) sel.children.forEach(gn => gn.children.filter(l => l.home && l.home !== state.dom).forEach(l => {
+    if(sel && !state.phone) sel.children.forEach(gn => gn.children.filter(l => l.home && l.home !== state.dom).forEach(l => {
       const dn = c.byKey['d:' + l.home]; if(!dn) return;
       c.edges.push(`<path class="edge home" data-a="${DKEY(l)}" data-b="d:${l.home}" d="${smooth(innerX(l), l.y, innerX(dn), dn.y)}"><title>${esc(l.label)} lives in ${esc(dtitle(l.home))}</title></path>`);
     }));
@@ -44912,9 +44938,10 @@ function ensureShell(){
         <div class="row mapctl" style="gap:4px">
         <a class="btn sm mapnext" id="mapNext" href="#/map" hidden>Next unread</a>
         <button class="btn sm ghost" id="mapLegendBtn" aria-expanded="false" aria-controls="maplegend" title="What the colours, marks and lines mean">Legend</button>
+        <div class="lens-switch mapviewsw" id="mapPhoneView" role="group" aria-label="Phone map view"><button type="button" data-view="map" aria-pressed="true">Map</button><button type="button" data-view="list" aria-pressed="false">List</button></div>
         <button class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">－</button>
         <button class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
-        <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢ fit</button>
+        <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢<span class="btn-long"> fit</span></button>
         <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺</button>
         <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲</button>
         <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
@@ -47344,7 +47371,8 @@ Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, upda
    PERSISTENT MIND MAP (centre) + INDEX (left) + CONTENT (right)
    The map is always on screen. It is a horizontal collapsible tidy tree,
    not a circle, so it grows by stacking and panning rather than shrinking.
-   Below 700px the same tree is drawn as an expandable outline instead of a canvas.
+   Below 700px the same canvas is drawn one-sided and moved by touch; a Map | List
+   switch offers the expandable outline instead.
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
    (home shows the lens the reader last chose; a domain or topic route sets its own)
    ===================================================================== */
@@ -47441,8 +47469,11 @@ function saveMap(){ persist(mapState); }
 const lensOf = domId => (DOM[domId] || {}).lens || LENSES[0][0];
 function currentLens(){ return LENSES.find(l => l[0] === mapState.lens) || LENSES[0]; }
 function setLens(id){ mapState.lens = id; mapState.dom = null; mapState.topic = null; mapState.smell = null; mapState.grp = {}; saveMap(); go('#/map/home'); }
-// Phones get the one-sided tree, read one column at a time.
+// Phones get the one-sided tree on the same canvas as the desktop, panned and
+// pinched by touch. The expandable outline is the reader's alternative there
+// ("Map | List" in the toolbar, remembered), never the default.
 const phoneQuery = window.matchMedia('(max-width: 700px)');
+const phoneList = () => phoneQuery.matches && store.get('mapPhoneView', 'map') === 'list';
 
 /* ---- three maps, one stage ----
    'domains' draws the guide. 'project' draws one case study as systems and
@@ -47506,7 +47537,7 @@ function buildGraph(){
   const pth = curPath();
   if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
   practice(); // fills VIEW_LINKS with the runtime links the neighbourhood reads
-  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, next: nextUnread() }), seen, VIEW_LINKS);
+  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, phone: phoneQuery.matches, next: nextUnread() }), seen, VIEW_LINKS);
 }
 
 function mapCrumbs(){
@@ -47695,20 +47726,6 @@ function savedCamera(vb){
   if(w < 50 || h < 50) return vb;   // folded away: keep it until the map is shown and measured
   return Math.abs(vb.sw - w) <= w * 0.2 && Math.abs(vb.sh - h) <= h * 0.2 ? vb : null;
 }
-// On a phone the one-sided tree is read one column at a time: the column the
-// reader is choosing from (branches, or the open branch's items) fills the
-// width at a readable scale, starting at its top or at the selected item.
-function phoneTarget(g){
-  const open = g.nodes.find(n => n.kind === 'domain' && n.open);
-  const col = g.nodes.filter(n => open ? n.kind === 'topic' : n.kind === 'domain');
-  const list = col.length ? col : g.nodes;
-  const minX = Math.min(...list.map(n => n.x)) - 16, maxX = Math.max(...list.map(n => n.x + n.w)) + 16;
-  const w = maxX - minX, h = w * Math.max(1, MAP.wrap.clientHeight) / Math.max(1, MAP.wrap.clientWidth);
-  const selId = mapMode === 'project' ? projState && projState.part : mapMode === 'path' ? null : mapState.topic;
-  const sel = selId && list.find(n => n.id === selId);
-  const top = Math.min(...list.map(n => n.y - n.h / 2)) - 16;
-  return { x: minX, y: sel ? sel.y - h / 2 : top, w, h };
-}
 // A path opens framed to its open stage and that stage's steps; framed to the
 // whole tree its nodes are too small to read.
 function pathStageTarget(g){
@@ -47824,7 +47841,6 @@ function branchFrame(g, sel){
 }
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
-  if(phoneQuery.matches) return phoneTarget(g);
   { const f = branchFrame(g, selectedNode(g)); if(f) return f; }
   if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return keepReadable(t, g); }
   let target = cameraTarget(g, cam, kind);
@@ -47991,8 +48007,8 @@ function indexTree(g){
   if(g.nodes && g.nodes[0]) walk(g.nodes[0], null);
   return { byKey, order };
 }
-// Which view is showing: the outline on a phone, the canvas elsewhere.
-const treeRoot = () => phoneQuery.matches ? MAP.outline : MAP.svg;
+// Which view is showing: the outline on a phone that chose List, the canvas otherwise.
+const treeRoot = () => phoneList() ? MAP.outline : MAP.svg;
 const itemFor = key => key && treeRoot().querySelector('[data-key="' + CSS.escape(key) + '"]');
 // The phone outline: the graph's own nodes as nested, expandable list items.
 function outlineHTML(g){
@@ -48009,7 +48025,7 @@ function outlineHTML(g){
 }
 // Scrolls the outline so the selected item (else the open branch) sits mid-screen.
 function outlineReveal(){
-  const o = MAP.outline; if(!o || !phoneQuery.matches) return;
+  const o = MAP.outline; if(!o || !phoneList()) return;
   const li = o.querySelector('[aria-selected="true"]') || o.querySelector('li.open:not([data-kind="center"])');
   const row = li && li.querySelector(':scope > .oi-row');
   if(!row){ o.scrollTop = 0; return; }
@@ -48026,7 +48042,7 @@ function paintGraph(){
   MAP.g = g; MAP.hover = null; MAP.idx = indexTree(g);
   MAP.labelPx = 0; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
-  MAP.outline.innerHTML = phoneQuery.matches ? outlineHTML(g) : '';
+  MAP.outline.innerHTML = phoneList() ? outlineHTML(g) : '';
   { const px = [...MAP.svg.querySelectorAll('.lbl:not(.sub)')].slice(0, 60).map(t => parseFloat(getComputedStyle(t).fontSize)).filter(Boolean); MAP.labelPx = px.length ? Math.min(...px) : 13.5; }
   const root = treeRoot(), byKey = k => k && root.querySelector('[data-key="' + CSS.escape(k) + '"]');
   const stop = byKey(MAP.focusKey) || byKey(currentKey()) || root.querySelector('[role="treeitem"]');
@@ -48041,7 +48057,7 @@ function focusItem(n){
   const el = itemFor(n.key); if(!el) return;
   treeRoot().querySelectorAll('[tabindex="0"]').forEach(x => x.setAttribute('tabindex', '-1'));
   el.setAttribute('tabindex', '0'); el.focus({ preventScroll: true }); MAP.focusKey = n.key;
-  if(phoneQuery.matches){ el.scrollIntoView({ block: 'nearest' }); return; }
+  if(phoneList()){ el.scrollIntoView({ block: 'nearest' }); return; }
   // the whole card is brought inside the window, by the smallest move
   const d = el.querySelector('.disc'), vb = MAP.vb, m = 20;
   const bx = +d.getAttribute('x'), by = +d.getAttribute('y'), bw = +d.getAttribute('width'), bh = +d.getAttribute('height');
@@ -48107,6 +48123,17 @@ function resetMapDefault(){
   if(MAP) MAP.vb = null;
   go('#/map/home');
 }
+// The phone's Map | List switch: which of the two views the stage shows.
+function syncPhoneView(){
+  const list = phoneList(), st = $('#mapstage');
+  if(st) st.classList.toggle('plist', list);
+  $$('#mapPhoneView button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.view === 'list') === list)));
+}
+function setPhoneView(v){
+  if(!MAP || store.get('mapPhoneView', 'map') === v) return;
+  store.set('mapPhoneView', v); syncPhoneView();
+  mapStopAnim(); MAP.userCamera = false; renderTree(MAP.kind);
+}
 function initMapStage(){
   if(MAP && document.body.contains(MAP.svg)) return;
   if(MAP && MAP.dispose) MAP.dispose();   // a rebuilt stage must not leave the old one's listeners behind
@@ -48158,7 +48185,7 @@ function initMapStage(){
   const dropNode = () => { const moved = nodeDrag && nodeDrag.moved; nodeDrag = null; if(moved) redrawGraph(); return moved; };
   on(svg, 'pointerdown', e => {
     if(e.pointerType === 'touch'){ touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY }); mapStopAnim();
-      if(touchPts.size === 1){ const key = nodeKeyAt(e); if(key) startNode(key, e.clientX, e.clientY, e.pointerId); else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
+      if(touchPts.size === 1){ const key = phoneQuery.matches ? null : nodeKeyAt(e); if(key) startNode(key, e.clientX, e.clientY, e.pointerId); else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
       else if(touchPts.size === 2){ drag = null; dropNode(); const p = [...touchPts.values()]; pinch = { dist: Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y) }; }
       return; }
     if(e.button !== 0) return; mapStopAnim();
@@ -48180,7 +48207,7 @@ function initMapStage(){
   };
   const onUp = e => {
     if(nodeDrag){ if(nodeDrag.moved){ saveCur(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } dropNode(); if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
-    if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
+    if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(drag && drag.moved){ MAP.userCamera = true; suppressClick = true; } if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
     if(drag && drag.moved){ MAP.userCamera = true; mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   on(window, 'pointermove', onMove); on(window, 'pointerup', onUp); on(window, 'pointercancel', onUp);
   on(window, 'blur', () => { touchPts.clear(); pinch = null; drag = null; dropNode(); });
@@ -48195,6 +48222,8 @@ function initMapStage(){
   on(outline, 'click', e => { const row = e.target.closest && e.target.closest('.oi-row'); if(row){ const li = row.parentElement; MAP.focusKey = li.dataset.key; mapClick(li); } });
   on(outline, 'keydown', treeKey);
   $('#mapFit').onclick = fitMap;
+  syncPhoneView();
+  $$('#mapPhoneView button').forEach(b => b.onclick = () => setPhoneView(b.dataset.view));
   const fi = $('#mapFind'), fn = $('#mapFindN');
   if(fi){
     MAP.find = { q:'', matches:[], ids:new Set(), doms:new Set(), idx:-1 };
@@ -48298,7 +48327,7 @@ function renderTree(kind){
   // Coming back to a stage (a reload, or another map and back) restores the
   // camera the reader left, exactly; only a move within the stage re-frames.
   // (the shell draws once as 'home' before the route draws the real place: both restore)
-  const restore = (mapStage !== stageKey || MAP.bootHome) && !!stored && !phoneQuery.matches && g.focus;
+  const restore = (mapStage !== stageKey || MAP.bootHome) && !!stored && g.focus;
   if(mapStage !== stageKey){
     mapStage = stageKey; mapStopAnim();
     MAP.vb = stored ? Object.assign({}, stored) : null;
@@ -48307,7 +48336,7 @@ function renderTree(kind){
   if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
   // drawing the same place again (not a move to another) keeps a camera the reader has set
   const sig = JSON.stringify([kind, mapMode, mapState.dom, mapState.topic, mapState.smell, projState && [projState.cs, projState.sys, projState.part], pathMapState && [pathMapState.id, pathMapState.stage]]);
-  const again = sig === MAP.sig && MAP.userCamera && !phoneQuery.matches; MAP.bootHome = !MAP.sig && kind === 'home'; MAP.sig = sig;
+  const again = sig === MAP.sig && MAP.userCamera; MAP.bootHome = !MAP.sig && kind === 'home'; MAP.sig = sig;
   MAP.kind = kind; MAP.userCamera = !!restore || again; MAP.restoredCam = restore ? Object.assign({}, stored) : null;
   if(again) return outlineReveal();
   if(restore) mapAnimateTo(keepReadable(Object.assign({}, stored), g), 0);
@@ -48342,7 +48371,7 @@ function syncMapMode(view, id){
 }
 
 // Crossing the phone width swaps the two-sided tree for the one-sided one.
-phoneQuery.addEventListener('change', () => { if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
+phoneQuery.addEventListener('change', () => { syncPhoneView(); if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
 // A topic was marked read or unread: the map's marks, counts and next-unread cue follow.
 function mapProgress(){
   if(!MAP || !MAP.g || mapMode !== 'domains' || !document.body.contains(MAP.svg)) return;

@@ -377,26 +377,27 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
   // motion. It also covers the tree (roles, one Tab stop, ARIA arrow keys, live
   // announcements, groups), the label floor under zoom, the selected topic staying
   // in view, dimmed-leaf contrast, the focus ring, and the phone outline. Below 700px
-  // the canvas is not drawn, so those tests read the outline instead.
-  for (const [w, h] of [[1440, 900], [375, 812]]) {
-    const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+  // the canvas is the default view (one-sided, moved by touch); a third run flips the
+  // phone to its List view, where those tests read the outline instead.
+  for (const [w, h, view] of [[1440, 900, 'map'], [375, 812, 'map'], [375, 812, 'list']]) {
+    const ctx = await browser.newContext(w < 700 ? { viewport: { width: w, height: h }, hasTouch: true, isMobile: true } : { viewport: { width: w, height: h } });
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', e => errors.push(String(e)));
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-    const tag = `${w}px map`;
+    const tag = `${w}px map` + (view === 'list' ? ' (List)' : '');
     const fail = m => failures.push(`${tag}: ${m}`);
     const hash = () => page.evaluate(() => location.hash);
     const goto = async r => { await page.evaluate(x => { location.hash = x; }, r); await page.waitForTimeout(750); };
     const vb = () => page.evaluate(MAP_VB);
     // the map's own buttons, pressed in the page: on a phone a content pane can sit over them
     const press = id => page.evaluate(i => document.getElementById(i).click(), id);
-    await page.goto(base + '#/map/home'); await page.evaluate(() => localStorage.setItem('playable.hideMap', 'false'));
+    await page.goto(base + '#/map/home'); await page.evaluate(v => { localStorage.setItem('playable.hideMap', 'false'); if (v === 'list') localStorage.setItem('playable.mapPhoneView', '"list"'); }, view);
     await page.reload(); await page.waitForTimeout(800);
     const D = await page.evaluate(() => ({ doms: DOMAINS.map(d => d.id), lenses: LENSES.map(l => [l[0], l[2]]), cs: CASE_STUDIES[0].id, sys: CASE_STUDIES[0].systems[0].id, path: PATHS[0].id, stage: PATHS[0].stages[0].id }));
 
     // -- the tree: roles and names on the map (or the outline on a phone), the zoom buttons' names
-    const canvas = w > 700, ROOT = canvas ? '#mapsvg' : '#mapoutline', ITEM = ROOT + ' [role="treeitem"]';
+    const canvas = view !== 'list', ROOT = canvas ? '#mapsvg' : '#mapoutline', ITEM = ROOT + ' [role="treeitem"]';
     const live = () => page.evaluate(() => document.getElementById('maplive').textContent);
     {
       const t = await page.evaluate(([root, item]) => {
@@ -607,7 +608,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     }
     if (canvas) {
       // the selected topic is whole inside the stage at 1440, 1280 and 1024 wide, for the topics with the widest neighbourhoods
-      for (const [vw, vh] of [[1440, 900], [1280, 800], [1024, 768]]) {
+      for (const [vw, vh] of w > 700 ? [[1440, 900], [1280, 800], [1024, 768]] : [[w, h]]) {
         await page.setViewportSize({ width: vw, height: vh }); await page.waitForTimeout(500);
         for (const t of ['scope-control', 'core-loop', 'economy-and-resources']) {
           await goto('#/map/home'); await goto('#/map/t/' + t + '/overview');
@@ -616,7 +617,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
           else if (v.wrapW > 50 && Math.min(v.l, v.r, v.t, v.b) < -0.5) fail(`${t} at ${vw}px: the selected topic is cut by the stage edge ${JSON.stringify(v)}`);
         }
       }
-      await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(500);
+      await page.setViewportSize({ width: w, height: h }); await page.waitForTimeout(500);
       await goto('#/map/t/scope-control/overview');
       // hover a leaf with a reason: one note (no tooltip over it), and the faded cards keep 4.5:1 for their words, in both themes
       const CONTRAST = () => {
@@ -636,7 +637,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
         const ring = svg.querySelector('.node:focus-visible .fring');
         return { min, n, dimmed: svg.classList.contains('dimmed'), ring: ring ? { shown: getComputedStyle(ring).display !== 'none', width: parseFloat(getComputedStyle(ring).strokeWidth), ratio: ratio(rgba(getComputedStyle(ring).stroke).slice(0, 3), panel) } : null };
       };
-      for (const scheme of ['light', 'dark']) {
+      for (const scheme of w > 700 ? ['light', 'dark'] : []) {   // hover and the keyboard ring are desktop checks; a touch screen has no hover
         await page.emulateMedia({ colorScheme: scheme }); await page.waitForTimeout(300);
         const leaf = await page.evaluate(() => { const l = [...document.querySelectorAll('#mapsvg .node.leaf')].find(x => x.dataset.why); if (!l) return null; const r = l.querySelector('.disc').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
         if (!leaf) { fail('no leaf with a reason to hover'); break; }
@@ -658,7 +659,95 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       await page.emulateMedia({ colorScheme: null });
     }
 
-    // -- the phone outline: the same tree as a list, groups with counts, read marks, next unread, 44px rows, and the routes
+    // -- the phone canvas: the same one-sided tree, moved by touch; a tap is a click, no node dragging, nothing scrolls sideways, and Map | List flips views
+    if (w < 700 && canvas) {
+      await goto('#/map/home');
+      const cdp = await ctx.newCDPSession(page);
+      const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map((p, i) => ({ x: p[0], y: p[1], id: i })) });
+      const geo = () => page.evaluate(() => { const r = document.getElementById('mapwrap').getBoundingClientRect();
+        return { sw: document.documentElement.scrollWidth, vw: innerWidth, wrapW: r.width, wrapH: r.height, top: r.top, svgShown: getComputedStyle(document.getElementById('mapsvg')).display !== 'none', outShown: getComputedStyle(document.getElementById('mapoutline')).display !== 'none', nodes: document.querySelectorAll('#mapsvg .node').length, wide: [...document.querySelectorAll('body *')].filter(e => !e.closest('svg') && e.getBoundingClientRect().width > innerWidth + 1).length }; });
+      const g0 = await geo();
+      if (!g0.svgShown || g0.outShown || !g0.nodes) fail('phone: the canvas must be the default view ' + JSON.stringify(g0));
+      if (g0.sw > g0.vw || g0.wide) fail('phone map: something is wider than the screen ' + JSON.stringify(g0));
+      if (g0.wrapH < 400) fail('phone map: the stage is only ' + g0.wrapH.toFixed(0) + 'px tall');
+      { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px at the first view (need 11 or more)'); }
+      // the switch and the zoom buttons are 44px targets
+      const tg = await page.evaluate(() => ['mapPhoneView', 'mapZoomIn', 'mapZoomOut', 'mapFit'].map(id => { const e = document.getElementById(id); const b = id === 'mapPhoneView' ? e.querySelector('button') : e; const r = b.getBoundingClientRect(); return [id, r.width, r.height]; }));
+      for (const [id, tw, th] of tg) if (tw < 43.5 || th < 43.5) fail('phone map: #' + id + ' is ' + tw.toFixed(0) + 'x' + th.toFixed(0) + ', under 44px');
+      // the first view holds the whole root and every domain card, nothing clipped on either side
+      await page.waitForTimeout(500);
+      const inStage = sel => page.evaluate(s => { const w = document.getElementById('mapwrap').getBoundingClientRect(); const ds = [...document.querySelectorAll(s)].map(n => n.querySelector('.disc').getBoundingClientRect()); return { n: ds.length, out: ds.filter(r => r.left < w.left - 0.5 || r.right > w.right + 0.5 || r.top < w.top - 0.5 || r.bottom > w.bottom + 0.5).length }; }, sel);
+      { const f = await inStage('#mapsvg .node.center, #mapsvg .node.domain'); if (f.n < 2 || f.out) fail('phone map: the first view clips ' + f.out + ' of ' + f.n + ' root and domain cards'); }
+      // one finger pans
+      const c0 = await page.evaluate(() => { const r = document.getElementById('mapwrap').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height * 0.8]; });
+      const v0 = await vb();
+      await touch('touchStart', [[c0[0], c0[1]]]);
+      for (let i = 1; i <= 8; i++) await touch('touchMove', [[c0[0] - i * 12, c0[1] - i * 14]]);
+      await touch('touchEnd', []); await page.waitForTimeout(300);
+      const v1 = await vb();
+      if (Math.abs(v1.x - v0.x) < 1 || Math.abs(v1.y - v0.y) < 1) fail('phone map: one finger did not pan ' + JSON.stringify([v0, v1]));
+      if (await hash() !== '#/map/home') fail('phone map: a pan opened something (' + await hash() + ')');
+      if ((await geo()).sw > 375) fail('phone map: the page scrolled sideways after a pan');
+      // two fingers pinch zoom; the labels never drop under 11px
+      const mid = await page.evaluate(() => { const r = document.getElementById('mapwrap').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; });
+      await touch('touchStart', [[mid[0] - 20, mid[1]], [mid[0] + 20, mid[1]]]);
+      for (let i = 1; i <= 8; i++) await touch('touchMove', [[mid[0] - 20 - i * 10, mid[1]], [mid[0] + 20 + i * 10, mid[1]]]);
+      await touch('touchEnd', []); await page.waitForTimeout(250);
+      const v2 = await vb();
+      if (!(v2.w < v1.w * 0.8)) fail('phone map: pinching out did not zoom in (' + v1.w.toFixed(0) + ' to ' + v2.w.toFixed(0) + ')');
+      await touch('touchStart', [[mid[0] - 140, mid[1]], [mid[0] + 140, mid[1]]]);
+      for (let i = 1; i <= 24; i++) await touch('touchMove', [[mid[0] - 140 + i * 5.8, mid[1]], [mid[0] + 140 - i * 5.8, mid[1]]]);
+      await touch('touchEnd', []); await page.waitForTimeout(250);
+      { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px after pinching in (need 11 or more)'); }
+      for (let i = 0; i < 20; i++) await press('mapZoomOut');
+      { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px after the zoom-out button'); }
+      await press('mapFit'); await page.waitForTimeout(700);
+      // a tap on a domain opens it, a tap on a topic opens the topic
+      const tapAt = async sel => { const p = await page.evaluate(s => { const n = document.querySelector(s); if (!n) return null; const r = n.querySelector('.disc').getBoundingClientRect(), w = document.getElementById('mapwrap').getBoundingClientRect(), x0 = Math.max(r.left, w.left), x1 = Math.min(r.right, w.right); return [(x0 + x1) / 2, r.y + r.height / 2]; }, sel); if (!p) return false; await touch('touchStart', [p]); await touch('touchEnd', []); await page.waitForTimeout(900); return true; };
+      const domId = await page.evaluate(() => document.querySelector('#mapsvg .node.domain').dataset.id);
+      if (!await tapAt('#mapsvg .node.domain[data-id="' + domId + '"]')) fail('phone map: no domain card to tap');
+      else {
+        if (await hash() !== '#/map/d/' + domId) fail('phone map: tapping a domain went to ' + await hash());
+        const open = await page.evaluate(() => document.querySelectorAll('#mapsvg .node.topic').length);
+        if (!open) fail('phone map: the tapped domain shows no topics');
+        const topId = await page.evaluate(() => document.querySelector('#mapsvg .node.topic').dataset.id);
+        const g1 = await geo(); if (g1.sw > 375) fail('phone map: the opened domain widened the page ' + JSON.stringify(g1));
+        if (!await tapAt('#mapsvg .node.topic[data-id="' + topId + '"]')) fail('phone map: no topic card to tap');
+        else {
+          const pane = await page.evaluate(() => document.getElementById('pane').classList.contains('open'));
+          if (await hash() !== '#/map/t/' + topId || !pane) fail('phone map: tapping a topic gave ' + await hash() + ', pane open: ' + pane);
+          await page.evaluate(() => document.getElementById('drawerClose').click()); await page.waitForTimeout(600);
+          const sel = await page.evaluate(() => { const n = document.querySelector('#mapsvg .node.sel .disc'); if (!n) return null; const r = n.getBoundingClientRect(), w = document.getElementById('mapwrap').getBoundingClientRect(); return r.left >= w.left - 1 && r.right <= w.right + 1 && r.top >= w.top - 1 && r.bottom <= w.bottom + 1; });
+          if (sel !== true) fail('phone map: the selected topic is not whole inside the stage on returning to the map (' + sel + ')');
+          { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px with a topic selected'); }
+        }
+      }
+      // an open domain is framed: its card and every topic card are whole inside the stage
+      await goto('#/map/d/' + domId); await page.waitForTimeout(700);
+      { const f = await inStage('#mapsvg .node.domain.open, #mapsvg .node.topic'); if (f.n < 2 || f.out) fail('phone map: on the open domain ' + f.out + ' of ' + f.n + ' cards (domain and topics) are outside the stage'); const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px on the open domain'); }
+      // the faint cross-branch curves are not drawn on a phone
+      if (await page.evaluate(() => document.querySelectorAll('#mapsvg .edge.dd, #mapsvg .edge.cross, #mapsvg .edge.home').length)) fail('phone map: cross-branch dashed curves are drawn');
+      // the stage ends at the bottom of the screen
+      { const b = await page.evaluate(() => ({ bottom: document.getElementById('mapwrap').getBoundingClientRect().bottom, vh: innerHeight })); if (Math.abs(b.bottom - b.vh) > 1.5) fail('phone map: the stage ends at ' + b.bottom.toFixed(0) + ', the screen at ' + b.vh); }
+      // the toolbar below Find is at most two rows, each button 44px or more
+      { const t = await page.evaluate(() => { const bs = [...document.querySelectorAll('.mapbar .mapctl > *:not([hidden])')].map(e => e.getBoundingClientRect()).filter(r => r.width); return { rows: new Set(bs.map(r => Math.round(r.top / 20))).size, small: bs.filter(r => r.height < 43.5).length }; }); if (t.rows > 2 || t.small) fail('phone map: toolbar is ' + t.rows + ' rows with ' + t.small + ' short buttons'); }
+      // no dashed card borders on the phone canvas: "next" is a solid accent outline
+      const dash = await page.evaluate(() => [...document.querySelectorAll('#mapsvg .node .disc')].filter(d => { const s = getComputedStyle(d).strokeDasharray; return s && s !== 'none' && s !== '0'; }).length);
+      if (dash) fail('phone map: ' + dash + ' cards have a dashed border');
+      // Map | List: List shows the outline, remembered across a reload; Map brings the canvas back
+      await goto('#/map/home');
+      await page.click('#mapPhoneView button[data-view="list"]'); await page.waitForTimeout(700);
+      const lst = await page.evaluate(() => ({ svg: getComputedStyle(document.getElementById('mapsvg')).display !== 'none', out: getComputedStyle(document.getElementById('mapoutline')).display !== 'none', rows: document.querySelectorAll('#mapoutline .oi-row').length, stored: localStorage.getItem('playable.mapPhoneView'), pressed: document.querySelector('#mapPhoneView [data-view="list"]').getAttribute('aria-pressed') }));
+      if (lst.svg || !lst.out || !lst.rows || lst.stored !== '"list"' || lst.pressed !== 'true') fail('phone map: the List switch ' + JSON.stringify(lst));
+      await page.reload(); await page.waitForTimeout(900);
+      if (!await page.evaluate(() => getComputedStyle(document.getElementById('mapoutline')).display !== 'none')) fail('phone map: List was not remembered after a reload');
+      await page.click('#mapPhoneView button[data-view="map"]'); await page.waitForTimeout(800);
+      const mp = await page.evaluate(() => ({ svg: getComputedStyle(document.getElementById('mapsvg')).display !== 'none', out: getComputedStyle(document.getElementById('mapoutline')).display !== 'none', stored: localStorage.getItem('playable.mapPhoneView') }));
+      if (!mp.svg || mp.out || mp.stored !== '"map"') fail('phone map: the Map switch ' + JSON.stringify(mp));
+      if (errors.length) fail('page error on the phone map: ' + errors[0]);
+    }
+
+    // -- the phone outline (List view): the same tree as a list, groups with counts, read marks, next unread, 44px rows, and the routes
     if (!canvas) {
       await goto('#/map/home');
       const ol = await page.evaluate(() => {
@@ -766,7 +855,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     const pathId = await page.evaluate(() => PATHS[0].id);
     for (const hash of ['#/map/home', '#/map/t/core-loop', '#/paths/' + pathId]) {
       await fresh(hash, true);
-      const bar = await page.evaluate(() => { const els = [...document.querySelectorAll('.mapbar .mapctl > *:not([hidden])')].map(e => e.getBoundingClientRect()), find = document.getElementById('mapFind').getBoundingClientRect(), wr = document.getElementById('mapstage').getBoundingClientRect(); return { oneLine: Math.max(...els.map(b => b.top)) < Math.min(...els.map(b => b.bottom)), inside: Math.max(...els.map(b => b.right)) <= wr.right + 1, find: find.width > 100 }; });
+      const bar = await page.evaluate(() => { const els = [...document.querySelectorAll('.mapbar .mapctl > *:not([hidden])')].map(e => e.getBoundingClientRect()).filter(b => b.width), find = document.getElementById('mapFind').getBoundingClientRect(), wr = document.getElementById('mapstage').getBoundingClientRect(); return { oneLine: Math.max(...els.map(b => b.top)) < Math.min(...els.map(b => b.bottom)), inside: Math.max(...els.map(b => b.right)) <= wr.right + 1, find: find.width > 100 }; });
       if (!bar.oneLine) fail(`the map toolbar wraps on ${hash}`);
       if (!bar.inside) fail(`the map toolbar runs past the stage on ${hash}`);
       if (!bar.find) fail(`the find field is too narrow on ${hash}`);

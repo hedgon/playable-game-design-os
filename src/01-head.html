@@ -1029,7 +1029,7 @@ details.comp .body{padding-top:6px}
 .kgraph .rd.on{fill:var(--ok);stroke:var(--ok)}
 .kgraph .chk{fill:var(--ink);font-weight:800;pointer-events:none}
 .kgraph .node.topic.sel .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 30%,var(--bg2));stroke:var(--dc,var(--accent));stroke-width:2}
-.kgraph .node.next .disc{stroke:var(--accent);stroke-width:2;stroke-dasharray:6 3}
+.kgraph .node.next .disc{stroke:var(--accent);stroke-width:2.5}
 .kgraph .whynote rect{fill:var(--bg);stroke:var(--accent);stroke-width:1.2}
 .kgraph .whynote text{fill:var(--fg);font-family:var(--display);font-stretch:92%;font-weight:500;letter-spacing:.01em}
 .maplegend-panel{padding:6px 12px 8px;border-bottom:1px solid var(--line);background:var(--panel);font-size:.86rem;line-height:1.35;max-height:44vh;overflow-y:auto}
@@ -1084,12 +1084,12 @@ details.comp .body{padding-top:6px}
 .mapoutline li:focus{outline:none}
 .oi-row{display:flex;align-items:center;gap:10px;min-height:44px;margin:3px 0;padding:6px 10px;border:1px solid var(--line2);border-left:4px solid var(--dc,var(--line2));border-radius:var(--r2);background:color-mix(in srgb,var(--dc,var(--accent)) 10%,var(--bg2));color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mapoutline li[data-kind="leaf"]>.oi-row,.mapoutline li[data-kind="item"]>.oi-row{background:var(--bg2);min-height:44px}
-.mapoutline li[data-type="other"]>.oi-row{border-style:dashed}
+.mapoutline li[data-type="other"]>.oi-row{border-color:var(--line)}
 .mapoutline li[data-kind="group"]>.oi-row{background:var(--bg3);border-left-color:var(--line2)}
 .mapoutline li[data-kind="center"]>.oi-row{background:var(--panel);border-color:var(--accent2)}
 .mapoutline li.open>.oi-row{background:color-mix(in srgb,var(--dc,var(--accent)) 24%,var(--bg2))}
 .mapoutline li[aria-selected="true"]>.oi-row{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.mapoutline li.next>.oi-row{border-style:dashed;border-color:var(--accent)}
+.mapoutline li.next>.oi-row{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .mapoutline li:focus-visible>.oi-row{outline:3px solid var(--fg);outline-offset:2px}
 .oi-mark{flex:none;width:22px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--fg2)}
 .oi-mark .rd-o,.oi-mark .rd-x{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1.6px solid var(--fg3);font-size:.7rem;line-height:1}
@@ -1101,12 +1101,34 @@ details.comp .body{padding-top:6px}
 .oi-why{font-size:.8rem;color:var(--fg2);line-height:1.3}
 .oi-flag{flex:none;font-family:var(--mono);font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:1px 5px}
 .mapfoot-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mapviewsw{display:none;margin:0}
 @media (max-width:700px){
-  .mapwrap{touch-action:auto;cursor:auto}
-  .mapwrap svg,.mapwrap .maptip{display:none}
-  .mapoutline{display:block;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:6px 10px 28px}
-  .mapbar #mapZoomIn,.mapbar #mapZoomOut,.mapbar #mapFit,.mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
+  /* the canvas is the phone view: one finger pans, two pinch, a tap is a click; the page never scrolls sideways */
+  .mapwrap{touch-action:none;cursor:auto;overscroll-behavior:contain}
+  .mapwrap .maptip{display:none}
+  .mapwrap .node.leaf.other .disc{stroke-dasharray:none}
+  .mapwrap .edge{stroke-dasharray:none}
+  .mapwrap .edge.dd{stroke-dasharray:4 5}.mapwrap .edge.cross{stroke-dasharray:3 5}.mapwrap .edge.home{stroke-dasharray:5 5}
+  .mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
+  .mapbar .mapctl{flex-wrap:wrap}
+  .mapbar .mapctl{gap:2px!important}
+  .mapbar .mapctl .mapnext{flex:1 0 100%;min-height:44px;display:flex;align-items:center}
+  .mapbar .mapctl .mapnext[hidden]{display:none}
+  .mapbar #mapResetDefault{display:none}
+  .mapbar .btn-long{display:none}
+  .mapbar #mapZoomIn,.mapbar #mapZoomOut,.mapbar #mapFit{font-size:1.2rem}
+  .mapbar #collapseLeft,.mapbar #collapseRight{font-size:.74rem;min-width:0;padding:0 2px}
+  .shell .mapstage{top:var(--hdr,0px);height:calc(100dvh - var(--hdr,0px) - 12px)}
+  .mapbar .mapctl .btn,.mapviewsw button{min-height:44px;min-width:44px;padding:0 6px}
+  .mapviewsw button{padding:0 8px}
+  .mapviewsw{display:inline-flex}
   .mapfind{flex:1 1 100%}
+  .mapfind input{min-height:44px}
+  /* List: the same tree as an expandable outline */
+  .mapstage.plist .mapwrap{touch-action:auto}
+  .mapstage.plist .mapwrap svg{display:none}
+  .mapstage.plist .mapoutline{display:block;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:6px 10px 28px}
+  .mapstage.plist .mapbar #mapZoomIn,.mapstage.plist .mapbar #mapZoomOut,.mapstage.plist .mapbar #mapFit{display:none}
 }
 @media (min-width:1101px){.shell:not(.hide-left) .pane .lens-switch.inpane{display:none}}
 /* cross-branch links: faint dashed curves, highlighted on hover */

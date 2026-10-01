@@ -55,8 +55,7 @@ the ARIA arrow keys with their live announcements, wheel and button zoom with th
 11 px label floor, the selected topic staying in view, dimmed-leaf contrast and the
 focus ring in both themes, dragging a node (kept after a reload), the fit and reset
 buttons, the lens switch, the project map camera, eight quick route changes, and
-reduced motion. At 1280 and 1440 px it also checks the map follow-ups: a selected topic framed with its groups and "N more" cues for leaves the window cuts off, a click inside the map keeping the map shown, find in map (count, Enter, Escape), the skip link from a folded page, and the toolbar staying on one line. Below 700 px the map is an expandable outline instead of a canvas
-(same tree, groups, read marks and routes), and the 375 px run drives that instead.
+reduced motion. At 1280 and 1440 px it also checks the map follow-ups: a selected topic framed with its groups and "N more" cues for leaves the window cuts off, a click inside the map keeping the map shown, find in map (count, Enter, Escape), the skip link from a folded page, and the toolbar staying on one line. Below 700 px the map is the same canvas, one-sided and fitted to the width: one finger pans, two pinch, a tap is a click, and a Map | List switch in the toolbar (remembered as playable.mapPhoneView) offers the expandable outline instead. The 375 px run drives the canvas by touch, then runs the outline checks again in List view.
 It needs Playwright, which is not a dependency of the guide:
 
 ```bash
@@ -110,7 +109,7 @@ the type check, the smoke test and the paths test on every push and pull request
 88-flow.js                workflow chart renderer (also the diagrams' flow kind)
 89-graph.js               tidy-tree mind-map layout and rendering (topic map, project map, path map)
 90-app.js                 router, views, tools, search, review queue, dialogs, saved data
-91-map.js                 the map view: lenses, camera, pan, zoom, ARIA tree keys, phone outline, reading panels
+91-map.js                 the map view: lenses, camera, pan, zoom, ARIA tree keys, phone touch and the List outline, reading panels
                           (saved map state is validated on load; the camera is saved only while a branch is open, and after a 250 ms pause)
                           (branchFrame frames the selected node with its groups and open leaves; updateMoreCues counts what the window cuts off; find in map folds words like the site search)
 92-ideas.js               Reference Dissection

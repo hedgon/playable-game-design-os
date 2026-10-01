@@ -2,7 +2,8 @@
    PERSISTENT MIND MAP (centre) + INDEX (left) + CONTENT (right)
    The map is always on screen. It is a horizontal collapsible tidy tree,
    not a circle, so it grows by stacking and panning rather than shrinking.
-   Below 700px the same tree is drawn as an expandable outline instead of a canvas.
+   Below 700px the same canvas is drawn one-sided and moved by touch; a Map | List
+   switch offers the expandable outline instead.
    Routes: #/map  #/map/d/<domain>  #/map/t/<topic>  #/map/s/<smell>  #/map/home
    (home shows the lens the reader last chose; a domain or topic route sets its own)
    ===================================================================== */
@@ -99,8 +100,11 @@ function saveMap(){ persist(mapState); }
 const lensOf = domId => (DOM[domId] || {}).lens || LENSES[0][0];
 function currentLens(){ return LENSES.find(l => l[0] === mapState.lens) || LENSES[0]; }
 function setLens(id){ mapState.lens = id; mapState.dom = null; mapState.topic = null; mapState.smell = null; mapState.grp = {}; saveMap(); go('#/map/home'); }
-// Phones get the one-sided tree, read one column at a time.
+// Phones get the one-sided tree on the same canvas as the desktop, panned and
+// pinched by touch. The expandable outline is the reader's alternative there
+// ("Map | List" in the toolbar, remembered), never the default.
 const phoneQuery = window.matchMedia('(max-width: 700px)');
+const phoneList = () => phoneQuery.matches && store.get('mapPhoneView', 'map') === 'list';
 
 /* ---- three maps, one stage ----
    'domains' draws the guide. 'project' draws one case study as systems and
@@ -164,7 +168,7 @@ function buildGraph(){
   const pth = curPath();
   if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
   practice(); // fills VIEW_LINKS with the runtime links the neighbourhood reads
-  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, next: nextUnread() }), seen, VIEW_LINKS);
+  return PlayableGraph.build(Object.assign({}, mapState, { oneSided, phone: phoneQuery.matches, next: nextUnread() }), seen, VIEW_LINKS);
 }
 
 function mapCrumbs(){
@@ -353,20 +357,6 @@ function savedCamera(vb){
   if(w < 50 || h < 50) return vb;   // folded away: keep it until the map is shown and measured
   return Math.abs(vb.sw - w) <= w * 0.2 && Math.abs(vb.sh - h) <= h * 0.2 ? vb : null;
 }
-// On a phone the one-sided tree is read one column at a time: the column the
-// reader is choosing from (branches, or the open branch's items) fills the
-// width at a readable scale, starting at its top or at the selected item.
-function phoneTarget(g){
-  const open = g.nodes.find(n => n.kind === 'domain' && n.open);
-  const col = g.nodes.filter(n => open ? n.kind === 'topic' : n.kind === 'domain');
-  const list = col.length ? col : g.nodes;
-  const minX = Math.min(...list.map(n => n.x)) - 16, maxX = Math.max(...list.map(n => n.x + n.w)) + 16;
-  const w = maxX - minX, h = w * Math.max(1, MAP.wrap.clientHeight) / Math.max(1, MAP.wrap.clientWidth);
-  const selId = mapMode === 'project' ? projState && projState.part : mapMode === 'path' ? null : mapState.topic;
-  const sel = selId && list.find(n => n.id === selId);
-  const top = Math.min(...list.map(n => n.y - n.h / 2)) - 16;
-  return { x: minX, y: sel ? sel.y - h / 2 : top, w, h };
-}
 // A path opens framed to its open stage and that stage's steps; framed to the
 // whole tree its nodes are too small to read.
 function pathStageTarget(g){
@@ -482,7 +472,6 @@ function branchFrame(g, sel){
 }
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
-  if(phoneQuery.matches) return phoneTarget(g);
   { const f = branchFrame(g, selectedNode(g)); if(f) return f; }
   if(mapMode === 'path' && kind === 'stage'){ const t = pathStageTarget(g); if(t) return keepReadable(t, g); }
   let target = cameraTarget(g, cam, kind);
@@ -649,8 +638,8 @@ function indexTree(g){
   if(g.nodes && g.nodes[0]) walk(g.nodes[0], null);
   return { byKey, order };
 }
-// Which view is showing: the outline on a phone, the canvas elsewhere.
-const treeRoot = () => phoneQuery.matches ? MAP.outline : MAP.svg;
+// Which view is showing: the outline on a phone that chose List, the canvas otherwise.
+const treeRoot = () => phoneList() ? MAP.outline : MAP.svg;
 const itemFor = key => key && treeRoot().querySelector('[data-key="' + CSS.escape(key) + '"]');
 // The phone outline: the graph's own nodes as nested, expandable list items.
 function outlineHTML(g){
@@ -667,7 +656,7 @@ function outlineHTML(g){
 }
 // Scrolls the outline so the selected item (else the open branch) sits mid-screen.
 function outlineReveal(){
-  const o = MAP.outline; if(!o || !phoneQuery.matches) return;
+  const o = MAP.outline; if(!o || !phoneList()) return;
   const li = o.querySelector('[aria-selected="true"]') || o.querySelector('li.open:not([data-kind="center"])');
   const row = li && li.querySelector(':scope > .oi-row');
   if(!row){ o.scrollTop = 0; return; }
@@ -684,7 +673,7 @@ function paintGraph(){
   MAP.g = g; MAP.hover = null; MAP.idx = indexTree(g);
   MAP.labelPx = 0; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
   MAP.svg.innerHTML = g.inner;
-  MAP.outline.innerHTML = phoneQuery.matches ? outlineHTML(g) : '';
+  MAP.outline.innerHTML = phoneList() ? outlineHTML(g) : '';
   { const px = [...MAP.svg.querySelectorAll('.lbl:not(.sub)')].slice(0, 60).map(t => parseFloat(getComputedStyle(t).fontSize)).filter(Boolean); MAP.labelPx = px.length ? Math.min(...px) : 13.5; }
   const root = treeRoot(), byKey = k => k && root.querySelector('[data-key="' + CSS.escape(k) + '"]');
   const stop = byKey(MAP.focusKey) || byKey(currentKey()) || root.querySelector('[role="treeitem"]');
@@ -699,7 +688,7 @@ function focusItem(n){
   const el = itemFor(n.key); if(!el) return;
   treeRoot().querySelectorAll('[tabindex="0"]').forEach(x => x.setAttribute('tabindex', '-1'));
   el.setAttribute('tabindex', '0'); el.focus({ preventScroll: true }); MAP.focusKey = n.key;
-  if(phoneQuery.matches){ el.scrollIntoView({ block: 'nearest' }); return; }
+  if(phoneList()){ el.scrollIntoView({ block: 'nearest' }); return; }
   // the whole card is brought inside the window, by the smallest move
   const d = el.querySelector('.disc'), vb = MAP.vb, m = 20;
   const bx = +d.getAttribute('x'), by = +d.getAttribute('y'), bw = +d.getAttribute('width'), bh = +d.getAttribute('height');
@@ -765,6 +754,17 @@ function resetMapDefault(){
   if(MAP) MAP.vb = null;
   go('#/map/home');
 }
+// The phone's Map | List switch: which of the two views the stage shows.
+function syncPhoneView(){
+  const list = phoneList(), st = $('#mapstage');
+  if(st) st.classList.toggle('plist', list);
+  $$('#mapPhoneView button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.view === 'list') === list)));
+}
+function setPhoneView(v){
+  if(!MAP || store.get('mapPhoneView', 'map') === v) return;
+  store.set('mapPhoneView', v); syncPhoneView();
+  mapStopAnim(); MAP.userCamera = false; renderTree(MAP.kind);
+}
 function initMapStage(){
   if(MAP && document.body.contains(MAP.svg)) return;
   if(MAP && MAP.dispose) MAP.dispose();   // a rebuilt stage must not leave the old one's listeners behind
@@ -816,7 +816,7 @@ function initMapStage(){
   const dropNode = () => { const moved = nodeDrag && nodeDrag.moved; nodeDrag = null; if(moved) redrawGraph(); return moved; };
   on(svg, 'pointerdown', e => {
     if(e.pointerType === 'touch'){ touchPts.set(e.pointerId, { x:e.clientX, y:e.clientY }); mapStopAnim();
-      if(touchPts.size === 1){ const key = nodeKeyAt(e); if(key) startNode(key, e.clientX, e.clientY, e.pointerId); else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
+      if(touchPts.size === 1){ const key = phoneQuery.matches ? null : nodeKeyAt(e); if(key) startNode(key, e.clientX, e.clientY, e.pointerId); else drag = { x:e.clientX, y:e.clientY, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; }
       else if(touchPts.size === 2){ drag = null; dropNode(); const p = [...touchPts.values()]; pinch = { dist: Math.hypot(p[0].x-p[1].x, p[0].y-p[1].y) }; }
       return; }
     if(e.button !== 0) return; mapStopAnim();
@@ -838,7 +838,7 @@ function initMapStage(){
   };
   const onUp = e => {
     if(nodeDrag){ if(nodeDrag.moved){ saveCur(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } dropNode(); if(!e || e.pointerType !== 'touch'){ drag = null; return; } }
-    if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
+    if(e && e.pointerType === 'touch'){ touchPts.delete(e.pointerId); if(touchPts.size < 2) pinch = null; if(drag && drag.moved){ MAP.userCamera = true; suppressClick = true; } if(touchPts.size === 1){ const p = [...touchPts.values()][0]; drag = { x:p.x, y:p.y, vx:MAP.vb.x, vy:MAP.vb.y, moved:false }; } else if(touchPts.size === 0){ drag = null; if(suppressClick) setTimeout(() => { suppressClick = false; }, 60); } mapPersistCamera(); return; }
     if(drag && drag.moved){ MAP.userCamera = true; mapPersistCamera(); suppressClick = true; setTimeout(() => { suppressClick = false; }, 0); } drag = null; };
   on(window, 'pointermove', onMove); on(window, 'pointerup', onUp); on(window, 'pointercancel', onUp);
   on(window, 'blur', () => { touchPts.clear(); pinch = null; drag = null; dropNode(); });
@@ -853,6 +853,8 @@ function initMapStage(){
   on(outline, 'click', e => { const row = e.target.closest && e.target.closest('.oi-row'); if(row){ const li = row.parentElement; MAP.focusKey = li.dataset.key; mapClick(li); } });
   on(outline, 'keydown', treeKey);
   $('#mapFit').onclick = fitMap;
+  syncPhoneView();
+  $$('#mapPhoneView button').forEach(b => b.onclick = () => setPhoneView(b.dataset.view));
   const fi = $('#mapFind'), fn = $('#mapFindN');
   if(fi){
     MAP.find = { q:'', matches:[], ids:new Set(), doms:new Set(), idx:-1 };
@@ -956,7 +958,7 @@ function renderTree(kind){
   // Coming back to a stage (a reload, or another map and back) restores the
   // camera the reader left, exactly; only a move within the stage re-frames.
   // (the shell draws once as 'home' before the route draws the real place: both restore)
-  const restore = (mapStage !== stageKey || MAP.bootHome) && !!stored && !phoneQuery.matches && g.focus;
+  const restore = (mapStage !== stageKey || MAP.bootHome) && !!stored && g.focus;
   if(mapStage !== stageKey){
     mapStage = stageKey; mapStopAnim();
     MAP.vb = stored ? Object.assign({}, stored) : null;
@@ -965,7 +967,7 @@ function renderTree(kind){
   if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
   // drawing the same place again (not a move to another) keeps a camera the reader has set
   const sig = JSON.stringify([kind, mapMode, mapState.dom, mapState.topic, mapState.smell, projState && [projState.cs, projState.sys, projState.part], pathMapState && [pathMapState.id, pathMapState.stage]]);
-  const again = sig === MAP.sig && MAP.userCamera && !phoneQuery.matches; MAP.bootHome = !MAP.sig && kind === 'home'; MAP.sig = sig;
+  const again = sig === MAP.sig && MAP.userCamera; MAP.bootHome = !MAP.sig && kind === 'home'; MAP.sig = sig;
   MAP.kind = kind; MAP.userCamera = !!restore || again; MAP.restoredCam = restore ? Object.assign({}, stored) : null;
   if(again) return outlineReveal();
   if(restore) mapAnimateTo(keepReadable(Object.assign({}, stored), g), 0);
@@ -1000,7 +1002,7 @@ function syncMapMode(view, id){
 }
 
 // Crossing the phone width swaps the two-sided tree for the one-sided one.
-phoneQuery.addEventListener('change', () => { if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
+phoneQuery.addEventListener('change', () => { syncPhoneView(); if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
 // A topic was marked read or unread: the map's marks, counts and next-unread cue follow.
 function mapProgress(){
   if(!MAP || !MAP.g || mapMode !== 'domains' || !document.body.contains(MAP.svg)) return;

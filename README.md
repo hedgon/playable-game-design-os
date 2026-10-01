@@ -103,7 +103,7 @@ all of it to a JSON file and **import** it again, in this browser or another one
 - A skip link comes first; after a dialog closes, focus returns where it was.
 - On narrow screens the guide shows one pane at a time: reading pages open the
   content, structure pages open the map, and back and forward follow the same
-  rule. On phones the map draws one side of the tree, so a column fits the width.
+  rule. On phones the map draws one side of the tree, so a column fits the width, and moves by touch; a Map | List switch gives the same tree as an outline.
 
 ## Look and feel
 
