@@ -164,6 +164,10 @@ Right after the topic, in the same file:
   snippets with `node src/check-go.js`: it writes each into its own folder with a
   `go.mod`, runs `gofmt -l` and `go vet`, and prints "NOT MEASURED: Go is not
   installed" (exit 0) when `go` is not on the PATH. It is not part of the build.
+  The snippets need Go 1.23 or later (`Request.Pattern`, the builtin `min`,
+  `math/rand/v2`); the Go tab label says so. The tab label also reads the snippet: `package
+  main` gives "A program", a `func Test` gives "save it as name_test.go", anything
+  else "A package, not a program".
   Sample entries live in `45-go-samples.js`.
 - `INTERVIEW('topic-id', {junior:[...], mid:[...], senior:[...]})` adds the
   Interview tab: six to ten questions in total, at least one per level, each

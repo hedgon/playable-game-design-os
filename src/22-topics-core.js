@@ -928,7 +928,7 @@ enum Phase { IDLE, STARTUP, ACTIVE, RECOVERY }
 @export var startup := 0.18
 @export var active := 0.08
 @export var recovery := 0.30
-@onready var hitbox: Area2D = $Hitbox
+@onready var hitbox: Area2D = $Hitbox  # Monitoring is switched off in the scene
 var phase := Phase.IDLE
 
 func attack() -> void:
@@ -939,10 +939,10 @@ func attack() -> void:
 \thitbox.monitoring = false
 \tphase = Phase.RECOVERY; await get_tree().create_timer(recovery).timeout
 \tphase = Phase.IDLE`,
-    pitfall:`Timing the active window with a timer that runs in idle frames while the hitbox is checked on physics steps. A window shorter than one physics step, about 17 ms at the default 60 ticks a second, can open and close between two steps, so a clean hit reports no overlap. Keep the active window several physics steps long, or pass true for process_in_physics so the timer is aligned with them.`,
+    pitfall:`Timing the active window with a timer that runs in idle frames while the hitbox is checked on physics steps. A window shorter than one physics step, about 17 ms at the default 60 ticks a second, can open and close between two steps, so a clean hit reports no overlap. Keep the active window several physics steps long, or pass true as the third argument, create_timer(active, true, true), so the timer runs in physics steps.`,
     map:`Godot Area2D.monitoring on a hitbox is Unity Collider.enabled on a trigger, and an await on a timer is a coroutine yield.` },
   unity:{ term:`An attack is a coroutine with three timed phases. The hitbox is a trigger collider enabled only during the active phase, and Busy is public so input, animation and AI can read the commitment.`,
-    api:['MonoBehaviour.StartCoroutine()','WaitForSeconds','Collider.enabled','OnTriggerEnter(Collider)','IEnumerator','OnDisable()'],
+    api:['MonoBehaviour.StartCoroutine()','WaitForSeconds','Collider.enabled','IEnumerator','OnDisable()'],
     snippet:`public class Attack : MonoBehaviour {
     [SerializeField] float startup = 0.18f, active = 0.08f, recovery = 0.30f;
     [SerializeField] Collider hitbox;            // trigger, disabled in the prefab
@@ -961,7 +961,7 @@ func attack() -> void:
     }
 }`,
     pitfall:`Disabling the object mid-attack, for example on a stagger or a death. Unity stops its coroutines when the object is deactivated, but Busy stays true and the hitbox can stay enabled, so after it is switched back on the character cannot attack, or deals damage while idle. Reset both in OnDisable, or run the phases from one state machine that owns the reset.`,
-    map:`Unity Collider.enabled on a trigger plus a coroutine is Godot Area2D.monitoring plus an await on a timer.` },
+    map:`Unity Collider.enabled on a trigger plus a coroutine is Godot Area2D.monitoring plus an await on a timer. This snippet uses a 3D Collider; in a 2D game use Collider2D, the closer match to Area2D.` },
   note:`The timings are data and the phases are readable state. The design point is the same in both engines: when anticipation, active and recovery are three named values, the telegraph can be tied to the first, the hit-stop to the second and the punish window to the third, and a playtester can tell you which one is wrong.` });
 INTERVIEW('combat-design',{
   junior:[
@@ -1047,25 +1047,26 @@ func _physics_process(delta: float) -> void:
         since_press = 99.0
     move_and_slide()`,
     pitfall:`Reading Input.is_action_just_pressed() in _process() and acting on it in _physics_process(). A press that lands between two physics ticks can be seen by the wrong function, or seen twice, so the jump drops out now and then. Read input and act on it in the same function.`,
-    map:`Godot’s _physics_process with move_and_slide plays the part of Unity’s FixedUpdate with a Rigidbody2D. The two timers are the same idea in both.` },
-  unity:{ term:`The same two timers, kept in a MonoBehaviour. A ground check feeds coyote time and the button press feeds the buffer. Both values are serialised so they can be tuned in the Inspector.`,
-    api:['MonoBehaviour.Update()','Physics2D.OverlapCircle()','Input.GetButtonDown()','Rigidbody2D.linearVelocity','Time.deltaTime'],
+    map:`Godot’s _physics_process with move_and_slide is where Unity code would set a Rigidbody2D’s velocity. The Unity snippet does it in Update, so that GetButtonDown-style presses are not missed between FixedUpdate steps. The two timers are the same idea in both.` },
+  unity:{ term:`The same two timers, kept in a MonoBehaviour. A ground check feeds coyote time and the button press, read from the Input System, feeds the buffer. Both values are serialised so they can be tuned in the Inspector. It needs using UnityEngine.InputSystem.`,
+    api:['MonoBehaviour.Update()','Physics2D.OverlapCircle()','InputAction.WasPressedThisFrame()','Rigidbody2D.linearVelocity','Time.deltaTime'],
     snippet:`public class Jumper : MonoBehaviour {
     [SerializeField] float coyote = 0.1f, buffer = 0.12f, jumpSpeed = 8f;
-    [SerializeField] Rigidbody2D body; [SerializeField] LayerMask ground;
+    [SerializeField] Rigidbody2D body; [SerializeField] LayerMask ground; [SerializeField] InputActionReference jump;
     float sinceGround = 99f, sincePress = 99f;
+    void OnEnable() => jump.action.Enable();
     void Update() {
         bool grounded = Physics2D.OverlapCircle(transform.position, 0.1f, ground);
         sinceGround = grounded ? 0f : sinceGround + Time.deltaTime;
-        sincePress = Input.GetButtonDown("Jump") ? 0f : sincePress + Time.deltaTime;
+        sincePress = jump.action.WasPressedThisFrame() ? 0f : sincePress + Time.deltaTime;
         if (sinceGround <= coyote && sincePress <= buffer) {
             body.linearVelocity = new Vector2(body.linearVelocity.x, jumpSpeed);
             sinceGround = sincePress = 99f;
         }
     }
 }`,
-    pitfall:`Input.GetButtonDown belongs to the legacy Input Manager. A project set to use only the new Input System package throws an error when it is called. Either enable both input handling modes in Player settings, or read the press from an InputAction instead.`,
-    map:`Unity’s Update with Time.deltaTime and an overlap ground check play the part of Godot’s _physics_process and is_on_floor. Rigidbody2D.linearVelocity is Godot’s velocity.` },
+    pitfall:`An InputActionReference to an action that nobody enabled never fires, so the jump does nothing and no error appears. Call Enable() in OnEnable, or let a PlayerInput component do it. The old Input.GetButtonDown belongs to the legacy Input Manager and throws an error in a project set to use only the new Input System package, so do not copy it from older tutorials.`,
+    map:`Unity’s Update with Time.deltaTime and an overlap ground check play the part of Godot’s _physics_process and is_on_floor. Rigidbody2D.linearVelocity is Godot’s velocity. This snippet sets the velocity in Update so that a press is not missed between FixedUpdate steps; Godot’s input check is safe inside _physics_process.` },
   note:`The design point is the same in both engines: forgiveness is two named numbers, not a hidden fudge. Written as values, each can be tuned in the editor, switched off for comparison and shared with the level designer who needs to know how far a jump really reaches.` });
 INTERVIEW('three-cs',{
   junior:[

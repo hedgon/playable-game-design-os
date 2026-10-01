@@ -20944,7 +20944,7 @@ enum Phase { IDLE, STARTUP, ACTIVE, RECOVERY }
 @export var startup := 0.18
 @export var active := 0.08
 @export var recovery := 0.30
-@onready var hitbox: Area2D = $Hitbox
+@onready var hitbox: Area2D = $Hitbox  # Monitoring is switched off in the scene
 var phase := Phase.IDLE
 
 func attack() -> void:
@@ -20955,10 +20955,10 @@ func attack() -> void:
 \thitbox.monitoring = false
 \tphase = Phase.RECOVERY; await get_tree().create_timer(recovery).timeout
 \tphase = Phase.IDLE`,
-    pitfall:`Timing the active window with a timer that runs in idle frames while the hitbox is checked on physics steps. A window shorter than one physics step, about 17 ms at the default 60 ticks a second, can open and close between two steps, so a clean hit reports no overlap. Keep the active window several physics steps long, or pass true for process_in_physics so the timer is aligned with them.`,
+    pitfall:`Timing the active window with a timer that runs in idle frames while the hitbox is checked on physics steps. A window shorter than one physics step, about 17 ms at the default 60 ticks a second, can open and close between two steps, so a clean hit reports no overlap. Keep the active window several physics steps long, or pass true as the third argument, create_timer(active, true, true), so the timer runs in physics steps.`,
     map:`Godot Area2D.monitoring on a hitbox is Unity Collider.enabled on a trigger, and an await on a timer is a coroutine yield.` },
   unity:{ term:`An attack is a coroutine with three timed phases. The hitbox is a trigger collider enabled only during the active phase, and Busy is public so input, animation and AI can read the commitment.`,
-    api:['MonoBehaviour.StartCoroutine()','WaitForSeconds','Collider.enabled','OnTriggerEnter(Collider)','IEnumerator','OnDisable()'],
+    api:['MonoBehaviour.StartCoroutine()','WaitForSeconds','Collider.enabled','IEnumerator','OnDisable()'],
     snippet:`public class Attack : MonoBehaviour {
     [SerializeField] float startup = 0.18f, active = 0.08f, recovery = 0.30f;
     [SerializeField] Collider hitbox;            // trigger, disabled in the prefab
@@ -20977,7 +20977,7 @@ func attack() -> void:
     }
 }`,
     pitfall:`Disabling the object mid-attack, for example on a stagger or a death. Unity stops its coroutines when the object is deactivated, but Busy stays true and the hitbox can stay enabled, so after it is switched back on the character cannot attack, or deals damage while idle. Reset both in OnDisable, or run the phases from one state machine that owns the reset.`,
-    map:`Unity Collider.enabled on a trigger plus a coroutine is Godot Area2D.monitoring plus an await on a timer.` },
+    map:`Unity Collider.enabled on a trigger plus a coroutine is Godot Area2D.monitoring plus an await on a timer. This snippet uses a 3D Collider; in a 2D game use Collider2D, the closer match to Area2D.` },
   note:`The timings are data and the phases are readable state. The design point is the same in both engines: when anticipation, active and recovery are three named values, the telegraph can be tied to the first, the hit-stop to the second and the punish window to the third, and a playtester can tell you which one is wrong.` });
 INTERVIEW('combat-design',{
   junior:[
@@ -21063,25 +21063,26 @@ func _physics_process(delta: float) -> void:
         since_press = 99.0
     move_and_slide()`,
     pitfall:`Reading Input.is_action_just_pressed() in _process() and acting on it in _physics_process(). A press that lands between two physics ticks can be seen by the wrong function, or seen twice, so the jump drops out now and then. Read input and act on it in the same function.`,
-    map:`Godot’s _physics_process with move_and_slide plays the part of Unity’s FixedUpdate with a Rigidbody2D. The two timers are the same idea in both.` },
-  unity:{ term:`The same two timers, kept in a MonoBehaviour. A ground check feeds coyote time and the button press feeds the buffer. Both values are serialised so they can be tuned in the Inspector.`,
-    api:['MonoBehaviour.Update()','Physics2D.OverlapCircle()','Input.GetButtonDown()','Rigidbody2D.linearVelocity','Time.deltaTime'],
+    map:`Godot’s _physics_process with move_and_slide is where Unity code would set a Rigidbody2D’s velocity. The Unity snippet does it in Update, so that GetButtonDown-style presses are not missed between FixedUpdate steps. The two timers are the same idea in both.` },
+  unity:{ term:`The same two timers, kept in a MonoBehaviour. A ground check feeds coyote time and the button press, read from the Input System, feeds the buffer. Both values are serialised so they can be tuned in the Inspector. It needs using UnityEngine.InputSystem.`,
+    api:['MonoBehaviour.Update()','Physics2D.OverlapCircle()','InputAction.WasPressedThisFrame()','Rigidbody2D.linearVelocity','Time.deltaTime'],
     snippet:`public class Jumper : MonoBehaviour {
     [SerializeField] float coyote = 0.1f, buffer = 0.12f, jumpSpeed = 8f;
-    [SerializeField] Rigidbody2D body; [SerializeField] LayerMask ground;
+    [SerializeField] Rigidbody2D body; [SerializeField] LayerMask ground; [SerializeField] InputActionReference jump;
     float sinceGround = 99f, sincePress = 99f;
+    void OnEnable() => jump.action.Enable();
     void Update() {
         bool grounded = Physics2D.OverlapCircle(transform.position, 0.1f, ground);
         sinceGround = grounded ? 0f : sinceGround + Time.deltaTime;
-        sincePress = Input.GetButtonDown("Jump") ? 0f : sincePress + Time.deltaTime;
+        sincePress = jump.action.WasPressedThisFrame() ? 0f : sincePress + Time.deltaTime;
         if (sinceGround <= coyote && sincePress <= buffer) {
             body.linearVelocity = new Vector2(body.linearVelocity.x, jumpSpeed);
             sinceGround = sincePress = 99f;
         }
     }
 }`,
-    pitfall:`Input.GetButtonDown belongs to the legacy Input Manager. A project set to use only the new Input System package throws an error when it is called. Either enable both input handling modes in Player settings, or read the press from an InputAction instead.`,
-    map:`Unity’s Update with Time.deltaTime and an overlap ground check play the part of Godot’s _physics_process and is_on_floor. Rigidbody2D.linearVelocity is Godot’s velocity.` },
+    pitfall:`An InputActionReference to an action that nobody enabled never fires, so the jump does nothing and no error appears. Call Enable() in OnEnable, or let a PlayerInput component do it. The old Input.GetButtonDown belongs to the legacy Input Manager and throws an error in a project set to use only the new Input System package, so do not copy it from older tutorials.`,
+    map:`Unity’s Update with Time.deltaTime and an overlap ground check play the part of Godot’s _physics_process and is_on_floor. Rigidbody2D.linearVelocity is Godot’s velocity. This snippet sets the velocity in Update so that a press is not missed between FixedUpdate steps; Godot’s input check is safe inside _physics_process.` },
   note:`The design point is the same in both engines: forgiveness is two named numbers, not a hidden fudge. Written as values, each can be tuned in the editor, switched off for comparison and shared with the level designer who needs to know how far a jump really reaches.` });
 INTERVIEW('three-cs',{
   junior:[
@@ -23069,7 +23070,7 @@ DIAGRAM('encounter-design', { kind:'curve', title:'An encounter is a question wi
 
 
 T('level-blockout-and-metrics',{ d:'level', t:'Blockout and level metrics', tag:'Build the level out of plain boxes, sized to what the character can do, and prove it works before any art is made.',
-  what:`A blockout (also called a greybox or whitebox) is a level built from plain, untextured shapes, made to test layout, flow and movement. Celeste’s rooms are sized against Madeline’s jump and dash, so a gap is hard because of her metrics and not by accident. Its measuring stick is the set of character metrics: how high and how far the character can jump, how fast it runs, how tall a wall it can climb or hide behind, how wide a doorway must be. Metrics are measured from the controller in the build, not from a table, and every gap, ledge, cover piece and corridor is sized against them. A blockout then shows the structure: the critical path (the route the player must take to finish), the optional space off it (side rooms, secrets, risky shortcuts), the gates that hold the player back until they are ready, and the landmarks that tell them where they are and where to go. It is playtested as boxes, and it moves to art only when the structure holds. Valve’s published level-design guidance for the Source engine sizes doorways and cover against the player’s collision hull, which is the same idea at studio scale.`,
+  what:`A blockout (also called a greybox or whitebox) is a level built from plain, untextured shapes, made to test layout, flow and movement. Celeste’s rooms are sized against Madeline’s jump and dash, so a gap is hard because of her metrics and not by accident. Its measuring stick is the set of character metrics: how high and how far the character can jump, how fast it runs, how tall a wall it can climb or hide behind, how wide a doorway must be. Metrics are measured from the controller in the build, not from a table, and every gap, ledge, cover piece and corridor is sized against them. A blockout then shows the structure: the critical path (the route the player must take to finish), the optional space off it (side rooms, secrets, risky shortcuts), the gates that hold the player back until they are ready, and the landmarks that tell them where they are and where to go. It is playtested as boxes, and it moves to art only when the structure holds. The Valve Developer Community wiki, a community-edited reference for the Source engine, lists the player’s collision hull beside common doorway and cover sizes, the same idea written down as a table.`,
   why:[`Layout is the most expensive thing to change after art is in. A blockout lets a wrong corridor cost an afternoon, not a month.`,`A gap sized to the character’s real jump is fair. A gap sized by eye is a bug report waiting to happen.`,`Boxes remove the excuse of looking good. If the level is fun in grey, art will help. If it is not, art will hide the problem for a while.`],
   think:{ q:[`What can the character do exactly: jump height, jump distance, run speed, climb height, cover height? Who measured them, and from which build?`,`Which route is the critical path, and can the player always find it?`,`What is optional, what does it give, and does skipping it cost the player nothing they need?`,`What stops the player going ahead before they are ready: a lock, a skill, a creature, a view, and does the player understand it is a gate?`,`Can a tester say where they are from three landmarks, without a map?`],
     trade:[`Tight metrics make every platform fair and fit the controls exactly, and they make the level rigid when the controller changes.`,`A very linear critical path is easy to follow and easy to pace. A wide one gives choice and gets players lost.`,`Staying in grey longer proves the structure and delays the art that tells players what is solid, what is dangerous and where to look.`],
@@ -23113,8 +23114,8 @@ func safe_gap() -> float:
     api:['ScriptableObject + CreateAssetMenu','[SerializeField]','Physics.gravity','Physics2D.gravity','float','Gizmos'],
     snippet:`[CreateAssetMenu(menuName = "Level/Player Metrics")]
 public class PlayerMetrics : ScriptableObject {
-    public float jumpVelocity = 8f;            // metres per second, from the controller
-    public float runSpeed = 6f;
+    public float jumpVelocity = 5f;            // metres per second, from the controller
+    public float runSpeed = 5f;
     [Range(0.5f, 1f)] public float margin = 0.8f;   // share of the maximum the critical path may use
 
     float G => -Physics.gravity.y;             // use Physics2D.gravity for a 2D game
@@ -23123,7 +23124,7 @@ public class PlayerMetrics : ScriptableObject {
     public float JumpDistance => runSpeed * 2f * jumpVelocity / G;   // flat ground, full run
     public float SafeGap => JumpDistance * margin;
 }`,
-    pitfall:`Reading Physics.gravity in a 2D game. The 2D and 3D physics have separate gravity settings, so a 2D platformer that reads the 3D value gets a ruler that is wrong by whatever the two differ by, and every gap is sized against it. Read Physics2D.gravity for 2D, and also multiply by the Rigidbody gravity scale if you change it. As with any formula, check the number against a recorded jump.`,
+    pitfall:`Reading Physics.gravity in a 2D game. The 2D and 3D physics have separate gravity settings, so a 2D platformer that reads the 3D value gets a ruler that is wrong by whatever the two differ by, and every gap is sized against it. Read Physics2D.gravity for 2D, and also multiply by Rigidbody2D.gravityScale if you change it. As with any formula, check the number against a recorded jump.`,
     map:`A Unity ScriptableObject is a Godot Resource, and Physics2D.gravity is the Godot default_gravity project setting.` },
   note:`Both snippets keep the numbers in one place and derive the ruler from them. That is the design point: the level is measured against the controller, so when the controller changes, the metrics change once and every gap that is now wrong can be found by checking it against the same asset.` });
 INTERVIEW('level-blockout-and-metrics',{
@@ -30340,6 +30341,7 @@ GO('backend-di-modes', {
   snippet:`package main
 
 import (
+	"flag"
 	"log/slog"
 	"os"
 )
@@ -30369,7 +30371,13 @@ func build(log *slog.Logger) (*Matchmaker, []func() error) {
 }
 
 func main() {
+	mode := flag.String("mode", "api", "api or worker") // read once, here
+	flag.Parse()
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	if *mode != "api" && *mode != "worker" {
+		log.Error("unknown mode", "mode", *mode)
+		os.Exit(1)
+	}
 	mm, closers := build(log)
 	defer func() {
 		for i := len(closers) - 1; i >= 0; i-- { // reverse construction order
@@ -30378,7 +30386,7 @@ func main() {
 			}
 		}
 	}()
-	mm.log.Info("ready")
+	mm.log.Info("ready", "mode", *mode) // an api mode would start the listener here
 }
 `,
   pitfall:'Reaching for a package level variable or an init function to hold a dependency. Tests then share it and cannot swap it. Pass dependencies into constructors and build them in one place.'
@@ -30525,6 +30533,7 @@ GO('backend-api-protocol', {
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -30550,6 +30559,11 @@ func Join(w http.ResponseWriter, r *http.Request) {
 	dec.DisallowUnknownFields()
 	var req JoinRequest
 	if err := dec.Decode(&req); err != nil {
+		var tooBig *http.MaxBytesError
+		if errors.As(err, &tooBig) {
+			writeJSON(w, http.StatusRequestEntityTooLarge, ErrorBody{Code: "too_large", Message: "body over 1 MiB"})
+			return
+		}
 		writeJSON(w, http.StatusBadRequest, ErrorBody{Code: "bad_request", Message: "invalid JSON body"})
 		return
 	}
@@ -30656,7 +30670,7 @@ public Task<byte[]> CallOnce(string key, string path, byte[] body, CancellationT
 INTERVIEW('backend-request-context',{
   junior:[
     { q:`What goes on a context.Context, and what must never go on one?`,
-      a:`Request scoped values: request id, player, session, locale, client version, a logging handle, a trace transaction, plus cancellation and deadlines. Never a database handle, an open transaction, or optional parameters you did not want to type. Say why: the context is copied and passed everywhere, so anything with a lifetime becomes uncontrolled.`,
+      a:`Request scoped metadata: request id, the identity of the caller (player and session, set once by the auth middleware), locale, client version, a logging handle, a trace transaction, plus cancellation and deadlines. Never a database handle, an open transaction, or business inputs such as an item id or a feature flag, which you did not want to type as parameters. Say why: the context is copied and passed everywhere, so anything with a lifetime becomes uncontrolled.`,
       follow:`Why a private key type instead of a string?`,
       red:`Uses the context as a general purpose bag and cannot name something that does not belong.` },
     { q:`A player double taps buy on a bad connection. What happens in your service?`,
@@ -30733,7 +30747,7 @@ func Log(ctx context.Context, msg string) {
 	slog.InfoContext(ctx, msg, "request_id", RequestID(ctx))
 }
 `,
-  pitfall:'Using context values to pass business inputs such as the player or a feature flag. They are invisible in the function signature and unchecked by the compiler. Keep context values for request scoped metadata like an ID, and pass real inputs as parameters.'
+  pitfall:'Using context values to pass business inputs such as an item id, a price, a quantity or a feature flag. They are invisible in the function signature and unchecked by the compiler. Keep context values for request scoped metadata: a request id, the identity of the caller that the auth middleware sets once, a locale. Pass real inputs as parameters.'
 });
 
 T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'An error is part of your API. Give it a code, a status, something the client can act on, and the stack where it started.',
@@ -31060,7 +31074,8 @@ import (
 var ErrInsufficient = errors.New("insufficient gold")
 
 // Transfer moves gold in one transaction. No driver is imported here: the
-// caller opens the *sql.DB with whichever driver the service uses.
+// caller opens the *sql.DB with whichever driver the service uses. The caller
+// checks that amount > 0 before it gets here.
 func Transfer(ctx context.Context, db *sql.DB, from, to string, amount int64) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
@@ -31586,8 +31601,13 @@ func (w *statusWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
 }
 
+// Unwrap lets http.ResponseController reach the inner writer's Flush and Hijack.
+func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
 // Logging records one structured line per request. It logs the route pattern,
-// not the raw path, so the field has few distinct values.
+// not the raw path, so the field has few distinct values. The mux fills in
+// r.Pattern on the request it receives, so Logging must wrap the mux directly,
+// or any middleware between them must pass the same r on without replacing it.
 func Logging(log *slog.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -31601,7 +31621,7 @@ func Logging(log *slog.Logger, next http.Handler) http.Handler {
 	})
 }
 `,
-  pitfall:'Using the raw URL path or a player ID as a metric label or log field you group by. Every value becomes its own series and the monitoring bill and query time explode. Use the route pattern and keep IDs in the log line only.'
+  pitfall:'Using the raw URL path or a player ID as a metric label or log field you group by. Every value becomes its own series and the monitoring bill and query time explode. Use the route pattern and keep IDs in the log line only. The pattern is empty if a middleware between Logging and the mux hands the mux a copy of the request.'
 });
 
 T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Three tiers answer three questions, and every expected value is derived independently rather than pasted from a run.',
@@ -32101,6 +32121,13 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error("server", "err", err)
+		os.Exit(1) // a non-zero exit tells the orchestrator the container failed
+	}
+}
+
+func run() error {
 	addr := os.Getenv("LISTEN_ADDR")
 	if addr == "" {
 		addr = ":8080"
@@ -32120,18 +32147,20 @@ func main() {
 	// A container is stopped with SIGTERM: finish in-flight requests first.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
 	defer stop()
+	errCh := make(chan error, 1)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("listen", "err", err)
-			stop()
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			errCh <- err // for example, the port is already taken
 		}
 	}()
-	<-ctx.Done()
+	select {
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+	}
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(shutdownCtx); err != nil {
-		slog.Error("shutdown", "err", err)
-	}
+	return srv.Shutdown(shutdownCtx)
 }
 `,
   pitfall:'Running the server as a shell script entrypoint, so SIGTERM goes to the shell and never reaches the process. Use the exec form of the entrypoint so the Go binary is process 1 and sees the signal.'
@@ -32253,7 +32282,8 @@ import (
 type Job func(ctx context.Context) error
 
 // RunEvery runs job on a clock until ctx ends. A run that is still going
-// when the next tick arrives is skipped, never stacked.
+// when the next tick arrives is skipped, never stacked. RunEvery returns when
+// ctx ends and does not wait for a run that is still going.
 func RunEvery(ctx context.Context, every time.Duration, name string, job Job) {
 	var running atomic.Bool
 	t := time.NewTicker(every)
@@ -32398,10 +32428,16 @@ var ErrTransient = errors.New("transient")
 
 // Retry repeats step only when it failed for a network reason.
 func Retry(ctx context.Context, tries int, step func(context.Context) error) error {
+	if tries < 1 {
+		return errors.New("tries must be at least 1")
+	}
 	var err error
 	for i := 0; i < tries; i++ {
 		if err = step(ctx); err == nil || !errors.Is(err, ErrTransient) {
 			return err
+		}
+		if i == tries-1 {
+			break // no wait after the last try
 		}
 		select {
 		case <-ctx.Done():
@@ -32670,7 +32706,7 @@ INTERVIEW('infra-secrets',{
   ] });
 
 GO('infra-secrets', {
-  api:['os.ReadFile', 'slog.LogValuer', 'slog.StringValue', 'fmt.Stringer', 'strings.TrimSpace'],
+  api:['os.ReadFile', 'slog.LogValuer', 'slog.StringValue', 'fmt.Stringer', 'encoding.TextMarshaler', 'strings.TrimSpace'],
   snippet:`package secrets
 
 import (
@@ -32680,11 +32716,16 @@ import (
 	"strings"
 )
 
-// Secret never prints its value, even when logged by mistake.
+// Secret prints as [redacted] with %v, %s and %#v, in slog and in JSON.
 type Secret string
 
-func (Secret) String() string       { return "[redacted]" }
+func (Secret) String() string { return "[redacted]" }
+
+func (Secret) GoString() string { return "[redacted]" }
+
 func (Secret) LogValue() slog.Value { return slog.StringValue("[redacted]") }
+
+func (Secret) MarshalText() ([]byte, error) { return []byte("[redacted]"), nil }
 
 // Reveal is the only way to get the value, so every use is easy to search for.
 func (s Secret) Reveal() string { return string(s) }
@@ -32826,7 +32867,7 @@ func HashedName(name string, content []byte) string {
 // Serve caches hashed files for a year. The manifest that names them is
 // always revalidated, so a fix reaches players on the next launch.
 func Serve(dir string) http.Handler {
-	files := http.FileServer(http.Dir(dir))
+	files := http.FileServer(http.Dir(dir)) // note: it also serves directory listings
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/manifest.json" {
 			w.Header().Set("Cache-Control", "no-cache")
@@ -33106,7 +33147,10 @@ func (w *statusWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
 }
 
-// Measure counts what players feel: status codes and slow replies.
+// Unwrap lets http.ResponseController reach the inner writer's Flush and Hijack.
+func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
+// Measure counts status codes and logs slow replies.
 func Measure(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
@@ -33277,7 +33321,8 @@ func (p *Player) Apply(m Move) error {
 	if m.Seq <= p.LastSeq {
 		return fmt.Errorf("seq %d already applied: %w", m.Seq, ErrIllegal)
 	}
-	if m.DX*m.DX+m.DY*m.DY > maxStep*maxStep {
+	// Written so that NaN is rejected: any comparison with NaN is false.
+	if !(m.DX*m.DX+m.DY*m.DY <= maxStep*maxStep) {
 		return fmt.Errorf("step longer than %v: %w", maxStep, ErrIllegal)
 	}
 	p.X += m.DX
@@ -33427,7 +33472,7 @@ func (m *Match) Step(inputs []int) {
 	m.tick++
 }
 `,
-  pitfall:'Ranging over a map inside the step. Go randomises map iteration order on purpose, so two runs of the same match diverge. Iterate a sorted slice of keys instead.'
+  pitfall:'Ranging over a map inside the step. Go randomises map iteration order on purpose, so two runs of the same match diverge. Iterate a sorted slice of keys instead. Also, the standard library does not promise that IntN gives the same numbers in a later Go version. If you store replays, write a small generator yourself or vendor one.'
 });
 
 T('server-state-sync',{ d:'server', t:'State sync and tick rates', tag:'Send what changed, at a rate someone chose on purpose, and decide whether the client waits or guesses.',
@@ -33684,6 +33729,9 @@ var ErrTooLarge = errors.New("message too large")
 
 // WriteFrame writes one byte of type, four bytes of body length, then the body.
 func WriteFrame(w io.Writer, kind byte, body []byte) error {
+	if len(body) > maxBody {
+		return fmt.Errorf("%d bytes: %w", len(body), ErrTooLarge)
+	}
 	hdr := make([]byte, 5)
 	hdr[0] = kind
 	binary.BigEndian.PutUint32(hdr[1:], uint32(len(body)))
@@ -33820,6 +33868,9 @@ import (
 	"time"
 )
 
+// maxBand is the hard cap: a long wait never makes a very unfair match.
+const maxBand = 600
+
 type Ticket struct {
 	Player   string
 	Rating   int
@@ -33838,7 +33889,8 @@ func (q *Queue) Add(t Ticket) {
 }
 
 // Match pairs two tickets whose rating gap is inside a band. The band starts
-// at 100 and widens by 25 for every second the longer-waiting player has waited.
+// at 100 and widens by 25 for every second the longer-waiting player has waited,
+// up to maxBand.
 func (q *Queue) Match(now time.Time) (a, b Ticket, ok bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -33846,7 +33898,7 @@ func (q *Queue) Match(now time.Time) (a, b Ticket, ok bool) {
 		for j := i + 1; j < len(q.tickets); j++ {
 			x, y := q.tickets[i], q.tickets[j]
 			waited := max(now.Sub(x.QueuedAt), now.Sub(y.QueuedAt))
-			band := 100 + 25*int(waited.Seconds())
+			band := min(100+25*int(waited.Seconds()), maxBand)
 			if abs(x.Rating-y.Rating) <= band {
 				q.tickets = append(q.tickets[:j], q.tickets[j+1:]...)
 				q.tickets = append(q.tickets[:i], q.tickets[i+1:]...)
@@ -33864,7 +33916,7 @@ func abs(n int) int {
 	return n
 }
 `,
-  pitfall:'Matching inside a fixed rating band. In a quiet hour a player at the edge of the population waits for ever. Widen the band with waiting time and set a hard cap so the match is still fair.'
+  pitfall:'Matching inside a fixed rating band. In a quiet hour a player at the edge of the population waits for ever. Widen the band with waiting time and keep a hard cap, as maxBand does here, so the match is still fair.'
 });
 
 T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts scale by adding copies. The stateful parts are the whole problem.',
@@ -44314,7 +44366,7 @@ PATH('gameplay-engineer-unity', {
           { q:'Which Unity features play the component, prototype and observer patterns?', a:'MonoBehaviours are components, prefabs are prototypes, and C# events and UnityEvent are the observer pattern; the state pattern is plain C#.' }
         ],
         build:'Export the Loop Builder diagram, then paste your MonoBehaviour and option-menu script under it in one page.',
-        solution:{ outline:'Start with the Loop Builder diagram: one core loop with action, feedback and consequence named. Then a MonoBehaviour that reads input in Update, moves in FixedUpdate through the Rigidbody, and raises an event for the consequence. Do not scale a Rigidbody velocity by deltaTime a second time. Then the option-menu script: wire the buttons through listeners, and check that nothing in front of them blocks the raycast. Put the diagram and both scripts on one page with a line naming the pattern each piece plays.', selfcheck:['Does the diagram name one action, its feedback and its consequence?', 'Does movement happen in FixedUpdate through the Rigidbody, with input read in Update?', 'Does an event announce the consequence instead of one component reaching into others?', 'Can a click reach every option button, with no blocking raycast target in front?'] },
+        solution:{ outline:'Start with the Loop Builder diagram: one core loop with action, feedback and consequence named. Then a MonoBehaviour that reads input in Update, moves in FixedUpdate through the Rigidbody, and raises an event for the consequence. Do not multiply a Rigidbody velocity by deltaTime. Then the option-menu script: wire the buttons through listeners, and check that nothing in front of them blocks the raycast. Put the diagram and both scripts on one page with a line naming the pattern each piece plays.', selfcheck:['Does the diagram name one action, its feedback and its consequence?', 'Does movement happen in FixedUpdate through the Rigidbody, with input read in Update?', 'Does an event announce the consequence instead of one component reaching into others?', 'Can a click reach every option button, with no blocking raycast target in front?'] },
         skip:['Can you write an Update/FixedUpdate split with a UnityEvent consequence without checking the docs?','Do you know why sampling input in FixedUpdate is a trap, from experience rather than a guess?','Have you already generated a menu from ScriptableObject data instead of hand-placed buttons?','Can you name the Unity equivalent of a Godot Resource without looking it up?','Can you name the pattern each component, prefab and event in your loop plays?']
       } },
     { id:'fund', t:'Engine fundamentals, in Unity', level:'beginner',
@@ -44484,7 +44536,7 @@ PATH('live-game-backend-engineer', {
           { q:'What must an AI output verification pass check, beyond whether the code compiles?', a:'Whether the code matches the actual design intent, not just that it builds: whether it introduced behaviour nobody asked for, whether error handling and transaction boundaries follow the agreed pattern, and whether it silently changed something the original brief never mentioned.' }
         ],
         build:'Attach the request-context middleware, the error type and one transaction-scoped write handler, with a test that submits the same request twice and gets one write; the AI output verification result for the assistant’s code is supporting evidence.',
-        solution:{ outline:'Add middleware that puts a deadline, request id and caller identity into the request context. Define one error type that carries a code the client can act on and wraps the cause. Write one handler whose database writes sit inside a single transaction. Write the test: submit the same request twice with the same idempotency key and assert one row was written. Add the AI output verification result for the assistant code as support.', selfcheck:['Does every request carry a deadline from the caller context?', 'Does the error type keep the cause and give the client a stable code?', 'Do all writes of one action commit or roll back together?', 'Does the test prove the second submission changes nothing?'] },
+        solution:{ outline:'Add middleware that puts a deadline, a request id and the caller identity (set by the auth middleware) into the request context. Business inputs such as an item id stay function parameters. Define one error type that carries a code the client can act on and wraps the cause. Write one handler whose database writes sit inside a single transaction. Write the test: submit the same request twice with the same idempotency key and assert one row was written. Add the AI output verification result for the assistant code as support.', selfcheck:['Does every request carry a deadline from the caller context?', 'Does the error type keep the cause and give the client a stable code?', 'Do all writes of one action commit or roll back together?', 'Does the test prove the second submission changes nothing?'] },
         skip:['Can you write a request-context middleware step from memory?','Do you already give every error a code, a status and a client-actionable field, without being reminded?','Have you already caught an AI assistant changing something you did not ask for?','Can you scope a transaction to a single request without pulling in more than it needs, on the first try?']
       } },
     { id:'s5', t:'Idioms and tests', level:'intermediate',
@@ -44506,7 +44558,7 @@ PATH('live-game-backend-engineer', {
           { q:'Where does a defensive check belong in a layered service?', a:'At the boundary, where external input, deserialized data or an async re-entry arrives; behind it the code relies on that guarantee instead of re-checking it at every layer.' }
         ],
         build:'Attach the rewritten function with context first and wrapped errors, and a test whose expected value is derived independently, passing under go test -race; the Delegation Planner split is supporting evidence.',
-        solution:{ outline:'Rewrite one function the Go way: context as the first argument, errors wrapped with %w and checked, no ignored returns. Write a test whose expected value you derived by hand or by a separate method, not by running the function and copying. Run it with go test -race and attach the clean result. Add the Delegation Planner split showing which part the assistant drafted and which part you wrote and checked yourself.', selfcheck:['Does the function take context first and pass it down?', 'Are all errors wrapped or handled, none dropped?', 'Is the expected value independent of the code under test?', 'Does the test pass under go test -race?'] },
+        solution:{ outline:'Rewrite one function the Go way: context as the first argument, errors wrapped with %w and checked, no silently ignored errors (ignore one on purpose with `_ =` and a reason). Write a test whose expected value you derived by hand or by a separate method, not by running the function and copying. Run it with go test -race on a machine with a C compiler, and attach the clean result. Add the Delegation Planner split showing which part the assistant drafted and which part you wrote and checked yourself.', selfcheck:['Does the function take context first and pass it down?', 'Are all errors wrapped or handled, none dropped?', 'Is the expected value independent of the code under test?', 'Does the test pass under go test -race?'] },
         skip:['Can you spot a goroutine your own code does not own, on sight?','Do you already derive a test’s expected value independently, as a habit?','Can you decide what to delegate to AI and what to keep, before you start a task, not after?','Have you already named the habit you are most likely to skip under deadline pressure?','Can you point at the one boundary where each check in a request path belongs?']
       } },
     { id:'s3', t:'Cache, migrate, secure', level:'intermediate',
@@ -47873,7 +47925,13 @@ function tabKey(e){
 // Says plainly whether a snippet stands alone or assumes the reader's project. Always visible text, never a tooltip.
 const GODOT_WHOLE = /^(extends|class_name|@tool)\b/;
 function snippetLabel(kind, t, v){
-  if(kind === 'go') return ['Whole file', 'A complete Go file. Save it as main.go in its own folder and it builds as it stands.'];
+  if(kind === 'go'){
+    const src = String(v.snippet), pkg = (src.match(/^package (\w+)/m) || [])[1], hasTest = /^func Test\w+\(/m.test(src);
+    const how = pkg === 'main' ? 'A program: save it as main.go in its own folder, run go mod init example, then go run .'
+      : hasTest ? 'A package with its test: save it as name_test.go in its own folder, run go mod init example, then go test ./...'
+      : 'A package, not a program: save it in its own folder, run go mod init example, then go vet ./...';
+    return ['Whole file', how + ' Needs Go 1.23 or later.'];
+  }
   if(kind === 'unity') return UNITY_WHOLE.has(t.id) ? ['Whole script', 'Compiled on its own against the Unity engine assemblies.'] : ['Excerpt: assumes names from your project', 'Read it as a pattern. It will not compile on its own, because it uses types and fields from your project.'];
   const first = String(v.snippet).split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#')) || '';
   return GODOT_WHOLE.test(first) ? ['Whole script', 'A complete script: save it as a .gd file and attach it to a node.'] : ['Excerpt', 'A few lines to place inside your own script.'];

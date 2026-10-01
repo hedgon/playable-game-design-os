@@ -16,7 +16,7 @@ const failures = [];
 for (const t of entries) {
   const dir = path.join(root, t.id);
   fs.mkdirSync(dir);
-  fs.writeFileSync(path.join(dir, 'go.mod'), 'module snippet\n\ngo 1.22\n');
+  fs.writeFileSync(path.join(dir, 'go.mod'), 'module snippet\n\ngo 1.23\n');
   fs.writeFileSync(path.join(dir, 'main.go'), t.go.snippet);
   const fmt = spawnSync('gofmt', ['-l', '.'], { cwd: dir, encoding: 'utf8' });
   if (fmt.status !== 0) failures.push(`${t.id}: gofmt failed\n${fmt.stderr}`);

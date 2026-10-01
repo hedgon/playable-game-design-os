@@ -137,6 +137,13 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error("server", "err", err)
+		os.Exit(1) // a non-zero exit tells the orchestrator the container failed
+	}
+}
+
+func run() error {
 	addr := os.Getenv("LISTEN_ADDR")
 	if addr == "" {
 		addr = ":8080"
@@ -156,18 +163,20 @@ func main() {
 	// A container is stopped with SIGTERM: finish in-flight requests first.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
 	defer stop()
+	errCh := make(chan error, 1)
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("listen", "err", err)
-			stop()
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			errCh <- err // for example, the port is already taken
 		}
 	}()
-	<-ctx.Done()
+	select {
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+	}
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(shutdownCtx); err != nil {
-		slog.Error("shutdown", "err", err)
-	}
+	return srv.Shutdown(shutdownCtx)
 }
 `,
   pitfall:'Running the server as a shell script entrypoint, so SIGTERM goes to the shell and never reaches the process. Use the exec form of the entrypoint so the Go binary is process 1 and sees the signal.'
@@ -289,7 +298,8 @@ import (
 type Job func(ctx context.Context) error
 
 // RunEvery runs job on a clock until ctx ends. A run that is still going
-// when the next tick arrives is skipped, never stacked.
+// when the next tick arrives is skipped, never stacked. RunEvery returns when
+// ctx ends and does not wait for a run that is still going.
 func RunEvery(ctx context.Context, every time.Duration, name string, job Job) {
 	var running atomic.Bool
 	t := time.NewTicker(every)
@@ -434,10 +444,16 @@ var ErrTransient = errors.New("transient")
 
 // Retry repeats step only when it failed for a network reason.
 func Retry(ctx context.Context, tries int, step func(context.Context) error) error {
+	if tries < 1 {
+		return errors.New("tries must be at least 1")
+	}
 	var err error
 	for i := 0; i < tries; i++ {
 		if err = step(ctx); err == nil || !errors.Is(err, ErrTransient) {
 			return err
+		}
+		if i == tries-1 {
+			break // no wait after the last try
 		}
 		select {
 		case <-ctx.Done():
@@ -706,7 +722,7 @@ INTERVIEW('infra-secrets',{
   ] });
 
 GO('infra-secrets', {
-  api:['os.ReadFile', 'slog.LogValuer', 'slog.StringValue', 'fmt.Stringer', 'strings.TrimSpace'],
+  api:['os.ReadFile', 'slog.LogValuer', 'slog.StringValue', 'fmt.Stringer', 'encoding.TextMarshaler', 'strings.TrimSpace'],
   snippet:`package secrets
 
 import (
@@ -716,11 +732,16 @@ import (
 	"strings"
 )
 
-// Secret never prints its value, even when logged by mistake.
+// Secret prints as [redacted] with %v, %s and %#v, in slog and in JSON.
 type Secret string
 
-func (Secret) String() string       { return "[redacted]" }
+func (Secret) String() string { return "[redacted]" }
+
+func (Secret) GoString() string { return "[redacted]" }
+
 func (Secret) LogValue() slog.Value { return slog.StringValue("[redacted]") }
+
+func (Secret) MarshalText() ([]byte, error) { return []byte("[redacted]"), nil }
 
 // Reveal is the only way to get the value, so every use is easy to search for.
 func (s Secret) Reveal() string { return string(s) }
@@ -862,7 +883,7 @@ func HashedName(name string, content []byte) string {
 // Serve caches hashed files for a year. The manifest that names them is
 // always revalidated, so a fix reaches players on the next launch.
 func Serve(dir string) http.Handler {
-	files := http.FileServer(http.Dir(dir))
+	files := http.FileServer(http.Dir(dir)) // note: it also serves directory listings
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/manifest.json" {
 			w.Header().Set("Cache-Control", "no-cache")
@@ -1142,7 +1163,10 @@ func (w *statusWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
 }
 
-// Measure counts what players feel: status codes and slow replies.
+// Unwrap lets http.ResponseController reach the inner writer's Flush and Hijack.
+func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
+// Measure counts status codes and logs slow replies.
 func Measure(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}

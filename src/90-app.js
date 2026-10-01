@@ -1233,7 +1233,13 @@ function tabKey(e){
 // Says plainly whether a snippet stands alone or assumes the reader's project. Always visible text, never a tooltip.
 const GODOT_WHOLE = /^(extends|class_name|@tool)\b/;
 function snippetLabel(kind, t, v){
-  if(kind === 'go') return ['Whole file', 'A complete Go file. Save it as main.go in its own folder and it builds as it stands.'];
+  if(kind === 'go'){
+    const src = String(v.snippet), pkg = (src.match(/^package (\w+)/m) || [])[1], hasTest = /^func Test\w+\(/m.test(src);
+    const how = pkg === 'main' ? 'A program: save it as main.go in its own folder, run go mod init example, then go run .'
+      : hasTest ? 'A package with its test: save it as name_test.go in its own folder, run go mod init example, then go test ./...'
+      : 'A package, not a program: save it in its own folder, run go mod init example, then go vet ./...';
+    return ['Whole file', how + ' Needs Go 1.23 or later.'];
+  }
   if(kind === 'unity') return UNITY_WHOLE.has(t.id) ? ['Whole script', 'Compiled on its own against the Unity engine assemblies.'] : ['Excerpt: assumes names from your project', 'Read it as a pattern. It will not compile on its own, because it uses types and fields from your project.'];
   const first = String(v.snippet).split('\n').map(l => l.trim()).find(l => l && !l.startsWith('#')) || '';
   return GODOT_WHOLE.test(first) ? ['Whole script', 'A complete script: save it as a .gd file and attach it to a node.'] : ['Excerpt', 'A few lines to place inside your own script.'];

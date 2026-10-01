@@ -64,3 +64,5 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 - 2026-10-01: W2 done; phase D (W2) committed. P2 and L1 (files 20-25) running.
 - 2026-10-01: P2 done (padding removed by the coordinator). L1 files 20-25 done. Phase E (P2, L1 part 1) committed.
 - 2026-10-01: L1 done; phase F (L1 part 2) committed. R1b (engineering review) running.
+- 2026-10-01: R1a and R1b done; fixes running.
+- 2026-10-01: F1 (engineering fixes) done: NaN-proof speed check, listen errors exit 1, secrets hidden from %#v and JSON, a hard matchmaking band cap, Unwrap on status writers, a Go tab label true for programs, packages and tests, the 3Cs Unity snippet on the Input System, request-context identity made consistent. Coordinator: check-go.js go.mod raised to 1.23, the Valve wiki credited as community-edited. Phase G committed.

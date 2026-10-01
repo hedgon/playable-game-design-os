@@ -344,6 +344,7 @@ GO('backend-di-modes', {
   snippet:`package main
 
 import (
+	"flag"
 	"log/slog"
 	"os"
 )
@@ -373,7 +374,13 @@ func build(log *slog.Logger) (*Matchmaker, []func() error) {
 }
 
 func main() {
+	mode := flag.String("mode", "api", "api or worker") // read once, here
+	flag.Parse()
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	if *mode != "api" && *mode != "worker" {
+		log.Error("unknown mode", "mode", *mode)
+		os.Exit(1)
+	}
 	mm, closers := build(log)
 	defer func() {
 		for i := len(closers) - 1; i >= 0; i-- { // reverse construction order
@@ -382,7 +389,7 @@ func main() {
 			}
 		}
 	}()
-	mm.log.Info("ready")
+	mm.log.Info("ready", "mode", *mode) // an api mode would start the listener here
 }
 `,
   pitfall:'Reaching for a package level variable or an init function to hold a dependency. Tests then share it and cannot swap it. Pass dependencies into constructors and build them in one place.'
@@ -529,6 +536,7 @@ GO('backend-api-protocol', {
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 )
 
@@ -554,6 +562,11 @@ func Join(w http.ResponseWriter, r *http.Request) {
 	dec.DisallowUnknownFields()
 	var req JoinRequest
 	if err := dec.Decode(&req); err != nil {
+		var tooBig *http.MaxBytesError
+		if errors.As(err, &tooBig) {
+			writeJSON(w, http.StatusRequestEntityTooLarge, ErrorBody{Code: "too_large", Message: "body over 1 MiB"})
+			return
+		}
 		writeJSON(w, http.StatusBadRequest, ErrorBody{Code: "bad_request", Message: "invalid JSON body"})
 		return
 	}
@@ -660,7 +673,7 @@ public Task<byte[]> CallOnce(string key, string path, byte[] body, CancellationT
 INTERVIEW('backend-request-context',{
   junior:[
     { q:`What goes on a context.Context, and what must never go on one?`,
-      a:`Request scoped values: request id, player, session, locale, client version, a logging handle, a trace transaction, plus cancellation and deadlines. Never a database handle, an open transaction, or optional parameters you did not want to type. Say why: the context is copied and passed everywhere, so anything with a lifetime becomes uncontrolled.`,
+      a:`Request scoped metadata: request id, the identity of the caller (player and session, set once by the auth middleware), locale, client version, a logging handle, a trace transaction, plus cancellation and deadlines. Never a database handle, an open transaction, or business inputs such as an item id or a feature flag, which you did not want to type as parameters. Say why: the context is copied and passed everywhere, so anything with a lifetime becomes uncontrolled.`,
       follow:`Why a private key type instead of a string?`,
       red:`Uses the context as a general purpose bag and cannot name something that does not belong.` },
     { q:`A player double taps buy on a bad connection. What happens in your service?`,
@@ -737,7 +750,7 @@ func Log(ctx context.Context, msg string) {
 	slog.InfoContext(ctx, msg, "request_id", RequestID(ctx))
 }
 `,
-  pitfall:'Using context values to pass business inputs such as the player or a feature flag. They are invisible in the function signature and unchecked by the compiler. Keep context values for request scoped metadata like an ID, and pass real inputs as parameters.'
+  pitfall:'Using context values to pass business inputs such as an item id, a price, a quantity or a feature flag. They are invisible in the function signature and unchecked by the compiler. Keep context values for request scoped metadata: a request id, the identity of the caller that the auth middleware sets once, a locale. Pass real inputs as parameters.'
 });
 
 T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'An error is part of your API. Give it a code, a status, something the client can act on, and the stack where it started.',
@@ -1064,7 +1077,8 @@ import (
 var ErrInsufficient = errors.New("insufficient gold")
 
 // Transfer moves gold in one transaction. No driver is imported here: the
-// caller opens the *sql.DB with whichever driver the service uses.
+// caller opens the *sql.DB with whichever driver the service uses. The caller
+// checks that amount > 0 before it gets here.
 func Transfer(ctx context.Context, db *sql.DB, from, to string, amount int64) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
@@ -1590,8 +1604,13 @@ func (w *statusWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
 }
 
+// Unwrap lets http.ResponseController reach the inner writer's Flush and Hijack.
+func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
 // Logging records one structured line per request. It logs the route pattern,
-// not the raw path, so the field has few distinct values.
+// not the raw path, so the field has few distinct values. The mux fills in
+// r.Pattern on the request it receives, so Logging must wrap the mux directly,
+// or any middleware between them must pass the same r on without replacing it.
 func Logging(log *slog.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -1605,7 +1624,7 @@ func Logging(log *slog.Logger, next http.Handler) http.Handler {
 	})
 }
 `,
-  pitfall:'Using the raw URL path or a player ID as a metric label or log field you group by. Every value becomes its own series and the monitoring bill and query time explode. Use the route pattern and keep IDs in the log line only.'
+  pitfall:'Using the raw URL path or a player ID as a metric label or log field you group by. Every value becomes its own series and the monitoring bill and query time explode. Use the route pattern and keep IDs in the log line only. The pattern is empty if a middleware between Logging and the mux hands the mux a copy of the request.'
 });
 
 T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Three tiers answer three questions, and every expected value is derived independently rather than pasted from a run.',

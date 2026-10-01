@@ -153,7 +153,8 @@ func (p *Player) Apply(m Move) error {
 	if m.Seq <= p.LastSeq {
 		return fmt.Errorf("seq %d already applied: %w", m.Seq, ErrIllegal)
 	}
-	if m.DX*m.DX+m.DY*m.DY > maxStep*maxStep {
+	// Written so that NaN is rejected: any comparison with NaN is false.
+	if !(m.DX*m.DX+m.DY*m.DY <= maxStep*maxStep) {
 		return fmt.Errorf("step longer than %v: %w", maxStep, ErrIllegal)
 	}
 	p.X += m.DX
@@ -303,7 +304,7 @@ func (m *Match) Step(inputs []int) {
 	m.tick++
 }
 `,
-  pitfall:'Ranging over a map inside the step. Go randomises map iteration order on purpose, so two runs of the same match diverge. Iterate a sorted slice of keys instead.'
+  pitfall:'Ranging over a map inside the step. Go randomises map iteration order on purpose, so two runs of the same match diverge. Iterate a sorted slice of keys instead. Also, the standard library does not promise that IntN gives the same numbers in a later Go version. If you store replays, write a small generator yourself or vendor one.'
 });
 
 T('server-state-sync',{ d:'server', t:'State sync and tick rates', tag:'Send what changed, at a rate someone chose on purpose, and decide whether the client waits or guesses.',
@@ -560,6 +561,9 @@ var ErrTooLarge = errors.New("message too large")
 
 // WriteFrame writes one byte of type, four bytes of body length, then the body.
 func WriteFrame(w io.Writer, kind byte, body []byte) error {
+	if len(body) > maxBody {
+		return fmt.Errorf("%d bytes: %w", len(body), ErrTooLarge)
+	}
 	hdr := make([]byte, 5)
 	hdr[0] = kind
 	binary.BigEndian.PutUint32(hdr[1:], uint32(len(body)))
@@ -696,6 +700,9 @@ import (
 	"time"
 )
 
+// maxBand is the hard cap: a long wait never makes a very unfair match.
+const maxBand = 600
+
 type Ticket struct {
 	Player   string
 	Rating   int
@@ -714,7 +721,8 @@ func (q *Queue) Add(t Ticket) {
 }
 
 // Match pairs two tickets whose rating gap is inside a band. The band starts
-// at 100 and widens by 25 for every second the longer-waiting player has waited.
+// at 100 and widens by 25 for every second the longer-waiting player has waited,
+// up to maxBand.
 func (q *Queue) Match(now time.Time) (a, b Ticket, ok bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -722,7 +730,7 @@ func (q *Queue) Match(now time.Time) (a, b Ticket, ok bool) {
 		for j := i + 1; j < len(q.tickets); j++ {
 			x, y := q.tickets[i], q.tickets[j]
 			waited := max(now.Sub(x.QueuedAt), now.Sub(y.QueuedAt))
-			band := 100 + 25*int(waited.Seconds())
+			band := min(100+25*int(waited.Seconds()), maxBand)
 			if abs(x.Rating-y.Rating) <= band {
 				q.tickets = append(q.tickets[:j], q.tickets[j+1:]...)
 				q.tickets = append(q.tickets[:i], q.tickets[i+1:]...)
@@ -740,7 +748,7 @@ func abs(n int) int {
 	return n
 }
 `,
-  pitfall:'Matching inside a fixed rating band. In a quiet hour a player at the edge of the population waits for ever. Widen the band with waiting time and set a hard cap so the match is still fair.'
+  pitfall:'Matching inside a fixed rating band. In a quiet hour a player at the edge of the population waits for ever. Widen the band with waiting time and keep a hard cap, as maxBand does here, so the match is still fair.'
 });
 
 T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts scale by adding copies. The stateful parts are the whole problem.',
