@@ -66,3 +66,4 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 - 2026-10-01: L1 done; phase F (L1 part 2) committed. R1b (engineering review) running.
 - 2026-10-01: R1a and R1b done; fixes running.
 - 2026-10-01: F1 (engineering fixes) done: NaN-proof speed check, listen errors exit 1, secrets hidden from %#v and JSON, a hard matchmaking band cap, Unwrap on status writers, a Go tab label true for programs, packages and tests, the 3Cs Unity snippet on the Input System, request-context identity made consistent. Coordinator: check-go.js go.mod raised to 1.23, the Valve wiki credited as community-edited. Phase G committed.
+- 2026-10-01: F2 (design fixes) done; coordinator fixed the four findings in 22 and 25 (Super Mario camera, Celeste wall-jump pixels, reaction time 200-250 ms, Street Fighter 6). Phase H committed.

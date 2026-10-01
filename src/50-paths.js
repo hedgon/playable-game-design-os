@@ -235,7 +235,7 @@ function stepHref(step, pathId, stageId){
 PATH('first-tiny-game', {
   t:'Never made a game? Make a tiny one', tag:'Play like a designer, plan one small game on paper, build it and watch someone play.',
   pick:'You play a lot, have never made a game, and have no project',
-  track:'design', level:'beginner', hours:8.25,
+  track:'design', level:'beginner', hours:8.33,
   audience:'Someone who plays a lot of games, has never made one, is not a programmer and has no project yet.',
   outcome:'You have made and tested one tiny game of your own, a one-button jumper, and you can say what you pressed, what happened, what you decided and what you would change next.',
   prereq:[], next:['game-designer-foundations'],
@@ -279,12 +279,12 @@ PATH('first-tiny-game', {
         skip:['Do you know how fast the first obstacle moves?','Can you list the rules of the practice game on one page?','Do you know the one weak link in your loop?']
       } },
     { id:'s3', t:'Build it', level:'beginner',
-      goal:'Make the practice game playable, with a player who jumps, obstacles that move and a crash that ends the run.', hours:3.25,
+      goal:'Make the practice game playable, with a player who jumps, obstacles that move and a crash that ends the run.', hours:3.33,
       steps:[
         { kind:'topic', ref:'prototyping', why:'A prototype is the cheapest thing that lets you try your idea. Yours is only a few shapes.', do:'Write the one question your first build has to answer: is jumping over obstacles fun for one minute? Plan to use plain boxes and no art.', min:20 },
-        { kind:'engine', ref:'godot', alt:'unity', why:'Godot is free and its scripting language is easy to read. Choose this one if you want to try writing a little code.', do:'Choose this step or the GameMaker one, not both. Install Godot 4, then follow the engine first tutorial from its own site; this is expected and is the fastest way to learn the tools. Then make a box that sits on a floor and jumps when you press one key.', min:60 },
-        { kind:'engine', ref:'gamemaker', why:'GameMaker is built for 2D games and offers a way to build without writing much code. Choose this one if you want the shortest road to something playable.', do:'Choose this step or the Godot one, not both. Install GameMaker, then follow the engine first tutorial from its own site; this is expected and is the fastest way to learn the tools. Then make a box that sits on a floor and jumps when you press one key.', min:60 },
-        { kind:'topic', ref:'three-cs', why:'How the box moves, what the button asks of it and what you can see decide whether the jump feels good.', do:'Add boxes that slide towards the player and a crash that restarts the run. Then change the jump height until the first obstacle is easy, and write down what you changed.', min:55 }
+        { kind:'engine', ref:'godot', alt:'unity', why:'Godot is free and its scripting language is easy to read. Unity is the other common first choice; use its guide instead if you prefer it.', do:'Install Godot 4 and follow the first tutorial on its own site for one hour. If you do not finish it, that is normal; you will use what you learned in the next two steps.', min:60 },
+        { kind:'topic', ref:'three-cs', why:'How the box moves, what the button asks of it and what you can see decide whether the jump feels good.', do:'In the engine, make a box that sits on a floor and jumps when you press one key. Then change the jump height and write down which of character, controls or camera you changed.', min:60 },
+        { kind:'topic', ref:'difficulty', why:'Your game gets harder by getting faster, and that is the part you build last.', do:'Add boxes that slide towards the box, make them speed up every ten seconds, end the run on a collision and restart on a key press. Take the numbers from your plan in the last stage.', min:60 }
       ],
       review:['feedback-and-affordance'],
       check:{
@@ -309,7 +309,7 @@ PATH('first-tiny-game', {
         recall:[
           { q:'Why stay quiet while someone plays?', a:'If you explain, you hide the problems a new player would hit. Silence shows where the game fails to teach itself.' },
           { q:'Which is better evidence, what a tester says or what they do?', a:'What they do. Words are useful for guessing why, but where they crash and hesitate shows the real problem.' },
-          { q:'What is game feel?', a:'The small responses, such as sound, bounce and shake, that make pressing a button feel good before any rules come into it.' },
+          { q:'What is game feel?', a:'How the game answers a press: how quickly, how predictably and how it looks and sounds. Sound, bounce and shake (juice) are one layer of it.' },
           { q:'Why pick only one change to make next?', a:'One change can be tested clearly. Several changes at once leave you unable to tell which one helped.' }
         ],
         build:'Write a short note with what your tester did, the one touch you added and the one change you will make next.',
