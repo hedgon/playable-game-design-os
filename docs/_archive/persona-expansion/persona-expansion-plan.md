@@ -1,5 +1,5 @@
 ---
-status: active
+status: shipped
 updated: 2026-10-01
 ---
 
@@ -7,7 +7,7 @@ updated: 2026-10-01
 
 ## Goal
 
-The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) left eleven expansion requests open and two partly done. On 2026-10-01 the owner approved all of them except the set-aside item (lazy-loading the game data). This plan researches each, decides the shape, and builds it.
+The persona audit ([archive](../persona-audit/persona-audit-plan.md)) left eleven expansion requests open and two partly done. On 2026-10-01 the owner approved all of them except the set-aside item (lazy-loading the game data). This plan researches each, decides the shape, and builds it.
 
 **Rules:**
 - Coordinator on Opus; workers are Sonnet 5.5 at low effort (`writer-sonnet-low`); a fresh Sonnet reviewer fact-checks new content. At most two workers at once, never two on one file.
@@ -67,3 +67,15 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 - 2026-10-01: R1a and R1b done; fixes running.
 - 2026-10-01: F1 (engineering fixes) done: NaN-proof speed check, listen errors exit 1, secrets hidden from %#v and JSON, a hard matchmaking band cap, Unwrap on status writers, a Go tab label true for programs, packages and tests, the 3Cs Unity snippet on the Input System, request-context identity made consistent. Coordinator: check-go.js go.mod raised to 1.23, the Valve wiki credited as community-edited. Phase G committed.
 - 2026-10-01: F2 (design fixes) done; coordinator fixed the four findings in 22 and 25 (Super Mario camera, Celeste wall-jump pixels, reaction time 200-250 ms, Street Fighter 6). Phase H committed.
+
+## Outcome
+
+All thirteen requests are built: five topics (3Cs, camera design, multiplayer stack choices, plus combat design and blockout from the audit), five worked examples, four comparisons, 29 Go tabs, 58 reference solutions, the first-tiny-game path, glossary toggletips, snippet scope labels and a known game at the start of 46 more lessons. Two fresh reviewers checked the new content; every must-fix and should-fix was applied. Eight phases were pushed, each after a CI replay of exactly that commit in a clean worktree.
+
+## Follow-ups for the owner
+
+- Go code is not compiled anywhere: run NOT MEASURED: Go is not installed on a machine with Go 1.23+, then consider a CI job with actions/setup-go.
+- Engine snippets in the new topics were checked against documentation, not run in Godot or Unity.
+- The live-game backend path lists its stages as s1, s2, s5, s3, s4 in the file; the order a reader sees is unchanged, but the ids read oddly.
+- A few claims rest on pages that would not load for the reviewer (Valve Developer Community, Street Fighter frame data, a GamesBeat article); they are labelled as such in review-R1a.md.
+- The first-tiny-game build stage is 3.3 hours; a reviewer judged even that optimistic for a non-programmer.
