@@ -13,7 +13,7 @@ GitHub Pages.
 
 ## Start here
 
-A first visit opens **Learning paths** (`#/paths`). Twenty-one paths across five
+A first visit opens **Learning paths** (`#/paths`). Twenty-three paths across five
 tracks (design, engineering, production, leadership, interview prep) walk you from
 beginner to expert through the guide's topics, tools, checklists, diagnostics,
 project parts, platform guides, reference games and prompts, in order, with a reason for each stop
@@ -44,7 +44,7 @@ suggests.
 
 ## What is inside
 
-Twenty-three domains and 186 topics. Every topic has the same eight practical parts:
+Twenty-three domains and 208 topics. Every topic has the same eight practical parts:
 what it is, why it matters, how to think about it, how to do it, what AI should
 and should not do, how to prompt it, how to verify its output, and what to
 playtest. Most topics add **Godot** and **Unity** tabs (the engine's own term, the

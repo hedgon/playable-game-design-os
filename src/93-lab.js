@@ -73,7 +73,7 @@ function renderLab(){
   const modeBtns = LAB_MODES.map(([id,t,d]) => `<button class="labmode ${saved.mode===id?'active':''}" data-m="${id}"><b>${esc(t)}</b><span>${esc(d)}</span></button>`).join('')
     + `<a class="labmode lnk" href="#/build/idea"><b>I watch a market</b><span>Read what players praise, complain about and work around in games you already follow, then shape one idea into the gap. Opens the Idea Shaper.</span></a>`;
 
-  const evChips = id => `<div class="evrow">${LAB_EV.map(e => `<button class="evchip ${saved.ev[id]===e?'on':''}" data-step="${id}" data-ev="${e}" title="${esc(LAB_EV_HINT[e])}">${e}</button>`).join('')}</div>`;
+  const evChips = id => `<div class="evrow">${LAB_EV.map(e => `<button class="evchip ${saved.ev[id]===e?'on':''}" data-step="${id}" data-ev="${e}" title="${esc(LAB_EV_HINT[e])}">${e}</button>`).join('')}</div><p class="small muted evlegend">${LAB_EV.map(e => `<b>${e}</b>: ${esc(LAB_EV_HINT[e])}`).join('; ')}.</p>`;
 
   const stepCard = id => {
     const s = stepMeta(id);

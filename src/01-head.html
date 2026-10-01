@@ -77,7 +77,7 @@ code,kbd,pre{font-family:var(--mono);font-size:.9em}
 kbd{background:var(--bg3);border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:1px 6px;white-space:nowrap}
 pre{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px;white-space:pre-wrap;word-break:break-word;margin:0}
 h1,h2,h3,h4{line-height:1.2;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
-h1{font-size:2.3rem}h2{font-size:1.5rem}h3{font-size:1.15rem}h4{font-size:.72rem;color:var(--fg2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+h1{font-size:2.3rem}h2{font-size:1.5rem}h3{font-size:1.15rem}h4,h3.h4look{font-size:.72rem;color:var(--fg2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 p{margin:0 0 10px}
 ul,ol{margin:0 0 10px;padding-left:1.25em}
 li{margin:.2em 0}
@@ -526,8 +526,8 @@ h1,h2,.hero h1,.domain-hero h1,.topic-head h1,.verdict h2{font-family:var(--disp
 h1{font-size:2.3rem;line-height:1.05}
 h2{font-size:1.5rem}
 h3{font-family:var(--display);font-stretch:92%;font-size:1.15rem;letter-spacing:0}
-h4,.field label,.chip,.tabs button,.pill-tabs button,.crumbs,.progress,.stepper button,.formula button,.legend,.modal .res .type,th,.side .dom > button .n,.maplegend,.promptbox .lbl,.mapwrap .node text.sub,.sec > header .letter,.badge-num,.small.muted.overline{font-family:var(--mono)}
-h4{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3);font-weight:600}
+h4,h3.h4look,.field label,.chip,.tabs button,.pill-tabs button,.crumbs,.progress,.stepper button,.formula button,.legend,.modal .res .type,th,.side .dom > button .n,.maplegend,.promptbox .lbl,.mapwrap .node text.sub,.sec > header .letter,.badge-num,.small.muted.overline{font-family:var(--mono)}
+h4,h3.h4look{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3);font-weight:600}
 .overline{font-family:var(--mono);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .chip{border-radius:2px;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px}
 .btn{border-radius:2px;letter-spacing:.01em}
@@ -722,6 +722,8 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .deploysteps{margin:8px 0 12px;padding-left:24px}.deploysteps>li{margin:0 0 10px}.deploysteps .shot{margin-top:8px}
 .guideiv details{margin:0 0 8px}.guideiv summary{cursor:pointer}
 .guidehint{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.guidehint-text{flex:1 1 260px}
+.lead{font-size:1.08rem;line-height:1.5;color:var(--fg);margin:0 0 10px}
 /* On a phone a row of filter chips scrolls sideways instead of wrapping
    into a wall of buttons above the grid. */
 .libsel{display:inline-flex;align-items:center;gap:6px}
@@ -734,7 +736,7 @@ footer{font-family:var(--mono);font-size:.75rem;letter-spacing:.04em}
 .libfilters{margin:0 0 8px}
 .reflist td,.reflist th{padding:6px 10px;text-align:left;vertical-align:top}
 .sigcard h2{margin:2px 0 8px}
-.sigcard h4{margin:12px 0 2px}
+.sigcard h4,.sigcard h3.h4look{margin:12px 0 2px}
 .lenscard .steal{border-left:3px solid var(--accent);padding-left:10px}
 .lenscard .lensclaim{font-size:1.08rem;margin:4px 0 10px;line-height:1.35}
 .lensnav{margin:0 0 12px}
@@ -1168,6 +1170,10 @@ details.comp .body{padding-top:6px}
 .pathstep-body>a{font-weight:700}
 .pathstep.next{background:color-mix(in srgb,var(--accent) 9%,transparent);box-shadow:inset 3px 0 0 var(--accent)}
 .pathstep.flash{outline:2px solid var(--accent2);outline-offset:-2px}
+.pathnote{margin:0 0 8px 38px;font-size:.85rem}
+.pathnote summary{cursor:pointer;color:var(--fg2)}
+.pathnote textarea{display:block;width:100%;margin-top:6px;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line2);border-radius:var(--r3);padding:8px;resize:vertical}
+.pathbar > .pathnote{flex:1 1 100%;margin:0}
 .kindchip{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:.66rem;flex:none;margin-top:3px}
 .pathcheck,.pathskip{border:1px dashed var(--line2);background:var(--bg2);border-radius:var(--r2)}
 @media (max-width:1100px){
@@ -1210,6 +1216,9 @@ details.comp .body{padding-top:6px}
   .pm-text{flex:1;min-width:0;text-align:left;background:none;border:0;color:var(--fg);font-size:.82rem;padding:0;height:44px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pm-done{flex:none;min-height:34px}
   .pane.nopill::before{height:14px}
+  /* the floating Map pill sits on a solid strip that stays at the top of the pane, so page text scrolls under the strip and never under the pill */
+  .pane:not(.nopill)::before{position:sticky;top:0;z-index:5;margin:0 -14px;background:var(--panel)}
+  #pane:not(.nopill){--pbTop:56px}
   /* a topic or path is a page of its own here, with the map one tap away */
   .pane{width:100vw;border-left:0}
 }
@@ -1283,11 +1292,11 @@ details.comp .body{padding-top:6px}
   <span class="spacer"></span>
   <div class="progress" id="progress" title="Topics you have marked read, or marked done in a path"><span id="progressText">0 / 0</span><span class="bar"><i id="progressBar"></i></span></div>
   <button class="searchbtn" id="searchBtn" aria-label="Search">🔍 <span class="lbl">Search…</span> <kbd>Ctrl K</kbd></button>
-  <button class="iconbtn" id="helpBtn" title="Keyboard shortcuts (?)">?</button>
+  <button class="iconbtn" id="helpBtn" title="Help and keyboard shortcuts (?)" aria-label="Help and keyboard shortcuts">?</button>
   <button class="iconbtn" id="indexBtn" title="All pages" aria-label="All pages"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M1 1h6v6H1zM9 1h6v6H9zM1 9h6v6H1zM9 9h6v6H9z"/></svg></button>
-  <button class="iconbtn" id="themeBtn" title="Toggle light/dark theme">◐</button>
+  <button class="iconbtn" id="themeBtn" title="Switch between light and dark theme" aria-label="Switch theme">◐</button>
 </header>
-<main id="app" tabindex="-1"></main>
+<main id="app" tabindex="-1"><p class="muted" style="padding:24px 20px" role="status">Loading the guide…</p></main>
 <footer>Playable · A practical operating system for designing games people want to play, with AI as a tireless collaborator and humans as the judge. Everything here is a heuristic, not a law: test it against your players. · <a href="#/index">All pages</a> · <a href="#/sources">Sources and lineage</a> · <a href="#/map">Map</a></footer>
 <div class="modal-bg" id="searchModal" role="dialog" aria-modal="true" aria-label="Search">
   <div class="modal">

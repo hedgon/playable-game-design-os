@@ -32,3 +32,6 @@ jobs:
           npm i --no-save --no-package-lock playwright@1
           npx playwright install --with-deps chromium
           node src/smoke.js
+
+      - name: Learning paths test
+        run: node src/e2e-paths.js

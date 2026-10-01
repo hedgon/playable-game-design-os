@@ -74,13 +74,14 @@ Review. Run it with `node src/e2e-paths.js` after the same Playwright setup. CI
 does not run it yet.
 
 CI (`.github/workflows/build.yml`) runs the build, the `playable.html` sync check,
-the type check and the smoke test on every push and pull request.
+the type check, the smoke test and the paths test on every push and pull request.
 
 ## Source files
 
 ```
 01-head.html              CSS and the page shell (header, dialogs, toast)
 05-registry.js            ids declared once: TOOLS, DIAGNOSTICS, LENSES, VIEW_LINKS, PAGES (every page, for search and All pages)
+06-glossary.js            GLOSSARY: plain definitions of the words the guide uses, each linked to the topic that teaches it (#/glossary, and the Terms group in search)
 10-schema.js              JSDoc types, DOMAINS, TOPICS, section titles, and T, TECH, ENGINE, INTERVIEW, FACTS
 12-diagnostics.js         smells, fun dimensions, core-loop and unfairness diagnostics
 13-ai-workflow.js         AI roles, failure modes, responsibility matrix, loop steps, prompt templates, checklists, feature tree

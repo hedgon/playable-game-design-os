@@ -369,11 +369,16 @@ function wireShell(){
   // A closed drawer is inert (no Tab stop, no reading order); opening one moves focus
   // into it and closing it hands focus back to the control that opened it.
   const openers = new Map();
+  // Only a change of the open state moves a drawer in the order: other class changes
+  // (the pane's "nopill") must not lift the pane above a rail drawer opened after it.
+  const wasOpen = new WeakMap();
   const trackDrawer = el => new MutationObserver(() => {
-    const i = drawerOrder.indexOf(el); if(i >= 0) drawerOrder.splice(i, 1);
     const isOpen = el.classList.contains('open');
+    if(wasOpen.get(el) === isOpen) return;
+    wasOpen.set(el, isOpen);
+    const i = drawerOrder.indexOf(el); if(i >= 0) drawerOrder.splice(i, 1);
     if(isOpen) drawerOrder.push(el);
-    el.inert = isNarrow() && !isOpen;
+    syncInert();
     if(isNarrow()){
       if(isOpen && !el.contains(document.activeElement)){
         const op = document.activeElement; if(op && op !== document.body) openers.set(el, op);
@@ -386,6 +391,7 @@ function wireShell(){
     }
     drawerOrder.forEach((d, k) => { d.style.zIndex = isNarrow() ? String(80 + k) : ''; });
   }).observe(el, { attributes: true, attributeFilter: ['class'] });
+  [$('#rail'), $('#pane')].forEach(el => { const open = el.classList.contains('open'); wasOpen.set(el, open); if(open) drawerOrder.push(el); });
   trackDrawer($('#rail')); trackDrawer($('#pane'));
   syncInert();
   const closeTopDrawer = () => { const top = drawerOrder[drawerOrder.length - 1]; if(top) top.classList.remove('open'); syncScrim(); };
@@ -454,7 +460,7 @@ function railActive(){
 // way out is a labelled "Map" button instead of a round close mark.
 const phoneMQ = window.matchMedia('(max-width: 700px)');
 // Off-canvas panels are unreachable while closed; wide screens show them in the layout.
-function syncInert(){ ['#rail', '#pane'].forEach(s => { const el = $(s); if(el) el.inert = isNarrow() && !el.classList.contains('open'); }); }
+function syncInert(){ const railOpen = !!$('#rail') && $('#rail').classList.contains('open'); ['#rail', '#pane'].forEach(s => { const el = $(s); if(el) el.inert = isNarrow() && (!el.classList.contains('open') || (s === '#pane' && railOpen)); }); }
 function syncScrim(){
   syncInert();
   const railOpen = $('#rail').classList.contains('open'), paneOpen = $('#pane').classList.contains('open'), narrow = isNarrow();
@@ -720,7 +726,7 @@ const lensContents = g => `<nav class="lensnav chips lenscontents wdup" aria-lab
 ACTIONS['lens-jump'] = el => { const c = document.getElementById('lens-' + el.dataset.lens); if(c) c.scrollIntoView({ block: 'start' }); };
 function signatureHTML(g){
   const s = g.signature; if(!s) return '';
-  return `<section class="card sigcard"><div class="overline">The idea worth stealing</div><h2>${esc(s.idea)}</h2>${SIGNATURE_PARTS.map(([k, label]) => `<h4>${esc(label)}</h4><p>${esc(s[k])}</p>`).join('')}</section>`;
+  return `<section class="card sigcard"><div class="overline">The idea worth stealing</div><h2>${esc(s.idea)}</h2>${SIGNATURE_PARTS.map(([k, label]) => `<h3 class="h4look">${esc(label)}</h3><p>${esc(s[k])}</p>`).join('')}</section>`;
 }
 // A series shows the span of its entries; a single game its release year.
 const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.entries[0].year}–${g.entries[g.entries.length - 1].year}` : String(g.year);
@@ -728,7 +734,7 @@ const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.en
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
   if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist${g.entries.some(e => e.shot) ? ' withshots' : ''}">${g.entries.map(e => `<li>${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : (g.entries.some(x => x.shot) ? entryRefArt(e) || '<div></div>' : '')}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
-    <h4>What stays constant</h4><p>${esc(g.constant)}</p><h4>What changes</h4><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
+    <h3 class="h4look">What stays constant</h3><p>${esc(g.constant)}</p><h3 class="h4look">What changes</h3><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
   if(!g.series) return '';
   const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);
   return `<p class="small seriesnote">Part of ${S ? `<a href="#/games/${S.id}">${esc(g.series.t)}</a>` : esc(g.series.t)}: ${esc(g.series.n)}.</p>`;
@@ -749,7 +755,7 @@ function receptionHTML(g){
     ${g.reception.map(r => { const [, label, cls] = verdict(r.verdict); return `<div class="recitem"><div class="rechead"><b>${r.ref ? `<a href="#/games/${esc(r.ref)}">${esc(r.entry)}</a>` : esc(r.entry)}</b> <span class="muted">${r.year}</span> <span class="chip ${cls}">${esc(label)}</span></div>
       <p class="small"><b>How it was received.</b> ${esc(r.evidence)}</p><p class="small"><b>What it did differently.</b> ${esc(r.why)}</p>
       <div class="small muted">Sources: ${r.src.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(host(u))}</a>`).join(' · ')}</div></div>`; }).join('')}
-    <h4>What the difference teaches</h4><p>${esc(g.receptionLesson)}</p></div>`;
+    <h3 class="h4look">What the difference teaches</h3><p>${esc(g.receptionLesson)}</p></div>`;
 }
 function renderGames(id, lensId){
   // #/games/topic/<id> (or <id>+<id>) opens the library on the games that teach it.
@@ -1333,7 +1339,7 @@ function depthView(){
       <div class="row" style="margin-top:8px"><input id="newRule" placeholder="Add a rule…" style="flex:1"><button class="btn" id="addRule">Add</button></div>
       <div id="ruleStats" style="margin-top:12px"></div></div></div>`;
 }
-function ruleRow(x){ return `<div class="rule"><input value="${esc(x.r)}" class="rtext"><select class="rkind"><option value="decision" ${x.k==='decision'?'selected':''}>creates a decision</option><option value="interaction" ${x.k==='interaction'?'selected':''}>enables an interaction</option><option value="load" ${x.k==='load'?'selected':''}>load only</option></select><button class="btn sm ghost danger rdel" title="Remove">✕</button></div>`; }
+function ruleRow(x){ return `<div class="rule"><input value="${esc(x.r)}" class="rtext"><select class="rkind"><option value="decision" ${x.k==='decision'?'selected':''}>creates a decision</option><option value="interaction" ${x.k==='interaction'?'selected':''}>enables an interaction</option><option value="load" ${x.k==='load'?'selected':''}>load only</option></select><button class="btn sm ghost danger rdel" title="Remove" aria-label="Remove">✕</button></div>`; }
 function wireDepth(){
   const rules = $('#rules'); if(!rules) return;
   const read = () => $$('.rule', rules).map(r => ({ r: $('.rtext', r).value, k: $('.rkind', r).value }));
@@ -1399,9 +1405,11 @@ function renderBuild(tool){
   }
   const head = `${crumbs([['Make','#/lab'],['Build tools','#/build'],[cur[1]]])}<h1>Build</h1><p class="dim">Lightweight canvases that force the questions this guide keeps asking. Everything saves in your browser. Every tool exports Markdown you can paste into a document or a prompt.</p>
     <p class="small toolwhen"><b>Use this when</b> ${esc(cur[3])} ${TOPICS[cur[4]] ? `<a href="#/map/t/${cur[4]}">Why: ${esc(TOPICS[cur[4]].t)}</a>` : ''}</p>
-    <div class="toolgroups">${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="overline">${esc(gt)}</span><div class="tool-nav">${ids.map(id => { const [, t, s] = TOOLS.find(x => x[0] === id); return `<button class="${id === tool ? 'active' : ''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
+    `;
+  // Below the tool, so a phone reaches the tool first; from 1101 px the index column lists the tools and this block is hidden.
+  const groups = `<div class="toolgroups" style="margin-top:18px"><h2>Other build tools</h2>${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="overline">${esc(gt)}</span><div class="tool-nav">${ids.map(id => { const [, t, s] = TOOLS.find(x => x[0] === id); return `<button class="${id === tool ? 'active' : ''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
   const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt, gameai: toolGameAI }[tool] || toolIdea;
-  setView(head + withNext(`<div class="tool" id="tool"></div>`, [['Topic behind this tool', topicChipLinks([cur[4]])], ['Part of paths', pathsBlock('tool:' + cur[0])]], 'This tool'));
+  setView(head + withNext(`<div class="tool" id="tool"></div>${groups}`, [['Topic behind this tool', topicChipLinks([cur[4]])], ['Part of paths', pathsBlock('tool:' + cur[0])]], 'This tool'));
   fn($('#tool'));
 }
 function field(id, label, hint, val, rows){ return `<div class="field"><label for="${id}">${esc(label)}</label>${rows ? `<textarea id="${id}" rows="${rows}">${esc(val||'')}</textarea>` : `<input id="${id}" value="${esc(val||'')}">`}${hint ? `<div class="hint">${esc(hint)}</div>` : ''}</div>`; }
@@ -1488,7 +1496,7 @@ function toolDelegate(el){
   el.innerHTML = toolHead('AI Delegation Planner', 'For each task in your current cycle, decide the owner before the work starts. Compare with the responsibility matrix. "Player evidence required" means nobody can own it yet.', 'delegateTool') +
     `<div class="grid c2"><div><div id="dl_rows"></div><div class="row" style="margin-top:8px"><input id="dl_new" placeholder="Add a task…" style="flex:1"><button class="btn" id="dl_add">Add</button></div><p class="small muted" style="margin-top:8px">Suggestions come from the <a href="#/ai/matrix">responsibility matrix</a> by keyword and are only a starting point.</p></div><div id="dl_out"></div></div>`;
   const suggest = t => { const l = t.toLowerCase(); const hit = MATRIX.find(m => m[0].toLowerCase().split(' ').filter(w=>w.length>4).some(w => l.includes(w))); if(!hit) return null; const h = hit[1], a = hit[2]; if(h==='PRIMARY' && a!=='PRIMARY') return 'Human'; if(a==='PRIMARY' && h!=='PRIMARY') return 'AI'; return 'Human + AI'; };
-  const render = () => { $('#dl_rows').innerHTML = saved.tasks.map((x, i) => { const s = suggest(x.t); return `<div class="plan-row"><div><input value="${esc(x.t)}" data-i="${i}" class="dl_t">${s && s!==x.w ? `<div class="small muted">matrix suggests: ${s}</div>` : ''}</div><select data-i="${i}" class="dl_w">${opts.map(o => `<option ${o===x.w?'selected':''}>${o}</option>`).join('')}</select><button class="btn sm ghost danger dl_del" data-i="${i}">✕</button></div>`; }).join('') || '<div class="empty">No tasks.</div>';
+  const render = () => { $('#dl_rows').innerHTML = saved.tasks.map((x, i) => { const s = suggest(x.t); return `<div class="plan-row"><div><input value="${esc(x.t)}" data-i="${i}" class="dl_t">${s && s!==x.w ? `<div class="small muted">matrix suggests: ${s}</div>` : ''}</div><select data-i="${i}" class="dl_w">${opts.map(o => `<option ${o===x.w?'selected':''}>${o}</option>`).join('')}</select><button class="btn sm ghost danger dl_del" aria-label="Remove this row" data-i="${i}">✕</button></div>`; }).join('') || '<div class="empty">No tasks.</div>';
     const counts = Object.fromEntries(opts.map(o => [o, saved.tasks.filter(x => x.w===o).length]));
     const md = `# Delegation plan\n\n${saved.tasks.map(x => `- [${x.w}] ${x.t}`).join('\n')}\n\n## Balance\n${opts.map(o => `- ${o}: ${counts[o]}`).join('\n')}\n\n## Checks\n- Every AI task: what decisions will the work embed, and which human owns them?\n- Every "player evidence required" task: what is the smallest test?\n- Human tasks: are these judgement, or production you could delegate?`;
     $('#dl_out').innerHTML = `<h4>Balance</h4><div class="chips" style="margin-bottom:8px">${opts.map(o => `<span class="chip ${o==='Human'?'human':o==='AI'?'ai':o==='Human + AI'?'shared':'evidence'}">${o}: ${counts[o]}</span>`).join('')}</div>${counts['Player evidence required']===0 && saved.tasks.length>3 ? '<div class="callout warn">Nothing needs player evidence? Either the cycle has no design risk, or judgement calls are being assigned to humans or AI that only players can settle.</div>' : ''}${outputBox(md)}`;
@@ -1511,9 +1519,9 @@ function toolSysmap(el){
       <div class="legend" style="margin-top:10px">${KINDS.map(k => `<span><i style="background:${({amplifies:'var(--ok)',counters:'var(--bad)',consumes:'var(--warn)',produces:'var(--d-ux)',unlocks:'var(--d-narrative)',requires:'var(--fg3)'})[k]}"></i>${k}</span>`).join('')}</div>
     </div><div><div class="sysmap" id="sm_svg"></div><div id="sm_analysis"></div></div></div>`;
   const render = () => { const N = saved.nodes, E = saved.edges.filter(e => N.some(n=>n.n===e[0]) && N.some(n=>n.n===e[2]));
-    $('#sm_nodes').innerHTML = N.map((n, i) => `<span class="chip" title="${n.t}">${esc(n.n)} <span class="muted">${n.t}</span> <button class="btn sm ghost danger" style="padding:0 4px" data-i="${i}">✕</button></span>`).join('') || '<span class="muted">No nodes.</span>';
+    $('#sm_nodes').innerHTML = N.map((n, i) => `<span class="chip" title="${n.t}">${esc(n.n)} <span class="muted">${n.t}</span> <button class="btn sm ghost danger" style="padding:0 4px" aria-label="Remove" data-i="${i}">✕</button></span>`).join('') || '<span class="muted">No nodes.</span>';
     $$('#sm_nodes button').forEach(b => b.onclick = () => { const name = N[+b.dataset.i].n; N.splice(+b.dataset.i,1); saved.edges = saved.edges.filter(e => e[0]!==name && e[2]!==name); store.set('sysmapTool', saved); render(); });
-    $('#sm_edges').innerHTML = E.map((e, i) => `<div class="row small" style="padding:3px 0;border-bottom:1px dashed var(--line)"><span>${esc(e[0])} <b>${e[1]}</b> ${esc(e[2])}</span><button class="btn sm ghost danger" style="margin-left:auto;padding:0 6px" data-i="${saved.edges.indexOf(e)}">✕</button></div>`).join('') || '<div class="muted small">No relationships.</div>';
+    $('#sm_edges').innerHTML = E.map((e, i) => `<div class="row small" style="padding:3px 0;border-bottom:1px dashed var(--line)"><span>${esc(e[0])} <b>${e[1]}</b> ${esc(e[2])}</span><button class="btn sm ghost danger" style="margin-left:auto;padding:0 6px" aria-label="Remove this link" data-i="${saved.edges.indexOf(e)}">✕</button></div>`).join('') || '<div class="muted small">No relationships.</div>';
     $$('#sm_edges button').forEach(b => b.onclick = () => { saved.edges.splice(+b.dataset.i,1); store.set('sysmapTool', saved); render(); });
     const optsHTML = N.map(n => `<option>${esc(n.n)}</option>`).join(''); $('#sm_ea').innerHTML = optsHTML; $('#sm_eb').innerHTML = optsHTML;
     // svg
@@ -2272,11 +2280,11 @@ function pathBarHTML(){
   // The step this page belongs to (an asset page opened from a step), so its
   // task stays in view: the unticked match first, else any match.
   const here = location.hash, prog = pathProgress(pth.id); let cur = null;
-  for(const st of pth.stages) st.steps.forEach((s, i) => { if(s.kind !== 'reflect' && stepHref(s, pth.id, st.id) === here && (!cur || (cur.done && !prog.steps[`${st.id}/${i}`]))) cur = { step:s, done:!!prog.steps[`${st.id}/${i}`] }; });
-  const task = cur ? `<div class="pathbar-task"><span class="pt-text"><b>Your task:</b> ${esc(cur.step.do)}${cur.step.min ? ` <span class="muted">· ${cur.step.min} min</span>` : ''}</span><button type="button" class="btn sm ghost pt-more" data-action="task-toggle" aria-expanded="false">More</button></div>` : '';
+  for(const st of pth.stages) st.steps.forEach((s, i) => { if(s.kind !== 'reflect' && stepHref(s, pth.id, st.id) === here && (!cur || (cur.done && !prog.steps[`${st.id}/${i}`]))) cur = { step:s, done:!!prog.steps[`${st.id}/${i}`], note:`${pth.id}.${st.id}.${i}` }; });
+  const task = cur ? `<div class="pathbar-task"><span class="pt-text"><b>Your task:</b> ${esc(cur.step.do)}${cur.step.min ? ` <span class="muted">· ${cur.step.min} min</span>` : ''}</span><button type="button" class="btn sm ghost pt-more" data-action="task-toggle" aria-expanded="false">More</button></div>${stepNoteHTML(cur.note)}` : '';
   return `<div class="pathbar">
     <div class="pathbar-info"><b>${esc(pth.t)}</b> <span class="muted pb-where">Stage ${curIdx} of ${pth.stages.length}</span> <span class="muted pb-next">${atCheckpoint ? `You are at the checkpoint for ${esc(next.stage.t)}` : `Next: ${esc(nextStepLabel(next))}`}</span></div>${task}
-    <div class="pathbar-mini"><span class="pm-stage">${curIdx}/${pth.stages.length}</span><button type="button" class="pm-text" data-action="bar-expand" aria-label="Show the whole path bar">${cur ? esc(cur.step.do) : atCheckpoint ? 'Checkpoint' : esc(nextStepLabel(next))}</button>${next && onNext && !atCheckpoint ? `<button type="button" class="btn sm primary pm-done" data-action="path-continue" data-path="${pth.id}">Done ✓</button>` : ''}</div>
+    <div class="pathbar-mini"><span class="pm-stage">${curIdx}/${pth.stages.length}</span><button type="button" class="pm-text" data-action="bar-expand" aria-label="Show the whole path bar">${cur ? esc(cur.step.do) : atCheckpoint ? 'Checkpoint' : esc(nextStepLabel(next))}</button>${next && onNext && !atCheckpoint ? `<button type="button" class="btn sm primary pm-done" data-action="path-continue" data-path="${pth.id}">Done ✓</button>` : next && !onNext ? `<a class="btn sm primary pm-done" href="${href}">Next →</a>` : ''}</div>
     <div class="pathbar-actions">
       ${next && !atCheckpoint ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Next →'}</a>`) : ''}
       <button class="btn sm ghost" data-action="leave-path">Leave path</button>
@@ -2294,8 +2302,15 @@ function pathCard(p, picked){
     <div class="progress" style="margin-top:8px"><span class="small muted">${pct}%</span><span class="bar"><i style="width:${pct}%"></i></span></div></a>`;
 }
 // Progress lives in this browser only, so the backup controls sit where the learner looks for progress.
+// True once anything the reader did is saved: topics read, path progress, or tool data. Display preferences and navigation memory do not count.
+const UI_ONLY_KEYS = new Set(['theme', 'guideHint', 'chooser', 'sideOpen', 'railW', 'paneW', 'hideLeft', 'hideRight', 'hideMap', 'recent', 'visited', 'openSecs', 'topicTab', 'projTab', 'libMore', 'library', 'engine', 'loopHere', 'keys', 'mapState', 'mapLegend']);
+function hasSavedProgress(){
+  const ignored = k => UI_ONLY_KEYS.has(k) || k === 'seen' || /^(projMap|pathMap)\./.test(k);
+  try { return [...seen].some(id => TOPICS[id]) || Object.keys(localStorage).some(k => k.startsWith('playable.') && !ignored(k.slice(9))); } catch(e){ return false; }
+}
 function dataRowHTML(){
   const read = [...seen].filter(id => TOPICS[id]).length;
+  if(!hasSavedProgress()) return `<div class="datarow small" role="group" aria-label="Saved progress"><span class="muted">Progress is saved in this browser only.</span><button type="button" class="btn sm ghost" data-action="data-import">Restore from a backup…</button></div>`;
   return `<div class="datarow small" role="group" aria-label="Your saved progress"><span class="muted">Your progress (${read} of ${TOPIC_LIST.length} topics read) is saved in this browser only.</span>
     <button type="button" class="btn sm ghost" data-action="data-export">Back up progress</button><button type="button" class="btn sm ghost" data-action="data-import">Restore from a backup…</button><button type="button" class="btn sm ghost danger" data-action="data-reset">Reset all</button></div>`;
 }
@@ -2315,8 +2330,8 @@ function pathsDoorHTML(){
   }).join('');
   // A first visit gets one dismissible pointer to the guide; after that, a
   // quiet link stays under the intro.
-  const hint = store.get('guideHint', true) ? `<div class="callout guidehint"><b>First time here?</b> <a href="#/guide">How to use this site</a> lists a route for each reason you might have come, and what each section is for. <button type="button" class="btn sm ghost" data-action="guide-hint-close">Dismiss</button></div>` : `<p class="small"><a href="#/guide">How to use this site</a></p>`;
-  return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
+  const hint = store.get('guideHint', true) ? `<div class="callout guidehint"><span class="guidehint-text"><b>First time here?</b> <a href="#/guide">How to use this site</a> lists a route for each reason you might have come, and what each section is for.</span> <button type="button" class="btn sm ghost" data-action="guide-hint-close">Dismiss</button></div>` : `<p class="small"><a href="#/guide">How to use this site</a></p>`;
+  return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="lead" style="max-width:760px">Playable is a free guide to making games people want to play: design, engineering, shipping and leading a team, with AI as a tool and not the designer. Answer three questions below and it suggests where to start.</p><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
     ${hint}
     ${continueCard}
     ${dataRowHTML()}
@@ -2356,6 +2371,16 @@ function chooserHTML(ans, rec){
 // A step that covers both engines shows the choice; it is remembered for every such step.
 ACTIONS['engine-pick'] = el => { store.set('engine', el.dataset.engine); keepScroll = true; route(); };
 const enginePickHTML = step => { const own = step.kind === 'engine' ? step.ref : step.tab, cur = pickedEngine(step); return `<span class="small enginepick" role="group" aria-label="Engine">Engine: ${[own, step.alt].map(e => `<button type="button" class="chip ${e === cur ? 'ok' : ''}" data-action="engine-pick" data-engine="${e}" aria-pressed="${e === cur}">${ENGINE_NAMES[e]}</button>`).join(' ')}</span>`; };
+// A step's notes: one textarea per step, saved as the reader types (playable.pathnote.<path>.<stage>.<step index>).
+const stepNote = id => store.get('pathnote.' + id, '');
+function stepNoteHTML(id){
+  const v = stepNote(id);
+  return `<details class="pathnote"${v ? ' open' : ''}><summary>Notes</summary><textarea rows="3" data-pathnote="${id}" aria-label="Notes for this step" placeholder="Write here. Saved in this browser as you type.">${esc(v)}</textarea></details>`;
+}
+document.addEventListener('input', e => {
+  const t = e.target.closest && e.target.closest('textarea[data-pathnote]'); if(!t) return;
+  if(t.value) store.set('pathnote.' + t.dataset.pathnote, t.value); else { try { localStorage.removeItem('playable.pathnote.' + t.dataset.pathnote); } catch(err){} }
+});
 function stepRowHTML(pth, st, i, step, prog, isNext){
   const key = `${st.id}/${i}`, checked = !!prog.steps[key], href = stepHref(step, pth.id, st.id);
   return `<label class="pathstep ${checked ? 'done' : ''} ${isNext ? 'next' : ''}" data-row="${key}">
@@ -2363,7 +2388,7 @@ function stepRowHTML(pth, st, i, step, prog, isNext){
     <span class="chip kindchip">${isNext ? 'next' : esc(step.kind)}</span>
     <span class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
       <div class="small dim">${esc(step.why)}</div><div class="small">${esc(step.do)}</div>${step.alt ? `<div>${enginePickHTML(step)}</div>` : ''}</span>
-  </label>`;
+  </label>${step.kind === 'reflect' ? '' : stepNoteHTML(`${pth.id}.${st.id}.${i}`)}`;
 }
 function stageFooterHTML(pth, st, prog){
   const next = pathNextStep(pth.id), checkpointOpen = !!next && next.type === 'checkpoint' && next.stage.id === st.id;

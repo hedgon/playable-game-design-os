@@ -1,5 +1,5 @@
 ---
-status: active
+status: shipped
 updated: 2026-10-01
 ---
 
@@ -51,5 +51,22 @@ Set aside, with the reason:
 | C3 | Snippet fixes: rollback early inputs, Godot backup rename, the .gitignore tab | done | Unity rollback keeps early inputs; Godot backup rename checked; real editor scripts in both source-control tabs |
 | A2 | Search: label, listbox semantics, result count, title matches first, synonyms; glossary page; smells derive games strictly; Should we build this? explains itself | done | search is a labelled combobox with options and a live count, title matches rank first, synonyms (gdd, balance, ftue, juice, flow); #/glossary with 71 terms, also searchable; smell games weighted by topic rarity (floaty combat no longer lists Bejeweled or Among Us; still imperfect, since lenses tag topics broadly); feature verdict lists every answer's points and what drove it, predicted-but-unseen scores 0; chooser weeks name the hours; Projects intro line |
 | C4 | Core loop order fixed; new topics: combat design (including bosses) and level blockout and metrics, with path steps | done | loop is Decision → Action → Consequence → Feedback → New situation in the topic, diagram, diagnostic, paths and glossary; combat-design and level-blockout-and-metrics added with engine views, interviews and diagrams, in the systems and level and UX paths; combat games' gameplay lenses link combat-design; the Game Loop Builder tool keeps its own Action-Decision-Feedback-Reward frame (follow-up) |
-| A3 | First screen says what the site is; progress tools only once there is progress; phone drawer, tool order, path bar button, Map pill; icon button names; heading order; loading message; Projects intro; Idea Lab chip legend; per-step notes on paths | todo | 01-head.html, 90-app.js, 91-map.js |
+| A3 | First screen says what the site is; progress tools only once there is progress; phone drawer, tool order, path bar button, Map pill; icon button names; heading order; loading message; Projects intro; Idea Lab chip legend; per-step notes on paths | done | lead line on the first screen; progress tools only once there is progress; phone library drawer fixed (the pane sat above the rail), tool before the tool list, Next on the collapsed path bar, sticky strip under the Map pill; icon buttons named; game pages h1-h2-h3; loading message; Idea Lab evidence legend; saved notes on every path step |
 | V1 | README counts, e2e in CI, full checks, browser verification at 1440 and 375, archive | todo | |
+
+## Outcome
+
+Every accepted finding is fixed. Two topics, a glossary of 71 terms and saved step notes were added; nothing was cut. Verified with the build checks, the type check, the smoke and paths tests, a CI replay in a clean worktree before each push, and a browser pass at 1440 and 375 px.
+
+Not exercised: the render error panel (the typed reads now stop every crash the developer audit found, so no saved value could trigger it).
+
+## Follow-ups for the owner
+
+- Boot cost of the single file (lazy data would break offline use).
+- The path map column on desktop.
+- A style pass on hedges ("arguably") and comma-carried asides.
+- Smell game links still lean on broad lens topics (floaty combat lists Age of Empires II); a stricter rule or lens retagging would fix it.
+- The Game Loop Builder tool keeps its own Action, Decision, Feedback, Reward frame, unlike the topic's new order.
+- In the 30-day path, the GameMaker-or-engine choice still counts its minutes twice (alt covers Godot and Unity only).
+- Go code for backend topics, compiled snippet gates, app-code type checks, pinned Playwright.
+- A fact-check of the two new topics' claims about named games and the Valve dimensions guidance.
