@@ -44,7 +44,7 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 | T2 | Topic `server-stack-choices` with dated facts and a path step | worker | done | server-stack-choices in the netcode path s3; 5 dated facts opened at source (Multiplay deprecation per Unity notice 362941, GameLift Servers, Agones, Nakama, Mirror MIT); the GameLift rename and NGO-first-party facts dropped (sources would not load); glossary +2 |
 | S0 | `SNIPPET_SCOPE` data from the developer audit's compile results and a structural rule for GDScript | coordinator | done | new data file |
 | W1 | Worked tables (economy, difficulty) and documents (one-page spec, feature brief, decision log) | worker | done | ten-day soft-currency economy and ten-level difficulty curve (rows recomputed by script; margins 4 to 1.1, level 9 the only one under 1.2), one-page spec, feature brief and decision log for one fetch-pet feature |
-| W2 | Four comparisons | worker | todo | new data file |
+| W2 | Four comparisons | worker | done | failed-run-worth-it (Hades, Slay the Spire), teaching-without-words (Portal, Super Mario), hard-for-everyone (Celeste, Dark Souls), daily-habit (Wordle, Candy Crush Saga); sources are Wikipedia pages only, so R1 looks for stronger ones |
 | G1 | Go tabs on backend, server and infra topics | worker | done | 29 Go tabs (11 backend, 8 infra, 10 server), standard library only, whole files; not compiled or vetted here (no Go): run src/check-go.js where Go is installed |
 | P1 | Path `first-tiny-game` and the chooser | worker | done | first-tiny-game: 4 stages, 8.25 h, one practice jumper carried through every task; the chooser sends Design games + New to it there first, then foundations; its Godot and GameMaker steps both count (alt covers Godot and Unity only) |
 | P2 | Reference solutions for engineering checkpoints | worker | todo | 51 |
@@ -61,3 +61,4 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 - 2026-10-01: P1 done. Phase A (X1, T1, T2, S0, P1) committed from a snapshot taken before X2 started, built in a clean worktree.
 - 2026-10-01: X2 done; coordinator added solution to the PathStage typedef. Phase B (X2) committed from a clean worktree.
 - 2026-10-01: W1 done; G1 backend done. Phase C (W1, G1) committed; its first CI replay failed the smoke download check, which joined cells with bare commas while real CSV quotes cells holding commas; the check now quotes like RFC 4180 from a clean worktree.
+- 2026-10-01: W2 done; phase D (W2) committed. P2 and L1 (files 20-25) running.

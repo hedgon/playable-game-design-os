@@ -50,6 +50,7 @@ const DATA = [
   '43-case-systems-c.js',
   '44-worked-samples.js',
   '45-go-samples.js',
+  '46-comparisons.js',
   '50-paths.js',
   '51-paths-engineering.js'
 ];
