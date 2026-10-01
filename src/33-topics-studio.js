@@ -105,6 +105,64 @@ INTERVIEW('design-documents',{
       red:`Applies the same documentation standard regardless of team size or handoff count.` }
   ] });
 
+WORKED('design-documents', {
+  kind:'doc',
+  id:'one-page-spec-fetch-pet',
+  t:'A one-page spec for a pet that fetches coins',
+  intro:'Stone Librande’s one-page designs (GDC 2010) are diagrams first. This is the text skeleton you would draw around: if each heading fits in a box on one sheet, the spec is the right size. The example feature is a pet that follows the player and fetches dropped coins, in a small action game.',
+  note:'An example written for this guide.',
+  sections:[
+    {h:'Central idea', body:'A small pet trots behind the player and runs to pick up coins the player could not reach, so risky coins feel worth leaving for a moment.'},
+    {h:'Player experience', body:'The player drops coins when hit, as they do now. The pet notices them, runs over and brings them back after a short delay. The player feels looked after, but not rescued: coins in danger zones are still lost, and the pet can be hurt.'},
+    {h:'Rules', body:'- The pet follows within 3 metres of the player.\n- It targets the nearest dropped coin within 8 metres and returns it to the player.\n- It carries one coin at a time and takes about 1 second per coin.\n- Coins expire after 6 seconds, as they do now.\n- Hazards hurt the pet. After 3 hits it sits down for 10 seconds.'},
+    {h:'What it touches', body:'Coin drop code, the hazard damage system, the follow camera, the audio mix (one new bark), and the HUD coin counter, which must count a returned coin once.'},
+    {h:'Open questions', body:'Does the pet pick up power-ups too? Can the player call it back? Does it block narrow corridors? Does it make the coin economy too generous?'},
+    {h:'How we will know it works', body:'In a 10-person playtest, at least 7 say the pet helped them, none say it got in the way, and the average coins banked per level rises by no more than 15 percent.'}
+  ],
+  try:['Turn this spec into a diagram on one page: what boxes and arrows would you draw?', 'Add one rule that stops the pet making the game too easy, and say which line in "How we will know it works" would catch the problem.', 'Pick a different feature from a game you know and fill in just the first two headings.'],
+  file:'one-page-spec-fetch-pet.md'
+});
+
+WORKED('design-documents', {
+  kind:'doc',
+  id:'feature-brief-fetch-pet',
+  t:'A feature brief for the fetch pet',
+  intro:'A brief asks for a decision before the work starts. It is short on how and long on why, and it names the result that would make the team stop.',
+  note:'An example written for this guide.',
+  sections:[
+    {h:'Problem', body:'Players leave coins behind when they are hit near hazards, and our playtests show they find that frustrating rather than tense.'},
+    {h:'Target player', body:'A casual player on a phone who plays in short sessions and does not want to replay a level for a few coins.'},
+    {h:'Desired behaviour', body:'The player keeps moving forward after a hit instead of going back for coins, and still takes some risks to collect them.'},
+    {h:'Smallest experiment', body:'A grey-box pet with no art: it follows the player and fetches coins. One level, one week of work for one designer and one programmer, tested with 10 players.'},
+    {h:'Success signal', body:'At least 7 of 10 players say they went back for fewer coins, and the level completion rate stays the same or rises.'},
+    {h:'Kill criterion', body:'If after the test fewer than 4 of 10 players notice the pet, or more than 3 say it makes the level too easy, we stop and do not build the art.'},
+    {h:'Cost estimate', body:'5 working days for the experiment. About 6 weeks to ship with art, animation and audio.'},
+    {h:'Risks', body:'The pet can break the coin economy. Pathfinding in tight spaces is hard. It may feel like a mobile-game pet rather than part of this game.'},
+    {h:'Decision needed by', body:'Friday, before we plan the next sprint.'}
+  ],
+  try:['Write the kill criterion for a different feature, such as a new boss or a daily reward. Make it a number a stranger could check.', 'Which section would you cut for a one-day task, and which can you never cut?', 'Rewrite the success signal so it measures behaviour instead of opinion.'],
+  file:'feature-brief-fetch-pet.md'
+});
+
+WORKED('design-documents', {
+  kind:'doc',
+  id:'decision-log-fetch-pet',
+  t:'A decision-log entry for the fetch pet',
+  intro:'A decision log is a list of short entries that stop a settled question being reopened by accident. The entry records what was chosen and, as important, what was given up.',
+  note:'An example written for this guide.',
+  sections:[
+    {h:'Date', body:'2026-10-01'},
+    {h:'Decision', body:'The pet fetches coins only. It does not pick up power-ups or keys in this version.'},
+    {h:'Options considered', body:'1. Coins only.\n2. Coins and power-ups.\n3. Anything that drops, including keys.'},
+    {h:'Why this one', body:'It is the smallest rule that tests the idea. Power-ups change the strategy of a level, and keys can block progress if the pet fails to bring one.'},
+    {h:'What we gave up', body:'Some of the "it helps me with everything" feeling. A player may ask why the pet ignores a power-up that is right next to it.'},
+    {h:'Evidence', body:'Playtest of the grey-box pet with 10 players: 8 liked the coin fetching, 3 asked for power-ups, and 2 lost a power-up because the pet ran past it.'},
+    {h:'Revisit when', body:'After the coin experiment ships and we have two weeks of data on coins banked per level, or sooner if more than a quarter of players ask for power-up fetching.'}
+  ],
+  try:['Write a decision-log entry for a choice your own team made this month, and be honest about what it gave up.', 'What is the difference between "revisit when" and "never decided"? Rewrite a vague one so it has a date or a number.', 'Who should be allowed to reverse this decision, and where would you write that?'],
+  file:'decision-log-fetch-pet.md'
+});
+
 T('metrics-and-success',{ d:'studio', t:'Metrics, telemetry and success criteria', tag:'Decide what would count as working before you ship, and measure behaviour you can attribute to a change.',
   what:`How to define success, choose metrics, and instrument the game. Leading indicators show behaviour inside a session. Lagging indicators show retention and revenue. Funnels, cohorts, completion and session length describe what happened. Data informs decisions. It never makes them, because a number cannot tell you why the player behaved that way.`,
   why:[`A hypothesis without a signal is a hope.`,`Vanity metrics reassure and do not guide.`,`Behaviour metrics reveal where the loop breaks, and self-report cannot.`,`Instrumentation built late cannot answer questions you did not anticipate.`],

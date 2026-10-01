@@ -118,7 +118,9 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
           if (!dl) failures.push(w + 'px worked example download did not start');
           else {
             const body = fs.readFileSync(await dl.path(), 'utf8');
-            const want = wid.w.rows.map(r => r.join(',')).join('\n');
+            // RFC 4180: a cell holding a comma, quote or line break is quoted, with quotes doubled.
+            const cell = v => { const x = String(v); return /[",\n\r]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
+            const want = wid.w.rows.map(r => r.map(cell).join(',')).join('\n');
             if (dl.suggestedFilename() !== wid.w.file || !body.includes(want) || !body.startsWith(wid.w.columns[0].h)) failures.push(w + 'px worked example download wrong: ' + dl.suggestedFilename() + ' ' + JSON.stringify(body.slice(0, 80)));
           }
         }

@@ -576,6 +576,34 @@ DIAGRAM('difficulty', { kind:'curve', title:'Challenge in waves around a rising 
   series:[{t:'Challenge', pts:[[0,0.15],[0.12,0.3],[0.2,0.22],[0.35,0.45],[0.43,0.36],[0.58,0.62],[0.66,0.5],[0.82,0.82],[0.9,0.66],[1,0.8]]},{t:'Player skill', pts:[[0,0.1],[0.25,0.28],[0.5,0.46],[0.75,0.64],[1,0.8]]}],
   alt:'Challenge rises in waves around the player’s growing skill: spikes test what was learned, rests let it settle. Far above skill is anxiety, far below is boredom.' });
 
+WORKED('difficulty', {
+  kind:'table',
+  id:'ten-level-difficulty-curve',
+  t:'A difficulty curve for ten levels',
+  intro:'Each row is one level. Time to kill and time survived come from health and damage per second, and their ratio is the safety margin: above 1 the player usually wins, near 1 it is a coin flip. The teaching note makes the saw-tooth: a new mechanic, practice, a combination, a test, then a rest. The method is spreadsheets for balance, as taught in Ian Schreiber and Brenda Romero’s "Game Balance" (CRC Press, 2021).',
+  note:'Illustrative numbers, not from a shipped game: the shape is the lesson.',
+  columns:[{h:'Level'}, {h:'Enemy health', unit:'hp'}, {h:'Enemy damage per second', unit:'hp/s'}, {h:'Player damage per second', unit:'hp/s'}, {h:'Time to kill', unit:'s'}, {h:'Player health', unit:'hp'}, {h:'Time the player survives', unit:'s'}, {h:'Safety margin'}, {h:'Teaching note'}],
+  rows:[
+    [1, 100, 5, 20, 5, 100, 20, 4, 'New mechanic: the first enemy that dodges'],
+    [2, 140, 6, 22, 6.4, 100, 16.7, 2.62, 'Practice: the dodge again, with more room'],
+    [3, 200, 8, 25, 8, 100, 12.5, 1.56, 'Combination: dodge plus the shield you already have'],
+    [4, 250, 9, 28, 8.9, 100, 11.1, 1.24, 'Test: all of it, no new rules'],
+    [5, 150, 5, 30, 5, 120, 24, 4.8, 'Rest: a short level to breathe and spend rewards'],
+    [6, 260, 8, 36, 7.2, 120, 15, 2.08, 'New mechanic: enemies that call for help'],
+    [7, 320, 10, 38, 8.4, 120, 12, 1.43, 'Practice: the call for help, one at a time'],
+    [8, 380, 9, 40, 9.5, 120, 13.3, 1.4, 'Combination: call for help with the shield'],
+    [9, 480, 10, 44, 10.9, 120, 12, 1.1, 'Test: the whole set, the hardest level so far'],
+    [10, 300, 6, 46, 6.5, 140, 23.3, 3.58, 'Rest: a victory lap with a new weapon']
+  ],
+  formulas:[
+    {col:'Time to kill', f:'Enemy health / Player damage per second (in a sheet: =B2/D2). Rounded to one decimal.'},
+    {col:'Time the player survives', f:'Player health / Enemy damage per second (in a sheet: =F2/C2). Rounded to one decimal.'},
+    {col:'Safety margin', f:'Time the player survives / Time to kill (in a sheet: =G2/E2). Rounded to two decimals, so a hand check can differ in the last digit.'}
+  ],
+  try:['Give the player less damage from level 6: set it to 28 at level 6 and take 8 off every level after it too. Which levels fall below a margin of 1.2, and which below 1?', 'Find the first level where the margin falls below 1.2. What would a playtest show there: how many deaths, and what would players say?', 'Raise player health at level 4 from 100 to 140. How much easier does the test get, and is it still a test?', 'Why does the margin jump up at levels 5 and 10? What would the player feel if those two rest levels were removed?'],
+  file:'ten-level-difficulty-curve.csv'
+});
+
 T('builds-and-loadouts',{ d:'systems', t:'Builds, loadouts and constraints', tag:'Build diversity comes from constraints that force different players to solve the same problem differently.',
   what:`Systems where the player composes a set of capabilities before or during play: classes, decks, loadouts, skill trees, party composition. Their value is expression and horizontal progression. Their failure is convergence, where one build dominates and the others are traps. Final Fantasy V (1992) shows horizontal progression through a job system: once a character masters a job’s abilities, one of them can be equipped as a command on any other job, so a build becomes a pairing the player composes rather than a level they reach.`,
   why:[`Builds are how systemic games personalize themselves. They turn one game into many.`,`Convergence is inevitable without constraints and counters. The community will find the optimum within days.`,`A build that is a trap (looks viable, is not) teaches players not to trust the system.`],
@@ -886,3 +914,31 @@ INTERVIEW('economy-modelling-and-balance',{
       follow:`Who owns it when the designer who built it leaves?`,
       red:`Builds the model once at launch and treats it as done.` }
   ] });
+
+WORKED('economy-modelling-and-balance', {
+  kind:'table',
+  id:'ten-day-soft-currency-economy',
+  t:'A ten-day economy for one currency',
+  intro:'A small mobile-style game with one soft currency, followed for ten days. Every row follows one rule: the balance at the end of the day is the balance from the day before, plus what came in, minus what went out. The method is spreadsheets for balance, as taught in Ian Schreiber and Brenda Romero’s "Game Balance" (CRC Press, 2021). Upgrade n costs 250 coins x 1.5 to the power of the upgrades already bought, so the first costs 250 and the fifth 1266.',
+  note:'Illustrative numbers, not from a shipped game: the shape is the lesson.',
+  columns:[{h:'Day'}, {h:'Minutes played', unit:'min'}, {h:'Income from play', unit:'coins'}, {h:'Income from daily reward', unit:'coins'}, {h:'Spend on upgrades', unit:'coins'}, {h:'Spend on cosmetics', unit:'coins'}, {h:'Balance at end of day', unit:'coins'}, {h:'Days of play to afford the next upgrade', unit:'days'}],
+  rows:[
+    [1, 12, 180, 100, 0, 0, 280, 0],
+    [2, 20, 300, 100, 250, 0, 430, 0],
+    [3, 15, 225, 100, 0, 150, 605, 0],
+    [4, 25, 375, 100, 375, 0, 705, 0],
+    [5, 10, 150, 100, 0, 0, 955, 0],
+    [6, 30, 450, 100, 563, 0, 942, 0],
+    [7, 18, 270, 100, 0, 200, 1112, 0],
+    [8, 22, 330, 100, 844, 0, 698, 2],
+    [9, 14, 210, 100, 0, 100, 908, 2],
+    [10, 28, 420, 100, 0, 0, 1428, 0]
+  ],
+  formulas:[
+    {col:'Income from play', f:'Minutes played x 15 coins a minute (in a sheet: =B2*15).'},
+    {col:'Balance at end of day', f:'Previous balance + play income + daily reward - upgrades - cosmetics (in a sheet: =G1+C2+D2-E2-F2, with day 1 starting from 0).'},
+    {col:'Days of play to afford the next upgrade', f:'The next upgrade costs 250 x 1.5^(upgrades bought so far), rounded. Then =MAX(0, ROUNDUP((next cost - balance) / (play income + daily reward), 0)): the shortfall divided by that day’s income. 0 means the player can already afford it.'}
+  ],
+  try:['Raise the daily reward from 100 to 150 coins, 50 percent more. What happens to the balance on day 10, and to the days-to-afford column on day 8?', 'Double the upgrade cost from day 6 (the day 6 upgrade becomes 1126, the day 8 one 1688). Can the player still buy both? What do they do on day 8, and what would they feel?', 'Inflation is when the same coins buy less. Where does this table show it, and what would you add to the economy to pull the balance back down?', 'Explain in your own words why the balance climbs on most days but dips on days 6 and 8. What does the shape say about when a player decides to buy?', 'The player skips cosmetics for all ten days. Which columns change, and does it change when they can afford the next upgrade?'],
+  file:'ten-day-soft-currency-economy.csv'
+});

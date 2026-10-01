@@ -152,6 +152,61 @@ INTERVIEW('backend-layering',{
       follow:`What would you do differently at the start of that project?`,
       red:`Talks about maintainability in the abstract with no change they can point at.` }
   ] });
+GO('backend-layering', {
+  api:['http.HandlerFunc', 'Request.PathValue', 'Request.Context', 'errors.Is', 'fmt.Errorf %w', 'json.NewEncoder'],
+  snippet:`package layering
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+type Player struct {
+	ID   string \`json:"id"\`
+	Name string \`json:"name"\`
+}
+
+var ErrNotFound = errors.New("player not found")
+
+// Repository is declared where it is used; storage code implements it.
+type Repository interface {
+	Player(ctx context.Context, id string) (Player, error)
+}
+
+type Service struct{ repo Repository }
+
+func NewService(repo Repository) *Service { return &Service{repo: repo} }
+
+func (s *Service) Get(ctx context.Context, id string) (Player, error) {
+	p, err := s.repo.Player(ctx, id)
+	if err != nil {
+		return Player{}, fmt.Errorf("get player %s: %w", id, err)
+	}
+	return p, nil
+}
+
+// PlayerHandler only translates HTTP to a service call and back.
+func PlayerHandler(s *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p, err := s.Get(r.Context(), r.PathValue("id"))
+		if errors.Is(err, ErrNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(p)
+	}
+}
+`,
+  pitfall:'Defining the repository interface next to the storage code, so the service imports the database package and the layers point the wrong way. Declare the interface in the layer that uses it.'
+});
 DIAGRAM('backend-layering', { kind:'stack', title:'Dependencies point inward', taper:true, arrow:'imports point inward',
   layers:[{t:'Transport', d:'HTTP, WebSocket and gRPC handlers'},{t:'Adapters', d:'database, cache and queue clients'},{t:'Use cases', d:'one operation each: claim, buy, match'},{t:'Domain', d:'entities and game rules, no I/O'}] });
 
@@ -284,6 +339,54 @@ INTERVIEW('backend-di-modes',{
       follow:`How would you prove the split reduced anything?`,
       red:`Starts by rewriting the wiring layer wholesale with no measurement.` }
   ] });
+GO('backend-di-modes', {
+  api:['slog.New', 'slog.NewTextHandler', 'constructor injection', 'func() error closers', 'defer'],
+  snippet:`package main
+
+import (
+	"log/slog"
+	"os"
+)
+
+type Store interface {
+	Close() error
+}
+
+type memStore struct{}
+
+func (memStore) Close() error { return nil }
+
+type Matchmaker struct {
+	store Store
+	log   *slog.Logger
+}
+
+func NewMatchmaker(store Store, log *slog.Logger) *Matchmaker {
+	return &Matchmaker{store: store, log: log}
+}
+
+// build is the only place that knows the concrete types.
+func build(log *slog.Logger) (*Matchmaker, []func() error) {
+	store := memStore{}
+	mm := NewMatchmaker(store, log)
+	return mm, []func() error{store.Close}
+}
+
+func main() {
+	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	mm, closers := build(log)
+	defer func() {
+		for i := len(closers) - 1; i >= 0; i-- { // reverse construction order
+			if err := closers[i](); err != nil {
+				log.Error("close failed", "err", err)
+			}
+		}
+	}()
+	mm.log.Info("ready")
+}
+`,
+  pitfall:'Reaching for a package level variable or an init function to hold a dependency. Tests then share it and cannot swap it. Pass dependencies into constructors and build them in one place.'
+});
 
 T('backend-api-protocol',{ d:'backend', t:'API protocol choices', tag:'REST/JSON, protobuf over HTTP and gRPC are three different bets about schema, tooling and who your client is.',
   what:`The wire contract between the game client and the service: transport, encoding, the schema source of truth and the versioning rule. A common middle point for mobile games is protobuf messages carried over plain net/http, which keeps ordinary HTTP infrastructure (load balancers, proxies, WAFs, CDN edges) while giving both sides generated typed models and a compact payload. gRPC goes further and brings its own connection model. REST with JSON is the most inspectable and the least typed.`,
@@ -420,6 +523,49 @@ INTERVIEW('backend-api-protocol',{
       follow:`What would have caught it before release?`,
       red:`Claims to have never broken compatibility and cannot name the guard that prevents it.` }
   ] });
+GO('backend-api-protocol', {
+  api:['json.NewDecoder', 'Decoder.DisallowUnknownFields', 'http.MaxBytesReader', 'http.ResponseWriter.WriteHeader', 'http.StatusBadRequest'],
+  snippet:`package api
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+type JoinRequest struct {
+	PlayerID string \`json:"player_id"\`
+	Mode     string \`json:"mode"\`
+}
+
+type ErrorBody struct {
+	Code    string \`json:"code"\`
+	Message string \`json:"message"\`
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
+}
+
+func Join(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	var req JoinRequest
+	if err := dec.Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, ErrorBody{Code: "bad_request", Message: "invalid JSON body"})
+		return
+	}
+	if req.PlayerID == "" {
+		writeJSON(w, http.StatusUnprocessableEntity, ErrorBody{Code: "missing_player", Message: "player_id is required"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "queued", "mode": req.Mode})
+}
+`,
+  pitfall:'Calling WriteHeader after the first Write, or writing the body and then trying to change the status. The status is already sent, so set the header and status first. Also cap the body with MaxBytesReader, or a client can send a huge one.'
+});
 
 T('backend-request-context',{ d:'backend', t:'Request context, middleware and idempotency gates', tag:'One place seeds everything a request needs, and one gate stops the same request being applied twice.',
   what:`The per request plumbing. A context.Context carrying request scoped values (player, session, locale, client version, a logging handle, a trace transaction, a per request memo cache), a middleware chain that seeds and enforces them in a fixed order, and an idempotency gate that stops a retried request from being applied twice. On mobile, retries are not exceptional. A tunnel drops, the player taps again, and the same purchase arrives twice.`,
@@ -550,6 +696,49 @@ INTERVIEW('backend-request-context',{
       follow:`How would you catch a key that a middleware quietly stopped setting?`,
       red:`Adds keys freely and relies on people remembering what is there.` }
   ] });
+GO('backend-request-context', {
+  api:['context.WithValue', 'Context.Value', 'Request.WithContext', 'slog.InfoContext', 'crypto/rand.Read', 'hex.EncodeToString'],
+  snippet:`package reqctx
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"log/slog"
+	"net/http"
+)
+
+// An unexported key type cannot collide with keys from other packages.
+type ctxKey struct{}
+
+func WithRequestID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, ctxKey{}, id)
+}
+
+func RequestID(ctx context.Context) string {
+	id, _ := ctx.Value(ctxKey{}).(string)
+	return id
+}
+
+func Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Header.Get("X-Request-ID")
+		if id == "" {
+			b := make([]byte, 8)
+			_, _ = rand.Read(b)
+			id = hex.EncodeToString(b)
+		}
+		w.Header().Set("X-Request-ID", id)
+		next.ServeHTTP(w, r.WithContext(WithRequestID(r.Context(), id)))
+	})
+}
+
+func Log(ctx context.Context, msg string) {
+	slog.InfoContext(ctx, msg, "request_id", RequestID(ctx))
+}
+`,
+  pitfall:'Using context values to pass business inputs such as the player or a feature flag. They are invisible in the function signature and unchecked by the compiler. Keep context values for request scoped metadata like an ID, and pass real inputs as parameters.'
+});
 
 T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'An error is part of your API. Give it a code, a status, something the client can act on, and the stack where it started.',
   what:`One error type for the service that carries a numeric domain code, maps to an HTTP status and a wire payload, and captures a stack at the point it was wrapped. Interactors wrap causes with a code, handlers translate at the boundary, and errors.Is and errors.As do the matching. Codes are allocated in blocks per subsystem, so a code tells whoever is on call where to look before they open a log.`,
@@ -679,6 +868,46 @@ INTERVIEW('backend-errors',{
       follow:`What single change would most improve your next incident?`,
       red:`Describes the outage with no reference to what was observable at the time.` }
   ] });
+GO('backend-errors', {
+  api:['errors.New', 'errors.Is', 'errors.As', 'fmt.Errorf %w', 'http.StatusBadRequest'],
+  snippet:`package apperr
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+var ErrNotFound = errors.New("not found")
+
+type ValidationError struct{ Field string }
+
+func (e *ValidationError) Error() string { return "invalid field " + e.Field }
+
+func Load(id string) error {
+	if id == "" {
+		return &ValidationError{Field: "id"}
+	}
+	return fmt.Errorf("load %q: %w", id, ErrNotFound)
+}
+
+// Status is the single place that maps errors to HTTP codes.
+func Status(err error) int {
+	var ve *ValidationError
+	switch {
+	case err == nil:
+		return http.StatusOK
+	case errors.As(err, &ve):
+		return http.StatusBadRequest
+	case errors.Is(err, ErrNotFound):
+		return http.StatusNotFound
+	default:
+		return http.StatusInternalServerError
+	}
+}
+`,
+  pitfall:'Comparing errors with == or by their message text. A wrapped error no longer equals the sentinel, and the text changes. Use errors.Is for values and errors.As for types.'
+});
 
 T('backend-data-access',{ d:'backend', t:'Transactions, query layers and delta state sync', tag:'Own your queries, scope transactions to the request, and send the client only what changed.',
   what:`Three decisions that travel together. How queries are written: raw SQL, a builder such as gocraft/dbr, typed functions generated from SQL by sqlc, or a full ORM such as GORM. How transactions are scoped: opened by the handler, passed down as a runner, committed or rolled back in one deferred place. And how state returns to the client: a full snapshot every time, or a delta driven by which tables the request dirtied.`,
@@ -821,6 +1050,52 @@ INTERVIEW('backend-data-access',{
       follow:`A feature needs to compare two players on different shards. What do you do?`,
       red:`Plans cross shard joins, or defers sharding with no seam left for it.` }
   ] });
+GO('backend-data-access', {
+  api:['sql.DB.BeginTx', 'sql.Tx.ExecContext', 'sql.Tx.Commit', 'sql.Tx.Rollback', 'sql.Result.RowsAffected', 'errors.New'],
+  snippet:`package store
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+)
+
+var ErrInsufficient = errors.New("insufficient gold")
+
+// Transfer moves gold in one transaction. No driver is imported here: the
+// caller opens the *sql.DB with whichever driver the service uses.
+func Transfer(ctx context.Context, db *sql.DB, from, to string, amount int64) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }() // a no-op after Commit
+
+	res, err := tx.ExecContext(ctx,
+		"UPDATE wallets SET gold = gold - $1 WHERE id = $2 AND gold >= $1", amount, from)
+	if err != nil {
+		return fmt.Errorf("debit: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("debit rows: %w", err)
+	}
+	if n == 0 {
+		return ErrInsufficient
+	}
+	if _, err := tx.ExecContext(ctx,
+		"UPDATE wallets SET gold = gold + $1 WHERE id = $2", amount, to); err != nil {
+		return fmt.Errorf("credit: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+	return nil
+}
+`,
+  pitfall:'Forgetting to roll back on an early return, which leaves the transaction and its connection held. Defer Rollback right after BeginTx; it does nothing once Commit has succeeded. Also check RowsAffected, because an UPDATE that matches no row is not an error.'
+});
 
 T('backend-caching-redis',{ d:'backend', t:'Caching tiers and Redis patterns', tag:'Three cache tiers answer three different questions, and Redis is three different tools wearing one name.',
   what:`Where a read is answered from, and what Redis is doing in a game backend. The tiers: an in-process cache for data that is immutable between releases, a distributed cache such as memcached or Redis for player and shared state, and a per request memo cache that removes duplicate reads inside one handler. Redis earns its place separately through sorted sets for leaderboards, a lock manager for sequencing, and pub/sub for fan-out between instances.`,
@@ -947,6 +1222,52 @@ INTERVIEW('backend-caching-redis',{
       follow:`What would have stopped you adding it in the first place?`,
       red:`Has only ever added caches.` }
   ] });
+GO('backend-caching-redis', {
+  api:['context.Context', 'errors.Is', 'slog.WarnContext', 'math/rand/v2 rand.N', 'time.Duration', 'interface Cache'],
+  snippet:`package cache
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"math/rand/v2"
+	"time"
+)
+
+var ErrMiss = errors.New("cache miss")
+
+// Cache is the small surface the code needs; a Redis client sits behind it.
+type Cache interface {
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key, value string, ttl time.Duration) error
+}
+
+type Loader func(ctx context.Context, id string) (string, error)
+
+// Profile is cache-aside: read the cache, fall back to the source, then fill.
+func Profile(ctx context.Context, c Cache, load Loader, id string) (string, error) {
+	key := "profile:" + id
+	v, err := c.Get(ctx, key)
+	if err == nil {
+		return v, nil
+	}
+	if !errors.Is(err, ErrMiss) {
+		slog.WarnContext(ctx, "cache read failed", "key", key, "err", err)
+	}
+	v, err = load(ctx, id)
+	if err != nil {
+		return "", fmt.Errorf("load %s: %w", id, err)
+	}
+	ttl := 5*time.Minute + rand.N(time.Minute) // jitter spreads expiry
+	if err := c.Set(ctx, key, v, ttl); err != nil {
+		slog.WarnContext(ctx, "cache write failed", "key", key, "err", err)
+	}
+	return v, nil
+}
+`,
+  pitfall:'Giving every key the same TTL, so a whole group expires together and the database takes the full load at once. Add jitter. Also treat a cache error as a miss, not as a failed request.'
+});
 DIAGRAM('backend-caching-redis', { kind:'stack', title:'Three cache tiers answer three questions',
   layers:[{t:'Per-request memo', d:'the same lookup twice in one request'},{t:'In-process cache', d:'hot, rarely changing data, per instance'},{t:'Redis', d:'state shared across instances: sessions, rate limits, leaderboards'},{t:'Database', d:'the source of truth'}] });
 
@@ -1078,6 +1399,46 @@ INTERVIEW('backend-migrations-config',{
       follow:`It is used by a batch job nobody owns. How do you rotate without breaking it?`,
       red:`Starts with a history rewrite and treats rotation as optional.` }
   ] });
+GO('backend-migrations-config', {
+  api:['errors.Join', 'strconv.Atoi', 'time.ParseDuration', 'fmt.Errorf %w', 'func(string) string'],
+  snippet:`package config
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"time"
+)
+
+type Config struct {
+	DatabaseURL string
+	Port        int
+	DrainTime   time.Duration
+}
+
+// Load takes the lookup as a parameter (main passes os.Getenv), so a test can
+// pass a map. It reports every problem at once and fails before serving.
+func Load(getenv func(string) string) (Config, error) {
+	var errs []error
+	cfg := Config{DatabaseURL: getenv("DATABASE_URL")}
+	if cfg.DatabaseURL == "" {
+		errs = append(errs, errors.New("DATABASE_URL is required"))
+	}
+	port, err := strconv.Atoi(getenv("PORT"))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("PORT: %w", err))
+	}
+	cfg.Port = port
+	drain, err := time.ParseDuration(getenv("DRAIN_TIME"))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("DRAIN_TIME: %w", err))
+	}
+	cfg.DrainTime = drain
+	return cfg, errors.Join(errs...)
+}
+`,
+  pitfall:'Reading environment variables deep inside the code and defaulting silently when one is missing. A typo then runs in production with the wrong value. Read config once at start, validate it, and refuse to start if it is wrong.'
+});
 
 T('backend-observability',{ d:'backend', t:'Logging, tracing, profiling and action logs', tag:'Logs, traces, profiles and an event stream answer four different questions. None of them substitutes for another.',
   what:`The instrumentation that lets you answer questions about a running service. Structured logs split into named streams, traces showing where a request spent its time, profiles showing where CPU and allocations went, and an analytics event stream recording what players did. In Go that is slog, zap or logrus for logs, an APM or OpenTelemetry abstraction for traces, net/http/pprof for profiles, and a generated event type per game action.`,
@@ -1209,6 +1570,43 @@ INTERVIEW('backend-observability',{
       follow:`The client is offline when it fails. How does the report ever reach you?`,
       red:`Treats client telemetry as somebody else’s problem.` }
   ] });
+GO('backend-observability', {
+  api:['slog.Logger.LogAttrs', 'slog.String / Int / Duration', 'http.Handler', 'Request.Pattern', 'time.Since'],
+  snippet:`package obs
+
+import (
+	"log/slog"
+	"net/http"
+	"time"
+)
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(code int) {
+	w.status = code
+	w.ResponseWriter.WriteHeader(code)
+}
+
+// Logging records one structured line per request. It logs the route pattern,
+// not the raw path, so the field has few distinct values.
+func Logging(log *slog.Logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(sw, r)
+		log.LogAttrs(r.Context(), slog.LevelInfo, "request",
+			slog.String("method", r.Method),
+			slog.String("route", r.Pattern),
+			slog.Int("status", sw.status),
+			slog.Duration("took", time.Since(start)))
+	})
+}
+`,
+  pitfall:'Using the raw URL path or a player ID as a metric label or log field you group by. Every value becomes its own series and the monitoring bill and query time explode. Use the route pattern and keep IDs in the log line only.'
+});
 
 T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Three tiers answer three questions, and every expected value is derived independently rather than pasted from a run.',
   what:`The test pyramid for a game service, plus the discipline that keeps it honest. Pure unit tests for formulas, simulation and helpers. Interactor tests against generated mocks (mockery with testify) that check the rules with no infrastructure. Integration tests against a real database and cache, built through the same dependency graph the service uses. On top, an end to end suite talking to a running binary over the real protocol. The integrity rules matter as much as the tiers: expectations derived independently, setup failure is red and never skipped, and a previously green test going red means your change is wrong until proven otherwise.`,
@@ -1343,6 +1741,49 @@ INTERVIEW('backend-testing',{
       follow:`The bug cannot be reproduced in a test. What do you do instead?`,
       red:`Says tests get written after the fix if there is time.` }
   ] });
+GO('backend-testing', {
+  api:['testing.T', 'T.Run', 'T.Parallel', 'time.Date', 'time.Duration'],
+  snippet:`package daily
+
+import (
+	"testing"
+	"time"
+)
+
+type Clock interface{ Now() time.Time }
+
+type fakeClock struct{ now time.Time }
+
+func (f *fakeClock) Now() time.Time { return f.now }
+
+func CanClaim(c Clock, last time.Time) bool {
+	return c.Now().Sub(last) >= 24*time.Hour
+}
+
+func TestCanClaim(t *testing.T) {
+	t.Parallel()
+	base := time.Date(2026, 1, 1, 9, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name    string
+		elapsed time.Duration
+		want    bool
+	}{
+		{"just before a day", 23*time.Hour + 59*time.Minute, false},
+		{"exactly a day", 24 * time.Hour, true},
+		{"two days", 48 * time.Hour, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			clock := &fakeClock{now: base.Add(tc.elapsed)}
+			if got := CanClaim(clock, base); got != tc.want {
+				t.Errorf("after %v: got %v, want %v", tc.elapsed, got, tc.want)
+			}
+		})
+	}
+}
+`,
+  pitfall:'Calling time.Now inside the code under test, so the test passes or fails depending on the hour it runs. Inject a clock and set the time in the test.'
+});
 
 T('backend-go-idioms',{ d:'backend', t:'Go concurrency, lifecycle and module hygiene', tag:'Context first, errors wrapped, goroutines owned, shutdown deliberate. The idioms are what keep a large Go service readable.',
   what:`The Go specific habits that decide whether a service stays maintainable at size: context.Context as the first parameter on anything doing I/O, error wrapping matched with errors.Is and errors.As, one owner and one exit path per goroutine, explicit server timeouts, cleanup in reverse construction order at shutdown, generics kept to repeated shapes, and dependency hygiene enforced by a linter instead of by review comments.`,
@@ -1473,3 +1914,54 @@ INTERVIEW('backend-go-idioms',{
       follow:`A team needs a library that is not on the list and has a deadline. What is the process?`,
       red:`Relies on review vigilance, or bans dependencies outright with no path through.` }
   ] });
+GO('backend-go-idioms', {
+  api:['http.Server and its four timeouts', 'Server.ListenAndServe', 'Server.Shutdown', 'signal.NotifyContext', 'context.WithTimeout', 'fmt.Errorf with %w', 'slog.Error'],
+  snippet:`package main
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
+func run(ctx context.Context, addr string) error {
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           http.NewServeMux(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.ListenAndServe() }() // one owner: run waits on errCh
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("listen: %w", err)
+	case <-ctx.Done(): // signal received: stop accepting, drain
+	}
+	shutCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutCtx); err != nil {
+		return fmt.Errorf("shutdown: %w", err)
+	}
+	return nil
+}
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	err := run(ctx, ":8080")
+	stop()
+	if err != nil {
+		slog.Error("server stopped", "err", err)
+		os.Exit(1)
+	}
+}
+`,
+  pitfall:'A bare http.ListenAndServe has no timeouts, so one slow client can hold a connection open forever. Set the timeouts on an http.Server you own, and give Shutdown its own deadline so a stuck request cannot block a deploy.'
+});

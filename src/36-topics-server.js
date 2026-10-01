@@ -124,6 +124,47 @@ DIAGRAM('server-authority', { kind:'matrix', title:'Who decides what is true, an
   rows:['Server authority','Host authority','Predict + verify','Lockstep'], cols:['Who decides','Cheat risk','Felt latency'],
   cells:[['The server simulates','Low','Needs prediction to hide it'],['One player’s machine','High for the host','None for the host'],['Client first, server confirms','Low if verified','Low, with corrections'],['Every peer, same inputs','Desyncs show it','Slowest peer sets the pace']] });
 
+GO('server-authority', {
+  api:['errors.New', 'fmt.Errorf %w'],
+  snippet:`package authority
+
+import (
+	"errors"
+	"fmt"
+)
+
+// Move is what the client asks for: an intent, never a position.
+type Move struct {
+	Seq    uint32
+	DX, DY float64
+}
+
+type Player struct {
+	X, Y    float64
+	LastSeq uint32
+}
+
+const maxStep = 1.0
+
+var ErrIllegal = errors.New("illegal move")
+
+// Apply checks the request and changes state only if it is allowed.
+func (p *Player) Apply(m Move) error {
+	if m.Seq <= p.LastSeq {
+		return fmt.Errorf("seq %d already applied: %w", m.Seq, ErrIllegal)
+	}
+	if m.DX*m.DX+m.DY*m.DY > maxStep*maxStep {
+		return fmt.Errorf("step longer than %v: %w", maxStep, ErrIllegal)
+	}
+	p.X += m.DX
+	p.Y += m.DY
+	p.LastSeq = m.Seq
+	return nil
+}
+`,
+  pitfall:'Accepting the position or the result from the client and only sanity-checking it. Send inputs and let the server compute the outcome; a check on a claimed value always has a gap.'
+});
+
 T('server-determinism',{ d:'server', t:'Deterministic simulation and parity', tag:'Two machines, one answer, bit for bit. Everything else is a guess wearing a checksum.',
   what:`Making a simulation produce exactly the same output from the same input on every machine that runs it, and proving it continuously. That means a seeded random source both sides implement identically, arithmetic that cannot drift, a fixed step that does not depend on frame rate, and a parity test that runs recorded inputs through both implementations and diffs the traces bit for bit.`,
   why:[`It is the precondition for client-simulate-server-verify, for lockstep, and for replays that still play back a year later.`,`Floating point drift is silent. A result that is wrong in the last bit today is a visibly different match outcome after ten thousand ticks.`,`Without a parity test in continuous integration, determinism decays with the next optimisation. Nobody breaks it on purpose.`,`It turns a cheating question into an arithmetic question, which is the only version of that question you can win.`],
@@ -235,6 +276,36 @@ INTERVIEW('server-determinism',{
       red:`Presents the choice as purely a style preference with no cost attached to either side.` }
   ] });
 
+GO('server-determinism', {
+  api:['rand.New', 'rand.NewPCG', 'Rand.IntN', 'append'],
+  snippet:`package sim
+
+import "math/rand/v2"
+
+type Match struct {
+	tick int
+	rng  *rand.Rand
+	Hits []int
+}
+
+// NewMatch seeds a private generator, so the match never touches global state.
+func NewMatch(seed uint64) *Match {
+	return &Match{rng: rand.New(rand.NewPCG(seed, seed^0x9e3779b97f4a7c15))}
+}
+
+// Step advances exactly one fixed tick. The same seed and the same inputs
+// in the same order give the same match.
+func (m *Match) Step(inputs []int) {
+	for _, in := range inputs {
+		damage := 10 + m.rng.IntN(5)
+		m.Hits = append(m.Hits, in*damage)
+	}
+	m.tick++
+}
+`,
+  pitfall:'Ranging over a map inside the step. Go randomises map iteration order on purpose, so two runs of the same match diverge. Iterate a sorted slice of keys instead.'
+});
+
 T('server-state-sync',{ d:'server', t:'State sync and tick rates', tag:'Send what changed, at a rate someone chose on purpose, and decide whether the client waits or guesses.',
   what:`How the authoritative state reaches the machines that only display it. Three decisions sit inside it: what you send (the whole state, a snapshot, or only the fields that changed since this client last acknowledged), how often you send it, and what the receiver does between messages. The receiver either interpolates between the last two known states and lives slightly in the past, or predicts forward from local input and reconciles when the truth arrives. Counter-Strike 2’s sub-tick model shows a fourth option: keep a fixed simulation tick but timestamp each input to the instant it happened, so two players who acted a few milliseconds apart within the same tick still resolve in that order.`,
   why:[`Bandwidth and cost scale with what you send times how often times how many players see it. This is the single largest running cost of a realtime game.`,`Interpolation and prediction produce different games. Interpolated remote players are always behind, predicted local players sometimes rewind. Both are visible to players and both need design.`,`Tick rate sets the resolution of fairness. Two players can only be distinguished by the simulation at the granularity it ticks.`,`Outside realtime matches the same idea pays for itself: returning only the state a request changed turns a large response into a small one.`],
@@ -332,6 +403,40 @@ INTERVIEW('server-state-sync',{
       follow:`An object crosses from outside a client’s interest set to inside it. What does that client need to receive at that exact moment?`,
       red:`Applies one replication strategy uniformly to every entity type regardless of its role.` }
   ] });
+
+GO('server-state-sync', {
+  api:['time.NewTicker', 'select', 'context.Context.Done', 'Ticker.C'],
+  snippet:`package tick
+
+import (
+	"context"
+	"time"
+)
+
+type World interface {
+	Step()
+	Snapshot() []byte
+}
+
+// Run simulates at 60 Hz and sends a snapshot every third tick (20 Hz).
+func Run(ctx context.Context, w World, send func([]byte)) {
+	t := time.NewTicker(time.Second / 60)
+	defer t.Stop()
+	for n := 1; ; n++ {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			w.Step()
+			if n%3 == 0 {
+				send(w.Snapshot())
+			}
+		}
+	}
+}
+`,
+  pitfall:'Assuming the ticker keeps up. If Step takes longer than the interval, ticks are dropped without any error and the simulation runs slow. Measure Step and log when it exceeds the budget.'
+});
 
 T('server-realtime-protocol',{ d:'server', t:'Realtime protocol design', tag:'A length, an op code, a message id, a payload. Everything else is a decision you should be able to defend.',
   what:`The wire format and dispatch rules of a persistent connection. A framed binary envelope carrying an op code and a message id, a schema for the payload, a rule for which messages are reliable and ordered and which may be dropped, a way to correlate a reply with the request that caused it over a socket that also pushes unsolicited events, and an authentication step that must happen before any op that touches state.`,
@@ -438,6 +543,51 @@ INTERVIEW('server-realtime-protocol',{
 DIAGRAM('server-realtime-protocol', { kind:'stack', title:'One message frame on the wire',
   layers:[{t:'Length', d:'first and fixed size, so the reader knows how much to take'},{t:'Op code', d:'which message this is'},{t:'Message id', d:'pairs a reply with its request'},{t:'Payload', d:'the body, in the encoding both sides agreed'}] });
 
+GO('server-realtime-protocol', {
+  api:['binary.BigEndian.PutUint32', 'binary.BigEndian.Uint32', 'io.ReadFull', 'errors.New', 'fmt.Errorf %w'],
+  snippet:`package wire
+
+import (
+	"encoding/binary"
+	"errors"
+	"fmt"
+	"io"
+)
+
+const maxBody = 64 * 1024
+
+var ErrTooLarge = errors.New("message too large")
+
+// WriteFrame writes one byte of type, four bytes of body length, then the body.
+func WriteFrame(w io.Writer, kind byte, body []byte) error {
+	hdr := make([]byte, 5)
+	hdr[0] = kind
+	binary.BigEndian.PutUint32(hdr[1:], uint32(len(body)))
+	if _, err := w.Write(append(hdr, body...)); err != nil {
+		return fmt.Errorf("write frame: %w", err)
+	}
+	return nil
+}
+
+func ReadFrame(r io.Reader) (kind byte, body []byte, err error) {
+	hdr := make([]byte, 5)
+	if _, err = io.ReadFull(r, hdr); err != nil {
+		return 0, nil, fmt.Errorf("read header: %w", err)
+	}
+	n := binary.BigEndian.Uint32(hdr[1:])
+	if n > maxBody {
+		return 0, nil, fmt.Errorf("%d bytes: %w", n, ErrTooLarge)
+	}
+	body = make([]byte, n)
+	if _, err = io.ReadFull(r, body); err != nil {
+		return 0, nil, fmt.Errorf("read body: %w", err)
+	}
+	return hdr[0], body, nil
+}
+`,
+  pitfall:'Allocating a buffer from the length the peer sent before checking it, which lets one packet claim four gigabytes. Check the length first, and use io.ReadFull because a single Read on TCP may return part of a message.'
+});
+
 T('server-matchmaking',{ d:'server', t:'Matchmaking, rooms and sessions', tag:'A ticket, a rule set, a room, and an explicit answer to what happens when someone disappears.',
   what:`Getting the right players into the same session and keeping that session coherent. A ticket carries who is waiting, what capacity the match needs, and the predicates a candidate set must satisfy. A matcher scans open tickets for a satisfying group and hands them to something that creates the session. Around that sit private rooms with join codes, the lifetime rules for a session, and a deliberate policy for disconnection and reconnection.`,
   why:[`Match quality is the first thing players feel about a multiplayer game, and it is a design problem before it is an algorithm.`,`Wait time and match quality trade against each other directly, and the trade has to be chosen rather than emerge from a queue.`,`Session lifetime bugs are the expensive kind. A room that outlives its players costs money forever and a room that dies early loses a match in progress.`,`Reconnection is a product decision with a real cost. Deciding not to support it is legitimate and must be decided, not discovered.`],
@@ -536,6 +686,62 @@ INTERVIEW('server-matchmaking',{
 DIAGRAM('server-matchmaking', { kind:'state', title:'A match ticket from queue to result', start:'queued',
   states:[{id:'queued', t:'Queued', d:'ticket waiting'},{id:'matched', t:'Matched', d:'rules satisfied'},{id:'room', t:'In room', d:'server allocated'},{id:'playing', t:'Playing', d:'match running'},{id:'reconnect', t:'Reconnecting', d:'grace window'},{id:'ended', t:'Ended', d:'result recorded'}],
   edges:[['queued','matched','rules met'],['matched','room','allocate'],['room','playing','all ready'],['playing','reconnect','drop'],['reconnect','playing','back in time'],['reconnect','ended','timeout'],['playing','ended','match over']] });
+
+GO('server-matchmaking', {
+  api:['sync.Mutex', 'time.Time.Sub', 'Duration.Seconds', 'builtin max', 'append'],
+  snippet:`package mm
+
+import (
+	"sync"
+	"time"
+)
+
+type Ticket struct {
+	Player   string
+	Rating   int
+	QueuedAt time.Time
+}
+
+type Queue struct {
+	mu      sync.Mutex
+	tickets []Ticket
+}
+
+func (q *Queue) Add(t Ticket) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	q.tickets = append(q.tickets, t)
+}
+
+// Match pairs two tickets whose rating gap is inside a band. The band starts
+// at 100 and widens by 25 for every second the longer-waiting player has waited.
+func (q *Queue) Match(now time.Time) (a, b Ticket, ok bool) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for i := range q.tickets {
+		for j := i + 1; j < len(q.tickets); j++ {
+			x, y := q.tickets[i], q.tickets[j]
+			waited := max(now.Sub(x.QueuedAt), now.Sub(y.QueuedAt))
+			band := 100 + 25*int(waited.Seconds())
+			if abs(x.Rating-y.Rating) <= band {
+				q.tickets = append(q.tickets[:j], q.tickets[j+1:]...)
+				q.tickets = append(q.tickets[:i], q.tickets[i+1:]...)
+				return x, y, true
+			}
+		}
+	}
+	return Ticket{}, Ticket{}, false
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+`,
+  pitfall:'Matching inside a fixed rating band. In a quiet hour a player at the edge of the population waits for ever. Widen the band with waiting time and set a hard cap so the match is still fair.'
+});
 
 T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts scale by adding copies. The stateful parts are the whole problem.',
   what:`Making the server hold more concurrent players than one process can. The request-serving layer is stateless and scales by adding instances behind a load balancer. Rooms, sessions and live connections are stateful and must be placed somewhere findable, with a directory that maps a room to the instance holding it. Messages that must reach players spread across instances go through a pub/sub layer, usually sharded, and player data itself can be partitioned into independent worlds when a single database stops keeping up.`,
@@ -639,6 +845,43 @@ DIAGRAM('server-scaling', { kind:'matrix', title:'Stateless parts add copies; st
   rows:['Gateways and APIs','Matchmaking','Game rooms','Chat and presence'], cols:['State held','How it scales'],
   cells:[['None','Add copies behind a load balancer'],['Queues of tickets','Partition by region or mode'],['Live match state in memory','A directory maps each room to a server'],['Open connections','Pub/sub fan-out across servers']] });
 
+GO('server-scaling', {
+  api:['atomic.Bool', 'http.Error', 'http.StatusServiceUnavailable', 'http.HandlerFunc'],
+  snippet:`package drain
+
+import (
+	"net/http"
+	"sync/atomic"
+)
+
+type Gate struct{ draining atomic.Bool }
+
+// StartDrain is called when the instance is told to stop, for example on SIGTERM.
+func (g *Gate) StartDrain() { g.draining.Store(true) }
+
+// Ready is the readiness probe: the load balancer stops sending new players.
+func (g *Gate) Ready(w http.ResponseWriter, r *http.Request) {
+	if g.draining.Load() {
+		http.Error(w, "draining", http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// NewGames refuses new rooms while draining. Rooms already running finish.
+func (g *Gate) NewGames(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if g.draining.Load() {
+			http.Error(w, "draining", http.StatusServiceUnavailable)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+`,
+  pitfall:'Exiting as soon as SIGTERM arrives, which kills live matches. Mark the instance not ready, wait until the rooms empty or a deadline passes, and set the platform grace period at least that long.'
+});
+
 T('server-anticheat',{ d:'server', t:'Anti-cheat and abuse handling', tag:'The client is the attacker. Detect, keep the evidence, and decide the response separately from the detection.',
   what:`Everything that stops a player from gaining an unfair advantage or making the game worse for others. It splits into prevention, which is the authority model refusing to accept an assertion, detection, which is re-simulating or bounding what the client claims, evidence, which is the replay and aggregate data that lets a human judge, and response, which is the ladder from a rejected request through rate limits to a shadow ban. Abuse of other players sits in the same system with different signals.`,
   why:[`Anything the client decides, the client can lie about. The only question is whether you find out.`,`Cheating is a retention problem before it is a fairness problem. Honest players leave quietly.`,`Detection without retained evidence produces bans you cannot justify and cannot appeal, which is worse than no bans.`,`The response has to be decided by policy and people, not by a threshold in code that nobody owns.`],
@@ -734,6 +977,44 @@ INTERVIEW('server-anticheat',{
       follow:`Server re-simulation for this mode requires proven determinism, and the simulation isn’t deterministic yet. What does that do to your plan?`,
       red:`Proposes enforcement mechanisms before the detection and evidence layers exist.` }
   ] });
+
+GO('server-anticheat', {
+  api:['sync.Mutex', 'time.Time.Sub', 'Duration.Seconds', 'builtin min'],
+  snippet:`package cheat
+
+import (
+	"sync"
+	"time"
+)
+
+// Bucket is a token bucket: rate actions a second, bursts up to burst.
+type Bucket struct {
+	mu     sync.Mutex
+	tokens float64
+	last   time.Time
+	rate   float64
+	burst  float64
+}
+
+func NewBucket(rate, burst float64, now time.Time) *Bucket {
+	return &Bucket{tokens: burst, last: now, rate: rate, burst: burst}
+}
+
+// Allow takes the server's clock, never a timestamp sent by the client.
+func (b *Bucket) Allow(now time.Time) bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.tokens = min(b.burst, b.tokens+now.Sub(b.last).Seconds()*b.rate)
+	b.last = now
+	if b.tokens < 1 {
+		return false
+	}
+	b.tokens--
+	return true
+}
+`,
+  pitfall:'Banning on the first rejected action. A lag spike can send a burst of honest inputs. Count rejections, flag the account for review, and keep bans for patterns that repeat.'
+});
 
 T('server-liveops',{ d:'server', t:'Live operations on the server', tag:'The game keeps running while you change it. Gates, versions and scheduled jobs are how you stay in control.',
   what:`The server-side machinery that lets a live game be changed without breaking the players inside it. A maintenance gate that can close the game before a risky change, a client-version gate that can force an update while still letting a few endpoints answer, versioned master data that clients download rather than ship, scheduled batch jobs that do the work no request can do, and an order of operations for releases that keeps data, server and client compatible at every moment in between.`,
@@ -838,6 +1119,37 @@ INTERVIEW('server-liveops',{
       follow:`The rehearsal reveals a state between server and client where the game doesn’t work correctly. What do you do with the release?`,
       red:`Treats rehearsal as a formality and ships without ever exercising an intermediate state with real players connected.` }
   ] });
+
+GO('server-liveops', {
+  api:['atomic.Pointer', 'json.Unmarshal', 'fmt.Errorf %w'],
+  snippet:`package liveops
+
+import (
+	"encoding/json"
+	"fmt"
+	"sync/atomic"
+)
+
+type Flags struct{ cur atomic.Pointer[map[string]bool] }
+
+// Load parses a new set of flags and swaps it in whole, with no restart.
+func (f *Flags) Load(raw []byte) error {
+	m := map[string]bool{}
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return fmt.Errorf("parse flags: %w", err)
+	}
+	f.cur.Store(&m)
+	return nil
+}
+
+// On is false for a flag that is missing, so a bad config fails closed.
+func (f *Flags) On(name string) bool {
+	m := f.cur.Load()
+	return m != nil && (*m)[name]
+}
+`,
+  pitfall:'Editing the stored map in place while handlers read it, which is a data race that can crash the process. Build a new map and swap the pointer, as here.'
+});
 
 T('server-rollback-netcode',{ d:'server', t:'Rollback netcode and lockstep', tag:'Guess the other player’s input, keep playing, and when the guess is wrong, go back and replay the frames.',
   what:`Two ways for peers to share one simulation by sending only inputs. Deterministic lockstep waits: no peer advances a frame until every player’s input for that frame has arrived, so latency becomes delay. Rollback (the GGPO approach) guesses: it predicts the missing remote input, usually by repeating the last one, runs the frame at once, and when the real input arrives and differs it restores a saved state and re-simulates the frames since. Both need a simulation that gives the same result on every machine from the same inputs. Rollback also needs the whole game state to be saved, loaded and stepped many times inside one rendered frame.`,
@@ -970,6 +1282,46 @@ INTERVIEW('server-rollback-netcode',{
       red:`Treats one model as best for all.` }
   ] });
 
+GO('server-rollback-netcode', {
+  api:['array indexing with modulo', 'struct copy'],
+  snippet:`package rollback
+
+const window = 8
+
+// State must hold everything the step reads, so a replay gives the same result.
+type State struct{ Frame, X int }
+
+type Game struct {
+	cur   State
+	saved [window]State
+}
+
+func step(s State, input int) State {
+	return State{Frame: s.Frame + 1, X: s.X + input}
+}
+
+// Advance saves the state before the frame, then simulates it.
+func (g *Game) Advance(input int) {
+	g.saved[g.cur.Frame%window] = g.cur
+	g.cur = step(g.cur, input)
+}
+
+// Rollback restores the state at the start of frame and replays the
+// corrected inputs for frame and every frame after it.
+func (g *Game) Rollback(frame int, inputs []int) bool {
+	if frame < 0 || frame >= g.cur.Frame || frame < g.cur.Frame-window {
+		return false
+	}
+	g.cur = g.saved[frame%window]
+	for _, in := range inputs {
+		g.Advance(in)
+	}
+	return true
+}
+`,
+  pitfall:'Letting the step read something that is not in the saved state, such as time.Now, a shared map or a pointer to another object. The replay then differs from the first run and the players drift apart.'
+});
+
 T('server-stack-choices',{ d:'server', t:'Choosing a multiplayer stack: hosting, services and netcode', tag:'Pick the session model first. Then pick three layers separately, and keep a seam so any one of them can be replaced.',
   what:`A multiplayer stack is three layers that are often sold together and should be chosen apart. The netcode library lives in the client and the server and moves state and messages between them (Netcode for GameObjects, Mirror, Photon Fusion 2, Fish-Net, or Godot’s high-level multiplayer). Orchestration and hosting start, place and stop dedicated server processes on machines (Agones on Kubernetes, Amazon GameLift Servers, PlayFab Multiplayer Servers). Backend services hold what lives between matches: accounts, matchmaking, leaderboards and storage (Nakama, PlayFab, Unity Gaming Services). Which of these you need depends first on the session model: short matches that start and end, or a persistent world that keeps running.`,
   why:[`A choice made for the demo is usually a choice made for life. The netcode library shapes every gameplay script, so replacing it late means rewriting the game.`,`Services end. Companies shut products down, rename them and change prices, and the date is theirs, not yours.`,`A match-based game and a persistent world need different hosting. Starting and stopping thousands of short processes is a different job from keeping one world alive.`,`Buying saves months at the start and costs a dependency. Building costs months and removes one. Neither is free, so the decision should be written down with its exit cost.`],
@@ -1076,3 +1428,49 @@ FACTS('server-stack-choices',[
   { claim:`Nakama is an open-source game backend. Its server framework lets you write runtime code in Go, JavaScript or Lua.`, asOf:'2026-10-01', src:'https://heroiclabs.com/docs/nakama/server-framework/introduction/' },
   { claim:`Mirror, an open-source networking library for Unity, is MIT licensed.`, asOf:'2026-10-01', src:'https://github.com/MirrorNetworking/Mirror' }
 ]);
+
+GO('server-stack-choices', {
+  api:['interface', 'chan', 'select', 'context.Context.Done'],
+  snippet:`package netstack
+
+import "context"
+
+// Transport is the only thing game code knows about the network stack.
+// A vendor library lives behind it, in one package.
+type Transport interface {
+	Send(ctx context.Context, peer string, msg []byte) error
+	Receive(ctx context.Context) (peer string, msg []byte, err error)
+}
+
+type packet struct {
+	peer string
+	msg  []byte
+}
+
+// Loopback is an in-process Transport for tests and local play.
+type Loopback struct{ ch chan packet }
+
+var _ Transport = (*Loopback)(nil)
+
+func NewLoopback() *Loopback { return &Loopback{ch: make(chan packet, 64)} }
+
+func (l *Loopback) Send(ctx context.Context, peer string, msg []byte) error {
+	select {
+	case l.ch <- packet{peer: peer, msg: msg}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (l *Loopback) Receive(ctx context.Context) (string, []byte, error) {
+	select {
+	case p := <-l.ch:
+		return p.peer, p.msg, nil
+	case <-ctx.Done():
+		return "", nil, ctx.Err()
+	}
+}
+`,
+  pitfall:'Passing the vendor library types through game code, so changing the stack later means rewriting everything. Keep the interface small and in terms of your own types.'
+});

@@ -21704,6 +21704,34 @@ DIAGRAM('difficulty', { kind:'curve', title:'Challenge in waves around a rising 
   series:[{t:'Challenge', pts:[[0,0.15],[0.12,0.3],[0.2,0.22],[0.35,0.45],[0.43,0.36],[0.58,0.62],[0.66,0.5],[0.82,0.82],[0.9,0.66],[1,0.8]]},{t:'Player skill', pts:[[0,0.1],[0.25,0.28],[0.5,0.46],[0.75,0.64],[1,0.8]]}],
   alt:'Challenge rises in waves around the player’s growing skill: spikes test what was learned, rests let it settle. Far above skill is anxiety, far below is boredom.' });
 
+WORKED('difficulty', {
+  kind:'table',
+  id:'ten-level-difficulty-curve',
+  t:'A difficulty curve for ten levels',
+  intro:'Each row is one level. Time to kill and time survived come from health and damage per second, and their ratio is the safety margin: above 1 the player usually wins, near 1 it is a coin flip. The teaching note makes the saw-tooth: a new mechanic, practice, a combination, a test, then a rest. The method is spreadsheets for balance, as taught in Ian Schreiber and Brenda Romero’s "Game Balance" (CRC Press, 2021).',
+  note:'Illustrative numbers, not from a shipped game: the shape is the lesson.',
+  columns:[{h:'Level'}, {h:'Enemy health', unit:'hp'}, {h:'Enemy damage per second', unit:'hp/s'}, {h:'Player damage per second', unit:'hp/s'}, {h:'Time to kill', unit:'s'}, {h:'Player health', unit:'hp'}, {h:'Time the player survives', unit:'s'}, {h:'Safety margin'}, {h:'Teaching note'}],
+  rows:[
+    [1, 100, 5, 20, 5, 100, 20, 4, 'New mechanic: the first enemy that dodges'],
+    [2, 140, 6, 22, 6.4, 100, 16.7, 2.62, 'Practice: the dodge again, with more room'],
+    [3, 200, 8, 25, 8, 100, 12.5, 1.56, 'Combination: dodge plus the shield you already have'],
+    [4, 250, 9, 28, 8.9, 100, 11.1, 1.24, 'Test: all of it, no new rules'],
+    [5, 150, 5, 30, 5, 120, 24, 4.8, 'Rest: a short level to breathe and spend rewards'],
+    [6, 260, 8, 36, 7.2, 120, 15, 2.08, 'New mechanic: enemies that call for help'],
+    [7, 320, 10, 38, 8.4, 120, 12, 1.43, 'Practice: the call for help, one at a time'],
+    [8, 380, 9, 40, 9.5, 120, 13.3, 1.4, 'Combination: call for help with the shield'],
+    [9, 480, 10, 44, 10.9, 120, 12, 1.1, 'Test: the whole set, the hardest level so far'],
+    [10, 300, 6, 46, 6.5, 140, 23.3, 3.58, 'Rest: a victory lap with a new weapon']
+  ],
+  formulas:[
+    {col:'Time to kill', f:'Enemy health / Player damage per second (in a sheet: =B2/D2). Rounded to one decimal.'},
+    {col:'Time the player survives', f:'Player health / Enemy damage per second (in a sheet: =F2/C2). Rounded to one decimal.'},
+    {col:'Safety margin', f:'Time the player survives / Time to kill (in a sheet: =G2/E2). Rounded to two decimals, so a hand check can differ in the last digit.'}
+  ],
+  try:['Give the player less damage from level 6: set it to 28 at level 6 and take 8 off every level after it too. Which levels fall below a margin of 1.2, and which below 1?', 'Find the first level where the margin falls below 1.2. What would a playtest show there: how many deaths, and what would players say?', 'Raise player health at level 4 from 100 to 140. How much easier does the test get, and is it still a test?', 'Why does the margin jump up at levels 5 and 10? What would the player feel if those two rest levels were removed?'],
+  file:'ten-level-difficulty-curve.csv'
+});
+
 T('builds-and-loadouts',{ d:'systems', t:'Builds, loadouts and constraints', tag:'Build diversity comes from constraints that force different players to solve the same problem differently.',
   what:`Systems where the player composes a set of capabilities before or during play: classes, decks, loadouts, skill trees, party composition. Their value is expression and horizontal progression. Their failure is convergence, where one build dominates and the others are traps. Final Fantasy V (1992) shows horizontal progression through a job system: once a character masters a job’s abilities, one of them can be equipped as a command on any other job, so a build becomes a pairing the player composes rather than a level they reach.`,
   why:[`Builds are how systemic games personalize themselves. They turn one game into many.`,`Convergence is inevitable without constraints and counters. The community will find the optimum within days.`,`A build that is a trap (looks viable, is not) teaches players not to trust the system.`],
@@ -22014,6 +22042,34 @@ INTERVIEW('economy-modelling-and-balance',{
       follow:`Who owns it when the designer who built it leaves?`,
       red:`Builds the model once at launch and treats it as done.` }
   ] });
+
+WORKED('economy-modelling-and-balance', {
+  kind:'table',
+  id:'ten-day-soft-currency-economy',
+  t:'A ten-day economy for one currency',
+  intro:'A small mobile-style game with one soft currency, followed for ten days. Every row follows one rule: the balance at the end of the day is the balance from the day before, plus what came in, minus what went out. The method is spreadsheets for balance, as taught in Ian Schreiber and Brenda Romero’s "Game Balance" (CRC Press, 2021). Upgrade n costs 250 coins x 1.5 to the power of the upgrades already bought, so the first costs 250 and the fifth 1266.',
+  note:'Illustrative numbers, not from a shipped game: the shape is the lesson.',
+  columns:[{h:'Day'}, {h:'Minutes played', unit:'min'}, {h:'Income from play', unit:'coins'}, {h:'Income from daily reward', unit:'coins'}, {h:'Spend on upgrades', unit:'coins'}, {h:'Spend on cosmetics', unit:'coins'}, {h:'Balance at end of day', unit:'coins'}, {h:'Days of play to afford the next upgrade', unit:'days'}],
+  rows:[
+    [1, 12, 180, 100, 0, 0, 280, 0],
+    [2, 20, 300, 100, 250, 0, 430, 0],
+    [3, 15, 225, 100, 0, 150, 605, 0],
+    [4, 25, 375, 100, 375, 0, 705, 0],
+    [5, 10, 150, 100, 0, 0, 955, 0],
+    [6, 30, 450, 100, 563, 0, 942, 0],
+    [7, 18, 270, 100, 0, 200, 1112, 0],
+    [8, 22, 330, 100, 844, 0, 698, 2],
+    [9, 14, 210, 100, 0, 100, 908, 2],
+    [10, 28, 420, 100, 0, 0, 1428, 0]
+  ],
+  formulas:[
+    {col:'Income from play', f:'Minutes played x 15 coins a minute (in a sheet: =B2*15).'},
+    {col:'Balance at end of day', f:'Previous balance + play income + daily reward - upgrades - cosmetics (in a sheet: =G1+C2+D2-E2-F2, with day 1 starting from 0).'},
+    {col:'Days of play to afford the next upgrade', f:'The next upgrade costs 250 x 1.5^(upgrades bought so far), rounded. Then =MAX(0, ROUNDUP((next cost - balance) / (play income + daily reward), 0)): the shortfall divided by that day’s income. 0 means the player can already afford it.'}
+  ],
+  try:['Raise the daily reward from 100 to 150 coins, 50 percent more. What happens to the balance on day 10, and to the days-to-afford column on day 8?', 'Double the upgrade cost from day 6 (the day 6 upgrade becomes 1126, the day 8 one 1688). Can the player still buy both? What do they do on day 8, and what would they feel?', 'Inflation is when the same coins buy less. Where does this table show it, and what would you add to the economy to pull the balance back down?', 'Explain in your own words why the balance climbs on most days but dips on days 6 and 8. What does the shape say about when a player decides to buy?', 'The player skips cosmetics for all ten days. Which columns change, and does it change when they can afford the next upgrade?'],
+  file:'ten-day-soft-currency-economy.csv'
+});
 
 /* =====================================================================
    CONTENT
@@ -29372,6 +29428,64 @@ INTERVIEW('design-documents',{
       red:`Applies the same documentation standard regardless of team size or handoff count.` }
   ] });
 
+WORKED('design-documents', {
+  kind:'doc',
+  id:'one-page-spec-fetch-pet',
+  t:'A one-page spec for a pet that fetches coins',
+  intro:'Stone Librande’s one-page designs (GDC 2010) are diagrams first. This is the text skeleton you would draw around: if each heading fits in a box on one sheet, the spec is the right size. The example feature is a pet that follows the player and fetches dropped coins, in a small action game.',
+  note:'An example written for this guide.',
+  sections:[
+    {h:'Central idea', body:'A small pet trots behind the player and runs to pick up coins the player could not reach, so risky coins feel worth leaving for a moment.'},
+    {h:'Player experience', body:'The player drops coins when hit, as they do now. The pet notices them, runs over and brings them back after a short delay. The player feels looked after, but not rescued: coins in danger zones are still lost, and the pet can be hurt.'},
+    {h:'Rules', body:'- The pet follows within 3 metres of the player.\n- It targets the nearest dropped coin within 8 metres and returns it to the player.\n- It carries one coin at a time and takes about 1 second per coin.\n- Coins expire after 6 seconds, as they do now.\n- Hazards hurt the pet. After 3 hits it sits down for 10 seconds.'},
+    {h:'What it touches', body:'Coin drop code, the hazard damage system, the follow camera, the audio mix (one new bark), and the HUD coin counter, which must count a returned coin once.'},
+    {h:'Open questions', body:'Does the pet pick up power-ups too? Can the player call it back? Does it block narrow corridors? Does it make the coin economy too generous?'},
+    {h:'How we will know it works', body:'In a 10-person playtest, at least 7 say the pet helped them, none say it got in the way, and the average coins banked per level rises by no more than 15 percent.'}
+  ],
+  try:['Turn this spec into a diagram on one page: what boxes and arrows would you draw?', 'Add one rule that stops the pet making the game too easy, and say which line in "How we will know it works" would catch the problem.', 'Pick a different feature from a game you know and fill in just the first two headings.'],
+  file:'one-page-spec-fetch-pet.md'
+});
+
+WORKED('design-documents', {
+  kind:'doc',
+  id:'feature-brief-fetch-pet',
+  t:'A feature brief for the fetch pet',
+  intro:'A brief asks for a decision before the work starts. It is short on how and long on why, and it names the result that would make the team stop.',
+  note:'An example written for this guide.',
+  sections:[
+    {h:'Problem', body:'Players leave coins behind when they are hit near hazards, and our playtests show they find that frustrating rather than tense.'},
+    {h:'Target player', body:'A casual player on a phone who plays in short sessions and does not want to replay a level for a few coins.'},
+    {h:'Desired behaviour', body:'The player keeps moving forward after a hit instead of going back for coins, and still takes some risks to collect them.'},
+    {h:'Smallest experiment', body:'A grey-box pet with no art: it follows the player and fetches coins. One level, one week of work for one designer and one programmer, tested with 10 players.'},
+    {h:'Success signal', body:'At least 7 of 10 players say they went back for fewer coins, and the level completion rate stays the same or rises.'},
+    {h:'Kill criterion', body:'If after the test fewer than 4 of 10 players notice the pet, or more than 3 say it makes the level too easy, we stop and do not build the art.'},
+    {h:'Cost estimate', body:'5 working days for the experiment. About 6 weeks to ship with art, animation and audio.'},
+    {h:'Risks', body:'The pet can break the coin economy. Pathfinding in tight spaces is hard. It may feel like a mobile-game pet rather than part of this game.'},
+    {h:'Decision needed by', body:'Friday, before we plan the next sprint.'}
+  ],
+  try:['Write the kill criterion for a different feature, such as a new boss or a daily reward. Make it a number a stranger could check.', 'Which section would you cut for a one-day task, and which can you never cut?', 'Rewrite the success signal so it measures behaviour instead of opinion.'],
+  file:'feature-brief-fetch-pet.md'
+});
+
+WORKED('design-documents', {
+  kind:'doc',
+  id:'decision-log-fetch-pet',
+  t:'A decision-log entry for the fetch pet',
+  intro:'A decision log is a list of short entries that stop a settled question being reopened by accident. The entry records what was chosen and, as important, what was given up.',
+  note:'An example written for this guide.',
+  sections:[
+    {h:'Date', body:'2026-10-01'},
+    {h:'Decision', body:'The pet fetches coins only. It does not pick up power-ups or keys in this version.'},
+    {h:'Options considered', body:'1. Coins only.\n2. Coins and power-ups.\n3. Anything that drops, including keys.'},
+    {h:'Why this one', body:'It is the smallest rule that tests the idea. Power-ups change the strategy of a level, and keys can block progress if the pet fails to bring one.'},
+    {h:'What we gave up', body:'Some of the "it helps me with everything" feeling. A player may ask why the pet ignores a power-up that is right next to it.'},
+    {h:'Evidence', body:'Playtest of the grey-box pet with 10 players: 8 liked the coin fetching, 3 asked for power-ups, and 2 lost a power-up because the pet ran past it.'},
+    {h:'Revisit when', body:'After the coin experiment ships and we have two weeks of data on coins banked per level, or sooner if more than a quarter of players ask for power-up fetching.'}
+  ],
+  try:['Write a decision-log entry for a choice your own team made this month, and be honest about what it gave up.', 'What is the difference between "revisit when" and "never decided"? Rewrite a vague one so it has a date or a number.', 'Who should be allowed to reverse this decision, and where would you write that?'],
+  file:'decision-log-fetch-pet.md'
+});
+
 T('metrics-and-success',{ d:'studio', t:'Metrics, telemetry and success criteria', tag:'Decide what would count as working before you ship, and measure behaviour you can attribute to a change.',
   what:`How to define success, choose metrics, and instrument the game. Leading indicators show behaviour inside a session. Lagging indicators show retention and revenue. Funnels, cohorts, completion and session length describe what happened. Data informs decisions. It never makes them, because a number cannot tell you why the player behaved that way.`,
   why:[`A hypothesis without a signal is a hope.`,`Vanity metrics reassure and do not guide.`,`Behaviour metrics reveal where the loop breaks, and self-report cannot.`,`Instrumentation built late cannot answer questions you did not anticipate.`],
@@ -30034,6 +30148,61 @@ INTERVIEW('backend-layering',{
       follow:`What would you do differently at the start of that project?`,
       red:`Talks about maintainability in the abstract with no change they can point at.` }
   ] });
+GO('backend-layering', {
+  api:['http.HandlerFunc', 'Request.PathValue', 'Request.Context', 'errors.Is', 'fmt.Errorf %w', 'json.NewEncoder'],
+  snippet:`package layering
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+type Player struct {
+	ID   string \`json:"id"\`
+	Name string \`json:"name"\`
+}
+
+var ErrNotFound = errors.New("player not found")
+
+// Repository is declared where it is used; storage code implements it.
+type Repository interface {
+	Player(ctx context.Context, id string) (Player, error)
+}
+
+type Service struct{ repo Repository }
+
+func NewService(repo Repository) *Service { return &Service{repo: repo} }
+
+func (s *Service) Get(ctx context.Context, id string) (Player, error) {
+	p, err := s.repo.Player(ctx, id)
+	if err != nil {
+		return Player{}, fmt.Errorf("get player %s: %w", id, err)
+	}
+	return p, nil
+}
+
+// PlayerHandler only translates HTTP to a service call and back.
+func PlayerHandler(s *Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		p, err := s.Get(r.Context(), r.PathValue("id"))
+		if errors.Is(err, ErrNotFound) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(p)
+	}
+}
+`,
+  pitfall:'Defining the repository interface next to the storage code, so the service imports the database package and the layers point the wrong way. Declare the interface in the layer that uses it.'
+});
 DIAGRAM('backend-layering', { kind:'stack', title:'Dependencies point inward', taper:true, arrow:'imports point inward',
   layers:[{t:'Transport', d:'HTTP, WebSocket and gRPC handlers'},{t:'Adapters', d:'database, cache and queue clients'},{t:'Use cases', d:'one operation each: claim, buy, match'},{t:'Domain', d:'entities and game rules, no I/O'}] });
 
@@ -30166,6 +30335,54 @@ INTERVIEW('backend-di-modes',{
       follow:`How would you prove the split reduced anything?`,
       red:`Starts by rewriting the wiring layer wholesale with no measurement.` }
   ] });
+GO('backend-di-modes', {
+  api:['slog.New', 'slog.NewTextHandler', 'constructor injection', 'func() error closers', 'defer'],
+  snippet:`package main
+
+import (
+	"log/slog"
+	"os"
+)
+
+type Store interface {
+	Close() error
+}
+
+type memStore struct{}
+
+func (memStore) Close() error { return nil }
+
+type Matchmaker struct {
+	store Store
+	log   *slog.Logger
+}
+
+func NewMatchmaker(store Store, log *slog.Logger) *Matchmaker {
+	return &Matchmaker{store: store, log: log}
+}
+
+// build is the only place that knows the concrete types.
+func build(log *slog.Logger) (*Matchmaker, []func() error) {
+	store := memStore{}
+	mm := NewMatchmaker(store, log)
+	return mm, []func() error{store.Close}
+}
+
+func main() {
+	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	mm, closers := build(log)
+	defer func() {
+		for i := len(closers) - 1; i >= 0; i-- { // reverse construction order
+			if err := closers[i](); err != nil {
+				log.Error("close failed", "err", err)
+			}
+		}
+	}()
+	mm.log.Info("ready")
+}
+`,
+  pitfall:'Reaching for a package level variable or an init function to hold a dependency. Tests then share it and cannot swap it. Pass dependencies into constructors and build them in one place.'
+});
 
 T('backend-api-protocol',{ d:'backend', t:'API protocol choices', tag:'REST/JSON, protobuf over HTTP and gRPC are three different bets about schema, tooling and who your client is.',
   what:`The wire contract between the game client and the service: transport, encoding, the schema source of truth and the versioning rule. A common middle point for mobile games is protobuf messages carried over plain net/http, which keeps ordinary HTTP infrastructure (load balancers, proxies, WAFs, CDN edges) while giving both sides generated typed models and a compact payload. gRPC goes further and brings its own connection model. REST with JSON is the most inspectable and the least typed.`,
@@ -30302,6 +30519,49 @@ INTERVIEW('backend-api-protocol',{
       follow:`What would have caught it before release?`,
       red:`Claims to have never broken compatibility and cannot name the guard that prevents it.` }
   ] });
+GO('backend-api-protocol', {
+  api:['json.NewDecoder', 'Decoder.DisallowUnknownFields', 'http.MaxBytesReader', 'http.ResponseWriter.WriteHeader', 'http.StatusBadRequest'],
+  snippet:`package api
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+type JoinRequest struct {
+	PlayerID string \`json:"player_id"\`
+	Mode     string \`json:"mode"\`
+}
+
+type ErrorBody struct {
+	Code    string \`json:"code"\`
+	Message string \`json:"message"\`
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
+}
+
+func Join(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	var req JoinRequest
+	if err := dec.Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, ErrorBody{Code: "bad_request", Message: "invalid JSON body"})
+		return
+	}
+	if req.PlayerID == "" {
+		writeJSON(w, http.StatusUnprocessableEntity, ErrorBody{Code: "missing_player", Message: "player_id is required"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "queued", "mode": req.Mode})
+}
+`,
+  pitfall:'Calling WriteHeader after the first Write, or writing the body and then trying to change the status. The status is already sent, so set the header and status first. Also cap the body with MaxBytesReader, or a client can send a huge one.'
+});
 
 T('backend-request-context',{ d:'backend', t:'Request context, middleware and idempotency gates', tag:'One place seeds everything a request needs, and one gate stops the same request being applied twice.',
   what:`The per request plumbing. A context.Context carrying request scoped values (player, session, locale, client version, a logging handle, a trace transaction, a per request memo cache), a middleware chain that seeds and enforces them in a fixed order, and an idempotency gate that stops a retried request from being applied twice. On mobile, retries are not exceptional. A tunnel drops, the player taps again, and the same purchase arrives twice.`,
@@ -30432,6 +30692,49 @@ INTERVIEW('backend-request-context',{
       follow:`How would you catch a key that a middleware quietly stopped setting?`,
       red:`Adds keys freely and relies on people remembering what is there.` }
   ] });
+GO('backend-request-context', {
+  api:['context.WithValue', 'Context.Value', 'Request.WithContext', 'slog.InfoContext', 'crypto/rand.Read', 'hex.EncodeToString'],
+  snippet:`package reqctx
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"log/slog"
+	"net/http"
+)
+
+// An unexported key type cannot collide with keys from other packages.
+type ctxKey struct{}
+
+func WithRequestID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, ctxKey{}, id)
+}
+
+func RequestID(ctx context.Context) string {
+	id, _ := ctx.Value(ctxKey{}).(string)
+	return id
+}
+
+func Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Header.Get("X-Request-ID")
+		if id == "" {
+			b := make([]byte, 8)
+			_, _ = rand.Read(b)
+			id = hex.EncodeToString(b)
+		}
+		w.Header().Set("X-Request-ID", id)
+		next.ServeHTTP(w, r.WithContext(WithRequestID(r.Context(), id)))
+	})
+}
+
+func Log(ctx context.Context, msg string) {
+	slog.InfoContext(ctx, msg, "request_id", RequestID(ctx))
+}
+`,
+  pitfall:'Using context values to pass business inputs such as the player or a feature flag. They are invisible in the function signature and unchecked by the compiler. Keep context values for request scoped metadata like an ID, and pass real inputs as parameters.'
+});
 
 T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'An error is part of your API. Give it a code, a status, something the client can act on, and the stack where it started.',
   what:`One error type for the service that carries a numeric domain code, maps to an HTTP status and a wire payload, and captures a stack at the point it was wrapped. Interactors wrap causes with a code, handlers translate at the boundary, and errors.Is and errors.As do the matching. Codes are allocated in blocks per subsystem, so a code tells whoever is on call where to look before they open a log.`,
@@ -30561,6 +30864,46 @@ INTERVIEW('backend-errors',{
       follow:`What single change would most improve your next incident?`,
       red:`Describes the outage with no reference to what was observable at the time.` }
   ] });
+GO('backend-errors', {
+  api:['errors.New', 'errors.Is', 'errors.As', 'fmt.Errorf %w', 'http.StatusBadRequest'],
+  snippet:`package apperr
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+var ErrNotFound = errors.New("not found")
+
+type ValidationError struct{ Field string }
+
+func (e *ValidationError) Error() string { return "invalid field " + e.Field }
+
+func Load(id string) error {
+	if id == "" {
+		return &ValidationError{Field: "id"}
+	}
+	return fmt.Errorf("load %q: %w", id, ErrNotFound)
+}
+
+// Status is the single place that maps errors to HTTP codes.
+func Status(err error) int {
+	var ve *ValidationError
+	switch {
+	case err == nil:
+		return http.StatusOK
+	case errors.As(err, &ve):
+		return http.StatusBadRequest
+	case errors.Is(err, ErrNotFound):
+		return http.StatusNotFound
+	default:
+		return http.StatusInternalServerError
+	}
+}
+`,
+  pitfall:'Comparing errors with == or by their message text. A wrapped error no longer equals the sentinel, and the text changes. Use errors.Is for values and errors.As for types.'
+});
 
 T('backend-data-access',{ d:'backend', t:'Transactions, query layers and delta state sync', tag:'Own your queries, scope transactions to the request, and send the client only what changed.',
   what:`Three decisions that travel together. How queries are written: raw SQL, a builder such as gocraft/dbr, typed functions generated from SQL by sqlc, or a full ORM such as GORM. How transactions are scoped: opened by the handler, passed down as a runner, committed or rolled back in one deferred place. And how state returns to the client: a full snapshot every time, or a delta driven by which tables the request dirtied.`,
@@ -30703,6 +31046,52 @@ INTERVIEW('backend-data-access',{
       follow:`A feature needs to compare two players on different shards. What do you do?`,
       red:`Plans cross shard joins, or defers sharding with no seam left for it.` }
   ] });
+GO('backend-data-access', {
+  api:['sql.DB.BeginTx', 'sql.Tx.ExecContext', 'sql.Tx.Commit', 'sql.Tx.Rollback', 'sql.Result.RowsAffected', 'errors.New'],
+  snippet:`package store
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+)
+
+var ErrInsufficient = errors.New("insufficient gold")
+
+// Transfer moves gold in one transaction. No driver is imported here: the
+// caller opens the *sql.DB with whichever driver the service uses.
+func Transfer(ctx context.Context, db *sql.DB, from, to string, amount int64) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }() // a no-op after Commit
+
+	res, err := tx.ExecContext(ctx,
+		"UPDATE wallets SET gold = gold - $1 WHERE id = $2 AND gold >= $1", amount, from)
+	if err != nil {
+		return fmt.Errorf("debit: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("debit rows: %w", err)
+	}
+	if n == 0 {
+		return ErrInsufficient
+	}
+	if _, err := tx.ExecContext(ctx,
+		"UPDATE wallets SET gold = gold + $1 WHERE id = $2", amount, to); err != nil {
+		return fmt.Errorf("credit: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+	return nil
+}
+`,
+  pitfall:'Forgetting to roll back on an early return, which leaves the transaction and its connection held. Defer Rollback right after BeginTx; it does nothing once Commit has succeeded. Also check RowsAffected, because an UPDATE that matches no row is not an error.'
+});
 
 T('backend-caching-redis',{ d:'backend', t:'Caching tiers and Redis patterns', tag:'Three cache tiers answer three different questions, and Redis is three different tools wearing one name.',
   what:`Where a read is answered from, and what Redis is doing in a game backend. The tiers: an in-process cache for data that is immutable between releases, a distributed cache such as memcached or Redis for player and shared state, and a per request memo cache that removes duplicate reads inside one handler. Redis earns its place separately through sorted sets for leaderboards, a lock manager for sequencing, and pub/sub for fan-out between instances.`,
@@ -30829,6 +31218,52 @@ INTERVIEW('backend-caching-redis',{
       follow:`What would have stopped you adding it in the first place?`,
       red:`Has only ever added caches.` }
   ] });
+GO('backend-caching-redis', {
+  api:['context.Context', 'errors.Is', 'slog.WarnContext', 'math/rand/v2 rand.N', 'time.Duration', 'interface Cache'],
+  snippet:`package cache
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"math/rand/v2"
+	"time"
+)
+
+var ErrMiss = errors.New("cache miss")
+
+// Cache is the small surface the code needs; a Redis client sits behind it.
+type Cache interface {
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key, value string, ttl time.Duration) error
+}
+
+type Loader func(ctx context.Context, id string) (string, error)
+
+// Profile is cache-aside: read the cache, fall back to the source, then fill.
+func Profile(ctx context.Context, c Cache, load Loader, id string) (string, error) {
+	key := "profile:" + id
+	v, err := c.Get(ctx, key)
+	if err == nil {
+		return v, nil
+	}
+	if !errors.Is(err, ErrMiss) {
+		slog.WarnContext(ctx, "cache read failed", "key", key, "err", err)
+	}
+	v, err = load(ctx, id)
+	if err != nil {
+		return "", fmt.Errorf("load %s: %w", id, err)
+	}
+	ttl := 5*time.Minute + rand.N(time.Minute) // jitter spreads expiry
+	if err := c.Set(ctx, key, v, ttl); err != nil {
+		slog.WarnContext(ctx, "cache write failed", "key", key, "err", err)
+	}
+	return v, nil
+}
+`,
+  pitfall:'Giving every key the same TTL, so a whole group expires together and the database takes the full load at once. Add jitter. Also treat a cache error as a miss, not as a failed request.'
+});
 DIAGRAM('backend-caching-redis', { kind:'stack', title:'Three cache tiers answer three questions',
   layers:[{t:'Per-request memo', d:'the same lookup twice in one request'},{t:'In-process cache', d:'hot, rarely changing data, per instance'},{t:'Redis', d:'state shared across instances: sessions, rate limits, leaderboards'},{t:'Database', d:'the source of truth'}] });
 
@@ -30960,6 +31395,46 @@ INTERVIEW('backend-migrations-config',{
       follow:`It is used by a batch job nobody owns. How do you rotate without breaking it?`,
       red:`Starts with a history rewrite and treats rotation as optional.` }
   ] });
+GO('backend-migrations-config', {
+  api:['errors.Join', 'strconv.Atoi', 'time.ParseDuration', 'fmt.Errorf %w', 'func(string) string'],
+  snippet:`package config
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"time"
+)
+
+type Config struct {
+	DatabaseURL string
+	Port        int
+	DrainTime   time.Duration
+}
+
+// Load takes the lookup as a parameter (main passes os.Getenv), so a test can
+// pass a map. It reports every problem at once and fails before serving.
+func Load(getenv func(string) string) (Config, error) {
+	var errs []error
+	cfg := Config{DatabaseURL: getenv("DATABASE_URL")}
+	if cfg.DatabaseURL == "" {
+		errs = append(errs, errors.New("DATABASE_URL is required"))
+	}
+	port, err := strconv.Atoi(getenv("PORT"))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("PORT: %w", err))
+	}
+	cfg.Port = port
+	drain, err := time.ParseDuration(getenv("DRAIN_TIME"))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("DRAIN_TIME: %w", err))
+	}
+	cfg.DrainTime = drain
+	return cfg, errors.Join(errs...)
+}
+`,
+  pitfall:'Reading environment variables deep inside the code and defaulting silently when one is missing. A typo then runs in production with the wrong value. Read config once at start, validate it, and refuse to start if it is wrong.'
+});
 
 T('backend-observability',{ d:'backend', t:'Logging, tracing, profiling and action logs', tag:'Logs, traces, profiles and an event stream answer four different questions. None of them substitutes for another.',
   what:`The instrumentation that lets you answer questions about a running service. Structured logs split into named streams, traces showing where a request spent its time, profiles showing where CPU and allocations went, and an analytics event stream recording what players did. In Go that is slog, zap or logrus for logs, an APM or OpenTelemetry abstraction for traces, net/http/pprof for profiles, and a generated event type per game action.`,
@@ -31091,6 +31566,43 @@ INTERVIEW('backend-observability',{
       follow:`The client is offline when it fails. How does the report ever reach you?`,
       red:`Treats client telemetry as somebody else’s problem.` }
   ] });
+GO('backend-observability', {
+  api:['slog.Logger.LogAttrs', 'slog.String / Int / Duration', 'http.Handler', 'Request.Pattern', 'time.Since'],
+  snippet:`package obs
+
+import (
+	"log/slog"
+	"net/http"
+	"time"
+)
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(code int) {
+	w.status = code
+	w.ResponseWriter.WriteHeader(code)
+}
+
+// Logging records one structured line per request. It logs the route pattern,
+// not the raw path, so the field has few distinct values.
+func Logging(log *slog.Logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(sw, r)
+		log.LogAttrs(r.Context(), slog.LevelInfo, "request",
+			slog.String("method", r.Method),
+			slog.String("route", r.Pattern),
+			slog.Int("status", sw.status),
+			slog.Duration("took", time.Since(start)))
+	})
+}
+`,
+  pitfall:'Using the raw URL path or a player ID as a metric label or log field you group by. Every value becomes its own series and the monitoring bill and query time explode. Use the route pattern and keep IDs in the log line only.'
+});
 
 T('backend-testing',{ d:'backend', t:'Testing tiers and test integrity', tag:'Three tiers answer three questions, and every expected value is derived independently rather than pasted from a run.',
   what:`The test pyramid for a game service, plus the discipline that keeps it honest. Pure unit tests for formulas, simulation and helpers. Interactor tests against generated mocks (mockery with testify) that check the rules with no infrastructure. Integration tests against a real database and cache, built through the same dependency graph the service uses. On top, an end to end suite talking to a running binary over the real protocol. The integrity rules matter as much as the tiers: expectations derived independently, setup failure is red and never skipped, and a previously green test going red means your change is wrong until proven otherwise.`,
@@ -31225,6 +31737,49 @@ INTERVIEW('backend-testing',{
       follow:`The bug cannot be reproduced in a test. What do you do instead?`,
       red:`Says tests get written after the fix if there is time.` }
   ] });
+GO('backend-testing', {
+  api:['testing.T', 'T.Run', 'T.Parallel', 'time.Date', 'time.Duration'],
+  snippet:`package daily
+
+import (
+	"testing"
+	"time"
+)
+
+type Clock interface{ Now() time.Time }
+
+type fakeClock struct{ now time.Time }
+
+func (f *fakeClock) Now() time.Time { return f.now }
+
+func CanClaim(c Clock, last time.Time) bool {
+	return c.Now().Sub(last) >= 24*time.Hour
+}
+
+func TestCanClaim(t *testing.T) {
+	t.Parallel()
+	base := time.Date(2026, 1, 1, 9, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name    string
+		elapsed time.Duration
+		want    bool
+	}{
+		{"just before a day", 23*time.Hour + 59*time.Minute, false},
+		{"exactly a day", 24 * time.Hour, true},
+		{"two days", 48 * time.Hour, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			clock := &fakeClock{now: base.Add(tc.elapsed)}
+			if got := CanClaim(clock, base); got != tc.want {
+				t.Errorf("after %v: got %v, want %v", tc.elapsed, got, tc.want)
+			}
+		})
+	}
+}
+`,
+  pitfall:'Calling time.Now inside the code under test, so the test passes or fails depending on the hour it runs. Inject a clock and set the time in the test.'
+});
 
 T('backend-go-idioms',{ d:'backend', t:'Go concurrency, lifecycle and module hygiene', tag:'Context first, errors wrapped, goroutines owned, shutdown deliberate. The idioms are what keep a large Go service readable.',
   what:`The Go specific habits that decide whether a service stays maintainable at size: context.Context as the first parameter on anything doing I/O, error wrapping matched with errors.Is and errors.As, one owner and one exit path per goroutine, explicit server timeouts, cleanup in reverse construction order at shutdown, generics kept to repeated shapes, and dependency hygiene enforced by a linter instead of by review comments.`,
@@ -31355,6 +31910,57 @@ INTERVIEW('backend-go-idioms',{
       follow:`A team needs a library that is not on the list and has a deadline. What is the process?`,
       red:`Relies on review vigilance, or bans dependencies outright with no path through.` }
   ] });
+GO('backend-go-idioms', {
+  api:['http.Server and its four timeouts', 'Server.ListenAndServe', 'Server.Shutdown', 'signal.NotifyContext', 'context.WithTimeout', 'fmt.Errorf with %w', 'slog.Error'],
+  snippet:`package main
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
+func run(ctx context.Context, addr string) error {
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           http.NewServeMux(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.ListenAndServe() }() // one owner: run waits on errCh
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("listen: %w", err)
+	case <-ctx.Done(): // signal received: stop accepting, drain
+	}
+	shutCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutCtx); err != nil {
+		return fmt.Errorf("shutdown: %w", err)
+	}
+	return nil
+}
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	err := run(ctx, ":8080")
+	stop()
+	if err != nil {
+		slog.Error("server stopped", "err", err)
+		os.Exit(1)
+	}
+}
+`,
+  pitfall:'A bare http.ListenAndServe has no timeouts, so one slow client can hold a connection open forever. Set the timeouts on an http.Server you own, and give Shutdown its own deadline so a stuck request cannot block a deploy.'
+});
 
 /* =====================================================================
    INFRASTRUCTURE
@@ -31479,6 +32085,58 @@ INTERVIEW('infra-containers',{
       red:`Claims parity because both use containers, with no shared definition and no test that would catch divergence.` }
   ] });
 
+GO('infra-containers', {
+  api:['http.Server timeouts', 'signal.NotifyContext', 'Server.Shutdown', 'os.Getenv', 'slog.Error'],
+  snippet:`package main
+
+import (
+	"context"
+	"errors"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
+func main() {
+	addr := os.Getenv("LISTEN_ADDR")
+	if addr == "" {
+		addr = ":8080"
+	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+	// A container is stopped with SIGTERM: finish in-flight requests first.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
+	defer stop()
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("listen", "err", err)
+			stop()
+		}
+	}()
+	<-ctx.Done()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("shutdown", "err", err)
+	}
+}
+`,
+  pitfall:'Running the server as a shell script entrypoint, so SIGTERM goes to the shell and never reaches the process. Use the exec form of the entrypoint so the Go binary is process 1 and sees the signal.'
+});
+
 T('infra-deploy-models',{ d:'infra', t:'Deploy models and scheduled work', tag:'Processes on a VM, containers on a scheduler, functions per request, jobs on a clock. Pick by what the workload holds, not by what is fashionable.',
   what:`The shapes a service can run in. A supervised process on a virtual machine. A container scheduled by Kubernetes. A function invoked per request. A batch binary run by cron or a scheduled job. Most game backends use several at once: stateless request servers, a realtime server that holds connections and memory, and a fleet of batch jobs on a clock. Each shape has its own answer to rollout, rollback, health and drain.`,
   why:[`The deploy model decides how you roll back, and rollback speed is the real safety net. Everything else is prevention.`,`It defines what unhealthy means and who finds out. A process supervisor restarts, a scheduler reschedules, a function simply fails.`,`A stateful realtime server cannot be rolled like a stateless one. Stopping a process that holds thousands of sockets is a design problem, not a configuration setting.`,`Batch jobs are where currency, mail and rankings move. Their schedule and their recovery semantics are part of the game design, not an operational detail.`],
@@ -31581,6 +32239,49 @@ DIAGRAM('infra-deploy-models', { kind:'matrix', title:'Pick the deploy model by 
   rows:['Process on a VM','Container on a scheduler','Function per request','Job on a clock'], cols:['Fits','Rollout','Watch out'],
   cells:[['Long-lived stateful servers','Drain and restart one by one','Hand-tuned snowflakes'],['Many small services','Rolling, health checked','Scheduler complexity'],['Spiky, short requests','A new version per call','Cold starts, no sockets'],['Batches and reports','The next run picks it up','Overlaps and missed runs']] });
 
+GO('infra-deploy-models', {
+  api:['time.NewTicker', 'atomic.Bool.CompareAndSwap', 'context.WithTimeout', 'select', 'slog.Warn'],
+  snippet:`package jobs
+
+import (
+	"context"
+	"log/slog"
+	"sync/atomic"
+	"time"
+)
+
+type Job func(ctx context.Context) error
+
+// RunEvery runs job on a clock until ctx ends. A run that is still going
+// when the next tick arrives is skipped, never stacked.
+func RunEvery(ctx context.Context, every time.Duration, name string, job Job) {
+	var running atomic.Bool
+	t := time.NewTicker(every)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			if !running.CompareAndSwap(false, true) {
+				slog.Warn("job still running, tick skipped", "job", name)
+				continue
+			}
+			go func() {
+				defer running.Store(false)
+				runCtx, cancel := context.WithTimeout(ctx, every)
+				defer cancel()
+				if err := job(runCtx); err != nil {
+					slog.Error("job failed", "job", name, "err", err)
+				}
+			}()
+		}
+	}
+}
+`,
+  pitfall:'Starting this ticker inside every replica of a scaled service, so the job runs once per replica. Run scheduled work in one place, or take a lease or lock before each run.'
+});
+
 T('infra-ci-pipelines',{ d:'infra', t:'CI pipelines and gating', tag:'The pipeline turns a push into a verdict. Gate stages on the event, retry only the network, and check the verdict two ways.',
   what:`The automation that turns a push into a pass or a fail. Stages run in order: lint, unit tests, an integration stage that creates the databases from scratch and runs every migration, a build, and on some events an end-to-end suite against the running binary. Each stage is gated on the event (a pull request behaves differently from a push to the integration branch), each has a timeout, each network-touching step has a retry policy, and each has an explicit rule for what counts as failure.`,
   why:[`CI is the only place where it works is checked on a machine nobody has customised.`,`A pipeline that creates every schema from zero and runs every migration on each push catches migration drift before a deploy rather than during one.`,`A flaky pipeline trains the team to re-run until green. That habit costs more than the flakes, because it also survives a real intermittent bug.`,`Some build tools lie. A game engine can print a fatal error and exit zero. Detecting failure by exit code and by a curated list of fatal log lines catches what one check alone misses.`],
@@ -31682,6 +32383,58 @@ DIAGRAM('infra-ci-pipelines', { kind:'flow', title:'From a push to a verdict',
   steps:[{id:'push', t:'Push or pull request', d:'the event decides which stages run'},{id:'lint', t:'Lint and format', d:'cheap checks first'},{id:'unit', t:'Unit tests', d:'rules in isolation'},{id:'build', t:'Build artefact', d:'stamped with commit and build number'},{id:'integ', t:'Integration tests', d:'fresh database, real migrations'},{id:'e2e', t:'End-to-end', d:'the built artefact, as players get it'},{id:'verdict', t:'Verdict', d:'pass, fail, or infrastructure error'}],
   edges:[['push','lint'],['lint','unit'],['lint','build'],['unit','integ'],['build','e2e'],['integ','verdict'],['e2e','verdict']] });
 
+GO('infra-ci-pipelines', {
+  api:['errors.Is', 'fmt.Errorf %w', 'time.After', 'context.Context.Done'],
+  snippet:`package ci
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+)
+
+var ErrTransient = errors.New("transient")
+
+// Retry repeats step only when it failed for a network reason.
+func Retry(ctx context.Context, tries int, step func(context.Context) error) error {
+	var err error
+	for i := 0; i < tries; i++ {
+		if err = step(ctx); err == nil || !errors.Is(err, ErrTransient) {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Duration(i+1) * time.Second):
+		}
+	}
+	return fmt.Errorf("gave up after %d tries: %w", tries, err)
+}
+
+type Verdict string
+
+const (
+	Pass       Verdict = "pass"
+	Fail       Verdict = "fail"
+	InfraError Verdict = "infra-error"
+)
+
+// Judge keeps a broken runner from looking like a failing test.
+func Judge(err error) Verdict {
+	switch {
+	case err == nil:
+		return Pass
+	case errors.Is(err, ErrTransient):
+		return InfraError
+	default:
+		return Fail
+	}
+}
+`,
+  pitfall:'Retrying every failure, which turns a flaky test into a green build. Retry only errors you have marked as network trouble, and report a runner failure as an infrastructure error, not as a test failure.'
+});
+
 T('infra-artifacts-provenance',{ d:'infra', t:'Artifacts, versioning and provenance', tag:'The first question in any incident is which build this is. Stamp the answer in at build time, because you cannot add it later.',
   what:`An artefact is what the pipeline produces: a server binary, a player build, a container image, a set of asset bundles. Provenance is the record of where it came from: the version, the commit hash, the build date, the toolchain version, the job that made it, and the commits since the last successful build. On a compiled server that is injected at link time. In a game client it is a generated file inside the build plus a release note next to the artefact.`,
   why:[`The first question in any incident is which build this is. Without a stamped identity you are guessing, under time pressure.`,`A release note generated from the commit range since the last green build turns what changed from an archaeology task into a paste.`,`A stripped or ahead-of-time compiled crash report is unreadable without the symbols from that exact build, and those symbols usually stop existing when the agent workspace is cleaned.`,`An artefact you cannot rebuild from its recorded inputs is a one-off you must keep forever, and storage is the cheapest part of that problem.`],
@@ -31782,6 +32535,42 @@ INTERVIEW('infra-artifacts-provenance',{
       red:`Treats reproducible builds as a universal best practice with no cost, or dismisses provenance along with it.` }
   ] });
 
+GO('infra-artifacts-provenance', {
+  api:['go build -ldflags -X', 'debug.ReadBuildInfo', 'json.NewEncoder', 'http.HandlerFunc'],
+  snippet:`package version
+
+import (
+	"encoding/json"
+	"net/http"
+	"runtime/debug"
+)
+
+// Stamped at build time, for example:
+// go build -ldflags "-X example.com/game/version.Commit=$GIT_SHA -X example.com/game/version.Build=$BUILD_NO"
+var (
+	Commit = "unknown"
+	Build  = "0"
+)
+
+// Handler answers the first question in any incident: which build is this?
+func Handler() http.HandlerFunc {
+	goVersion := "unknown"
+	if bi, ok := debug.ReadBuildInfo(); ok {
+		goVersion = bi.GoVersion
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"commit": Commit,
+			"build":  Build,
+			"go":     goVersion,
+		})
+	}
+}
+`,
+  pitfall:'A mistyped package path in -X is silently ignored, so the binary ships reporting "unknown". Fail the pipeline if the deployed /version does not match the commit that was built.'
+});
+
 T('infra-secrets',{ d:'infra', t:'Secrets management', tag:'A credential in version control is public from the moment it is pushed. History is the boundary, not the commit.',
   what:`The credentials a system needs and people must not hold by default: database passwords, API tokens, signing keys, keystore passwords, service-account keys, webhook URLs. Managing them means deciding where the value lives (a secret manager, a cloud key and secret store, the CI credential store), how it reaches the process (injected at deploy time as an environment variable or a mounted file, never compiled into the artefact), who can read it, and how it is rotated.`,
   why:[`A secret in version control is public from the moment it is pushed. Deleting the file does not remove it from history, and history is what a clone carries.`,`Rotation is the only real remedy after a leak, and rotation is only cheap when nothing has the value hard-coded.`,`A lost signing key ranges from a support ticket to a dead listing. With Play App Signing, Google holds the app signing key and a lost upload key can be reset; where no store holds a copy, losing the key can mean a listing that can never be updated again.`,`Least privilege turns a leaked credential into a small incident rather than a total one.`],
@@ -31879,6 +32668,39 @@ INTERVIEW('infra-secrets',{
       follow:`A developer says the secret manager is down and they are blocked. What is the escape hatch, and how do you keep it from becoming the normal path?`,
       red:`Adds policy and training with no change to the workflow that caused the behaviour.` }
   ] });
+
+GO('infra-secrets', {
+  api:['os.ReadFile', 'slog.LogValuer', 'slog.StringValue', 'fmt.Stringer', 'strings.TrimSpace'],
+  snippet:`package secrets
+
+import (
+	"fmt"
+	"log/slog"
+	"os"
+	"strings"
+)
+
+// Secret never prints its value, even when logged by mistake.
+type Secret string
+
+func (Secret) String() string       { return "[redacted]" }
+func (Secret) LogValue() slog.Value { return slog.StringValue("[redacted]") }
+
+// Reveal is the only way to get the value, so every use is easy to search for.
+func (s Secret) Reveal() string { return string(s) }
+
+// FromFile reads a secret mounted as a file, so it never sits in the
+// environment or in an image layer.
+func FromFile(path string) (Secret, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read secret %s: %w", path, err)
+	}
+	return Secret(strings.TrimSpace(string(b))), nil
+}
+`,
+  pitfall:'Putting the token in an error message or a URL that is then logged: redaction on the type cannot help once the value is inside another string. Pass the value to the client library and never build text from it.'
+});
 
 T('infra-cdn-assets',{ d:'infra', t:'CDN and asset delivery', tag:'Content shipping after the client ships. Put the hash in the path, version the manifest, and test the fix on a device that already has the old file.',
   what:`How bytes that are not the executable reach a player: texture and audio bundles, master data, patches. A content delivery network caches them near the player. The decisions are the manifest (what exists, at which version), the cache-busting scheme (how a changed file gets a new URL), access control (public, signed URL, or encrypted bundle), and whether to use the platform’s own asset packs instead.`,
@@ -31980,6 +32802,44 @@ INTERVIEW('infra-cdn-assets',{
       red:`Picks one for everything without costing the initial download or the patch latency.` }
   ] });
 
+GO('infra-cdn-assets', {
+  api:['sha256.Sum256', 'hex.EncodeToString', 'path.Ext', 'http.FileServer', 'Header().Set Cache-Control'],
+  snippet:`package assets
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"net/http"
+	"path"
+	"strings"
+)
+
+// HashedName puts the content hash in the path: hero.png becomes hero.3f2a9c1d.png.
+func HashedName(name string, content []byte) string {
+	sum := sha256.Sum256(content)
+	ext := path.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+	return fmt.Sprintf("%s.%s%s", base, hex.EncodeToString(sum[:])[:8], ext)
+}
+
+// Serve caches hashed files for a year. The manifest that names them is
+// always revalidated, so a fix reaches players on the next launch.
+func Serve(dir string) http.Handler {
+	files := http.FileServer(http.Dir(dir))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/manifest.json" {
+			w.Header().Set("Cache-Control", "no-cache")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		}
+		files.ServeHTTP(w, r)
+	})
+}
+`,
+  pitfall:'Giving the manifest the same long cache lifetime as the hashed files. Players then keep the old manifest and never ask for the fixed asset.'
+});
+
 T('infra-data-stores',{ d:'infra', t:'Managed databases, replicas, sharding and queues', tag:'The database is the one component you cannot restart your way out of. Choose the shard key early and rehearse the restore.',
   what:`The stateful services behind the game: a relational database (usually managed, with a primary for writes and replicas for reads), a distributed cache, and queues or streams for work that must not happen inside a request. The decisions are how you scale reads (replicas), how you scale writes (horizontal partitioning by a shard key), and how you move work off the request path (a queue, a stream, or a scheduled batch).`,
   why:[`The database is the one component you cannot restart your way out of. Every other decision sits downstream of it.`,`Read replicas are cheap and they lie. They lag the primary, so a read after a write can show the player a world where their purchase did not happen.`,`Sharding is straightforward to design in at the start and expensive to add later, because the shard key has to be present in every query, every batch job and every admin tool.`,`A queue turns a slow synchronous failure into a retryable asynchronous one, and immediately raises the question of what happens when a message is processed twice.`],
@@ -32079,6 +32939,40 @@ INTERVIEW('infra-data-stores',{
       follow:`Your matchmaking ticket pool lives in the cache. Is that a cache or a database?`,
       red:`Says the cache is highly available, which is a vendor claim and not a design.` }
   ] });
+
+GO('infra-data-stores', {
+  api:['sql.DB.QueryRowContext', 'Row.Scan', 'fnv.New32a', 'fmt.Errorf %w'],
+  snippet:`package stores
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"hash/fnv"
+)
+
+type Shards struct{ dbs []*sql.DB }
+
+func NewShards(dbs []*sql.DB) Shards { return Shards{dbs: dbs} }
+
+// For picks a shard from the player id, so all of one player's rows live together.
+func (s Shards) For(playerID string) *sql.DB {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(playerID))
+	return s.dbs[int(h.Sum32()%uint32(len(s.dbs)))]
+}
+
+func (s Shards) Gold(ctx context.Context, playerID string) (int, error) {
+	var gold int
+	row := s.For(playerID).QueryRowContext(ctx, "SELECT gold FROM wallets WHERE player_id = $1", playerID)
+	if err := row.Scan(&gold); err != nil {
+		return 0, fmt.Errorf("gold for %s: %w", playerID, err)
+	}
+	return gold, nil
+}
+`,
+  pitfall:'Choosing the shard with a hash modulo the shard count. Adding one shard changes the answer for most players. Use a lookup table or consistent hashing, and decide the shard key before launch.'
+});
 
 T('infra-monitoring',{ d:'infra', t:'Monitoring, incidents and cost', tag:'Time to notice dominates time to recover. Alert on symptoms players feel, and give every page a runbook.',
   what:`Knowing the system works without being told by a player. Metrics with dashboards and alerts, structured logs split by concern, traces that follow one request through the layers, an error and crash reporter with symbols per build, and service level objectives that state what working means as a number. Around it: an on-call rotation, a runbook per alert, a blameless review after each incident, and a cost dashboard, because cost is a signal too.`,
@@ -32187,6 +33081,46 @@ INTERVIEW('infra-monitoring',{
       follow:`Your observability bill is now a quarter of your infrastructure spend. Is that wrong, and how would you decide?`,
       red:`Proposes turning off monitoring or shortening retention across the board without attribution.` }
   ] });
+
+GO('infra-monitoring', {
+  api:['expvar.NewMap', 'Map.Add', 'http.Handler', 'time.Since', 'slog.Warn', 'strconv.Itoa'],
+  snippet:`package monitoring
+
+import (
+	"expvar"
+	"log/slog"
+	"net/http"
+	"strconv"
+	"time"
+)
+
+var requests = expvar.NewMap("requests_by_status")
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(code int) {
+	w.status = code
+	w.ResponseWriter.WriteHeader(code)
+}
+
+// Measure counts what players feel: status codes and slow replies.
+func Measure(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+		start := time.Now()
+		next.ServeHTTP(sw, r)
+		requests.Add(strconv.Itoa(sw.status), 1)
+		if d := time.Since(start); d > 500*time.Millisecond {
+			slog.Warn("slow request", "path", r.URL.Path, "ms", d.Milliseconds())
+		}
+	})
+}
+`,
+  pitfall:'Wrapping the ResponseWriter hides optional interfaces such as Flusher and Hijacker, which breaks streaming and WebSocket upgrades. Add an Unwrap method returning the inner writer so http.ResponseController can reach it.'
+});
 
 /* =====================================================================
    GAME SERVER
@@ -32314,6 +33248,47 @@ DIAGRAM('server-authority', { kind:'matrix', title:'Who decides what is true, an
   rows:['Server authority','Host authority','Predict + verify','Lockstep'], cols:['Who decides','Cheat risk','Felt latency'],
   cells:[['The server simulates','Low','Needs prediction to hide it'],['One player’s machine','High for the host','None for the host'],['Client first, server confirms','Low if verified','Low, with corrections'],['Every peer, same inputs','Desyncs show it','Slowest peer sets the pace']] });
 
+GO('server-authority', {
+  api:['errors.New', 'fmt.Errorf %w'],
+  snippet:`package authority
+
+import (
+	"errors"
+	"fmt"
+)
+
+// Move is what the client asks for: an intent, never a position.
+type Move struct {
+	Seq    uint32
+	DX, DY float64
+}
+
+type Player struct {
+	X, Y    float64
+	LastSeq uint32
+}
+
+const maxStep = 1.0
+
+var ErrIllegal = errors.New("illegal move")
+
+// Apply checks the request and changes state only if it is allowed.
+func (p *Player) Apply(m Move) error {
+	if m.Seq <= p.LastSeq {
+		return fmt.Errorf("seq %d already applied: %w", m.Seq, ErrIllegal)
+	}
+	if m.DX*m.DX+m.DY*m.DY > maxStep*maxStep {
+		return fmt.Errorf("step longer than %v: %w", maxStep, ErrIllegal)
+	}
+	p.X += m.DX
+	p.Y += m.DY
+	p.LastSeq = m.Seq
+	return nil
+}
+`,
+  pitfall:'Accepting the position or the result from the client and only sanity-checking it. Send inputs and let the server compute the outcome; a check on a claimed value always has a gap.'
+});
+
 T('server-determinism',{ d:'server', t:'Deterministic simulation and parity', tag:'Two machines, one answer, bit for bit. Everything else is a guess wearing a checksum.',
   what:`Making a simulation produce exactly the same output from the same input on every machine that runs it, and proving it continuously. That means a seeded random source both sides implement identically, arithmetic that cannot drift, a fixed step that does not depend on frame rate, and a parity test that runs recorded inputs through both implementations and diffs the traces bit for bit.`,
   why:[`It is the precondition for client-simulate-server-verify, for lockstep, and for replays that still play back a year later.`,`Floating point drift is silent. A result that is wrong in the last bit today is a visibly different match outcome after ten thousand ticks.`,`Without a parity test in continuous integration, determinism decays with the next optimisation. Nobody breaks it on purpose.`,`It turns a cheating question into an arithmetic question, which is the only version of that question you can win.`],
@@ -32425,6 +33400,36 @@ INTERVIEW('server-determinism',{
       red:`Presents the choice as purely a style preference with no cost attached to either side.` }
   ] });
 
+GO('server-determinism', {
+  api:['rand.New', 'rand.NewPCG', 'Rand.IntN', 'append'],
+  snippet:`package sim
+
+import "math/rand/v2"
+
+type Match struct {
+	tick int
+	rng  *rand.Rand
+	Hits []int
+}
+
+// NewMatch seeds a private generator, so the match never touches global state.
+func NewMatch(seed uint64) *Match {
+	return &Match{rng: rand.New(rand.NewPCG(seed, seed^0x9e3779b97f4a7c15))}
+}
+
+// Step advances exactly one fixed tick. The same seed and the same inputs
+// in the same order give the same match.
+func (m *Match) Step(inputs []int) {
+	for _, in := range inputs {
+		damage := 10 + m.rng.IntN(5)
+		m.Hits = append(m.Hits, in*damage)
+	}
+	m.tick++
+}
+`,
+  pitfall:'Ranging over a map inside the step. Go randomises map iteration order on purpose, so two runs of the same match diverge. Iterate a sorted slice of keys instead.'
+});
+
 T('server-state-sync',{ d:'server', t:'State sync and tick rates', tag:'Send what changed, at a rate someone chose on purpose, and decide whether the client waits or guesses.',
   what:`How the authoritative state reaches the machines that only display it. Three decisions sit inside it: what you send (the whole state, a snapshot, or only the fields that changed since this client last acknowledged), how often you send it, and what the receiver does between messages. The receiver either interpolates between the last two known states and lives slightly in the past, or predicts forward from local input and reconciles when the truth arrives. Counter-Strike 2’s sub-tick model shows a fourth option: keep a fixed simulation tick but timestamp each input to the instant it happened, so two players who acted a few milliseconds apart within the same tick still resolve in that order.`,
   why:[`Bandwidth and cost scale with what you send times how often times how many players see it. This is the single largest running cost of a realtime game.`,`Interpolation and prediction produce different games. Interpolated remote players are always behind, predicted local players sometimes rewind. Both are visible to players and both need design.`,`Tick rate sets the resolution of fairness. Two players can only be distinguished by the simulation at the granularity it ticks.`,`Outside realtime matches the same idea pays for itself: returning only the state a request changed turns a large response into a small one.`],
@@ -32522,6 +33527,40 @@ INTERVIEW('server-state-sync',{
       follow:`An object crosses from outside a client’s interest set to inside it. What does that client need to receive at that exact moment?`,
       red:`Applies one replication strategy uniformly to every entity type regardless of its role.` }
   ] });
+
+GO('server-state-sync', {
+  api:['time.NewTicker', 'select', 'context.Context.Done', 'Ticker.C'],
+  snippet:`package tick
+
+import (
+	"context"
+	"time"
+)
+
+type World interface {
+	Step()
+	Snapshot() []byte
+}
+
+// Run simulates at 60 Hz and sends a snapshot every third tick (20 Hz).
+func Run(ctx context.Context, w World, send func([]byte)) {
+	t := time.NewTicker(time.Second / 60)
+	defer t.Stop()
+	for n := 1; ; n++ {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			w.Step()
+			if n%3 == 0 {
+				send(w.Snapshot())
+			}
+		}
+	}
+}
+`,
+  pitfall:'Assuming the ticker keeps up. If Step takes longer than the interval, ticks are dropped without any error and the simulation runs slow. Measure Step and log when it exceeds the budget.'
+});
 
 T('server-realtime-protocol',{ d:'server', t:'Realtime protocol design', tag:'A length, an op code, a message id, a payload. Everything else is a decision you should be able to defend.',
   what:`The wire format and dispatch rules of a persistent connection. A framed binary envelope carrying an op code and a message id, a schema for the payload, a rule for which messages are reliable and ordered and which may be dropped, a way to correlate a reply with the request that caused it over a socket that also pushes unsolicited events, and an authentication step that must happen before any op that touches state.`,
@@ -32628,6 +33667,51 @@ INTERVIEW('server-realtime-protocol',{
 DIAGRAM('server-realtime-protocol', { kind:'stack', title:'One message frame on the wire',
   layers:[{t:'Length', d:'first and fixed size, so the reader knows how much to take'},{t:'Op code', d:'which message this is'},{t:'Message id', d:'pairs a reply with its request'},{t:'Payload', d:'the body, in the encoding both sides agreed'}] });
 
+GO('server-realtime-protocol', {
+  api:['binary.BigEndian.PutUint32', 'binary.BigEndian.Uint32', 'io.ReadFull', 'errors.New', 'fmt.Errorf %w'],
+  snippet:`package wire
+
+import (
+	"encoding/binary"
+	"errors"
+	"fmt"
+	"io"
+)
+
+const maxBody = 64 * 1024
+
+var ErrTooLarge = errors.New("message too large")
+
+// WriteFrame writes one byte of type, four bytes of body length, then the body.
+func WriteFrame(w io.Writer, kind byte, body []byte) error {
+	hdr := make([]byte, 5)
+	hdr[0] = kind
+	binary.BigEndian.PutUint32(hdr[1:], uint32(len(body)))
+	if _, err := w.Write(append(hdr, body...)); err != nil {
+		return fmt.Errorf("write frame: %w", err)
+	}
+	return nil
+}
+
+func ReadFrame(r io.Reader) (kind byte, body []byte, err error) {
+	hdr := make([]byte, 5)
+	if _, err = io.ReadFull(r, hdr); err != nil {
+		return 0, nil, fmt.Errorf("read header: %w", err)
+	}
+	n := binary.BigEndian.Uint32(hdr[1:])
+	if n > maxBody {
+		return 0, nil, fmt.Errorf("%d bytes: %w", n, ErrTooLarge)
+	}
+	body = make([]byte, n)
+	if _, err = io.ReadFull(r, body); err != nil {
+		return 0, nil, fmt.Errorf("read body: %w", err)
+	}
+	return hdr[0], body, nil
+}
+`,
+  pitfall:'Allocating a buffer from the length the peer sent before checking it, which lets one packet claim four gigabytes. Check the length first, and use io.ReadFull because a single Read on TCP may return part of a message.'
+});
+
 T('server-matchmaking',{ d:'server', t:'Matchmaking, rooms and sessions', tag:'A ticket, a rule set, a room, and an explicit answer to what happens when someone disappears.',
   what:`Getting the right players into the same session and keeping that session coherent. A ticket carries who is waiting, what capacity the match needs, and the predicates a candidate set must satisfy. A matcher scans open tickets for a satisfying group and hands them to something that creates the session. Around that sit private rooms with join codes, the lifetime rules for a session, and a deliberate policy for disconnection and reconnection.`,
   why:[`Match quality is the first thing players feel about a multiplayer game, and it is a design problem before it is an algorithm.`,`Wait time and match quality trade against each other directly, and the trade has to be chosen rather than emerge from a queue.`,`Session lifetime bugs are the expensive kind. A room that outlives its players costs money forever and a room that dies early loses a match in progress.`,`Reconnection is a product decision with a real cost. Deciding not to support it is legitimate and must be decided, not discovered.`],
@@ -32726,6 +33810,62 @@ INTERVIEW('server-matchmaking',{
 DIAGRAM('server-matchmaking', { kind:'state', title:'A match ticket from queue to result', start:'queued',
   states:[{id:'queued', t:'Queued', d:'ticket waiting'},{id:'matched', t:'Matched', d:'rules satisfied'},{id:'room', t:'In room', d:'server allocated'},{id:'playing', t:'Playing', d:'match running'},{id:'reconnect', t:'Reconnecting', d:'grace window'},{id:'ended', t:'Ended', d:'result recorded'}],
   edges:[['queued','matched','rules met'],['matched','room','allocate'],['room','playing','all ready'],['playing','reconnect','drop'],['reconnect','playing','back in time'],['reconnect','ended','timeout'],['playing','ended','match over']] });
+
+GO('server-matchmaking', {
+  api:['sync.Mutex', 'time.Time.Sub', 'Duration.Seconds', 'builtin max', 'append'],
+  snippet:`package mm
+
+import (
+	"sync"
+	"time"
+)
+
+type Ticket struct {
+	Player   string
+	Rating   int
+	QueuedAt time.Time
+}
+
+type Queue struct {
+	mu      sync.Mutex
+	tickets []Ticket
+}
+
+func (q *Queue) Add(t Ticket) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	q.tickets = append(q.tickets, t)
+}
+
+// Match pairs two tickets whose rating gap is inside a band. The band starts
+// at 100 and widens by 25 for every second the longer-waiting player has waited.
+func (q *Queue) Match(now time.Time) (a, b Ticket, ok bool) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for i := range q.tickets {
+		for j := i + 1; j < len(q.tickets); j++ {
+			x, y := q.tickets[i], q.tickets[j]
+			waited := max(now.Sub(x.QueuedAt), now.Sub(y.QueuedAt))
+			band := 100 + 25*int(waited.Seconds())
+			if abs(x.Rating-y.Rating) <= band {
+				q.tickets = append(q.tickets[:j], q.tickets[j+1:]...)
+				q.tickets = append(q.tickets[:i], q.tickets[i+1:]...)
+				return x, y, true
+			}
+		}
+	}
+	return Ticket{}, Ticket{}, false
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+`,
+  pitfall:'Matching inside a fixed rating band. In a quiet hour a player at the edge of the population waits for ever. Widen the band with waiting time and set a hard cap so the match is still fair.'
+});
 
 T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts scale by adding copies. The stateful parts are the whole problem.',
   what:`Making the server hold more concurrent players than one process can. The request-serving layer is stateless and scales by adding instances behind a load balancer. Rooms, sessions and live connections are stateful and must be placed somewhere findable, with a directory that maps a room to the instance holding it. Messages that must reach players spread across instances go through a pub/sub layer, usually sharded, and player data itself can be partitioned into independent worlds when a single database stops keeping up.`,
@@ -32829,6 +33969,43 @@ DIAGRAM('server-scaling', { kind:'matrix', title:'Stateless parts add copies; st
   rows:['Gateways and APIs','Matchmaking','Game rooms','Chat and presence'], cols:['State held','How it scales'],
   cells:[['None','Add copies behind a load balancer'],['Queues of tickets','Partition by region or mode'],['Live match state in memory','A directory maps each room to a server'],['Open connections','Pub/sub fan-out across servers']] });
 
+GO('server-scaling', {
+  api:['atomic.Bool', 'http.Error', 'http.StatusServiceUnavailable', 'http.HandlerFunc'],
+  snippet:`package drain
+
+import (
+	"net/http"
+	"sync/atomic"
+)
+
+type Gate struct{ draining atomic.Bool }
+
+// StartDrain is called when the instance is told to stop, for example on SIGTERM.
+func (g *Gate) StartDrain() { g.draining.Store(true) }
+
+// Ready is the readiness probe: the load balancer stops sending new players.
+func (g *Gate) Ready(w http.ResponseWriter, r *http.Request) {
+	if g.draining.Load() {
+		http.Error(w, "draining", http.StatusServiceUnavailable)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// NewGames refuses new rooms while draining. Rooms already running finish.
+func (g *Gate) NewGames(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if g.draining.Load() {
+			http.Error(w, "draining", http.StatusServiceUnavailable)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+`,
+  pitfall:'Exiting as soon as SIGTERM arrives, which kills live matches. Mark the instance not ready, wait until the rooms empty or a deadline passes, and set the platform grace period at least that long.'
+});
+
 T('server-anticheat',{ d:'server', t:'Anti-cheat and abuse handling', tag:'The client is the attacker. Detect, keep the evidence, and decide the response separately from the detection.',
   what:`Everything that stops a player from gaining an unfair advantage or making the game worse for others. It splits into prevention, which is the authority model refusing to accept an assertion, detection, which is re-simulating or bounding what the client claims, evidence, which is the replay and aggregate data that lets a human judge, and response, which is the ladder from a rejected request through rate limits to a shadow ban. Abuse of other players sits in the same system with different signals.`,
   why:[`Anything the client decides, the client can lie about. The only question is whether you find out.`,`Cheating is a retention problem before it is a fairness problem. Honest players leave quietly.`,`Detection without retained evidence produces bans you cannot justify and cannot appeal, which is worse than no bans.`,`The response has to be decided by policy and people, not by a threshold in code that nobody owns.`],
@@ -32924,6 +34101,44 @@ INTERVIEW('server-anticheat',{
       follow:`Server re-simulation for this mode requires proven determinism, and the simulation isn’t deterministic yet. What does that do to your plan?`,
       red:`Proposes enforcement mechanisms before the detection and evidence layers exist.` }
   ] });
+
+GO('server-anticheat', {
+  api:['sync.Mutex', 'time.Time.Sub', 'Duration.Seconds', 'builtin min'],
+  snippet:`package cheat
+
+import (
+	"sync"
+	"time"
+)
+
+// Bucket is a token bucket: rate actions a second, bursts up to burst.
+type Bucket struct {
+	mu     sync.Mutex
+	tokens float64
+	last   time.Time
+	rate   float64
+	burst  float64
+}
+
+func NewBucket(rate, burst float64, now time.Time) *Bucket {
+	return &Bucket{tokens: burst, last: now, rate: rate, burst: burst}
+}
+
+// Allow takes the server's clock, never a timestamp sent by the client.
+func (b *Bucket) Allow(now time.Time) bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.tokens = min(b.burst, b.tokens+now.Sub(b.last).Seconds()*b.rate)
+	b.last = now
+	if b.tokens < 1 {
+		return false
+	}
+	b.tokens--
+	return true
+}
+`,
+  pitfall:'Banning on the first rejected action. A lag spike can send a burst of honest inputs. Count rejections, flag the account for review, and keep bans for patterns that repeat.'
+});
 
 T('server-liveops',{ d:'server', t:'Live operations on the server', tag:'The game keeps running while you change it. Gates, versions and scheduled jobs are how you stay in control.',
   what:`The server-side machinery that lets a live game be changed without breaking the players inside it. A maintenance gate that can close the game before a risky change, a client-version gate that can force an update while still letting a few endpoints answer, versioned master data that clients download rather than ship, scheduled batch jobs that do the work no request can do, and an order of operations for releases that keeps data, server and client compatible at every moment in between.`,
@@ -33028,6 +34243,37 @@ INTERVIEW('server-liveops',{
       follow:`The rehearsal reveals a state between server and client where the game doesn’t work correctly. What do you do with the release?`,
       red:`Treats rehearsal as a formality and ships without ever exercising an intermediate state with real players connected.` }
   ] });
+
+GO('server-liveops', {
+  api:['atomic.Pointer', 'json.Unmarshal', 'fmt.Errorf %w'],
+  snippet:`package liveops
+
+import (
+	"encoding/json"
+	"fmt"
+	"sync/atomic"
+)
+
+type Flags struct{ cur atomic.Pointer[map[string]bool] }
+
+// Load parses a new set of flags and swaps it in whole, with no restart.
+func (f *Flags) Load(raw []byte) error {
+	m := map[string]bool{}
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return fmt.Errorf("parse flags: %w", err)
+	}
+	f.cur.Store(&m)
+	return nil
+}
+
+// On is false for a flag that is missing, so a bad config fails closed.
+func (f *Flags) On(name string) bool {
+	m := f.cur.Load()
+	return m != nil && (*m)[name]
+}
+`,
+  pitfall:'Editing the stored map in place while handlers read it, which is a data race that can crash the process. Build a new map and swap the pointer, as here.'
+});
 
 T('server-rollback-netcode',{ d:'server', t:'Rollback netcode and lockstep', tag:'Guess the other player’s input, keep playing, and when the guess is wrong, go back and replay the frames.',
   what:`Two ways for peers to share one simulation by sending only inputs. Deterministic lockstep waits: no peer advances a frame until every player’s input for that frame has arrived, so latency becomes delay. Rollback (the GGPO approach) guesses: it predicts the missing remote input, usually by repeating the last one, runs the frame at once, and when the real input arrives and differs it restores a saved state and re-simulates the frames since. Both need a simulation that gives the same result on every machine from the same inputs. Rollback also needs the whole game state to be saved, loaded and stepped many times inside one rendered frame.`,
@@ -33160,6 +34406,46 @@ INTERVIEW('server-rollback-netcode',{
       red:`Treats one model as best for all.` }
   ] });
 
+GO('server-rollback-netcode', {
+  api:['array indexing with modulo', 'struct copy'],
+  snippet:`package rollback
+
+const window = 8
+
+// State must hold everything the step reads, so a replay gives the same result.
+type State struct{ Frame, X int }
+
+type Game struct {
+	cur   State
+	saved [window]State
+}
+
+func step(s State, input int) State {
+	return State{Frame: s.Frame + 1, X: s.X + input}
+}
+
+// Advance saves the state before the frame, then simulates it.
+func (g *Game) Advance(input int) {
+	g.saved[g.cur.Frame%window] = g.cur
+	g.cur = step(g.cur, input)
+}
+
+// Rollback restores the state at the start of frame and replays the
+// corrected inputs for frame and every frame after it.
+func (g *Game) Rollback(frame int, inputs []int) bool {
+	if frame < 0 || frame >= g.cur.Frame || frame < g.cur.Frame-window {
+		return false
+	}
+	g.cur = g.saved[frame%window]
+	for _, in := range inputs {
+		g.Advance(in)
+	}
+	return true
+}
+`,
+  pitfall:'Letting the step read something that is not in the saved state, such as time.Now, a shared map or a pointer to another object. The replay then differs from the first run and the players drift apart.'
+});
+
 T('server-stack-choices',{ d:'server', t:'Choosing a multiplayer stack: hosting, services and netcode', tag:'Pick the session model first. Then pick three layers separately, and keep a seam so any one of them can be replaced.',
   what:`A multiplayer stack is three layers that are often sold together and should be chosen apart. The netcode library lives in the client and the server and moves state and messages between them (Netcode for GameObjects, Mirror, Photon Fusion 2, Fish-Net, or Godot’s high-level multiplayer). Orchestration and hosting start, place and stop dedicated server processes on machines (Agones on Kubernetes, Amazon GameLift Servers, PlayFab Multiplayer Servers). Backend services hold what lives between matches: accounts, matchmaking, leaderboards and storage (Nakama, PlayFab, Unity Gaming Services). Which of these you need depends first on the session model: short matches that start and end, or a persistent world that keeps running.`,
   why:[`A choice made for the demo is usually a choice made for life. The netcode library shapes every gameplay script, so replacing it late means rewriting the game.`,`Services end. Companies shut products down, rename them and change prices, and the date is theirs, not yours.`,`A match-based game and a persistent world need different hosting. Starting and stopping thousands of short processes is a different job from keeping one world alive.`,`Buying saves months at the start and costs a dependency. Building costs months and removes one. Neither is free, so the decision should be written down with its exit cost.`],
@@ -33266,6 +34552,52 @@ FACTS('server-stack-choices',[
   { claim:`Nakama is an open-source game backend. Its server framework lets you write runtime code in Go, JavaScript or Lua.`, asOf:'2026-10-01', src:'https://heroiclabs.com/docs/nakama/server-framework/introduction/' },
   { claim:`Mirror, an open-source networking library for Unity, is MIT licensed.`, asOf:'2026-10-01', src:'https://github.com/MirrorNetworking/Mirror' }
 ]);
+
+GO('server-stack-choices', {
+  api:['interface', 'chan', 'select', 'context.Context.Done'],
+  snippet:`package netstack
+
+import "context"
+
+// Transport is the only thing game code knows about the network stack.
+// A vendor library lives behind it, in one package.
+type Transport interface {
+	Send(ctx context.Context, peer string, msg []byte) error
+	Receive(ctx context.Context) (peer string, msg []byte, err error)
+}
+
+type packet struct {
+	peer string
+	msg  []byte
+}
+
+// Loopback is an in-process Transport for tests and local play.
+type Loopback struct{ ch chan packet }
+
+var _ Transport = (*Loopback)(nil)
+
+func NewLoopback() *Loopback { return &Loopback{ch: make(chan packet, 64)} }
+
+func (l *Loopback) Send(ctx context.Context, peer string, msg []byte) error {
+	select {
+	case l.ch <- packet{peer: peer, msg: msg}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (l *Loopback) Receive(ctx context.Context) (string, []byte, error) {
+	select {
+	case p := <-l.ch:
+		return p.peer, p.msg, nil
+	case <-ctx.Done():
+		return "", nil, ctx.Err()
+	}
+}
+`,
+  pitfall:'Passing the vendor library types through game code, so changing the stack later means rewriting everything. Keep the interface small and in terms of your own types.'
+});
 
 /* =====================================================================
    PROJECT MANAGEMENT
@@ -41013,29 +42345,10 @@ PROJECT_INTERVIEW('cs-unity-multiplatform-port', {
 
 /* =====================================================================
    WORKED EXAMPLES AND COMPARISONS - SAMPLES
-   One sample of each new data kind, so the code paths render and the checks
-   have something to read. The content workers replace these with the real
-   examples (WORKED) and comparisons (COMPARE); delete a sample once its
-   topic or game pair has real content.
+   The comparison sample below keeps the COMPARE code path rendering until the
+   real comparisons replace it. Worked examples (WORKED) now live beside their
+   topics.
    ===================================================================== */
-
-// SAMPLE: replace with real worked examples.
-WORKED('economy-modelling-and-balance', {
-  kind:'table',
-  id:'sink-and-faucet-week',
-  t:'One week of a soft currency, faucet against sink',
-  intro:'Count what a typical player earns and spends in a week, row by row. If the balance column only rises, the currency will lose its meaning.',
-  note:'Illustrative numbers, not from a shipped game.',
-  columns:[{h:'Source or sink'}, {h:'Per day', unit:'coins'}, {h:'Days a week', unit:'days'}, {h:'Per week', unit:'coins'}],
-  rows:[
-    ['Daily quest reward', 300, 7, 2100],
-    ['Level clear bonus', 120, 5, 600],
-    ['Upgrade purchases', -450, 6, -2700]
-  ],
-  formulas:[{col:'Per week', f:'Per day x Days a week (in a sheet: =B2*C2). Spending is negative.'}],
-  try:['What is the net change over the week, and is it healthy for a player who plays every day?', 'Which row would you change first to bring the net to about zero, and what would the player notice?'],
-  file:'sink-and-faucet-week.csv'
-});
 
 // SAMPLE: replace with real comparisons.
 COMPARE({
@@ -41060,36 +42373,7 @@ COMPARE({
   sources:['https://store.steampowered.com/app/1145360/Hades/', 'https://store.steampowered.com/app/646570/Slay_the_Spire/']
 });
 
-/* =====================================================================
-   GO TAB - SAMPLE
-   One sample so the Go tab renders and the checks have something to read.
-   A later worker replaces and extends it. The snippet is a whole Go file.
-   ===================================================================== */
-
-// SAMPLE: replace with the real Go entry.
-GO('backend-go-idioms', {
-  api:['http.Server', 'ReadHeaderTimeout', 'WriteTimeout', 'IdleTimeout', 'Server.ListenAndServe'],
-  snippet:`package main
-
-import (
-	"log"
-	"net/http"
-	"time"
-)
-
-func main() {
-	srv := &http.Server{
-		Addr:              ":8080",
-		Handler:           http.NewServeMux(),
-		ReadHeaderTimeout: 5 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       60 * time.Second,
-	}
-	log.Fatal(srv.ListenAndServe())
-}
-`,
-  pitfall:'A bare http.ListenAndServe has no timeouts, so one slow client can hold a connection open forever. Set the timeouts on an http.Server you own.'
-});
+/* Go tabs now live beside their topics. */
 
 /* =====================================================================
    LEARNING PATHS: beginner to expert, sequencing existing content

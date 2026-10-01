@@ -121,6 +121,58 @@ INTERVIEW('infra-containers',{
       red:`Claims parity because both use containers, with no shared definition and no test that would catch divergence.` }
   ] });
 
+GO('infra-containers', {
+  api:['http.Server timeouts', 'signal.NotifyContext', 'Server.Shutdown', 'os.Getenv', 'slog.Error'],
+  snippet:`package main
+
+import (
+	"context"
+	"errors"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
+func main() {
+	addr := os.Getenv("LISTEN_ADDR")
+	if addr == "" {
+		addr = ":8080"
+	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+	// A container is stopped with SIGTERM: finish in-flight requests first.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
+	defer stop()
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("listen", "err", err)
+			stop()
+		}
+	}()
+	<-ctx.Done()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("shutdown", "err", err)
+	}
+}
+`,
+  pitfall:'Running the server as a shell script entrypoint, so SIGTERM goes to the shell and never reaches the process. Use the exec form of the entrypoint so the Go binary is process 1 and sees the signal.'
+});
+
 T('infra-deploy-models',{ d:'infra', t:'Deploy models and scheduled work', tag:'Processes on a VM, containers on a scheduler, functions per request, jobs on a clock. Pick by what the workload holds, not by what is fashionable.',
   what:`The shapes a service can run in. A supervised process on a virtual machine. A container scheduled by Kubernetes. A function invoked per request. A batch binary run by cron or a scheduled job. Most game backends use several at once: stateless request servers, a realtime server that holds connections and memory, and a fleet of batch jobs on a clock. Each shape has its own answer to rollout, rollback, health and drain.`,
   why:[`The deploy model decides how you roll back, and rollback speed is the real safety net. Everything else is prevention.`,`It defines what unhealthy means and who finds out. A process supervisor restarts, a scheduler reschedules, a function simply fails.`,`A stateful realtime server cannot be rolled like a stateless one. Stopping a process that holds thousands of sockets is a design problem, not a configuration setting.`,`Batch jobs are where currency, mail and rankings move. Their schedule and their recovery semantics are part of the game design, not an operational detail.`],
@@ -223,6 +275,49 @@ DIAGRAM('infra-deploy-models', { kind:'matrix', title:'Pick the deploy model by 
   rows:['Process on a VM','Container on a scheduler','Function per request','Job on a clock'], cols:['Fits','Rollout','Watch out'],
   cells:[['Long-lived stateful servers','Drain and restart one by one','Hand-tuned snowflakes'],['Many small services','Rolling, health checked','Scheduler complexity'],['Spiky, short requests','A new version per call','Cold starts, no sockets'],['Batches and reports','The next run picks it up','Overlaps and missed runs']] });
 
+GO('infra-deploy-models', {
+  api:['time.NewTicker', 'atomic.Bool.CompareAndSwap', 'context.WithTimeout', 'select', 'slog.Warn'],
+  snippet:`package jobs
+
+import (
+	"context"
+	"log/slog"
+	"sync/atomic"
+	"time"
+)
+
+type Job func(ctx context.Context) error
+
+// RunEvery runs job on a clock until ctx ends. A run that is still going
+// when the next tick arrives is skipped, never stacked.
+func RunEvery(ctx context.Context, every time.Duration, name string, job Job) {
+	var running atomic.Bool
+	t := time.NewTicker(every)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			if !running.CompareAndSwap(false, true) {
+				slog.Warn("job still running, tick skipped", "job", name)
+				continue
+			}
+			go func() {
+				defer running.Store(false)
+				runCtx, cancel := context.WithTimeout(ctx, every)
+				defer cancel()
+				if err := job(runCtx); err != nil {
+					slog.Error("job failed", "job", name, "err", err)
+				}
+			}()
+		}
+	}
+}
+`,
+  pitfall:'Starting this ticker inside every replica of a scaled service, so the job runs once per replica. Run scheduled work in one place, or take a lease or lock before each run.'
+});
+
 T('infra-ci-pipelines',{ d:'infra', t:'CI pipelines and gating', tag:'The pipeline turns a push into a verdict. Gate stages on the event, retry only the network, and check the verdict two ways.',
   what:`The automation that turns a push into a pass or a fail. Stages run in order: lint, unit tests, an integration stage that creates the databases from scratch and runs every migration, a build, and on some events an end-to-end suite against the running binary. Each stage is gated on the event (a pull request behaves differently from a push to the integration branch), each has a timeout, each network-touching step has a retry policy, and each has an explicit rule for what counts as failure.`,
   why:[`CI is the only place where it works is checked on a machine nobody has customised.`,`A pipeline that creates every schema from zero and runs every migration on each push catches migration drift before a deploy rather than during one.`,`A flaky pipeline trains the team to re-run until green. That habit costs more than the flakes, because it also survives a real intermittent bug.`,`Some build tools lie. A game engine can print a fatal error and exit zero. Detecting failure by exit code and by a curated list of fatal log lines catches what one check alone misses.`],
@@ -324,6 +419,58 @@ DIAGRAM('infra-ci-pipelines', { kind:'flow', title:'From a push to a verdict',
   steps:[{id:'push', t:'Push or pull request', d:'the event decides which stages run'},{id:'lint', t:'Lint and format', d:'cheap checks first'},{id:'unit', t:'Unit tests', d:'rules in isolation'},{id:'build', t:'Build artefact', d:'stamped with commit and build number'},{id:'integ', t:'Integration tests', d:'fresh database, real migrations'},{id:'e2e', t:'End-to-end', d:'the built artefact, as players get it'},{id:'verdict', t:'Verdict', d:'pass, fail, or infrastructure error'}],
   edges:[['push','lint'],['lint','unit'],['lint','build'],['unit','integ'],['build','e2e'],['integ','verdict'],['e2e','verdict']] });
 
+GO('infra-ci-pipelines', {
+  api:['errors.Is', 'fmt.Errorf %w', 'time.After', 'context.Context.Done'],
+  snippet:`package ci
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+)
+
+var ErrTransient = errors.New("transient")
+
+// Retry repeats step only when it failed for a network reason.
+func Retry(ctx context.Context, tries int, step func(context.Context) error) error {
+	var err error
+	for i := 0; i < tries; i++ {
+		if err = step(ctx); err == nil || !errors.Is(err, ErrTransient) {
+			return err
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(time.Duration(i+1) * time.Second):
+		}
+	}
+	return fmt.Errorf("gave up after %d tries: %w", tries, err)
+}
+
+type Verdict string
+
+const (
+	Pass       Verdict = "pass"
+	Fail       Verdict = "fail"
+	InfraError Verdict = "infra-error"
+)
+
+// Judge keeps a broken runner from looking like a failing test.
+func Judge(err error) Verdict {
+	switch {
+	case err == nil:
+		return Pass
+	case errors.Is(err, ErrTransient):
+		return InfraError
+	default:
+		return Fail
+	}
+}
+`,
+  pitfall:'Retrying every failure, which turns a flaky test into a green build. Retry only errors you have marked as network trouble, and report a runner failure as an infrastructure error, not as a test failure.'
+});
+
 T('infra-artifacts-provenance',{ d:'infra', t:'Artifacts, versioning and provenance', tag:'The first question in any incident is which build this is. Stamp the answer in at build time, because you cannot add it later.',
   what:`An artefact is what the pipeline produces: a server binary, a player build, a container image, a set of asset bundles. Provenance is the record of where it came from: the version, the commit hash, the build date, the toolchain version, the job that made it, and the commits since the last successful build. On a compiled server that is injected at link time. In a game client it is a generated file inside the build plus a release note next to the artefact.`,
   why:[`The first question in any incident is which build this is. Without a stamped identity you are guessing, under time pressure.`,`A release note generated from the commit range since the last green build turns what changed from an archaeology task into a paste.`,`A stripped or ahead-of-time compiled crash report is unreadable without the symbols from that exact build, and those symbols usually stop existing when the agent workspace is cleaned.`,`An artefact you cannot rebuild from its recorded inputs is a one-off you must keep forever, and storage is the cheapest part of that problem.`],
@@ -424,6 +571,42 @@ INTERVIEW('infra-artifacts-provenance',{
       red:`Treats reproducible builds as a universal best practice with no cost, or dismisses provenance along with it.` }
   ] });
 
+GO('infra-artifacts-provenance', {
+  api:['go build -ldflags -X', 'debug.ReadBuildInfo', 'json.NewEncoder', 'http.HandlerFunc'],
+  snippet:`package version
+
+import (
+	"encoding/json"
+	"net/http"
+	"runtime/debug"
+)
+
+// Stamped at build time, for example:
+// go build -ldflags "-X example.com/game/version.Commit=$GIT_SHA -X example.com/game/version.Build=$BUILD_NO"
+var (
+	Commit = "unknown"
+	Build  = "0"
+)
+
+// Handler answers the first question in any incident: which build is this?
+func Handler() http.HandlerFunc {
+	goVersion := "unknown"
+	if bi, ok := debug.ReadBuildInfo(); ok {
+		goVersion = bi.GoVersion
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"commit": Commit,
+			"build":  Build,
+			"go":     goVersion,
+		})
+	}
+}
+`,
+  pitfall:'A mistyped package path in -X is silently ignored, so the binary ships reporting "unknown". Fail the pipeline if the deployed /version does not match the commit that was built.'
+});
+
 T('infra-secrets',{ d:'infra', t:'Secrets management', tag:'A credential in version control is public from the moment it is pushed. History is the boundary, not the commit.',
   what:`The credentials a system needs and people must not hold by default: database passwords, API tokens, signing keys, keystore passwords, service-account keys, webhook URLs. Managing them means deciding where the value lives (a secret manager, a cloud key and secret store, the CI credential store), how it reaches the process (injected at deploy time as an environment variable or a mounted file, never compiled into the artefact), who can read it, and how it is rotated.`,
   why:[`A secret in version control is public from the moment it is pushed. Deleting the file does not remove it from history, and history is what a clone carries.`,`Rotation is the only real remedy after a leak, and rotation is only cheap when nothing has the value hard-coded.`,`A lost signing key ranges from a support ticket to a dead listing. With Play App Signing, Google holds the app signing key and a lost upload key can be reset; where no store holds a copy, losing the key can mean a listing that can never be updated again.`,`Least privilege turns a leaked credential into a small incident rather than a total one.`],
@@ -521,6 +704,39 @@ INTERVIEW('infra-secrets',{
       follow:`A developer says the secret manager is down and they are blocked. What is the escape hatch, and how do you keep it from becoming the normal path?`,
       red:`Adds policy and training with no change to the workflow that caused the behaviour.` }
   ] });
+
+GO('infra-secrets', {
+  api:['os.ReadFile', 'slog.LogValuer', 'slog.StringValue', 'fmt.Stringer', 'strings.TrimSpace'],
+  snippet:`package secrets
+
+import (
+	"fmt"
+	"log/slog"
+	"os"
+	"strings"
+)
+
+// Secret never prints its value, even when logged by mistake.
+type Secret string
+
+func (Secret) String() string       { return "[redacted]" }
+func (Secret) LogValue() slog.Value { return slog.StringValue("[redacted]") }
+
+// Reveal is the only way to get the value, so every use is easy to search for.
+func (s Secret) Reveal() string { return string(s) }
+
+// FromFile reads a secret mounted as a file, so it never sits in the
+// environment or in an image layer.
+func FromFile(path string) (Secret, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read secret %s: %w", path, err)
+	}
+	return Secret(strings.TrimSpace(string(b))), nil
+}
+`,
+  pitfall:'Putting the token in an error message or a URL that is then logged: redaction on the type cannot help once the value is inside another string. Pass the value to the client library and never build text from it.'
+});
 
 T('infra-cdn-assets',{ d:'infra', t:'CDN and asset delivery', tag:'Content shipping after the client ships. Put the hash in the path, version the manifest, and test the fix on a device that already has the old file.',
   what:`How bytes that are not the executable reach a player: texture and audio bundles, master data, patches. A content delivery network caches them near the player. The decisions are the manifest (what exists, at which version), the cache-busting scheme (how a changed file gets a new URL), access control (public, signed URL, or encrypted bundle), and whether to use the platform’s own asset packs instead.`,
@@ -622,6 +838,44 @@ INTERVIEW('infra-cdn-assets',{
       red:`Picks one for everything without costing the initial download or the patch latency.` }
   ] });
 
+GO('infra-cdn-assets', {
+  api:['sha256.Sum256', 'hex.EncodeToString', 'path.Ext', 'http.FileServer', 'Header().Set Cache-Control'],
+  snippet:`package assets
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"net/http"
+	"path"
+	"strings"
+)
+
+// HashedName puts the content hash in the path: hero.png becomes hero.3f2a9c1d.png.
+func HashedName(name string, content []byte) string {
+	sum := sha256.Sum256(content)
+	ext := path.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+	return fmt.Sprintf("%s.%s%s", base, hex.EncodeToString(sum[:])[:8], ext)
+}
+
+// Serve caches hashed files for a year. The manifest that names them is
+// always revalidated, so a fix reaches players on the next launch.
+func Serve(dir string) http.Handler {
+	files := http.FileServer(http.Dir(dir))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/manifest.json" {
+			w.Header().Set("Cache-Control", "no-cache")
+		} else {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		}
+		files.ServeHTTP(w, r)
+	})
+}
+`,
+  pitfall:'Giving the manifest the same long cache lifetime as the hashed files. Players then keep the old manifest and never ask for the fixed asset.'
+});
+
 T('infra-data-stores',{ d:'infra', t:'Managed databases, replicas, sharding and queues', tag:'The database is the one component you cannot restart your way out of. Choose the shard key early and rehearse the restore.',
   what:`The stateful services behind the game: a relational database (usually managed, with a primary for writes and replicas for reads), a distributed cache, and queues or streams for work that must not happen inside a request. The decisions are how you scale reads (replicas), how you scale writes (horizontal partitioning by a shard key), and how you move work off the request path (a queue, a stream, or a scheduled batch).`,
   why:[`The database is the one component you cannot restart your way out of. Every other decision sits downstream of it.`,`Read replicas are cheap and they lie. They lag the primary, so a read after a write can show the player a world where their purchase did not happen.`,`Sharding is straightforward to design in at the start and expensive to add later, because the shard key has to be present in every query, every batch job and every admin tool.`,`A queue turns a slow synchronous failure into a retryable asynchronous one, and immediately raises the question of what happens when a message is processed twice.`],
@@ -721,6 +975,40 @@ INTERVIEW('infra-data-stores',{
       follow:`Your matchmaking ticket pool lives in the cache. Is that a cache or a database?`,
       red:`Says the cache is highly available, which is a vendor claim and not a design.` }
   ] });
+
+GO('infra-data-stores', {
+  api:['sql.DB.QueryRowContext', 'Row.Scan', 'fnv.New32a', 'fmt.Errorf %w'],
+  snippet:`package stores
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"hash/fnv"
+)
+
+type Shards struct{ dbs []*sql.DB }
+
+func NewShards(dbs []*sql.DB) Shards { return Shards{dbs: dbs} }
+
+// For picks a shard from the player id, so all of one player's rows live together.
+func (s Shards) For(playerID string) *sql.DB {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(playerID))
+	return s.dbs[int(h.Sum32()%uint32(len(s.dbs)))]
+}
+
+func (s Shards) Gold(ctx context.Context, playerID string) (int, error) {
+	var gold int
+	row := s.For(playerID).QueryRowContext(ctx, "SELECT gold FROM wallets WHERE player_id = $1", playerID)
+	if err := row.Scan(&gold); err != nil {
+		return 0, fmt.Errorf("gold for %s: %w", playerID, err)
+	}
+	return gold, nil
+}
+`,
+  pitfall:'Choosing the shard with a hash modulo the shard count. Adding one shard changes the answer for most players. Use a lookup table or consistent hashing, and decide the shard key before launch.'
+});
 
 T('infra-monitoring',{ d:'infra', t:'Monitoring, incidents and cost', tag:'Time to notice dominates time to recover. Alert on symptoms players feel, and give every page a runbook.',
   what:`Knowing the system works without being told by a player. Metrics with dashboards and alerts, structured logs split by concern, traces that follow one request through the layers, an error and crash reporter with symbols per build, and service level objectives that state what working means as a number. Around it: an on-call rotation, a runbook per alert, a blameless review after each incident, and a cost dashboard, because cost is a signal too.`,
@@ -829,3 +1117,43 @@ INTERVIEW('infra-monitoring',{
       follow:`Your observability bill is now a quarter of your infrastructure spend. Is that wrong, and how would you decide?`,
       red:`Proposes turning off monitoring or shortening retention across the board without attribution.` }
   ] });
+
+GO('infra-monitoring', {
+  api:['expvar.NewMap', 'Map.Add', 'http.Handler', 'time.Since', 'slog.Warn', 'strconv.Itoa'],
+  snippet:`package monitoring
+
+import (
+	"expvar"
+	"log/slog"
+	"net/http"
+	"strconv"
+	"time"
+)
+
+var requests = expvar.NewMap("requests_by_status")
+
+type statusWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *statusWriter) WriteHeader(code int) {
+	w.status = code
+	w.ResponseWriter.WriteHeader(code)
+}
+
+// Measure counts what players feel: status codes and slow replies.
+func Measure(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
+		start := time.Now()
+		next.ServeHTTP(sw, r)
+		requests.Add(strconv.Itoa(sw.status), 1)
+		if d := time.Since(start); d > 500*time.Millisecond {
+			slog.Warn("slow request", "path", r.URL.Path, "ms", d.Milliseconds())
+		}
+	})
+}
+`,
+  pitfall:'Wrapping the ResponseWriter hides optional interfaces such as Flusher and Hijacker, which breaks streaming and WebSocket upgrades. Add an Unwrap method returning the inner writer so http.ResponseController can reach it.'
+});

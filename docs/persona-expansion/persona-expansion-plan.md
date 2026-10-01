@@ -43,9 +43,9 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 | X2 | App: `check.solution`, Go tab (`GO()`), snippet scope label, glossary toggletips, "boss" synonym, `check-go.js` | worker | done | check.solution disclosure; Go tab with whole-file label and src/check-go.js (NOT MEASURED here: no Go); Unity and Godot snippet labels; glossary toggletips on topic Overviews and path steps; boss, 3Cs and camera synonyms; smoke 269/0, e2e 104/104 |
 | T2 | Topic `server-stack-choices` with dated facts and a path step | worker | done | server-stack-choices in the netcode path s3; 5 dated facts opened at source (Multiplay deprecation per Unity notice 362941, GameLift Servers, Agones, Nakama, Mirror MIT); the GameLift rename and NGO-first-party facts dropped (sources would not load); glossary +2 |
 | S0 | `SNIPPET_SCOPE` data from the developer audit's compile results and a structural rule for GDScript | coordinator | done | new data file |
-| W1 | Worked tables (economy, difficulty) and documents (one-page spec, feature brief, decision log) | worker | todo | 23, 33 |
+| W1 | Worked tables (economy, difficulty) and documents (one-page spec, feature brief, decision log) | worker | done | ten-day soft-currency economy and ten-level difficulty curve (rows recomputed by script; margins 4 to 1.1, level 9 the only one under 1.2), one-page spec, feature brief and decision log for one fetch-pet feature |
 | W2 | Four comparisons | worker | todo | new data file |
-| G1 | Go tabs on backend, server and infra topics | worker | todo | 34, 35, 36 |
+| G1 | Go tabs on backend, server and infra topics | worker | done | 29 Go tabs (11 backend, 8 infra, 10 server), standard library only, whole files; not compiled or vetted here (no Go): run src/check-go.js where Go is installed |
 | P1 | Path `first-tiny-game` and the chooser | worker | done | first-tiny-game: 4 stages, 8.25 h, one practice jumper carried through every task; the chooser sends Design games + New to it there first, then foundations; its Godot and GameMaker steps both count (alt covers Godot and Unity only) |
 | P2 | Reference solutions for engineering checkpoints | worker | todo | 51 |
 | L1 | A known game in every design lesson's opening | worker | todo | 20-30 |
@@ -60,3 +60,4 @@ The persona audit ([archive](../_archive/persona-audit/persona-audit-plan.md)) l
 - 2026-10-01: X1 done. P1 started (first-tiny-game path). X2 started.
 - 2026-10-01: P1 done. Phase A (X1, T1, T2, S0, P1) committed from a snapshot taken before X2 started, built in a clean worktree.
 - 2026-10-01: X2 done; coordinator added solution to the PathStage typedef. Phase B (X2) committed from a clean worktree.
+- 2026-10-01: W1 done; G1 backend done. Phase C (W1, G1) committed; its first CI replay failed the smoke download check, which joined cells with bare commas while real CSV quotes cells holding commas; the check now quotes like RFC 4180 from a clean worktree.

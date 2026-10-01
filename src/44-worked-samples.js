@@ -1,28 +1,9 @@
 /* =====================================================================
    WORKED EXAMPLES AND COMPARISONS - SAMPLES
-   One sample of each new data kind, so the code paths render and the checks
-   have something to read. The content workers replace these with the real
-   examples (WORKED) and comparisons (COMPARE); delete a sample once its
-   topic or game pair has real content.
+   The comparison sample below keeps the COMPARE code path rendering until the
+   real comparisons replace it. Worked examples (WORKED) now live beside their
+   topics.
    ===================================================================== */
-
-// SAMPLE: replace with real worked examples.
-WORKED('economy-modelling-and-balance', {
-  kind:'table',
-  id:'sink-and-faucet-week',
-  t:'One week of a soft currency, faucet against sink',
-  intro:'Count what a typical player earns and spends in a week, row by row. If the balance column only rises, the currency will lose its meaning.',
-  note:'Illustrative numbers, not from a shipped game.',
-  columns:[{h:'Source or sink'}, {h:'Per day', unit:'coins'}, {h:'Days a week', unit:'days'}, {h:'Per week', unit:'coins'}],
-  rows:[
-    ['Daily quest reward', 300, 7, 2100],
-    ['Level clear bonus', 120, 5, 600],
-    ['Upgrade purchases', -450, 6, -2700]
-  ],
-  formulas:[{col:'Per week', f:'Per day x Days a week (in a sheet: =B2*C2). Spending is negative.'}],
-  try:['What is the net change over the week, and is it healthy for a player who plays every day?', 'Which row would you change first to bring the net to about zero, and what would the player notice?'],
-  file:'sink-and-faucet-week.csv'
-});
 
 // SAMPLE: replace with real comparisons.
 COMPARE({
