@@ -1000,56 +1000,40 @@ T('craft-source-control-for-games',{ d:'craft', t:'Source control for games', ta
   rel:[['team-and-collaboration','Locking and branch rules are team agreements expressed in tooling.'],['infra-artifacts-provenance','Every build should trace to one revision in source control.'],['infra-ci-pipelines','CI clones the repository on every run, so its size and ignores are CI costs.'],['quality-and-build-health','A clean clone that builds is the first build-health check.'],['craft-tools-that-work-with-ai','Text files in version control are what let agents read and diff the project.']] });
 ENGINE('craft-source-control-for-games',{
   godot:{ term:`Scenes and resources are text and usually merge. The .godot folder is the import cache and is regenerated; the .import and, since 4.4, .uid files are committed; the project manager can generate a .gitattributes forcing LF line endings.`,
-    api:['.godot/ (import cache, ignored)','project.godot','*.tscn / *.tres (text)','*.import (committed)','*.uid (committed, 4.4+)','export_presets.cfg','git lfs track --lockable'],
-    snippet:`# .gitignore  (Godot 4)
-.godot/
-*.translation
-/android/
-# Godot 4.1+ keeps export credentials out of
-# export_presets.cfg, so it is safe to commit
+    api:['EditorScript._run()','FileAccess.open() / store_string()','FileAccess.file_exists()','push_error()','.godot/ (ignored), *.import and *.uid (committed)'],
+    snippet:`@tool
+extends EditorScript   # run once: File > Run
+const IGNORE := ".godot/\\n*.translation\\n/android/\\n"
+const ATTRS := ("* text=auto eol=lf\\n"
+	+ "*.png filter=lfs diff=lfs merge=lfs -text\\n"
+	+ "*.blend filter=lfs diff=lfs merge=lfs -text lockable\\n")
 
-# .gitattributes
-* text=auto eol=lf
-*.png  filter=lfs diff=lfs merge=lfs -text
-*.jpg  filter=lfs diff=lfs merge=lfs -text
-*.wav  filter=lfs diff=lfs merge=lfs -text
-*.ogg  filter=lfs diff=lfs merge=lfs -text
-*.glb  filter=lfs diff=lfs merge=lfs -text
-*.blend filter=lfs diff=lfs merge=lfs -text lockable
-*.psd  filter=lfs diff=lfs merge=lfs -text lockable`,
-    pitfall:`Ignoring the .import or .uid files next to each asset along with the .godot folder. The .import files hold import settings and UIDs, the .uid files hold script and shader UIDs, and both must be committed; only the .godot cache is regenerated. Without them every clone reimports with default settings and textures look wrong.`,
+func _run() -> void:
+	_write("res://.gitignore", IGNORE)
+	_write("res://.gitattributes", ATTRS)
+
+func _write(path: String, text: String) -> void:
+	if FileAccess.file_exists(path): return   # never overwrite
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null: push_error("Cannot write " + path); return
+	f.store_string(text)`,
+    pitfall:`Ignoring the .import or .uid files next to each asset along with the .godot folder. Ignore .godot/, *.translation and /android/; add LFS lines for png, jpg, wav, ogg and glb, with lockable on .blend and .psd. The .import files hold import settings and UIDs, the .uid files hold script and shader UIDs, and both must be committed; only the .godot cache is regenerated. Without them every clone reimports with default settings and textures look wrong.`,
     map:`Godot’s .godot folder is Unity’s Library folder; Godot’s .import files play the role of Unity’s .meta import settings, and its .uid files the role of .meta GUIDs for scripts.` },
   unity:{ term:`With Force Text, scenes and prefabs are YAML and can merge with UnityYAMLMerge. Every asset has a .meta file with its GUID, which must be committed; Library is the regenerated cache.`,
-    api:['Library/ Temp/ Logs/ (ignored)','*.meta (committed)','Asset Serialization: Force Text','UnityYAMLMerge','ProjectSettings/','Packages/manifest.json'],
-    snippet:`# .gitignore  (Unity 6; a subset of
-# github/gitignore’s Unity.gitignore)
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
-/[Mm]emoryCaptures/
-.vs/
-.idea/
-*.csproj
-*.sln
-*.slnx
-*.apk
-*.aab
+    api:['EditorSettings.serializationMode','SerializationMode.ForceText','VersionControlSettings.mode','AssetDatabase.SaveAssets()','MenuItem attribute','UnityYAMLMerge','Library/ (ignored), *.meta (committed)'],
+    snippet:`using UnityEditor;
 
-# .gitattributes
-* text=auto
-*.unity  merge=unityyamlmerge eol=lf
-*.prefab merge=unityyamlmerge eol=lf
-*.asset  merge=unityyamlmerge eol=lf
-*.meta   text eol=lf
-*.png filter=lfs diff=lfs merge=lfs -text
-*.fbx filter=lfs diff=lfs merge=lfs -text
-*.wav filter=lfs diff=lfs merge=lfs -text
-*.psd filter=lfs diff=lfs merge=lfs -text lockable`,
-    pitfall:`Declaring merge=unityyamlmerge in .gitattributes without defining the driver in each person’s git config. Git then falls back to a plain text merge on scenes. Define the merge driver in a shared setup script that points at UnityYAMLMerge in the Editor’s Data/Tools folder on Windows or Contents/Helpers on macOS.`,
+public static class SourceControlSetup {
+    [MenuItem("Tools/Set Up Source Control")]
+    static void Apply() {
+        // scenes and prefabs as YAML, so they diff and merge
+        EditorSettings.serializationMode = SerializationMode.ForceText;
+        // .meta files visible on disk, so they get committed
+        VersionControlSettings.mode = "Visible Meta Files";
+        AssetDatabase.SaveAssets();
+    }
+}`,
+    pitfall:`Setting this in the Editor but forgetting the files beside it. Add a .gitignore for /[Ll]ibrary/, /[Tt]emp/, /[Oo]bj/, /[Bb]uilds/, /[Ll]ogs/, /[Uu]ser[Ss]ettings/, *.csproj, *.sln and *.apk, and a .gitattributes with merge=unityyamlmerge for *.unity, *.prefab and *.asset, plus LFS for large binaries. Declaring merge=unityyamlmerge in .gitattributes without defining the driver in each person’s git config. Git then falls back to a plain text merge on scenes. Define the merge driver in a shared setup script that points at UnityYAMLMerge in the Editor’s Data/Tools folder on Windows or Contents/Helpers on macOS.`,
     map:`Unity’s Library folder is Godot’s .godot folder; Unity’s .meta GUIDs do what Godot’s UIDs do, stored in scene headers, .import files and, since 4.4, .uid files.` },
   note:`Unreal teams usually use Perforce, where ignores live in a .p4ignore and binary handling in the typemap; the Unreal guide covers it. Whatever the tool, ignore DerivedDataCache, Intermediate and Saved; Epic’s Perforce guide lets teams submit Binaries for artists who do not compile.` });
 INTERVIEW('craft-source-control-for-games',{
@@ -1507,7 +1491,9 @@ func save(data: Dictionary) -> bool:
     f.store_string(text)
     f.close()
     if FileAccess.file_exists(PATH):
-        DirAccess.rename_absolute(PATH, PATH + ".bak")   # keep the last good save
+        DirAccess.remove_absolute(PATH + ".bak")         # rename can fail onto an existing file
+        if DirAccess.rename_absolute(PATH, PATH + ".bak") != OK:   # keep the last good save
+            return false
     return DirAccess.rename_absolute(PATH + ".tmp", PATH) == OK
 
 func load_save() -> Dictionary:

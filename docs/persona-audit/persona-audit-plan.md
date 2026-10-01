@@ -45,10 +45,10 @@ Set aside, with the reason:
 | # | Task | Status | Notes |
 | --- | --- | --- | --- |
 | P0 | Three audits, rulings, plan | done | this file |
-| A1 | Saved data cannot blank the app: typed reads, shape-checked import, a render error panel with a reset; route titles; not-found states; scroll restored on Back | todo | 90-app.js |
-| C1 | Paths: move padding steps to paths they serve, honest times, chooser wording, a practice game for newcomers | todo | 50-paths.js, 51-paths-engineering.js |
-| C2 | Glossary data: plain definitions of the terms a newcomer meets | todo | new data file |
-| C3 | Snippet fixes: rollback early inputs, Godot backup rename, the .gitignore tab | todo | topic files |
+| A1 | Saved data cannot blank the app: typed reads, shape-checked import, a render error panel with a reset; route titles; not-found states; scroll restored on Back | done | typed reads, render error panel, JSON-checked import, route titles, not-found for every detail id, scroll restored on Back; smoke 260/0, e2e 100/100 |
+| C1 | Paths: move padding steps to paths they serve, honest times, chooser wording, a practice game for newcomers | done | Go red-first part and the Ren'Py step replaced in the 30-day path, Ren'Py moved to worlds and stories; 37 game steps now read one lens, 6 raised; practice game in both beginner design paths; a GameMaker-or-engine choice still counts twice (alt covers Godot and Unity only) |
+| C2 | Glossary data: plain definitions of the terms a newcomer meets | done | 71 terms in 06-glossary.js, validated |
+| C3 | Snippet fixes: rollback early inputs, Godot backup rename, the .gitignore tab | done | Unity rollback keeps early inputs; Godot backup rename checked; real editor scripts in both source-control tabs |
 | A2 | Search: label, listbox semantics, result count, title matches first, synonyms; glossary page; smells derive games strictly; Should we build this? explains itself | todo | 90-app.js, 05-registry.js |
 | C4 | Core loop order fixed; new topics: combat design (including bosses) and level blockout and metrics, with path steps | todo | 22, 25, 50 |
 | A3 | First screen says what the site is; progress tools only once there is progress; phone drawer, tool order, path bar button, Map pill; icon button names; heading order; loading message; Projects intro; Idea Lab chip legend; per-step notes on paths | todo | 01-head.html, 90-app.js, 91-map.js |

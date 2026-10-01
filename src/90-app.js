@@ -21,8 +21,12 @@ const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMod
   lensSwitchHTML = late('lensSwitchHTML'), mapProgress = late('mapProgress');
 
 /* ---------- storage ---------- */
+// A stored value whose kind differs from the default's (array, plain object,
+// number, string, boolean) is treated as absent, so old or edited data cannot
+// break a view. With no default (null or undefined) the value is returned as is.
+const kindOf = v => Array.isArray(v) ? 'array' : v === null ? 'null' : typeof v;
 const store = {
-  get(k, def){ try { const v = localStorage.getItem('playable.'+k); return v === null ? def : JSON.parse(v); } catch(e){ return def; } },
+  get(k, def){ try { const v = localStorage.getItem('playable.'+k); if(v === null) return def; const x = JSON.parse(v); return def == null || kindOf(x) === kindOf(def) ? x : def; } catch(e){ return def; } },
   set(k, v){ try { localStorage.setItem('playable.'+k, JSON.stringify(v)); } catch(e){} },
   clear(){ try { Object.keys(localStorage).filter(k => k.startsWith('playable.')).forEach(k => localStorage.removeItem(k)); } catch(e){} }
 };
@@ -117,7 +121,49 @@ const currentParts = () => location.hash.replace(/^#\/?/, '').split('/').filter(
 // Routes that only reshape the map: home, a domain, a project's system.
 // On a narrow screen they keep the map in front; every other route is
 // something to read or use, so the content drawer opens for it.
+/* A detail route whose id does not exist: [kind, id, index href, index label], or null.
+   Every other route (valid ids, indexes, tabs) returns null and renders as before. */
+function missing(parts){
+  if(!Array.isArray(parts)) return null;
+  const [v, a, b, c] = parts, mapIx = ['#/map', 'Map'];
+  const has = (list, id) => list.some(x => x.id === id);
+  switch(v){
+    case 'map':
+      if(a === 't' && b && !TOPICS[b]) return ['topic', b, ...mapIx];
+      if(a === 's' && b && !has(SMELLS, b)) return ['smell', b, '#/diagnose/smells', 'Design smells'];
+      if(a === 'd' && b && !DOM[b]) return ['domain', b, ...mapIx];
+      return null;
+    case 'topic': return a && !TOPICS[a] ? ['topic', a, ...mapIx] : null;
+    case 'smell': return a && !has(SMELLS, a) ? ['smell', a, '#/diagnose/smells', 'Design smells'] : null;
+    case 'diagnose': return a === 'smells' && b && !has(SMELLS, b) ? ['smell', b, '#/diagnose/smells', 'Design smells'] : null;
+    case 'games': return a && a !== 'topic' && !has(REFERENCE_GAMES, a) ? ['game', a, '#/games', 'Reference games'] : null;
+    case 'platforms': return a && !has(PLATFORMS, a) ? ['platform', a, '#/platforms', 'Platforms'] : null;
+    case 'engines': return a && !has(ENGINES, a) ? ['engine', a, '#/engines', 'Engines'] : null;
+    case 'paths': return a && a !== 'review' && !has(PATHS, a) ? ['path', a, '#/paths', 'Learning paths'] : null;
+    case 'checklists': return a && !has(CHECKLISTS, a) ? ['checklist', a, '#/checklists', 'Checklists'] : null;
+    case 'prompts': return a && !has(PROMPT_TEMPLATES, a) ? ['prompt', a, '#/prompts', 'Prompts'] : null;
+    case 'build': return a && !TOOLS.some(t => t[0] === a) ? ['build tool', a, '#/build', 'Build tools'] : null;
+    case 'experience': {
+      const ix = ['#/experience', 'Projects'];
+      if(!a) return null;
+      const cs = CASE_STUDIES.find(x => x.id === a);
+      if(!cs) return ['project', a, ...ix];
+      const back = ['#/experience/' + cs.id, cs.t];
+      if(!b || ['workflows', 'interview', 'overview'].includes(b)) return null;
+      if(b === 'flow') return c && !has(cs.flows || [], c) ? ['workflow', c, ...back] : null;
+      const sys = (cs.systems || []).find(x => x.id === b);
+      if(!sys) return ['system', b, ...back];
+      return c && !has(sys.parts || [], c) ? ['part', c, '#/experience/' + cs.id + '/' + sys.id, sys.t] : null;
+    }
+  }
+  return null;
+}
+function notFoundHTML([kind, id, href, label]){
+  return `<h1>Not found</h1><p>There is no ${esc(kind)} called '${esc(id)}'.</p>
+    <p><a class="btn" href="${esc(href)}">Back to ${esc(label)}</a> <a class="btn ghost" href="#/index">All pages</a></p>`;
+}
 function mapOnly(parts){
+  if(missing(parts)) return false;
   const [v, a, b, c] = parts;
   if(!v || v === 'map') return !a || a === 'home' || a === 'd';
   if(v === 'experience' && a && b && !c) return !['workflows', 'interview', 'flow', 'overview'].includes(b);
@@ -129,6 +175,7 @@ const mapReading = parts => (parts[0] === 'map' && ['t', 'd', 's'].includes(part
 // Views with nothing on the map use the work layout (see .shell.work).
 function usesMap(parts){
   const [v, a] = parts;
+  if(missing(parts)) return false;
   return !v || v === "map" || v === "topic" || ((v === "paths" || v === "experience") && !!a);
 }
 function showPaneFor(parts){
@@ -182,7 +229,7 @@ function route(){
   $('#navMore').classList.toggle('active', !!group && NAV.indexOf(group) >= NAV_BAR); closeNavMore();
   closeModals();
   syncMapMode(view, parts[1]);
-  render(view, parts);
+  drawView(view, parts);
   rememberPage();
   $("#shell").classList.toggle("work", !usesMap(parts));
   $("#shell").classList.toggle("reading", mapReading(parts));
@@ -199,7 +246,21 @@ function route(){
   if(booted) placeFocus(parts, samePage);
   booted = true;
   if(afterRoute){ const f = afterRoute; afterRoute = null; f(); }
+  const h1 = $('#pane .view h1'), t = h1 && h1.textContent.trim();
+  if(t) document.title = t + ' · Playable';
+  if(restoreScroll){ const r = restoreScroll; restoreScroll = null; applyScroll(r); requestAnimationFrame(() => applyScroll(r)); }
 }
+/* Back and Forward restore the scroll the page had. The position (window and
+   pane, since which one scrolls depends on the layout) is kept in history.state
+   as the reader scrolls; a new navigation still starts at the top. */
+let restoreScroll = null, scrollT = 0;
+const applyScroll = r => { window.scrollTo({ top: r.sy || 0 }); $('#pane').scrollTop = r.py || 0; };
+if('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.addEventListener('scroll', () => {
+  if(scrollT) return;
+  scrollT = setTimeout(() => { scrollT = 0; try { history.replaceState(Object.assign({}, history.state, { sy: window.scrollY, py: $('#pane').scrollTop }), ''); } catch(e){} }, 120);
+}, { capture: true, passive: true });
+window.addEventListener('popstate', e => { restoreScroll = e.state && typeof e.state.sy === 'number' ? e.state : null; setTimeout(() => { restoreScroll = null; }, 500); });
 // The last pages this browser visited, for the empty search box: a capped,
 // per-browser convenience, keyed by route.
 function rememberPage(){
@@ -207,6 +268,15 @@ function rememberPage(){
   const list = recentPages().filter(r => r.href !== location.hash);
   list.unshift({ href: location.hash, t: h1.textContent.trim(), snip: crumb ? crumb.textContent.replace(/\s*›\s*/g, ' › ').trim() : '' });
   store.set('recent', list.slice(0, 8));
+}
+function drawView(view, parts){
+  const nf = missing(parts);
+  try { if(nf) return setView(notFoundHTML(nf)); return render(view, parts); }
+  catch(err){
+    console.error(err);
+    setView(`<h1>This page could not be drawn</h1><div class="callout"><p>This page could not be drawn, probably because of saved data from an older version.</p>
+      <div class="row"><button type="button" class="btn sm" data-action="data-export">Back up progress</button><button type="button" class="btn sm ghost danger" data-action="data-reset">Reset all</button></div></div>`);
+  }
 }
 function render(view, parts){
   switch(view){
@@ -1998,7 +2068,7 @@ const REVIEW_DAYS = [1, 2, 4, 8, 16];
 // Days are counted in the reader's time zone, so "tomorrow" starts at their
 // midnight, not at midnight UTC (hours away, or minutes, for most readers).
 const today = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); };
-const reviewItems = () => store.get('review', {});
+const reviewItems = () => Object.fromEntries(Object.entries(store.get('review', {})).filter(([, r]) => r && typeof r === 'object' && !Array.isArray(r)));
 const reviewDue = () => Object.entries(reviewItems()).filter(([, r]) => r.due <= today());
 ACTIONS['review-toggle'] = el => {
   const items = reviewItems(), k = el.dataset.key, body = el.closest('.body'), q = el.closest('details').querySelector('summary').textContent;
@@ -2048,7 +2118,10 @@ function renderReview(){
    across every route. stepTitle/stepHref are pure globals defined in
    50-paths.js so the path map (89-graph.js) can use them too.
    ===================================================================== */
-function pathProgress(id){ return store.get('path.' + id, { steps:{}, stages:{}, started:null, last:null }); }
+function pathProgress(id){
+  const p = store.get('path.' + id, {}), plain = v => v && typeof v === 'object' && !Array.isArray(v);
+  return Object.assign({ started:null, last:null }, p, { steps: plain(p.steps) ? p.steps : {}, stages: plain(p.stages) ? p.stages : {} });
+}
 function savePathProgress(id, prog){ store.set('path.' + id, prog); }
 function trackLabel(id){ const x = TRACKS.find(t => t[0] === id); return x ? x[1] : id; }
 function levelLabel(id){ const x = LEVELS.find(l => l[0] === id); return x ? x[1] : id; }
@@ -2574,7 +2647,8 @@ $('#importFile').onchange = async e => {
   const file = e.target.files[0]; e.target.value = ''; if(!file) return;
   let obj; try { obj = JSON.parse(await file.text()); } catch(err){ return toast('That file is not a Playable export'); }
   const entries = obj && obj.app === 'playable' && obj.data && typeof obj.data === 'object' ? Object.entries(obj.data) : null;
-  if(!entries || !entries.every(([k, v]) => OWN(k) && typeof v === 'string')) return toast('That file is not a Playable export');
+  const validJSON = v => { try { JSON.parse(v); return true; } catch(err){ return false; } };
+  if(!entries || !entries.every(([k, v]) => OWN(k) && typeof v === 'string' && validJSON(v))) return toast('That file is not a Playable export');
   if(!confirm(`Replace everything saved in this browser with the ${entries.length} items exported ${String(obj.exportedAt || '').slice(0, 10)}?`)) return;
   const before = Object.keys(localStorage).filter(OWN).map(k => [k, localStorage.getItem(k)]);
   try { before.forEach(([k]) => localStorage.removeItem(k)); entries.forEach(([k, v]) => localStorage.setItem(k, v)); }

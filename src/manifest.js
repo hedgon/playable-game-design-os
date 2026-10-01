@@ -7,6 +7,7 @@
 const HEAD = '01-head.html';
 const DATA = [
   '05-registry.js',
+  '06-glossary.js',
   '10-schema.js',
   '12-diagnostics.js',
   '13-ai-workflow.js',

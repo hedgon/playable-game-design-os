@@ -23,7 +23,7 @@ function imageSize(file) {
 }
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -790,4 +790,20 @@ if (!STRICT) console.log(`WARN lenient mode: ${warns.eng} topics missing eng, ${
 if (!STRICT) console.log(`WARN lenient mode: ${warns.flows} case studies with no flows, ${warns.fewFlows} with fewer than 2, ${warns.projIv} with no project interview, ${warns.sysIv} systems with no likely questions`);
 if (longs.length) console.log(`LONG (${longs.length}, reported, never an error):\n  ` + longs.join('\n  '));
 if (errors.length) { console.log('ERRORS:\n' + errors.join('\n')); process.exit(1); }
+// Glossary: ids unique and kebab-case, words non-empty, topic links real.
+{
+  const g = ctx.GLOSSARY || [], seen = new Set();
+  g.forEach((e, i) => {
+    const w = `glossary[${i}] ${e.id || '?'}`;
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(e.id || '')) errors.push(`${w}: id is not kebab-case`);
+    if (seen.has(e.id)) errors.push(`${w}: duplicate id`);
+    seen.add(e.id);
+    if (!e.term || !String(e.term).trim()) errors.push(`${w}: term empty`);
+    if (!e.def || !String(e.def).trim()) errors.push(`${w}: def empty`);
+    if (!Array.isArray(e.aka)) errors.push(`${w}: aka must be an array`);
+    if (e.topic !== undefined && !TOPICS[e.topic]) errors.push(`${w}: topic "${e.topic}" does not exist`);
+  });
+  if (g.length < 50) errors.push(`glossary has ${g.length} entries, needs at least 50`);
+  console.log(`glossary: ${g.length} terms`);
+}
 console.log('OK: all cross-links resolve, all topics complete.');

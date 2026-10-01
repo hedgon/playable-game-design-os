@@ -917,9 +917,9 @@ public class Rollback : MonoBehaviour {
         cur = Advance(cur, bits, remote[i]); frame++;
     }
     public void OnRemote(int f, int bits) {
-        if (f >= frame || frame - f > Max) return;      // guard first: an old f would alias a newer slot
-        int i = f % Ring; bool wrong = remote[i] != bits;
-        remote[i] = bits; conf[i] = f;
+        if (f < frame - Max || f >= frame - Max + Ring) return;   // guard first: keeps slots unique
+        int i = f % Ring; bool wrong = f < frame && remote[i] != bits;   // future: nothing to fix
+        remote[i] = bits; conf[i] = f;      // a future input is stored; Step will use it
         if (!wrong) return;
         int now = frame; cur = snaps[i];
         for (int g = f; g < now; g++) {
@@ -930,7 +930,7 @@ public class Rollback : MonoBehaviour {
     }
     static State Advance(State s, int l, int r) { s.pos.x += (l & 1) - (r & 1); return s; }
 }`,
-    pitfall:`Using a ring buffer with no guard on how old a frame can be. If the ring holds 64 frames and a late input claims frame 10 when you are on frame 90, f % Ring points at a newer frame’s data. The frame - f > Max test, with Max well under Ring, must run before any read of the buffer.`,
+    pitfall:`Using a ring buffer with no guard on how old or how far ahead a frame can be. If the ring holds 64 frames and a late input claims frame 10 when you are on frame 90, f % Ring points at a newer frame’s data. The range test, with Max well under Ring, must run before any read of the buffer. Do not drop inputs for frames not yet simulated: with input delay they are normal, and storing them means Step never has to predict that frame.`,
     map:`The Unity struct and ring buffer are the Godot dictionaries of frame to state; State copy on assignment is what duplicate(true) does in Godot for containers.` },
   note:`Neither engine provides rollback, so the first job is not code but a boundary: gameplay state you can copy, and a step you can call many times. The snippets show the whole idea with a one-value state. A real game replaces pos with every value the next frame depends on.` });
 INTERVIEW('server-rollback-netcode',{
