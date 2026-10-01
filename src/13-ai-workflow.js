@@ -194,7 +194,7 @@ CHECKLISTS.push(
 );
 /* ---------------- SHOULD WE BUILD THIS? ---------------- */
 const FEATURE_TREE = [
-  { id:'problem', q:'What player problem does it solve?', opts:[['A specific observed problem (from playtests)',3],['A problem we predict but have not observed',1],['No problem. It is an opportunity or a genre expectation',0]] },
+  { id:'problem', q:'What player problem does it solve?', opts:[['A specific observed problem (from playtests)',3],['A problem we predict but have not observed',0],['No problem. It is an opportunity or a genre expectation',0]] },
   { id:'experience', q:'What experience does it create?', opts:[['A specific emotion or behaviour we can name and observe',2],['A general improvement (“more fun”, “more depth”)',0],['We cannot say',-1]] },
   { id:'decision', q:'What decision does it introduce for the player?', opts:[['A new trade-off with situational variance',3],['A choice with a probably-dominant option',0],['No decision. It is automatic or cosmetic',-1]] },
   { id:'loop', q:'Does it strengthen the core loop?', opts:[['Directly: it fixes a weak link',3],['Indirectly: it multiplies the loop (content, progression)',1],['It runs beside the loop as a separate activity',-1]] },
@@ -204,6 +204,14 @@ const FEATURE_TREE = [
   { id:'experiment', q:'What is the smallest experiment?', opts:[['A day or less, instrumented, with a kill criterion',2],['A week. Needs several systems to exist first',0],['We cannot test it without building it fully',-2]] },
   { id:'without', q:'What happens if we do not build it?', opts:[['A validated player behaviour remains impossible',3],['The game is thinner but the core is intact',0],['Nothing observable changes',-3]] }
 ];
+// The two answers that moved the score most: the lowest when the verdict is not BUILD, the highest when it is.
+// Ties keep question order. Each is { q, opt, pts }.
+function featureDrivers(answers, verdict){
+  const rows = FEATURE_TREE.filter(q => answers[q.id] !== undefined).map(q => ({ q:q.q, opt:q.opts[answers[q.id]][0], pts:q.opts[answers[q.id]][1] }));
+  const pts = r => Number(r.pts), order = rows.map((r, i) => ({ r, i }));
+  return order.sort((a, b) => (verdict === 'BUILD' ? pts(b.r) - pts(a.r) : pts(a.r) - pts(b.r)) || a.i - b.i).slice(0, 2).map(x => x.r);
+}
+const featurePts = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
 function featureVerdict(score, answers){
   // answers: map id -> option index
   const simplerYes = answers.simpler === 2 || answers.simpler === 1;

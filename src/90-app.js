@@ -285,6 +285,7 @@ function render(view, parts){
     case 'lab': renderLab(); return addMakeJobs();
     case 'explore': return renderExplore(parts[1]);
     case 'concepts': return renderConcepts();
+    case 'glossary': return renderGlossary(parts[1]);
     case 'topic': return location.replace(TOPICS[parts[1]] ? '#/map/t/'+parts[1] : '#/map');
     case 'diagnose': return renderDiagnose(parts[1], parts[2]);
     case 'smell': return renderDiagnose('smells', parts[1]);
@@ -863,6 +864,7 @@ function renderGuide(){
   const route = (t, steps) => `<div class="card"><b>${esc(t)}</b><ol class="small" style="margin:6px 0 0;padding-left:20px">${steps.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
   setView(`${crumbs([['How to use this site']])}<h1>How to use this site</h1>
     <p class="dim" style="max-width:820px">A guide to making games, from design to engineering to shipping. Pick the route that matches why you came and ignore the rest until you need it.</p>
+    <p class="small" style="max-width:820px">New to the words? The <a href="#/glossary">Glossary</a> explains each one in plain English and links to the lesson that teaches it.</p>
     <div class="section-head"><h2>Pick your route</h2></div>
     <div class="grid auto">
       ${route('New to game design', ['Open <a href="#/paths">Learning paths</a> and answer the three questions, or start <a href="#/paths/game-designer-foundations">Game designer foundations</a>.', 'Follow one step at a time: the banner keeps your current task in view, and each stage ends in a checkpoint you can skip.'])}
@@ -1052,6 +1054,17 @@ function contextsPanel(t){
     ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(s => `<a href="#/ai/loop/${s.n}">${s.n}</a>`).join(', ')}</div>` : ''}
     ${practiceChips(t.id)}${partsRowsHTML(t.id) ? `<div class="wdup">${partsRowsHTML(t.id)}</div>` : ''}${pathChips(t.id) ? `<div class="wdup">${pathChips(t.id)}</div>` : ''}</div>`;
 }
+function renderGlossary(focusId){
+  const list = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term, 'en', { sensitivity:'base' }));
+  const letterOf = g => g.term.charAt(0).toUpperCase();
+  const letters = [...new Set(list.map(letterOf))];
+  const firstOf = {}; list.forEach(g => { const l = letterOf(g); if(!firstOf[l]) firstOf[l] = g.id; });
+  const entry = g => `<div class="gl-entry" style="margin:0 0 14px" id="g-${esc(g.id)}"><dt><b>${esc(g.term)}</b>${g.aka && g.aka.length ? ` <span class="small dim">also: ${g.aka.map(esc).join(', ')}</span>` : ''}</dt><dd style="margin:2px 0 0">${esc(g.def)}${g.topic && TOPICS[g.topic] ? `<div class="small" style="margin-top:4px"><a href="#/map/t/${esc(g.topic)}">Learn it: ${esc(TOPICS[g.topic].t)}</a></div>` : ''}</dd></div>`;
+  setView(`${crumbs([['Start here','#/guide'],['Glossary']])}<h1>Glossary</h1><p class="dim" style="max-width:820px">Words this guide uses, in plain English. Each links to the lesson that teaches it.</p>
+    <nav class="chips" aria-label="Jump to a letter">${letters.map(l => `<a class="chip lnk" href="#/glossary/${esc(firstOf[l])}">${esc(l)}</a>`).join('')}</nav>
+    <dl class="gl-list" style="max-width:820px">${list.map(entry).join('')}</dl>`);
+  if(focusId){ afterRoute = () => { const el = document.getElementById('g-' + focusId); if(el) el.scrollIntoView({ block:'start' }); }; }
+}
 function renderConcepts(){
   const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));
   const card = r => `<a class="card clickable tint lnk blk" style="--dc:${DOM[r.t.d].color}" href="#/map/t/${r.t.id}"><b>${esc(r.t.t)}</b><div class="small dim">${esc(DOM[r.t.d].t)} · referenced by ${r.n}</div></a>`;
@@ -1232,12 +1245,20 @@ function smellCard(s){ return `<a class="smell lnk blk" href="#/smell/${s.id}"><
 function smellGames(s){
   const tops = [...new Set(s.causes.map(c => c.top))].filter(t => TOPICS[t]), by = {};
   tops.forEach(t => (gameLinks()[t] || []).forEach(({ g, label }) => { const e = by[g.id] || (by[g.id] = { g, topics: new Set(), lens: '' }); e.topics.add(t); const k = (GAME_LENSES.find(l => l[1] === label) || [''])[0]; if(k && !e.lens) e.lens = k; }));
-  return { tops, games: Object.values(by).sort((a, b) => b.topics.size - a.topics.size || a.g.t.localeCompare(b.g.t)) };
+  // A topic many games list says little, so each topic weighs log(all games / games that list it). A game stays when
+  // it matches two or more of the causes, or one cause that fewer than a quarter of all games list.
+  const total = REFERENCE_GAMES.length, listed = {};
+  tops.forEach(t => { listed[t] = new Set((gameLinks()[t] || []).map(x => x.g.id)).size; });
+  const weight = t => Math.log(total / Math.max(listed[t], 1));
+  const games = Object.values(by).map(e => ({ ...e, score: [...e.topics].reduce((n, t) => n + weight(t), 0) }))
+    .filter(e => e.topics.size >= 2 || listed[[...e.topics][0]] < total / 4)
+    .sort((a, b) => b.score - a.score || a.g.t.localeCompare(b.g.t));
+  return { tops, games };
 }
 function smellGamesHTML(s){
   const { tops, games } = smellGames(s); if(!games.length) return '';
   const shown = games.slice(0, 6);
-  return `<div class="smellgames"><b>See it in games</b><span class="chips">${shown.map(e => `<a class="chip lnk" href="#/games/${e.g.id}${e.lens ? '/' + e.lens : ''}" title="Lists ${[...e.topics].map(t => esc(TOPICS[t].t)).join(', ')}">${esc(e.g.t)}</a>`).join('')}<a class="chip lnk" href="#/games/topic/${tops.join('+')}">All ${games.length} games →</a></span></div>`;
+  return `<div class="smellgames"><b>See it in games</b><span class="chips">${shown.map(e => `<a class="chip lnk" href="#/games/${e.g.id}${e.lens ? '/' + e.lens : ''}" title="Lists ${[...e.topics].map(t => esc(TOPICS[t].t)).join(', ')}">${esc(e.g.t)}</a>`).join('')}${games.length > shown.length ? `<a class="chip lnk" href="#/games/topic/${tops.join('+')}">More games for these topics →</a>` : ''}</span></div>`;
 }
 function smellsView(id){
   const s = SMELLS.find(x => x.id === id);
@@ -1251,7 +1272,7 @@ function smellsView(id){
       ${smellGamesHTML(s)}
       <h3 style="margin-top:16px">Ask AI to help diagnose</h3>${promptBox('Diagnostic prompt', s.prompt)}
       <div class="callout"><b>Then:</b> write the hypothesis for the cause you believe most, in the <a href="#/build/hypothesis">Hypothesis Builder</a>. Test the cheapest experiment. Change one important variable. Test again.</div>`,
-      [['Topics behind the causes', topicChipLinks(tops)], ['Games that show it', games.length ? chipLinks([...games.slice(0, 6).map(e => ['#/games/' + e.g.id + (e.lens ? '/' + e.lens : ''), e.g.t]), ['#/games/topic/' + tops.join('+'), `All ${games.length} games`]]) : ''], ['Part of paths', pathsBlock('smell:' + s.id)]], 'This smell');
+      [['Topics behind the causes', topicChipLinks(tops)], ['Games that show it', games.length ? chipLinks([...games.slice(0, 6).map(e => ['#/games/' + e.g.id + (e.lens ? '/' + e.lens : ''), e.g.t]), ...(games.length > 6 ? [['#/games/topic/' + tops.join('+'), `More games for these topics`]] : [])]) : ''], ['Part of paths', pathsBlock('smell:' + s.id)]], 'This smell');
   }
   return `<div class="field"><input id="smellSearch" placeholder="Filter smells: repetitive, build, tutorial, unfair, return…"></div>
     <div class="pill-tabs" id="smellDomFilter"><button class="active" data-d="">All</button>${DOMAINS.filter(d => SMELLS.some(s => s.dom.includes(d.id))).map(d => `<button data-d="${d.id}">${esc(d.t)}</button>`).join('')}</div>
@@ -1280,7 +1301,7 @@ function funView(dim){
 
 function loopView(part){
   const p = LOOP_PARTS.find(x => x.id === part) || LOOP_PARTS[0];
-  return `<div class="callout">Action → Feedback → Decision → Consequence → New situation. Click a link to see what happens when it is weak. Then fix that link before adding anything.</div>
+  return `<div class="callout">Decision → Action → Consequence → Feedback → New situation. Click a link to see what happens when it is weak. Then fix that link before adding anything.</div>
     <div class="loopviz">${LOOP_PARTS.map(x => `<button class="${x.id===p.id?'active':''}" data-href="#/diagnose/loop/${x.id}">${esc(x.t)}<small>${esc(x.sub)}</small></button>`).join('')}</div>
     <div class="card"><h2>Weak ${esc(p.t)}</h2><p class="dim">${esc(p.weak)}</p>
       <div class="think-grid"><div class="box bad"><h4>Symptoms in playtests</h4>${list(p.sym)}</div><div class="box trap"><h4>Likely causes</h4>${list(p.causes)}</div><div class="box good"><h4>Fixes</h4>${list(p.fixes)}</div><div class="box"><h4>Go deeper</h4><ul>${p.top.map(t => `<li>${topicLink(t)}</li>`).join('')}</ul></div></div>
@@ -1431,8 +1452,19 @@ function toolFeature(el){
     $('#ft_qs').innerHTML = FEATURE_TREE.map((q, qi) => { const sel = a[q.id]; if(sel !== undefined){ score += q.opts[sel][1]; done++; } return `<div class="tree-q"><b>${qi+1}. ${esc(q.q)}</b><div class="opts">${q.opts.map((o, oi) => `<button class="${sel===oi?'sel':''}" data-q="${q.id}" data-o="${oi}">${esc(o[0])}</button>`).join('')}</div></div>`; }).join('');
     $$('#ft_qs .opts button').forEach(b => b.onclick = () => { saved.answers[b.dataset.q] = +b.dataset.o; store.set('featureTool', saved); render(); });
     if(done === FEATURE_TREE.length){ const [v, text] = featureVerdict(score, a); const label = v==='PROTOTYPE' ? 'PROTOTYPE FIRST' : v;
-      const md = `# Feature review: ${saved.name||'(unnamed)'}\n\nVerdict: **${label}** (score ${score})\n\n${FEATURE_TREE.map((q,i) => `${i+1}. ${q.q}\n   → ${q.opts[a[q.id]][0]}`).join('\n')}\n\n${text}`;
-      $('#ft_verdict').innerHTML = `<div class="verdict ${v}"><h2>${label}</h2><p>${esc(text)}</p><div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/map/t/scope-control">Read: scope control</a><a class="btn sm" href="#/build/ladder">Climb the behaviour ladder</a></div></div>${outputBox(md)}`; }
+      const drivers = featureDrivers(a, v), up = v === 'BUILD';
+      const md = `# Feature review: ${saved.name||'(unnamed)'}
+
+Verdict: **${label}** (score ${score})
+
+${FEATURE_TREE.map((q,i) => `${i+1}. ${q.q}
+   → ${q.opts[a[q.id]][0]} (${featurePts(q.opts[a[q.id]][1])})`).join('\n')}
+
+## What drove this
+${drivers.map(d => `- ${d.q} ${d.opt} (${featurePts(d.pts)})`).join('\n')}
+
+${text}`;
+      $('#ft_verdict').innerHTML = `<div class="verdict ${v}"><h2>${label}</h2><p>${esc(text)}</p><p class="small"><b>What drove this</b> (the two answers that pulled the score ${up ? 'up' : 'down'} most):</p><ul class="small">${drivers.map(d => `<li>${esc(d.q)} ${esc(d.opt)} <b>(${featurePts(d.pts)})</b></li>`).join('')}</ul><details class="small" open><summary>Every answer, with its points (score ${score})</summary><ol>${FEATURE_TREE.map(q => `<li>${esc(q.q)} ${esc(q.opts[a[q.id]][0])} <b>(${featurePts(q.opts[a[q.id]][1])})</b></li>`).join('')}</ol></details><div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/map/t/scope-control">Read: scope control</a><a class="btn sm" href="#/build/ladder">Climb the behaviour ladder</a></div></div>${outputBox(md)}`; }
     else $('#ft_verdict').innerHTML = `<div class="empty">${FEATURE_TREE.length-done} question${FEATURE_TREE.length-done>1?'s':''} left</div>`; };
   $('#ft_name').addEventListener('input', e => { saved.name = e.target.value; store.set('featureTool', saved); });
   render();
@@ -2052,7 +2084,7 @@ function renderExperience(id, a, b){
     setView(p ? partPage(c, s, p) : systemPage(c, s));
     return renderTree(p ? 'part' : 'sys');
   }
-  setView(`${crumbs([['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
+  setView(`${crumbs([['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">The author’s own shipped projects, anonymised: codenames replace the real names, and the techniques are what travels.</p><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
     ${CASE_STUDIES.length ? `<div class="grid auto fit">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/40-cases.js and appear here as soon as one is written.</div>'}`);
 }
 
@@ -2302,10 +2334,10 @@ ACTIONS.choose = el => { const a = chooserAnswers(); a[el.dataset.q] = el.datase
 const donePathIds = () => PATHS.filter(p => { const prog = pathProgress(p.id); return p.stages.every(s => prog.stages[s.id]); }).map(p => p.id);
 function chooserHTML(ans, rec){
   const q = (key, label, opts) => `<div class="chooser-q"><div class="overline" id="cq-${key}">${label}</div><div class="dims" role="group" aria-labelledby="cq-${key}">${opts.map(([v, t]) => `<button type="button" data-action="choose" data-q="${key}" data-v="${v}" class="${ans[key] === v ? 'active' : ''}" aria-pressed="${ans[key] === v}">${esc(t)}</button>`).join('')}</div></div>`;
-  const wk = (p, hpw) => `about ${pathWeeks(p, hpw)} week${pathWeeks(p, hpw) === 1 ? '' : 's'}`;
+  const wk = (p, hpw) => `about ${pathWeeks(p, hpw)} week${pathWeeks(p, hpw) === 1 ? '' : 's'} at ${hpw} hours a week`;
   let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
   if(rec){
-    const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)} at ${hpw} hours a week.`)];
+    const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)}.`)];
     // An experienced learner is not offered easier paths as alternatives, and never more than three.
     const rank = x => LEVELS.findIndex(l => l[0] === x.level);
     const alts = ans.level === 'senior' ? rec.alt.filter(a => rank(a) >= rank(p)).slice(0, 3) : rec.alt;
@@ -2313,7 +2345,7 @@ function chooserHTML(ans, rec){
     const fit = ans.level === 'senior' ? 'it assumes you have shipped work' : ans.level === 'some' ? 'it builds on the basics you already have' : 'it starts from the ground up' + (hasPrereq(p) ? ', after the paths it builds on' : '');
     const because = `<p class="small muted" style="margin:0 0 8px">${esc(`Suggested because you chose ${goalLabel} and ${levelLabel}: ${fit}.`)}</p>`;
     if(alts.length) why.push(`Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
-    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${alts.length ? ` Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
+    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)}.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${alts.length ? ` Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
       : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}${rec.anyOf.length ? ` A good base first: one of ${rec.anyOf.map(a => pathLinkChip(a.id)).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
     out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)">${head}</div>`;
   }
@@ -2448,17 +2480,26 @@ const withNext = (main, rows, label) => { const b = nextBlocks(rows); return wid
    SEARCH
    ===================================================================== */
 let _INDEX = null;
+// Other names readers type for a topic. Topic data carries no synonyms, so they live here, beside the index that reads them.
+const TOPIC_SYNONYMS = {
+  'design-documents':['gdd','design doc','game design document'],
+  'economy-modelling-and-balance':['balance','balancing','game balance'],
+  'onboarding':['ftue','first time user experience'],
+  'game-feel-and-juice':['juice','juicy'],
+  'difficulty':['flow','flow state','challenge and skill']
+};
 function buildIndex(){
   const INDEX = [];
 const engText = t => t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k].term, ...(t.eng[k].api||[]), t.eng[k].pitfall, t.eng[k].map] : []) : [];
 const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map(x => x.q)) : [];
-TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...(t.facts||[]).map(f=>f.claim), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
+TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, aka:TOPIC_SYNONYMS[t.id] || [], text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...(t.facts||[]).map(f=>f.claim), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
 TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.sub ? c.sub + ' · ' : ''}${c.role} · ${c.period}`, href:'#/experience/'+c.id, text:(c.t+' '+(c.sub||'')+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).forEach(s => (s.parts||[]).forEach(p => INDEX.push({ type:'experience', t:c.t+' · '+p.t, snip:`${s.t} · ${p.why}`, href:`#/experience/${c.id}/${s.id}/${p.id}`, text:(c.t+' '+s.t+' '+s.kind+' '+(s.stack||[]).join(' ')+' '+p.t+' '+p.what+' '+(p.how||[]).join(' ')+' '+p.why+' '+p.trade+' '+(p.story||'')).toLowerCase() }))));
 CASE_STUDIES.forEach(c => (c.flows||[]).forEach(f => INDEX.push({ type:'experience', t:(c.code||c.t)+' · '+f.t, snip:`Workflow · ${(f.steps||[]).length} steps · ${f.sum}`, href:`#/experience/${c.id}/flow/${f.id}`, text:('workflow flow chart '+(c.code||c.t)+' '+f.t+' '+f.sum+' '+(f.steps||[]).map(s=>s.t+' '+s.d).join(' ')+' '+(f.edges||[]).map(e=>e[2]||'').join(' ')).toLowerCase() })));
 CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t+' · interview', snip:`${c.sub || c.role} · questions, model answers and red flags`, href:'#/experience/'+c.id+'/interview', text:('interview questions answers red flag junior mid senior project '+c.t+' '+(c.sub||'')+' '+['junior','mid','senior'].flatMap(k => (c.iv[k]||[]).map(x => x.q+' '+x.a)).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
+GLOSSARY.forEach(g => INDEX.push({ type:'term', t:g.term, snip:snip(g.def, 110), href:'#/glossary/'+g.id, aka:g.aka || [], text:(g.term+' '+g.def).toLowerCase() }));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
 PAGES.forEach(([href, t, section, purpose, aka]) => INDEX.push({ type:'page', t, snip:`${section} · ${purpose}`, href, text:[t, section, purpose, ...aka].join(' ').toLowerCase(), aka }));
 const guideText = stages => Object.values(stages).flatMap(s => [...(s.points || []), ...(s.facts || []).map(f => f.claim), ...(s.deploy || []).flatMap(d => [d.t, d.d]), ...(s.iv || []).map(x => x.q)]);
@@ -2516,7 +2557,7 @@ function oneEdit(a, b){
   if(a.length === b.length) return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
   return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
 }
-const SEARCH_GROUPS = [['page', 'Pages'], ['topic', 'Topics'], ['reference', 'Reference games'], ['platform', 'Platforms'], ['path', 'Learning paths'], ['tool', 'Build tools'], ['checklist', 'Checklists'], ['prompt', 'Prompts'], ['smell', 'Design smells'], ['interview', 'Interview questions'], ['experience', 'Projects']];
+const SEARCH_GROUPS = [['page', 'Pages'], ['topic', 'Topics'], ['reference', 'Reference games'], ['platform', 'Platforms'], ['term', 'Terms'], ['path', 'Learning paths'], ['tool', 'Build tools'], ['checklist', 'Checklists'], ['prompt', 'Prompts'], ['smell', 'Design smells'], ['interview', 'Interview questions'], ['experience', 'Projects']];
 function search(q){
   const whole = q.trim().toLowerCase(), qs = searchWords(whole).filter(w => !STOP_WORDS.has(w)); if(!qs.length) return [];
   const hits = [];
@@ -2540,14 +2581,15 @@ function search(q){
       score += s; tier = Math.min(tier, tw);
     }
     if(!ok) continue;
+    const titleAll = qs.every(w => it._t.includes(w));
     const t = it.t.toLowerCase();
     if(t === whole) score += 100; else if(t.startsWith(whole)) score += 40;
     if(it.type === 'page') score += 5;
-    hits.push([score, it, tier]);
+    hits.push([score, it, tier, titleAll ? 1 : 0]);
   }
   // Exact whole-word matches lead; prefix and typo matches are dropped once three exact ones exist.
   const exact = hits.filter(h => h[2] >= 2).length;
-  return hits.filter(h => exact < 3 || h[2] >= 2).sort((a, b) => b[2] - a[2] || b[0] - a[0]).map(x => x[1]);
+  return hits.filter(h => exact < 3 || h[2] >= 2).sort((a, b) => b[3] - a[3] || b[2] - a[2] || b[0] - a[0]).map(x => x[1]);
 }
 // The results list, grouped by kind; each group shows its first six and can
 // be opened in full. With an empty box it is a jump list: pages visited in
@@ -2563,8 +2605,8 @@ function renderSearch(){
     const recent = recentPages().slice(0, 5), seenHref = new Set(recent.map(r => r.href));
     const common = COMMON_PAGES.filter(h => !seenHref.has(h)).map(h => PAGES.find(p => p[0] === h && p[1] !== 'Library')).filter(Boolean).map(p => ({ type:'page', t:p[1], snip:`${p[2]} · ${p[3]}`, href:p[0] }));
     searchResults = [...recent.map(r => ({ type:'recent', t:r.t, snip:r.snip || '', href:r.href })), ...common];
-    const row = (r, i) => `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${r.type === 'recent' ? 'recent' : 'page'}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`;
-    html = (recent.length ? `<div class="resgroup">Visited recently</div>${searchResults.slice(0, recent.length).map(row).join('')}` : '') + `<div class="resgroup">Jump to</div>${searchResults.slice(recent.length).map((r, k) => row(r, recent.length + k)).join('')}`;
+    const row = (r, i) => `<div class="res ${i===searchSel?'sel':''}" role="option" id="sr-${i}" aria-selected="${i===searchSel}" data-i="${i}"><span class="type">${r.type === 'recent' ? 'recent' : 'page'}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`;
+    html = (recent.length ? `<div class="resgroup" role="presentation">Visited recently</div>${searchResults.slice(0, recent.length).map(row).join('')}` : '') + `<div class="resgroup" role="presentation">Jump to</div>${searchResults.slice(recent.length).map((r, k) => row(r, recent.length + k)).join('')}`;
   } else {
     const all = search(q), byType = {};
     all.forEach(r => { (byType[r.type] || (byType[r.type] = [])).push(r); });
@@ -2574,15 +2616,20 @@ function renderSearch(){
     for(const t of ordered){
       const list = byType[t], open = searchOpenGroups.has(t), shown = open ? list : list.slice(0, 6);
       const label = (SEARCH_GROUPS.find(g => g[0] === t) || [t, t.charAt(0).toUpperCase() + t.slice(1)])[1];
-      html += `<div class="resgroup">${esc(label)} <span class="muted">${list.length}</span></div>` + shown.map(r => { const i = searchResults.push(r) - 1; return `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${esc(r.type)}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`; }).join('')
+      html += `<div class="resgroup" role="presentation">${esc(label)} <span class="muted">${list.length}</span></div>` + shown.map(r => { const i = searchResults.push(r) - 1; return `<div class="res ${i===searchSel?'sel':''}" role="option" id="sr-${i}" aria-selected="${i===searchSel}" data-i="${i}"><span class="type">${esc(r.type)}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`; }).join('')
         + (list.length > shown.length ? `<button type="button" class="btn sm ghost resmore" data-action="search-more" data-group="${esc(t)}">Show all ${list.length}</button>` : '');
     }
     if(!all.length) html = `<div class="empty">Nothing matches every word. Try fewer words, a symptom ("repetitive"), a concept ("depth"), or open <a href="#/index">All pages</a>.</div>`;
   }
   searchSel = Math.min(searchSel, Math.max(searchResults.length - 1, 0));
   $('#searchResults').innerHTML = html;
-  $('#searchCount').textContent = q && searchResults.length ? `${$$('#searchResults .res').length} shown` : '';
-  $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); });
+  const inp = $('#searchInput'), n = searchResults.length;
+  $('#searchCount').textContent = q ? (n === 1 ? '1 result' : `${n} results`) : '';
+  inp.setAttribute('aria-expanded', String(n > 0));
+  if(n) inp.setAttribute('aria-activedescendant', 'sr-' + searchSel); else inp.removeAttribute('aria-activedescendant');
+  const mark = i => { searchSel = i; $$('#searchResults .res').forEach(x => { const on = +x.dataset.i === i; x.classList.toggle('sel', on); x.setAttribute('aria-selected', String(on)); }); inp.setAttribute('aria-activedescendant', 'sr-' + i); };
+  $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => mark(+el.dataset.i); el.onclick = () => openResult(+el.dataset.i); });
+  const cur = $('#searchResults .res.sel'); if(cur && cur.scrollIntoView) cur.scrollIntoView({ block:'nearest' });
 }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
 function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; searchOpenGroups = new Set(); renderSearch(); openModal('searchModal', '#searchInput'); }
@@ -2601,6 +2648,7 @@ function closeModals(){
   const open = $$('.modal-bg.show'); if(!open.length) return;
   const hadFocus = open.some(m => m.contains(document.activeElement));
   open.forEach(m => m.classList.remove('show'));
+  $('#searchInput').setAttribute('aria-expanded', 'false');
   if(hadFocus){ if(modalOpener && modalOpener.isConnected && modalOpener !== document.body) modalOpener.focus(); else document.activeElement.blur(); }
   modalOpener = null;
 }

@@ -21,7 +21,7 @@ T('level-structure',{ d:'level', t:'Level structure: teach, test, twist, combine
   prompts:[{l:'Level beat plan',p:`Design constraints: the player currently knows [MECHANICS], the idea this level teaches is [IDEA], the emotional target is [EMOTION], the pacing position is [POSITION in the game], and constraints are [TIME, ASSETS]. Propose 3 six-beat structures (teach, test, twist, combine, master, rest). For each beat, state what the player does, what they could fail, and what they learn. Make the twists different across the 3 proposals. Do not describe visuals.`}],
   verify:[`Did it escalate where it should twist?`,`Are beats grounded in the mechanics I said the player knows?`],
   test:[`Do players use the idea in the test beat without prompting?`,`Where do they die in the introduction? That is a teaching failure.`,`Do they react to the twist (pause, comment, laugh)?`,`Can they state what the level was about afterwards?`],
-  rel:[['pacing','Beats are pacing at level scale.'],['skill-and-mastery','Levels are where skill atoms are taught and combined.'],['onboarding','The first levels are the onboarding.'],['tension-release','Test and rest are tension and release.']] });
+  rel:[['pacing','Beats are pacing at level scale.'],['skill-and-mastery','Levels are where skill atoms are taught and combined.'],['onboarding','The first levels are the onboarding.'],['tension-release','Test and rest are tension and release.'],['level-blockout-and-metrics','The beats are first laid out and tested in a blockout.']] });
 TECH('level-structure',[
   {n:'Kishotenketsu (introduce, develop, twist, conclude)', how:`Structure a level around one idea: introduce it safely, develop it, twist it, conclude.`, fit:`Teaching mechanics through space.`, cost:`Rigid if applied to every level. Needs variation.`, alt:`One movement/mechanic idea per room (Celeste-style).`},
   {n:'Teach, test, twist, combine, master, rest', how:`Sequence the six level intents within and across levels.`, fit:`A long, well-paced learning arc.`, cost:`Tracking the sequence across many levels takes discipline.`, alt:`Map each level to the intent it serves.`},
@@ -220,7 +220,7 @@ T('spatial-composition',{ d:'level', t:'Spatial composition and exploration', ta
   prompts:[{l:'Sightline review',p:`Here is a level layout with entrances, forks, landmarks and goals: [LAYOUT]. For each entrance and fork, state what the player sees first and what that communicates. Flag positions where no landmark is visible and forks whose options look alike or promise the same thing. Propose the smallest geometry changes to fix each flag. Then identify one opportunity to recontextualize a known space.`}],
   verify:[`Are its sightline claims consistent with the geometry I described, including camera height?`],
   test:[`Ask players to point to where they entered. Track error.`,`Track map opens per minute.`,`Which forks do players take, and can they say why?`,`Do players notice recontextualization?`],
-  rel:[['level-structure','Structure in time. Composition in space.'],['environmental-storytelling','Composed space can carry story.'],['readability-and-hierarchy','Space is information design.'],['mastery-discovery-expression','Exploration is the spatial form of discovery.']] });
+  rel:[['level-structure','Structure in time. Composition in space.'],['environmental-storytelling','Composed space can carry story.'],['readability-and-hierarchy','Space is information design.'],['mastery-discovery-expression','Exploration is the spatial form of discovery.'],['level-blockout-and-metrics','Sightlines and landmarks are tested on the greybox before art.']] });
 TECH('spatial-composition',[
   {n:'Sightlines and landmarks', how:`Compose views so players can orient and see the next goal from where they are.`, fit:`Wayfinding without markers.`, cost:`Constraints on art and layout. Needs iteration.`, alt:`Grey-box sightline pass. Ask players to point home.`},
   {n:'Affordance density', how:`Control how many interactables and choices sit in view at once.`, fit:`Readability and avoiding overload.`, cost:`Too sparse feels empty. Too dense hides the goal.`, alt:`Cap the always-visible interactables.`},
@@ -317,7 +317,7 @@ T('encounter-design',{ d:'level', t:'Encounter design', tag:'An encounter is a q
   prompts:[{l:'Encounter composition',p:`Enemy questions available: [LIST]. Arena properties: [LIST]. The player knows [MECHANICS] and the intended shift is [SHIFT]. Propose 3 encounter compositions with setup, engagement, shift and resolution. For each, state what the player can read before committing, at least two valid approaches, and the approach that should fail. Identify what in the arena makes each approach viable.`}],
   verify:[`Did it use enemy count as the shift?`,`Are the “valid approaches” enabled by concrete arena features?`],
   test:[`Record approaches across players. Count distinct ones.`,`Do players react to the shift?`,`Ask players to narrate the fight afterwards.`],
-  rel:[['encounters-and-enemies','Enemies are the vocabulary of encounters.'],['spatial-composition','Space shapes the question.'],['pacing','Encounters are intensity beats.'],['decisions','Approach choice is a decision.']] });
+  rel:[['encounters-and-enemies','Enemies are the vocabulary of encounters.'],['spatial-composition','Space shapes the question.'],['pacing','Encounters are intensity beats.'],['decisions','Approach choice is a decision.'],['combat-design','Each enemy attack is an anatomy of warn, hit and recover that the encounter composes.']] });
 TECH('encounter-design',[
   {n:'Threat budget', how:`Assign enemies a cost and compose to a target that scales with the player’s kit.`, fit:`Pacing difficulty across a long game.`, cost:`Ignores synergy. Two cheap enemies can be worse than their sum.`, alt:`Budget as a first pass, then hand-tune set pieces.`},
   {n:'Arena affordances', how:`Design cover, hazards, verticality and escape routes as the encounter’s real content.`, fit:`Making fights read and offer tactical choice.`, cost:`Art and layout cost. Must match AI navigation.`, alt:`Blockout the arena around the intended decisions.`},
@@ -404,3 +404,106 @@ DIAGRAM('encounter-design', { kind:'curve', title:'An encounter is a question wi
   series:[{t:'Tension', pts:[[0,0.2],[0.2,0.35],[0.42,0.6],[0.54,0.55],[0.7,0.9],[0.85,0.6],[1,0.18]]}],
   beats:[{at:0.12, t:'Read'},{at:0.4, t:'Engage'},{at:0.7, t:'Shift'},{at:0.93, t:'Resolve'}],
   alt:'Tension climbs while the player reads the space and engages, peaks at the tactical shift, and falls at the resolution.' });
+
+
+T('level-blockout-and-metrics',{ d:'level', t:'Blockout and level metrics', tag:'Build the level out of plain boxes, sized to what the character can do, and prove it works before any art is made.',
+  what:`A blockout (also called a greybox or whitebox) is a level built from plain, untextured shapes, made to test layout, flow and movement. Its measuring stick is the set of character metrics: how high and how far the character can jump, how fast it runs, how tall a wall it can climb or hide behind, how wide a doorway must be. Metrics are measured from the controller in the build, not from a table, and every gap, ledge, cover piece and corridor is sized against them. A blockout then shows the structure: the critical path (the route the player must take to finish), the optional space off it (side rooms, secrets, risky shortcuts), the gates that hold the player back until they are ready, and the landmarks that tell them where they are and where to go. It is playtested as boxes, and it moves to art only when the structure holds. Valve’s published level-design guidance for the Source engine sizes doorways and cover against the player’s collision hull, which is the same idea at studio scale.`,
+  why:[`Layout is the most expensive thing to change after art is in. A blockout lets a wrong corridor cost an afternoon, not a month.`,`A gap sized to the character’s real jump is fair. A gap sized by eye is a bug report waiting to happen.`,`Boxes remove the excuse of looking good. If the level is fun in grey, art will help. If it is not, art will hide the problem for a while.`],
+  think:{ q:[`What can the character do exactly: jump height, jump distance, run speed, climb height, cover height? Who measured them, and from which build?`,`Which route is the critical path, and can the player always find it?`,`What is optional, what does it give, and does skipping it cost the player nothing they need?`,`What stops the player going ahead before they are ready: a lock, a skill, a creature, a view, and does the player understand it is a gate?`,`Can a tester say where they are from three landmarks, without a map?`],
+    trade:[`Tight metrics make every platform fair and fit the controls exactly, and they make the level rigid when the controller changes.`,`A very linear critical path is easy to follow and easy to pace. A wide one gives choice and gets players lost.`,`Staying in grey longer proves the structure and delays the art that tells players what is solid, what is dangerous and where to look.`],
+    traps:[`Sizing the level by eye, then changing the jump, so every gap in the level is wrong.`,`Making the critical path the only path with something in it, so players who explore find nothing, or the opposite, putting the key reward off the path where a player can finish without ever seeing it.`,`Marking the way with a light, a colour or a prop that disappears when the art arrives.`,`Moving to art because of the schedule when the playtests still show people lost.`],
+    good:[`Testers cross every gap on the critical path on the first or second try and never ask “can I make that?”.`,`Players find the way through a grey level using landmarks and shapes alone, as they would find it in the finished one.`,`Portal’s test chambers are small rooms that each teach one idea, so the layout is the lesson, and it can be judged before any art is added.`],
+    bad:[`Players ask “is that a jump?” or “can I stand on that?” in the grey boxes.`,`Testers wander in loops in the first half and are lost by the second.`,`The team argues about the look of the level before anyone has finished it.`] },
+  how:[`Measure the character first, in a test room: jump height and distance at full run and standing, climb height, crouch cover height, doorway width. Write them in one place and put them in the level as a ruler.`,`Place the critical path first, from the start to the end, using only the metrics. Mark the spaces that need a gate and what opens each one.`,`Add optional space off the path: a side room, a risky shortcut, a view. Give each a reason to look, and make skipping it free.`,`Add landmarks and a few sightlines to the goal, so that the player can steer with their eyes: one tall shape, one lit area, one broken wall. Remove all signs and text.`,`Playtest the grey boxes with players who have not seen the level, and watch where they stop, turn back or fall. Fix the layout, not the signage.`,`Move to art when new players finish without help, the pacing holds across two sessions, and the metrics have not changed in a while. Keep the blockout as the reference and re-test after the art pass, since collision, lighting and props can break it.`],
+  ai:{ yes:[`Check a blockout’s gaps, ledges and corridors against a metrics table and list every one outside it.`,`Generate the grid, ruler objects and placeholder shapes for a metrics set.`,`Read playtest recordings or heatmaps and list where players stopped, turned back or fell.`],
+       no:[`Decide whether the layout is fun. Only players in the grey boxes can show that.`,`Pick metrics for your character. They come from the controller you built and the feel you want.`] },
+  prompts:[{l:'Metrics check',p:`Here are our character metrics measured from the build: [JUMP HEIGHT, JUMP DISTANCE, RUN SPEED, CLIMB HEIGHT, COVER HEIGHT, DOOR WIDTH]. Here is a list of the level’s gaps, ledges, cover pieces and openings with their sizes: [LIST]. For each, say whether it is within the metrics, how much margin it has, and whether the critical path depends on it. List the ones that would feel unfair or trivial, and say what a playtest would show for each. Do not suggest changing the character metrics.`},
+    {l:'Blockout playtest plan',p:`We have a blockout of [LEVEL DESCRIPTION] with this critical path: [PATH]. Write a playtest plan for four people who have not seen it: what to tell them, what to record (where they stop, turn back, fall or get lost), the three questions to ask after, and the signal for each of these: the path is findable, the gates are understood, the optional spaces are noticed. State what would make us fix the layout and what would let us move to art.`}],
+  verify:[`Did it use the metrics from our build, or generic numbers?`,`Does each proposed change fix the layout, or add a sign?`,`Does the plan test with players who have not seen the level?`],
+  test:[`Time and record new players on the critical path. Where do they stop, turn back or fall?`,`Ask them to point at the way to the goal from three places, without a map.`,`Count how many players notice each optional space, and whether anyone who skipped it felt cheated.`,`After the art pass, run the same test. Do the results hold?`],
+  rel:[['level-structure','The beats of a level are laid out on the blockout.'],['spatial-composition','Sightlines and landmarks are tested on the greybox.'],['prototyping','A blockout is a prototype of space, and it is tested the same way.'],['encounter-design','Cover height and arena size come from the metrics.'],['playtesting','The blockout is only as good as the playtest it is put through.'],['craft-physics-and-collision','The jump and collision numbers the level is measured against come from here.']] });
+TECH('level-blockout-and-metrics',[
+  {n:'Metrics ruler', how:`Build a test room that shows the real jump height, jump distance, climb height and cover height as marked shapes. Copy those shapes into every level.`, fit:`Any game with a moving character and levels built from pieces.`, cost:`Has to be rebuilt every time the controller changes.`, alt:`Put the numbers in a data file and build the level pieces from it.`},
+  {n:'Grid and modular kit', how:`Build the blockout from a few box sizes that fit a grid, such as one wall height and one floor thickness, so that every piece can be swapped for art.`, fit:`Large levels and teams that hand blockouts to artists.`, cost:`A strict grid makes the level look the same and can fight organic shapes.`, alt:`Use a grid for the playable space and free shapes for the background.`},
+  {n:'Critical path first', how:`Build the shortest route from start to end, then add optional space, gates and landmarks in that order, and re-test after each.`, fit:`Any level with a goal to reach.`, cost:`The first version feels thin and invites early art requests.`, alt:`Draw the path on paper first, then build it.`},
+  {n:'Blockout playtest', how:`Give the grey boxes to players who have not seen them and record where they stop, turn back or fall, before any fixes.`, fit:`Every blockout, before art.`, cost:`Takes some people’s time, and a rough level can make testers focus on how it looks.`, alt:`Tell testers what is placeholder and ask only about the route and the jumps.`}
+]);
+ENGINE('level-blockout-and-metrics',{
+  godot:{ term:`Metrics are a Resource that holds the controller numbers and works out the jump height and distance from them. The level, a gizmo or a test room reads that Resource, so a change to the jump moves the ruler.`,
+    api:['Resource + class_name','@export','ProjectSettings.get_setting()','CharacterBody2D.velocity','Vector2','float'],
+    snippet:`class_name PlayerMetrics extends Resource
+@export var jump_velocity := 480.0          # pixels per second, from the controller
+@export var run_speed := 260.0
+@export var margin := 0.8                    # share of the maximum the critical path may use
+var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
+
+func jump_height() -> float:
+\treturn jump_velocity * jump_velocity / (2.0 * gravity)
+
+func jump_distance() -> float:
+\treturn run_speed * 2.0 * jump_velocity / gravity   # flat ground, at full run
+
+func safe_gap() -> float:
+\treturn jump_distance() * margin`,
+    pitfall:`Trusting the formula over the build. The physics step adds gravity in discrete steps and the player may also have coyote time, a jump buffer or a variable jump, so the real apex and distance differ a little from the closed-form numbers. Measure the real jump in a test room, with a recorded run, and keep the formula as the first estimate that tells you roughly where the ruler goes.`,
+    map:`A Godot Resource with @export fields is a Unity ScriptableObject, and the ruler in the test room is a gizmo or a prefab in both.` },
+  unity:{ term:`Metrics are a ScriptableObject that holds the controller numbers and works out the jump height and distance. Level pieces, gizmos or a test room read the asset, so changing the jump moves the ruler in every scene.`,
+    api:['ScriptableObject + CreateAssetMenu','[SerializeField]','Physics.gravity','Physics2D.gravity','float','Gizmos'],
+    snippet:`[CreateAssetMenu(menuName = "Level/Player Metrics")]
+public class PlayerMetrics : ScriptableObject {
+    public float jumpVelocity = 8f;            // metres per second, from the controller
+    public float runSpeed = 6f;
+    [Range(0.5f, 1f)] public float margin = 0.8f;   // share of the maximum the critical path may use
+
+    float G => -Physics.gravity.y;             // use Physics2D.gravity for a 2D game
+
+    public float JumpHeight => jumpVelocity * jumpVelocity / (2f * G);
+    public float JumpDistance => runSpeed * 2f * jumpVelocity / G;   // flat ground, full run
+    public float SafeGap => JumpDistance * margin;
+}`,
+    pitfall:`Reading Physics.gravity in a 2D game. The 2D and 3D physics have separate gravity settings, so a 2D platformer that reads the 3D value gets a ruler that is wrong by whatever the two differ by, and every gap is sized against it. Read Physics2D.gravity for 2D, and also multiply by the Rigidbody gravity scale if you change it. As with any formula, check the number against a recorded jump.`,
+    map:`A Unity ScriptableObject is a Godot Resource, and Physics2D.gravity is the Godot default_gravity project setting.` },
+  note:`Both snippets keep the numbers in one place and derive the ruler from them. That is the design point: the level is measured against the controller, so when the controller changes, the metrics change once and every gap that is now wrong can be found by checking it against the same asset.` });
+INTERVIEW('level-blockout-and-metrics',{
+  junior:[
+    { q:`What is a greybox, and why build one before art?`,
+      a:`A level in plain, untextured shapes, made to test layout, flow and movement. It is cheap to change, so a wrong corridor costs an afternoon. It also shows whether the level works without help from the look. If it is fun in grey, art will help. If it is not, art will only hide the problem for a while.`,
+      follow:`What can a greybox not tell you?`,
+      red:`Says it is a rough draft to throw away, with no use of it as a test.` },
+    { q:`What are character metrics, and give three that a level depends on?`,
+      a:`Measured numbers from the controller: jump height, jump distance at a full run, run speed, climb height, cover height and doorway width. The level is built to them so that every gap, ledge and cover piece is fair. They come from the build, not from a table.`,
+      follow:`The designer changes the jump after the blockout is done. What do you do?`,
+      red:`Sizes platforms by eye and fixes them one at a time when testers fall.` },
+    { q:`What is the critical path, and what is optional space?`,
+      a:`The critical path is the route the player must take to finish. Optional space is everything off it: side rooms, secrets, risky shortcuts. Skipping optional space must cost nothing the player needs, and it should offer something worth the detour. Mega Man X hides upgrades off the route in this way.`,
+      follow:`How do you tell that a player has missed the critical path and not chosen an optional one?`,
+      red:`Puts every reward on the main path, or hides the main path.` }
+  ],
+  mid:[
+    { q:`How do you use gating and landmarks to steer a player through a level with no signs?`,
+      a:`A gate holds the player back until they are ready: a lock, a skill, an enemy, a view they cannot yet reach. A landmark is a tall or distinct shape that tells them where they are and where to go. Place a landmark so that it can be seen from the places a player gets lost, and make sure the player understands what a gate needs. Test with testers who have never seen it, without a map.`,
+      follow:`A tester wanders back and forth. What do you change?`,
+      red:`Adds an arrow or text to fix every lost player.` },
+    { q:`How do you playtest a blockout, and what do you look for?`,
+      a:`Give it to players who have not seen it, say it is placeholder and ask for little talking. Record where they stop, turn back, fall or look at the ground, and time the critical path. Look for places where people ask “can I jump that?” or “where do I go?”. Fix the layout and the metrics before the signs, and run the test again.`,
+      follow:`Testers keep talking about the look. How do you stop that?`,
+      red:`Watches only the people who finish.` },
+    { q:`How do you size a platforming gap or a cover piece?`,
+      a:`Start from the measured metrics and take a share of the maximum for the critical path, so a normal player clears it with room to spare. Use the full maximum only for an optional, risky challenge. For cover, use the height at which the character visibly hides and the enemies’ eye line. Verify each against a recorded run, since coyote time and buffers change the real numbers.`,
+      follow:`How do you choose the margin?`,
+      red:`Uses the theoretical maximum for every gap.` }
+  ],
+  senior:[
+    { q:`When do you move a level from blockout to art, and how do you protect it after?`,
+      a:`When new players finish without help, the pacing holds across two sessions and the metrics have stopped changing. Hand artists the blockout as the reference and the metrics as the rule. After the art pass re-run the same tests, because collision, lighting, props and camera can break a layout that worked in grey. Agree who may change layout after this point.`,
+      follow:`The schedule says to start art now and the tests say people are lost. What do you do?`,
+      red:`Moves on schedule, with no check that the structure holds.` },
+    { q:`A team of level designers works on the same game. How do you keep the metrics consistent as the controller changes?`,
+      a:`Keep the metrics in one asset that the controller and the level tools both read. Build a metrics test room and a validator that lists every gap, ledge or cover piece outside the numbers. Version the metrics and announce changes, and give each change a re-check of the levels it touches. The cost of a change is then known before it is made.`,
+      follow:`A change to the jump breaks forty gaps. How do you decide whether to ship it?`,
+      red:`Leaves each designer to remember the numbers.` }
+  ] });
+DIAGRAM('level-blockout-and-metrics', { kind:'flow', title:'From metrics to art: what a blockout settles',
+  steps:[{id:'metrics', t:'Measure the character', d:'jump, run, climb, cover'},{id:'path', t:'Critical path', d:'start to end, to the metrics'},{id:'optional', t:'Optional space', d:'side rooms and risks'},{id:'gates', t:'Gates and landmarks', d:'hold back and point on'},{id:'test', t:'Playtest the boxes', d:'new players, no help'},{id:'art', t:'Move to art', d:'only when it holds'}],
+  edges:[['metrics','path'],['path','optional'],['path','gates'],['optional','test'],['gates','test'],['test','art']],
+  note:'A failed playtest sends you back to the layout, not forward to art.' });

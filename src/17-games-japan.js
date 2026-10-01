@@ -833,7 +833,7 @@ GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n
       compare: 'Demon’s Souls healed with consumable grasses that a player could farm and stockpile; Dark Souls replaced them with Estus refilled only at bonfires, so healing can no longer be banked ahead of a hard area.',
       cost: 'Tying everything to rest makes long stretches between bonfires punishing, and respawning enemies turn some returns into a chore; players who struggle can end up clearing the same route again and again to afford one push.',
       principle: 'If one action restores both the player and the danger, every rest becomes a decision rather than a free top-up, and the distance between rest points becomes the main difficulty dial.',
-      topics: ['risk-reward', 'core-loop', 'challenge-failure-recovery'],
+      topics: ['risk-reward', 'core-loop', 'challenge-failure-recovery', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Dark_Souls_(video_game)', 'https://en.wikipedia.org/wiki/Demon%27s_Souls'] },
     ui: {
       claim: 'Dark Souls keeps its permanent HUD to only what a fight needs moment to moment, and pushes everything else, the map, quest guidance, other players, into layers the player has to seek out rather than have pushed at them.',

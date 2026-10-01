@@ -75,6 +75,7 @@ const PAGES = [
   ['#/games', 'Reference games', 'Library', 'Successful games taken apart with one template, with loop and screen schematics.', ['game library', 'examples', 'games', 'reference', 'analysis', 'case studies', 'jrpg', 'teardown']],
   ['#/platforms', 'Platforms', 'Library', 'How to get onto each store, console and UGC platform, from access to release.', ['stores', 'publishing', 'steam', 'console', 'roblox', 'release', 'certification', 'shipping']],
   ['#/guide', 'How to use this site', 'Start here', 'What each section is for, the fastest route for you, and where things are on screen.', ['help', 'guide', 'how to use', 'getting started', 'tutorial', 'start here', 'lost', 'features', 'manual']],
+  ['#/glossary', 'Glossary', 'Start here', 'Words this guide uses, in plain English, each linked to the lesson that teaches it.', ['glossary', 'terms', 'jargon', 'dictionary', 'definitions', 'words', 'what does it mean']],
   ['#/engines', 'Engines and tools', 'Library', 'Each engine and tool: how it is built, the editor, the pipeline, deploying, cost, AI and interview questions.', ['engines', 'unity', 'unreal', 'godot', 'gamemaker', 'three.js', 'blender', 'web', 'html5', 'deploy', 'build']],
   ['#/checklists', 'Checklists', 'Library', 'Practical reviews whose ticks are saved.', ['checklist', 'pre-submission', 'audit']],
   ['#/prompts', 'Prompts', 'Library', 'Reusable AI prompt templates built on the formula.', ['prompt library', 'templates', 'ai prompts']],

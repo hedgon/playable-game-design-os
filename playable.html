@@ -1291,9 +1291,9 @@ details.comp .body{padding-top:6px}
 <footer>Playable · A practical operating system for designing games people want to play, with AI as a tireless collaborator and humans as the judge. Everything here is a heuristic, not a law: test it against your players. · <a href="#/index">All pages</a> · <a href="#/sources">Sources and lineage</a> · <a href="#/map">Map</a></footer>
 <div class="modal-bg" id="searchModal" role="dialog" aria-modal="true" aria-label="Search">
   <div class="modal">
-    <div class="sinput">🔍<input id="searchInput" placeholder="Search pages, topics, games, platforms, tools…" autocomplete="off"></div>
-    <div class="results" id="searchResults"></div>
-    <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span><span id="searchCount"></span></div>
+    <div class="sinput">🔍<input id="searchInput" placeholder="Search pages, topics, games, platforms, tools…" autocomplete="off" aria-label="Search the guide" role="combobox" aria-expanded="false" aria-controls="searchResults" aria-autocomplete="list"></div>
+    <div class="results" id="searchResults" role="listbox" aria-label="Search results"></div>
+    <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span><span id="searchCount" aria-live="polite"></span></div>
   </div>
 </div>
 <div class="modal-bg lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
@@ -1406,6 +1406,7 @@ const PAGES = [
   ['#/games', 'Reference games', 'Library', 'Successful games taken apart with one template, with loop and screen schematics.', ['game library', 'examples', 'games', 'reference', 'analysis', 'case studies', 'jrpg', 'teardown']],
   ['#/platforms', 'Platforms', 'Library', 'How to get onto each store, console and UGC platform, from access to release.', ['stores', 'publishing', 'steam', 'console', 'roblox', 'release', 'certification', 'shipping']],
   ['#/guide', 'How to use this site', 'Start here', 'What each section is for, the fastest route for you, and where things are on screen.', ['help', 'guide', 'how to use', 'getting started', 'tutorial', 'start here', 'lost', 'features', 'manual']],
+  ['#/glossary', 'Glossary', 'Start here', 'Words this guide uses, in plain English, each linked to the lesson that teaches it.', ['glossary', 'terms', 'jargon', 'dictionary', 'definitions', 'words', 'what does it mean']],
   ['#/engines', 'Engines and tools', 'Library', 'Each engine and tool: how it is built, the editor, the pipeline, deploying, cost, AI and interview questions.', ['engines', 'unity', 'unreal', 'godot', 'gamemaker', 'three.js', 'blender', 'web', 'html5', 'deploy', 'build']],
   ['#/checklists', 'Checklists', 'Library', 'Practical reviews whose ticks are saved.', ['checklist', 'pre-submission', 'audit']],
   ['#/prompts', 'Prompts', 'Library', 'Reusable AI prompt templates built on the formula.', ['prompt library', 'templates', 'ai prompts']],
@@ -1452,7 +1453,7 @@ const GLOSSARY = [
   { id:'feedback', term:'Feedback', aka:['player feedback'], def:'Anything the game shows or plays to tell the player what their action did, such as a sound, a flash or a number rising. Without it, players cannot tell whether they did the right thing.', topic:'feedback-and-affordance' },
   { id:'game-feel', term:'Game feel', aka:['juice','juiciness'], def:'How good an action feels to perform, made from small touches like screen shake, sound and quick animation. A coin that pops, chimes and flies to the counter feels better than one that silently vanishes.', topic:'game-feel-and-juice' },
   { id:'affordance', term:'Affordance', aka:[], def:'A visual hint that shows what you can do with something. A ledge with a bright edge says "climb me", and a button that looks raised says "press me".', topic:'feedback-and-affordance' },
-  { id:'telegraph', term:'Telegraph', aka:['telegraphing'], def:'A clear warning shown before something dangerous happens, such as a boss raising its arm before a slam. It lets the player react, so a hit feels fair.', topic:'readable-and-fair-ai' },
+  { id:'telegraph', term:'Telegraph', aka:['telegraphing'], def:'A clear warning shown before something dangerous happens, such as a boss raising its arm before a slam. It lets the player react, so a hit feels fair.', topic:'combat-design' },
   { id:'verb', term:'Verb', aka:['player verb','player action'], def:'An action the player can take, named as a word: run, shoot, build, trade. A game is often easier to describe by listing its few core verbs.', topic:'mechanics-and-rules' },
   { id:'fantasy', term:'Fantasy', aka:['player fantasy','power fantasy'], def:'The role or feeling the game lets the player live out, such as being a lone survivor or a shop owner. It is the promise that makes someone want to start playing.', topic:'fantasy' },
   { id:'pillar', term:'Design pillar', aka:['pillar','design pillars'], def:'One of three or four short statements that say what the game must always be about. When the team disagrees about a feature, the pillars decide.', topic:'design-pillars' },
@@ -1478,7 +1479,7 @@ const GLOSSARY = [
   { id:'soft-launch', term:'Soft launch', aka:['beta launch'], def:'Releasing a game in a few small markets first, to measure retention and spending before the full launch, while changes are still cheap.', topic:'soft-launch-and-playable-ads' },
   { id:'onboarding', term:'Onboarding', aka:['FTUE','first-time user experience','first time user experience'], def:'Everything a new player meets in their first minutes, from the first screen to their first win. FTUE stands for first-time user experience.', topic:'onboarding' },
   { id:'tutorial', term:'Tutorial', aka:['teaching level'], def:'The part of a game that teaches the player how to play. The best ones teach by letting the player try, not by showing long text.', topic:'onboarding' },
-  { id:'greybox', term:'Greybox', aka:['blockout','blockmesh','whitebox'], def:'A rough level made of plain grey boxes with no art, built to test layout and movement. If it is fun as grey boxes, art will only help.', topic:'level-structure' },
+  { id:'greybox', term:'Greybox', aka:['blockout','blockmesh','whitebox'], def:'A rough level made of plain grey boxes with no art, built to test layout and movement. If it is fun as grey boxes, art will only help.', topic:'level-blockout-and-metrics' },
   { id:'vertical-slice', term:'Vertical slice', aka:['slice'], def:'One small part of the game made to near final quality, with art, sound and play all in place. It proves the whole game can reach that standard.', topic:'vertical-slice-mvp' },
   { id:'prototype', term:'Prototype', aka:['prototyping'], def:'A rough, quick version of an idea made to test one question, such as whether a grappling hook is fun. It is meant to be thrown away.', topic:'prototyping' },
   { id:'playtest', term:'Playtest', aka:['playtesting','play test'], def:'Watching real people play your game, without helping them, to learn where they are confused or bored.', topic:'playtesting' },
@@ -1767,7 +1768,7 @@ const SMELLS = [
       {c:'Missing or late impact feedback', top:'feedback-and-affordance', exp:`Feedback matrix for attacks. Fill empty cells with hit-stop, sound and a hit reaction under 100 ms. A/B with testers.`},
       {c:'Input latency', top:'controls-and-friction', exp:`Measure input-to-response on the target device. Anything over about 100 ms needs fixing before any juice.`},
       {c:'Animation timing without commitment or anticipation', top:'animation-and-vfx', exp:`Add anticipation frames and a commitment window to the main attack. Test readability and feel together.`},
-      {c:'No consequence: hits do not change enemy state', top:'core-loop', exp:`Make hits change something visible (stagger, position, behaviour). Floaty is often “nothing happened”.`}],
+      {c:'No consequence: hits do not change enemy state', top:'combat-design', exp:`Make hits change something visible (stagger, position, behaviour). Floaty is often “nothing happened”.`}],
     prompt:`Combat feels floaty. Here are our attack timings, feedback per hit, input latency and enemy reactions: [DATA]. Identify whether the cause is missing impact feedback, latency, animation timing, or hits that change nothing. Propose fixes in order of cost, and what “weighty” would look like in a recording.` },
   { id:'unfair', t:'The game feels unfair', fun:true, dims:['mastery','tension'], dom:['systems','ux','presentation'],
     sym:`“Cheap”, “no warning”, “random”. Rage quits after a failure. Retries without change.`,
@@ -1872,22 +1873,22 @@ const SMELLS = [
     prompt:`Players find the companion [INEFFECTIVE / OVERPOWERED / STUCK / ANNOYING] in [SECTION]. Here is the ally’s role, follow logic, contribution and barks: [DATA]. Diagnose which cause dominates, propose the smallest change that keeps the player central, and define the escort, contribution and bark playtests that would confirm it.` }
 ];
 const LOOP_PARTS = [
+  { id:'decision', t:'Decision', sub:'the player chooses what to do', weak:'The optimal choice is obvious, or there is no choice.',
+    sym:[`Players choose without hesitation.`,`Choice variance across players is near zero.`,`Players describe play as a routine.`],
+    causes:[`A dominant option.`,`Options differ in flavour only.`,`Not enough information to reason, or too much to feel risk.`,`Progression collapsed the option set.`],
+    fixes:[`Write the trade-off sentence for each option. Fix the ones without.`,`Add a situational counter to the dominant option.`,`Adjust information: enough to reason, not enough to be certain.`], top:['decisions','risk-reward','builds-and-loadouts'] },
   { id:'action', t:'Action', sub:'the player does something', weak:'Controls feel sluggish or unclear. The verb is not the fantasy verb.',
     sym:[`Players fight the controls, look at their hands, or describe actions as “clunky”.`,`The most frequent action is not the one the fantasy promises.`],
     causes:[`Input latency over about 100 ms.`,`Mapping designed for the team.`,`Action has no anticipation or commitment, so it feels weightless.`,`The verb set does not match the fantasy.`],
     fixes:[`Measure and fix latency first.`,`Re-map for the target player.`,`Add anticipation and commitment windows as rules, then animate.`,`Check the fantasy verbs against the loop.`], top:['controls-and-friction','game-feel-and-juice','fantasy'] },
-  { id:'feedback', t:'Feedback', sub:'the game responds legibly', weak:'The player does not understand what happened or why.',
-    sym:[`“Did that do anything?”`,`Players repeat a failing action several times.`,`Players cannot say why they died.`],
-    causes:[`Feedback confirms input but not outcome.`,`Failure has no cause feedback.`,`Delayed or buried feedback.`,`Visual grammar inconsistent.`],
-    fixes:[`Build the action x outcome feedback matrix and fill the empty cells.`,`Communicate cause within two seconds of failure.`,`Fix hierarchy so the important signal is loudest.`], top:['feedback-and-affordance','readability-and-hierarchy','challenge-failure-recovery'] },
-  { id:'decision', t:'Decision', sub:'the player chooses what to do next', weak:'The optimal choice is obvious, or there is no choice.',
-    sym:[`Players choose without hesitation.`,`Choice variance across players is near zero.`,`Players describe play as a routine.`],
-    causes:[`A dominant option.`,`Options differ in flavour only.`,`Not enough information to reason, or too much to feel risk.`,`Progression collapsed the option set.`],
-    fixes:[`Write the trade-off sentence for each option. Fix the ones without.`,`Add a situational counter to the dominant option.`,`Adjust information: enough to reason, not enough to be certain.`], top:['decisions','risk-reward','builds-and-loadouts'] },
-  { id:'consequence', t:'Consequence', sub:'the choice changes something', weak:'Choices do not matter.',
+  { id:'consequence', t:'Consequence', sub:'the action changes the state', weak:'Choices do not matter.',
     sym:[`“It did not matter what I picked.”`,`Players stop reading options.`,`Players cannot recall a consequence of their choice.`],
     causes:[`Consequences invisible or delayed past memory.`,`Branches converge.`,`Consequence is a number change the player cannot perceive.`],
     fixes:[`Make the consequence visible within the loop, even if the full effect is later.`,`Replace invisible branches with visible acknowledgments.`,`Tie consequence to the next situation.`], top:['agency-and-emergence','narrative-agency','progression'] },
+  { id:'feedback', t:'Feedback', sub:'the game shows what changed', weak:'The player does not understand what happened or why.',
+    sym:[`“Did that do anything?”`,`Players repeat a failing action several times.`,`Players cannot say why they died.`],
+    causes:[`Feedback confirms input but not outcome.`,`Failure has no cause feedback.`,`Delayed or buried feedback.`,`Visual grammar inconsistent.`],
+    fixes:[`Build the action x outcome feedback matrix and fill the empty cells.`,`Communicate cause within two seconds of failure.`,`Fix hierarchy so the important signal is loudest.`], top:['feedback-and-affordance','readability-and-hierarchy','challenge-failure-recovery'] },
   { id:'situation', t:'New situation', sub:'the world is different now', weak:'Nothing changes, so the next iteration is the same.',
     sym:[`“Samey” and “repetitive”.`,`Sessions shorten over time.`,`Players can play on autopilot.`],
     causes:[`Decision-relevant state resets each iteration.`,`Systems do not interact, so state combinations are few.`,`Content varies appearance, not decisions.`,`Skill ceiling reached.`],
@@ -2196,7 +2197,7 @@ CHECKLISTS.push(
 );
 /* ---------------- SHOULD WE BUILD THIS? ---------------- */
 const FEATURE_TREE = [
-  { id:'problem', q:'What player problem does it solve?', opts:[['A specific observed problem (from playtests)',3],['A problem we predict but have not observed',1],['No problem. It is an opportunity or a genre expectation',0]] },
+  { id:'problem', q:'What player problem does it solve?', opts:[['A specific observed problem (from playtests)',3],['A problem we predict but have not observed',0],['No problem. It is an opportunity or a genre expectation',0]] },
   { id:'experience', q:'What experience does it create?', opts:[['A specific emotion or behaviour we can name and observe',2],['A general improvement (“more fun”, “more depth”)',0],['We cannot say',-1]] },
   { id:'decision', q:'What decision does it introduce for the player?', opts:[['A new trade-off with situational variance',3],['A choice with a probably-dominant option',0],['No decision. It is automatic or cosmetic',-1]] },
   { id:'loop', q:'Does it strengthen the core loop?', opts:[['Directly: it fixes a weak link',3],['Indirectly: it multiplies the loop (content, progression)',1],['It runs beside the loop as a separate activity',-1]] },
@@ -2206,6 +2207,14 @@ const FEATURE_TREE = [
   { id:'experiment', q:'What is the smallest experiment?', opts:[['A day or less, instrumented, with a kill criterion',2],['A week. Needs several systems to exist first',0],['We cannot test it without building it fully',-2]] },
   { id:'without', q:'What happens if we do not build it?', opts:[['A validated player behaviour remains impossible',3],['The game is thinner but the core is intact',0],['Nothing observable changes',-3]] }
 ];
+// The two answers that moved the score most: the lowest when the verdict is not BUILD, the highest when it is.
+// Ties keep question order. Each is { q, opt, pts }.
+function featureDrivers(answers, verdict){
+  const rows = FEATURE_TREE.filter(q => answers[q.id] !== undefined).map(q => ({ q:q.q, opt:q.opts[answers[q.id]][0], pts:q.opts[answers[q.id]][1] }));
+  const pts = r => Number(r.pts), order = rows.map((r, i) => ({ r, i }));
+  return order.sort((a, b) => (verdict === 'BUILD' ? pts(b.r) - pts(a.r) : pts(a.r) - pts(b.r)) || a.i - b.i).slice(0, 2).map(x => x.r);
+}
+const featurePts = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
 function featureVerdict(score, answers){
   // answers: map id -> option index
   const simplerYes = answers.simpler === 2 || answers.simpler === 1;
@@ -3140,7 +3149,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Dark Souls heals with Estus Flasks, a fixed number of charges refilled at bonfires, so healing is rationed across a whole run between rests. Hollow Knight refills healing inside the fight, which keeps it aggressive and makes a long boss fight winnable by a player who keeps landing hits.',
       cost: 'A player who is struggling earns less soul and so heals less, which widens the gap between confident and nervous players. The walk back from a bench to a hard boss after each death adds time without teaching anything new.',
       principle: 'Tie recovery to the skill the game wants to see, and struggling players get fewer chances; give them another way back, or accept that the difficulty will climb for them.',
-      topics: ['risk-reward', 'challenge-failure-recovery'],
+      topics: ['risk-reward', 'challenge-failure-recovery', 'combat-design'],
       sources: ['https://hollowknight.wiki/w/Focus', 'https://hollowknight.wiki/w/Shade', 'https://hollowknight.wiki/w/Charms'] },
     ui: {
       claim: 'Hollow Knight treats navigation help as a reward, not a given: the map, the quill that updates it and even your own position marker are items, so knowing where you are becomes progress.',
@@ -3963,7 +3972,7 @@ ANALYSIS('hades', {
       compare: 'Diablo builds a character from randomised gear dropped mid-fight; Hades keeps the randomness, which god appears and which three boons they offer, but moves it to a pause between rooms and shows the reward on the door first, so a player can still explain why the build looks the way it does.',
       cost: 'Learning the full Olympian roster and which pairings combine well is a real memorisation cost for new players, and once a handful of combined effects are known to be strong, experienced players can end up steering every run towards the same few doors rather than adapting to whatever the game offers that time.',
       principle: 'When you want players to own their build, offer it as a small, legible choice at a fixed point, not a random reward mid-action; legibility lets a player defend a build as a decision rather than shrug at it as luck.',
-      topics: ['builds-and-loadouts', 'depth-vs-complexity'],
+      topics: ['builds-and-loadouts', 'depth-vs-complexity', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Hades_(video_game)', 'https://store.steampowered.com/app/1145360/Hades/'] },
     ui: {
       claim: 'Hades keeps a run’s five slotted boons, Attack, Special, Cast, Dash and Call, fixed at the edge of the screen through combat, while every conversation in the House plays out inline, so a player can read the core of a build mid-fight and hear from a character without a separate cutscene.',
@@ -5702,7 +5711,7 @@ GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n
       compare: 'Demon’s Souls healed with consumable grasses that a player could farm and stockpile; Dark Souls replaced them with Estus refilled only at bonfires, so healing can no longer be banked ahead of a hard area.',
       cost: 'Tying everything to rest makes long stretches between bonfires punishing, and respawning enemies turn some returns into a chore; players who struggle can end up clearing the same route again and again to afford one push.',
       principle: 'If one action restores both the player and the danger, every rest becomes a decision rather than a free top-up, and the distance between rest points becomes the main difficulty dial.',
-      topics: ['risk-reward', 'core-loop', 'challenge-failure-recovery'],
+      topics: ['risk-reward', 'core-loop', 'challenge-failure-recovery', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Dark_Souls_(video_game)', 'https://en.wikipedia.org/wiki/Demon%27s_Souls'] },
     ui: {
       claim: 'Dark Souls keeps its permanent HUD to only what a fight needs moment to moment, and pushes everything else, the map, quest guidance, other players, into layers the player has to seek out rather than have pushed at them.',
@@ -10236,7 +10245,7 @@ SERIES({
       compare: 'Tekken’s parallel rock-paper-scissors runs on high, mid and low attacks read by a standing, crouching or sidestepping guard; Street Fighter keeps its triangle almost entirely spatial, so two fighters with identical buttons can still lose to each other purely on footwork.',
       cost: 'Because the triangle must stay balanced for every matchup, no single tool can answer both of the others at once, which caps how flashy any move can be and forces new mechanics, Focus Attacks, Drive Impacts, to modify the triangle’s timing rather than replace it.',
       principle: 'When testing turns up an unintended technique that multiplies the reward for a correct read without changing what is being read, consider keeping it as hidden depth rather than patching it out, since it deepens the decision players already make instead of adding a new one to learn.',
-      topics: ['core-loop', 'decisions'],
+      topics: ['core-loop', 'decisions', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Street_Fighter_II', 'https://en.wikipedia.org/wiki/Super_Street_Fighter_II_Turbo', 'https://users.cs.northwestern.edu/~hunicke/MDA.pdf', 'https://wiki.supercombo.gg/w/Street_Fighter_2:_Champion_Edition/System', 'https://wiki.supercombo.gg/w/Street_Fighter_2:_Champion_Edition/Chun-li'] },
     ui: {
       claim: 'Street Fighter’s HUD grew a second, more urgent language, a resource meter under the life bar, precisely because the series kept adding tools, a Super Combo, a V-Trigger, a Drive Gauge, that ask a player to plan several seconds ahead rather than react to the next hit alone.',
@@ -10629,7 +10638,7 @@ SERIES({
       compare: 'Shadow of the Colossus (2005) also has the player climb a giant, but there climbing to a weak point is the whole fight; in Monster Hunter a mount is one opening inside a longer fight, earned by where the hunter stands and cashed in as a topple before the ordinary fight resumes.',
       cost: 'Every scripted opening is time a monster spends on the ground rather than attacking, so each entry that adds another, mounts, Wyvern Riding, wounds, arguably makes monsters easier to exploit and pushes their health and aggression up to compensate, a rhythm veterans relearn in every new game.',
       principle: 'Pay out an opening for where the player stands, not for a filled meter, and a long fight stays about reading space: the player earns the window by positioning, then spends it.',
-      topics: ['mechanics-and-rules', 'skill-and-mastery'],
+      topics: ['mechanics-and-rules', 'skill-and-mastery', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Monster_Hunter_(video_game)', 'https://en.wikipedia.org/wiki/Monster_Hunter_4', 'https://en.wikipedia.org/wiki/Monster_Hunter_Wilds'] },
     ui: {
       claim: 'Monster Hunter refuses to show a monster’s health as a number: a player has to read a monster’s limp, its scarring and its roars instead of watching a bar count down.',
@@ -13813,7 +13822,7 @@ GAME({ id:'doom', series:{ id:'doom', t:'Doom', n:'the first game' }, img:'asset
       compare: 'Modern military shooters such as Call of Duty slow the player to reward a well-timed peek from behind cover and a steadied scope; Doom removes both options and asks for constant repositioning instead, closer to a boxer circling an opponent than a soldier holding a line.',
       cost: 'Without cover, a player who stops moving to aim precisely is punished rather than rewarded, so players who prefer careful marksmanship over movement have less to do, and the same openness that rewards good positioning also punishes any momentary lapse harshly, since nothing blocks a shot already in the air.',
       principle: 'When a game removes an entire category of player defence, such as cover or reload, give the player a different one to manage in its place, movement, or the fight stops being a fight at all.',
-      topics: ['mechanics-and-rules', 'agency-and-emergence', 'encounters-and-enemies'],
+      topics: ['mechanics-and-rules', 'agency-and-emergence', 'encounters-and-enemies', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Doom_(1993_video_game)', 'https://github.com/id-Software/DOOM/blob/master/linuxdoom-1.10/p_map.c', 'https://github.com/id-Software/DOOM/blob/master/linuxdoom-1.10/p_inter.c'] },
     ui: {
       claim: 'Doom’s status bar keeps ammunition, health, armour and keys visible at all times in one fixed strip, and lets a single portrait carry state that would otherwise need several separate readouts.',
@@ -15933,7 +15942,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'The Greek God of War games used the Blades of Chaos, chained weapons that never left Kratos’s hands, so range and melee were one constant state rather than a choice the player makes many times a fight.',
       cost: 'The design asks for fights built around throw timing, and Gamecritics argued that the game outlives its enemy variety, so the same decision can feel worn by the later hours.',
       principle: 'A weapon becomes a decision when losing it is real but survivable: give the fallback enough power that throwing is tempting, and little enough that it hurts.',
-      topics: ['items-weapons-abilities','risk-reward','mechanics-and-rules'],
+      topics: ['items-weapons-abilities','risk-reward','mechanics-and-rules', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/God_of_War_(franchise)', 'https://gamecritics.com/mike-suskie/god-of-war-2018-review/', 'https://psxextreme.com/news/ps4-news/god-of-war-review/'] },
     ui: {
       claim: 'God of War’s close, unbroken camera is an interface decision as much as a story one: it hides the space behind Kratos, and the game must then answer that blind spot for the player.',
@@ -19851,24 +19860,24 @@ DOMAINS.push({ id:'core', lens:'design', t:'Core Gameplay', short:'Loop, decisio
     sum:`The thing the player does over and over. If the core interaction is not compelling on its own, no amount of progression, content or narrative rescues it. Fix the loop before you multiply it.`,
     links:[['systems','Systems give the loop its variables: what changes between one iteration and the next.'],['ux','Input, readability and feedback are the loop as the player physically meets it.'],['presentation','Game feel lives at the seam between the loop and presentation.'],['production','The loop is the first thing you prototype and the thing you playtest most.']] });
 
-T('core-loop',{ d:'core', t:'The core loop', tag:'Action → Feedback → Decision → Consequence → New situation. Every link must hold.',
-  what:`The shortest cycle of play the player repeats: they act, the game responds legibly, they decide what to do next based on that response, the decision has consequences, and the consequences create a new situation that demands a new action. When one link is weak the loop leaks and no amount of content refills it. In Bejeweled the swap is the action, the clearing gems are the feedback, choosing among the legal swaps is the decision, the cascade is the consequence, and the refilled board is the new situation. Cities: Skylines runs the same loop on a city’s traffic: zoning is the action, a rezoned street’s changed congestion is the feedback, deciding what to build next is the decision, and the next jam it creates is the new situation.`,
+T('core-loop',{ d:'core', t:'The core loop', tag:'Decision → Action → Consequence → Feedback → New situation. Every link must hold.',
+  what:`The shortest cycle of play the player repeats: they decide what to do, they act, the game state changes as a consequence, the game shows them what changed, and the changed state is a new situation that asks for a new decision. When one link is weak the loop leaks and no amount of content refills it. In Bejeweled choosing among the legal swaps is the decision, the swap is the action, the cleared gems and the cascade are the consequence, the clearing animation and the score are the feedback, and the refilled board is the new situation. Cities: Skylines runs the same loop on a city’s traffic: deciding what to zone is the decision, zoning is the action, the changed flow of cars on a rezoned street is the consequence, the congestion colours on the road are the feedback, and the next jam it creates is the new situation.`,
   why:[`Players spend most of their time in the core loop. It is the game.`,`Every other system (progression, content, narrative) multiplies the loop. Multiplying a weak loop multiplies weakness.`,`Loop failures have characteristic symptoms, which makes them diagnosable.`],
-  think:{ q:[`What does the player do most often, physically? Is that the fantasy verb?`,`After an action, can the player say what happened and why?`,`Is there a decision, or a single obvious best move?`,`Does the decision change anything the player will meet later?`,`Does the situation after the loop differ from the one before it?`],
+  think:{ q:[`Is there a decision, or a single obvious best move?`,`What does the player do most often, physically? Is that the fantasy verb?`,`Does the action change anything the player will meet later?`,`After an action, can the player say what happened and why?`,`Does the situation after the loop differ from the one before it?`],
     trade:[`Fast loops (seconds) reward feel and reflex. Slow loops (minutes) reward planning. Each attracts different players.`,`More decision density increases engagement and cognitive load.`],
     traps:[`Describing the loop as a flowchart of systems (gather, craft, fight, upgrade) rather than as what the player experiences.`,`Assuming a loop is fun because it is genre standard.`],
     good:[`A stripped prototype (grey boxes, no progression) is voluntarily replayed.`,`Two players given an identical toolkit still produce different match outcomes purely from spacing and timing, the way Street Fighter’s neutral game does.`,`Players replay a calm, danger-free delivery for hundreds of hours once its payout feeds a slower loans-garages-drivers loop, as in Euro Truck Simulator 2.`],
     bad:[`Players say “I will keep going to unlock X” rather than “I want to do that again”.`] },
-  how:[`Write the loop in five sentences from the player’s point of view, one per link.`,`Build the loop alone: no progression, no content variety, no story. Grey boxes.`,`Playtest it. If players do not voluntarily repeat it, diagnose which link is weak using the Core Loop Diagnostic.`,`Fix one link, test again. Only when the bare loop is replayed do you start multiplying it.`],
+  how:[`Write the loop in five sentences from the player’s point of view, one per link, in order: decision, action, consequence, feedback, new situation.`,`Build the loop alone: no progression, no content variety, no story. Grey boxes.`,`Playtest it. If players do not voluntarily repeat it, diagnose which link is weak using the Core Loop Diagnostic.`,`Fix one link, test again. Only when the bare loop is replayed do you start multiplying it.`],
   ai:{ yes:[`Rewrite your loop description from the player perspective and flag missing links.`,`Generate variations of one link (e.g., five alternative decision structures) to test.`,`Build the grey-box prototype quickly.`,`Analyze playtest notes for symptoms of each weak link.`],
        no:[`Decide the loop is fun. Only repetition by players shows that.`,`Add systems to compensate for a weak link before the link is fixed.`] },
-  prompts:[{l:'Loop link audit',p:`Act as a sceptical systems designer. Here is our core loop as the player experiences it: [FIVE SENTENCES]. For each link (action, feedback, decision, consequence, new situation), rate its strength, state the evidence you are using from my description, and name the symptom a playtest would show if it were weak. Then propose 3 variations for the weakest link, each with the player decision it creates, the emotion intended, the likely failure mode, and the observable signal that would validate it. Do not recommend one yet.`},
+  prompts:[{l:'Loop link audit',p:`Act as a sceptical systems designer. Here is our core loop as the player experiences it: [FIVE SENTENCES]. For each link (decision, action, consequence, feedback, new situation), rate its strength, state the evidence you are using from my description, and name the symptom a playtest would show if it were weak. Then propose 3 variations for the weakest link, each with the player decision it creates, the emotion intended, the likely failure mode, and the observable signal that would validate it. Do not recommend one yet.`},
     {l:'Prototype build',p:`Build a minimal playable prototype of this loop in [ENGINE/HTML]: [LOOP]. Grey boxes only, no menus, no progression, no audio beyond a single feedback tone. Expose these tuning values as on-screen sliders: [VALUES]. Log every player action with a timestamp to a downloadable text file so I can analyse repetition and decision variety.`}],
   verify:[`Did it rate links based on my description or on genre assumptions?`,`Are the proposed variations mechanically distinct, or the same idea reskinned?`,`Does the prototype isolate the loop, or did it sneak in progression?`],
   test:[`Do players repeat the loop voluntarily when nothing rewards them for it?`,`Can they explain what happened after an action?`,`Do different players make different choices at the decision point?`,`Do they notice the situation changed?`],
   rel:[['genre-hybrids','Two loops can share a game only when each one feeds the other.'],['decisions','The decision link is where most loops fail.'],['feedback-and-affordance','Feedback is the link UX owns.'],['game-feel-and-juice','Action feel is the loop as the body experiences it.'],['prototyping','The loop is the first prototype.'],['systemic-design','Systems supply the new situation.']] });
 TECH('core-loop',[
-  {n:'Loop mapping', how:`Write the loop as action → feedback → decision → consequence → new situation and mark the weak link.`, fit:`Diagnosing why repetition bores or why actions feel weightless.`, cost:`None worth mentioning. It is the cheapest diagnostic you have.`, alt:`Pair with the Core Loop diagnostic view.`},
+  {n:'Loop mapping', how:`Write the loop as decision → action → consequence → feedback → new situation and mark the weak link.`, fit:`Diagnosing why repetition bores or why actions feel weightless.`, cost:`None worth mentioning. It is the cheapest diagnostic you have.`, alt:`Pair with the Core Loop diagnostic view.`},
   {n:'Grey-box minimal prototype', how:`Build only the core interaction with placeholder art and test voluntary repetition.`, fit:`Before investing in content, art or meta systems.`, cost:`Discipline to not add scope. A boring grey box may kill an idea you love.`, alt:`If the bare loop is not replayable, no production value will save it.`},
   {n:'Feedback timing windows', how:`Return a perceivable response within roughly 100 ms. Layer visual, audio and haptic feedback.`, fit:`Any real-time action loop.`, cost:`Later, richer feedback improves feel but must not delay the response.`, alt:`See Game feel and juice for the feedback catalogue.`},
   {n:'Loop layering (seconds / minutes / sessions)', how:`Nest loops: a ~3-second action loop inside a ~30-second encounter inside a multi-minute goal.`, fit:`Designing goals at three horizons and pacing.`, cost:`Imbalance between layers (great moment, aimless hour) is common.`, alt:`Audit each layer with its own reward and stopping point.`}
@@ -19913,11 +19922,11 @@ func _attack() -> void:
 INTERVIEW('core-loop',{
   junior:[
     { q:`What is a core loop, and what is the core loop of the last game you shipped or studied?`,
-      a:`Name the repeated unit: action, feedback, decision, consequence, new situation. Then walk one concrete iteration of a real game in those five beats. Say how long one iteration takes. Say what changes between iteration one and iteration two, because a loop with nothing changing is a chore.`,
+      a:`Name the repeated unit: decision, action, consequence, feedback, new situation. Then walk one concrete iteration of a real game in those five beats. Say how long one iteration takes. Say what changes between iteration one and iteration two, because a loop with nothing changing is a chore.`,
       follow:`Now name the loop one layer out. What is the three-minute loop that the three-second loop feeds?`,
       red:`Describes the game’s feature list, or answers with a genre label (“it’s a roguelike”) instead of a repeated unit of play.` },
     { q:`Where does feedback belong in the loop, and how late is too late?`,
-      a:`Feedback closes the loop: without it the player cannot learn what their action did. Immediate confirmation should land inside roughly 100 ms so the action feels connected. The consequence can resolve later, but the acknowledgement cannot. Give an example of a game where the acknowledgement and the outcome are deliberately split.`,
+      a:`Feedback is how the player reads the consequence: without it they cannot learn what their action did. Immediate confirmation should land inside roughly 100 ms so the action feels connected. The consequence can resolve later, but the acknowledgement cannot. Give an example of a game where the acknowledgement and the outcome are deliberately split.`,
       follow:`What do you do when the real outcome takes two seconds to compute or has to come back from a server?`,
       red:`Treats feedback as visual polish added at the end, or cannot distinguish acknowledging the input from resolving the outcome.` },
     { q:`In an engine of your choice, where would you put the loop code?`,
@@ -19927,7 +19936,7 @@ INTERVIEW('core-loop',{
   ],
   mid:[
     { q:`A playtest says the game is repetitive. How do you find out which part of the loop is at fault?`,
-      a:`Do not add content. Instrument one iteration: is the action varied, is the feedback readable, is there a decision with a real trade-off, does the consequence change the next situation. Watch six players and count decisions per minute. Repetitiveness is almost always a missing decision or an unchanging situation, not a missing feature.`,
+      a:`Do not add content. Instrument one iteration: is there a decision with a real trade-off, is the action varied, does the consequence change the next situation, is the feedback readable. Watch six players and count decisions per minute. Repetitiveness is almost always a missing decision or an unchanging situation, not a missing feature.`,
       follow:`You find the decision exists but players always pick the same option. Now what?`,
       red:`Jumps straight to “add more enemy types” or blames the art.` },
     { q:`How do you prototype a core loop so the test is cheap?`,
@@ -19950,7 +19959,7 @@ INTERVIEW('core-loop',{
       red:`Cannot name a criterion, or says the team knew it was fun. Enthusiasm is not a signal.` }
   ] });
 DIAGRAM('core-loop', { kind:'loop', title:'The core loop: every link must hold',
-  steps:[{t:'Action', d:'the player commits to a move'},{t:'Feedback', d:'the game shows what happened'},{t:'Decision', d:'the player picks what next'},{t:'Consequence', d:'the state changes, and it matters'},{t:'New situation', d:'a fresh problem to read'}],
+  steps:[{t:'Decision', d:'the player picks what to do'},{t:'Action', d:'the player commits to a move'},{t:'Consequence', d:'the state changes, and it matters'},{t:'Feedback', d:'the game shows what changed'},{t:'New situation', d:'a fresh problem to read'}],
   note:'Break any link and the loop stops teaching or rewarding: no feedback, no learning; no consequence, no decision.' });
 
 T('decisions',{ d:'core', t:'Meaningful decisions', tag:'A decision is meaningful when the options are different, the outcome is uncertain, and the player cares.',
@@ -20253,7 +20262,7 @@ T('challenge-failure-recovery',{ d:'core', t:'Challenge, failure and recovery', 
   prompts:[{l:'Failure lesson audit',p:`Here are our major challenges and what happens on failure: [LIST]. For each, state the lesson a player should learn from failing, how the game currently communicates the cause of failure and how quickly, the recovery time to retry, and the cost. Flag challenges where the cause is not communicated within 2 seconds or recovery exceeds 20 seconds. Propose, per flag, the smallest change and a fail-forward alternative.`}],
   verify:[`Does the audit assume players understand systems the game never explained?`],
   test:[`After a failure, ask “what happened?” Note whether the answer is accurate.`,`Time failure to retry.`,`Do players change approach after failure, or repeat?`,`Where do players quit after failing? How many failures preceded it?`],
-  rel:[['difficulty','Difficulty is challenge calibrated across the game.'],['skill-and-mastery','Failure is how skill is acquired.'],['risk-reward','Failure cost defines risk.'],['feedback-and-affordance','Communicating the cause of failure is feedback.']] });
+  rel:[['difficulty','Difficulty is challenge calibrated across the game.'],['skill-and-mastery','Failure is how skill is acquired.'],['risk-reward','Failure cost defines risk.'],['feedback-and-affordance','Communicating the cause of failure is feedback.'],['combat-design','A boss fight is where failure has to teach, and combat design shows how.']] });
 TECH('challenge-failure-recovery',[
   {n:'Failure cost tuning', how:`Decide how much time/progress a failure costs, and the length of the retry loop.`, fit:`Making failure instructive, not punishing.`, cost:`Too cheap removes weight. Too costly causes churn.`, alt:`Keep failure cheap and learning fast in action games.`},
   {n:'Checkpoint and recovery design', how:`Place checkpoints and design recovery so players resume near where they failed with the knowledge they gained.`, fit:`Action and level-based games. Retention at hard points.`, cost:`Frequent checkpoints reduce tension. Sparse ones cause abandonment.`, alt:`Match checkpoint density to the intended tension.`},
@@ -20349,7 +20358,7 @@ T('skill-and-mastery',{ d:'core', t:'Skill acquisition and mastery', tag:'What d
   prompts:[{l:'Skill atom map',p:`Here are our mechanics and level order: [DESCRIPTION]. Extract the skills the player must acquire (execution, timing, reading, planning, resource judgement, spatial, memory). For each, identify where it is first isolated, first exercised under pressure, first combined with another skill, and how the player would perceive their own improvement. Flag skills that are required before they are isolated, and skills that never combine. Propose one mastery display for the central skill.`}],
   verify:[`Did it distinguish skill from stats?`,`Are the “where taught” claims grounded in the level order I gave?`],
   test:[`Record novice and veteran runs of the same challenge. What differs?`,`Ask veterans what they do differently. Ask novices what they are working on.`,`Do players notice their own improvement? Ask.`],
-  rel:[['mastery-discovery-expression','Mastery is one of the three long-term engines.'],['level-structure','Levels are where skills are taught and combined.'],['challenge-failure-recovery','Failure is the mechanism of learning.'],['game-feel-and-juice','Execution skill lives in game feel.']] });
+  rel:[['mastery-discovery-expression','Mastery is one of the three long-term engines.'],['level-structure','Levels are where skills are taught and combined.'],['challenge-failure-recovery','Failure is the mechanism of learning.'],['game-feel-and-juice','Execution skill lives in game feel.'],['combat-design','Attack timings are where combat skill is built and tested.']] });
 TECH('skill-and-mastery',[
   {n:'Skill-atom decomposition', how:`Break a skill into atoms (perception, decision, execution) that can be taught and practiced separately.`, fit:`Designing learnable, deep skills.`, cost:`Over-fragmentation creates drills that are no fun.`, alt:`Embed practice in play, not in menus.`},
   {n:'Feedback for learning', how:`Give immediate, specific, perceivable feedback so the player can adjust and improve.`, fit:`Skill acquisition. The core of mastery.`, cost:`Vague feedback teaches nothing. Noisy feedback teaches wrongly.`, alt:`Show cause and effect within the same interaction.`},
@@ -20740,6 +20749,116 @@ INTERVIEW('multiplayer-design',{
       follow:`A top player is reported often. Do you treat them differently?`,
       red:`Leaves it to the community and adds no tools.` }
   ] });
+
+
+T('combat-design',{ d:'core', t:'Combat design: attacks, enemies and bosses', tag:'Every attack is a promise made in three beats: warn, hit, recover. Fair combat keeps all three readable.',
+  what:`Combat design is the craft of making fights that are readable, weighty and fair. Its smallest unit is the attack, and an attack has three parts that fighting-game players count in frames: anticipation (also called startup, the wind-up before anything can hurt), active frames (the short window in which the hit can land) and recovery (the time after, when the attacker is committed and open). Street Fighter publishes its frame data at 60 frames a second, so every move is a known trade between these three numbers. Hit-stop, a brief freeze of both sides on contact, and the hit reaction, such as a stagger, a knockback or a flash, tell the player the hit landed. Enemies ask their question through telegraphs, attack patterns and spacing. A boss is the exam: it asks again, in combination and under pressure, what the earlier fights taught. Dark Souls bosses test the dodge, the stamina budget and the habit of waiting for an opening, all of which the road to them teaches.`,
+  why:[`Combat is where many action games spend most of their play time, and what the player feels in each hit decides whether the whole game feels good.`,`Fair combat is a readability problem before it is a balance problem. A player can only learn from a hit they saw coming.`,`Recovery is what makes an attack a decision: a long recovery makes the player weigh when to commit, and a missing one makes every move free.`],
+  think:{ q:[`For each attack, how long are anticipation, active frames and recovery, and who is vulnerable during each?`,`Can the player tell which enemy is about to attack, with what, and when the hit will land?`,`What does a hit change: the enemy’s state, its position, the next opening?`,`What does this boss ask that the fights before it taught, and is there anything it asks that nothing taught?`,`When the player dies, can they say what killed them and what to do differently?`],
+    trade:[`A long anticipation is easy to read and easy to beat. A short one is dangerous and needs another cue, such as a sound or a tell the player has learned.`,`Heavy commitment (long recovery) makes attacks weighty and fights slower. Light commitment makes fights fast and every attack less of a choice.`,`Hit-stop adds weight, and past a few frames it breaks combo flow and makes the game feel laggy.`],
+    traps:[`Telegraphs shorter than a human can react to, so the only way to win is to memorise the pattern. A simple visual reaction time is around a fifth of a second in reaction-time studies, so anything much shorter is learned, not read.`,`Enemies that attack from off-screen or from behind the camera with no warning.`,`Attacks with no recovery, so the player can never punish them, and hits that change nothing, which is how floaty combat is made.`,`A boss that tests a skill the game never taught, or that adds a new rule in its last phase and calls it difficulty.`],
+    good:[`Players say “I should have rolled earlier” and not “that was cheap”.`,`Hades marks where an enemy attack will land with a danger area on the ground, so the player reads the fight from the floor and dodges on a decision, not a guess.`,`Hollow Knight’s bosses wind up with a visible pose before each strike, so after a few deaths the player is reading the pose and choosing a punish, not guessing.`,`Monster Hunter makes commitment the main decision: a long swing is strong because the hunter cannot cancel it, so each swing is a bet on the monster’s next move.`],
+    bad:[`Players describe hits as “spongy”, “floaty” or “random”.`,`Players fight the camera more than the enemy.`,`One enemy or move is avoided by everyone, or answered by the same single trick every time.`] },
+  how:[`Write each attack as three numbers (anticipation, active, recovery) and who can act during each. Keep them in data and tune them before polishing the animation.`,`Give every attack a telegraph that fits its speed: slower attacks can be warned with a pose, faster ones need a sound or a flash as well. Test it by watching new players, not the team.`,`Add hit feedback in layers: a hit-stop of a few frames, a reaction on the enemy, a sound and a camera nudge. Vlambeer’s talk “The Art of Screenshake” shows how much weight these add without changing the rules. Keep each short and check that none delays the player’s next input.`,`Design patterns as questions: a chain of two or three attacks with a gap that is the opening. Space the enemy so the player chooses between moving in, waiting and backing off.`,`Build a boss as a revision list: list the skills the earlier fights taught, then spend each phase on one of them, adding at most one new idea and teaching it in the phase before it is tested.`,`Playtest deaths, not only wins. Ask each player what killed them and whether they could have seen it coming. If the answer is no, fix the signal before touching damage numbers.`],
+  ai:{ yes:[`Draft a frame-data table for a move set and flag attacks with no recovery or with a telegraph shorter than the reaction window you set.`,`Read playtest death logs and group them by cause: unseen attack, unclear telegraph, bad spacing, execution.`,`Write the tuning scaffolding: a hitbox debug view, a slow-motion toggle and exposed timing values.`],
+       no:[`Decide what feels weighty. Only players with a build or a recording can say that.`,`Tune hit-stop, telegraph length or boss difficulty from a description. These are felt values and have to be played.`] },
+  prompts:[{l:'Attack anatomy audit',p:`Here is our move set as frame data (anticipation, active, recovery, damage, hit reaction) and the telegraph each enemy attack has: [DATA]. For each attack, say who is vulnerable in each phase, whether a new player could read the telegraph, and whether the recovery makes the attack a real decision. List the three attacks most likely to feel floaty or unfair, with the symptom a playtest would show, and propose the smallest change to each. Do not change damage numbers first.`},
+    {l:'Boss as exam',p:`The player has learned these skills before this boss: [SKILLS, WITH WHERE EACH WAS TAUGHT]. Design a three-phase boss. For each phase, name the one skill it tests, the attack pattern that tests it, the telegraph, the opening it gives, and where a failing player learns the lesson. Flag any phase that tests something not taught earlier.`}],
+  verify:[`Does each attack have a real recovery and a stated telegraph, or did it only list damage?`,`Does the boss test only skills the earlier fights taught?`,`Were the timings reasoned from reaction time and the game’s speed, or copied from another game?`],
+  test:[`Show a new player the telegraph with sound off and then on. Do they dodge on the cue, and which cue did they use?`,`After every death, ask “what killed you?”. Count the times the answer is wrong or “I don’t know”.`,`Record a hit and play it back muted. Does it still read as a hit? Then play the sound alone.`,`Watch whether players find more than one answer to each pattern: dodge, block, trade, avoid.`],
+  rel:[['game-feel-and-juice','Hit-stop, shake and sound are the feedback that makes a hit land.'],['animation-and-vfx','Anticipation and recovery are animation timings with rules attached.'],['encounters-and-enemies','Each enemy is a question, and its attacks are how it asks.'],['encounter-design','Space and enemy mix turn single attacks into a fight.'],['readable-and-fair-ai','A telegraph is the enemy showing the player its intent.'],['challenge-failure-recovery','A boss death should teach, and the way back should be short.'],['difficulty','Fair difficulty in combat is readable, learnable and tuned by data.']] });
+TECH('combat-design',[
+  {n:'Frame data table', how:`Write each attack as anticipation, active and recovery in frames or milliseconds, with who can act in each phase. Tune the numbers in data.`, fit:`Any melee or close-range combat, and any fighting game.`, cost:`Needs a debug view to check what the numbers do on screen. Easy to over-tune on paper.`, alt:`For a small game, tune three numbers per attack by hand and playtest.`},
+  {n:'Telegraph ladder', how:`Match the warning to the speed: a pose for slow attacks, a ground marker for area attacks, a sound or colour flash for fast ones.`, fit:`Enemies the player must read at a glance.`, cost:`Costs art and audio per enemy. Too many cues become noise.`, alt:`Keep one signal per danger type and use it for every enemy.`},
+  {n:'Layered hit feedback', how:`Combine a few frames of hit-stop, an enemy reaction, a sound and a small camera push. Scale each with the strength of the hit.`, fit:`Making attacks feel weighty without changing damage.`, cost:`Too long and it hurts flow and reads as lag. Needs per-weapon tuning.`, alt:`Start with hit-stop and a reaction, add the rest only if a recording still reads as floaty.`},
+  {n:'Boss as exam', how:`List what the earlier fights taught, then give each boss phase one of those skills, with at most one new idea taught just before it is tested.`, fit:`Bosses and set-piece fights that close a section.`, cost:`Needs the earlier fights to be designed first. A boss cannot teach everything on its own.`, alt:`For a game with no teaching section, make the first phase a plain version and add the twist later.`}
+]);
+ENGINE('combat-design',{
+  godot:{ term:`An attack is a small state machine with three timed phases. The hitbox is an Area2D that only monitors during the active phase, and the phase is exposed so animation, AI and feedback can read it.`,
+    api:['Area2D.monitoring','SceneTree.create_timer()','await / Signal','enum','@export','@onready'],
+    snippet:`extends Node2D
+enum Phase { IDLE, STARTUP, ACTIVE, RECOVERY }
+@export var startup := 0.18
+@export var active := 0.08
+@export var recovery := 0.30
+@onready var hitbox: Area2D = $Hitbox
+var phase := Phase.IDLE
+
+func attack() -> void:
+\tif phase != Phase.IDLE: return
+\tphase = Phase.STARTUP;  await get_tree().create_timer(startup).timeout
+\tphase = Phase.ACTIVE;   hitbox.monitoring = true
+\tawait get_tree().create_timer(active).timeout
+\thitbox.monitoring = false
+\tphase = Phase.RECOVERY; await get_tree().create_timer(recovery).timeout
+\tphase = Phase.IDLE`,
+    pitfall:`Timing the active window with a timer that runs in idle frames while the hitbox is checked on physics steps. A window shorter than one physics step, about 17 ms at the default 60 ticks a second, can open and close between two steps, so a clean hit reports no overlap. Keep the active window several physics steps long, or pass true for process_in_physics so the timer is aligned with them.`,
+    map:`Godot Area2D.monitoring on a hitbox is Unity Collider.enabled on a trigger, and an await on a timer is a coroutine yield.` },
+  unity:{ term:`An attack is a coroutine with three timed phases. The hitbox is a trigger collider enabled only during the active phase, and Busy is public so input, animation and AI can read the commitment.`,
+    api:['MonoBehaviour.StartCoroutine()','WaitForSeconds','Collider.enabled','OnTriggerEnter(Collider)','IEnumerator','OnDisable()'],
+    snippet:`public class Attack : MonoBehaviour {
+    [SerializeField] float startup = 0.18f, active = 0.08f, recovery = 0.30f;
+    [SerializeField] Collider hitbox;            // trigger, disabled in the prefab
+    public bool Busy { get; private set; }
+
+    public void Begin() { if (!Busy) StartCoroutine(Run()); }
+
+    IEnumerator Run() {
+        Busy = true;
+        yield return new WaitForSeconds(startup);
+        hitbox.enabled = true;
+        yield return new WaitForSeconds(active);
+        hitbox.enabled = false;
+        yield return new WaitForSeconds(recovery);
+        Busy = false;
+    }
+}`,
+    pitfall:`Disabling the object mid-attack, for example on a stagger or a death. Unity stops its coroutines when the object is deactivated, but Busy stays true and the hitbox can stay enabled, so after it is switched back on the character cannot attack, or deals damage while idle. Reset both in OnDisable, or run the phases from one state machine that owns the reset.`,
+    map:`Unity Collider.enabled on a trigger plus a coroutine is Godot Area2D.monitoring plus an await on a timer.` },
+  note:`The timings are data and the phases are readable state. The design point is the same in both engines: when anticipation, active and recovery are three named values, the telegraph can be tied to the first, the hit-stop to the second and the punish window to the third, and a playtester can tell you which one is wrong.` });
+INTERVIEW('combat-design',{
+  junior:[
+    { q:`What are the three parts of an attack, and why does each matter to the player?`,
+      a:`Anticipation is the wind-up, which gives the defender a chance to read and react. Active frames are the window in which the hit can land. Recovery is the time after, when the attacker is committed and open to a punish. Recovery is what turns an attack into a decision, because the attacker pays for committing. Use a real move, such as a Street Fighter special or a Dark Souls heavy swing, and say who is vulnerable in each part.`,
+      follow:`What happens to the game if you remove recovery from every attack?`,
+      red:`Describes an attack only by its animation and its damage number.` },
+    { q:`What is hit-stop, and what does it do for a hit?`,
+      a:`A brief freeze or slowdown of both characters on contact, usually a few frames. It gives the hit a moment of weight, so the player registers contact. It is one layer alongside the enemy reaction, the sound and a small camera push. Too much of it breaks combo flow and reads as lag.`,
+      follow:`How would you check it has not crossed from weight into lag?`,
+      red:`Says to add as much as possible, or cannot name a cost.` },
+    { q:`What makes an enemy attack readable?`,
+      a:`A telegraph that matches its speed, a distinct silhouette or pose, a consistent signal for the same danger, and enough time to react. Slow attacks can use a pose. Fast ones need a sound or a flash too. Hades marks the area an attack will hit on the ground, which lets the player read the fight from the floor.`,
+      follow:`A fast attack cannot have a long telegraph. What do you do?`,
+      red:`Says players should learn by dying, with no thought about whether the signal exists.` }
+  ],
+  mid:[
+    { q:`Playtesters say your combat feels floaty. How do you find the cause?`,
+      a:`Treat it as a symptom with several causes. Check the input latency first, then whether the hit has feedback in each of sound, hit-stop and reaction. Then check whether the attack has anticipation and a commitment window, and whether a hit changes the enemy’s state. Fix the cheapest cause first and re-test with a recording. Do not raise damage numbers.`,
+      follow:`Latency is fine and the feedback is present. What is left?`,
+      red:`Reaches for screenshake and particles without checking anything else.` },
+    { q:`How do you design an enemy attack pattern and the spacing around it?`,
+      a:`Pick the question the enemy asks: dodge, block, close in, wait. Chain two or three attacks with a gap, and make the gap the opening. Space decides which answer works, so a lunge asks a different question in a corridor than in an arena. Check that there is more than one valid answer and that the player can tell the gap from a pause.`,
+      follow:`Players always use the same single answer. Do you change the pattern or the space?`,
+      red:`Chooses patterns by listing damage values and speeds only.` },
+    { q:`How do you keep a hard fight fair and not just hard?`,
+      a:`Every hit is seen, every cause is clear, the retry is short and the lesson is usable. Check deaths by asking what killed the player. If the answer is “I don’t know”, the signal failed. Then check that the skill needed was taught earlier. Hard and fair can sit together, as in Dark Souls, but only when the player can read why they lost.`,
+      follow:`What do you measure to know a fight is unfair and not just difficult?`,
+      red:`Says hard games are not for everyone and stops there.` }
+  ],
+  senior:[
+    { q:`How do you design a boss so it tests what the game has taught?`,
+      a:`List the skills the earlier fights taught and where each was taught. Give each phase one of them, add at most one new idea and teach it in the phase before it is tested. Make the first attempt readable and the third attempt better, so the player feels the learning. A boss that tests an untaught skill is a wall. Name a boss that does it well and the skill each phase tested.`,
+      follow:`The game has no teaching section before the boss. What is your fallback?`,
+      red:`Describes a boss as a large health bar with more attacks.` },
+    { q:`Two designers disagree: one wants shorter telegraphs for a faster game, one wants longer ones for fairness. How do you settle it?`,
+      a:`Treat it as a measurement. Set a reaction target from reaction-time evidence and the game’s speed, then test with new players. Count the deaths where the player says they saw it and could not react, against the deaths where they did not see it. Add a second cue, such as sound, before shortening the first. Record the decision with its evidence so it is not reopened by taste.`,
+      follow:`The testers are all experienced action players. What does that change?`,
+      red:`Settles it by seniority, or by copying another game’s numbers.` }
+  ] });
+DIAGRAM('combat-design', { kind:'state', title:'One attack: warn, hit, recover', start:'idle',
+  states:[{id:'idle', t:'Ready', d:'free to act'},{id:'warn', t:'Anticipation', d:'wind-up, the telegraph'},{id:'hit', t:'Active', d:'the hit can land'},{id:'recover', t:'Recovery', d:'committed and open'}],
+  edges:[['idle','warn','attack'],['warn','hit'],['hit','recover'],['recover','idle','free']],
+  note:'Fighting-game players count these three phases in frames. Street Fighter publishes its frame data at 60 frames a second.' });
 
 /* =====================================================================
    SYSTEMS
@@ -22242,7 +22361,7 @@ T('level-structure',{ d:'level', t:'Level structure: teach, test, twist, combine
   prompts:[{l:'Level beat plan',p:`Design constraints: the player currently knows [MECHANICS], the idea this level teaches is [IDEA], the emotional target is [EMOTION], the pacing position is [POSITION in the game], and constraints are [TIME, ASSETS]. Propose 3 six-beat structures (teach, test, twist, combine, master, rest). For each beat, state what the player does, what they could fail, and what they learn. Make the twists different across the 3 proposals. Do not describe visuals.`}],
   verify:[`Did it escalate where it should twist?`,`Are beats grounded in the mechanics I said the player knows?`],
   test:[`Do players use the idea in the test beat without prompting?`,`Where do they die in the introduction? That is a teaching failure.`,`Do they react to the twist (pause, comment, laugh)?`,`Can they state what the level was about afterwards?`],
-  rel:[['pacing','Beats are pacing at level scale.'],['skill-and-mastery','Levels are where skill atoms are taught and combined.'],['onboarding','The first levels are the onboarding.'],['tension-release','Test and rest are tension and release.']] });
+  rel:[['pacing','Beats are pacing at level scale.'],['skill-and-mastery','Levels are where skill atoms are taught and combined.'],['onboarding','The first levels are the onboarding.'],['tension-release','Test and rest are tension and release.'],['level-blockout-and-metrics','The beats are first laid out and tested in a blockout.']] });
 TECH('level-structure',[
   {n:'Kishotenketsu (introduce, develop, twist, conclude)', how:`Structure a level around one idea: introduce it safely, develop it, twist it, conclude.`, fit:`Teaching mechanics through space.`, cost:`Rigid if applied to every level. Needs variation.`, alt:`One movement/mechanic idea per room (Celeste-style).`},
   {n:'Teach, test, twist, combine, master, rest', how:`Sequence the six level intents within and across levels.`, fit:`A long, well-paced learning arc.`, cost:`Tracking the sequence across many levels takes discipline.`, alt:`Map each level to the intent it serves.`},
@@ -22441,7 +22560,7 @@ T('spatial-composition',{ d:'level', t:'Spatial composition and exploration', ta
   prompts:[{l:'Sightline review',p:`Here is a level layout with entrances, forks, landmarks and goals: [LAYOUT]. For each entrance and fork, state what the player sees first and what that communicates. Flag positions where no landmark is visible and forks whose options look alike or promise the same thing. Propose the smallest geometry changes to fix each flag. Then identify one opportunity to recontextualize a known space.`}],
   verify:[`Are its sightline claims consistent with the geometry I described, including camera height?`],
   test:[`Ask players to point to where they entered. Track error.`,`Track map opens per minute.`,`Which forks do players take, and can they say why?`,`Do players notice recontextualization?`],
-  rel:[['level-structure','Structure in time. Composition in space.'],['environmental-storytelling','Composed space can carry story.'],['readability-and-hierarchy','Space is information design.'],['mastery-discovery-expression','Exploration is the spatial form of discovery.']] });
+  rel:[['level-structure','Structure in time. Composition in space.'],['environmental-storytelling','Composed space can carry story.'],['readability-and-hierarchy','Space is information design.'],['mastery-discovery-expression','Exploration is the spatial form of discovery.'],['level-blockout-and-metrics','Sightlines and landmarks are tested on the greybox before art.']] });
 TECH('spatial-composition',[
   {n:'Sightlines and landmarks', how:`Compose views so players can orient and see the next goal from where they are.`, fit:`Wayfinding without markers.`, cost:`Constraints on art and layout. Needs iteration.`, alt:`Grey-box sightline pass. Ask players to point home.`},
   {n:'Affordance density', how:`Control how many interactables and choices sit in view at once.`, fit:`Readability and avoiding overload.`, cost:`Too sparse feels empty. Too dense hides the goal.`, alt:`Cap the always-visible interactables.`},
@@ -22538,7 +22657,7 @@ T('encounter-design',{ d:'level', t:'Encounter design', tag:'An encounter is a q
   prompts:[{l:'Encounter composition',p:`Enemy questions available: [LIST]. Arena properties: [LIST]. The player knows [MECHANICS] and the intended shift is [SHIFT]. Propose 3 encounter compositions with setup, engagement, shift and resolution. For each, state what the player can read before committing, at least two valid approaches, and the approach that should fail. Identify what in the arena makes each approach viable.`}],
   verify:[`Did it use enemy count as the shift?`,`Are the “valid approaches” enabled by concrete arena features?`],
   test:[`Record approaches across players. Count distinct ones.`,`Do players react to the shift?`,`Ask players to narrate the fight afterwards.`],
-  rel:[['encounters-and-enemies','Enemies are the vocabulary of encounters.'],['spatial-composition','Space shapes the question.'],['pacing','Encounters are intensity beats.'],['decisions','Approach choice is a decision.']] });
+  rel:[['encounters-and-enemies','Enemies are the vocabulary of encounters.'],['spatial-composition','Space shapes the question.'],['pacing','Encounters are intensity beats.'],['decisions','Approach choice is a decision.'],['combat-design','Each enemy attack is an anatomy of warn, hit and recover that the encounter composes.']] });
 TECH('encounter-design',[
   {n:'Threat budget', how:`Assign enemies a cost and compose to a target that scales with the player’s kit.`, fit:`Pacing difficulty across a long game.`, cost:`Ignores synergy. Two cheap enemies can be worse than their sum.`, alt:`Budget as a first pass, then hand-tune set pieces.`},
   {n:'Arena affordances', how:`Design cover, hazards, verticality and escape routes as the encounter’s real content.`, fit:`Making fights read and offer tactical choice.`, cost:`Art and layout cost. Must match AI navigation.`, alt:`Blockout the arena around the intended decisions.`},
@@ -22625,6 +22744,109 @@ DIAGRAM('encounter-design', { kind:'curve', title:'An encounter is a question wi
   series:[{t:'Tension', pts:[[0,0.2],[0.2,0.35],[0.42,0.6],[0.54,0.55],[0.7,0.9],[0.85,0.6],[1,0.18]]}],
   beats:[{at:0.12, t:'Read'},{at:0.4, t:'Engage'},{at:0.7, t:'Shift'},{at:0.93, t:'Resolve'}],
   alt:'Tension climbs while the player reads the space and engages, peaks at the tactical shift, and falls at the resolution.' });
+
+
+T('level-blockout-and-metrics',{ d:'level', t:'Blockout and level metrics', tag:'Build the level out of plain boxes, sized to what the character can do, and prove it works before any art is made.',
+  what:`A blockout (also called a greybox or whitebox) is a level built from plain, untextured shapes, made to test layout, flow and movement. Its measuring stick is the set of character metrics: how high and how far the character can jump, how fast it runs, how tall a wall it can climb or hide behind, how wide a doorway must be. Metrics are measured from the controller in the build, not from a table, and every gap, ledge, cover piece and corridor is sized against them. A blockout then shows the structure: the critical path (the route the player must take to finish), the optional space off it (side rooms, secrets, risky shortcuts), the gates that hold the player back until they are ready, and the landmarks that tell them where they are and where to go. It is playtested as boxes, and it moves to art only when the structure holds. Valve’s published level-design guidance for the Source engine sizes doorways and cover against the player’s collision hull, which is the same idea at studio scale.`,
+  why:[`Layout is the most expensive thing to change after art is in. A blockout lets a wrong corridor cost an afternoon, not a month.`,`A gap sized to the character’s real jump is fair. A gap sized by eye is a bug report waiting to happen.`,`Boxes remove the excuse of looking good. If the level is fun in grey, art will help. If it is not, art will hide the problem for a while.`],
+  think:{ q:[`What can the character do exactly: jump height, jump distance, run speed, climb height, cover height? Who measured them, and from which build?`,`Which route is the critical path, and can the player always find it?`,`What is optional, what does it give, and does skipping it cost the player nothing they need?`,`What stops the player going ahead before they are ready: a lock, a skill, a creature, a view, and does the player understand it is a gate?`,`Can a tester say where they are from three landmarks, without a map?`],
+    trade:[`Tight metrics make every platform fair and fit the controls exactly, and they make the level rigid when the controller changes.`,`A very linear critical path is easy to follow and easy to pace. A wide one gives choice and gets players lost.`,`Staying in grey longer proves the structure and delays the art that tells players what is solid, what is dangerous and where to look.`],
+    traps:[`Sizing the level by eye, then changing the jump, so every gap in the level is wrong.`,`Making the critical path the only path with something in it, so players who explore find nothing, or the opposite, putting the key reward off the path where a player can finish without ever seeing it.`,`Marking the way with a light, a colour or a prop that disappears when the art arrives.`,`Moving to art because of the schedule when the playtests still show people lost.`],
+    good:[`Testers cross every gap on the critical path on the first or second try and never ask “can I make that?”.`,`Players find the way through a grey level using landmarks and shapes alone, as they would find it in the finished one.`,`Portal’s test chambers are small rooms that each teach one idea, so the layout is the lesson, and it can be judged before any art is added.`],
+    bad:[`Players ask “is that a jump?” or “can I stand on that?” in the grey boxes.`,`Testers wander in loops in the first half and are lost by the second.`,`The team argues about the look of the level before anyone has finished it.`] },
+  how:[`Measure the character first, in a test room: jump height and distance at full run and standing, climb height, crouch cover height, doorway width. Write them in one place and put them in the level as a ruler.`,`Place the critical path first, from the start to the end, using only the metrics. Mark the spaces that need a gate and what opens each one.`,`Add optional space off the path: a side room, a risky shortcut, a view. Give each a reason to look, and make skipping it free.`,`Add landmarks and a few sightlines to the goal, so that the player can steer with their eyes: one tall shape, one lit area, one broken wall. Remove all signs and text.`,`Playtest the grey boxes with players who have not seen the level, and watch where they stop, turn back or fall. Fix the layout, not the signage.`,`Move to art when new players finish without help, the pacing holds across two sessions, and the metrics have not changed in a while. Keep the blockout as the reference and re-test after the art pass, since collision, lighting and props can break it.`],
+  ai:{ yes:[`Check a blockout’s gaps, ledges and corridors against a metrics table and list every one outside it.`,`Generate the grid, ruler objects and placeholder shapes for a metrics set.`,`Read playtest recordings or heatmaps and list where players stopped, turned back or fell.`],
+       no:[`Decide whether the layout is fun. Only players in the grey boxes can show that.`,`Pick metrics for your character. They come from the controller you built and the feel you want.`] },
+  prompts:[{l:'Metrics check',p:`Here are our character metrics measured from the build: [JUMP HEIGHT, JUMP DISTANCE, RUN SPEED, CLIMB HEIGHT, COVER HEIGHT, DOOR WIDTH]. Here is a list of the level’s gaps, ledges, cover pieces and openings with their sizes: [LIST]. For each, say whether it is within the metrics, how much margin it has, and whether the critical path depends on it. List the ones that would feel unfair or trivial, and say what a playtest would show for each. Do not suggest changing the character metrics.`},
+    {l:'Blockout playtest plan',p:`We have a blockout of [LEVEL DESCRIPTION] with this critical path: [PATH]. Write a playtest plan for four people who have not seen it: what to tell them, what to record (where they stop, turn back, fall or get lost), the three questions to ask after, and the signal for each of these: the path is findable, the gates are understood, the optional spaces are noticed. State what would make us fix the layout and what would let us move to art.`}],
+  verify:[`Did it use the metrics from our build, or generic numbers?`,`Does each proposed change fix the layout, or add a sign?`,`Does the plan test with players who have not seen the level?`],
+  test:[`Time and record new players on the critical path. Where do they stop, turn back or fall?`,`Ask them to point at the way to the goal from three places, without a map.`,`Count how many players notice each optional space, and whether anyone who skipped it felt cheated.`,`After the art pass, run the same test. Do the results hold?`],
+  rel:[['level-structure','The beats of a level are laid out on the blockout.'],['spatial-composition','Sightlines and landmarks are tested on the greybox.'],['prototyping','A blockout is a prototype of space, and it is tested the same way.'],['encounter-design','Cover height and arena size come from the metrics.'],['playtesting','The blockout is only as good as the playtest it is put through.'],['craft-physics-and-collision','The jump and collision numbers the level is measured against come from here.']] });
+TECH('level-blockout-and-metrics',[
+  {n:'Metrics ruler', how:`Build a test room that shows the real jump height, jump distance, climb height and cover height as marked shapes. Copy those shapes into every level.`, fit:`Any game with a moving character and levels built from pieces.`, cost:`Has to be rebuilt every time the controller changes.`, alt:`Put the numbers in a data file and build the level pieces from it.`},
+  {n:'Grid and modular kit', how:`Build the blockout from a few box sizes that fit a grid, such as one wall height and one floor thickness, so that every piece can be swapped for art.`, fit:`Large levels and teams that hand blockouts to artists.`, cost:`A strict grid makes the level look the same and can fight organic shapes.`, alt:`Use a grid for the playable space and free shapes for the background.`},
+  {n:'Critical path first', how:`Build the shortest route from start to end, then add optional space, gates and landmarks in that order, and re-test after each.`, fit:`Any level with a goal to reach.`, cost:`The first version feels thin and invites early art requests.`, alt:`Draw the path on paper first, then build it.`},
+  {n:'Blockout playtest', how:`Give the grey boxes to players who have not seen them and record where they stop, turn back or fall, before any fixes.`, fit:`Every blockout, before art.`, cost:`Takes some people’s time, and a rough level can make testers focus on how it looks.`, alt:`Tell testers what is placeholder and ask only about the route and the jumps.`}
+]);
+ENGINE('level-blockout-and-metrics',{
+  godot:{ term:`Metrics are a Resource that holds the controller numbers and works out the jump height and distance from them. The level, a gizmo or a test room reads that Resource, so a change to the jump moves the ruler.`,
+    api:['Resource + class_name','@export','ProjectSettings.get_setting()','CharacterBody2D.velocity','Vector2','float'],
+    snippet:`class_name PlayerMetrics extends Resource
+@export var jump_velocity := 480.0          # pixels per second, from the controller
+@export var run_speed := 260.0
+@export var margin := 0.8                    # share of the maximum the critical path may use
+var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
+
+func jump_height() -> float:
+\treturn jump_velocity * jump_velocity / (2.0 * gravity)
+
+func jump_distance() -> float:
+\treturn run_speed * 2.0 * jump_velocity / gravity   # flat ground, at full run
+
+func safe_gap() -> float:
+\treturn jump_distance() * margin`,
+    pitfall:`Trusting the formula over the build. The physics step adds gravity in discrete steps and the player may also have coyote time, a jump buffer or a variable jump, so the real apex and distance differ a little from the closed-form numbers. Measure the real jump in a test room, with a recorded run, and keep the formula as the first estimate that tells you roughly where the ruler goes.`,
+    map:`A Godot Resource with @export fields is a Unity ScriptableObject, and the ruler in the test room is a gizmo or a prefab in both.` },
+  unity:{ term:`Metrics are a ScriptableObject that holds the controller numbers and works out the jump height and distance. Level pieces, gizmos or a test room read the asset, so changing the jump moves the ruler in every scene.`,
+    api:['ScriptableObject + CreateAssetMenu','[SerializeField]','Physics.gravity','Physics2D.gravity','float','Gizmos'],
+    snippet:`[CreateAssetMenu(menuName = "Level/Player Metrics")]
+public class PlayerMetrics : ScriptableObject {
+    public float jumpVelocity = 8f;            // metres per second, from the controller
+    public float runSpeed = 6f;
+    [Range(0.5f, 1f)] public float margin = 0.8f;   // share of the maximum the critical path may use
+
+    float G => -Physics.gravity.y;             // use Physics2D.gravity for a 2D game
+
+    public float JumpHeight => jumpVelocity * jumpVelocity / (2f * G);
+    public float JumpDistance => runSpeed * 2f * jumpVelocity / G;   // flat ground, full run
+    public float SafeGap => JumpDistance * margin;
+}`,
+    pitfall:`Reading Physics.gravity in a 2D game. The 2D and 3D physics have separate gravity settings, so a 2D platformer that reads the 3D value gets a ruler that is wrong by whatever the two differ by, and every gap is sized against it. Read Physics2D.gravity for 2D, and also multiply by the Rigidbody gravity scale if you change it. As with any formula, check the number against a recorded jump.`,
+    map:`A Unity ScriptableObject is a Godot Resource, and Physics2D.gravity is the Godot default_gravity project setting.` },
+  note:`Both snippets keep the numbers in one place and derive the ruler from them. That is the design point: the level is measured against the controller, so when the controller changes, the metrics change once and every gap that is now wrong can be found by checking it against the same asset.` });
+INTERVIEW('level-blockout-and-metrics',{
+  junior:[
+    { q:`What is a greybox, and why build one before art?`,
+      a:`A level in plain, untextured shapes, made to test layout, flow and movement. It is cheap to change, so a wrong corridor costs an afternoon. It also shows whether the level works without help from the look. If it is fun in grey, art will help. If it is not, art will only hide the problem for a while.`,
+      follow:`What can a greybox not tell you?`,
+      red:`Says it is a rough draft to throw away, with no use of it as a test.` },
+    { q:`What are character metrics, and give three that a level depends on?`,
+      a:`Measured numbers from the controller: jump height, jump distance at a full run, run speed, climb height, cover height and doorway width. The level is built to them so that every gap, ledge and cover piece is fair. They come from the build, not from a table.`,
+      follow:`The designer changes the jump after the blockout is done. What do you do?`,
+      red:`Sizes platforms by eye and fixes them one at a time when testers fall.` },
+    { q:`What is the critical path, and what is optional space?`,
+      a:`The critical path is the route the player must take to finish. Optional space is everything off it: side rooms, secrets, risky shortcuts. Skipping optional space must cost nothing the player needs, and it should offer something worth the detour. Mega Man X hides upgrades off the route in this way.`,
+      follow:`How do you tell that a player has missed the critical path and not chosen an optional one?`,
+      red:`Puts every reward on the main path, or hides the main path.` }
+  ],
+  mid:[
+    { q:`How do you use gating and landmarks to steer a player through a level with no signs?`,
+      a:`A gate holds the player back until they are ready: a lock, a skill, an enemy, a view they cannot yet reach. A landmark is a tall or distinct shape that tells them where they are and where to go. Place a landmark so that it can be seen from the places a player gets lost, and make sure the player understands what a gate needs. Test with testers who have never seen it, without a map.`,
+      follow:`A tester wanders back and forth. What do you change?`,
+      red:`Adds an arrow or text to fix every lost player.` },
+    { q:`How do you playtest a blockout, and what do you look for?`,
+      a:`Give it to players who have not seen it, say it is placeholder and ask for little talking. Record where they stop, turn back, fall or look at the ground, and time the critical path. Look for places where people ask “can I jump that?” or “where do I go?”. Fix the layout and the metrics before the signs, and run the test again.`,
+      follow:`Testers keep talking about the look. How do you stop that?`,
+      red:`Watches only the people who finish.` },
+    { q:`How do you size a platforming gap or a cover piece?`,
+      a:`Start from the measured metrics and take a share of the maximum for the critical path, so a normal player clears it with room to spare. Use the full maximum only for an optional, risky challenge. For cover, use the height at which the character visibly hides and the enemies’ eye line. Verify each against a recorded run, since coyote time and buffers change the real numbers.`,
+      follow:`How do you choose the margin?`,
+      red:`Uses the theoretical maximum for every gap.` }
+  ],
+  senior:[
+    { q:`When do you move a level from blockout to art, and how do you protect it after?`,
+      a:`When new players finish without help, the pacing holds across two sessions and the metrics have stopped changing. Hand artists the blockout as the reference and the metrics as the rule. After the art pass re-run the same tests, because collision, lighting, props and camera can break a layout that worked in grey. Agree who may change layout after this point.`,
+      follow:`The schedule says to start art now and the tests say people are lost. What do you do?`,
+      red:`Moves on schedule, with no check that the structure holds.` },
+    { q:`A team of level designers works on the same game. How do you keep the metrics consistent as the controller changes?`,
+      a:`Keep the metrics in one asset that the controller and the level tools both read. Build a metrics test room and a validator that lists every gap, ledge or cover piece outside the numbers. Version the metrics and announce changes, and give each change a re-check of the levels it touches. The cost of a change is then known before it is made.`,
+      follow:`A change to the jump breaks forty gaps. How do you decide whether to ship it?`,
+      red:`Leaves each designer to remember the numbers.` }
+  ] });
+DIAGRAM('level-blockout-and-metrics', { kind:'flow', title:'From metrics to art: what a blockout settles',
+  steps:[{id:'metrics', t:'Measure the character', d:'jump, run, climb, cover'},{id:'path', t:'Critical path', d:'start to end, to the metrics'},{id:'optional', t:'Optional space', d:'side rooms and risks'},{id:'gates', t:'Gates and landmarks', d:'hold back and point on'},{id:'test', t:'Playtest the boxes', d:'new players, no help'},{id:'art', t:'Move to art', d:'only when it holds'}],
+  edges:[['metrics','path'],['path','optional'],['path','gates'],['optional','test'],['gates','test'],['test','art']],
+  note:'A failed playtest sends you back to the layout, not forward to art.' });
 
 /* =====================================================================
    UX / UI
@@ -40577,7 +40799,7 @@ PATH('game-designer-foundations', {
     { id:'s2', t:'The loop and its variables', level:'beginner',
       goal:'Turn the fantasy into a loop the player repeats, and find its weakest link before you add anything else.', hours:2.5,
       steps:[
-        { kind:'topic', ref:'core-loop', why:'The loop is the machine the player repeats. If it is not compelling alone, nothing later rescues it.', do:'Describe your core loop in five sentences: action, feedback, decision, consequence, new situation. Mark the weakest link.', min:25 },
+        { kind:'topic', ref:'core-loop', why:'The loop is the machine the player repeats. If it is not compelling alone, nothing later rescues it.', do:'Describe your core loop in five sentences: decision, action, consequence, feedback, new situation. Mark the weakest link.', min:25 },
         { kind:'game', ref:'angry-birds', lens:'gameplay', why:'Angry Birds shows the loop’s feedback-to-decision link at its barest: the dotted trail left by the last bird is the feedback, and the next pull is the decision it informs.', do:'Read its gameplay lens and loop diagram, then name the one piece of feedback your own loop leaves on screen for the next decision, and what the player would do without it.', min:15 },
         { kind:'topic', ref:'decisions', why:'Depth lives in the decisions the loop creates, not in the actions themselves.', do:'List the three most common decisions your loop asks the player to make, and write the trade-off sentence for each.', min:20 },
         { kind:'game', ref:'slay-the-spire', lens:'gameplay', why:'Slay the Spire’s card reward, one card from three or none, is a loop where every reward is a decision: the last two topics working together in one screen.', do:'Read its gameplay lens and write the decision its card reward asks for, and what would turn that reward into a formality.', min:15 },
@@ -40590,7 +40812,7 @@ PATH('game-designer-foundations', {
       check:{
         recall:[
           { q:'How can a game keep decisions alive for a player who is losing, and what does Mario Kart 8’s item table show about it?', a:'Its item table is weighted towards whoever is behind, so a trailing player still gets strong items and a real choice about when to use them, and the leader still has a position to defend.' },
-          { q:'What are the five links in the core loop?', a:'Action, feedback, decision, consequence, and new situation: the player acts, the game responds legibly, they decide based on that response, the decision has consequences, and those consequences create a fresh situation demanding another action.' },
+          { q:'What are the five links in the core loop?', a:'Decision, action, consequence, feedback, and new situation: the player decides, acts, the game state changes, the game shows what changed, and the changed state is a fresh situation that asks for another decision.' },
           { q:'What makes a decision meaningful rather than merely present?', a:'The options must be different with no dominant choice, the right answer must change with the situation, and different players must choose differently. The player needs enough information to reason but not enough to be certain.' },
           { q:'How do you tell a load-only mechanic from one that creates a decision?', a:'Ask what decision would disappear if you removed it. If none, it only adds a rule to track without changing any trade-off, so it is load-only rather than decision- or interaction-creating.' }
         ],
@@ -40647,7 +40869,7 @@ PATH('game-designer-foundations', {
 PATH('systems-designer', {
   t:'Systems designer', tag:'Economy, progression, and the discipline to prove a system by breaking it.',
   pick:'Own an economy, a progression curve or any system',
-  track:'design', level:'intermediate', hours:12.5,
+  track:'design', level:'intermediate', hours:12.75,
   audience:'Designers past the basics who want to own an economy, a progression curve, or any system with more than three moving parts.',
   outcome:'You can map a system’s parts and feedback loops, run a rule audit that separates decisions from load, and turn a design smell into a testable experiment instead of a guess.',
   prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-play'],
@@ -40720,9 +40942,10 @@ PATH('systems-designer', {
         skip:['Can you classify a rule as decision, interaction, or load in under ten seconds?','Can you name the point where adding content to your system stopped paying off?','Have you already found a one-build problem in your own system and named its cause?','Do you know which item in your backlog a scope check would cut first?']
       } },
     { id:'s4', t:'Experiments, not opinions', level:'advanced',
-      goal:'Turn a smell you found into an experiment with a real signal, not just a fix you feel confident about.', hours:2.5,
+      goal:'Turn a smell you found into an experiment with a real signal, not just a fix you feel confident about.', hours:2.75,
       steps:[
         { kind:'topic', ref:'builds-and-loadouts', why:'Builds and loadouts are where depth becomes visible to the player. A healthy build space is the clearest proof a system is working.', do:'List every viable build in your system today, and rank them by how often you would guess players pick each one.', min:25 },
+        { kind:'topic', ref:'combat-design', why:'Combat is a system with a build space of its own: attack timings, commitment and enemy patterns are the numbers that decide whether a fight has one answer or several.', do:'Write three of your attacks as anticipation, active and recovery, then name the answer each one asks of the player and whether a second answer exists.', min:20 },
         { kind:'game', ref:'monster-hunter', lens:'replay', why:'Monster Hunter’s replay loop is repeating hunts for better gear against harder versions of monsters already beaten, and Monster Hunter Wilds launching with too little endgame shows what happens when that gear has nothing left to be tested against.', do:'Read its replay lens, then for each build on your list name the content it is tested against, and mark any build that has no reason to exist once that content runs out.', min:15 },
         { kind:'smell', ref:'ignore-mechanics', why:'A mechanic nobody uses is not neutral. It is a cost the system pays for a decision players never make.', do:'Mark which of your mechanics you would bet is currently ignored, based on the “Players ignore half the mechanics” smell.', min:20 },
         { kind:'smell', ref:'features-not-better', why:'Adding a fix on top of a smell without testing it is how a system accumulates features that do not solve the actual problem.', do:'Check whether your last three system changes were tested or just shipped, based on the “We keep adding features but the game is not better” smell.', min:20 },
@@ -40768,17 +40991,18 @@ PATH('systems-designer', {
 PATH('level-and-ux-designer', {
   t:'Level and UX designer', tag:'Pacing, readability, and the first five minutes nobody skips.',
   pick:'Pace levels and teach players without a wall of text',
-  track:'design', level:'intermediate', hours:12,
+  track:'design', level:'intermediate', hours:12.25,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
   prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-worlds'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
-      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.5,
+      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.75,
       steps:[
         { kind:'topic', ref:'level-structure', why:'Teach, test, twist, combine, master, rest is a sequence for a reason. Skip a step and the player either stalls or gets bored.', do:'Take a level you are building or know well, and label each section with one of the six beats. Mark any beat that is missing entirely.', min:25 },
         { kind:'topic', ref:'pacing', why:'Pacing is not just difficulty. It is the rhythm of intensity and rest, and a level with no rest beat exhausts players before it challenges them.', do:'Graph the intensity of your level over its length by hand, on paper, and mark the flattest and steepest sections.', min:25 },
         { kind:'topic', ref:'spatial-composition', why:'Where the player can see, and where they cannot, shapes the pacing graph you just drew as much as any encounter does.', do:'Mark on your level layout the three sightlines that most control what the player expects to happen next.', min:25 },
+        { kind:'topic', ref:'level-blockout-and-metrics', why:'Pacing and sightlines are opinions until they are built to the character’s real metrics in plain boxes and walked by someone else.', do:'Measure your character’s jump height, jump distance and cover height, then block out your level’s critical path and one optional room to those numbers.', min:20 },
         { kind:'game', ref:'hollow-knight', lens:'world', why:'Hollow Knight makes being lost part of the design: regions with their own look and sound, few markers, and a map the player has to buy.', do:'Read its world lens and list the cues it gives a lost player instead of a marker.', min:15 },
         { kind:'game', ref:'half-life-2', lens:'gameplay', why:'Half-Life 2 dresses each room with the props its fights need, sawblades and barrels placed as ammunition, so what is left lying in a room sets how hard its fight is as much as the enemies do.', do:'Read its gameplay lens, then mark on your own layout the three objects a player sees on entering one combat space, and what each one tells them to do next.', min:15 },
         { kind:'checklist', ref:'design-review', why:'A pacing graph and a beat map are opinions until someone else is forced to check them against a real question.', do:'Run the design review checklist against your level’s pacing plan before you block anything out.', min:20 },
@@ -41610,7 +41834,7 @@ PATH('interview-prep-designer', {
       check:{
         recall:[
           { q:'How can unlike factions stay fair, as StarCraft’s races do?', a:'Through the shared economy rather than matched units: every race gathers minerals and gas under a strict supply cap, so macro discipline is the same test for everyone however different the armies look.' },
-          { q:'What makes a core loop answer precise instead of just enthusiastic?', a:'Walking one concrete iteration of a real loop through its five beats, action, feedback, decision, consequence, new situation, and naming how long an iteration takes and what changes between iterations. Precision comes from specifics, not from calling the loop fun.' },
+          { q:'What makes a core loop answer precise instead of just enthusiastic?', a:'Walking one concrete iteration of a real loop through its five beats, decision, action, consequence, feedback, new situation, and naming how long an iteration takes and what changes between iterations. Precision comes from specifics, not from calling the loop fun.' },
           { q:'How would you explain your economy’s central trade-off to someone non-technical?', a:'Name the one decision a currency forces, what a player gives up now to get something later, in plain terms, without spreadsheet vocabulary, and say why that tension is the actual point of the currency existing.' },
           { q:'What did the matchmaking part give you that pure design theory would not?', a:'A concrete design and engineering tradeoff: tickets carry capacity plus rule predicates and are scanned under one mutex, which keeps matching rules easy to evolve and correctness easy to reason about, at the cost of throughput that a later scaling pass must replace. It shows you have met the constraint, not just theorised about match quality.' }
         ],
@@ -41695,7 +41919,7 @@ PATH('casual-game-people-keep', {
     { id:'s1', t:'A loop that works in seconds', level:'intermediate',
       goal:'Build a core loop a player grasps without text and wants to repeat at a bus stop.', hours:2.75,
       steps:[
-        { kind:'topic', ref:'core-loop', why:'Players spend most of their time in the core loop, and in a casual game there is little else to carry the session.', do:'Write your loop in five sentences from the player’s point of view, one per link: action, feedback, decision, consequence, new situation. Then time how long one cycle takes.', min:20 },
+        { kind:'topic', ref:'core-loop', why:'Players spend most of their time in the core loop, and in a casual game there is little else to carry the session.', do:'Write your loop in five sentences from the player’s point of view, one per link: decision, action, consequence, feedback, new situation. Then time how long one cycle takes.', min:20 },
         { kind:'game', ref:'flappy-bird', lens:'ui', why:'Flappy Bird topped the free charts with exactly one input: a tap, a pipe gap, and a game-over panel one button press from the next try.', do:'Read its UI lens, then list every element on its play screen and mark which elements on your own play screen could move to the menus before and after a run.', min:15 },
         { kind:'game', ref:'fruit-ninja', lens:'sound', why:'Fruit Ninja’s swipe worked within days, and Halfbrick then spent two months on the slice sound and spraying juice that make a cut on flat glass feel like it connected.', do:'Read its sound lens and write the feedback that fires the moment a swipe lands, then note what that feedback cannot tell the player.', min:15 },
         { kind:'topic', ref:'game-feel-and-juice', why:'Feel is the first thing players judge, but juice only amplifies feedback that already exists, so it goes on after the bare loop is replayed.', do:'Rank the outcomes of your main verb by importance, then plan emphasis for the top one in order (anticipation, impact, result), one channel at a time, and write how you will check it reads clearer rather than louder.', min:20 },
@@ -41933,7 +42157,7 @@ PATH('gameplay-engineer-godot', {
       check:{
         recall:[
           { q:'Why does move_and_slide() already apply delta, and what happens if you multiply by delta anyway?', a:'move_and_slide() integrates velocity over the physics step itself, so velocity is already in units per second. Multiplying by delta again scales it by the step length, roughly sixty times too slow at sixty physics ticks per second, and makes speed change whenever the physics tick rate changes.' },
-          { q:'What is the difference between an action, a decision, and a consequence in the core loop?', a:'An action is what the player does, feedback tells them what happened, a decision is the choice they make based on that feedback, and a consequence is the resulting state change that creates the new situation the next action responds to.' },
+          { q:'What is the difference between an action, a decision, and a consequence in the core loop?', a:'A decision is the choice the player makes, an action is what they physically do to carry it out, and a consequence is the state change the action causes; feedback then shows that change, and the changed state is the new situation the next decision responds to.' },
           { q:'Which mouse_filter value makes an overlay invisible to clicks, and which value makes it swallow them?', a:'STOP makes an overlay swallow clicks so nothing beneath it receives them, and IGNORE lets clicks pass through to whatever is underneath. A decorative overlay left at the default STOP silently blocks every button below it.' },
           { q:'Which Godot features play the component, prototype and observer patterns?', a:'Nodes composed in a scene are components, a scene instanced many times is a prototype, and signals are the observer pattern, visible in the Node dock.' }
         ],
@@ -42075,7 +42299,7 @@ PATH('gameplay-engineer-unity', {
       check:{
         recall:[
           { q:'Why can reading a single-frame input inside FixedUpdate drop or double-count a press?', a:'FixedUpdate can run zero, one or several times within a single rendered frame, so a check for a press made there can miss it entirely or count it twice, producing exactly the input dropouts and double-triggers players report as an unresponsive control scheme.' },
-          { q:'What is the difference between an action, a decision, and a consequence in the core loop?', a:'An action is the player’s move, feedback shows what happened, a decision is what they choose next, and a consequence is the resulting state change that creates the next situation. All four sit inside the same repeating loop.' },
+          { q:'What is the difference between an action, a decision, and a consequence in the core loop?', a:'A decision is what the player chooses, an action is the move that carries it out, and a consequence is the state change the move causes; feedback shows that change, and the new state asks for the next decision. All of them sit inside the same repeating loop.' },
           { q:'What does reading your action map out loud tell you about your game’s fantasy?', a:'Reading the name of every action in an InputActionAsset aloud is a quick audit of everything the player can do, and therefore of the game’s real fantasy. A short or mismatched list reveals a fantasy thinner or different than intended.' },
           { q:'Which Unity features play the component, prototype and observer patterns?', a:'MonoBehaviours are components, prefabs are prototypes, and C# events and UnityEvent are the observer pattern; the state pattern is plain C#.' }
         ],
@@ -44634,6 +44858,7 @@ function render(view, parts){
     case 'lab': renderLab(); return addMakeJobs();
     case 'explore': return renderExplore(parts[1]);
     case 'concepts': return renderConcepts();
+    case 'glossary': return renderGlossary(parts[1]);
     case 'topic': return location.replace(TOPICS[parts[1]] ? '#/map/t/'+parts[1] : '#/map');
     case 'diagnose': return renderDiagnose(parts[1], parts[2]);
     case 'smell': return renderDiagnose('smells', parts[1]);
@@ -45212,6 +45437,7 @@ function renderGuide(){
   const route = (t, steps) => `<div class="card"><b>${esc(t)}</b><ol class="small" style="margin:6px 0 0;padding-left:20px">${steps.map(s => `<li>${s}</li>`).join('')}</ol></div>`;
   setView(`${crumbs([['How to use this site']])}<h1>How to use this site</h1>
     <p class="dim" style="max-width:820px">A guide to making games, from design to engineering to shipping. Pick the route that matches why you came and ignore the rest until you need it.</p>
+    <p class="small" style="max-width:820px">New to the words? The <a href="#/glossary">Glossary</a> explains each one in plain English and links to the lesson that teaches it.</p>
     <div class="section-head"><h2>Pick your route</h2></div>
     <div class="grid auto">
       ${route('New to game design', ['Open <a href="#/paths">Learning paths</a> and answer the three questions, or start <a href="#/paths/game-designer-foundations">Game designer foundations</a>.', 'Follow one step at a time: the banner keeps your current task in view, and each stage ends in a checkpoint you can skip.'])}
@@ -45401,6 +45627,17 @@ function contextsPanel(t){
     ${c.steps.length ? `<div class="small" style="margin-top:4px"><b>AI-era loop steps:</b> ${c.steps.map(s => `<a href="#/ai/loop/${s.n}">${s.n}</a>`).join(', ')}</div>` : ''}
     ${practiceChips(t.id)}${partsRowsHTML(t.id) ? `<div class="wdup">${partsRowsHTML(t.id)}</div>` : ''}${pathChips(t.id) ? `<div class="wdup">${pathChips(t.id)}</div>` : ''}</div>`;
 }
+function renderGlossary(focusId){
+  const list = [...GLOSSARY].sort((a, b) => a.term.localeCompare(b.term, 'en', { sensitivity:'base' }));
+  const letterOf = g => g.term.charAt(0).toUpperCase();
+  const letters = [...new Set(list.map(letterOf))];
+  const firstOf = {}; list.forEach(g => { const l = letterOf(g); if(!firstOf[l]) firstOf[l] = g.id; });
+  const entry = g => `<div class="gl-entry" style="margin:0 0 14px" id="g-${esc(g.id)}"><dt><b>${esc(g.term)}</b>${g.aka && g.aka.length ? ` <span class="small dim">also: ${g.aka.map(esc).join(', ')}</span>` : ''}</dt><dd style="margin:2px 0 0">${esc(g.def)}${g.topic && TOPICS[g.topic] ? `<div class="small" style="margin-top:4px"><a href="#/map/t/${esc(g.topic)}">Learn it: ${esc(TOPICS[g.topic].t)}</a></div>` : ''}</dd></div>`;
+  setView(`${crumbs([['Start here','#/guide'],['Glossary']])}<h1>Glossary</h1><p class="dim" style="max-width:820px">Words this guide uses, in plain English. Each links to the lesson that teaches it.</p>
+    <nav class="chips" aria-label="Jump to a letter">${letters.map(l => `<a class="chip lnk" href="#/glossary/${esc(firstOf[l])}">${esc(l)}</a>`).join('')}</nav>
+    <dl class="gl-list" style="max-width:820px">${list.map(entry).join('')}</dl>`);
+  if(focusId){ afterRoute = () => { const el = document.getElementById('g-' + focusId); if(el) el.scrollIntoView({ block:'start' }); }; }
+}
 function renderConcepts(){
   const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));
   const card = r => `<a class="card clickable tint lnk blk" style="--dc:${DOM[r.t.d].color}" href="#/map/t/${r.t.id}"><b>${esc(r.t.t)}</b><div class="small dim">${esc(DOM[r.t.d].t)} · referenced by ${r.n}</div></a>`;
@@ -45581,12 +45818,20 @@ function smellCard(s){ return `<a class="smell lnk blk" href="#/smell/${s.id}"><
 function smellGames(s){
   const tops = [...new Set(s.causes.map(c => c.top))].filter(t => TOPICS[t]), by = {};
   tops.forEach(t => (gameLinks()[t] || []).forEach(({ g, label }) => { const e = by[g.id] || (by[g.id] = { g, topics: new Set(), lens: '' }); e.topics.add(t); const k = (GAME_LENSES.find(l => l[1] === label) || [''])[0]; if(k && !e.lens) e.lens = k; }));
-  return { tops, games: Object.values(by).sort((a, b) => b.topics.size - a.topics.size || a.g.t.localeCompare(b.g.t)) };
+  // A topic many games list says little, so each topic weighs log(all games / games that list it). A game stays when
+  // it matches two or more of the causes, or one cause that fewer than a quarter of all games list.
+  const total = REFERENCE_GAMES.length, listed = {};
+  tops.forEach(t => { listed[t] = new Set((gameLinks()[t] || []).map(x => x.g.id)).size; });
+  const weight = t => Math.log(total / Math.max(listed[t], 1));
+  const games = Object.values(by).map(e => ({ ...e, score: [...e.topics].reduce((n, t) => n + weight(t), 0) }))
+    .filter(e => e.topics.size >= 2 || listed[[...e.topics][0]] < total / 4)
+    .sort((a, b) => b.score - a.score || a.g.t.localeCompare(b.g.t));
+  return { tops, games };
 }
 function smellGamesHTML(s){
   const { tops, games } = smellGames(s); if(!games.length) return '';
   const shown = games.slice(0, 6);
-  return `<div class="smellgames"><b>See it in games</b><span class="chips">${shown.map(e => `<a class="chip lnk" href="#/games/${e.g.id}${e.lens ? '/' + e.lens : ''}" title="Lists ${[...e.topics].map(t => esc(TOPICS[t].t)).join(', ')}">${esc(e.g.t)}</a>`).join('')}<a class="chip lnk" href="#/games/topic/${tops.join('+')}">All ${games.length} games →</a></span></div>`;
+  return `<div class="smellgames"><b>See it in games</b><span class="chips">${shown.map(e => `<a class="chip lnk" href="#/games/${e.g.id}${e.lens ? '/' + e.lens : ''}" title="Lists ${[...e.topics].map(t => esc(TOPICS[t].t)).join(', ')}">${esc(e.g.t)}</a>`).join('')}${games.length > shown.length ? `<a class="chip lnk" href="#/games/topic/${tops.join('+')}">More games for these topics →</a>` : ''}</span></div>`;
 }
 function smellsView(id){
   const s = SMELLS.find(x => x.id === id);
@@ -45600,7 +45845,7 @@ function smellsView(id){
       ${smellGamesHTML(s)}
       <h3 style="margin-top:16px">Ask AI to help diagnose</h3>${promptBox('Diagnostic prompt', s.prompt)}
       <div class="callout"><b>Then:</b> write the hypothesis for the cause you believe most, in the <a href="#/build/hypothesis">Hypothesis Builder</a>. Test the cheapest experiment. Change one important variable. Test again.</div>`,
-      [['Topics behind the causes', topicChipLinks(tops)], ['Games that show it', games.length ? chipLinks([...games.slice(0, 6).map(e => ['#/games/' + e.g.id + (e.lens ? '/' + e.lens : ''), e.g.t]), ['#/games/topic/' + tops.join('+'), `All ${games.length} games`]]) : ''], ['Part of paths', pathsBlock('smell:' + s.id)]], 'This smell');
+      [['Topics behind the causes', topicChipLinks(tops)], ['Games that show it', games.length ? chipLinks([...games.slice(0, 6).map(e => ['#/games/' + e.g.id + (e.lens ? '/' + e.lens : ''), e.g.t]), ...(games.length > 6 ? [['#/games/topic/' + tops.join('+'), `More games for these topics`]] : [])]) : ''], ['Part of paths', pathsBlock('smell:' + s.id)]], 'This smell');
   }
   return `<div class="field"><input id="smellSearch" placeholder="Filter smells: repetitive, build, tutorial, unfair, return…"></div>
     <div class="pill-tabs" id="smellDomFilter"><button class="active" data-d="">All</button>${DOMAINS.filter(d => SMELLS.some(s => s.dom.includes(d.id))).map(d => `<button data-d="${d.id}">${esc(d.t)}</button>`).join('')}</div>
@@ -45629,7 +45874,7 @@ function funView(dim){
 
 function loopView(part){
   const p = LOOP_PARTS.find(x => x.id === part) || LOOP_PARTS[0];
-  return `<div class="callout">Action → Feedback → Decision → Consequence → New situation. Click a link to see what happens when it is weak. Then fix that link before adding anything.</div>
+  return `<div class="callout">Decision → Action → Consequence → Feedback → New situation. Click a link to see what happens when it is weak. Then fix that link before adding anything.</div>
     <div class="loopviz">${LOOP_PARTS.map(x => `<button class="${x.id===p.id?'active':''}" data-href="#/diagnose/loop/${x.id}">${esc(x.t)}<small>${esc(x.sub)}</small></button>`).join('')}</div>
     <div class="card"><h2>Weak ${esc(p.t)}</h2><p class="dim">${esc(p.weak)}</p>
       <div class="think-grid"><div class="box bad"><h4>Symptoms in playtests</h4>${list(p.sym)}</div><div class="box trap"><h4>Likely causes</h4>${list(p.causes)}</div><div class="box good"><h4>Fixes</h4>${list(p.fixes)}</div><div class="box"><h4>Go deeper</h4><ul>${p.top.map(t => `<li>${topicLink(t)}</li>`).join('')}</ul></div></div>
@@ -45780,8 +46025,19 @@ function toolFeature(el){
     $('#ft_qs').innerHTML = FEATURE_TREE.map((q, qi) => { const sel = a[q.id]; if(sel !== undefined){ score += q.opts[sel][1]; done++; } return `<div class="tree-q"><b>${qi+1}. ${esc(q.q)}</b><div class="opts">${q.opts.map((o, oi) => `<button class="${sel===oi?'sel':''}" data-q="${q.id}" data-o="${oi}">${esc(o[0])}</button>`).join('')}</div></div>`; }).join('');
     $$('#ft_qs .opts button').forEach(b => b.onclick = () => { saved.answers[b.dataset.q] = +b.dataset.o; store.set('featureTool', saved); render(); });
     if(done === FEATURE_TREE.length){ const [v, text] = featureVerdict(score, a); const label = v==='PROTOTYPE' ? 'PROTOTYPE FIRST' : v;
-      const md = `# Feature review: ${saved.name||'(unnamed)'}\n\nVerdict: **${label}** (score ${score})\n\n${FEATURE_TREE.map((q,i) => `${i+1}. ${q.q}\n   → ${q.opts[a[q.id]][0]}`).join('\n')}\n\n${text}`;
-      $('#ft_verdict').innerHTML = `<div class="verdict ${v}"><h2>${label}</h2><p>${esc(text)}</p><div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/map/t/scope-control">Read: scope control</a><a class="btn sm" href="#/build/ladder">Climb the behaviour ladder</a></div></div>${outputBox(md)}`; }
+      const drivers = featureDrivers(a, v), up = v === 'BUILD';
+      const md = `# Feature review: ${saved.name||'(unnamed)'}
+
+Verdict: **${label}** (score ${score})
+
+${FEATURE_TREE.map((q,i) => `${i+1}. ${q.q}
+   → ${q.opts[a[q.id]][0]} (${featurePts(q.opts[a[q.id]][1])})`).join('\n')}
+
+## What drove this
+${drivers.map(d => `- ${d.q} ${d.opt} (${featurePts(d.pts)})`).join('\n')}
+
+${text}`;
+      $('#ft_verdict').innerHTML = `<div class="verdict ${v}"><h2>${label}</h2><p>${esc(text)}</p><p class="small"><b>What drove this</b> (the two answers that pulled the score ${up ? 'up' : 'down'} most):</p><ul class="small">${drivers.map(d => `<li>${esc(d.q)} ${esc(d.opt)} <b>(${featurePts(d.pts)})</b></li>`).join('')}</ul><details class="small" open><summary>Every answer, with its points (score ${score})</summary><ol>${FEATURE_TREE.map(q => `<li>${esc(q.q)} ${esc(q.opts[a[q.id]][0])} <b>(${featurePts(q.opts[a[q.id]][1])})</b></li>`).join('')}</ol></details><div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/map/t/scope-control">Read: scope control</a><a class="btn sm" href="#/build/ladder">Climb the behaviour ladder</a></div></div>${outputBox(md)}`; }
     else $('#ft_verdict').innerHTML = `<div class="empty">${FEATURE_TREE.length-done} question${FEATURE_TREE.length-done>1?'s':''} left</div>`; };
   $('#ft_name').addEventListener('input', e => { saved.name = e.target.value; store.set('featureTool', saved); });
   render();
@@ -46401,7 +46657,7 @@ function renderExperience(id, a, b){
     setView(p ? partPage(c, s, p) : systemPage(c, s));
     return renderTree(p ? 'part' : 'sys');
   }
-  setView(`${crumbs([['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
+  setView(`${crumbs([['Projects']])}<h1>Projects</h1><p class="dim" style="max-width:820px">The author’s own shipped projects, anonymised: codenames replace the real names, and the techniques are what travels.</p><p class="dim" style="max-width:820px">Shipped work told the way an interview actually asks for it: the shape of the system, the decisions and what each one cost, what went wrong, and the stories that go with them. Anonymised on purpose. The technique travels, the names do not.</p>
     ${CASE_STUDIES.length ? `<div class="grid auto fit">${CASE_STUDIES.map(caseCard).join('')}</div>` : '<div class="empty">No case studies yet. They live in src/40-cases.js and appear here as soon as one is written.</div>'}`);
 }
 
@@ -46651,10 +46907,10 @@ ACTIONS.choose = el => { const a = chooserAnswers(); a[el.dataset.q] = el.datase
 const donePathIds = () => PATHS.filter(p => { const prog = pathProgress(p.id); return p.stages.every(s => prog.stages[s.id]); }).map(p => p.id);
 function chooserHTML(ans, rec){
   const q = (key, label, opts) => `<div class="chooser-q"><div class="overline" id="cq-${key}">${label}</div><div class="dims" role="group" aria-labelledby="cq-${key}">${opts.map(([v, t]) => `<button type="button" data-action="choose" data-q="${key}" data-v="${v}" class="${ans[key] === v ? 'active' : ''}" aria-pressed="${ans[key] === v}">${esc(t)}</button>`).join('')}</div></div>`;
-  const wk = (p, hpw) => `about ${pathWeeks(p, hpw)} week${pathWeeks(p, hpw) === 1 ? '' : 's'}`;
+  const wk = (p, hpw) => `about ${pathWeeks(p, hpw)} week${pathWeeks(p, hpw) === 1 ? '' : 's'} at ${hpw} hours a week`;
   let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
   if(rec){
-    const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)} at ${hpw} hours a week.`)];
+    const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)}.`)];
     // An experienced learner is not offered easier paths as alternatives, and never more than three.
     const rank = x => LEVELS.findIndex(l => l[0] === x.level);
     const alts = ans.level === 'senior' ? rec.alt.filter(a => rank(a) >= rank(p)).slice(0, 3) : rec.alt;
@@ -46662,7 +46918,7 @@ function chooserHTML(ans, rec){
     const fit = ans.level === 'senior' ? 'it assumes you have shipped work' : ans.level === 'some' ? 'it builds on the basics you already have' : 'it starts from the ground up' + (hasPrereq(p) ? ', after the paths it builds on' : '');
     const because = `<p class="small muted" style="margin:0 0 8px">${esc(`Suggested because you chose ${goalLabel} and ${levelLabel}: ${fit}.`)}</p>`;
     if(alts.length) why.push(`Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${wk(a, hpw)})`).join(', ')}.`);
-    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)} at ${hpw} hours a week.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${alts.length ? ` Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
+    const head = s ? `<div class="overline">Start here first</div><h3 style="margin:2px 0 4px">${esc(s.t)}</h3><p class="small" style="margin:0 0 8px">${esc(`${s.pick}. ${s.hours} hours, ${wk(s, hpw)}.`)} Your first pick, ${pathLinkChip(p.id)}, builds on ${prereqHtml(p, pathLinkChip, ' and ')} (${esc(wk(p, hpw))}).${alts.length ? ` Also fits: ${alts.map(a => `${pathLinkChip(a.id)} (${esc(wk(a, hpw))})`).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${s.id}">Open ${esc(s.t)} →</a> <a class="btn ghost sm" href="#/paths/${p.id}">Look at ${esc(p.t)}</a>`
       : `<div class="overline">Suggested path</div><h3 style="margin:2px 0 4px">${esc(p.t)}</h3><p class="small" style="margin:0 0 8px">${why.join(' ')}${rec.anyOf.length ? ` A good base first: one of ${rec.anyOf.map(a => pathLinkChip(a.id)).join(', ')}.` : ''}</p>${because}<a class="btn primary sm" href="#/paths/${p.id}">Open the path →</a>`;
     out = `<div class="card tint chooser-pick" style="--dc:var(--accent2)">${head}</div>`;
   }
@@ -46797,17 +47053,26 @@ const withNext = (main, rows, label) => { const b = nextBlocks(rows); return wid
    SEARCH
    ===================================================================== */
 let _INDEX = null;
+// Other names readers type for a topic. Topic data carries no synonyms, so they live here, beside the index that reads them.
+const TOPIC_SYNONYMS = {
+  'design-documents':['gdd','design doc','game design document'],
+  'economy-modelling-and-balance':['balance','balancing','game balance'],
+  'onboarding':['ftue','first time user experience'],
+  'game-feel-and-juice':['juice','juicy'],
+  'difficulty':['flow','flow state','challenge and skill']
+};
 function buildIndex(){
   const INDEX = [];
 const engText = t => t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k].term, ...(t.eng[k].api||[]), t.eng[k].pitfall, t.eng[k].map] : []) : [];
 const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map(x => x.q)) : [];
-TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...(t.facts||[]).map(f=>f.claim), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
+TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, aka:TOPIC_SYNONYMS[t.id] || [], text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...(t.facts||[]).map(f=>f.claim), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
 TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.sub ? c.sub + ' · ' : ''}${c.role} · ${c.period}`, href:'#/experience/'+c.id, text:(c.t+' '+(c.sub||'')+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).forEach(s => (s.parts||[]).forEach(p => INDEX.push({ type:'experience', t:c.t+' · '+p.t, snip:`${s.t} · ${p.why}`, href:`#/experience/${c.id}/${s.id}/${p.id}`, text:(c.t+' '+s.t+' '+s.kind+' '+(s.stack||[]).join(' ')+' '+p.t+' '+p.what+' '+(p.how||[]).join(' ')+' '+p.why+' '+p.trade+' '+(p.story||'')).toLowerCase() }))));
 CASE_STUDIES.forEach(c => (c.flows||[]).forEach(f => INDEX.push({ type:'experience', t:(c.code||c.t)+' · '+f.t, snip:`Workflow · ${(f.steps||[]).length} steps · ${f.sum}`, href:`#/experience/${c.id}/flow/${f.id}`, text:('workflow flow chart '+(c.code||c.t)+' '+f.t+' '+f.sum+' '+(f.steps||[]).map(s=>s.t+' '+s.d).join(' ')+' '+(f.edges||[]).map(e=>e[2]||'').join(' ')).toLowerCase() })));
 CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t+' · interview', snip:`${c.sub || c.role} · questions, model answers and red flags`, href:'#/experience/'+c.id+'/interview', text:('interview questions answers red flag junior mid senior project '+c.t+' '+(c.sub||'')+' '+['junior','mid','senior'].flatMap(k => (c.iv[k]||[]).map(x => x.q+' '+x.a)).join(' ')).toLowerCase() }));
 CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
+GLOSSARY.forEach(g => INDEX.push({ type:'term', t:g.term, snip:snip(g.def, 110), href:'#/glossary/'+g.id, aka:g.aka || [], text:(g.term+' '+g.def).toLowerCase() }));
 DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
 PAGES.forEach(([href, t, section, purpose, aka]) => INDEX.push({ type:'page', t, snip:`${section} · ${purpose}`, href, text:[t, section, purpose, ...aka].join(' ').toLowerCase(), aka }));
 const guideText = stages => Object.values(stages).flatMap(s => [...(s.points || []), ...(s.facts || []).map(f => f.claim), ...(s.deploy || []).flatMap(d => [d.t, d.d]), ...(s.iv || []).map(x => x.q)]);
@@ -46865,7 +47130,7 @@ function oneEdit(a, b){
   if(a.length === b.length) return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
   return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
 }
-const SEARCH_GROUPS = [['page', 'Pages'], ['topic', 'Topics'], ['reference', 'Reference games'], ['platform', 'Platforms'], ['path', 'Learning paths'], ['tool', 'Build tools'], ['checklist', 'Checklists'], ['prompt', 'Prompts'], ['smell', 'Design smells'], ['interview', 'Interview questions'], ['experience', 'Projects']];
+const SEARCH_GROUPS = [['page', 'Pages'], ['topic', 'Topics'], ['reference', 'Reference games'], ['platform', 'Platforms'], ['term', 'Terms'], ['path', 'Learning paths'], ['tool', 'Build tools'], ['checklist', 'Checklists'], ['prompt', 'Prompts'], ['smell', 'Design smells'], ['interview', 'Interview questions'], ['experience', 'Projects']];
 function search(q){
   const whole = q.trim().toLowerCase(), qs = searchWords(whole).filter(w => !STOP_WORDS.has(w)); if(!qs.length) return [];
   const hits = [];
@@ -46889,14 +47154,15 @@ function search(q){
       score += s; tier = Math.min(tier, tw);
     }
     if(!ok) continue;
+    const titleAll = qs.every(w => it._t.includes(w));
     const t = it.t.toLowerCase();
     if(t === whole) score += 100; else if(t.startsWith(whole)) score += 40;
     if(it.type === 'page') score += 5;
-    hits.push([score, it, tier]);
+    hits.push([score, it, tier, titleAll ? 1 : 0]);
   }
   // Exact whole-word matches lead; prefix and typo matches are dropped once three exact ones exist.
   const exact = hits.filter(h => h[2] >= 2).length;
-  return hits.filter(h => exact < 3 || h[2] >= 2).sort((a, b) => b[2] - a[2] || b[0] - a[0]).map(x => x[1]);
+  return hits.filter(h => exact < 3 || h[2] >= 2).sort((a, b) => b[3] - a[3] || b[2] - a[2] || b[0] - a[0]).map(x => x[1]);
 }
 // The results list, grouped by kind; each group shows its first six and can
 // be opened in full. With an empty box it is a jump list: pages visited in
@@ -46912,8 +47178,8 @@ function renderSearch(){
     const recent = recentPages().slice(0, 5), seenHref = new Set(recent.map(r => r.href));
     const common = COMMON_PAGES.filter(h => !seenHref.has(h)).map(h => PAGES.find(p => p[0] === h && p[1] !== 'Library')).filter(Boolean).map(p => ({ type:'page', t:p[1], snip:`${p[2]} · ${p[3]}`, href:p[0] }));
     searchResults = [...recent.map(r => ({ type:'recent', t:r.t, snip:r.snip || '', href:r.href })), ...common];
-    const row = (r, i) => `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${r.type === 'recent' ? 'recent' : 'page'}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`;
-    html = (recent.length ? `<div class="resgroup">Visited recently</div>${searchResults.slice(0, recent.length).map(row).join('')}` : '') + `<div class="resgroup">Jump to</div>${searchResults.slice(recent.length).map((r, k) => row(r, recent.length + k)).join('')}`;
+    const row = (r, i) => `<div class="res ${i===searchSel?'sel':''}" role="option" id="sr-${i}" aria-selected="${i===searchSel}" data-i="${i}"><span class="type">${r.type === 'recent' ? 'recent' : 'page'}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`;
+    html = (recent.length ? `<div class="resgroup" role="presentation">Visited recently</div>${searchResults.slice(0, recent.length).map(row).join('')}` : '') + `<div class="resgroup" role="presentation">Jump to</div>${searchResults.slice(recent.length).map((r, k) => row(r, recent.length + k)).join('')}`;
   } else {
     const all = search(q), byType = {};
     all.forEach(r => { (byType[r.type] || (byType[r.type] = [])).push(r); });
@@ -46923,15 +47189,20 @@ function renderSearch(){
     for(const t of ordered){
       const list = byType[t], open = searchOpenGroups.has(t), shown = open ? list : list.slice(0, 6);
       const label = (SEARCH_GROUPS.find(g => g[0] === t) || [t, t.charAt(0).toUpperCase() + t.slice(1)])[1];
-      html += `<div class="resgroup">${esc(label)} <span class="muted">${list.length}</span></div>` + shown.map(r => { const i = searchResults.push(r) - 1; return `<div class="res ${i===searchSel?'sel':''}" data-i="${i}"><span class="type">${esc(r.type)}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`; }).join('')
+      html += `<div class="resgroup" role="presentation">${esc(label)} <span class="muted">${list.length}</span></div>` + shown.map(r => { const i = searchResults.push(r) - 1; return `<div class="res ${i===searchSel?'sel':''}" role="option" id="sr-${i}" aria-selected="${i===searchSel}" data-i="${i}"><span class="type">${esc(r.type)}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`; }).join('')
         + (list.length > shown.length ? `<button type="button" class="btn sm ghost resmore" data-action="search-more" data-group="${esc(t)}">Show all ${list.length}</button>` : '');
     }
     if(!all.length) html = `<div class="empty">Nothing matches every word. Try fewer words, a symptom ("repetitive"), a concept ("depth"), or open <a href="#/index">All pages</a>.</div>`;
   }
   searchSel = Math.min(searchSel, Math.max(searchResults.length - 1, 0));
   $('#searchResults').innerHTML = html;
-  $('#searchCount').textContent = q && searchResults.length ? `${$$('#searchResults .res').length} shown` : '';
-  $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => { searchSel = +el.dataset.i; $$('#searchResults .res').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); }; el.onclick = () => openResult(+el.dataset.i); });
+  const inp = $('#searchInput'), n = searchResults.length;
+  $('#searchCount').textContent = q ? (n === 1 ? '1 result' : `${n} results`) : '';
+  inp.setAttribute('aria-expanded', String(n > 0));
+  if(n) inp.setAttribute('aria-activedescendant', 'sr-' + searchSel); else inp.removeAttribute('aria-activedescendant');
+  const mark = i => { searchSel = i; $$('#searchResults .res').forEach(x => { const on = +x.dataset.i === i; x.classList.toggle('sel', on); x.setAttribute('aria-selected', String(on)); }); inp.setAttribute('aria-activedescendant', 'sr-' + i); };
+  $$('#searchResults .res[data-i]').forEach(el => { el.onmouseenter = () => mark(+el.dataset.i); el.onclick = () => openResult(+el.dataset.i); });
+  const cur = $('#searchResults .res.sel'); if(cur && cur.scrollIntoView) cur.scrollIntoView({ block:'nearest' });
 }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
 function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; searchOpenGroups = new Set(); renderSearch(); openModal('searchModal', '#searchInput'); }
@@ -46950,6 +47221,7 @@ function closeModals(){
   const open = $$('.modal-bg.show'); if(!open.length) return;
   const hadFocus = open.some(m => m.contains(document.activeElement));
   open.forEach(m => m.classList.remove('show'));
+  $('#searchInput').setAttribute('aria-expanded', 'false');
   if(hadFocus){ if(modalOpener && modalOpener.isConnected && modalOpener !== document.body) modalOpener.focus(); else document.activeElement.blur(); }
   modalOpener = null;
 }

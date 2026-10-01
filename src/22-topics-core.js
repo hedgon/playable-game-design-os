@@ -7,24 +7,24 @@ DOMAINS.push({ id:'core', lens:'design', t:'Core Gameplay', short:'Loop, decisio
     sum:`The thing the player does over and over. If the core interaction is not compelling on its own, no amount of progression, content or narrative rescues it. Fix the loop before you multiply it.`,
     links:[['systems','Systems give the loop its variables: what changes between one iteration and the next.'],['ux','Input, readability and feedback are the loop as the player physically meets it.'],['presentation','Game feel lives at the seam between the loop and presentation.'],['production','The loop is the first thing you prototype and the thing you playtest most.']] });
 
-T('core-loop',{ d:'core', t:'The core loop', tag:'Action → Feedback → Decision → Consequence → New situation. Every link must hold.',
-  what:`The shortest cycle of play the player repeats: they act, the game responds legibly, they decide what to do next based on that response, the decision has consequences, and the consequences create a new situation that demands a new action. When one link is weak the loop leaks and no amount of content refills it. In Bejeweled the swap is the action, the clearing gems are the feedback, choosing among the legal swaps is the decision, the cascade is the consequence, and the refilled board is the new situation. Cities: Skylines runs the same loop on a city’s traffic: zoning is the action, a rezoned street’s changed congestion is the feedback, deciding what to build next is the decision, and the next jam it creates is the new situation.`,
+T('core-loop',{ d:'core', t:'The core loop', tag:'Decision → Action → Consequence → Feedback → New situation. Every link must hold.',
+  what:`The shortest cycle of play the player repeats: they decide what to do, they act, the game state changes as a consequence, the game shows them what changed, and the changed state is a new situation that asks for a new decision. When one link is weak the loop leaks and no amount of content refills it. In Bejeweled choosing among the legal swaps is the decision, the swap is the action, the cleared gems and the cascade are the consequence, the clearing animation and the score are the feedback, and the refilled board is the new situation. Cities: Skylines runs the same loop on a city’s traffic: deciding what to zone is the decision, zoning is the action, the changed flow of cars on a rezoned street is the consequence, the congestion colours on the road are the feedback, and the next jam it creates is the new situation.`,
   why:[`Players spend most of their time in the core loop. It is the game.`,`Every other system (progression, content, narrative) multiplies the loop. Multiplying a weak loop multiplies weakness.`,`Loop failures have characteristic symptoms, which makes them diagnosable.`],
-  think:{ q:[`What does the player do most often, physically? Is that the fantasy verb?`,`After an action, can the player say what happened and why?`,`Is there a decision, or a single obvious best move?`,`Does the decision change anything the player will meet later?`,`Does the situation after the loop differ from the one before it?`],
+  think:{ q:[`Is there a decision, or a single obvious best move?`,`What does the player do most often, physically? Is that the fantasy verb?`,`Does the action change anything the player will meet later?`,`After an action, can the player say what happened and why?`,`Does the situation after the loop differ from the one before it?`],
     trade:[`Fast loops (seconds) reward feel and reflex. Slow loops (minutes) reward planning. Each attracts different players.`,`More decision density increases engagement and cognitive load.`],
     traps:[`Describing the loop as a flowchart of systems (gather, craft, fight, upgrade) rather than as what the player experiences.`,`Assuming a loop is fun because it is genre standard.`],
     good:[`A stripped prototype (grey boxes, no progression) is voluntarily replayed.`,`Two players given an identical toolkit still produce different match outcomes purely from spacing and timing, the way Street Fighter’s neutral game does.`,`Players replay a calm, danger-free delivery for hundreds of hours once its payout feeds a slower loans-garages-drivers loop, as in Euro Truck Simulator 2.`],
     bad:[`Players say “I will keep going to unlock X” rather than “I want to do that again”.`] },
-  how:[`Write the loop in five sentences from the player’s point of view, one per link.`,`Build the loop alone: no progression, no content variety, no story. Grey boxes.`,`Playtest it. If players do not voluntarily repeat it, diagnose which link is weak using the Core Loop Diagnostic.`,`Fix one link, test again. Only when the bare loop is replayed do you start multiplying it.`],
+  how:[`Write the loop in five sentences from the player’s point of view, one per link, in order: decision, action, consequence, feedback, new situation.`,`Build the loop alone: no progression, no content variety, no story. Grey boxes.`,`Playtest it. If players do not voluntarily repeat it, diagnose which link is weak using the Core Loop Diagnostic.`,`Fix one link, test again. Only when the bare loop is replayed do you start multiplying it.`],
   ai:{ yes:[`Rewrite your loop description from the player perspective and flag missing links.`,`Generate variations of one link (e.g., five alternative decision structures) to test.`,`Build the grey-box prototype quickly.`,`Analyze playtest notes for symptoms of each weak link.`],
        no:[`Decide the loop is fun. Only repetition by players shows that.`,`Add systems to compensate for a weak link before the link is fixed.`] },
-  prompts:[{l:'Loop link audit',p:`Act as a sceptical systems designer. Here is our core loop as the player experiences it: [FIVE SENTENCES]. For each link (action, feedback, decision, consequence, new situation), rate its strength, state the evidence you are using from my description, and name the symptom a playtest would show if it were weak. Then propose 3 variations for the weakest link, each with the player decision it creates, the emotion intended, the likely failure mode, and the observable signal that would validate it. Do not recommend one yet.`},
+  prompts:[{l:'Loop link audit',p:`Act as a sceptical systems designer. Here is our core loop as the player experiences it: [FIVE SENTENCES]. For each link (decision, action, consequence, feedback, new situation), rate its strength, state the evidence you are using from my description, and name the symptom a playtest would show if it were weak. Then propose 3 variations for the weakest link, each with the player decision it creates, the emotion intended, the likely failure mode, and the observable signal that would validate it. Do not recommend one yet.`},
     {l:'Prototype build',p:`Build a minimal playable prototype of this loop in [ENGINE/HTML]: [LOOP]. Grey boxes only, no menus, no progression, no audio beyond a single feedback tone. Expose these tuning values as on-screen sliders: [VALUES]. Log every player action with a timestamp to a downloadable text file so I can analyse repetition and decision variety.`}],
   verify:[`Did it rate links based on my description or on genre assumptions?`,`Are the proposed variations mechanically distinct, or the same idea reskinned?`,`Does the prototype isolate the loop, or did it sneak in progression?`],
   test:[`Do players repeat the loop voluntarily when nothing rewards them for it?`,`Can they explain what happened after an action?`,`Do different players make different choices at the decision point?`,`Do they notice the situation changed?`],
   rel:[['genre-hybrids','Two loops can share a game only when each one feeds the other.'],['decisions','The decision link is where most loops fail.'],['feedback-and-affordance','Feedback is the link UX owns.'],['game-feel-and-juice','Action feel is the loop as the body experiences it.'],['prototyping','The loop is the first prototype.'],['systemic-design','Systems supply the new situation.']] });
 TECH('core-loop',[
-  {n:'Loop mapping', how:`Write the loop as action → feedback → decision → consequence → new situation and mark the weak link.`, fit:`Diagnosing why repetition bores or why actions feel weightless.`, cost:`None worth mentioning. It is the cheapest diagnostic you have.`, alt:`Pair with the Core Loop diagnostic view.`},
+  {n:'Loop mapping', how:`Write the loop as decision → action → consequence → feedback → new situation and mark the weak link.`, fit:`Diagnosing why repetition bores or why actions feel weightless.`, cost:`None worth mentioning. It is the cheapest diagnostic you have.`, alt:`Pair with the Core Loop diagnostic view.`},
   {n:'Grey-box minimal prototype', how:`Build only the core interaction with placeholder art and test voluntary repetition.`, fit:`Before investing in content, art or meta systems.`, cost:`Discipline to not add scope. A boring grey box may kill an idea you love.`, alt:`If the bare loop is not replayable, no production value will save it.`},
   {n:'Feedback timing windows', how:`Return a perceivable response within roughly 100 ms. Layer visual, audio and haptic feedback.`, fit:`Any real-time action loop.`, cost:`Later, richer feedback improves feel but must not delay the response.`, alt:`See Game feel and juice for the feedback catalogue.`},
   {n:'Loop layering (seconds / minutes / sessions)', how:`Nest loops: a ~3-second action loop inside a ~30-second encounter inside a multi-minute goal.`, fit:`Designing goals at three horizons and pacing.`, cost:`Imbalance between layers (great moment, aimless hour) is common.`, alt:`Audit each layer with its own reward and stopping point.`}
@@ -69,11 +69,11 @@ func _attack() -> void:
 INTERVIEW('core-loop',{
   junior:[
     { q:`What is a core loop, and what is the core loop of the last game you shipped or studied?`,
-      a:`Name the repeated unit: action, feedback, decision, consequence, new situation. Then walk one concrete iteration of a real game in those five beats. Say how long one iteration takes. Say what changes between iteration one and iteration two, because a loop with nothing changing is a chore.`,
+      a:`Name the repeated unit: decision, action, consequence, feedback, new situation. Then walk one concrete iteration of a real game in those five beats. Say how long one iteration takes. Say what changes between iteration one and iteration two, because a loop with nothing changing is a chore.`,
       follow:`Now name the loop one layer out. What is the three-minute loop that the three-second loop feeds?`,
       red:`Describes the game’s feature list, or answers with a genre label (“it’s a roguelike”) instead of a repeated unit of play.` },
     { q:`Where does feedback belong in the loop, and how late is too late?`,
-      a:`Feedback closes the loop: without it the player cannot learn what their action did. Immediate confirmation should land inside roughly 100 ms so the action feels connected. The consequence can resolve later, but the acknowledgement cannot. Give an example of a game where the acknowledgement and the outcome are deliberately split.`,
+      a:`Feedback is how the player reads the consequence: without it they cannot learn what their action did. Immediate confirmation should land inside roughly 100 ms so the action feels connected. The consequence can resolve later, but the acknowledgement cannot. Give an example of a game where the acknowledgement and the outcome are deliberately split.`,
       follow:`What do you do when the real outcome takes two seconds to compute or has to come back from a server?`,
       red:`Treats feedback as visual polish added at the end, or cannot distinguish acknowledging the input from resolving the outcome.` },
     { q:`In an engine of your choice, where would you put the loop code?`,
@@ -83,7 +83,7 @@ INTERVIEW('core-loop',{
   ],
   mid:[
     { q:`A playtest says the game is repetitive. How do you find out which part of the loop is at fault?`,
-      a:`Do not add content. Instrument one iteration: is the action varied, is the feedback readable, is there a decision with a real trade-off, does the consequence change the next situation. Watch six players and count decisions per minute. Repetitiveness is almost always a missing decision or an unchanging situation, not a missing feature.`,
+      a:`Do not add content. Instrument one iteration: is there a decision with a real trade-off, is the action varied, does the consequence change the next situation, is the feedback readable. Watch six players and count decisions per minute. Repetitiveness is almost always a missing decision or an unchanging situation, not a missing feature.`,
       follow:`You find the decision exists but players always pick the same option. Now what?`,
       red:`Jumps straight to “add more enemy types” or blames the art.` },
     { q:`How do you prototype a core loop so the test is cheap?`,
@@ -106,7 +106,7 @@ INTERVIEW('core-loop',{
       red:`Cannot name a criterion, or says the team knew it was fun. Enthusiasm is not a signal.` }
   ] });
 DIAGRAM('core-loop', { kind:'loop', title:'The core loop: every link must hold',
-  steps:[{t:'Action', d:'the player commits to a move'},{t:'Feedback', d:'the game shows what happened'},{t:'Decision', d:'the player picks what next'},{t:'Consequence', d:'the state changes, and it matters'},{t:'New situation', d:'a fresh problem to read'}],
+  steps:[{t:'Decision', d:'the player picks what to do'},{t:'Action', d:'the player commits to a move'},{t:'Consequence', d:'the state changes, and it matters'},{t:'Feedback', d:'the game shows what changed'},{t:'New situation', d:'a fresh problem to read'}],
   note:'Break any link and the loop stops teaching or rewarding: no feedback, no learning; no consequence, no decision.' });
 
 T('decisions',{ d:'core', t:'Meaningful decisions', tag:'A decision is meaningful when the options are different, the outcome is uncertain, and the player cares.',
@@ -409,7 +409,7 @@ T('challenge-failure-recovery',{ d:'core', t:'Challenge, failure and recovery', 
   prompts:[{l:'Failure lesson audit',p:`Here are our major challenges and what happens on failure: [LIST]. For each, state the lesson a player should learn from failing, how the game currently communicates the cause of failure and how quickly, the recovery time to retry, and the cost. Flag challenges where the cause is not communicated within 2 seconds or recovery exceeds 20 seconds. Propose, per flag, the smallest change and a fail-forward alternative.`}],
   verify:[`Does the audit assume players understand systems the game never explained?`],
   test:[`After a failure, ask “what happened?” Note whether the answer is accurate.`,`Time failure to retry.`,`Do players change approach after failure, or repeat?`,`Where do players quit after failing? How many failures preceded it?`],
-  rel:[['difficulty','Difficulty is challenge calibrated across the game.'],['skill-and-mastery','Failure is how skill is acquired.'],['risk-reward','Failure cost defines risk.'],['feedback-and-affordance','Communicating the cause of failure is feedback.']] });
+  rel:[['difficulty','Difficulty is challenge calibrated across the game.'],['skill-and-mastery','Failure is how skill is acquired.'],['risk-reward','Failure cost defines risk.'],['feedback-and-affordance','Communicating the cause of failure is feedback.'],['combat-design','A boss fight is where failure has to teach, and combat design shows how.']] });
 TECH('challenge-failure-recovery',[
   {n:'Failure cost tuning', how:`Decide how much time/progress a failure costs, and the length of the retry loop.`, fit:`Making failure instructive, not punishing.`, cost:`Too cheap removes weight. Too costly causes churn.`, alt:`Keep failure cheap and learning fast in action games.`},
   {n:'Checkpoint and recovery design', how:`Place checkpoints and design recovery so players resume near where they failed with the knowledge they gained.`, fit:`Action and level-based games. Retention at hard points.`, cost:`Frequent checkpoints reduce tension. Sparse ones cause abandonment.`, alt:`Match checkpoint density to the intended tension.`},
@@ -505,7 +505,7 @@ T('skill-and-mastery',{ d:'core', t:'Skill acquisition and mastery', tag:'What d
   prompts:[{l:'Skill atom map',p:`Here are our mechanics and level order: [DESCRIPTION]. Extract the skills the player must acquire (execution, timing, reading, planning, resource judgement, spatial, memory). For each, identify where it is first isolated, first exercised under pressure, first combined with another skill, and how the player would perceive their own improvement. Flag skills that are required before they are isolated, and skills that never combine. Propose one mastery display for the central skill.`}],
   verify:[`Did it distinguish skill from stats?`,`Are the “where taught” claims grounded in the level order I gave?`],
   test:[`Record novice and veteran runs of the same challenge. What differs?`,`Ask veterans what they do differently. Ask novices what they are working on.`,`Do players notice their own improvement? Ask.`],
-  rel:[['mastery-discovery-expression','Mastery is one of the three long-term engines.'],['level-structure','Levels are where skills are taught and combined.'],['challenge-failure-recovery','Failure is the mechanism of learning.'],['game-feel-and-juice','Execution skill lives in game feel.']] });
+  rel:[['mastery-discovery-expression','Mastery is one of the three long-term engines.'],['level-structure','Levels are where skills are taught and combined.'],['challenge-failure-recovery','Failure is the mechanism of learning.'],['game-feel-and-juice','Execution skill lives in game feel.'],['combat-design','Attack timings are where combat skill is built and tested.']] });
 TECH('skill-and-mastery',[
   {n:'Skill-atom decomposition', how:`Break a skill into atoms (perception, decision, execution) that can be taught and practiced separately.`, fit:`Designing learnable, deep skills.`, cost:`Over-fragmentation creates drills that are no fun.`, alt:`Embed practice in play, not in menus.`},
   {n:'Feedback for learning', how:`Give immediate, specific, perceivable feedback so the player can adjust and improve.`, fit:`Skill acquisition. The core of mastery.`, cost:`Vague feedback teaches nothing. Noisy feedback teaches wrongly.`, alt:`Show cause and effect within the same interaction.`},
@@ -896,3 +896,113 @@ INTERVIEW('multiplayer-design',{
       follow:`A top player is reported often. Do you treat them differently?`,
       red:`Leaves it to the community and adds no tools.` }
   ] });
+
+
+T('combat-design',{ d:'core', t:'Combat design: attacks, enemies and bosses', tag:'Every attack is a promise made in three beats: warn, hit, recover. Fair combat keeps all three readable.',
+  what:`Combat design is the craft of making fights that are readable, weighty and fair. Its smallest unit is the attack, and an attack has three parts that fighting-game players count in frames: anticipation (also called startup, the wind-up before anything can hurt), active frames (the short window in which the hit can land) and recovery (the time after, when the attacker is committed and open). Street Fighter publishes its frame data at 60 frames a second, so every move is a known trade between these three numbers. Hit-stop, a brief freeze of both sides on contact, and the hit reaction, such as a stagger, a knockback or a flash, tell the player the hit landed. Enemies ask their question through telegraphs, attack patterns and spacing. A boss is the exam: it asks again, in combination and under pressure, what the earlier fights taught. Dark Souls bosses test the dodge, the stamina budget and the habit of waiting for an opening, all of which the road to them teaches.`,
+  why:[`Combat is where many action games spend most of their play time, and what the player feels in each hit decides whether the whole game feels good.`,`Fair combat is a readability problem before it is a balance problem. A player can only learn from a hit they saw coming.`,`Recovery is what makes an attack a decision: a long recovery makes the player weigh when to commit, and a missing one makes every move free.`],
+  think:{ q:[`For each attack, how long are anticipation, active frames and recovery, and who is vulnerable during each?`,`Can the player tell which enemy is about to attack, with what, and when the hit will land?`,`What does a hit change: the enemy’s state, its position, the next opening?`,`What does this boss ask that the fights before it taught, and is there anything it asks that nothing taught?`,`When the player dies, can they say what killed them and what to do differently?`],
+    trade:[`A long anticipation is easy to read and easy to beat. A short one is dangerous and needs another cue, such as a sound or a tell the player has learned.`,`Heavy commitment (long recovery) makes attacks weighty and fights slower. Light commitment makes fights fast and every attack less of a choice.`,`Hit-stop adds weight, and past a few frames it breaks combo flow and makes the game feel laggy.`],
+    traps:[`Telegraphs shorter than a human can react to, so the only way to win is to memorise the pattern. A simple visual reaction time is around a fifth of a second in reaction-time studies, so anything much shorter is learned, not read.`,`Enemies that attack from off-screen or from behind the camera with no warning.`,`Attacks with no recovery, so the player can never punish them, and hits that change nothing, which is how floaty combat is made.`,`A boss that tests a skill the game never taught, or that adds a new rule in its last phase and calls it difficulty.`],
+    good:[`Players say “I should have rolled earlier” and not “that was cheap”.`,`Hades marks where an enemy attack will land with a danger area on the ground, so the player reads the fight from the floor and dodges on a decision, not a guess.`,`Hollow Knight’s bosses wind up with a visible pose before each strike, so after a few deaths the player is reading the pose and choosing a punish, not guessing.`,`Monster Hunter makes commitment the main decision: a long swing is strong because the hunter cannot cancel it, so each swing is a bet on the monster’s next move.`],
+    bad:[`Players describe hits as “spongy”, “floaty” or “random”.`,`Players fight the camera more than the enemy.`,`One enemy or move is avoided by everyone, or answered by the same single trick every time.`] },
+  how:[`Write each attack as three numbers (anticipation, active, recovery) and who can act during each. Keep them in data and tune them before polishing the animation.`,`Give every attack a telegraph that fits its speed: slower attacks can be warned with a pose, faster ones need a sound or a flash as well. Test it by watching new players, not the team.`,`Add hit feedback in layers: a hit-stop of a few frames, a reaction on the enemy, a sound and a camera nudge. Vlambeer’s talk “The Art of Screenshake” shows how much weight these add without changing the rules. Keep each short and check that none delays the player’s next input.`,`Design patterns as questions: a chain of two or three attacks with a gap that is the opening. Space the enemy so the player chooses between moving in, waiting and backing off.`,`Build a boss as a revision list: list the skills the earlier fights taught, then spend each phase on one of them, adding at most one new idea and teaching it in the phase before it is tested.`,`Playtest deaths, not only wins. Ask each player what killed them and whether they could have seen it coming. If the answer is no, fix the signal before touching damage numbers.`],
+  ai:{ yes:[`Draft a frame-data table for a move set and flag attacks with no recovery or with a telegraph shorter than the reaction window you set.`,`Read playtest death logs and group them by cause: unseen attack, unclear telegraph, bad spacing, execution.`,`Write the tuning scaffolding: a hitbox debug view, a slow-motion toggle and exposed timing values.`],
+       no:[`Decide what feels weighty. Only players with a build or a recording can say that.`,`Tune hit-stop, telegraph length or boss difficulty from a description. These are felt values and have to be played.`] },
+  prompts:[{l:'Attack anatomy audit',p:`Here is our move set as frame data (anticipation, active, recovery, damage, hit reaction) and the telegraph each enemy attack has: [DATA]. For each attack, say who is vulnerable in each phase, whether a new player could read the telegraph, and whether the recovery makes the attack a real decision. List the three attacks most likely to feel floaty or unfair, with the symptom a playtest would show, and propose the smallest change to each. Do not change damage numbers first.`},
+    {l:'Boss as exam',p:`The player has learned these skills before this boss: [SKILLS, WITH WHERE EACH WAS TAUGHT]. Design a three-phase boss. For each phase, name the one skill it tests, the attack pattern that tests it, the telegraph, the opening it gives, and where a failing player learns the lesson. Flag any phase that tests something not taught earlier.`}],
+  verify:[`Does each attack have a real recovery and a stated telegraph, or did it only list damage?`,`Does the boss test only skills the earlier fights taught?`,`Were the timings reasoned from reaction time and the game’s speed, or copied from another game?`],
+  test:[`Show a new player the telegraph with sound off and then on. Do they dodge on the cue, and which cue did they use?`,`After every death, ask “what killed you?”. Count the times the answer is wrong or “I don’t know”.`,`Record a hit and play it back muted. Does it still read as a hit? Then play the sound alone.`,`Watch whether players find more than one answer to each pattern: dodge, block, trade, avoid.`],
+  rel:[['game-feel-and-juice','Hit-stop, shake and sound are the feedback that makes a hit land.'],['animation-and-vfx','Anticipation and recovery are animation timings with rules attached.'],['encounters-and-enemies','Each enemy is a question, and its attacks are how it asks.'],['encounter-design','Space and enemy mix turn single attacks into a fight.'],['readable-and-fair-ai','A telegraph is the enemy showing the player its intent.'],['challenge-failure-recovery','A boss death should teach, and the way back should be short.'],['difficulty','Fair difficulty in combat is readable, learnable and tuned by data.']] });
+TECH('combat-design',[
+  {n:'Frame data table', how:`Write each attack as anticipation, active and recovery in frames or milliseconds, with who can act in each phase. Tune the numbers in data.`, fit:`Any melee or close-range combat, and any fighting game.`, cost:`Needs a debug view to check what the numbers do on screen. Easy to over-tune on paper.`, alt:`For a small game, tune three numbers per attack by hand and playtest.`},
+  {n:'Telegraph ladder', how:`Match the warning to the speed: a pose for slow attacks, a ground marker for area attacks, a sound or colour flash for fast ones.`, fit:`Enemies the player must read at a glance.`, cost:`Costs art and audio per enemy. Too many cues become noise.`, alt:`Keep one signal per danger type and use it for every enemy.`},
+  {n:'Layered hit feedback', how:`Combine a few frames of hit-stop, an enemy reaction, a sound and a small camera push. Scale each with the strength of the hit.`, fit:`Making attacks feel weighty without changing damage.`, cost:`Too long and it hurts flow and reads as lag. Needs per-weapon tuning.`, alt:`Start with hit-stop and a reaction, add the rest only if a recording still reads as floaty.`},
+  {n:'Boss as exam', how:`List what the earlier fights taught, then give each boss phase one of those skills, with at most one new idea taught just before it is tested.`, fit:`Bosses and set-piece fights that close a section.`, cost:`Needs the earlier fights to be designed first. A boss cannot teach everything on its own.`, alt:`For a game with no teaching section, make the first phase a plain version and add the twist later.`}
+]);
+ENGINE('combat-design',{
+  godot:{ term:`An attack is a small state machine with three timed phases. The hitbox is an Area2D that only monitors during the active phase, and the phase is exposed so animation, AI and feedback can read it.`,
+    api:['Area2D.monitoring','SceneTree.create_timer()','await / Signal','enum','@export','@onready'],
+    snippet:`extends Node2D
+enum Phase { IDLE, STARTUP, ACTIVE, RECOVERY }
+@export var startup := 0.18
+@export var active := 0.08
+@export var recovery := 0.30
+@onready var hitbox: Area2D = $Hitbox
+var phase := Phase.IDLE
+
+func attack() -> void:
+\tif phase != Phase.IDLE: return
+\tphase = Phase.STARTUP;  await get_tree().create_timer(startup).timeout
+\tphase = Phase.ACTIVE;   hitbox.monitoring = true
+\tawait get_tree().create_timer(active).timeout
+\thitbox.monitoring = false
+\tphase = Phase.RECOVERY; await get_tree().create_timer(recovery).timeout
+\tphase = Phase.IDLE`,
+    pitfall:`Timing the active window with a timer that runs in idle frames while the hitbox is checked on physics steps. A window shorter than one physics step, about 17 ms at the default 60 ticks a second, can open and close between two steps, so a clean hit reports no overlap. Keep the active window several physics steps long, or pass true for process_in_physics so the timer is aligned with them.`,
+    map:`Godot Area2D.monitoring on a hitbox is Unity Collider.enabled on a trigger, and an await on a timer is a coroutine yield.` },
+  unity:{ term:`An attack is a coroutine with three timed phases. The hitbox is a trigger collider enabled only during the active phase, and Busy is public so input, animation and AI can read the commitment.`,
+    api:['MonoBehaviour.StartCoroutine()','WaitForSeconds','Collider.enabled','OnTriggerEnter(Collider)','IEnumerator','OnDisable()'],
+    snippet:`public class Attack : MonoBehaviour {
+    [SerializeField] float startup = 0.18f, active = 0.08f, recovery = 0.30f;
+    [SerializeField] Collider hitbox;            // trigger, disabled in the prefab
+    public bool Busy { get; private set; }
+
+    public void Begin() { if (!Busy) StartCoroutine(Run()); }
+
+    IEnumerator Run() {
+        Busy = true;
+        yield return new WaitForSeconds(startup);
+        hitbox.enabled = true;
+        yield return new WaitForSeconds(active);
+        hitbox.enabled = false;
+        yield return new WaitForSeconds(recovery);
+        Busy = false;
+    }
+}`,
+    pitfall:`Disabling the object mid-attack, for example on a stagger or a death. Unity stops its coroutines when the object is deactivated, but Busy stays true and the hitbox can stay enabled, so after it is switched back on the character cannot attack, or deals damage while idle. Reset both in OnDisable, or run the phases from one state machine that owns the reset.`,
+    map:`Unity Collider.enabled on a trigger plus a coroutine is Godot Area2D.monitoring plus an await on a timer.` },
+  note:`The timings are data and the phases are readable state. The design point is the same in both engines: when anticipation, active and recovery are three named values, the telegraph can be tied to the first, the hit-stop to the second and the punish window to the third, and a playtester can tell you which one is wrong.` });
+INTERVIEW('combat-design',{
+  junior:[
+    { q:`What are the three parts of an attack, and why does each matter to the player?`,
+      a:`Anticipation is the wind-up, which gives the defender a chance to read and react. Active frames are the window in which the hit can land. Recovery is the time after, when the attacker is committed and open to a punish. Recovery is what turns an attack into a decision, because the attacker pays for committing. Use a real move, such as a Street Fighter special or a Dark Souls heavy swing, and say who is vulnerable in each part.`,
+      follow:`What happens to the game if you remove recovery from every attack?`,
+      red:`Describes an attack only by its animation and its damage number.` },
+    { q:`What is hit-stop, and what does it do for a hit?`,
+      a:`A brief freeze or slowdown of both characters on contact, usually a few frames. It gives the hit a moment of weight, so the player registers contact. It is one layer alongside the enemy reaction, the sound and a small camera push. Too much of it breaks combo flow and reads as lag.`,
+      follow:`How would you check it has not crossed from weight into lag?`,
+      red:`Says to add as much as possible, or cannot name a cost.` },
+    { q:`What makes an enemy attack readable?`,
+      a:`A telegraph that matches its speed, a distinct silhouette or pose, a consistent signal for the same danger, and enough time to react. Slow attacks can use a pose. Fast ones need a sound or a flash too. Hades marks the area an attack will hit on the ground, which lets the player read the fight from the floor.`,
+      follow:`A fast attack cannot have a long telegraph. What do you do?`,
+      red:`Says players should learn by dying, with no thought about whether the signal exists.` }
+  ],
+  mid:[
+    { q:`Playtesters say your combat feels floaty. How do you find the cause?`,
+      a:`Treat it as a symptom with several causes. Check the input latency first, then whether the hit has feedback in each of sound, hit-stop and reaction. Then check whether the attack has anticipation and a commitment window, and whether a hit changes the enemy’s state. Fix the cheapest cause first and re-test with a recording. Do not raise damage numbers.`,
+      follow:`Latency is fine and the feedback is present. What is left?`,
+      red:`Reaches for screenshake and particles without checking anything else.` },
+    { q:`How do you design an enemy attack pattern and the spacing around it?`,
+      a:`Pick the question the enemy asks: dodge, block, close in, wait. Chain two or three attacks with a gap, and make the gap the opening. Space decides which answer works, so a lunge asks a different question in a corridor than in an arena. Check that there is more than one valid answer and that the player can tell the gap from a pause.`,
+      follow:`Players always use the same single answer. Do you change the pattern or the space?`,
+      red:`Chooses patterns by listing damage values and speeds only.` },
+    { q:`How do you keep a hard fight fair and not just hard?`,
+      a:`Every hit is seen, every cause is clear, the retry is short and the lesson is usable. Check deaths by asking what killed the player. If the answer is “I don’t know”, the signal failed. Then check that the skill needed was taught earlier. Hard and fair can sit together, as in Dark Souls, but only when the player can read why they lost.`,
+      follow:`What do you measure to know a fight is unfair and not just difficult?`,
+      red:`Says hard games are not for everyone and stops there.` }
+  ],
+  senior:[
+    { q:`How do you design a boss so it tests what the game has taught?`,
+      a:`List the skills the earlier fights taught and where each was taught. Give each phase one of them, add at most one new idea and teach it in the phase before it is tested. Make the first attempt readable and the third attempt better, so the player feels the learning. A boss that tests an untaught skill is a wall. Name a boss that does it well and the skill each phase tested.`,
+      follow:`The game has no teaching section before the boss. What is your fallback?`,
+      red:`Describes a boss as a large health bar with more attacks.` },
+    { q:`Two designers disagree: one wants shorter telegraphs for a faster game, one wants longer ones for fairness. How do you settle it?`,
+      a:`Treat it as a measurement. Set a reaction target from reaction-time evidence and the game’s speed, then test with new players. Count the deaths where the player says they saw it and could not react, against the deaths where they did not see it. Add a second cue, such as sound, before shortening the first. Record the decision with its evidence so it is not reopened by taste.`,
+      follow:`The testers are all experienced action players. What does that change?`,
+      red:`Settles it by seniority, or by copying another game’s numbers.` }
+  ] });
+DIAGRAM('combat-design', { kind:'state', title:'One attack: warn, hit, recover', start:'idle',
+  states:[{id:'idle', t:'Ready', d:'free to act'},{id:'warn', t:'Anticipation', d:'wind-up, the telegraph'},{id:'hit', t:'Active', d:'the hit can land'},{id:'recover', t:'Recovery', d:'committed and open'}],
+  edges:[['idle','warn','attack'],['warn','hit'],['hit','recover'],['recover','idle','free']],
+  note:'Fighting-game players count these three phases in frames. Street Fighter publishes its frame data at 60 frames a second.' });

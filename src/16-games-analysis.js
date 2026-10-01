@@ -44,7 +44,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Dark Souls heals with Estus Flasks, a fixed number of charges refilled at bonfires, so healing is rationed across a whole run between rests. Hollow Knight refills healing inside the fight, which keeps it aggressive and makes a long boss fight winnable by a player who keeps landing hits.',
       cost: 'A player who is struggling earns less soul and so heals less, which widens the gap between confident and nervous players. The walk back from a bench to a hard boss after each death adds time without teaching anything new.',
       principle: 'Tie recovery to the skill the game wants to see, and struggling players get fewer chances; give them another way back, or accept that the difficulty will climb for them.',
-      topics: ['risk-reward', 'challenge-failure-recovery'],
+      topics: ['risk-reward', 'challenge-failure-recovery', 'combat-design'],
       sources: ['https://hollowknight.wiki/w/Focus', 'https://hollowknight.wiki/w/Shade', 'https://hollowknight.wiki/w/Charms'] },
     ui: {
       claim: 'Hollow Knight treats navigation help as a reward, not a given: the map, the quill that updates it and even your own position marker are items, so knowing where you are becomes progress.',
@@ -867,7 +867,7 @@ ANALYSIS('hades', {
       compare: 'Diablo builds a character from randomised gear dropped mid-fight; Hades keeps the randomness, which god appears and which three boons they offer, but moves it to a pause between rooms and shows the reward on the door first, so a player can still explain why the build looks the way it does.',
       cost: 'Learning the full Olympian roster and which pairings combine well is a real memorisation cost for new players, and once a handful of combined effects are known to be strong, experienced players can end up steering every run towards the same few doors rather than adapting to whatever the game offers that time.',
       principle: 'When you want players to own their build, offer it as a small, legible choice at a fixed point, not a random reward mid-action; legibility lets a player defend a build as a decision rather than shrug at it as luck.',
-      topics: ['builds-and-loadouts', 'depth-vs-complexity'],
+      topics: ['builds-and-loadouts', 'depth-vs-complexity', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Hades_(video_game)', 'https://store.steampowered.com/app/1145360/Hades/'] },
     ui: {
       claim: 'Hades keeps a run’s five slotted boons, Attack, Special, Cast, Dash and Call, fixed at the edge of the screen through combat, while every conversation in the House plays out inline, so a player can read the core of a build mid-fight and hear from a character without a separate cutscene.',

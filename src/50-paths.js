@@ -266,7 +266,7 @@ PATH('game-designer-foundations', {
     { id:'s2', t:'The loop and its variables', level:'beginner',
       goal:'Turn the fantasy into a loop the player repeats, and find its weakest link before you add anything else.', hours:2.5,
       steps:[
-        { kind:'topic', ref:'core-loop', why:'The loop is the machine the player repeats. If it is not compelling alone, nothing later rescues it.', do:'Describe your core loop in five sentences: action, feedback, decision, consequence, new situation. Mark the weakest link.', min:25 },
+        { kind:'topic', ref:'core-loop', why:'The loop is the machine the player repeats. If it is not compelling alone, nothing later rescues it.', do:'Describe your core loop in five sentences: decision, action, consequence, feedback, new situation. Mark the weakest link.', min:25 },
         { kind:'game', ref:'angry-birds', lens:'gameplay', why:'Angry Birds shows the loop’s feedback-to-decision link at its barest: the dotted trail left by the last bird is the feedback, and the next pull is the decision it informs.', do:'Read its gameplay lens and loop diagram, then name the one piece of feedback your own loop leaves on screen for the next decision, and what the player would do without it.', min:15 },
         { kind:'topic', ref:'decisions', why:'Depth lives in the decisions the loop creates, not in the actions themselves.', do:'List the three most common decisions your loop asks the player to make, and write the trade-off sentence for each.', min:20 },
         { kind:'game', ref:'slay-the-spire', lens:'gameplay', why:'Slay the Spire’s card reward, one card from three or none, is a loop where every reward is a decision: the last two topics working together in one screen.', do:'Read its gameplay lens and write the decision its card reward asks for, and what would turn that reward into a formality.', min:15 },
@@ -279,7 +279,7 @@ PATH('game-designer-foundations', {
       check:{
         recall:[
           { q:'How can a game keep decisions alive for a player who is losing, and what does Mario Kart 8’s item table show about it?', a:'Its item table is weighted towards whoever is behind, so a trailing player still gets strong items and a real choice about when to use them, and the leader still has a position to defend.' },
-          { q:'What are the five links in the core loop?', a:'Action, feedback, decision, consequence, and new situation: the player acts, the game responds legibly, they decide based on that response, the decision has consequences, and those consequences create a fresh situation demanding another action.' },
+          { q:'What are the five links in the core loop?', a:'Decision, action, consequence, feedback, and new situation: the player decides, acts, the game state changes, the game shows what changed, and the changed state is a fresh situation that asks for another decision.' },
           { q:'What makes a decision meaningful rather than merely present?', a:'The options must be different with no dominant choice, the right answer must change with the situation, and different players must choose differently. The player needs enough information to reason but not enough to be certain.' },
           { q:'How do you tell a load-only mechanic from one that creates a decision?', a:'Ask what decision would disappear if you removed it. If none, it only adds a rule to track without changing any trade-off, so it is load-only rather than decision- or interaction-creating.' }
         ],
@@ -336,7 +336,7 @@ PATH('game-designer-foundations', {
 PATH('systems-designer', {
   t:'Systems designer', tag:'Economy, progression, and the discipline to prove a system by breaking it.',
   pick:'Own an economy, a progression curve or any system',
-  track:'design', level:'intermediate', hours:12.5,
+  track:'design', level:'intermediate', hours:12.75,
   audience:'Designers past the basics who want to own an economy, a progression curve, or any system with more than three moving parts.',
   outcome:'You can map a system’s parts and feedback loops, run a rule audit that separates decisions from load, and turn a design smell into a testable experiment instead of a guess.',
   prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-play'],
@@ -409,9 +409,10 @@ PATH('systems-designer', {
         skip:['Can you classify a rule as decision, interaction, or load in under ten seconds?','Can you name the point where adding content to your system stopped paying off?','Have you already found a one-build problem in your own system and named its cause?','Do you know which item in your backlog a scope check would cut first?']
       } },
     { id:'s4', t:'Experiments, not opinions', level:'advanced',
-      goal:'Turn a smell you found into an experiment with a real signal, not just a fix you feel confident about.', hours:2.5,
+      goal:'Turn a smell you found into an experiment with a real signal, not just a fix you feel confident about.', hours:2.75,
       steps:[
         { kind:'topic', ref:'builds-and-loadouts', why:'Builds and loadouts are where depth becomes visible to the player. A healthy build space is the clearest proof a system is working.', do:'List every viable build in your system today, and rank them by how often you would guess players pick each one.', min:25 },
+        { kind:'topic', ref:'combat-design', why:'Combat is a system with a build space of its own: attack timings, commitment and enemy patterns are the numbers that decide whether a fight has one answer or several.', do:'Write three of your attacks as anticipation, active and recovery, then name the answer each one asks of the player and whether a second answer exists.', min:20 },
         { kind:'game', ref:'monster-hunter', lens:'replay', why:'Monster Hunter’s replay loop is repeating hunts for better gear against harder versions of monsters already beaten, and Monster Hunter Wilds launching with too little endgame shows what happens when that gear has nothing left to be tested against.', do:'Read its replay lens, then for each build on your list name the content it is tested against, and mark any build that has no reason to exist once that content runs out.', min:15 },
         { kind:'smell', ref:'ignore-mechanics', why:'A mechanic nobody uses is not neutral. It is a cost the system pays for a decision players never make.', do:'Mark which of your mechanics you would bet is currently ignored, based on the “Players ignore half the mechanics” smell.', min:20 },
         { kind:'smell', ref:'features-not-better', why:'Adding a fix on top of a smell without testing it is how a system accumulates features that do not solve the actual problem.', do:'Check whether your last three system changes were tested or just shipped, based on the “We keep adding features but the game is not better” smell.', min:20 },
@@ -457,17 +458,18 @@ PATH('systems-designer', {
 PATH('level-and-ux-designer', {
   t:'Level and UX designer', tag:'Pacing, readability, and the first five minutes nobody skips.',
   pick:'Pace levels and teach players without a wall of text',
-  track:'design', level:'intermediate', hours:12,
+  track:'design', level:'intermediate', hours:12.25,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
   prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-worlds'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
-      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.5,
+      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.75,
       steps:[
         { kind:'topic', ref:'level-structure', why:'Teach, test, twist, combine, master, rest is a sequence for a reason. Skip a step and the player either stalls or gets bored.', do:'Take a level you are building or know well, and label each section with one of the six beats. Mark any beat that is missing entirely.', min:25 },
         { kind:'topic', ref:'pacing', why:'Pacing is not just difficulty. It is the rhythm of intensity and rest, and a level with no rest beat exhausts players before it challenges them.', do:'Graph the intensity of your level over its length by hand, on paper, and mark the flattest and steepest sections.', min:25 },
         { kind:'topic', ref:'spatial-composition', why:'Where the player can see, and where they cannot, shapes the pacing graph you just drew as much as any encounter does.', do:'Mark on your level layout the three sightlines that most control what the player expects to happen next.', min:25 },
+        { kind:'topic', ref:'level-blockout-and-metrics', why:'Pacing and sightlines are opinions until they are built to the character’s real metrics in plain boxes and walked by someone else.', do:'Measure your character’s jump height, jump distance and cover height, then block out your level’s critical path and one optional room to those numbers.', min:20 },
         { kind:'game', ref:'hollow-knight', lens:'world', why:'Hollow Knight makes being lost part of the design: regions with their own look and sound, few markers, and a map the player has to buy.', do:'Read its world lens and list the cues it gives a lost player instead of a marker.', min:15 },
         { kind:'game', ref:'half-life-2', lens:'gameplay', why:'Half-Life 2 dresses each room with the props its fights need, sawblades and barrels placed as ammunition, so what is left lying in a room sets how hard its fight is as much as the enemies do.', do:'Read its gameplay lens, then mark on your own layout the three objects a player sees on entering one combat space, and what each one tells them to do next.', min:15 },
         { kind:'checklist', ref:'design-review', why:'A pacing graph and a beat map are opinions until someone else is forced to check them against a real question.', do:'Run the design review checklist against your level’s pacing plan before you block anything out.', min:20 },
@@ -1299,7 +1301,7 @@ PATH('interview-prep-designer', {
       check:{
         recall:[
           { q:'How can unlike factions stay fair, as StarCraft’s races do?', a:'Through the shared economy rather than matched units: every race gathers minerals and gas under a strict supply cap, so macro discipline is the same test for everyone however different the armies look.' },
-          { q:'What makes a core loop answer precise instead of just enthusiastic?', a:'Walking one concrete iteration of a real loop through its five beats, action, feedback, decision, consequence, new situation, and naming how long an iteration takes and what changes between iterations. Precision comes from specifics, not from calling the loop fun.' },
+          { q:'What makes a core loop answer precise instead of just enthusiastic?', a:'Walking one concrete iteration of a real loop through its five beats, decision, action, consequence, feedback, new situation, and naming how long an iteration takes and what changes between iterations. Precision comes from specifics, not from calling the loop fun.' },
           { q:'How would you explain your economy’s central trade-off to someone non-technical?', a:'Name the one decision a currency forces, what a player gives up now to get something later, in plain terms, without spreadsheet vocabulary, and say why that tension is the actual point of the currency existing.' },
           { q:'What did the matchmaking part give you that pure design theory would not?', a:'A concrete design and engineering tradeoff: tickets carry capacity plus rule predicates and are scanned under one mutex, which keeps matching rules easy to evolve and correctness easy to reason about, at the cost of throughput that a later scaling pass must replace. It shows you have met the constraint, not just theorised about match quality.' }
         ],
@@ -1384,7 +1386,7 @@ PATH('casual-game-people-keep', {
     { id:'s1', t:'A loop that works in seconds', level:'intermediate',
       goal:'Build a core loop a player grasps without text and wants to repeat at a bus stop.', hours:2.75,
       steps:[
-        { kind:'topic', ref:'core-loop', why:'Players spend most of their time in the core loop, and in a casual game there is little else to carry the session.', do:'Write your loop in five sentences from the player’s point of view, one per link: action, feedback, decision, consequence, new situation. Then time how long one cycle takes.', min:20 },
+        { kind:'topic', ref:'core-loop', why:'Players spend most of their time in the core loop, and in a casual game there is little else to carry the session.', do:'Write your loop in five sentences from the player’s point of view, one per link: decision, action, consequence, feedback, new situation. Then time how long one cycle takes.', min:20 },
         { kind:'game', ref:'flappy-bird', lens:'ui', why:'Flappy Bird topped the free charts with exactly one input: a tap, a pipe gap, and a game-over panel one button press from the next try.', do:'Read its UI lens, then list every element on its play screen and mark which elements on your own play screen could move to the menus before and after a run.', min:15 },
         { kind:'game', ref:'fruit-ninja', lens:'sound', why:'Fruit Ninja’s swipe worked within days, and Halfbrick then spent two months on the slice sound and spraying juice that make a cut on flat glass feel like it connected.', do:'Read its sound lens and write the feedback that fires the moment a swipe lands, then note what that feedback cannot tell the player.', min:15 },
         { kind:'topic', ref:'game-feel-and-juice', why:'Feel is the first thing players judge, but juice only amplifies feedback that already exists, so it goes on after the bare loop is replayed.', do:'Rank the outcomes of your main verb by importance, then plan emphasis for the top one in order (anticipation, impact, result), one channel at a time, and write how you will check it reads clearer rather than louder.', min:20 },

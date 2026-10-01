@@ -1637,7 +1637,7 @@ GAME({ id:'doom', series:{ id:'doom', t:'Doom', n:'the first game' }, img:'asset
       compare: 'Modern military shooters such as Call of Duty slow the player to reward a well-timed peek from behind cover and a steadied scope; Doom removes both options and asks for constant repositioning instead, closer to a boxer circling an opponent than a soldier holding a line.',
       cost: 'Without cover, a player who stops moving to aim precisely is punished rather than rewarded, so players who prefer careful marksmanship over movement have less to do, and the same openness that rewards good positioning also punishes any momentary lapse harshly, since nothing blocks a shot already in the air.',
       principle: 'When a game removes an entire category of player defence, such as cover or reload, give the player a different one to manage in its place, movement, or the fight stops being a fight at all.',
-      topics: ['mechanics-and-rules', 'agency-and-emergence', 'encounters-and-enemies'],
+      topics: ['mechanics-and-rules', 'agency-and-emergence', 'encounters-and-enemies', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Doom_(1993_video_game)', 'https://github.com/id-Software/DOOM/blob/master/linuxdoom-1.10/p_map.c', 'https://github.com/id-Software/DOOM/blob/master/linuxdoom-1.10/p_inter.c'] },
     ui: {
       claim: 'Doom’s status bar keeps ammunition, health, armour and keys visible at all times in one fixed strip, and lets a single portrait carry state that would otherwise need several separate readouts.',
@@ -3757,7 +3757,7 @@ GAME({ id:'god-of-war', series:{ id:'god-of-war-series', t:'God of War', n:'the 
       compare: 'The Greek God of War games used the Blades of Chaos, chained weapons that never left Kratos’s hands, so range and melee were one constant state rather than a choice the player makes many times a fight.',
       cost: 'The design asks for fights built around throw timing, and Gamecritics argued that the game outlives its enemy variety, so the same decision can feel worn by the later hours.',
       principle: 'A weapon becomes a decision when losing it is real but survivable: give the fallback enough power that throwing is tempting, and little enough that it hurts.',
-      topics: ['items-weapons-abilities','risk-reward','mechanics-and-rules'],
+      topics: ['items-weapons-abilities','risk-reward','mechanics-and-rules', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)', 'https://en.wikipedia.org/wiki/God_of_War_(franchise)', 'https://gamecritics.com/mike-suskie/god-of-war-2018-review/', 'https://psxextreme.com/news/ps4-news/god-of-war-review/'] },
     ui: {
       claim: 'God of War’s close, unbroken camera is an interface decision as much as a story one: it hides the space behind Kratos, and the game must then answer that blind spot for the player.',

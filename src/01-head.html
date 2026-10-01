@@ -1291,9 +1291,9 @@ details.comp .body{padding-top:6px}
 <footer>Playable · A practical operating system for designing games people want to play, with AI as a tireless collaborator and humans as the judge. Everything here is a heuristic, not a law: test it against your players. · <a href="#/index">All pages</a> · <a href="#/sources">Sources and lineage</a> · <a href="#/map">Map</a></footer>
 <div class="modal-bg" id="searchModal" role="dialog" aria-modal="true" aria-label="Search">
   <div class="modal">
-    <div class="sinput">🔍<input id="searchInput" placeholder="Search pages, topics, games, platforms, tools…" autocomplete="off"></div>
-    <div class="results" id="searchResults"></div>
-    <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span><span id="searchCount"></span></div>
+    <div class="sinput">🔍<input id="searchInput" placeholder="Search pages, topics, games, platforms, tools…" autocomplete="off" aria-label="Search the guide" role="combobox" aria-expanded="false" aria-controls="searchResults" aria-autocomplete="list"></div>
+    <div class="results" id="searchResults" role="listbox" aria-label="Search results"></div>
+    <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span><span id="searchCount" aria-live="polite"></span></div>
   </div>
 </div>
 <div class="modal-bg lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">

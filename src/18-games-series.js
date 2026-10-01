@@ -2166,7 +2166,7 @@ SERIES({
       compare: 'Tekken’s parallel rock-paper-scissors runs on high, mid and low attacks read by a standing, crouching or sidestepping guard; Street Fighter keeps its triangle almost entirely spatial, so two fighters with identical buttons can still lose to each other purely on footwork.',
       cost: 'Because the triangle must stay balanced for every matchup, no single tool can answer both of the others at once, which caps how flashy any move can be and forces new mechanics, Focus Attacks, Drive Impacts, to modify the triangle’s timing rather than replace it.',
       principle: 'When testing turns up an unintended technique that multiplies the reward for a correct read without changing what is being read, consider keeping it as hidden depth rather than patching it out, since it deepens the decision players already make instead of adding a new one to learn.',
-      topics: ['core-loop', 'decisions'],
+      topics: ['core-loop', 'decisions', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Street_Fighter_II', 'https://en.wikipedia.org/wiki/Super_Street_Fighter_II_Turbo', 'https://users.cs.northwestern.edu/~hunicke/MDA.pdf', 'https://wiki.supercombo.gg/w/Street_Fighter_2:_Champion_Edition/System', 'https://wiki.supercombo.gg/w/Street_Fighter_2:_Champion_Edition/Chun-li'] },
     ui: {
       claim: 'Street Fighter’s HUD grew a second, more urgent language, a resource meter under the life bar, precisely because the series kept adding tools, a Super Combo, a V-Trigger, a Drive Gauge, that ask a player to plan several seconds ahead rather than react to the next hit alone.',
@@ -2559,7 +2559,7 @@ SERIES({
       compare: 'Shadow of the Colossus (2005) also has the player climb a giant, but there climbing to a weak point is the whole fight; in Monster Hunter a mount is one opening inside a longer fight, earned by where the hunter stands and cashed in as a topple before the ordinary fight resumes.',
       cost: 'Every scripted opening is time a monster spends on the ground rather than attacking, so each entry that adds another, mounts, Wyvern Riding, wounds, arguably makes monsters easier to exploit and pushes their health and aggression up to compensate, a rhythm veterans relearn in every new game.',
       principle: 'Pay out an opening for where the player stands, not for a filled meter, and a long fight stays about reading space: the player earns the window by positioning, then spends it.',
-      topics: ['mechanics-and-rules', 'skill-and-mastery'],
+      topics: ['mechanics-and-rules', 'skill-and-mastery', 'combat-design'],
       sources: ['https://en.wikipedia.org/wiki/Monster_Hunter_(video_game)', 'https://en.wikipedia.org/wiki/Monster_Hunter_4', 'https://en.wikipedia.org/wiki/Monster_Hunter_Wilds'] },
     ui: {
       claim: 'Monster Hunter refuses to show a monster’s health as a number: a player has to read a monster’s limp, its scarring and its roars instead of watching a bar count down.',
