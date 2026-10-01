@@ -243,3 +243,17 @@ function ANALYSIS(id, a){ const g = REFERENCE_GAMES.find(x => x.id === id); if (
 // The lens's own topics, or the lens's defaults.
 /** @param {any} l @param {string} key */
 const lensTopics = (l, key) => (l && l.topics && l.topics.length) ? l.topics : (GAME_LENSES.find(x => x[0] === key) || [])[2] || [];
+
+/* Two games, one problem: a comparison of how two reference games solved the
+   same design problem. `problem` is the shared problem in one sentence;
+   `sections` compare one aspect each (a for games[0], b for games[1]);
+   `verdict` says what each choice costs and gains; `principle` is the lesson
+   that transfers. Listed at #/games/compare, shown on both game pages. */
+/**
+ * @typedef {{id: string, t: string, problem: string, games: [string, string], verdict: string,
+ *   sections: Array<{h: string, a: string, b: string}>, principle: string, topics: string[], sources: string[]}} Comparison
+ */
+/** @type {Comparison[]} */
+const COMPARISONS = [];
+/** @param {Comparison} c */
+function COMPARE(c){ COMPARISONS.push(c); }

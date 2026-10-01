@@ -45,6 +45,7 @@
  * @property {Engine} [eng]         attached by ENGINE()
  * @property {Interview} [iv]       attached by INTERVIEW()
  * @property {Fact[]} [facts]       attached by FACTS()
+ * @property {Worked[]} [worked]    attached by WORKED()
  * @property {Diagram} [diagram]    attached by DIAGRAM()
  */
 /**
@@ -119,4 +120,23 @@ function DIAGRAM(id, spec){
   const t = TOPICS[id];
   if(!t) throw new Error('DIAGRAM: unknown topic ' + id);
   t.diagram = spec;
+}
+
+/* Worked examples: a table or a filled document a topic shows under "Worked
+   examples" on its Overview, each with a download. `kind:'table'` carries
+   columns [{h, unit?}], rows (arrays of strings or numbers, one per column),
+   optional formulas [{col, f}] and a CSV file name; `kind:'doc'` carries
+   sections [{h, body}] and a Markdown file name. Both carry id (unique across
+   the site), t, intro, note (where the numbers or text come from), try (2 or
+   more questions) and file. Shape rules are in validate.js. */
+/**
+ * @typedef {{id: string, t: string, intro: string, note: string, try: string[], file: string,
+ *   kind: 'table'|'doc', columns?: Array<{h: string, unit?: string}>, rows?: Array<Array<string|number>>,
+ *   formulas?: Array<{col: string, f: string}>, sections?: Array<{h: string, body: string}>}} Worked
+ */
+/** @param {string} id @param {Worked} w */
+function WORKED(id, w){
+  const t = TOPICS[id];
+  if(!t) throw new Error('WORKED: unknown topic ' + id);
+  (t.worked = t.worked || []).push(w);
 }

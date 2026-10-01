@@ -31,6 +31,9 @@ const ROUTES_IN_PAGE = () => {
     '#/experience', '#/experience/' + cs.id, '#/experience/' + cs.id + '/workflows', '#/experience/' + cs.id + '/interview',
     '#/experience/' + cs.id + '/flow/' + flow.id, '#/experience/' + cs.id + '/' + sys.id, '#/experience/' + cs.id + '/' + sys.id + '/' + part.id,
     '#/paths/' + p.id, '#/paths/' + p.id + '/' + st.id, '#/review', '#/sources', '#/games', '#/games/' + REFERENCE_GAMES[0].id, '#/games/pac-man/gameplay', '#/platforms', '#/platforms/' + PLATFORMS[0].id, '#/platforms/' + PLATFORMS.find(x => x.kind === 'ugc').id, '#/engines', ...ENGINES.map(e => '#/engines/' + e.id), '#/guide',
+    // worked examples and comparisons (each only when the data has one)
+    ...Object.values(TOPICS).filter(t => t.worked && t.worked.length).slice(0, 1).map(t => '#/map/t/' + t.id + '/overview'),
+    ...(COMPARISONS.length ? ['#/games/compare', '#/games/compare/' + COMPARISONS[0].id] : []),
     // one topic per diagram kind
     ...['core-loop', 'feature-vs-experience', 'choosing-ai-technique', 'depth-vs-complexity', 'pacing', 'economy-and-resources', 'perception-and-awareness', 'infra-ci-pipelines'].map(id => '#/map/t/' + id + '/overview')
   ];
@@ -100,6 +103,45 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       if (r.startsWith('#/map/t/') && r.endsWith('/overview') && await page.evaluate(id => !!(TOPICS[id] && TOPICS[id].diagram) && !document.querySelector('#pane .dgm-card svg'), r.split('/')[3])) failures.push(`${w}px ${r}: topic has a diagram but none is drawn`);
       if (w <= 1100 && !mapOnly(r) && !s.onScreen) failures.push(`${w}px ${r}: content pane off screen`);
       if (w <= 1100 && mapOnly(r) && s.onScreen) failures.push(`${w}px ${r}: map-only route covered the map`);
+    }
+    // A worked example renders as a card with a table that scrolls inside itself, the page does not widen, and the download holds the table.
+    {
+      const wid = await page.evaluate(() => { const t = Object.values(TOPICS).find(x => x.worked && x.worked.length); return t && { topic: t.id, w: t.worked[0] }; });
+      if (wid) {
+        await page.evaluate(route => { location.hash = route; }, '#/map/t/' + wid.topic + '/overview'); await page.waitForTimeout(250);
+        const card = await page.evaluate(id => { const c = document.getElementById('worked-' + id); return c && { caption: !!c.querySelector('caption'), ths: [...c.querySelectorAll('th')].every(h => h.getAttribute('scope') === 'col'), rows: c.querySelectorAll('tbody tr').length, btn: (c.querySelector('[data-action="worked-download"]') || {}).textContent, wide: document.documentElement.scrollWidth }; }, wid.w.id);
+        if (!card) failures.push(w + 'px worked example card is missing on ' + wid.topic);
+        else {
+          if (!card.caption || !card.ths || card.rows !== wid.w.rows.length) failures.push(w + 'px worked table: ' + JSON.stringify(card));
+          if (w === 375 && card.wide > 375) failures.push('375px worked example widens the page to ' + card.wide);
+          const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 4000 }), page.click('#worked-' + wid.w.id + ' [data-action="worked-download"]')]).catch(() => []);
+          if (!dl) failures.push(w + 'px worked example download did not start');
+          else {
+            const body = fs.readFileSync(await dl.path(), 'utf8');
+            const want = wid.w.rows.map(r => r.join(',')).join('\n');
+            if (dl.suggestedFilename() !== wid.w.file || !body.includes(want) || !body.startsWith(wid.w.columns[0].h)) failures.push(w + 'px worked example download wrong: ' + dl.suggestedFilename() + ' ' + JSON.stringify(body.slice(0, 80)));
+          }
+        }
+        const found = await page.evaluate(async q => { document.getElementById('searchBtn').click(); const inp = document.getElementById('searchInput'); inp.value = q; inp.dispatchEvent(new Event('input')); await new Promise(r => setTimeout(r, 250)); return [...document.querySelectorAll('#searchResults .res')].some(r => r.textContent.includes('Worked examples') || r.querySelector('.type').textContent === 'worked example'); }, wid.w.t);
+        if (!found) failures.push(w + 'px search does not find the worked example "' + wid.w.t + '"');
+        await page.keyboard.press('Escape');
+      }
+    }
+    // A comparison page shows both games with a link to each page, the shelf is on the library, and each game lists it.
+    {
+      const cmp = await page.evaluate(() => COMPARISONS[0] && { id: COMPARISONS[0].id, games: COMPARISONS[0].games, n: COMPARISONS[0].sections.length });
+      if (cmp) {
+        await page.evaluate(route => { location.hash = route; }, '#/games/compare/' + cmp.id); await page.waitForTimeout(250);
+        const pg = await page.evaluate(() => ({ links: [...document.querySelectorAll('#pane .comparehead')].map(a => a.getAttribute('href')), imgs: [...document.querySelectorAll('#pane .comparehead img')].every(i => i.complete && i.naturalWidth > 0), secs: document.querySelectorAll('#pane .comparesec').length, wide: document.documentElement.scrollWidth }));
+        if (pg.links.join() !== cmp.games.map(g => '#/games/' + g).join() || !pg.imgs || pg.secs !== cmp.n) failures.push(w + 'px comparison page: ' + JSON.stringify(pg));
+        if (w === 375 && pg.wide > 375) failures.push('375px comparison page widens the page to ' + pg.wide);
+        await page.evaluate(route => { location.hash = route; }, '#/games'); await page.waitForTimeout(250);
+        if (!await page.evaluate(() => !!document.querySelector('#pane a[href^="#/games/compare/"]'))) failures.push(w + 'px library has no "Two games, one problem" shelf');
+        await page.evaluate(route => { location.hash = route; }, '#/games/' + cmp.games[0]); await page.waitForTimeout(250);
+        if (!await page.evaluate(id => !!document.querySelector('#pane a[href="#/games/compare/' + id + '"]'), cmp.id)) failures.push(w + 'px game page does not list its comparison');
+        await page.evaluate(route => { location.hash = route; }, '#/games/compare/nope'); await page.waitForTimeout(150);
+        if (await page.evaluate(() => (document.querySelector('#pane h1') || {}).textContent) !== 'Not found') failures.push(w + 'px unknown comparison is not a not-found page');
+      }
     }
     // Wayfinding: from deep pages, one click on Library reaches Reference games.
     for (const deep of ['#/map/t/core-loop/overview', '#/platforms/' + (await page.evaluate(() => PLATFORMS[0].id)), '#/checklists/' + (await page.evaluate(() => CHECKLISTS[0].id)), '#/paths/' + (await page.evaluate(() => PATHS[0].id + '/' + PATHS[0].stages[0].id))]) {

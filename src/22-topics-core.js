@@ -913,7 +913,7 @@ T('combat-design',{ d:'core', t:'Combat design: attacks, enemies and bosses', ta
     {l:'Boss as exam',p:`The player has learned these skills before this boss: [SKILLS, WITH WHERE EACH WAS TAUGHT]. Design a three-phase boss. For each phase, name the one skill it tests, the attack pattern that tests it, the telegraph, the opening it gives, and where a failing player learns the lesson. Flag any phase that tests something not taught earlier.`}],
   verify:[`Does each attack have a real recovery and a stated telegraph, or did it only list damage?`,`Does the boss test only skills the earlier fights taught?`,`Were the timings reasoned from reaction time and the game’s speed, or copied from another game?`],
   test:[`Show a new player the telegraph with sound off and then on. Do they dodge on the cue, and which cue did they use?`,`After every death, ask “what killed you?”. Count the times the answer is wrong or “I don’t know”.`,`Record a hit and play it back muted. Does it still read as a hit? Then play the sound alone.`,`Watch whether players find more than one answer to each pattern: dodge, block, trade, avoid.`],
-  rel:[['game-feel-and-juice','Hit-stop, shake and sound are the feedback that makes a hit land.'],['animation-and-vfx','Anticipation and recovery are animation timings with rules attached.'],['encounters-and-enemies','Each enemy is a question, and its attacks are how it asks.'],['encounter-design','Space and enemy mix turn single attacks into a fight.'],['readable-and-fair-ai','A telegraph is the enemy showing the player its intent.'],['challenge-failure-recovery','A boss death should teach, and the way back should be short.'],['difficulty','Fair difficulty in combat is readable, learnable and tuned by data.']] });
+  rel:[['game-feel-and-juice','Hit-stop, shake and sound are the feedback that makes a hit land.'],['animation-and-vfx','Anticipation and recovery are animation timings with rules attached.'],['encounters-and-enemies','Each enemy is a question, and its attacks are how it asks.'],['encounter-design','Space and enemy mix turn single attacks into a fight.'],['readable-and-fair-ai','A telegraph is the enemy showing the player its intent.'],['challenge-failure-recovery','A boss death should teach, and the way back should be short.'],['difficulty','Fair difficulty in combat is readable, learnable and tuned by data.'],['three-cs','Combat only reads well when the character, the controls and the camera are tuned together.']] });
 TECH('combat-design',[
   {n:'Frame data table', how:`Write each attack as anticipation, active and recovery in frames or milliseconds, with who can act in each phase. Tune the numbers in data.`, fit:`Any melee or close-range combat, and any fighting game.`, cost:`Needs a debug view to check what the numbers do on screen. Easy to over-tune on paper.`, alt:`For a small game, tune three numbers per attack by hand and playtest.`},
   {n:'Telegraph ladder', how:`Match the warning to the speed: a pose for slow attacks, a ground marker for area attacks, a sound or colour flash for fast ones.`, fit:`Enemies the player must read at a glance.`, cost:`Costs art and audio per enemy. Too many cues become noise.`, alt:`Keep one signal per danger type and use it for every enemy.`},
@@ -1006,3 +1006,106 @@ DIAGRAM('combat-design', { kind:'state', title:'One attack: warn, hit, recover',
   states:[{id:'idle', t:'Ready', d:'free to act'},{id:'warn', t:'Anticipation', d:'wind-up, the telegraph'},{id:'hit', t:'Active', d:'the hit can land'},{id:'recover', t:'Recovery', d:'committed and open'}],
   edges:[['idle','warn','attack'],['warn','hit'],['hit','recover'],['recover','idle','free']],
   note:'Fighting-game players count these three phases in frames. Street Fighter publishes its frame data at 60 frames a second.' });
+
+T('three-cs',{ d:'core', t:'Character, controls and camera (the 3Cs)', tag:'Three systems that cannot be tuned alone: what the character can do, how the player asks for it, and what the player is shown while they do it.',
+  what:`The 3Cs are character, controls and camera. The term is in wide industry use, and Pluralsight’s “Character, Controls, Camera: The 3Cs of Game Development” is one plain introduction. The character is the body in the world: its movement, its abilities and how they respond. The controls are how the player drives it: input mapping, responsiveness, buffering, dead zones and the rules for turning a button press into an action. The camera frames the result, so the player can see where they are, what is near and where to go next. They are treated as one feature because they are one loop. The player sees through the camera, decides, presses a control, the character moves, and the camera moves with it. Change a jump height and the camera must follow differently; change the camera angle and the controls no longer point where the player expects. Steve Swink’s book “Game Feel” (2008) is the standard source for the responsiveness side: how quickly and how predictably a game answers an input.`,
+  why:[`Players meet the 3Cs in the first second and every second after. If they feel wrong, nothing built on top of them is judged fairly.`,`Level design, combat and puzzle design all assume a character that moves a known way, and a camera that shows enough. A late change to any one of the three breaks work already done.`,`A studio that splits the three between three owners gets three local optima. One owner, or one small group, keeps the whole loop tuned together.`],
+  think:{ q:[`What is the character’s one core movement, and what does a player expect it to do in the first ten seconds?`,`How long is it from a press to the first visible change, and does that change come on the same frame every time?`,`What can the player see at the moment they must decide, and what is hidden?`,`If we change one of the three, which of the other two must change with it?`,`Which numbers in the level metrics (gap width, platform height, enemy reach) are set by the character, and who owns them?`],
+    trade:[`Responsive controls make the character feel direct. A heavy character is a valid goal, and then the delay is chosen, not accidental.`,`A camera that frames the level well may hide the character’s edge, and a camera that follows tightly can make fast movement hard to read.`,`Forgiving rules (coyote time, input buffering, aim assist) make errors feel fair, and can also make the game feel less precise. Use only as many as the genre needs.`],
+    traps:[`Tuning the camera last, after the levels are built, so every level is a camera exception.`,`Controls designed for one platform and copied to another without retuning the dead zones and button count.`,`Speed or jump values set in the character and never shared with level design, so gaps are built that cannot be crossed.`,`Fixing a problem in the wrong C: a camera complaint that is really an input delay, or a jump that feels bad because the camera drops it off-screen.`],
+    good:[`Celeste’s author Maddy Thorson has published the forgiveness she builds into the controls, such as coyote time, jump buffering and wide wall-jump windows, so a near miss still lands. The character looks precise because the controls quietly allow for the player’s error.`,`Super Mario’s run, jump and scrolling camera were built together: the screen scrolls to keep space ahead of the character, so the player sees the next gap before they must cross it.`,`Rocket League’s car, its controls and a ball camera that can be toggled work as one: the player can keep the ball in view, and the ball is the thing they must hit.`,`Dark Souls ties its lock-on camera to the dodge and the attack: the player circles a target and the camera keeps it in frame while the character commits.`],
+    bad:[`Players say the character “feels off” and cannot say why, and the team argues about jump values when the cause is camera lag.`,`Every new level needs its own camera script.`,`The same input gives a different result depending on the camera angle, and nobody can say which is right.`] },
+  how:[`Start in a greybox. Use a flat floor, a few platforms or walls, one enemy-sized box and a default camera. The 3Cs should feel good here before any art or level exists.`,`Write the character’s core numbers down as data: speed, acceleration, jump height, air control, dash length. Share this sheet with level design, who build gaps and heights from it.`,`Tune the controls with the character, not after. Add the forgiving rules (coyote time, input buffering, aim assist) one at a time, and test each against a build that does not have it.`,`Give the camera a job for each situation: what the player must see at a jump, at a fight and when exploring. Then pick the camera type for that job. The camera-design topic covers the types.`,`Change one C at a time, then re-check the other two. After every change, play the same short test course: a long jump, a tight turn, a fight, a drop. If the course now feels worse, the change reached further than you thought.`,`Add input options early: remapping, dead zone and sensitivity sliders, inversion, camera shake. These are part of the controls, and an accessibility need for some players.`],
+  ai:{ yes:[`Draft the character data sheet and compute the level metrics from it, such as the longest jump and the highest ledge.`,`Write scaffolding for the greybox: a debug overlay with input, velocity and frame timing, and a button to toggle each forgiving rule.`,`Read playtest notes and sort the complaints into character, controls or camera, with the evidence each one points to.`],
+       no:[`Decide how a jump feels. Only someone holding a controller can judge it.`,`Choose the dead zone, the buffer length or the camera lag from a description. These are felt values and have to be played, on the target device.`] },
+  prompts:[{l:'3Cs coupling audit',p:`Here is our character data sheet (speed, acceleration, jump, air control), our input mapping and our camera setup: [DATA]. For each of the three, list the other two it depends on and what would break if it changed. Then list the three level-design numbers set by the character, and any place where the camera could hide the player from information they need at that number. Do not suggest value changes; tell me what to playtest.`},
+    {l:'Feel complaint triage',p:`Playtesters said: [QUOTES]. For each comment, say whether the likely cause is the character, the controls or the camera, what in the comment points that way, and the cheapest test that would tell them apart. If a comment could be more than one, say which test separates them.`}],
+  verify:[`Did it say which of the three each problem belongs to, with evidence, or did it only list tuning advice?`,`Did it treat feel values as things to test, not to calculate?`,`Do the level metrics it proposes follow from the character sheet?`],
+  test:[`Play a fixed test course on the target device, and record input and screen together. Find the frame where press and first visible change are further apart than you expect.`,`Turn off one forgiving rule at a time. Watch whether players notice, and whether they fail more.`,`Hand the build to someone new with no explanation. Do they move, jump and look as intended in the first minute?`,`Ask at the end of a session: “Was there a moment you could not see what you needed?”. Mark where it happened.`],
+  rel:[['controls-and-friction','Controls are the second C, and friction is how much they cost the player.'],['camera-design','The camera is the third C, and its types and failures have their own topic.'],['game-feel-and-juice','Swink’s game feel is the responsiveness of the loop between the three.'],['level-blockout-and-metrics','Level metrics are set by the character’s numbers, so the two must be shared.'],['prototyping','The 3Cs are the first thing to prototype in a greybox.'],['combat-design','Combat is the stress test of the three working together.']] });
+TECH('three-cs',[
+  {n:'Greybox test course', how:`Build one flat course with a long jump, a tight turn, a drop and a target. Play it after every change to the character, controls or camera.`, fit:`Any game with a controlled character.`, cost:`Needs discipline to keep it unchanged. It cannot show how the camera behaves in real level geometry.`, alt:`Use the first real level as the course, once it exists.`},
+  {n:'Forgiveness toggles', how:`Make each forgiving rule (coyote time, input buffer, aim assist) a named value with an off switch in a debug menu.`, fit:`Platformers, action games and shooters.`, cost:`Each rule is code to keep. Too many together make the game feel loose.`, alt:`Pick the one or two rules the genre needs and tune those only.`},
+  {n:'Shared metrics sheet', how:`Write the character’s numbers and the level metrics they set (jump height, gap width, reach) in one file that level design reads.`, fit:`Any team with separate character and level owners.`, cost:`Has to be updated when the character changes, or it lies.`, alt:`Generate the level metrics from the character data, so they cannot drift.`}
+]);
+ENGINE('three-cs',{
+  godot:{ term:`Two of the controls’ forgiving rules, coyote time and jump buffering, are two timers on a CharacterBody2D. Both are exported values, so they can be tuned in the editor.`,
+    api:['CharacterBody2D.move_and_slide()','CharacterBody2D.is_on_floor()','Input.is_action_just_pressed()','@export','_physics_process()'],
+    snippet:`extends CharacterBody2D
+@export var coyote := 0.1
+@export var buffer := 0.12
+var since_floor := 99.0
+var since_press := 99.0
+
+func _physics_process(delta: float) -> void:
+    since_floor = 0.0 if is_on_floor() else since_floor + delta
+    since_press = 0.0 if Input.is_action_just_pressed("jump") else since_press + delta
+    velocity.y += 1400.0 * delta
+    if since_floor <= coyote and since_press <= buffer:
+        velocity.y = -420.0
+        since_floor = 99.0
+        since_press = 99.0
+    move_and_slide()`,
+    pitfall:`Reading Input.is_action_just_pressed() in _process() and acting on it in _physics_process(). A press that lands between two physics ticks can be seen by the wrong function, or seen twice, so the jump drops out now and then. Read input and act on it in the same function.`,
+    map:`Godot’s _physics_process with move_and_slide plays the part of Unity’s FixedUpdate with a Rigidbody2D. The two timers are the same idea in both.` },
+  unity:{ term:`The same two timers, kept in a MonoBehaviour. A ground check feeds coyote time and the button press feeds the buffer. Both values are serialised so they can be tuned in the Inspector.`,
+    api:['MonoBehaviour.Update()','Physics2D.OverlapCircle()','Input.GetButtonDown()','Rigidbody2D.linearVelocity','Time.deltaTime'],
+    snippet:`public class Jumper : MonoBehaviour {
+    [SerializeField] float coyote = 0.1f, buffer = 0.12f, jumpSpeed = 8f;
+    [SerializeField] Rigidbody2D body; [SerializeField] LayerMask ground;
+    float sinceGround = 99f, sincePress = 99f;
+    void Update() {
+        bool grounded = Physics2D.OverlapCircle(transform.position, 0.1f, ground);
+        sinceGround = grounded ? 0f : sinceGround + Time.deltaTime;
+        sincePress = Input.GetButtonDown("Jump") ? 0f : sincePress + Time.deltaTime;
+        if (sinceGround <= coyote && sincePress <= buffer) {
+            body.linearVelocity = new Vector2(body.linearVelocity.x, jumpSpeed);
+            sinceGround = sincePress = 99f;
+        }
+    }
+}`,
+    pitfall:`Input.GetButtonDown belongs to the legacy Input Manager. A project set to use only the new Input System package throws an error when it is called. Either enable both input handling modes in Player settings, or read the press from an InputAction instead.`,
+    map:`Unity’s Update with Time.deltaTime and an overlap ground check play the part of Godot’s _physics_process and is_on_floor. Rigidbody2D.linearVelocity is Godot’s velocity.` },
+  note:`The design point is the same in both engines: forgiveness is two named numbers, not a hidden fudge. Written as values, each can be tuned in the editor, switched off for comparison and shared with the level designer who needs to know how far a jump really reaches.` });
+INTERVIEW('three-cs',{
+  junior:[
+    { q:`What are the 3Cs, and why are they treated as one system?`,
+      a:`Character, controls and camera. The character is what can move and act, the controls are how the player asks for it, and the camera shows the result. They form one loop: the player sees, decides, presses, the character responds, the camera follows. Change one and the other two have to be re-checked. Use a game you know, such as a platformer, and show how a change to jump height changes what the camera must show.`,
+      follow:`Give an example of changing one C and having to retune another.`,
+      red:`Lists them as three separate departments with no link between them.` },
+    { q:`What are coyote time and input buffering, and why do platformers use them?`,
+      a:`Coyote time lets a jump work for a very short time after the character has left a ledge. Input buffering remembers a jump press made a moment before landing and uses it on landing. Both forgive small timing errors, so a near miss feels fair. Celeste’s Maddy Thorson has described using such forgiveness throughout the game.`,
+      follow:`What is the cost of making either one too long?`,
+      red:`Calls them cheats, or cannot say what problem they solve.` },
+    { q:`How do you start building the 3Cs for a new game?`,
+      a:`In a greybox with a flat floor, a few platforms and a default camera. Get the character’s core movement feeling good before art, enemies or levels. Put the numbers in data, play a fixed test course after every change and share the numbers with level design.`,
+      follow:`Why not build the first level and tune the character inside it?`,
+      red:`Starts with character art and animation before the movement works.` }
+  ],
+  mid:[
+    { q:`Playtesters say the character feels floaty. How do you find which C is the cause?`,
+      a:`Separate the three. Check input latency first, then the jump or movement curve (rise and fall time, air control), then the camera (lag, smoothing, what the screen does as the character lands). Record input and screen together to see the delay. Fix the cheapest cause first, re-test, and keep the others unchanged while you do.`,
+      follow:`The latency and curve are fine. What is left?`,
+      red:`Changes the jump gravity only, because floaty means gravity.` },
+    { q:`How do the character’s numbers reach level design?`,
+      a:`As a shared sheet or generated metrics: maximum jump height and distance, run speed, reach and turn radius. Level design builds gaps and ledges from them with a margin. If the character changes, the sheet changes and levels are checked against it. Without that, gaps are built that cannot be crossed, or that are trivial.`,
+      follow:`The character was retuned late. What do you do about levels already built?`,
+      red:`Says level designers should playtest until it works.` },
+    { q:`How would you handle controls across keyboard, gamepad and touch?`,
+      a:`Treat each as its own tuning. Map actions, not keys. Give sticks a dead zone and a response curve, give touch large targets and no precision demand, and test on the real device. Offer remapping and sensitivity. Check that the camera control works on each, since a stick and a mouse have different speed needs.`,
+      follow:`A touch build feels worse than the gamepad build. What do you check first?`,
+      red:`Copies the gamepad layout onto the screen buttons.` }
+  ],
+  senior:[
+    { q:`Your team wants one owner for the 3Cs. How do you set that up, and what does it cost?`,
+      a:`Name one person or a small group who decides and signs off any change to the character, the controls or the camera, and who keeps the test course and the shared numbers. The gain is a loop tuned together. The cost is a bottleneck and a lot of weight on one view, so give them a rule: no change without a recording from the test course before and after.`,
+      follow:`The owner and the combat designer disagree about the lock-on camera. How is it settled?`,
+      red:`Splits the three between three leads, each tuning their own.` },
+    { q:`A late change to the camera angle is proposed. How do you judge it?`,
+      a:`List what depends on the angle: the controls (which way is forward), the level metrics (what the player can see), the combat readability and any scripted moments. Estimate the retuning for each and build the change in the greybox first. Compare the test course before and after. Approve it only if the gain is larger than the retuning cost for work already built.`,
+      follow:`The change helps the combat and hurts the platforming. What now?`,
+      red:`Approves it because the director likes it, with no list of what it breaks.` }
+  ] });
+DIAGRAM('three-cs', { kind:'loop', title:'The 3Cs are one loop, so none can be tuned alone',
+  steps:[{t:'Camera shows', d:'what the player can see'},{t:'Player decides', d:'from what they see'},{t:'Controls carry it', d:'the press becomes an action'},{t:'Character moves', d:'speed, jump, abilities'},{t:'Camera follows', d:'and shows the result'}],
+  note:'Swink’s “Game Feel” (2008) is the standard source for the responsiveness of this loop.' });

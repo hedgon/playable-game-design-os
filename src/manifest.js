@@ -47,6 +47,7 @@ const DATA = [
   '41-case-systems-a.js',
   '42-case-systems-b.js',
   '43-case-systems-c.js',
+  '44-worked-samples.js',
   '50-paths.js',
   '51-paths-engineering.js'
 ];

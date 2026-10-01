@@ -72,6 +72,7 @@ const PAGES = [
   ['#/explore', 'Topic list', 'Map', 'Every domain and topic as a list.', ['list', 'all topics', 'domains', 'browse', 'contents']],
   ['#/concepts', 'Concept index', 'Map', 'Topics ranked by how many other topics reference them.', ['concepts', 'glossary', 'terms', 'vocabulary']],
   ['#/games', 'Library', 'Library', 'The collections: reference games, platforms, checklists, prompts and sources.', ['collections', 'resources']],
+  ['#/games/compare', 'Design problem comparisons', 'Library', 'Two reference titles that solve the same design problem, with what each choice costs and gains.', ['compare', 'comparison', 'versus', 'vs', 'side by side', 'two games, one problem']],
   ['#/games', 'Reference games', 'Library', 'Successful games taken apart with one template, with loop and screen schematics.', ['game library', 'examples', 'games', 'reference', 'analysis', 'case studies', 'jrpg', 'teardown']],
   ['#/platforms', 'Platforms', 'Library', 'How to get onto each store, console and UGC platform, from access to release.', ['stores', 'publishing', 'steam', 'console', 'roblox', 'release', 'certification', 'shipping']],
   ['#/guide', 'How to use this site', 'Start here', 'What each section is for, the fastest route for you, and where things are on screen.', ['help', 'guide', 'how to use', 'getting started', 'tutorial', 'start here', 'lost', 'features', 'manual']],

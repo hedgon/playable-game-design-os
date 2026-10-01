@@ -103,6 +103,7 @@ the type check, the smoke test and the paths test on every push and pull request
 41-case-systems-a.js      systems and parts of each project
 42-case-systems-b.js
 43-case-systems-c.js
+44-worked-samples.js     WORKED() sample tables and COMPARE() sample comparisons (to be replaced by real content)
 50-paths.js               PATH, PATHS, TRACKS, LEVELS, step titles and links; design, leadership and interview paths
 51-paths-engineering.js   engineering-track paths
 87-diagrams.js            data diagrams: loop, stack, matrix, quad, curve, economy, state, screen
@@ -158,6 +159,26 @@ Right after the topic, in the same file:
   link to the source (the validator parses it). It warns, and never fails, once a
   fact is a year old, and prints the line to recheck. Principles stay in the
   eight parts; only the changing details go here.
+- `WORKED('topic-id', {...})` adds a worked example under "Worked examples" on
+  the topic's Overview (a topic may have several). Every one has `id` (unique
+  across the site), `t`, `intro`, `note` (where the numbers or text come from;
+  "Illustrative numbers, not from a shipped game" is fine), `try` (two or more
+  questions for the reader) and `file`. A table is `{kind:'table', columns:[{h,
+  unit?}], rows:[[...]], formulas?:[{col, f}], file:'name.csv'}`: each row has one
+  string or number per column, and `formulas` says how a column is derived, in
+  words or as a spreadsheet formula, so the reader can rebuild it. A filled
+  document is `{kind:'doc', sections:[{h, body}], file:'name.md'}`. The card
+  has a button that builds the CSV or Markdown file in the browser. Examples are
+  also found by search. `src/44-worked-samples.js` holds the data.
+- `COMPARE({...})` adds a comparison to "Two games, one problem" (the shelf on
+  the library page, `#/games/compare`, and a "Compared with" list on both game
+  pages): `{id, t, problem, games:['game-a','game-b'], sections:[{h, a, b}],
+  verdict, principle, topics:[...], sources:['https://...']}`. `problem` is the
+  shared design problem in one sentence; each section compares one aspect, `a`
+  for the first game and `b` for the second, one paragraph each (three or more
+  sections); `verdict` says what each choice costs and gains; `principle` is the
+  lesson that carries over. The games must be two different reference games, every
+  topic must exist, and at least one source must be an `https` link.
 
 A new domain is a new file with `DOMAINS.push({ id, lens, t, short, color, sum,
 links })`, where `lens` is `design` or `eng` (see `LENSES`), plus a line in

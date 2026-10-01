@@ -929,6 +929,22 @@ details.comp .body{padding-top:6px}
 .card.facts ul{margin:8px 0 0;padding-left:18px}
 .card.facts li{margin-bottom:6px}
 .card.facts .when{white-space:nowrap}
+.worked-card{border-left:4px solid var(--dc,var(--accent));margin:14px 0}
+.worked-card.flash{outline:2px solid var(--accent2);outline-offset:-2px}
+.worked-card .tablewrap{margin:8px 0}
+.worked-card caption{text-align:left;font-size:.8rem;color:var(--fg3);padding:0 0 6px}
+table.worked{border-collapse:collapse;width:100%;font-size:.88rem}
+table.worked th,table.worked td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+table.worked td.num{text-align:right;font-variant-numeric:tabular-nums}
+table.worked th{background:var(--bg3)}
+.comparecard{display:block;text-decoration:none;color:inherit}
+.compareheads{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.comparehead{display:block;border:1px solid var(--line);background:var(--bg2);text-decoration:none;color:inherit;min-width:0}
+.comparehead img{display:block;width:100%;height:auto;aspect-ratio:460/215;object-fit:cover}
+.comparehead b,.comparehead span{display:block;padding:4px 10px}
+.comparecols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.comparecols p{margin:4px 0 0}
+@media (max-width:700px){.comparecols{grid-template-columns:1fr;gap:6px}}
 .review-later{margin-top:14px}
 .review-later ul{list-style:none;margin:8px 0 0;padding:0}
 .review-later li{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}

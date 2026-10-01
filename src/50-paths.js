@@ -112,7 +112,7 @@ const CHOOSER = {
   levels: [['new','New to it'],['some','Some experience'],['senior','Experienced']],
   times: /** @type {[string, string, number][]} */ ([['2','2 hours a week',2],['5','5 hours a week',5],['10','10 hours a week or more',10]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
-    design:{ new:['game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['senior-game-designer','systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
+    design:{ new:['first-tiny-game','game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['senior-game-designer','systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
     gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['senior-game-developer-ai-era','game-ai-programmer','gameplay-engineer-godot','gameplay-engineer-unity'] },
     backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['senior-game-developer-ai-era','netcode-server-engineer','live-game-backend-engineer'] },
     ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer','casual-game-people-keep'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
@@ -232,10 +232,95 @@ function stepHref(step, pathId, stageId){
   }
 }
 
+PATH('first-tiny-game', {
+  t:'Never made a game? Make a tiny one', tag:'Play like a designer, plan one small game on paper, build it and watch someone play.',
+  pick:'You play a lot, have never made a game, and have no project',
+  track:'design', level:'beginner', hours:8.25,
+  audience:'Someone who plays a lot of games, has never made one, is not a programmer and has no project yet.',
+  outcome:'You have made and tested one tiny game of your own, a one-button jumper, and you can say what you pressed, what happened, what you decided and what you would change next.',
+  prereq:[], next:['game-designer-foundations'],
+  stages:[
+    { id:'s1', t:'Play like a designer', level:'beginner',
+      goal:'Look at games you already know as a designer would, and meet the practice game this whole path builds.', hours:2,
+      steps:[
+        { kind:'topic', ref:'who-is-the-player', why:'Before you look at any game, decide who it is for. You will need that answer for your own.', do:'Meet the practice game you will make in this path: a one-button game where you jump over obstacles that come faster and faster. Write three sentences about who would enjoy it and who would quit in the first minute.', min:20 },
+        { kind:'game', ref:'flappy-bird', lens:'gameplay', why:'Flappy Bird is one button and one rule, which is close to the game you are about to make.', do:'Read its gameplay lens. Then write what the one button does in Flappy Bird and what you would have to decide each time you press it.', min:15 },
+        { kind:'game', ref:'tetris', lens:'gameplay', why:'Tetris gets harder only because the pieces fall faster, which is the same trick your practice game will use.', do:'Read its gameplay lens. Then write what gets faster as you play Tetris, and what that does to your decisions.', min:15 },
+        { kind:'game', ref:'super-mario', lens:'art', why:'Mario shows how a game tells the player what is safe, what is dangerous and what to do next without any words.', do:'Read its art lens. Then note two things on screen that tell a jumping player what to do, and sketch how your practice game could show an obstacle in the same way.', min:15 },
+        { kind:'topic', ref:'core-loop', why:'The core loop is what a player does again and again. It is the first thing to get right in any game.', do:'Pick one game you know well and write its loop in five short lines: what you decide, what you do, what happens, what the game shows you, and the new situation you are in.', min:25 },
+        { kind:'reflect', why:'Writing down what you do while playing is the habit that turns a player into a designer.', do:'Play one short game for ten minutes. Write down what you press, what happens on screen and what you decide, in three short lists. Keep them for the next stage.', min:30 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'What is a core loop?', a:'The short set of steps a player repeats: they decide, act, see what happened and face a new situation. It is the part of the game they do the most.' },
+          { q:'Why does Tetris get harder over time?', a:'The pieces fall faster, so there is less time to decide. The rules stay the same; only the pressure changes.' },
+          { q:'Why write down what you press, what happens and what you decide?', a:'It splits a game into the player action, the game response and the choice in between. If one of those is missing, the game has a gap you can fix.' }
+        ],
+        build:'Write the three lists (what you press, what happens, what you decide) for one game you played in this stage, on one page.',
+        skip:['Can you describe the loop of a game you know in five lines?','Can you say what one button does in a game and what you decide before pressing it?','Can you say who the practice game is for and who would quit?']
+      } },
+    { id:'s2', t:'Plan the jumper on paper', level:'beginner',
+      goal:'Write down how the practice game works before you build anything.', hours:1.5,
+      steps:[
+        { kind:'topic', ref:'feedback-and-affordance', why:'A player with one button must be able to see when to press it and what it did.', do:'For the practice game, write what the player sees and hears when they jump, land and crash, and what shows an obstacle is coming.', min:20 },
+        { kind:'topic', ref:'difficulty', why:'Your game gets harder by getting faster. You need to decide how fast and how soon.', do:'Write the speed of the first obstacle, how it changes every ten seconds, and the point where you think most players will fail.', min:20 },
+        { kind:'topic', ref:'mechanics-and-rules', why:'A tiny game needs very few rules. Fewer rules means less to build.', do:'List every rule of the practice game in one line each, such as the jump height or what happens on a crash. Cross out any rule you can live without.', min:20 },
+        { kind:'tool', ref:'loop', why:'Putting the loop in a diagram shows the weak link before you spend time building it.', do:'Build the practice game loop in the Game Loop Builder, run its weak-link check and write down the one change you will make.', min:30 }
+      ],
+      review:['core-loop'],
+      check:{
+        recall:[
+          { q:'How does the practice game get harder?', a:'The obstacles come faster. The jump and the rules stay the same, so the player has less time to decide.' },
+          { q:'Why plan the rules before building?', a:'Every extra rule is more to build and more to test. A short list lets you cut what the game does not need while cutting is still cheap.' },
+          { q:'What does feedback do for a one-button game?', a:'It tells the player what their press did and when to press next, such as a sound on landing or a clear shape for the obstacle.' }
+        ],
+        build:'Write a one-page plan for the practice game: the loop, the rules, the starting speed, how it speeds up and what the player sees and hears.',
+        skip:['Do you know how fast the first obstacle moves?','Can you list the rules of the practice game on one page?','Do you know the one weak link in your loop?']
+      } },
+    { id:'s3', t:'Build it', level:'beginner',
+      goal:'Make the practice game playable, with a player who jumps, obstacles that move and a crash that ends the run.', hours:3.25,
+      steps:[
+        { kind:'topic', ref:'prototyping', why:'A prototype is the cheapest thing that lets you try your idea. Yours is only a few shapes.', do:'Write the one question your first build has to answer: is jumping over obstacles fun for one minute? Plan to use plain boxes and no art.', min:20 },
+        { kind:'engine', ref:'godot', alt:'unity', why:'Godot is free and its scripting language is easy to read. Choose this one if you want to try writing a little code.', do:'Choose this step or the GameMaker one, not both. Install Godot 4, then follow the engine first tutorial from its own site; this is expected and is the fastest way to learn the tools. Then make a box that sits on a floor and jumps when you press one key.', min:60 },
+        { kind:'engine', ref:'gamemaker', why:'GameMaker is built for 2D games and offers a way to build without writing much code. Choose this one if you want the shortest road to something playable.', do:'Choose this step or the Godot one, not both. Install GameMaker, then follow the engine first tutorial from its own site; this is expected and is the fastest way to learn the tools. Then make a box that sits on a floor and jumps when you press one key.', min:60 },
+        { kind:'topic', ref:'three-cs', why:'How the box moves, what the button asks of it and what you can see decide whether the jump feels good.', do:'Add boxes that slide towards the player and a crash that restarts the run. Then change the jump height until the first obstacle is easy, and write down what you changed.', min:55 }
+      ],
+      review:['feedback-and-affordance'],
+      check:{
+        recall:[
+          { q:'What question should the first build answer?', a:'Whether jumping over obstacles is fun for one minute. It does not need art, sound or menus to answer that.' },
+          { q:'Why use plain boxes?', a:'Boxes are quick to make and change, so the time goes into the jump and the speed, which are what the game is about.' },
+          { q:'What can you tune first to make the jump feel right?', a:'The jump height and how fast the box falls back down, checked against the speed of the first obstacle.' }
+        ],
+        build:'Have a version of the practice game where one key makes a box jump over moving obstacles and a crash restarts the run.',
+        skip:['Can you press a key and see the box jump?','Do obstacles come towards the player and end the run on a crash?','Can you change the jump height and see the result at once?']
+      } },
+    { id:'s4', t:'Test it and finish', level:'beginner',
+      goal:'Watch someone else play, polish the feel and decide what to change next.', hours:1.5,
+      steps:[
+        { kind:'topic', ref:'playtesting', why:'You know your game too well to see its problems. A new player shows you them in a minute.', do:'Ask one friend to play the practice game for five minutes while you stay quiet. Write down where they crashed, where they hesitated and what they said.', min:20 },
+        { kind:'checklist', ref:'playtest-prep', why:'A short checklist keeps you from explaining the game and spoiling the test.', do:'Run the checklist before your test, then note one item you missed.', min:15 },
+        { kind:'topic', ref:'game-feel-and-juice', why:'Small touches such as a sound or a bounce make a plain game feel good to play.', do:'Add one touch to the practice game, such as a sound when you jump or a small shake when you crash, and ask your tester which version they preferred.', min:35 },
+        { kind:'reflect', why:'Deciding what to change next is what makes the next game better than this one.', do:'Write what you would change next in the practice game and why, using what your tester did rather than what they said. Pick one change only.', min:20 }
+      ],
+      review:['difficulty','prototyping'],
+      check:{
+        recall:[
+          { q:'Why stay quiet while someone plays?', a:'If you explain, you hide the problems a new player would hit. Silence shows where the game fails to teach itself.' },
+          { q:'Which is better evidence, what a tester says or what they do?', a:'What they do. Words are useful for guessing why, but where they crash and hesitate shows the real problem.' },
+          { q:'What is game feel?', a:'The small responses, such as sound, bounce and shake, that make pressing a button feel good before any rules come into it.' },
+          { q:'Why pick only one change to make next?', a:'One change can be tested clearly. Several changes at once leave you unable to tell which one helped.' }
+        ],
+        build:'Write a short note with what your tester did, the one touch you added and the one change you will make next.',
+        skip:['Have you watched someone play without saying anything?','Do you know where your tester crashed most often?','Have you picked the single next change?']
+      } }
+  ]
+});
 PATH('game-designer-foundations', {
   t:'Game designer foundations', tag:'Player, loop, and the discipline to test before you build.',
   pick:'Design a game that holds up before you build it',
-  track:'design', level:'beginner', hours:9.75,
+  track:'design', level:'beginner', hours:10.25,
   audience:'Anyone starting in game design, or an engineer, producer or artist picking up design responsibility for the first time.',
   outcome:'You can name a player and a promise, build and defend a core loop, judge whether a feature idea creates a real decision, and turn a hunch into a hypothesis before you write a line of code.',
   prereq:[], next:['systems-designer','level-and-ux-designer','games-that-broke-the-mould','gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer','build-and-release-engineer','study-the-hits-play','study-the-hits-worlds','interview-prep-designer'],
@@ -310,9 +395,10 @@ PATH('game-designer-foundations', {
         skip:['Can you say which of your withheld tools could be taught in the first area?','Can you run a rule audit on your own systems and say which rules earn their place?','Can you name the empty cell in your current feedback matrix?','Have you already used “Should we build this?” to kill an idea you liked?','Can you explain teaching by doing to someone in one sentence?']
       } },
     { id:'s4', t:'Prototype, test, decide', level:'intermediate',
-      goal:'Turn a hunch into a hypothesis, build the cheapest test, and use a real playtest as evidence.', hours:2,
+      goal:'Turn a hunch into a hypothesis, build the cheapest test, and use a real playtest as evidence.', hours:2.5,
       steps:[
         { kind:'topic', ref:'prototyping', why:'A prototype that answers no question is a demo, however good it looks.', do:'Name the one question your next build has to answer, and the medium that answers it for the least work.', min:20 },
+        { kind:'topic', ref:'three-cs', why:'The first thing worth prototyping in a game you control is how the character moves, how the controls ask for it and what the camera shows; the three cannot be tuned one at a time.', do:'In a greybox with a flat floor and a default camera, write down the character’s speed, jump and one forgiving rule, then change the camera angle and note which of the other two now feel wrong.', min:25 },
         { kind:'topic', ref:'hypothesis-driven-design', why:'A hypothesis with a signal and a kill criterion is what turns an opinion into something you can be wrong about.', do:'Write one hypothesis in the standard form: player, behaviour, reason, signal, kill criterion.', min:15 },
         { kind:'tool', ref:'hypothesis', why:'The builder keeps the five parts honest and exports the brief you hand to whoever builds the prototype.', do:'Enter your hypothesis into the Hypothesis Builder and export the prototype brief it produces.', min:20 },
         { kind:'checklist', ref:'pre-prototype', why:'A prototype without a hypothesis, a scope cut and instrumentation is a demo with extra steps.', do:'Run the pre-prototype checklist against the brief you just exported and fix whatever it fails.', min:15 },
@@ -458,7 +544,7 @@ PATH('systems-designer', {
 PATH('level-and-ux-designer', {
   t:'Level and UX designer', tag:'Pacing, readability, and the first five minutes nobody skips.',
   pick:'Pace levels and teach players without a wall of text',
-  track:'design', level:'intermediate', hours:12.25,
+  track:'design', level:'intermediate', hours:12.75,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
   prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-worlds'],
@@ -510,12 +596,13 @@ PATH('level-and-ux-designer', {
         skip:['Could a player tell your enemies apart by silhouette alone?','Can you name the weakest of the four parts in any encounter you are currently building?','Can you point to the exact visual element that should draw a player’s eye first, and check whether it does?','Have you already fixed a “players do not know what to do” report by changing readability instead of adding text?','Do you know the difference between a loop weak link and a readability weak link?']
       } },
     { id:'s3', t:'Feedback, feel and control', level:'advanced',
-      goal:'Make every input confirm itself, and every outcome confirm the input that caused it.', hours:2.5,
+      goal:'Make every input confirm itself, and every outcome confirm the input that caused it.', hours:3,
       steps:[
         { kind:'topic', ref:'feedback-and-affordance', why:'Without feedback a player cannot learn from what they just did, no matter how good the underlying decision was.', do:'Build a feedback matrix for one level: rows are its triggers (door, checkpoint, hazard, pickup), columns are what confirms the input and what confirms the outcome. Find the empty cells.', min:30 },
         { kind:'topic', ref:'controls-and-friction', why:'Every extra step between intent and action is friction, and friction reads to the player as the game fighting them.', do:'Count the inputs required for your three most common actions, and cut one step from whichever has the most.', min:25 },
         { kind:'game', ref:'fruit-ninja', lens:'sound', why:'Fruit Ninja manufactures the physical impact a touchscreen cannot give: the whole feel of a hit comes from sound and splatter timed to the swipe, not from any resistance in the input itself.', do:'Read its sound lens, then list one action in your own game with no physical resistance behind it, and name the single feedback channel, sound, particles or screen shake, you would add first to sell the hit.', min:15 },
         { kind:'topic', ref:'animation-and-vfx', why:'Anticipation tells the player what is coming and impact tells them it happened; animation timing is where the outcome half of your feedback matrix is won or lost.', do:'For your most common action, write its anticipation, impact and follow-through timings and its commitment window, and mark which one currently carries no feedback.', min:20 },
+        { kind:'topic', ref:'camera-design', why:'The camera decides what the player can see at the moment they choose, so it sets what a level can ask of them, and it can also make them ill.', do:'Pick the hardest decision point in one level and list everything the player needs to see to make it. Mark what your camera hides there, and write one fix.', min:25 },
         { kind:'smell', ref:'floaty-combat', why:'Floaty is what players say when feedback lags behind or contradicts the input that caused it, not necessarily when the numbers are wrong.', do:'Check your feedback matrix from the last step against its causes, based on the “Combat feels floaty” smell.', min:15 },
         { kind:'checklist', ref:'design-review', why:'Feel and control decisions are exactly the kind of thing that looks fine to the person who has played it a thousand times.', do:'Run the design review checklist against your control scheme and feedback pass specifically, not the whole feature.', min:25 },
         { kind:'prompt', ref:'ux-audit', why:'The UX friction audit gives you a structured way to turn your own blind spots into a list instead of a feeling.', do:'Run the UX friction audit prompt against your own build, and write down the one friction point you had stopped noticing.', min:25 }

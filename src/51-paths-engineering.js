@@ -419,7 +419,7 @@ PATH('live-game-backend-engineer', {
 PATH('netcode-server-engineer', {
   t:'Netcode / game-server engineer', tag:'Decide who is right, what bit-exact costs, and why a client’s result is never trusted alone.',
   pick:'Build real-time multiplayer servers that hold up',
-  track:'engineering', level:'advanced', hours:16.25,
+  track:'engineering', level:'advanced', hours:16.57,
   audience:'Backend engineers specialising in real-time multiplayer, who already run a service in production and want to reason about latency, authority, and reconciliation with the same rigour as a request handler.',
   outcome:'You can choose an authority model and defend it, hide latency with prediction, reconciliation, interpolation and rollback, design a wire protocol and a fan-out layer, and explain why a client’s result is never trusted by itself.',
   prereq:['live-game-backend-engineer'], next:['senior-game-developer-ai-era','interview-prep-engineer'],
@@ -482,10 +482,11 @@ PATH('netcode-server-engineer', {
         skip:['Can you state your tick rate and the field you delta-encode without checking?','Have you already written client-side prediction with reconciliation and watched a correction happen?','Can you say which state a rollback game must be able to save, load and step, and why it must be deterministic?','Do you know what breaks first if your tick rate changed tomorrow?','Could you explain how sub-tick input timing differs from raising the tick rate?']
       } },
     { id:'s3', t:'Sessions and matchmaking', level:'advanced',
-      goal:'Turn a ticket into a room, fan a message out across instances, and decide what a disappearing player means.', hours:3.25,
+      goal:'Turn a ticket into a room, fan a message out across instances, and decide what a disappearing player means.', hours:3.57,
       steps:[
         { kind:'topic', ref:'multiplayer-design', why:'Matching is a design problem before it is a server problem: a lopsided match is not fun for either side, so decide the fairness rule the ticket has to express first.', do:'Read the topic, then write your game’s roles, the counter to its strongest move and the fairness rule a match must satisfy (rating gap, longest wait), so the ticket in the next step has something to encode.', min:25 },
         { kind:'topic', ref:'server-matchmaking', why:'A ticket, a rule set, a room, and an explicit answer to what happens when someone disappears. Skipping the last one is the common failure.', do:'Write your matchmaking ticket as a struct, a function that pairs tickets whose rule predicates fit, and the explicit rule for what happens to a room when one player disconnects mid-match, with a test for that rule.', min:40 },
+        { kind:'topic', ref:'server-stack-choices', why:'Matchmaking and rooms run on a hosting layer you either build or buy. Choose the session model first, then the three layers, and keep a seam so a vendor shutdown costs a folder, not the game.', do:'Write your session model in one paragraph, mark each of the three layers as not needed, build or buy, and name the interface that would sit between your game and one vendor.', min:19 },
         { kind:'part', ref:'cs-go-game-backend/realtime/realtime-matchmaking', why:'A ticket carrying capacity and rule predicates is what lets a matchmaker scan the pool for a set that satisfies everyone at once.', do:'Check whether your own ticket design could express a three-way match, not only a pair, based on how tickets carry their own rule predicates.', min:30 },
         { kind:'game', ref:'world-of-warcraft', lens:'ui', why:'World of Warcraft’s cross-realm Dungeon Finder shows what a matchmaking queue buys and costs: groups at any hour, and the loss of the server community that finding a group used to build.', do:'Read its ui lens, then write the role queue your own matchmaker would run, name one social tie it removes, and what, if anything, would replace it.', min:20 },
         { kind:'part', ref:'cs-go-game-backend/realtime/realtime-fanout', why:'Chat and presence running on more than one instance means a publish on one process has to reach subscribers on every other one.', do:'Write the one message type in your own design that would need the same fan-out, based on how the fan-out layer sits between the dispatch loop and Redis.', min:30 },

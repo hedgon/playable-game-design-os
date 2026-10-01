@@ -136,7 +136,9 @@ function missing(parts){
     case 'topic': return a && !TOPICS[a] ? ['topic', a, ...mapIx] : null;
     case 'smell': return a && !has(SMELLS, a) ? ['smell', a, '#/diagnose/smells', 'Design smells'] : null;
     case 'diagnose': return a === 'smells' && b && !has(SMELLS, b) ? ['smell', b, '#/diagnose/smells', 'Design smells'] : null;
-    case 'games': return a && a !== 'topic' && !has(REFERENCE_GAMES, a) ? ['game', a, '#/games', 'Reference games'] : null;
+    case 'games':
+      if(a === 'compare') return b && !has(COMPARISONS, b) ? ['comparison', b, '#/games/compare', 'Two games, one problem'] : null;
+      return a && a !== 'topic' && !has(REFERENCE_GAMES, a) ? ['game', a, '#/games', 'Reference games'] : null;
     case 'platforms': return a && !has(PLATFORMS, a) ? ['platform', a, '#/platforms', 'Platforms'] : null;
     case 'engines': return a && !has(ENGINES, a) ? ['engine', a, '#/engines', 'Engines'] : null;
     case 'paths': return a && a !== 'review' && !has(PATHS, a) ? ['path', a, '#/paths', 'Learning paths'] : null;
@@ -658,6 +660,56 @@ function libraryTopics(){
   return Object.keys(gameLinks()).filter(t => TOPICS[t]).map(t => [t, topicGameIds(t).size]).filter(([, c]) => c >= 6 && c <= n * 0.5).sort((x, y) => y[1] - x[1] || TOPICS[x[0]].t.localeCompare(TOPICS[y[0]].t)).slice(0, 32);
 }
 const shortTopic = t => TOPICS[t].t.split(/:| and | vs /)[0].trim();
+/* ---------- Worked examples (WORKED) and comparisons (COMPARE) ---------- */
+const csvCell = v => { const x = String(v); return /[",\n\r]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
+function workedFile(w){
+  if(w.kind === 'table') return [w.columns.map(c => csvCell(c.unit ? c.h + ' (' + c.unit + ')' : c.h)).join(','), ...w.rows.map(r => r.map(csvCell).join(','))].join('\n') + '\n';
+  return ['# ' + w.t, '', w.intro, '', ...w.sections.flatMap(s => ['## ' + s.h, '', s.body, '']), '## Try it', '', ...w.try.map(q => '- ' + q), '', '_' + w.note + '_', ''].join('\n');
+}
+function workedCard(w, color){
+  const table = w.kind === 'table' ? `<div class="tablewrap" tabindex="0" role="region" aria-label="${esc(w.t)}, table"><table class="worked"><caption>${esc(w.t)}</caption><thead><tr>${w.columns.map(c => `<th scope="col">${esc(c.h)}${c.unit ? ` <span class="muted small">(${esc(c.unit)})</span>` : ''}</th>`).join('')}</tr></thead><tbody>${w.rows.map(r => `<tr>${r.map(v => typeof v === 'number' ? `<td class="num">${esc(v)}</td>` : `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+    : w.sections.map(s => `<h5>${esc(s.h)}</h5><p>${esc(s.body)}</p>`).join('');
+  const formulas = (w.formulas || []).length ? `<p class="small"><b>How it is worked out.</b></p><ul class="small">${w.formulas.map(f => `<li><b>${esc(f.col)}:</b> ${esc(f.f)}</li>`).join('')}</ul>` : '';
+  return `<div class="card worked-card" id="worked-${esc(w.id)}" style="--dc:${color}"><h4>${esc(w.t)}</h4><p class="small dim">${esc(w.intro)}</p>${table}${formulas}<p class="small"><b>Try it.</b></p><ul class="small">${w.try.map(q => `<li>${esc(q)}</li>`).join('')}</ul><p class="small muted">${esc(w.note)}</p><button type="button" class="btn sm" data-action="worked-download" data-topic="${esc(w.topic)}" data-w="${esc(w.id)}">${w.kind === 'table' ? 'Download CSV' : 'Download Markdown'}</button></div>`;
+}
+function workedHTML(t, color){
+  if(!t.worked || !t.worked.length) return '';
+  return `<div class="wdup"><div class="section-head"><h2>Worked examples</h2><span class="muted">numbers and documents to copy</span></div>${t.worked.map(w => workedCard(Object.assign({ topic: t.id }, w), color)).join('')}</div>`;
+}
+ACTIONS['worked-download'] = el => {
+  const w = ((TOPICS[el.dataset.topic] || {}).worked || []).find(x => x.id === el.dataset.w); if(!w) return;
+  const url = URL.createObjectURL(new Blob([workedFile(w)], { type: w.kind === 'table' ? 'text/csv;charset=utf-8' : 'text/markdown;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = w.file; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+const gameById = id => REFERENCE_GAMES.find(g => g.id === id);
+const compareTitle = c => gameById(c.games[0]).t + ' and ' + gameById(c.games[1]).t;
+const compareCard = c => `<a class="card lnk comparecard" href="#/games/compare/${esc(c.id)}"><div class="overline">${esc(compareTitle(c))}</div><b>${esc(c.t)}</b><p class="small dim" style="margin:6px 0 0">${esc(c.problem)}</p></a>`;
+function compareShelf(){
+  return COMPARISONS.length ? `<div class="section-head"><h2>Two games, one problem</h2><span class="muted"><a href="#/games/compare">${COMPARISONS.length} comparison${COMPARISONS.length === 1 ? '' : 's'}</a></span></div><div class="grid auto">${COMPARISONS.map(compareCard).join('')}</div>` : '';
+}
+function comparedWith(g){
+  const list = COMPARISONS.filter(c => c.games.includes(g.id));
+  return list.length ? `<div class="card"><div class="overline">Compared with</div><ul class="small">${list.map(c => { const o = gameById(c.games.find(x => x !== g.id)); return `<li><a href="#/games/compare/${esc(c.id)}">${esc(c.t)}</a>, against <a href="#/games/${esc(o.id)}">${esc(o.t)}</a></li>`; }).join('')}</ul></div>` : '';
+}
+function renderCompare(id){
+  const c = COMPARISONS.find(x => x.id === id);
+  if(!c){
+    setView(`${crumbs([['Library','#/games'],['Two games, one problem']])}<h1>Two games, one problem</h1><p class="dim" style="max-width:820px">The same design problem, solved two ways. Each comparison sets two reference games side by side, says what each choice costs and gains, and ends with the lesson that carries over.</p>${COMPARISONS.length ? `<div class="grid auto">${COMPARISONS.map(compareCard).join('')}</div>` : '<div class="empty">No comparisons yet.</div>'}`);
+    return;
+  }
+  const [A, B] = c.games.map(gameById);
+  const head = g => `<a class="comparehead lnk" href="#/games/${esc(g.id)}">${g.img ? `<img src="${esc(g.card || g.img)}" alt="${esc(g.t)}: header art" loading="lazy">` : ''}<b>${esc(g.t)}</b><span class="small muted">${gameYears(g)} · ${esc(g.genre)}</span></a>`;
+  const host = u => new URL(u).hostname.replace(/^www\./, '');
+  setView(`${crumbs([['Library','#/games'],['Two games, one problem','#/games/compare'],[c.t]])}<h1>${esc(c.t)}</h1>
+    <p class="dim" style="max-width:820px">${esc(c.problem)}</p>
+    <div class="compareheads">${head(A)}${head(B)}</div>
+    ${c.sections.map(s => `<section class="card comparesec"><h3>${esc(s.h)}</h3><div class="comparecols"><div><div class="overline">${esc(A.t)}</div><p>${esc(s.a)}</p></div><div><div class="overline">${esc(B.t)}</div><p>${esc(s.b)}</p></div></div></section>`).join('')}
+    <div class="card"><div class="overline">What each choice costs and gains</div><p>${esc(c.verdict)}</p></div>
+    <div class="card sigcard"><div class="overline">The principle to take away</div><p><b>${esc(c.principle)}</b></p></div>
+    ${c.topics.length ? `<div class="dgm-foot"><span class="overline">Topics</span><span class="chips">${c.topics.map(t => `<a class="chip lnk" href="#/map/t/${esc(t)}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : ''}
+    <p class="small muted">Sources: ${c.sources.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(host(u))}</a>`).join(' · ')}</p>`);
+}
 function libraryHTML(){
   const s = libState(), analysed = REFERENCE_GAMES.filter(g => g.lens).length;
   const wantTopics = s.topic ? s.topic.split('+').filter(t => TOPICS[t]) : [];
@@ -681,6 +733,7 @@ function libraryHTML(){
   const sel = (k, label, opts, cur) => `<label class="libsel"><span class="overline">${label}</span><select data-lib="${k}" aria-label="${label}"><option value="">Any</option>${opts.map(([v, t]) => `<option value="${esc(v)}"${cur === v ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
   const teaches = `<div class="librow libteach"><span class="overline">What it teaches</span><span class="chips libscroll">${wantTopics.length > 1 ? btn('topic', s.topic, 'Topics of one smell (clear)', true) : ''}${shownTopics.map(([t, c]) => btn('topic', t, `${shortTopic(t)} ${c}`, s.topic === t)).join('')}${topics.length > LIB_TOPICS_SHOWN ? `<button type="button" class="chip lnk libmore" data-action="lib-more" aria-expanded="${moreOpen}">${moreOpen ? 'Fewer topics' : `More topics (${topics.length - shownTopics.length})`}</button>` : ''}</span></div>`;
   return `${crumbs([['Library','#/games'],['Reference games']])}<h1>Reference games</h1><p class="dim libintro" style="max-width:820px">${REFERENCE_GAMES.length} games that succeeded or broke the mould, taken apart with one template${analysed === REFERENCE_GAMES.length ? ', each read through ten lenses, from UI and art direction to business and lineage' : analysed ? `; ${analysed} of them read through ten lenses, from UI and art direction to business and lineage` : ''}. Schematics are our own drawings; store art and screenshots are credited to their developers.</p>
+    ${compareShelf()}
     ${teaches}
     <div class="libbar"><span class="libview">${btn('view', 'grid', 'Grid', s.view !== 'list')}${btn('view', 'list', 'List', s.view === 'list')}</span>${sel('lensk', 'Read by lens', GAME_LENSES.map(([k, t]) => [k, t]), s.lensk)}${shelves.length ? sel('shelf', 'Shelf', shelves.map(([id, t]) => [id, t]), s.shelf) : ''}${sel('family', 'Genre', GAME_FAMILIES.filter(([f]) => REFERENCE_GAMES.some(g => g.family === f)).map(([f, t]) => [f, t]), s.family)}</div>
     <details class="libfilters" ${s.tag || s.lens ? 'open' : ''}><summary>Filter by tag, or show only games analysed in depth</summary><div class="chips">${usedTags.map(t => btn('tag', t, t, s.tag === t)).join('')}</div>${deepLenses.length ? `<div class="chips" style="margin-top:6px">${deepLenses.map(([k, t]) => btn('lens', k, t, s.lens === k)).join('')}</div>` : ''}</details>
@@ -759,6 +812,7 @@ function receptionHTML(g){
     <h3 class="h4look">What the difference teaches</h3><p>${esc(g.receptionLesson)}</p></div>`;
 }
 function renderGames(id, lensId){
+  if(id === 'compare') return renderCompare(lensId);
   // #/games/topic/<id> (or <id>+<id>) opens the library on the games that teach it.
   if(id === 'topic' && lensId) store.set('library', Object.assign(libState(), { shelf: '', family: '', tag: '', lens: '', lensk: '', topic: lensId.split('+').filter(t => TOPICS[t]).join('+') }));
   const g = REFERENCE_GAMES.find(x => x.id === id);
@@ -783,6 +837,7 @@ function renderGames(id, lensId){
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
     ${lensesHTML(g)}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}${pathChips('game:' + g.id, 'game')}</div>
+    ${comparedWith(g)}
     <div class="row wdup"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`, side, 'This game'));
   // #/games/<id>/<lens> lands on that lens.
   // Runs once the route has settled its layout; pictures above the lens load late and
@@ -1091,6 +1146,8 @@ function setTopicTab(t, tab){
   const avail = tabsFor(t).map(x => x[0]);
   const want = tab || store.get('topicTab', 'overview');
   topicTab = avail.includes(want) ? want : 'overview';
+  // A search result for a worked example arrives as .../worked-<id>: show the Overview and scroll to that card.
+  if(tab && tab.startsWith('worked-')) afterRoute = () => { const el = document.getElementById(tab); if(el){ el.scrollIntoView({ block: 'start' }); el.classList.add('flash'); } };
   if(tab){ store.set('topicTab', topicTab); if(topicTab === 'godot' || topicTab === 'unity') store.set('engine', topicTab); }
 }
 // Overview is omitted from the URL, so its hash equals the bare topic hash and
@@ -1179,7 +1236,7 @@ function topicBody(id){
   const gameChip = x => `<a class="chip lnk" href="#/games/${x.g.id}">${esc(x.g.t)}: ${esc(x.label.charAt(0).toLowerCase() + x.label.slice(1))}</a>`;
   const gameFoot = inGames.length ? `<div class="dgm-foot wdup"><span class="overline">In real games</span><span class="chips">${inGames.slice(0, 6).map(gameChip).join('')}</span>${inGames.length > 6 ? `<details class="more-games"><summary>${inGames.length - 6} more</summary><span class="chips">${inGames.slice(6).map(gameChip).join('')}</span></details>` : ''}</div>` : '';
   const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}
-    ${secs}${techSec}${facts}
+    ${secs}${techSec}${facts}${workedHTML(t, d.color)}
     <div class="wdup"><div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div></div>
     ${smells.length ? `<div class="wdup"><div class="section-head"><h2>Design smells this topic helps diagnose</h2></div>${smellChips}</div>` : ''}
@@ -2538,6 +2595,8 @@ ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/ro
 SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:snip(s[1], 110), href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
 const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), ...(g.series ? [g.series.t] : []), ...(g.entries || []).flatMap(e => [e.t, e.added]), g.constant, g.changed, ...(g.reception || []).flatMap(r => [r.entry, r.why]), g.receptionLesson, g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
 REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${gameYears(g)} · ${g.genre} · ${snip(g.signature ? g.signature.idea : g.lesson, 90)}`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family), ...(g.series ? [g.series.t] : []), ...(g.kind === 'series' ? ['series'] : [])] }));
+COMPARISONS.forEach(c => INDEX.push({ type:'comparison', t:c.t, snip:compareTitle(c) + ' · ' + snip(c.problem, 90), href:'#/games/compare/'+c.id, text:[c.t, c.problem, c.verdict, c.principle, compareTitle(c), ...c.sections.flatMap(s => [s.h, s.a, s.b])].join(' ').toLowerCase() }));
+TOPIC_LIST.forEach(t => (t.worked || []).forEach(w => INDEX.push({ type:'worked example', t:w.t, snip:TOPICS[t.id].t + ' · ' + snip(w.intro, 90), href:'#/map/t/'+t.id+'/worked-'+w.id, text:[w.t, w.intro, w.note, ...(w.columns || []).map(c => c.h), ...(w.rows || []).flat(), ...(w.sections || []).flatMap(s => [s.h, s.body]), ...w.try].join(' ').toLowerCase() })));
 FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
 LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
 TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));
@@ -2583,7 +2642,7 @@ function oneEdit(a, b){
   if(a.length === b.length) return a.slice(i + 1) === b.slice(i + 1) || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));
   return a.length > b.length ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
 }
-const SEARCH_GROUPS = [['page', 'Pages'], ['topic', 'Topics'], ['reference', 'Reference games'], ['platform', 'Platforms'], ['term', 'Terms'], ['path', 'Learning paths'], ['tool', 'Build tools'], ['checklist', 'Checklists'], ['prompt', 'Prompts'], ['smell', 'Design smells'], ['interview', 'Interview questions'], ['experience', 'Projects']];
+const SEARCH_GROUPS = [['page', 'Pages'], ['worked example', 'Worked examples'], ['comparison', 'Two games, one problem'], ['topic', 'Topics'], ['reference', 'Reference games'], ['platform', 'Platforms'], ['term', 'Terms'], ['path', 'Learning paths'], ['tool', 'Build tools'], ['checklist', 'Checklists'], ['prompt', 'Prompts'], ['smell', 'Design smells'], ['interview', 'Interview questions'], ['experience', 'Projects']];
 function search(q){
   const whole = q.trim().toLowerCase(), qs = searchWords(whole).filter(w => !STOP_WORDS.has(w)); if(!qs.length) return [];
   const hits = [];

@@ -110,7 +110,7 @@ T('game-feel-and-juice',{ d:'presentation', t:'Game feel and juice', tag:'Polish
   prompts:[{l:'Polish priority list',p:`Our loop is validated by [EVIDENCE]. Here are our actions and outcomes ranked by importance: [LIST]. For each of the top 5, propose emphasis across anticipation, impact and result using at most 3 channels (animation, VFX, camera, audio, haptics, hit-stop), estimate implementation cost, and state what the player would understand better because of it. Reject any proposal that would add latency to the input response or obscure the top 3 readable meanings ([MEANINGS]).`}],
   verify:[`Did it check the loop was validated, or polish regardless?`,`Are its effects proportional to importance?`],
   test:[`With and without juice: is feedback clearer, or just louder?`,`Ask players what felt best and why.`,`Does readability survive? “What killed you?” test after adding effects.`],
-  rel:[['feedback-and-affordance','Juice is amplified feedback.'],['core-loop','Validate the loop before polishing it.'],['controls-and-friction','Latency is the floor of feel.'],['polish-when','When to polish is a production decision.']] });
+  rel:[['feedback-and-affordance','Juice is amplified feedback.'],['core-loop','Validate the loop before polishing it.'],['controls-and-friction','Latency is the floor of feel.'],['polish-when','When to polish is a production decision.'],['three-cs','Game feel is the responsiveness of the character, controls and camera as one loop.'],['camera-design','Shake and zoom add weight to a hit, and the camera decides what the player sees of it.']] });
 TECH('game-feel-and-juice',[
   {n:'Response and control feel', how:`Tune acceleration, input buffering and coyote-time so the character answers the player within milliseconds and forgives small timing errors.`, fit:`Any real-time control scheme. The foundation before adding effects.`, cost:`Over-assisting removes weight and mastery. Too little feels unresponsive.`, alt:`Tune control first, then layer effects.`},
   {n:'Hitstop and impact', how:`Freeze or slow both parties for a few frames on a hit, plus a scale/pose snap, to sell weight.`, fit:`Melee, shooting and any impact that must read as powerful.`, cost:`Too much breaks flow and combos. Needs per-weapon tuning.`, alt:`Vary hitstop by damage and by weapon feel.`},
@@ -305,7 +305,7 @@ T('animation-and-vfx',{ d:'presentation', t:'Animation, VFX and camera', tag:'An
   prompts:[{l:'Telegraph fairness audit',p:`Here are our enemy attacks with telegraph durations, damage and the camera distance and pace at which they appear: [LIST]. For each, estimate whether a player at [SKILL] can perceive and react within the window, given human reaction time and the visual noise you would expect. Flag attacks where the window is too short for the punishment, and propose changes to telegraph length, visibility or punishment, not to damage alone.`}],
   verify:[`Did it use realistic reaction times and account for visual noise?`],
   test:[`“Did you see it coming?” after deaths.`,`Do new players react correctly to first-seen telegraphs?`,`Do players misread any VFX state?`],
-  rel:[['game-feel-and-juice','Animation timing is game feel.'],['encounters-and-enemies','Telegraphs are enemy readability.'],['difficulty','Unfairness is often telegraph failure.'],['visual-language','VFX is part of the grammar.']] });
+  rel:[['game-feel-and-juice','Animation timing is game feel.'],['encounters-and-enemies','Telegraphs are enemy readability.'],['difficulty','Unfairness is often telegraph failure.'],['visual-language','VFX is part of the grammar.'],['camera-design','Camera framing, collision and shake have their own topic.']] });
 TECH('animation-and-vfx',[
   {n:'State-machine animation', how:`Blend between clips driven by gameplay state and transitions with blend times.`, fit:`Most character animation where states are discrete and readable.`, cost:`Transitions can pop. Combinatorics grow with layered actions.`, alt:`Add blending/IK for the seams. Consider motion matching for large, smooth sets.`},
   {n:'Motion matching / procedural motion', how:`Pick the best-matching pose from a database each frame, or generate motion procedurally.`, fit:`Large, fluid movement sets (locomotion, parkour) where authored transitions are too costly.`, cost:`Data-heavy, harder to control authorially, debuggability is poor.`, alt:`Keep authored clips for signature moves. Motion match locomotion.`},
@@ -502,3 +502,109 @@ INTERVIEW('audio-implementation',{
       follow:`Which failures would this test catch, and which would it miss?`,
       red:`Upgrades and relies on listening to a few levels.` }
   ] });
+
+T('camera-design',{ d:'presentation', t:'Camera design', tag:'The camera decides what the player can see, so it decides what they can decide. Frame the next choice, and never fight the hand.',
+  what:`Camera design is the craft of choosing what the player sees, from where, and how that view moves. The common types are fixed (the camera does not move, or cuts between set shots), follow (it trails the character), orbit (the player swings it round the character), rail (it follows a path the designer set) and, in 2D, the side-scroller camera. Itay Keren’s GDC 2015 talk “Scroll Back: The Theory and Practice of Cameras in Side-Scrollers” sorts the 2D ones: a camera window or dead zone the character can move inside without moving the camera, look-ahead that shows more space in the direction of travel, and platform snapping that moves the view when the character lands. For 3D, John Nesky’s GDC 2014 talk “50 Game Camera Mistakes” (https://gdcvault.com/play/1021262/50-Camera) is the main source: it lists, from his work on Journey, the ways cameras fail the player. The player is rarely aware of a good camera. They notice it only when it hides a threat, clips through a wall or makes them ill.`,
+  why:[`The camera sets the information the player has at every decision. A threat that is off-screen is not part of the decision, however well the fight is designed.`,`A camera that moves against the player’s intent is felt as a control fault, and players blame the controls or the game.`,`For some players, camera motion is a health matter. Sudden cuts, strong shake and field-of-view changes can cause motion sickness.`],
+  think:{ q:[`What does the player have to decide next, and is everything that decision needs on screen?`,`Where is the character on screen while moving, and how much space is there ahead of it?`,`What does the camera do when a wall, a ceiling or an enemy comes between it and the character?`,`Which camera movements are the player’s, and which are the game’s?`,`Which camera effects (shake, bob, zoom, cuts) could make a player ill, and can they be turned down?`],
+    trade:[`A tight follow shows the character and little else. A loose follow shows more of the world and lets the character drift near the edge.`,`A designer-set camera frames a moment well and takes control away. A player-controlled one is safe and needs the player to manage it, which is a cost in a fight.`,`Smoothing hides jolts and adds lag. A camera that always lags behind fast movement shows the player the past.`],
+    traps:[`The camera clipping into a wall, or the character hidden behind a pillar, at the exact moment of a jump or a hit.`,`Cuts or moves that change what “forward” means in the middle of an input, so the player steers the wrong way.`,`Heavy shake, head-bob or a wide field-of-view change as a default, with no way to reduce it.`,`The camera auto-rotating behind the player when they are trying to look somewhere else.`,`Inversion treated as a bug report: the vertical axis feels right to some players one way and to others the other way, so it needs an option.`],
+    good:[`Super Mario Bros scrolls only forward and keeps the view ahead of the running character, so the next stretch of ground is already on screen.`,`God of War (2018) uses a single unbroken shot from the start to the end, with no cuts, close over Kratos’s shoulder, so the player always knows where the camera and the character are in the same space.`,`Resident Evil 4 puts the camera over the shoulder and slows the player to aim, which trades mobility for a view of the enemy in front. The tension comes from that choice.`,`Hollow Knight lets the player hold up or down to look beyond the screen, so the view serves exploration without a fixed zoom.`,`Dark Souls’ lock-on keeps a chosen enemy in frame as the player circles, and lets the player switch target with a flick of the stick or drop the lock, so the player stays in charge of what is watched.`],
+    bad:[`Players say the camera “fights me” or “gets stuck”.`,`Players report feeling ill after short sessions, or turn off all camera effects at once.`,`Deaths cluster at places where the camera shows the wrong thing.`] },
+  how:[`Decide what the camera is for in each situation: exploring, platforming, fighting, a scripted moment. Write one sentence per situation about what the player must see.`,`Pick the type that fits each job. A platformer usually wants a dead zone and look-ahead; a melee fight wants the enemy and the character in frame; a set piece may justify a rail.`,`Frame for the next decision. Put the character where it leaves the most space in the direction of travel, and check the worst moments: a jump to a ledge, a fast turn, a boss entering from the side.`,`Handle collision and line of sight in one place. Cast from the character to the camera, move the camera in when something is in the way, and ease it back out. Fade or hide what blocks the view when moving in would be too close.`,`Keep player control predictable: no auto-rotation while the stick is in use, no changes to the input direction during a move, and clear rules when the camera hands over to a scripted shot.`,`Add the comfort options at the start: a field-of-view slider where the genre allows, shake and bob strength, vertical and horizontal inversion, and a lower sensitivity setting.`,`Test the camera at the hard points, not only in open space: tight corridors, corners, ledges, stairs and the biggest fight.`],
+  ai:{ yes:[`List the camera’s failure cases from a level description, such as tight corners, low ceilings and arenas with pillars, so you know where to test.`,`Draft a settings screen of comfort options and the tuning values behind each.`,`Sort playtest comments about the camera into collision, framing, control and comfort.`],
+       no:[`Judge whether a camera move is comfortable. Only players can say, and some are more sensitive than others.`,`Choose smoothing, shake or field-of-view values from a description. They are felt values and have to be played on the target screen.`] },
+  prompts:[{l:'Camera failure sweep',p:`Here is our camera type, its settings and a list of our level spaces (corridors, arenas, ledges, interiors): [DATA]. For each space, say what the camera would do when the character is near a wall or ceiling, when an enemy is behind the camera and when the character turns quickly. List the three most likely failures, the symptom a playtest would show for each and the smallest change to fix it. Do not suggest values; tell me what to test.`},
+    {l:'Comfort options review',p:`Our camera uses these effects: [SHAKE, BOB, FOV CHANGES, CUTS, AUTO-ROTATION]. For each effect, say what discomfort it can cause, whether we offer a way to reduce or switch it off, and what the setting should be called so a player can find it. Flag any effect that has no option.`}],
+  verify:[`Did it separate collision, framing, control and comfort problems, or give general advice?`,`Did it avoid claiming that a movement is comfortable?`,`Does each proposed option have a clear name and a default?`],
+  test:[`Play the build with the camera as the only thing to watch. Note every moment you could not see the threat or the character.`,`Run a short session with players who get ill from games, with comfort options at their defaults. Ask them to stop at the first sign of discomfort.`,`Record deaths and mark what was on screen at the moment of the fatal hit. Count the ones where the cause was off-screen.`,`Test each of the hard points on the real target screen and controller, not only in the editor.`],
+  rel:[['three-cs','The camera is the third of the 3Cs, and it must be tuned with the character and the controls.'],['animation-and-vfx','Camera shake and cuts are motion, and share its timing rules.'],['game-feel-and-juice','Shake and zoom add weight to a hit, and add risk of discomfort.'],['spatial-composition','The space the camera is allowed to see is shaped by the level around it.'],['accessibility','Comfort options and inversion are accessibility options.'],['combat-design','A lock-on camera decides what the player can read in a fight.']] });
+TECH('camera-design',[
+  {n:'Dead zone and look-ahead', how:`Let the character move inside a window without moving the camera, and shift the view ahead in the direction of travel.`, fit:`2D platformers and side-scrollers.`, cost:`Needs tuning per game. A large look-ahead can show too much, or snap when the player turns.`, alt:`A tight follow with light smoothing, for slow games.`},
+  {n:'Spring-arm collision', how:`Cast a probe from the character towards the camera, and pull the camera in when it hits something. Ease it back out.`, fit:`3D follow and orbit cameras.`, cost:`The camera can come very close in a corridor. It needs a minimum distance and a fade for the character.`, alt:`Fixed or rail cameras in tight spaces, where collision is designed out.`},
+  {n:'Lock-on camera', how:`Frame the player and a chosen target together, and let the player change targets and release the lock.`, fit:`Melee combat and boss fights in 3D.`, cost:`Fights with several enemies are hard to frame. A bad target switch is felt at once.`, alt:`A free camera with a wider view and no lock.`},
+  {n:'Comfort options', how:`Offer field of view, shake and bob strength, inversion and sensitivity as settings, with safe defaults.`, fit:`Any game with a moving camera.`, cost:`Every effect needs a strength value and a test at zero.`, alt:`Remove the effects that cause trouble instead of making them optional.`}
+]);
+ENGINE('camera-design',{
+  godot:{ term:`A 2D side-scroller camera uses Camera2D as a child of the character. Drag margins make the dead zone, smoothing eases the move, and the offset gives look-ahead in the direction of travel.`,
+    api:['Camera2D.drag_horizontal_enabled','Camera2D.position_smoothing_enabled','Camera2D.offset','Camera2D.process_callback','lerpf()','@export'],
+    snippet:`extends Camera2D
+@export var look_ahead := 80.0
+@export var shift_speed := 3.0
+@onready var body := get_parent() as CharacterBody2D
+
+func _ready() -> void:
+    process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
+    position_smoothing_enabled = true
+    position_smoothing_speed = 6.0
+    drag_horizontal_enabled = true
+    drag_left_margin = 0.15
+    drag_right_margin = 0.15
+
+func _physics_process(delta: float) -> void:
+    var dir := signf(body.velocity.x)
+    offset.x = lerpf(offset.x, dir * look_ahead, shift_speed * delta)`,
+    pitfall:`Moving the character in _physics_process() while the camera updates on idle frames (the default). The two run at different rates, so the character seems to shimmer against the background. Set process_callback to physics, as above, or move the character in the same callback as the camera.`,
+    map:`Godot Camera2D with drag margins and smoothing is the job Unity’s Cinemachine does with its dead zone and damping. Unity has no built-in drag margin on the plain Camera.` },
+  unity:{ term:`A dead zone and smoothing in a few lines, on a plain Camera. The camera only moves when the target leaves the zone, and Vector3.SmoothDamp eases the move. In a full project, Cinemachine does this with a dead zone setting and damping.`,
+    api:['MonoBehaviour.LateUpdate()','Vector3.SmoothDamp()','Mathf.Max()','Mathf.Sign()','[SerializeField]'],
+    snippet:`public class FollowCamera : MonoBehaviour {
+    [SerializeField] Transform target;
+    [SerializeField] Vector2 deadZone = new Vector2(1.5f, 1f);
+    [SerializeField] float smoothTime = 0.2f;
+    Vector3 velocity;
+
+    void LateUpdate() {
+        Vector2 d = target.position - transform.position;
+        d.x = Mathf.Sign(d.x) * Mathf.Max(0f, Mathf.Abs(d.x) - deadZone.x);
+        d.y = Mathf.Sign(d.y) * Mathf.Max(0f, Mathf.Abs(d.y) - deadZone.y);
+        Vector3 goal = transform.position + (Vector3)d;
+        transform.position = Vector3.SmoothDamp(transform.position, goal, ref velocity, smoothTime);
+    }
+}`,
+    pitfall:`Moving the character with a Rigidbody in FixedUpdate while the camera follows in LateUpdate. The body is moved at the physics rate and drawn at the frame rate, so the follow looks jittery. Turn on the Rigidbody’s Interpolate setting, or move the character in Update.`,
+    map:`Unity’s LateUpdate runs after all Update calls, which is the place Godot’s Camera2D does its work. Cinemachine is the production tool, and this is its idea in miniature.` },
+  note:`The design point is the same in both engines: the dead zone is a number the designer can see and change, and the smoothing time is another. When the character jitters, check whether the character and the camera update on the same clock before touching either number.` });
+INTERVIEW('camera-design',{
+  junior:[
+    { q:`Name three camera types and when you would use each.`,
+      a:`Fixed, for set shots in a small space where the designer frames each room, as in a single-screen platformer. Follow, for a character moving through a larger world, with some smoothing. Orbit, where the player swings the view round the character, for 3D exploration and fighting. Others are rail, for a designed route, and the dead zone and look-ahead used in 2D side-scrollers.`,
+      follow:`Which type would you not use for a fast platformer, and why?`,
+      red:`Names types with no use for each.` },
+    { q:`What is a camera dead zone, and what is it for?`,
+      a:`A window on screen inside which the character can move without the camera moving. It stops the screen from shaking with every small step, and it keeps the world steady while the player makes small corrections. Itay Keren’s GDC 2015 talk on side-scroller cameras describes this camera window. It needs tuning so the character never gets too close to the edge.`,
+      follow:`What goes wrong if the dead zone is too large?`,
+      red:`Describes it as smoothing, or cannot say what it saves the player from.` },
+    { q:`Why can a camera make a player feel ill, and what would you give them?`,
+      a:`Motion on screen that the body does not feel can cause sickness, and sudden cuts, strong shake, head-bob and large field-of-view changes are the common causes. Give a field-of-view slider where the genre allows, shake and bob strength, and an option for no camera effects. Test with players who are sensitive, not only the team.`,
+      follow:`What default would you pick, and why?`,
+      red:`Says players should get used to it.` }
+  ],
+  mid:[
+    { q:`How do you stop a 3D camera from clipping into walls?`,
+      a:`Cast a probe from the character towards the wanted camera position. If it hits something, put the camera in front of the hit and ease back out when clear. Set a minimum distance, and fade or hide the character if the camera gets too close. In tight spaces, use a different camera for that space. Test corners, ceilings and doorways first.`,
+      follow:`In a narrow corridor the camera is on the character’s back. What do you do?`,
+      red:`Moves the wall or removes the collision.` },
+    { q:`How do you frame the screen for the player’s next decision?`,
+      a:`List the decision, then list the information it needs, and check that all of it is on screen at that moment. In a platformer, keep space ahead of the direction of travel and the landing spot in view. In a fight, keep the threats in frame or tell the player about the ones that are not, with a sound or a marker. Check by recording deaths and noting what was on screen.`,
+      follow:`A boss attacks from behind the camera. How do you fix it?`,
+      red:`Talks only about composition and looks, not information.` },
+    { q:`Players disagree about camera inversion and sensitivity. What do you do?`,
+      a:`Treat it as a settings problem, not a design choice. Offer vertical and horizontal inversion, a sensitivity slider and, where useful, separate values for aiming. Choose defaults by the genre’s convention and test them with new players. Do not test with the team alone, since they have already adapted.`,
+      follow:`Where should those settings appear for a first-time player?`,
+      red:`Picks one setting and calls the other a bug.` }
+  ],
+  senior:[
+    { q:`Design the camera for a third-person action game with lock-on. What are the hard cases?`,
+      a:`Start with the jobs: exploring, fighting one enemy, fighting several, and scripted moments. The hard cases are several enemies, enemies behind the player, collision in tight spaces, switching targets and the hand-over between lock and free. Give the player control of the lock and the target switch, keep the enemy and character in frame, and tell the player about off-screen threats. Dark Souls and God of War are useful references, and they make different trade-offs.`,
+      follow:`How would you test it before the levels are built?`,
+      red:`Describes only the single-enemy case.` },
+    { q:`How would you handle a request for cinematic cuts in the middle of play?`,
+      a:`Ask what the cut gives and what it costs. Cuts can change which way is forward and hide a threat, and Nesky’s “50 Game Camera Mistakes” lists the ways cameras take control from the player. A cut may be fine in a story moment with no input needed. In play, prefer a continuous move, as God of War does with its single shot, or keep the control scheme unchanged through the cut. Test it with players who have not seen the scene.`,
+      follow:`The director insists on the cut. How do you reduce the harm?`,
+      red:`Agrees at once, or refuses with no alternative.` }
+  ] });
+DIAGRAM('camera-design', { kind:'matrix', title:'Four camera types: what each shows, and what it risks',
+  rows:['Fixed','Follow','Orbit','Rail'], cols:['Shows well','Risks'],
+  cells:[['A set frame','No player view'],['The path ahead','Lag, jitter'],['Any angle','Walls, effort'],['A designed route','Lost control']],
+  note:'Nesky’s GDC 2014 talk “50 Game Camera Mistakes” is the main source on how cameras fail. Keren’s GDC 2015 talk covers side-scrollers.' });

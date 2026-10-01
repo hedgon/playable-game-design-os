@@ -14,6 +14,7 @@
      server-scaling            Scaling: sharding, pub/sub fan-out, stateless vs stateful
      server-anticheat          Anti-cheat and abuse handling
      server-liveops            Live operations: maintenance gates, force update, batches, master data
+     server-stack-choices      Choosing a stack: netcode, hosting, backend services, lock-in
    ===================================================================== */
 DOMAINS.push({ id:'server', lens:'eng', t:'Game Server', short:'Authority, determinism, sync, realtime, matchmaking, scaling, live ops', color:'var(--d-server)',
   sum:`The authoritative copy of the game. Where the backend answers questions, the game server decides what is true: who hit whom, what the world looks like this tick, and whether a client is allowed to say what it just said. Every choice here is a trade between responsiveness, fairness and cost.`,
@@ -452,7 +453,7 @@ T('server-matchmaking',{ d:'server', t:'Matchmaking, rooms and sessions', tag:'A
     {l:'Session lifecycle',p:`Describe the full session lifecycle for this shape: [TOPOLOGY], created by [OWNER], with a disconnect policy of [POLICY]. Enumerate every state and transition including app suspend, network loss, graceful leave, host leave, crash, and the last player leaving. For each transition say who destroys the room, what the remaining players see, and what is left allocated if the transition is missed.`}],
   verify:[`Is the relaxation ladder data someone can read and change, or is it constants inside the matcher?`,`Does every exit path from a session run the same cleanup, including the crash and suspend paths?`,`Are room codes namespaced per environment, and has someone tried to join across environments?`],
   test:[`Measure median and 95th percentile queue time by hour, together with how far the ladder had to relax. A short queue that always relaxes fully is a bad match served fast.`,`Suspend a client mid-match for five, thirty and three hundred seconds. Measure exactly what the player and the other players see at each, against the policy you wrote.`,`Run a load test that creates and abandons sessions on every exit path, then count allocated rooms afterwards. The number should return to zero.`],
-  rel:[['social-experience','Who you are matched with is the social experience, and a private room code is the whole feature for friends playing together.'],['return-and-quit','A queue that is too long or a match that is too one-sided is one of the most common reasons a player stops coming back.'],['server-scaling','Rooms are the unit that gets distributed, so the matchmaker and the shard layout are one design.'],['server-authority','The matcher hands players to something that becomes the authority, and which machine that is was decided by the authority model.'],['infra-deploy-models','A session is a stateful process with a lifetime, which is the hardest shape to deploy and the one that decides your platform.'],['multiplayer-design','Who should meet, and what counts as a fair match, is decided there before the queue is built.']],
+  rel:[['server-stack-choices','Matchmaking is the service most often bought from a vendor, so the stack choice decides where its seam goes.'],['social-experience','Who you are matched with is the social experience, and a private room code is the whole feature for friends playing together.'],['return-and-quit','A queue that is too long or a match that is too one-sided is one of the most common reasons a player stops coming back.'],['server-scaling','Rooms are the unit that gets distributed, so the matchmaker and the shard layout are one design.'],['server-authority','The matcher hands players to something that becomes the authority, and which machine that is was decided by the authority model.'],['infra-deploy-models','A session is a stateful process with a lifetime, which is the hardest shape to deploy and the one that decides your platform.'],['multiplayer-design','Who should meet, and what counts as a fair match, is decided there before the queue is built.']],
   tech:[
     {n:'Ticket pool with rule predicates', how:`Every waiting party becomes a ticket with a capacity and a list of predicates. A matcher periodically scans open tickets for a set that satisfies everyone’s predicates and forms a match.`, fit:`Most games. It expresses skill, latency, mode and party rules uniformly.`, cost:`The scan is quadratic in the worst case and needs a lock or a single owner. Long-waiting tickets starve without an explicit ladder.`, alt:`First come first served into the next open room, which is fine when the only predicate is capacity.`},
     {n:'Private rooms with join codes', how:`One player creates a room and receives a short code. Others type it. The code is prefixed with an environment tag before becoming the session name.`, fit:`Friends playing together, playtests, tournaments, anything where the player chooses the company.`, cost:`Short codes collide and must be reserved and expired. Without an environment tag, builds sharing one service can cross over.`, alt:`Invite links, which remove typing and require a platform that can deliver them.`},
@@ -551,7 +552,7 @@ T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts
     {l:'Stateful drain review',p:`We run [N] instances each holding up to [M] live sessions of typical length [LENGTH]. Describe a deploy and scale-down procedure that does not kill a session in progress. Cover: stopping new placement, the drain window, sessions that outlast it, a crash during drain, and how the room directory stays correct throughout. State what the player sees in each case.`}],
   verify:[`Does the client re-subscribe to every channel after a reconnect, or does it trust the server to have remembered?`,`Is capacity bounded by configuration you can change without a release?`,`Does the room directory survive an instance disappearing, or does it hand out addresses that are already dead?`],
   test:[`Load test with concurrent sessions, not with requests per second. Measure sessions per instance at the point where latency degrades, and use that as the capacity number.`,`Restart a pub/sub node during a busy session and measure how long clients stop receiving messages and whether they recover without a manual reconnect.`,`Run a deploy during a live match and measure whether any session was cut, how long the drain took, and how many rooms were left allocated afterwards.`],
-  rel:[['live-operations','Capacity, deploys and drains are live operations work, and they are what a launch day consists of.'],['metrics-and-success','Concurrent sessions, fan-out volume and drain duration are the metrics that tell you whether the architecture is holding.'],['server-matchmaking','Where a room is placed and how it is found is the other half of the matchmaker.'],['server-realtime-protocol','Channels and op codes are the unit that fan-out is measured in.'],['infra-data-stores','Partitioning, replicas and queues are the storage side of the same scaling decision.']],
+  rel:[['server-stack-choices','Choosing hosting and orchestration comes before scaling it, and the choice decides how sessions are placed and drained.'],['live-operations','Capacity, deploys and drains are live operations work, and they are what a launch day consists of.'],['metrics-and-success','Concurrent sessions, fan-out volume and drain duration are the metrics that tell you whether the architecture is holding.'],['server-matchmaking','Where a room is placed and how it is found is the other half of the matchmaker.'],['server-realtime-protocol','Channels and op codes are the unit that fan-out is measured in.'],['infra-data-stores','Partitioning, replicas and queues are the storage side of the same scaling decision.']],
   tech:[
     {n:'Stateless request tier plus stateful session tier', how:`Two deployments. The request tier holds nothing between calls and scales by copies. The session tier owns live rooms and scales by placement and draining.`, fit:`Any game with both an out-of-match service and live matches.`, cost:`Two lifecycles, two deploy procedures, and a directory that maps rooms to instances.`, alt:`One process doing both, which is simpler and means every deploy kills every match.`},
     {n:'Sharded pub/sub fan-out', how:`Channels are distributed across nodes by a hash of the channel name. Each server instance subscribes on behalf of its connected clients, with reconnect and retry on node failure.`, fit:`Chat, presence, notifications and any message that must reach players spread across instances.`, cost:`Subscriber sets are spread, so counting or enumerating all subscribers of a channel becomes a fan-in. Node failure needs explicit re-subscription.`, alt:`A single node, which is simpler and has a hard ceiling you will reach without warning.`},
@@ -968,3 +969,110 @@ INTERVIEW('server-rollback-netcode',{
       follow:`What breaks first as you add players to rollback?`,
       red:`Treats one model as best for all.` }
   ] });
+
+T('server-stack-choices',{ d:'server', t:'Choosing a multiplayer stack: hosting, services and netcode', tag:'Pick the session model first. Then pick three layers separately, and keep a seam so any one of them can be replaced.',
+  what:`A multiplayer stack is three layers that are often sold together and should be chosen apart. The netcode library lives in the client and the server and moves state and messages between them (Netcode for GameObjects, Mirror, Photon Fusion 2, Fish-Net, or Godot’s high-level multiplayer). Orchestration and hosting start, place and stop dedicated server processes on machines (Agones on Kubernetes, Amazon GameLift Servers, PlayFab Multiplayer Servers). Backend services hold what lives between matches: accounts, matchmaking, leaderboards and storage (Nakama, PlayFab, Unity Gaming Services). Which of these you need depends first on the session model: short matches that start and end, or a persistent world that keeps running.`,
+  why:[`A choice made for the demo is usually a choice made for life. The netcode library shapes every gameplay script, so replacing it late means rewriting the game.`,`Services end. Companies shut products down, rename them and change prices, and the date is theirs, not yours.`,`A match-based game and a persistent world need different hosting. Starting and stopping thousands of short processes is a different job from keeping one world alive.`,`Buying saves months at the start and costs a dependency. Building costs months and removes one. Neither is free, so the decision should be written down with its exit cost.`],
+  think:{ q:[`Is a session a match that ends, or a world that stays? How many players share it, and how long does it last?`,`Which layers do we need at all? A co-op game for four friends may need a netcode library and nothing else.`,`For each product we name: what do we lose if it shuts down in a year, and how long would leaving take?`,`Where is the line between our game code and the vendor’s SDK, and could we move that line in a week?`,`What is the smallest build that proves the stack can carry our session model with real latency?`],
+    trade:[`A managed service starts fast and ties your monthly bill to someone else’s price list and your roadmap to their shutdown risk.`,`Self-hosted open source (Agones, Nakama) gives control and exit options, and gives you the on-call rota.`,`A full-featured netcode library saves months of work and wraps your gameplay code in its types and attributes.`],
+    traps:[`Choosing hosting before the session model, then discovering the product is built for the other kind.`,`Calling the vendor SDK from gameplay scripts, so leaving means touching every file.`,`Reading a free tier as a price. It is a promotion with a limit.`,`Comparing features on a landing page and never running a build under 150 ms of latency.`,`Treating one product as all three layers, so a hosting problem forces a netcode change.`],
+    good:[`The three layers are named, each with an owner and an exit plan.`,`A thin interface of your own sits between gameplay code and each vendor.`],
+    bad:[`The stack was picked because a tutorial used it.`,`Nobody can say what happens if the hosting provider shuts down next quarter.`] },
+  how:[`Write the session model in one paragraph: match-based or persistent, player count, session length, and whether cheating matters. Everything else follows from it.`,`List the three layers and mark each one: not needed, build, or buy. A small co-op game can stop after the first.`,`Pick the netcode library first, because it is the hardest to replace. Read how it handles authority, and check it fits your server model from the authority topic.`,`Choose hosting and orchestration next. For match-based games, ask how fast a server starts, how it is told to stop, and who pays for idle capacity.`,`Add backend services last, one at a time, and only when a feature needs them. Accounts and matchmaking are the usual first two.`,`Put each vendor behind an interface you own, such as IMatchmaker or IServerAllocator. The vendor code sits in one folder and nothing else imports it.`,`Prototype the riskiest layer first: two clients and one dedicated server on a remote machine, with latency added, running one real match end to end.`,`Write the exit plan in the same document as the choice: what it would take to leave, and what you would replace it with.`],
+  ai:{ yes:[`Draft a comparison table for options you name, with the columns you give it, then check every cell against the vendor’s own documentation.`,`Review your vendor-facing interfaces for places where a vendor type leaks into gameplay code.`,`Write the glue and the local test harness that starts a server and two clients.`,`List the questions to ask a vendor about limits, regions, data export and shutdown terms.`],
+       no:[`Tell you what a product costs or whether it still exists today. These change, and a model’s memory of them is old.`,`Decide your build-or-buy line. That depends on your team, budget and risk appetite.`,`Replace a latency test on real networks.`] },
+  prompts:[{l:'Three-layer plan',p:`Our game: [GAME]. Session model: [MATCH OR PERSISTENT], [PLAYERS] players, sessions of about [LENGTH]. Team: [TEAM SIZE AND SKILLS]. For each of netcode library, orchestration and hosting, and backend services, say whether we need it, and give two options with what we gain and what leaving would cost. Mark every claim about pricing, licence or availability as "check the vendor page".`},
+    {l:'Seam review',p:`Here is the code that calls [VENDOR SDK]: [CODE]. List every place where a vendor type, attribute or callback is used outside one folder. For each, propose an interface of our own and show the smallest change that moves the vendor call behind it.`}],
+  verify:[`Does each layer have a written exit plan?`,`Is every vendor call inside one folder, with nothing in gameplay code importing it?`,`Has a real match run on a remote dedicated server with added latency?`,`Does every claim about price, licence or shutdown date have a source and a date?`],
+  test:[`Run one full match on a remote server with 100 to 200 ms of added latency and record what the player sees at each step: connect, play, disconnect, reconnect.`,`Replace the vendor behind one interface with a stub and see how many files change. The number is your lock-in.`,`Kill the allocated server mid-match and watch what the players and the backend do.`],
+  rel:[['server-scaling','Once the stack is chosen, scaling is how the stateful session tier grows and drains on that hosting.'],['server-matchmaking','Matchmaking is the service that most often comes from a vendor, so its interface is the first seam to draw.'],['server-authority','The authority model decides what the netcode library must support before you compare libraries.'],['infra-data-stores','Backend storage and its exit cost belong to the same build-or-buy decision.'],['live-operations','Hosting, deploys and shutdown notices are live operations work from launch day.']],
+  tech:[
+    {n:'Dedicated servers on managed hosting', how:`A hosting service starts your server build on demand, places a match on it and stops it when the match ends.`, fit:`Match-based games where fairness matters and you want fast scale-up.`, cost:`Per-use bills, a vendor dependency, and your server build must fit its lifecycle calls.`, alt:`Self-hosted orchestration, which gives control and gives you the operations work.`},
+    {n:'Self-hosted orchestration', how:`You run the scheduler yourself, for example Agones on Kubernetes, and your server process reports ready, allocated and shutdown.`, fit:`Teams with platform skills who want control of cost and an easy exit.`, cost:`Someone must run and patch the cluster, and watch it at night.`, alt:`Managed hosting, which trades control for speed.`},
+    {n:'Listen server or peer host', how:`One player’s game acts as the server. No hosting layer is needed.`, fit:`Small co-op games and prototypes where cheating is not a worry.`, cost:`The host’s connection and machine set the quality, and the session ends if the host leaves.`, alt:`A dedicated server, which costs money and removes the host advantage.`},
+    {n:'Backend-as-a-service', how:`One product supplies accounts, storage, matchmaking and leaderboards through an SDK.`, fit:`Small teams that need services this month.`, cost:`Your data model and calls follow the product, so leaving means a migration.`, alt:`An open-source backend you run (Nakama), or your own service behind your own interface.`}
+  ] });
+ENGINE('server-stack-choices',{
+  godot:{ term:`Godot’s high-level multiplayer API is built in, so the netcode layer costs nothing to adopt. A dedicated server is a headless export that creates an ENetMultiplayerPeer in server mode and waits for clients.`,
+    api:['ENetMultiplayerPeer.create_server(port, max_clients)','ENetMultiplayerPeer.create_client(address, port)','multiplayer.multiplayer_peer','MultiplayerSpawner','@rpc("any_peer", "reliable")','OS.has_feature("dedicated_server")'],
+    snippet:`extends Node
+
+const PORT := 7777
+const MAX_PLAYERS := 8
+
+func _ready() -> void:
+\tif OS.has_feature("dedicated_server"):
+\t\tvar peer := ENetMultiplayerPeer.new()
+\t\tpeer.create_server(PORT, MAX_PLAYERS)
+\t\tmultiplayer.multiplayer_peer = peer
+\t\tmultiplayer.peer_connected.connect(_on_peer_joined)
+
+func _on_peer_joined(id: int) -> void:
+\tprint("client joined: ", id)       # spawn its player here`,
+    pitfall:`Letting scene scripts call a vendor service directly, such as a matchmaking SDK in a menu button. Put the call behind one autoload with methods like find_match() so the vendor can change without touching scenes. The built-in peer also has no hosting layer: you must start the headless build on a machine yourself or through an orchestrator.`,
+    map:`Godot’s built-in API is the netcode layer only. Hosting and backend services are still your choice, as with Netcode for GameObjects in Unity.` },
+  unity:{ term:`Netcode for GameObjects is a netcode library. NetworkManager.StartServer runs a dedicated server, StartHost runs a listen server, and StartClient joins one. Hosting and services are separate choices.`,
+    api:['NetworkManager.Singleton.StartServer()','NetworkManager.Singleton.StartHost()','NetworkManager.Singleton.StartClient()','UnityTransport.SetConnectionData(address, port)','NetworkManager.OnClientConnectedCallback','Application.isBatchMode'],
+    snippet:`public class Boot : MonoBehaviour {
+    [SerializeField] ushort port = 7777;
+
+    void Start() {
+        var nm = NetworkManager.Singleton;
+        var transport = nm.GetComponent<UnityTransport>();
+        transport.SetConnectionData("0.0.0.0", port);
+
+        if (Application.isBatchMode) {       // dedicated server build
+            nm.OnClientConnectedCallback += id => Debug.Log("joined " + id);
+            nm.StartServer();
+        }
+    }
+}`,
+    pitfall:`Calling a services SDK from gameplay scripts. Write an interface such as IMatchmaker and keep the vendor class in one folder, so a shutdown or a price change is a one-folder change. Check that a dedicated server build with no graphics still starts and accepts a client before you choose a host.`,
+    map:`StartServer here is Godot’s headless ENetMultiplayerPeer server. Both only provide the netcode layer.` },
+  note:`This topic is a decision, so the code is only the smallest dedicated server each engine offers. The part that matters is the seam you draw around everything else.` });
+INTERVIEW('server-stack-choices',{
+  junior:[
+    { q:`What are the three layers of a multiplayer stack?`,
+      a:`The netcode library, which moves state between client and server. Orchestration and hosting, which start and stop dedicated servers. Backend services, which hold accounts, matchmaking, leaderboards and storage. Say that they can be chosen separately.`,
+      follow:`Which of the three does a four-player co-op game need?`,
+      red:`Treats multiplayer as one product to pick.` },
+    { q:`What is a dedicated server and how is it different from a listen server?`,
+      a:`A dedicated server is a separate process that only runs the game. A listen server is a player’s own game also acting as the server. Dedicated gives fairness and stability and costs hosting. Listen is free and depends on the host’s connection.`,
+      follow:`What happens to a listen-server match when the host quits?`,
+      red:`Says dedicated is always better.` }
+  ],
+  mid:[
+    { q:`How do you decide between a managed hosting service and running your own orchestration?`,
+      a:`Start from the session model, team skills and budget. Managed is faster and bills per use, with a vendor dependency. Self-hosted such as Agones on Kubernetes gives control and an easy exit, and someone must run the cluster. Mention the cost of idle capacity in both.`,
+      follow:`What would make you switch later?`,
+      red:`Chooses on the price page alone.` },
+    { q:`What is a seam and where would you put one?`,
+      a:`An interface you own between gameplay code and a vendor SDK, such as IMatchmaker. All vendor code sits behind it in one folder. Then a shutdown or a price change means rewriting one adapter, not the game.`,
+      follow:`How would you test that the seam holds?`,
+      red:`Calls the SDK straight from gameplay scripts because it is faster to write.` },
+    { q:`Why match the hosting to the session model?`,
+      a:`Match-based games start and stop many short server processes, so start time and idle cost matter. Persistent worlds keep a process alive for a long time, so state, saving and upgrades matter. A product built for one fits the other badly.`,
+      follow:`Which kind is a battle royale?`,
+      red:`Sees no difference between them.` }
+  ],
+  senior:[
+    { q:`A vendor you depend on announces a shutdown in six months. What do you do?`,
+      a:`Read the notice for dates and data export. Find where the vendor code lives and how big it is. Pick a replacement or a self-hosted option and prove it on a prototype before committing. Migrate behind the seam, in stages, and tell the team the plan. Say what you would have done earlier: a written exit plan.`,
+      follow:`What would you have to migrate that the SDK does not export?`,
+      red:`Plans to wait and see, or to rewrite everything at once.` },
+    { q:`How do you decide build or buy for a backend service?`,
+      a:`Count the full cost: the months to build, the on-call to run it, and the exit cost of buying. Buy what is not your differentiator and easy to leave. Build what the game depends on or what you cannot afford to lose. Prototype the riskiest piece first. Mark every price or availability claim with a date.`,
+      follow:`What would change your answer in two years?`,
+      red:`Says always build, or always buy.` },
+    { q:`What do you test before picking a stack?`,
+      a:`One real match on a remote dedicated server with added latency, from connect to disconnect and reconnect. Add the vendor behind an interface and swap it with a stub to measure lock-in. Kill the server mid-match to see what players and the backend do.`,
+      follow:`What result would make you reject the option?`,
+      red:`Decides from feature lists and demos.` }
+  ] });
+FACTS('server-stack-choices',[
+  { claim:`Unity’s Multiplay Game Server Hosting was deprecated on 1 April 2026, after a 31 March cut-off. From then customers could not scale new game servers or make new allocations, and customers who asked to move to Multiplay by Rocket Science could keep using it until their migration finished.`, asOf:'2026-10-01', src:'https://status.unity.com/info_notices/362941' },
+  { claim:`Amazon GameLift Servers is AWS’s managed service for deploying, operating and scaling dedicated game servers for session-based multiplayer games, and includes FlexMatch matchmaking. It also offers Anywhere fleets, which run on your own hardware or another cloud.`, asOf:'2026-10-01', src:'https://docs.aws.amazon.com/gameliftservers/latest/developerguide/gamelift-intro.html' },
+  { claim:`Agones is an open-source platform that scales and orchestrates dedicated multiplayer game servers on anything that runs Kubernetes.`, asOf:'2026-10-01', src:'https://agones.dev' },
+  { claim:`Nakama is an open-source game backend. Its server framework lets you write runtime code in Go, JavaScript or Lua.`, asOf:'2026-10-01', src:'https://heroiclabs.com/docs/nakama/server-framework/introduction/' },
+  { claim:`Mirror, an open-source networking library for Unity, is MIT licensed.`, asOf:'2026-10-01', src:'https://github.com/MirrorNetworking/Mirror' }
+]);

@@ -23,7 +23,7 @@ function imageSize(file) {
 }
 const src = DATA
   .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
-const RETURNS = '\nreturn {GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,COMPARISONS,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
@@ -783,6 +783,50 @@ if (orphans.length) console.log('WARN topics with no inbound links:', orphans.jo
   const cov = [['topic', Object.keys(TOPICS)], ['game', (ctx.REFERENCE_GAMES || []).map(g => g.id)], ['engine', (ctx.ENGINES || []).map(e => e.id)], ['platform', (ctx.PLATFORMS || []).map(p => p.id)], ['checklist', (ctx.CHECKLISTS || []).map(c => c.id)]];
   console.log('path coverage: ' + cov.map(([k, ids]) => `${k}s ${ids.length - miss(k, ids).length}/${ids.length}`).join(', '));
   cov.forEach(([k, ids]) => { const m = miss(k, ids); if (m.length) errors.push(`not in any learning path (${k}): ${m.join(', ')}`); });
+}
+// Worked examples (WORKED) and comparisons (COMPARE).
+{
+  const str = v => typeof v === 'string' && v.trim().length > 0, ids = new Set();
+  let nw = 0;
+  for (const t of Object.values(TOPICS)) for (const [i, w] of (t.worked || []).entries()) {
+    nw++;
+    const where = `${t.id}: worked[${i}] ${w.id || '?'}`;
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(w.id || '')) errors.push(`${where}: id is not kebab-case`);
+    else if (ids.has(w.id)) errors.push(`${where}: duplicate worked id`);
+    ids.add(w.id);
+    for (const k of ['t', 'intro', 'note']) if (!str(w[k])) errors.push(`${where}: ${k} empty`);
+    if (!Array.isArray(w.try) || w.try.length < 2 || w.try.some(q => !str(q))) errors.push(`${where}: try needs 2 or more questions`);
+    if (w.kind === 'table') {
+      if (!Array.isArray(w.columns) || !w.columns.length || w.columns.some(c => !c || !str(c.h))) errors.push(`${where}: columns need a header each`);
+      if (!Array.isArray(w.rows) || !w.rows.length) errors.push(`${where}: rows empty`);
+      else w.rows.forEach((r, ri) => {
+        if (!Array.isArray(r) || r.length !== (w.columns || []).length) errors.push(`${where}: rows[${ri}] has ${Array.isArray(r) ? r.length : '?'} cells, columns has ${(w.columns || []).length}`);
+        else r.forEach((c, ci) => { if (!(typeof c === 'string' || (typeof c === 'number' && isFinite(c)))) errors.push(`${where}: rows[${ri}][${ci}] must be a string or number`); });
+      });
+      (w.formulas || []).forEach((f, fi) => {
+        if (!f || !str(f.f) || !(w.columns || []).some(c => c.h === f.col)) errors.push(`${where}: formulas[${fi}] needs a col that names a column, and text`);
+      });
+      if (!/^[\w.-]+\.csv$/.test(w.file || '')) errors.push(`${where}: file must be a name ending in .csv`);
+    } else if (w.kind === 'doc') {
+      if (!Array.isArray(w.sections) || !w.sections.length || w.sections.some(s => !s || !str(s.h) || !str(s.body))) errors.push(`${where}: sections need h and body`);
+      if (!/^[\w.-]+\.md$/.test(w.file || '')) errors.push(`${where}: file must be a name ending in .md`);
+    } else errors.push(`${where}: kind must be table or doc`);
+  }
+  const gameIds = new Set((ctx.REFERENCE_GAMES || []).map(g => g.id)), cids = new Set();
+  for (const c of (ctx.COMPARISONS || [])) {
+    const where = `comparison ${c.id || '?'}`;
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(c.id || '')) errors.push(`${where}: id is not kebab-case`);
+    else if (cids.has(c.id)) errors.push(`${where}: duplicate id`);
+    cids.add(c.id);
+    for (const k of ['t', 'problem', 'verdict', 'principle']) if (!str(c[k])) errors.push(`${where}: ${k} empty`);
+    if (!Array.isArray(c.games) || c.games.length !== 2 || c.games.some(g => !gameIds.has(g))) errors.push(`${where}: games must name two reference games`);
+    else if (c.games[0] === c.games[1]) errors.push(`${where}: the two games must differ`);
+    if (!Array.isArray(c.sections) || c.sections.length < 3) errors.push(`${where}: needs 3 or more sections`);
+    else c.sections.forEach((s, i) => { for (const k of ['h', 'a', 'b']) if (!s || !str(s[k])) errors.push(`${where}: sections[${i}].${k} empty`); });
+    for (const tid of (c.topics || [])) if (!TOPICS[tid]) errors.push(`${where}: topic "${tid}" does not exist`);
+    if (!Array.isArray(c.sources) || !c.sources.length || c.sources.some(u => !/^https:\/\/[^/\s]+/.test(u))) errors.push(`${where}: needs 1 or more https sources`);
+  }
+  console.log(`worked examples: ${nw}, comparisons: ${(ctx.COMPARISONS || []).length}`);
 }
 const flowCount = (CASE_STUDIES || []).reduce((n, c) => n + (Array.isArray(c.flows) ? c.flows.length : 0), 0);
 console.log(`workflows: ${flowCount}, projects with an interview: ${(CASE_STUDIES || []).filter(c => c.iv).length}, systems with likely questions: ${sysCases.reduce((n, c) => n + c.systems.filter(s => s.iv).length, 0)}`);
