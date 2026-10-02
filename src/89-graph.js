@@ -201,7 +201,7 @@ window.PlayableGraph = (function(){
     const subs = n.subLines || (n.sub ? [n.sub] : []), subExtra = subs.length ? (subs.length - 1) * lineGap(12) : 0;
     const tx = left ? x + n.w - 14 : x + 14, ty = (n.sub ? n.y - 3 : n.y + 4) - (extra + subExtra) / 2, anchor = left ? 'end' : 'start';
     let g = `<g class="node ${cls}" ${attrs(n, scope)}>`;
-    g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="3"/><rect class="fring" x="${x - 4}" y="${y - 4}" width="${n.w + 8}" height="${n.h + 8}" rx="6"/>`;
+    g += `<rect class="disc" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="0"/><rect class="fring" x="${x - 4}" y="${y - 4}" width="${n.w + 8}" height="${n.h + 8}" rx="0"/>`;
     const mx = left ? x + 16 : x + n.w - 16;
     if(n.kind === 'domain' || n.kind === 'group') g += `<text class="glyph" x="${mx}" y="${n.y + 4}" text-anchor="middle" font-size="12">${n.open ? '−' : '+'}</text>`;
     // read state: a ring for unread, a filled ring with a tick for read

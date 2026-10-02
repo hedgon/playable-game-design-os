@@ -61,7 +61,7 @@ window.PlayableDiagram = (function(){
   }
   function cardSVG(n, num){
     let y = n.y + 10;
-    let s = `<g class="dnode"><rect class="dcard${n.shape ? ' ' + n.shape : ''}" x="${f(n.x)}" y="${f(n.y)}" width="${f(n.w)}" height="${f(n.h)}" rx="${n.shape === 'pool' ? 16 : 3}"/>`;
+    let s = `<g class="dnode"><rect class="dcard${n.shape ? ' ' + n.shape : ''}" x="${f(n.x)}" y="${f(n.y)}" width="${f(n.w)}" height="${f(n.h)}" rx="${n.shape === 'pool' ? 16 : 0}"/>`;
     if (num) s += `<text class="dnum" x="${f(n.x + n.w - 8)}" y="${f(n.y + 12)}" text-anchor="end" font-size="9.5">${num}</text>`;
     if (n.tag) { y += SLH - 2; s += `<text class="dtag" x="${f(n.x + 10)}" y="${f(y)}" font-size="9">${esc(n.tag.toUpperCase())}</text>`; }
     n.tl.forEach(l => { y += LH; s += `<text class="dlbl" x="${f(n.x + 10)}" y="${f(y - 3)}" font-size="${FS}">${esc(l)}</text>`; });
@@ -329,7 +329,7 @@ window.PlayableDiagram = (function(){
   R.loop = (spec, g, id) => marker(id) + g.edges.map(e => `<path class="dedge" d="${e.d}" marker-end="url(#${id})"/>`).join('') + g.nodes.map((n, i) => cardSVG(n, i + 1)).join('');
   R.state = (spec, g, id) => {
     let s = marker(id) + g.edges.map(e => `<path class="dedge" d="${e.d}" marker-end="url(#${id})"/>`).join('');
-    s += g.labels.map(l => `<g class="dlabel"><rect x="${f(l.x)}" y="${f(l.y)}" width="${f(l.w)}" height="${f(l.h)}" rx="2"/><text x="${f(l.x + l.w / 2)}" y="${f(l.y + 11.5)}" text-anchor="middle" font-size="${LFS}">${esc(l.text)}</text></g>`).join('');
+    s += g.labels.map(l => `<g class="dlabel"><rect x="${f(l.x)}" y="${f(l.y)}" width="${f(l.w)}" height="${f(l.h)}" rx="0"/><text x="${f(l.x + l.w / 2)}" y="${f(l.y + 11.5)}" text-anchor="middle" font-size="${LFS}">${esc(l.text)}</text></g>`).join('');
     const st = g.start; if (st) s += `<path class="dedge" d="M${f(st.x + 18)},${f(st.y - 24)} L${f(st.x + 18)},${f(st.y - 4)}" marker-end="url(#${id})"/><text class="dtag" x="${f(st.x + 26)}" y="${f(st.y - 13)}" font-size="9">START</text>`;
     return s + g.nodes.map(n => cardSVG(n, 0)).join('');
   };
@@ -393,12 +393,12 @@ window.PlayableDiagram = (function(){
     return s;
   };
   R.economy = (spec, g, id) => marker(id) + g.edges.map(e => `<path class="dedge" d="${e.d}" marker-end="url(#${id})"/>`).join('')
-    + g.labels.map(l => `<g class="dlabel"><rect x="${f(l.x)}" y="${f(l.y)}" width="${f(l.w)}" height="${f(l.h)}" rx="2"/><text x="${f(l.x + l.w / 2)}" y="${f(l.y + 11.5)}" text-anchor="middle" font-size="${LFS}">${esc(l.text)}</text></g>`).join('')
+    + g.labels.map(l => `<g class="dlabel"><rect x="${f(l.x)}" y="${f(l.y)}" width="${f(l.w)}" height="${f(l.h)}" rx="0"/><text x="${f(l.x + l.w / 2)}" y="${f(l.y + 11.5)}" text-anchor="middle" font-size="${LFS}">${esc(l.text)}</text></g>`).join('')
     + g.nodes.map(n => cardSVG(n, 0)).join('');
   R.screen = (spec, g) => {
-    let s = `<rect class="dframe" x="${f(g.fx)}" y="${f(g.fy)}" width="${f(g.FW)}" height="${f(g.FH)}" rx="6"/>`;
+    let s = `<rect class="dframe" x="${f(g.fx)}" y="${f(g.fy)}" width="${f(g.FW)}" height="${f(g.FH)}" rx="0"/>`;
     g.regions.forEach((r, i) => {
-      s += `<rect class="dregion${r.world ? ' world' : ''}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="2"/>`;
+      s += `<rect class="dregion${r.world ? ' world' : ''}" x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="0"/>`;
       s += `<circle class="dbadge" cx="${f(r.x + 10)}" cy="${f(r.y + 10)}" r="6.5"/><text class="dbadgenum" x="${f(r.x + 10)}" y="${f(r.y + 13.3)}" text-anchor="middle" font-size="9">${i + 1}</text>`;
       r.l.forEach((l, k) => { s += `<text class="dlbl dsmall" x="${f(r.x + 20)}" y="${f(r.y + 13 + k * SLH)}" font-size="${SFS}">${esc(l)}</text>`; });
       const gl = r.glyph && GLYPH[spec.regions[i].g];

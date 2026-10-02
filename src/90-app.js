@@ -991,18 +991,18 @@ function chainHTML(items, cls){ return `<div class="chain">${items.map((it, i) =
 const DIAGRAM_DISSECTION = `<svg class="diagram" viewBox="0 0 704 258" role="img" aria-label="Dissect each comparable with one template, then cross-reference your concept against all of them">
   <defs><marker id="arrds" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path class="fill-b" d="M0,0 L6,3 L0,6 Z"/></marker></defs>
   <text class="dhead" x="0" y="13">Dissect each comparable with one template</text>
-  <rect class="box" x="0" y="24" width="160" height="58" rx="2"/><text class="dt" x="14" y="48">Want served</text><text x="14" y="66">the reason they play</text>
-  <rect class="box" x="182" y="24" width="160" height="58" rx="2"/><text class="dt" x="196" y="48">Core verb</text><text x="196" y="66">what they do most</text>
-  <rect class="box" x="364" y="24" width="160" height="58" rx="2"/><text class="dt" x="378" y="48">First 30s</text><text x="378" y="66">what teaches the game</text>
-  <rect class="box" x="546" y="24" width="160" height="58" rx="2"/><text class="dt" x="560" y="48">Decision/min</text><text x="560" y="66">the repeatable choice</text>
+  <rect class="box" x="0" y="24" width="160" height="58" rx="0"/><text class="dt" x="14" y="48">Want served</text><text x="14" y="66">the reason they play</text>
+  <rect class="box" x="182" y="24" width="160" height="58" rx="0"/><text class="dt" x="196" y="48">Core verb</text><text x="196" y="66">what they do most</text>
+  <rect class="box" x="364" y="24" width="160" height="58" rx="0"/><text class="dt" x="378" y="48">First 30s</text><text x="378" y="66">what teaches the game</text>
+  <rect class="box" x="546" y="24" width="160" height="58" rx="0"/><text class="dt" x="560" y="48">Decision/min</text><text x="560" y="66">the repeatable choice</text>
   <line class="stroke-b" x1="162" y1="53" x2="178" y2="53" marker-end="url(#arrds)"/>
   <line class="stroke-b" x1="344" y1="53" x2="360" y2="53" marker-end="url(#arrds)"/>
   <line class="stroke-b" x1="526" y1="53" x2="542" y2="53" marker-end="url(#arrds)"/>
   <text class="dhead" x="0" y="118">Then cross-reference your concept against all of them</text>
-  <rect class="box" x="0" y="130" width="160" height="58" rx="2"/><text class="dt" x="14" y="154">Why it worked</text><text x="14" y="172">the mechanism, cited</text>
-  <rect class="box" x="182" y="130" width="160" height="58" rx="2"/><text class="dt" x="196" y="154">Complaints</text><text x="196" y="172">the want left unserved</text>
-  <rect class="box" x="364" y="130" width="160" height="58" rx="2"/><text class="dt" x="378" y="154">Lesson</text><text x="378" y="172">what you must not skip</text>
-  <rect class="box" x="546" y="130" width="160" height="58" rx="2"/><text class="dt" x="560" y="154">Copies miss</text><text x="560" y="172">the usual failure</text>
+  <rect class="box" x="0" y="130" width="160" height="58" rx="0"/><text class="dt" x="14" y="154">Why it worked</text><text x="14" y="172">the mechanism, cited</text>
+  <rect class="box" x="182" y="130" width="160" height="58" rx="0"/><text class="dt" x="196" y="154">Complaints</text><text x="196" y="172">the want left unserved</text>
+  <rect class="box" x="364" y="130" width="160" height="58" rx="0"/><text class="dt" x="378" y="154">Lesson</text><text x="378" y="172">what you must not skip</text>
+  <rect class="box" x="546" y="130" width="160" height="58" rx="0"/><text class="dt" x="560" y="154">Copies miss</text><text x="560" y="172">the usual failure</text>
   <text x="0" y="222">Shared want, a difference visible in one screenshot, an answered complaint, and a bar you can reach.</text>
   <text class="muted" x="0" y="242">Sources are heuristics. Verify every claim about why a game worked, or mark it unknown.</text>
 </svg>`;
@@ -1681,7 +1681,7 @@ function toolSysmap(el){
     const geo = (e,i) => { const [x1,y1]=pos[e[0]], [x2,y2]=pos[e[2]]; const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1; const side = i%2 ? 1 : -1; const sx=x1+dx/len*(NR+4), sy=y1+dy/len*(NR+4), ex=x2-dx/len*(NR+9), ey=y2-dy/len*(NR+9); const b=20*side; const mx=(sx+ex)/2 - dy/len*b, my=(sy+ey)/2 + dx/len*b; return { sx, sy, ex, ey, mx, my, side }; };
     const labelPos = (g,i) => { const t=[0.5,0.34,0.66][i%3], u=1-t; const px=u*u*g.sx+2*u*t*g.mx+t*t*g.ex, py=u*u*g.sy+2*u*t*g.my+t*t*g.ey; const tx=2*u*(g.mx-g.sx)+2*t*(g.ex-g.mx), ty=2*u*(g.my-g.sy)+2*t*(g.ey-g.my); const tl=Math.hypot(tx,ty)||1; const off=14*g.side; return [px - (ty/tl)*off, py + (tx/tl)*off]; };
     const edgePath = (e,i) => { const g=geo(e,i); return `<path class="se ${e[1]}" d="M${g.sx.toFixed(1)},${g.sy.toFixed(1)} Q${g.mx.toFixed(1)},${g.my.toFixed(1)} ${g.ex.toFixed(1)},${g.ey.toFixed(1)}" marker-end="url(#arr)"/>`; };
-    const edgeLabel = (e,i) => { const g=geo(e,i); const p=labelPos(g,i); const lx=p[0], ly=p[1]; const w = e[1].length*5.8+8; return `<g><rect x="${(lx-w/2).toFixed(1)}" y="${(ly-8).toFixed(1)}" width="${w.toFixed(1)}" height="13" rx="2" fill="var(--bg2)" stroke="var(--line)" stroke-width="0.5"/><text class="se-label" x="${lx.toFixed(1)}" y="${(ly+1).toFixed(1)}" text-anchor="middle">${e[1]}</text></g>`; };
+    const edgeLabel = (e,i) => { const g=geo(e,i); const p=labelPos(g,i); const lx=p[0], ly=p[1]; const w = e[1].length*5.8+8; return `<g><rect x="${(lx-w/2).toFixed(1)}" y="${(ly-8).toFixed(1)}" width="${w.toFixed(1)}" height="13" rx="0" fill="var(--bg2)" stroke="var(--line)" stroke-width="0.5"/><text class="se-label" x="${lx.toFixed(1)}" y="${(ly+1).toFixed(1)}" text-anchor="middle">${e[1]}</text></g>`; };
     const nodeG = n => { const [x,y]=pos[n.n]; const deg = E.filter(e => e[0]===n.n||e[2]===n.n).length; const lines = wrapName(n.n); const first = lines.length>1 ? -(lines.length-1)*6.5 : 3; return `<g class="sn" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><title>${esc(n.n)}</title><circle r="${NR}" fill="${col[n.t]||'var(--accent)'}" opacity="${deg?0.25:0.08}" stroke="${deg?col[n.t]:'var(--bad)'}" stroke-width="${deg?2:1.5}" stroke-dasharray="${deg?'':'4 3'}"/><text text-anchor="middle" font-size="11">${lines.map((l,k)=>`<tspan x="0" dy="${k===0?first:13}">${esc(l)}</tspan>`).join('')}</text><text text-anchor="middle" y="${NR+13}" style="font-size:9px;fill:var(--fg3);font-weight:400">${esc(n.t)}</text></g>`; };
     $('#sm_svg').innerHTML = `<svg viewBox="0 0 ${W} ${H}"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg3)"/></marker></defs>${E.map(edgePath).join('')}${E.map((e,i)=>edgeLabel(e,i)).join('')}${N.map(nodeG).join('')}</svg>`;
     // analysis

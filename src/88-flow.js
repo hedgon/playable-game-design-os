@@ -139,7 +139,7 @@ window.PlayableFlow = (function(){
     }).join('');
     const labels = g.edges.filter(e => e.label).map(e => {
       const w = e.label.length * LFS * 0.62 + 12;
-      return `<g class="flabel"><rect x="${(e.mx - w / 2).toFixed(1)}" y="${(e.my - 8).toFixed(1)}" width="${w.toFixed(1)}" height="16" rx="2"/>`
+      return `<g class="flabel"><rect x="${(e.mx - w / 2).toFixed(1)}" y="${(e.my - 8).toFixed(1)}" width="${w.toFixed(1)}" height="16" rx="0"/>`
         + `<text x="${e.mx.toFixed(1)}" y="${(e.my + 3.5).toFixed(1)}" text-anchor="middle" font-size="${LFS}">${esc(e.label)}</text></g>`;
     }).join('');
     // The number on a card is its position in the data, so it matches the
@@ -151,7 +151,7 @@ window.PlayableFlow = (function(){
       const ls = n.lines;
       const text = `<text class="flbl" x="${n.cx}" y="${(n.cy + 4.5 - (ls.length - 1) * LH / 2).toFixed(1)}" text-anchor="middle" font-size="${FS}">${ls.map((l, i) => `<tspan x="${n.cx}"${i ? ` dy="${LH}"` : ''}>${esc(l)}</tspan>`).join('') || ''}</text>`;
       return `<g class="flownode" data-step="${esc(n.id)}" style="--dc:${dc}"><title>${esc(n.d)}</title>`
-        + `<rect class="fdisc" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="3"/>`
+        + `<rect class="fdisc" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="0"/>`
         + `<text class="fnum" x="${n.x + 8}" y="${(n.y + 13).toFixed(1)}" font-size="9.5">${order[n.id] || ''}</text>`
         + text + `</g>`;
     }).join('');

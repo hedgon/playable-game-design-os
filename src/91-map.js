@@ -571,7 +571,7 @@ function showWhy(n){
   const clampTo = (v, lo, size, len) => Math.max(lo + 4, Math.min(v, lo + size - 4 - len));
   const nx = vb ? clampTo(best[0], vb.x, vb.w, NW) : best[0], ny = vb ? clampTo(best[1], vb.y, vb.h, nh) : best[1];
   const t = lines.map((l, i) => `<tspan x="${nx + PADX}" dy="${i ? lh : 0}">${esc(l)}</tspan>`).join('');
-  MAP.svg.insertAdjacentHTML('beforeend', `<g class="whynote" pointer-events="none"><rect x="${nx}" y="${ny}" width="${NW}" height="${nh}" rx="3"/><text x="${nx + PADX}" y="${ny + 17}" font-size="12">${t}</text></g>`);
+  MAP.svg.insertAdjacentHTML('beforeend', `<g class="whynote" pointer-events="none"><rect x="${nx}" y="${ny}" width="${NW}" height="${nh}" rx="0"/><text x="${nx + PADX}" y="${ny + 17}" font-size="12">${t}</text></g>`);
 }
 function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
 // Hover is calm: nothing happens while the pointer passes over nodes. After
@@ -1024,7 +1024,7 @@ let mapStage = null;
 // What the colours, marks and lines on the guide map mean. The swatches use the
 // map's own classes, so they cannot drift from the nodes they describe.
 function legendHTML(){
-  const sw = (c, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 26 14" aria-hidden="true"><rect class="${c}" x="1" y="1" width="24" height="12" rx="3"/></svg>${t}</span>`;
+  const sw = (c, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 26 14" aria-hidden="true"><rect class="${c}" x="1" y="1" width="24" height="12" rx="0"/></svg>${t}</span>`;
   const ln = (c, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 26 14" aria-hidden="true"><path class="edge ${c}" d="M1,7 L25,7"/></svg>${t}</span>`;
   const rd = (on, t) => `<span class="lgi"><svg class="lgsw" viewBox="0 0 14 14" aria-hidden="true"><circle class="rd${on ? ' on' : ''}" cx="7" cy="7" r="6"/>${on ? '<text class="chk" x="7" y="10.5" text-anchor="middle" font-size="9">✓</text>' : ''}</svg>${t}</span>`;
   return `<div class="lgrow"><b>Cards</b><div class="lgset">${sw('domain', 'Domain: its colour marks its topics')}${sw('topic', 'Topic')}${rd(true, 'Read')}${rd(false, 'Not read yet')}</div></div>
