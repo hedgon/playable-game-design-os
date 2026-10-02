@@ -984,6 +984,8 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
   await browser.close(); server.close();
   console.log(`smoke: ${visits} route visits at 4 widths; failures: ${failures.length}`);
   failures.slice(0, 40).forEach(f => console.log('  ' + f));
+  // GitHub shows annotations to anyone, job logs only to signed-in users.
+  if (process.env.GITHUB_ACTIONS) failures.slice(0, 40).forEach(f => console.log('::error title=smoke::' + f.replace(/\r?\n/g, ' ')));
   notes.forEach(n => console.log('  note: ' + n));
   process.exit(failures.length ? 1 : 0);
 })().catch(e => { console.error(e); server.close(); process.exit(1); });

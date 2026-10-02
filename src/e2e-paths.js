@@ -278,5 +278,7 @@ const server = http.createServer((req, res) => {
   const bad = results.filter(r => !r.ok);
   results.forEach(r => console.log((r.ok ? 'PASS ' : 'FAIL ') + r.name + (r.ok ? '' : ' :: ' + r.detail)));
   console.log(`e2e-paths: ${results.length - bad.length}/${results.length} passed`);
+  // GitHub shows annotations to anyone, job logs only to signed-in users.
+  if (process.env.GITHUB_ACTIONS) bad.forEach(r => console.log('::error title=e2e-paths::' + (r.name + ' :: ' + r.detail).replace(/\r?\n/g, ' ')));
   process.exit(bad.length ? 1 : 0);
 })().catch(e => { console.error(e); server.close(); process.exit(1); });
