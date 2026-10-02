@@ -53,10 +53,10 @@ a narrow-screen pane rule that is not met, map labels under 11 px, a phone heade
 that clips a section, or a Make, library or Diagnose page missing its grouping.
 At 1440 and 375 px it also drives the map: the tree roles and the single Tab stop,
 the ARIA arrow keys with their live announcements, wheel and button zoom with the
-11 px label floor, the selected topic staying in view, dimmed-leaf contrast and the
+11 px label floor, the selected topic staying in view, calm hover (a pointer passing over cards changes nothing; a rest of 120 ms highlights only that card and its edges; the note and tip wait 400 ms; the camera never moves and no other card changes opacity), clicks that keep the zoom and settle in under about 300 ms, card contrast and the
 focus ring in both themes, dragging a node (kept after a reload), the fit and reset
 buttons, the lens switch, the project map camera, eight quick route changes, and
-reduced motion. At 1280 and 1440 px it also checks the map follow-ups: a selected topic framed with its groups and "N more" cues for leaves the window cuts off, a click inside the map keeping the map shown, find in map (count, Enter, Escape), the skip link from a folded page, and the toolbar staying on one line. Below 700 px the map is the same canvas, one-sided and fitted to the width: one finger pans, two pinch, a tap is a click, and a Map | List switch in the toolbar (remembered as playable.mapPhoneView) offers the expandable outline instead. The 375 px run drives the canvas by touch, then runs the outline checks again in List view.
+reduced motion. At 1280 and 1440 px it also checks the map follow-ups: a topic opened fresh framed with its groups and "N more" cues for leaves the window cuts off, a click on a domain, topic or group leaving the zoom unchanged with the selected node whole in view and readable, a click inside the map keeping the map shown, find in map (count, Enter, Escape), the skip link from a folded page, and the toolbar staying on one line. Below 700 px the map is the same canvas, one-sided and fitted to the width: one finger pans, two pinch, a tap is a click, and a Map | List switch in the toolbar (remembered as playable.mapPhoneView) offers the expandable outline instead. The 375 px run drives the canvas by touch, then runs the outline checks again in List view.
 It needs Playwright, which is not a dependency of the guide:
 
 ```bash
@@ -115,7 +115,7 @@ the type check, the smoke test and the paths test on every push and pull request
 90-app.js                 router, views, tools, search, review queue, dialogs, saved data
 91-map.js                 the map view: lenses, camera, pan, zoom, ARIA tree keys, phone touch and the List outline, reading panels
                           (saved map state is validated on load; the camera is saved only while a branch is open, and after a 250 ms pause)
-                          (branchFrame frames the selected node with its groups and open leaves; updateMoreCues counts what the window cuts off; find in map folds words like the site search)
+                          (branchFrame frames the selected node with its groups and open leaves on the first view of a stage or lens; after a click calmTarget keeps the zoom and pans only as far as the selected node or its open branch needs, while paintGraph tweens the nodes that existed before to their new places (240 ms) and fades new nodes and edges in, and nothing moves under reduced motion; updateMoreCues counts what the window cuts off; find in map folds words like the site search)
 92-ideas.js               Reference Dissection
 93-lab.js                 Idea Lab
 99-tail.js                boot

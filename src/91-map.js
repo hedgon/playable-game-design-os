@@ -331,11 +331,11 @@ function cameraTarget(g, cam, kind){
 
 let MAP = null; // { wrap, svg, tip, g, vb, anim, hover }
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-function mapAnimateTo(to, ms=480){
+function mapAnimateTo(to, ms=240){
   const M = MAP; if(!M) return; if(M.anim) cancelFrame(M.anim.h);
   if(ms <= 0 || reducedMotion.matches){ M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); return; }
-  const from = Object.assign({}, M.vb); const t0 = performance.now(); const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
-  const step = now => { const k = Math.min(1, (now - t0)/ms), e = ease(k); M.vb = { x: from.x + (to.x-from.x)*e, y: from.y + (to.y-from.y)*e, w: from.w + (to.w-from.w)*e, h: from.h + (to.h-from.h)*e }; applyVB(M.svg, M.vb); if(k < 1) M.anim.h = nextFrame(step); else { M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); } };
+  const from = Object.assign({}, M.vb); const t0 = performance.now(); const ease = t => 1 - Math.pow(1 - t, 3);
+  const step = now => { const k = Math.max(0, Math.min(1, (now - t0)/ms)), e = ease(k); M.vb = { x: from.x + (to.x-from.x)*e, y: from.y + (to.y-from.y)*e, w: from.w + (to.w-from.w)*e, h: from.h + (to.h-from.h)*e }; applyVB(M.svg, M.vb); if(k < 1) M.anim.h = nextFrame(step); else { M.anim = null; M.vb = to; applyVB(M.svg, to); mapPersistCamera(); } };
   M.anim = { h: nextFrame(step) };
 }
 function mapStopAnim(){ if(MAP && MAP.anim){ cancelFrame(MAP.anim.h); MAP.anim = null; } }
@@ -470,6 +470,38 @@ function branchFrame(g, sel){
   MAP.wrap.classList.toggle('fade-right', need > w + 1 && right);
   return { x, y, w, h };
 }
+// The camera after a click. The zoom is kept; the window moves only when the
+// selected node, or the open branch, is not wholly in view, and then by the
+// smallest amount. The zoom changes only when the labels would be under
+// MIN_LABEL_PX. Going back to the overview (nothing selected) frames the whole
+// tree afresh, as the first view does.
+function calmTarget(g, kind){
+  const cur = MAP.vb, W = MAP.wrap.clientWidth, H = MAP.wrap.clientHeight;
+  const sel = selectedNode(g);
+  if(!cur || !sel || W < 50 || H < 50) return stageTarget(g, kind, cur);
+  const max = readableSize(), small = cur.w > max.w * 1.001 || cur.h > max.h * 1.001;
+  const w = small ? max.w : cur.w, h = small ? max.h : cur.h;
+  const below = n => [n, ...(n.children || []).flatMap(below)];
+  const ext = (ns, ax) => ax === 'x' ? [Math.min(...ns.map(n => n.x)), Math.max(...ns.map(n => n.x + n.w))] : [Math.min(...ns.map(n => n.y - n.h / 2)), Math.max(...ns.map(n => n.y + n.h / 2))];
+  const sets = [below(sel), [sel, ...(sel.children || [])], [sel]], m = 24;
+  const place = (ax, vlo, size) => {
+    for(const ns of sets.slice(0, 2)){
+      const [lo, hi] = ext(ns, ax);
+      if(hi - lo + 2 * m <= size) return lo < vlo + m ? lo - m : hi > vlo + size - m ? hi + m - size : vlo;
+    }
+    const [lo, hi] = ext([sel], ax);
+    // a branch wider than the window: the node takes the edge nearest the root so its children run on into the window
+    if(ax === 'x' && (sel.children || []).length) return sel.side >= 0 ? lo - m : hi + m - size;
+    // a column taller than the window: the node sits in the middle, its children run on above and below
+    if((sel.children || []).length) return (lo + hi) / 2 - size / 2;
+    return hi - lo + 2 * m <= size ? (lo < vlo + m ? lo - m : hi > vlo + size - m ? hi + m - size : vlo) : (lo + hi) / 2 - size / 2;
+  };
+  const c = { x: cur.x + cur.w / 2, y: cur.y + cur.h / 2 };
+  const vx = place('x', c.x - w / 2, w), vy = place('y', c.y - h / 2, h);
+  const [, bhi] = ext(below(sel), 'x');
+  MAP.wrap.classList.toggle('fade-right', sel.side >= 0 && bhi > vx + w + 1);
+  return { x: vx, y: vy, w, h };
+}
 // Where the camera should be for this graph on this stage.
 function stageTarget(g, kind, cam){
   { const f = branchFrame(g, selectedNode(g)); if(f) return f; }
@@ -520,7 +552,7 @@ function mapTipHTML(n){
    tooltip. The note is redrawn with the graph and never takes pointer events. */
 const noteLines = (s, n) => { const out = []; let a = ''; for(const w of String(s).split(' ')){ if(a && a.length + 1 + w.length > n){ out.push(a); a = w; } else a = a ? a + ' ' + w : w; } if(a) out.push(a); return out; };
 function hideWhy(){ if(MAP && MAP.svg){ const g = MAP.svg.querySelector('.whynote'); if(g) g.remove(); } }
-function showWhy(n, pan){
+function showWhy(n){
   hideWhy();
   if(!MAP || !n || !n.dataset.why || (n.dataset.kind !== 'leaf' && n.dataset.kind !== 'item')) return;
   const r = n.querySelector('.disc'); if(!r) return;
@@ -535,27 +567,39 @@ function showWhy(n, pan){
   const cand = [ [left ? x - NW - 8 : x + w + 8, y + h / 2 - nh / 2], [left ? x + w - NW : x, y + h + 3], [left ? x + w - NW : x, y - nh - 3] ];
   const cost = ([cx, cy]) => others.filter(o => cx < o.x + o.w && cx + NW > o.x && cy < o.y + o.h && cy + nh > o.y).length * 10 + (vb && (cx < vb.x + 4 || cx + NW > vb.x + vb.w - 4 || cy < vb.y + 4 || cy + nh > vb.y + vb.h - 4) ? 1 : 0);
   let best = cand[0], bc = Infinity; cand.forEach(c => { const k = cost(c); if(k < bc){ bc = k; best = c; } });
-  const nx = best[0], ny = best[1];
-  // Keyboard focus: if the note sits past the edge of the window, bring it into view.
-  if(pan && vb && best === cand[0]){
-    const dx = nx < vb.x + 8 ? nx - vb.x - 8 : nx + NW > vb.x + vb.w - 8 ? nx + NW - vb.x - vb.w + 8 : 0;
-    if(dx) mapAnimateTo({ x: vb.x + dx, y: vb.y, w: vb.w, h: vb.h });
-  }
+  // The note stays inside the window the reader is looking at; the camera never moves for it.
+  const clampTo = (v, lo, size, len) => Math.max(lo + 4, Math.min(v, lo + size - 4 - len));
+  const nx = vb ? clampTo(best[0], vb.x, vb.w, NW) : best[0], ny = vb ? clampTo(best[1], vb.y, vb.h, nh) : best[1];
   const t = lines.map((l, i) => `<tspan x="${nx + PADX}" dy="${i ? lh : 0}">${esc(l)}</tspan>`).join('');
   MAP.svg.insertAdjacentHTML('beforeend', `<g class="whynote" pointer-events="none"><rect x="${nx}" y="${ny}" width="${NW}" height="${nh}" rx="3"/><text x="${nx + PADX}" y="${ny + 17}" font-size="12">${t}</text></g>`);
 }
 function mapMoveTip(e){ const M = MAP; const r = M.wrap.getBoundingClientRect(); let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14; if(x + 260 > r.width) x -= 280; if(y + 90 > r.height) y -= 100; M.tip.style.left = x + 'px'; M.tip.style.top = y + 'px'; }
+// Hover is calm: nothing happens while the pointer passes over nodes. After
+// HOVER_INTENT_MS of rest the node and the edges that touch it are highlighted
+// (a stroke change, nothing else on the map changes); the tip and a leaf's note
+// wait for HOVER_TIP_MS. Leaving the node removes all of it at once.
+const HOVER_INTENT_MS = 120, HOVER_TIP_MS = 400;
+function hoverClear(){
+  const M = MAP; clearTimeout(M.hlT); clearTimeout(M.tipT); M.hlT = M.tipT = 0;
+  hideWhy(); M.tip.hidden = true;
+  $$('.hl', M.svg).forEach(x => x.classList.remove('hl'));
+}
 function mapHover(n, e){
-  const M = MAP; if(M.hover === n){ if(n && e) mapMoveTip(e); return; }
-  if(M.hover){ hideWhy(); M.svg.classList.remove('dimmed'); $$('.hl', M.svg).forEach(x => x.classList.remove('hl')); M.tip.hidden = true; }
-  M.hover = n; if(!n){ hideWhy(); return; }
-  showWhy(n);
+  const M = MAP;
+  if(M.hover === n){ if(n && e){ M.hoverPt = { clientX: e.clientX, clientY: e.clientY, pointerType: e.pointerType }; if(!M.tip.hidden) mapMoveTip(e); } return; }
+  hoverClear(); M.hover = n; if(!n) return;
+  M.hoverPt = e ? { clientX: e.clientX, clientY: e.clientY, pointerType: e.pointerType } : null;
   const key = n.dataset.key;
-  M.svg.classList.add('dimmed'); n.classList.add('hl');
-  $$('.edge', M.svg).forEach(ed => { const hit = ed.dataset.a === key || ed.dataset.b === key; ed.classList.toggle('hl', hit); if(hit){ const other = ed.dataset.a === key ? ed.dataset.b : ed.dataset.a; const on = other && M.svg.querySelector(`.node[data-key="${other}"]`); if(on) on.classList.add('hl'); } });
-  // a leaf with a reason gets the note beside its card, which replaces the tip
-  const noted = n.dataset.why && (n.dataset.kind === 'leaf' || n.dataset.kind === 'item');
-  if(e && e.pointerType !== 'touch' && !noted){ M.tip.innerHTML = mapTipHTML(n); M.tip.hidden = false; mapMoveTip(e); }
+  M.hlT = setTimeout(() => {
+    n.classList.add('hl');
+    $$('.edge', M.svg).forEach(ed => ed.classList.toggle('hl', ed.dataset.a === key || ed.dataset.b === key));
+  }, HOVER_INTENT_MS);
+  M.tipT = setTimeout(() => {
+    showWhy(n);
+    // a leaf with a reason gets the note beside its card, which replaces the tip
+    const noted = n.dataset.why && (n.dataset.kind === 'leaf' || n.dataset.kind === 'item'), pt = M.hoverPt;
+    if(pt && pt.pointerType !== 'touch' && !noted){ M.tip.innerHTML = mapTipHTML(n); M.tip.hidden = false; mapMoveTip(pt); }
+  }, HOVER_TIP_MS);
 }
 function projClick(n){
   const kind = n.dataset.kind, id = n.dataset.id, c = projCase();
@@ -611,10 +655,11 @@ function toggleGroup(n){
   const id = n.dataset.id, open = n.classList.contains('open') || n.getAttribute('aria-expanded') === 'true';
   mapState.grp = mapState.grp || {}; mapState.grp[id] = !open; saveMap();
   MAP.focusKey = n.dataset.key; MAP.keyNav = false;
-  paintGraph();
-  // the branch is framed again with the group open or closed: the topic and its group column stay in view
-  MAP.userCamera = false; mapStopAnim();
-  mapAnimateTo(stageTarget(MAP.g, MAP.kind, MAP.vb));
+  mapStopAnim();
+  const g = paintGraph({ animate: true });
+  // the zoom stays; the window moves only if the topic or its open branch would leave it
+  MAP.userCamera = false; MAP.calmAt = performance.now();
+  mapAnimateTo(calmTarget(g, MAP.kind));
 }
 
 function fitMap(){ if(MAP && MAP.g){ mapStopAnim(); MAP.userCamera = false; mapAnimateTo(keepReadable(fitBox(MAP.g.bbox), MAP.g)); } }
@@ -663,15 +708,46 @@ function outlineReveal(){
   const r = row.getBoundingClientRect(), b = o.getBoundingClientRect();
   o.scrollTop += r.top - b.top - (o.clientHeight - r.height) / 2;
 }
+// Slides the nodes that existed before from their old place to the new one, then
+// fades in the new nodes and the edges; nodes that went fade out where they were.
+// Nodes are matched by their stable key. Nothing runs under reduced motion.
+const SLIDE_MS = 240, FADE_DELAY = 160, FADE_MS = 140, GONE_MS = 100;
+function nodeBoxes(root){
+  const m = new Map();
+  root.querySelectorAll('.lay.nodes > .node').forEach(el => { const d = el.querySelector('.disc'); if(d) m.set(el.dataset.key, { x: +d.getAttribute('x'), y: +d.getAttribute('y'), el }); });
+  return m;
+}
+function tweenTree(old){
+  const svg = MAP.svg, now = nodeBoxes(svg);
+  now.forEach((b, key) => {
+    const o = old.get(key);
+    if(!o){ b.el.animate([{ opacity: 0 }], { duration: FADE_MS, delay: FADE_DELAY, easing: 'linear', fill: 'backwards' }); return; }
+    const dx = o.x - b.x, dy = o.y - b.y;
+    if(dx || dy) b.el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0px, 0px)' }], { duration: SLIDE_MS, easing: 'ease-out' });
+  });
+  svg.querySelectorAll('.lay.edges > .edge').forEach(ed => ed.animate([{ opacity: 0 }], { duration: FADE_MS, delay: FADE_DELAY, easing: 'linear', fill: 'backwards' }));
+  const gone = [...old].filter(([key]) => !now.has(key));
+  if(gone.length){
+    const ghosts = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    ghosts.setAttribute('class', 'ghosts'); ghosts.setAttribute('pointer-events', 'none'); ghosts.setAttribute('aria-hidden', 'true');
+    gone.forEach(([, o]) => { const c = o.el.cloneNode(true); ['data-key', 'role', 'tabindex', 'aria-label', 'aria-selected', 'aria-expanded'].forEach(a => c.removeAttribute(a)); ghosts.appendChild(c); });
+    svg.appendChild(ghosts);
+    ghosts.animate([{ opacity: 1 }, { opacity: 0 }], { duration: GONE_MS, easing: 'linear', fill: 'forwards' }).onfinish = () => ghosts.remove();
+  }
+}
 // Draws the graph with one item in the tab order (a roving tab stop). A
 // redraw replaces every node, so focus is handed to the item with the same
 // key and arrow-key travel or Enter never drops the reader out of the map.
-function paintGraph(){
+// `animate` keeps the old picture's nodes for tweenTree (a change of tree, not a redraw).
+function paintGraph(opts){
   const hadFocus = MAP.svg.contains(document.activeElement) || MAP.outline.contains(document.activeElement);
+  const tween = !!(opts && opts.animate) && !reducedMotion.matches && !phoneList();
+  const old = tween ? nodeBoxes(MAP.svg) : null;
   const g = buildGraph();
   g.focus = treeFocus(g);
+  hoverClear();
   MAP.g = g; MAP.hover = null; MAP.idx = indexTree(g);
-  MAP.labelPx = 0; MAP.tip.hidden = true; MAP.svg.classList.remove('dimmed');
+  MAP.labelPx = 0;
   MAP.svg.innerHTML = g.inner;
   MAP.outline.innerHTML = phoneList() ? outlineHTML(g) : '';
   { const px = [...MAP.svg.querySelectorAll('.lbl:not(.sub)')].slice(0, 60).map(t => parseFloat(getComputedStyle(t).fontSize)).filter(Boolean); MAP.labelPx = px.length ? Math.min(...px) : 13.5; }
@@ -679,6 +755,7 @@ function paintGraph(){
   const stop = byKey(MAP.focusKey) || byKey(currentKey()) || root.querySelector('[role="treeitem"]');
   if(stop){ stop.setAttribute('tabindex', '0'); if(hadFocus) stop.focus({ preventScroll: true }); }
   updateMoreCues(); applyFind();
+  if(old && old.size) tweenTree(old);
   return g;
 }
 function nodeCentre(el){ const r = el.querySelector('.disc'); return { x: +r.getAttribute('x') + +r.getAttribute('width') / 2, y: +r.getAttribute('y') + +r.getAttribute('height') / 2 }; }
@@ -797,7 +874,7 @@ function initMapStage(){
     nodeDrag.els = [...svg.querySelectorAll('.node')].filter(el => keys.has(el.dataset.key));
     nodeDrag.lines = [...svg.querySelectorAll('.edge')].map(ed => { const a = keys.has(ed.dataset.a), b = keys.has(ed.dataset.b); return a && b ? [ed, true] : a || b ? [ed, false] : null; }).filter(Boolean);
     nodeDrag.lines.forEach(([ed, moves]) => { if(!moves) ed.style.opacity = '0.15'; });
-    hideWhy(); tip.hidden = true;
+    hoverClear(); MAP.hover = null;
   };
   const moveNode = e => {
     if(nodeDrag.id !== undefined && e.pointerId !== undefined && e.pointerId !== nodeDrag.id) return;
@@ -847,7 +924,7 @@ function initMapStage(){
   on(svg, 'pointerleave', () => { if(!nodeDrag && !drag) mapHover(null); });
   on(svg, 'click', e => { if(suppressClick) return; const n = e.target.closest ? e.target.closest('.node') : null; if(n) mapClick(n); });
   on(svg, 'keydown', treeKey);
-  on(svg, 'focusin', e => { const n = e.target.closest && e.target.closest('.node'); if(n) showWhy(n, true); });
+  on(svg, 'focusin', e => { const n = e.target.closest && e.target.closest('.node'); if(n) showWhy(n); });
   on(svg, 'focusout', () => hideWhy());
   // the phone outline: a tap on a row is a click on its item
   on(outline, 'click', e => { const row = e.target.closest && e.target.closest('.oi-row'); if(row){ const li = row.parentElement; MAP.focusKey = li.dataset.key; mapClick(li); } });
@@ -902,6 +979,7 @@ function initMapStage(){
   // dragged) the camera is framed again, unless the reader moved it.
   let resizeT = 0;
   const ro = new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
+    if(wrap.clientWidth < 50 && MAP) MAP.stage = null;   // folded away: when it is shown again that is a first view
     if(!MAP.g || !document.body.contains(svg) || wrap.clientWidth < 50) return;
     // crossing the two-sided width swaps the tree's shape
     if(oneSidedNow() !== MAP.oneSided){
@@ -911,6 +989,13 @@ function initMapStage(){
     }
     MAP.restoredCam = null;
     if(MAP.userCamera) return;
+    // a click moved the camera a moment ago and the stage then changed size (the reading pane opened): the zoom (graph units per screen pixel) is kept and the window moves only as far as the selection needs
+    const W = wrap.clientWidth, H = wrap.clientHeight, was = MAP.stage; MAP.stage = [W, H];
+    if(was && was[0] >= 50 && MAP.vb && performance.now() - (MAP.calmAt || 0) < 900 && selectedNode(MAP.g)){
+      const k = MAP.vb.w / was[0], cur = MAP.vb;
+      MAP.vb = { x: cur.x, y: cur.y, w: k * W, h: k * H }; applyVB(svg, MAP.vb);
+      mapAnimateTo(calmTarget(MAP.g, MAP.kind)); return;
+    }
     mapStopAnim(); const t = stageTarget(MAP.g, MAP.kind, MAP.vb); MAP.vb = t; applyVB(svg, t); mapPersistCamera();
   }, 150); });
   ro.observe(wrap);
@@ -950,10 +1035,15 @@ function legendHTML(){
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
   const st = curState();
-  const g = paintGraph();
+  const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
+  // the first view of a stage or lens is framed afresh; a move within it keeps the zoom and tweens
+  const first = mapStage !== stageKey || !MAP.vb || !MAP.stage || MAP.bootHome || MAP.lensKey !== mapState.lens;   // no stage yet: the map was folded away, so this is its first view
+  MAP.lensKey = mapState.lens;
+  const sig = JSON.stringify([kind, mapMode, mapState.dom, mapState.topic, mapState.smell, projState && [projState.cs, projState.sys, projState.part], pathMapState && [pathMapState.id, pathMapState.stage]]);
+  const redraw = sig === MAP.sig;   // the same place drawn again (the map shown again) is framed afresh and not tweened; only a move to another place keeps the zoom
+  const g = paintGraph({ animate: !first && !redraw });
   const bar = $('.mapbar .mapcrumbs'); if(bar) bar.innerHTML = mapCrumbs();
   updateNext();
-  const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
   const stored = savedCamera(st.vb);
   // Coming back to a stage (a reload, or another map and back) restores the
   // camera the reader left, exactly; only a move within the stage re-frames.
@@ -966,12 +1056,13 @@ function renderTree(kind){
   }
   if(!MAP.vb){ MAP.vb = fitBox(g.bbox); applyVB(MAP.svg, MAP.vb); }
   // drawing the same place again (not a move to another) keeps a camera the reader has set
-  const sig = JSON.stringify([kind, mapMode, mapState.dom, mapState.topic, mapState.smell, projState && [projState.cs, projState.sys, projState.part], pathMapState && [pathMapState.id, pathMapState.stage]]);
-  const again = sig === MAP.sig && MAP.userCamera; MAP.bootHome = !MAP.sig && kind === 'home'; MAP.sig = sig;
+  const again = redraw && MAP.userCamera; MAP.bootHome = !MAP.sig && kind === 'home'; MAP.sig = sig;
   MAP.kind = kind; MAP.userCamera = !!restore || again; MAP.restoredCam = restore ? Object.assign({}, stored) : null;
+  MAP.stage = MAP.wrap.clientWidth >= 50 && MAP.wrap.clientHeight >= 50 ? [MAP.wrap.clientWidth, MAP.wrap.clientHeight] : null;
   if(again) return outlineReveal();
   if(restore) mapAnimateTo(keepReadable(Object.assign({}, stored), g), 0);
-  else mapAnimateTo(stageTarget(g, kind, stored || MAP.vb));
+  else if(first || redraw) mapAnimateTo(stageTarget(g, kind, stored || MAP.vb));
+  else { MAP.calmAt = performance.now(); mapAnimateTo(calmTarget(g, kind)); }
   outlineReveal();
 }
 // `tab` is the fourth route part (#/map/t/<id>/<tab>). It selects which topic

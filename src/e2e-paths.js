@@ -97,6 +97,16 @@ const server = http.createServer((req, res) => {
     if (w >= 1100) {
       const framed = await page.evaluate(() => { const wrap = document.getElementById('mapwrap').getBoundingClientRect(); const steps = [...document.querySelectorAll('#mapsvg .node[data-scope="path"][data-kind="topic"]')].map(n => n.getBoundingClientRect()); return { n: steps.length, inside: steps.every(r => r.left >= wrap.left - 1 && r.right <= wrap.right + 1 && r.top >= wrap.top - 1 && r.bottom <= wrap.bottom + 1), minH: Math.min(...steps.map(r => r.height)) }; });
       check(`${tag} the map opens framed to the current stage, steps readable`, framed.n > 0 && framed.inside && framed.minH >= 22, JSON.stringify(framed));
+      // a click on another stage keeps the zoom: the scale on screen is unchanged (unless its labels were under 11px) and the stage's own card is whole in the stage
+      {
+        const SC = () => { const v = document.getElementById('mapsvg').viewBox.baseVal, r = document.getElementById('mapwrap').getBoundingClientRect(); return Math.min(r.width / v.width, r.height / v.height); };
+        const s0 = await page.evaluate(SC);
+        const clicked = await page.evaluate(() => { const n = document.querySelector('#mapsvg .node[data-scope="path"][data-kind="domain"]:not(.open)'); if (!n) return false; n.dispatchEvent(new MouseEvent('click', { bubbles: true })); return true; });
+        await page.waitForTimeout(800);
+        const after = await page.evaluate(() => { const wr = document.getElementById('mapwrap').getBoundingClientRect(), n = document.querySelector('#mapsvg .node[data-scope="path"][data-kind="domain"].open .disc'); if (!n) return null; const r = n.getBoundingClientRect(); return { inside: r.left >= wr.left - 1 && r.right <= wr.right + 1 && r.top >= wr.top - 1 && r.bottom <= wr.bottom + 1 }; });
+        const s1 = await page.evaluate(SC);
+        check(`${tag} clicking another stage on the map keeps the zoom and keeps that stage in view`, clicked && !!after && after.inside && s1 >= s0 * 0.99 && (s1 <= s0 * 1.01 || s0 * 13.5 < 11.5), JSON.stringify({ clicked, after, s0, s1 }));
+      }
       // a step node opens that step in the stage view
       await page.evaluate(() => { const nodes = document.querySelectorAll('#mapsvg .node[data-scope="path"][data-kind="topic"]'); nodes[nodes.length - 1].dispatchEvent(new MouseEvent('click', { bubbles: true })); }); await page.waitForTimeout(400);
       const flashed = await page.evaluate(() => { const r = document.querySelector('#pane .pathstep.flash'); if (!r) return null; const b = r.getBoundingClientRect(); return { row: r.dataset.row, inView: b.top >= 0 && b.bottom <= innerHeight, hash: location.hash }; });

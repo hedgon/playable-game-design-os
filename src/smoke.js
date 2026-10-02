@@ -683,15 +683,34 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       };
       for (const scheme of w > 700 ? ['light', 'dark'] : []) {   // hover and the keyboard ring are desktop checks; a touch screen has no hover
         await page.emulateMedia({ colorScheme: scheme }); await page.waitForTimeout(300);
-        const leaf = await page.evaluate(() => { const l = [...document.querySelectorAll('#mapsvg .node.leaf')].find(x => x.dataset.why); if (!l) return null; const r = l.querySelector('.disc').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+        const leaf = await page.evaluate(() => { const wr = document.getElementById('mapwrap').getBoundingClientRect(), shown = x => { const r = x.querySelector('.disc').getBoundingClientRect(); return r.left + r.width / 2 > wr.left + 20 && r.left + r.width / 2 < wr.right - 20 && r.top + r.height / 2 > wr.top + 20 && r.top + r.height / 2 < wr.bottom - 20; }; const l = [...document.querySelectorAll('#mapsvg .node.leaf')].find(x => x.dataset.why && shown(x)); if (!l) return null; const r = l.querySelector('.disc').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
         if (!leaf) { fail('no leaf with a reason to hover'); break; }
+        // hover is calm: a pointer passing quickly over cards changes nothing; a rest highlights only that card and its edges; the camera never moves
+        const VBSTR = () => document.getElementById('mapsvg').getAttribute('viewBox');
+        const OPS = skip => [...document.querySelectorAll('#mapsvg .node')].filter(n => n.dataset.key !== skip).map(n => [n.dataset.key, getComputedStyle(n).opacity, ...['.disc', '.glyph', '.rd', '.chk', '.lbl'].map(q => { const e = n.querySelector(q); return e ? getComputedStyle(e).opacity : '-'; })].join('|')).join(';');
+        const lk = await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y), n = e && e.closest && e.closest('.node'); return n ? n.dataset.key : ''; }, [leaf.x, leaf.y]);
+        const vb0 = await page.evaluate(VBSTR), ops0 = await page.evaluate(OPS, lk);
+        const pass = await page.evaluate(() => [...document.querySelectorAll('#mapsvg .node.leaf')].filter(l => { const wr = document.getElementById('mapwrap').getBoundingClientRect(), r = l.querySelector('.disc').getBoundingClientRect(); return r.left + r.width / 2 > wr.left + 20 && r.left + r.width / 2 < wr.right - 20 && r.top + r.height / 2 > wr.top + 20 && r.top + r.height / 2 < wr.bottom - 20; }).slice(0, 6).map(l => { const r = l.querySelector('.disc').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }));
+        for (const [x, y] of pass) { await page.mouse.move(x, y); await page.waitForTimeout(25); }
+        await page.mouse.move(2, 2); await page.waitForTimeout(40);
+        { const q = await page.evaluate(() => ({ hl: document.querySelectorAll('#mapsvg .hl').length, notes: document.querySelectorAll('#mapsvg .whynote').length, tip: !document.getElementById('maptip').hidden }));
+          if (q.hl || q.notes || q.tip) fail(`a pointer passing quickly over cards changed the map (${scheme}) ${JSON.stringify(q)}`); }
         await page.mouse.move(leaf.x, leaf.y); await page.waitForTimeout(300);
+        { const mid = await page.evaluate(() => ({ hl: document.querySelectorAll('#mapsvg .node.hl').length, notes: document.querySelectorAll('#mapsvg .whynote').length, tip: !document.getElementById('maptip').hidden }));
+          if (mid.hl !== 1) fail(`after a short rest ${mid.hl} cards are highlighted (${scheme}; expected the hovered one)`);
+          if (mid.notes || mid.tip) fail(`the note or tip appeared before its delay (${scheme}) ${JSON.stringify(mid)}`); }
+        await page.waitForTimeout(500);
         const hv = await page.evaluate(() => ({ notes: document.querySelectorAll('#mapsvg .whynote').length, tip: !document.getElementById('maptip').hidden }));
         if (hv.notes !== 1) fail(`hovering a leaf with a reason shows ${hv.notes} notes (${scheme})`);
         if (hv.tip) fail(`the tooltip is shown over the note (${scheme})`);
+        if (await page.evaluate(VBSTR) !== vb0) fail(`hovering moved the camera (${scheme}): ${vb0} to ${await page.evaluate(VBSTR)}`);
+        if (await page.evaluate(OPS, lk) !== ops0) fail(`hovering changed the opacity of other cards (${scheme})`);
+        if (await page.evaluate(() => document.getElementById('mapsvg').classList.contains('dimmed'))) fail(`hover dimmed the whole graph (${scheme})`);
+        { const he = await page.evaluate(() => { const hl = [...document.querySelectorAll('#mapsvg .edge.hl')]; const hn = document.querySelector('#mapsvg .node.hl'), k = hn ? hn.dataset.key : ''; return { n: hl.length, wrong: hl.filter(e => e.dataset.a !== k && e.dataset.b !== k).length }; });
+          if (he.wrong) fail(`hover highlighted ${he.wrong} edges that do not touch the hovered card (${scheme})`); }
         const c = await page.evaluate(CONTRAST);
-        if (!c.dimmed || !c.n) fail(`hover did not fade the other cards (${scheme}) ${JSON.stringify(c)}`);
-        else if (c.min < 4.5) fail(`faded cards drop to ${c.min.toFixed(2)}:1 for their words (${scheme}; need 4.5)`);
+        if (!c.n) fail(`hover left no cards to measure (${scheme}) ${JSON.stringify(c)}`);
+        else if (c.min < 4.5) fail(`cards drop to ${c.min.toFixed(2)}:1 for their words (${scheme}; need 4.5)`);
         await page.mouse.move(2, 2); await page.waitForTimeout(200);
         // the focus ring on the first item: drawn, and 3:1 against the stage
         await page.evaluate(() => { document.querySelector('#mapsvg .node.sel').focus(); });
@@ -768,7 +787,8 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       }
       // an open domain is framed: its card and every topic card are whole inside the stage
       await goto('#/map/d/' + domId); await page.waitForTimeout(700);
-      { const f = await inStage('#mapsvg .node.domain.open, #mapsvg .node.topic'); if (f.n < 2 || f.out) fail('phone map: on the open domain ' + f.out + ' of ' + f.n + ' cards (domain and topics) are outside the stage'); const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px on the open domain'); }
+      // the new rule: the opened domain's own card is whole in the stage and readable; its topics run on past the far edge when the stage is too narrow for them
+      { const f = await inStage('#mapsvg .node.domain.open'); if (f.n !== 1 || f.out) fail('phone map: the opened domain card is outside the stage (' + f.out + ' of ' + f.n + ')'); const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px on the open domain'); }
       // the faint cross-branch curves are not drawn on a phone
       if (await page.evaluate(() => document.querySelectorAll('#mapsvg .edge.dd, #mapsvg .edge.cross, #mapsvg .edge.home').length)) fail('phone map: cross-branch dashed curves are drawn');
       // the stage ends at the bottom of the screen
@@ -858,6 +878,41 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       if (r.minLabel < 10.9) fail(`${id}: labels drawn at ${r.minLabel.toFixed(1)}px, under the 11px floor`);
       if ((r.cutOff > 0) !== (r.pills > 0)) fail(`${id}: ${r.cutOff} leaves are cut off but ${r.pills} "more" pills are shown`);
       if (id === 'core-loop' && !r.pills) fail('core-loop with Games open: no "more" cue for the leaves past the edge');
+    }
+    // clicks keep the zoom: after a click the camera's width and height are unchanged (unless the labels were under 11px), the
+    // selected node is whole inside the stage and readable, and the move settles quickly
+    await fresh('#/map/home', true);
+    {
+      const VBWH = () => { const v = document.getElementById('mapsvg').viewBox.baseVal, r = document.getElementById('mapwrap').getBoundingClientRect(); return [v.width, v.height, Math.round(r.width), Math.round(r.height), Math.min(r.width / v.width, r.height / v.height)]; };   // width, height, the stage size, and the zoom in screen pixels per unit
+      const SELIN = sel => { const wr = document.getElementById('mapwrap').getBoundingClientRect(), v = document.getElementById('mapsvg').viewBox.baseVal, k = wr.width / v.width, n = document.querySelector(sel); if (!n) return null; const b = n.querySelector('.disc').getBoundingClientRect(), l = n.querySelector('.lbl:not(.sub)');
+        return { inside: b.left >= wr.left - 1 && b.right <= wr.right + 1 && b.top >= wr.top - 1 && b.bottom <= wr.bottom + 1, px: parseFloat(getComputedStyle(l).fontSize) * k }; };
+      // click via the DOM, then wait for every animation and the camera to settle; returns the elapsed ms (frames of quiet removed)
+      const SETTLE = sel => new Promise(res => { const svg = document.getElementById('mapsvg'), n = document.querySelector(sel); const t0 = performance.now(); let last = svg.getAttribute('viewBox'), quiet = 0, lastChange = t0;
+        n.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        const tick = () => { const now = performance.now(), vbs = svg.getAttribute('viewBox'); if (vbs !== last) { last = vbs; lastChange = now; quiet = 0; } else quiet++;
+          const running = document.getAnimations().filter(a => a.playState === 'running').length;
+          if (!running && quiet >= 3) res(Math.round(Math.max(lastChange, now - quiet * 16.7) - t0)); else if (now - t0 > 2500) res(2500); else requestAnimationFrame(tick); };
+        requestAnimationFrame(tick); });
+      const steps = [['a domain', '#mapsvg .node[data-kind="domain"]:not(.open)', '#mapsvg .node.domain.open'], ['a topic', '#mapsvg .node[data-kind="topic"]', '#mapsvg .node.sel'], ['a group', '#mapsvg .node[data-kind="group"]:not(.open)', '#mapsvg .node.sel']];
+      const times = [];
+      for (const [what, click, selSel] of steps) {
+        const before = await page.evaluate(VBWH);
+        if (!await page.evaluate(q => !!document.querySelector(q), click)) { if (what !== 'a group') fail(`no ${what} to click`); continue; }
+        times.push(await page.evaluate(SETTLE, click)); await page.waitForTimeout(150);
+        const after = await page.evaluate(VBWH), sel = await page.evaluate(SELIN, selSel);
+        const small = sel && sel.px < 10.9;
+        // the zoom is the scale on screen: a click that also resizes the stage (the reading pane opens) changes the box but not the scale
+        const same = after[2] === before[2] && after[3] === before[3], dz = after[4] / before[4];
+        if (same && (Math.abs(after[0] - before[0]) > 0.5 || Math.abs(after[1] - before[1]) > 0.5)) fail(`clicking ${what} changed the camera's width or height (${before.slice(0, 2).map(Math.round)} to ${after.slice(0, 2).map(Math.round)}) on a stage of the same size`);
+        if (dz < 0.99) fail(`clicking ${what} zoomed out (scale ${before[4].toFixed(3)} to ${after[4].toFixed(3)})`);
+        else if (dz > 1.01 && before[4] > 0 && !(small || before[4] * 13.5 < 11.5)) fail(`clicking ${what} zoomed in although its label was readable (scale ${before[4].toFixed(3)} to ${after[4].toFixed(3)})`);
+        if (!sel) fail(`clicking ${what}: no selected node`); else { if (!sel.inside) fail(`clicking ${what}: the selected node is not whole in the stage`); if (sel.px < 10.9) fail(`clicking ${what}: the selected label is ${sel.px.toFixed(1)}px (need 11 or more)`); }
+      }
+      // a quick pass of clicks: each one settles; measure click-to-settled on a second round trip (domain, topic)
+      for (let i = 0; i < 3; i++) { await page.evaluate(() => { location.hash = '#/map/home'; }); await page.waitForTimeout(600); times.push(await page.evaluate(SETTLE, '#mapsvg .node[data-kind="domain"]:not(.open)')); await page.waitForTimeout(200); times.push(await page.evaluate(SETTLE, '#mapsvg .node[data-kind="topic"]')); await page.waitForTimeout(200); }
+      times.sort((a, b) => a - b); const med = times[times.length >> 1];
+      notes.push(`${w}px map click-to-settled ms (${times.length} clicks): median ${med}, max ${times[times.length - 1]}`);
+      if (med > 450) fail(`a click takes ${med}ms to settle (median of ${times.length}; the target is about 300)`);
     }
     // a click inside the map keeps the map shown, on a page that folds it away by default; the reader's own choice wins
     await fresh('#/map/home', false);
@@ -969,16 +1024,23 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: reduce ? 'reduce' : 'no-preference' });
       const page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
       await page.goto(base + '#/map/home'); await page.evaluate(() => localStorage.setItem('playable.hideMap', 'false')); await page.reload(); await page.waitForTimeout(900);
-      // count the camera writes after the route change: an animation writes the viewBox every frame, an immediate move writes it once or twice (the stage refit)
-      const writes = await page.evaluate(() => new Promise(res => { let n = 0; const svg = document.getElementById('mapsvg'); const mo = new MutationObserver(() => { n++; }); mo.observe(svg, { attributes: true, attributeFilter: ['viewBox'] }); location.hash = '#/map/t/scope-control/overview'; setTimeout(() => { mo.disconnect(); res(n); }, 1200); }));
+      // count the camera writes after the Fit button: an animation writes the viewBox every frame, an immediate move writes it once or twice
+      await page.evaluate(() => { for (let i = 0; i < 4; i++) document.getElementById('mapZoomIn').click(); });
+      const writes = await page.evaluate(() => new Promise(res => { let n = 0; const svg = document.getElementById('mapsvg'); const mo = new MutationObserver(() => { n++; }); mo.observe(svg, { attributes: true, attributeFilter: ['viewBox'] }); document.getElementById('mapFit').click(); setTimeout(() => { mo.disconnect(); res(n); }, 1000); }));
+      // a click that changes the tree: the most animations (node moves, fades) alive in the next second, and whether any CSS transition ran
+      const clk = await page.evaluate(() => new Promise(res => { let max = 0, trans = 0; const on = e => { if (e.target.closest && e.target.closest('#mapsvg') && e.propertyName !== 'scrollbar-color') trans++; }; document.addEventListener('transitionrun', on, true);
+        const n = document.querySelector('#mapsvg .node[data-kind="domain"]:not(.open)'); n.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        const t0 = performance.now(), tick = () => { max = Math.max(max, document.getAnimations().filter(x => x.effect && x.effect.getTiming().duration > 1 && x.transitionProperty !== 'scrollbar-color' && x.transitionProperty !== 'grid-template-columns').length); if (performance.now() - t0 < 1000) requestAnimationFrame(tick); else { document.removeEventListener('transitionrun', on, true); res({ max, trans }); } }; tick(); }));
       const tr = await page.evaluate(() => getComputedStyle(document.querySelector('#mapsvg .edge')).transitionDuration);
       await ctx.close();
-      return { writes, tr, errors };
+      return { writes, clk, tr, errors };
     };
     const r = await probe(true), c = await probe(false);
     if (r.writes > 3) failures.push(`reduced motion: the camera was written ${r.writes} times after a route change (an animation), expected at most 3`);
     if (parseFloat(r.tr) > 0.001) failures.push(`reduced motion: edges still transition (${r.tr})`);
+    if (r.clk.max > 0 || r.clk.trans > 0) failures.push(`reduced motion: a click on the map ran ${r.clk.max} animations and ${r.clk.trans} transitions (expected none)`);
     if (c.writes < 5) failures.push(`reduced motion test is not meaningful: with motion on the camera was written only ${c.writes} times`);
+    if (c.clk.max < 1) failures.push('reduced motion test is not meaningful: with motion on a click ran no animation');
     if (r.errors.length) failures.push('reduced motion: page error ' + r.errors[0]);
   }
   await browser.close(); server.close();
