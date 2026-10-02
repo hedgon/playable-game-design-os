@@ -110,12 +110,12 @@ all of it to a JSON file and **import** it again, in this browser or another one
 A field manual crossed with a technology tree: condensed display type for
 headings, monospace micro-labels, a dot-grid ground, sharp corners with hard
 offset shadows in the domain colour, dashed knowledge-graph edges, a charcoal dark
-mode and a paper-and-ink light mode. Three free fonts (SIL Open Font License),
-shipped in `assets/fonts/` with their licences so the guide looks and measures the
-same on every system and offline: **Archivo** for headings and map labels (its width
-axis gives the condensed cut), **Atkinson Hyperlegible Next** for reading, and
-**Atkinson Hyperlegible Mono** for labels and code. The Atkinson faces were drawn by
-the Braille Institute so similar letters and figures are easy to tell apart.
+mode and a paper-and-ink light mode. Every element has square corners. The type
+reads like a magazine, with four free fonts (SIL Open Font License) shipped in
+`assets/fonts/` with their licences, so the guide looks and measures the same on
+every system and offline: **Instrument Serif** italic for large page titles,
+**Newsreader** for reading, **Instrument Sans** for the interface, labels and map
+cards, and **Atkinson Hyperlegible Mono** for code.
 
 ## Principles the guide embodies
 

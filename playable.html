@@ -10,15 +10,18 @@
 <meta name="theme-color" content="#101114">
 <style>
 /* ---------- fonts ----------
-   Three free (SIL OFL 1.1) variable fonts, served from assets/fonts so the guide looks and
-   measures the same on every system and still works offline. Licences sit beside the files.
-   Archivo (Omnibus-Type): headings and map labels; its width axis gives the condensed
-   display cut that font-stretch asks for. Atkinson Hyperlegible Next and Mono (Braille
-   Institute, 2025): body text, labels and code, drawn so similar letters and figures
-   are easy to tell apart. Latin subset only; other scripts fall back to system fonts. */
-@font-face{font-family:"Archivo";src:url("assets/fonts/archivo-latin-var.woff2") format("woff2");font-weight:100 900;font-stretch:62% 125%;font-style:normal;font-display:swap}
-@font-face{font-family:"Atkinson Hyperlegible Next";src:url("assets/fonts/atkinson-next-latin-var.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
-@font-face{font-family:"Atkinson Hyperlegible Next";src:url("assets/fonts/atkinson-next-latin-var-italic.woff2") format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
+   A magazine pairing, all free (SIL OFL 1.1) and served from assets/fonts so the guide looks
+   and measures the same everywhere and works offline; licences sit beside the files.
+   Instrument Serif (Instrument): titles; its italic is the large, flowing display voice.
+   Newsreader (Production Type): reading text, built for long screen reading, with a true italic.
+   Instrument Sans (Instrument): the interface, labels and map cards; its width axis gives the
+   condensed cut that font-stretch asks for. Atkinson Hyperlegible Mono: code and small figures.
+   Latin subset only; other scripts fall back to system fonts. */
+@font-face{font-family:"Instrument Serif";src:url("assets/fonts/instrument-serif-latin.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Instrument Serif";src:url("assets/fonts/instrument-serif-latin-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"Newsreader";src:url("assets/fonts/newsreader-latin-var.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Newsreader";src:url("assets/fonts/newsreader-latin-var-italic.woff2") format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url("assets/fonts/instrument-sans-latin-var.woff2") format("woff2");font-weight:400 700;font-stretch:75% 100%;font-style:normal;font-display:swap}
 @font-face{font-family:"Atkinson Hyperlegible Mono";src:url("assets/fonts/atkinson-mono-latin-var.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
 /* ---------- tokens ---------- */
 :root{
@@ -33,8 +36,10 @@
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px;
   --r:0; --r2:0; --r3:0;
   --mono:"Atkinson Hyperlegible Mono","Cascadia Mono","Consolas",ui-monospace,monospace;
-  --sans:"Atkinson Hyperlegible Next","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
-  --display:"Archivo","Bahnschrift","Avenir Next Condensed","Segoe UI",system-ui,sans-serif;
+  --sans:"Newsreader",Georgia,"Times New Roman",serif;
+  --ui:"Instrument Sans","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  --title:"Instrument Serif","Times New Roman",Georgia,serif;
+  --display:"Instrument Sans","Segoe UI",system-ui,sans-serif;
   --grid:rgba(255,255,255,.045);
   --d-player:#f28cb1; --d-experience:#f59e5b; --d-core:#f2cd4a; --d-systems:#a9d15b; --d-content:#5ccf9a;
   --d-level:#4fc9c0; --d-ux:#63b8f0; --d-narrative:#9b98f5; --d-presentation:#c58cf2; --d-product:#f47c7c;
@@ -1376,7 +1381,7 @@ html .shell .view > :is(p,ul,ol,dl){max-width:var(--measure)}
 .labchain .cn,.labchainrow .k,.labmech b,.refcard .meta small,.railtitle,.railsub,.modal .res .type,.modal .resgroup,.maplegend-panel .lgrow b,
 .brand small,.side .dom > button,.sec > header h3,.loopviz button,.rung-stage,.ladder .rung b,.drawer-close.show.text,.localgraph .lg-foot,.railgraph,
 .chain .cn,.formula button,.field label,.promptbox .lbl,.legend,.progress,.toast,footer,.raildom-btn .rn,.libteach .chip{
-  font-family:var(--sans);text-transform:none;letter-spacing:0}
+  font-family:var(--ui);text-transform:none;letter-spacing:0}
 .chip,.tabs button,.pill-tabs button,.crumbs,.mapcrumbs,nav.primary button,.stepper button,.decidebtn,.oi-flag,.kindchip,.evchip,.labchain .cn,.labchainrow .k,.modal .res .type,.modal .resgroup,.railtitle,.railsub,.chain .cn,.formula button,.sec > header h3,.loopviz button,.side .dom > button{font-weight:500}
 th,.refcard .meta small,.labmech b,.ladder .rung b,.maplegend-panel .lgrow b{font-weight:600;color:var(--fg2)}
 .chip{border-radius:0;font-size:var(--fs-micro);padding:2px 9px}
@@ -1427,6 +1432,20 @@ nav.primary.more-open .nav-extra{box-shadow:var(--shadow)}
 }
 a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.card.clickable:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:2px}
+/* ---------- MAGAZINE LAYER ----------
+   Two voices, as in print: a dramatic display face used large and rarely (the italic serif
+   page title), and calm faces that carry reading (Newsreader) and the interface (Instrument
+   Sans). Headings never get faux bold or faux italic. */
+html{font-synthesis:none}
+h1,.hero h1,.domain-hero h1,.topic-head h1{font-family:var(--title);font-style:italic;font-weight:400;font-stretch:normal;letter-spacing:-.01em;line-height:1.02;font-size:clamp(2.5rem,1.9rem + 2.4vw,4rem);text-wrap:balance}
+h2,.verdict h2,h3{font-family:var(--title);font-style:normal;font-weight:400;font-stretch:normal;letter-spacing:0;line-height:1.12;text-wrap:balance}
+h2{font-size:clamp(1.6rem,1.4rem + .8vw,2.05rem)}
+h3{font-size:1.4rem}
+.quotebig{font-family:var(--title);font-style:italic;font-weight:400;font-stretch:normal;font-size:1.8rem;line-height:1.2}
+.brand{font-family:var(--title);font-style:italic;font-weight:400;font-stretch:normal;font-size:1.45rem;letter-spacing:0}
+body{font-size:17px;font-optical-sizing:auto}
+nav.primary button,.tabs button,.pill-tabs button,.chip,.btn,button,input,select,textarea,.crumbs,th,.field label,.badge-num,.stepper button,.formula button,.legend,.maplegend,.progress,.toast,.modal .res,.side,.overline,.small.muted,.mapbar,.pathbar,footer{font-family:var(--ui)}
+html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,.mapcrumbs button,header .car,.drawer-close,.tabs a,.pill-tabs a,.lens-switch,.lens-switch button,summary){font-family:var(--ui)}
 </style>
 </head>
 <body>
