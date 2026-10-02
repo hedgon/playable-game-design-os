@@ -1154,6 +1154,11 @@ table.worked th{background:var(--bg3)}
   .mapviewsw{display:inline-flex}
   .mapfind{flex:1 1 100%}
   .mapfind input{min-height:44px}
+  /* The control row never wraps: each control takes an equal share of the row, so the row
+     cannot depend on how a fallback font draws a symbol such as the zoom signs (on Linux CI
+     the same row measured three lines while Windows measured two). */
+  .mapbar .mapctl > .btn:not(.mapnext){flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+  .mapbar .mapctl > .mapviewsw{flex:0 0 auto}
   /* List: the same tree as an expandable outline */
   .mapstage.plist .mapwrap{touch-action:auto}
   .mapstage.plist .mapwrap svg{display:none}
@@ -47125,8 +47130,8 @@ function ensureShell(){
         <a class="btn sm mapnext" id="mapNext" href="#/map" hidden>Next unread</a>
         <button class="btn sm ghost" id="mapLegendBtn" aria-expanded="false" aria-controls="maplegend" title="What the colours, marks and lines mean">Legend</button>
         <div class="lens-switch mapviewsw" id="mapPhoneView" role="group" aria-label="Phone map view"><button type="button" data-view="map" aria-pressed="true">Map</button><button type="button" data-view="list" aria-pressed="false">List</button></div>
-        <button class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">－</button>
-        <button class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
+        <button class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+        <button class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">+</button>
         <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢<span class="btn-long"> fit</span></button>
         <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺</button>
         <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲</button>

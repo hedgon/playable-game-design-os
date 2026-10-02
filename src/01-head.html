@@ -1154,6 +1154,11 @@ table.worked th{background:var(--bg3)}
   .mapviewsw{display:inline-flex}
   .mapfind{flex:1 1 100%}
   .mapfind input{min-height:44px}
+  /* The control row never wraps: each control takes an equal share of the row, so the row
+     cannot depend on how a fallback font draws a symbol such as the zoom signs (on Linux CI
+     the same row measured three lines while Windows measured two). */
+  .mapbar .mapctl > .btn:not(.mapnext){flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+  .mapbar .mapctl > .mapviewsw{flex:0 0 auto}
   /* List: the same tree as an expandable outline */
   .mapstage.plist .mapwrap{touch-action:auto}
   .mapstage.plist .mapwrap svg{display:none}
