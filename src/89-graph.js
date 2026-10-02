@@ -62,13 +62,15 @@ window.PlayableGraph = (function(){
     // a card with a mark on its right (a +/- glyph or a read mark) keeps its text clear of it
     const gut = (n.kind === 'domain' || n.kind === 'group' || typeof n.rd === 'boolean') ? 22 : 0;
     if(n.label){ const fs = fontOf(n); n.lines = wrap(n.label, maxFor(n.w - gut, fs)); n.h += (n.lines.length - 1) * lineGap(fs); }
-    if(n.sub){ n.subLines = wrap(n.sub, maxFor(n.w - gut, 12)); n.h += (n.subLines.length - 1) * lineGap(12); }
+    if(n.sub){ n.subLines = wrap(n.sub, maxForSub(n.w - gut)); n.h += (n.subLines.length - 1) * lineGap(12); }
     n.children.forEach(fitLabels);
   };
   // Longest line that fits the node's inner width, from the same
   // per-character estimate the layout checker uses. It sets where a label
   // wraps; nothing is ever cut.
   const maxFor = (w, fs) => Math.max(4, Math.floor((w - 26) / (fs * 0.56)));
+  // Sub-labels are set in the monospace font, about 0.65 em a character with its spacing.
+  const maxForSub = w => Math.max(4, Math.floor((w - 26) / (12 * 0.68)));
   // Horizontal-tangent cubic between two points; dx is how far the control
   // points sit from each end (negative to bow left, as the cross links do).
   const link = (ax, ay, bx, by, dx) => `M${ax},${ay} C${ax + dx},${ay} ${bx + dx},${by} ${bx},${by}`;
@@ -360,7 +362,7 @@ window.PlayableGraph = (function(){
     // every system node.
     const count = `${systems.length} system${systems.length === 1 ? '' : 's'}`;
     const both = cs.sub ? `${cs.sub} · ${count}` : count;
-    const rootSub = cs.sub && both.length > maxFor(SIZE.root.w, 12) ? cs.sub : both;
+    const rootSub = cs.sub && both.length > maxForSub(SIZE.root.w) ? cs.sub : both;
     const root = { kind:'center', id:cs.id, label:cs.t, sub:rootSub, w:SIZE.root.w, h:SIZE.root.h, children:[] };
     let sel = null, open = null;
     systems.forEach(s => {

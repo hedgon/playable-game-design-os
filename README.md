@@ -6,7 +6,7 @@ ship and lead one.
 
 Open `playable.html` in any modern browser. No server, no install, no network
 access, no external libraries. Images (game screens, engine and platform
-portal screenshots) live in the small `assets/` folder beside the file;
+portal screenshots) and three small font files live in the `assets/` folder beside the file;
 everything else is embedded. It works on
 desktop, tablet and phone. `index.html` only redirects to `playable.html`, for
 GitHub Pages.
@@ -110,9 +110,12 @@ all of it to a JSON file and **import** it again, in this browser or another one
 A field manual crossed with a technology tree: condensed display type for
 headings, monospace micro-labels, a dot-grid ground, sharp corners with hard
 offset shadows in the domain colour, dashed knowledge-graph edges, a charcoal dark
-mode and a paper-and-ink light mode. System fonts only (Bahnschrift or Avenir Next
-Condensed where available, Cascadia or Consolas for mono), so it renders the same
-offline.
+mode and a paper-and-ink light mode. Three free fonts (SIL Open Font License),
+shipped in `assets/fonts/` with their licences so the guide looks and measures the
+same on every system and offline: **Archivo** for headings and map labels (its width
+axis gives the condensed cut), **Atkinson Hyperlegible Next** for reading, and
+**Atkinson Hyperlegible Mono** for labels and code. The Atkinson faces were drawn by
+the Braille Institute so similar letters and figures are easy to tell apart.
 
 ## Principles the guide embodies
 
@@ -131,6 +134,7 @@ offline.
 playable.html           the guide: open this
 index.html              redirect to playable.html (GitHub Pages)
 assets/games/           reference-game art used by the reference library
+assets/fonts/           the three web fonts and their OFL licences
 src/                    sources and maintenance scripts (not needed to use the guide)
 README.md               this file
 CONTRIBUTING.md         how to edit content, the data schema, build and checks

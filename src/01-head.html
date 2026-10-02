@@ -9,6 +9,17 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNSIgZmlsbD0iIzEwMTExNCIvPjxnIGZpbGw9IiMyYjJmMzYiPjxjaXJjbGUgY3g9IjgiIGN5PSI4IiByPSIxIi8+PGNpcmNsZSBjeD0iMTYiIGN5PSI4IiByPSIxIi8+PGNpcmNsZSBjeD0iMjQiIGN5PSI4IiByPSIxIi8+PGNpcmNsZSBjeD0iOCIgY3k9IjE2IiByPSIxIi8+PGNpcmNsZSBjeD0iMjQiIGN5PSIxNiIgcj0iMSIvPjxjaXJjbGUgY3g9IjgiIGN5PSIyNCIgcj0iMSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMjQiIHI9IjEiLz48Y2lyY2xlIGN4PSIyNCIgY3k9IjI0IiByPSIxIi8+PC9nPjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjkiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzNhM2Y0OCIgc3Ryb2tlLXdpZHRoPSIxIi8+PGcgc3Ryb2tlPSIjZmZiNDU0IiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIuOTIiPjxsaW5lIHgxPSIxNiIgeTE9IjE2IiB4Mj0iMTYiIHkyPSI3LjUiLz48bGluZSB4MT0iMTYiIHkxPSIxNiIgeDI9IjI0LjUiIHkyPSIxNiIvPjxsaW5lIHgxPSIxNiIgeTE9IjE2IiB4Mj0iMTYiIHkyPSIyNC41Ii8+PGxpbmUgeDE9IjE2IiB5MT0iMTYiIHgyPSI3LjUiIHkyPSIxNiIvPjwvZz48Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIzLjYiIGZpbGw9IiNmZmI0NTQiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjcuNSIgcj0iMiIgZmlsbD0iIzVlZWFkNCIvPjxjaXJjbGUgY3g9IjI0LjUiIGN5PSIxNiIgcj0iMiIgZmlsbD0iI2ZmYjQ1NCIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iMjQuNSIgcj0iMiIgZmlsbD0iIzVlZWFkNCIvPjxjaXJjbGUgY3g9IjcuNSIgY3k9IjE2IiByPSIyIiBmaWxsPSIjZmZiNDU0Ii8+PC9zdmc+">
 <meta name="theme-color" content="#101114">
 <style>
+/* ---------- fonts ----------
+   Three free (SIL OFL 1.1) variable fonts, served from assets/fonts so the guide looks and
+   measures the same on every system and still works offline. Licences sit beside the files.
+   Archivo (Omnibus-Type): headings and map labels; its width axis gives the condensed
+   display cut that font-stretch asks for. Atkinson Hyperlegible Next and Mono (Braille
+   Institute, 2025): body text, labels and code, drawn so similar letters and figures
+   are easy to tell apart. Latin subset only; other scripts fall back to system fonts. */
+@font-face{font-family:"Archivo";src:url("assets/fonts/archivo-latin-var.woff2") format("woff2");font-weight:100 900;font-stretch:62% 125%;font-style:normal;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible Next";src:url("assets/fonts/atkinson-next-latin-var.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible Next";src:url("assets/fonts/atkinson-next-latin-var-italic.woff2") format("woff2");font-weight:200 800;font-style:italic;font-display:swap}
+@font-face{font-family:"Atkinson Hyperlegible Mono";src:url("assets/fonts/atkinson-mono-latin-var.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
 /* ---------- tokens ---------- */
 :root{
   /* dark: charcoal workshop. Not blue-black, not a dashboard. */
@@ -16,9 +27,9 @@
   --fg:#ece7dc; --fg2:#b3ada1; --fg3:#8c877e; --accent:#ffb454; --accent2:#5eead4; --ok:#8fd67a; --warn:#ffb454; --bad:#ff7a6b;
   --ink:#101114; --shadow:4px 4px 0 var(--line2);
   --r:6px; --r2:4px; --r3:3px;
-  --mono:"Cascadia Mono","JetBrains Mono","Consolas","SF Mono",Menlo,ui-monospace,monospace;
-  --sans:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
-  --display:"Bahnschrift","Avenir Next Condensed","Futura","Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  --mono:"Atkinson Hyperlegible Mono","Cascadia Mono","Consolas",ui-monospace,monospace;
+  --sans:"Atkinson Hyperlegible Next","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  --display:"Archivo","Bahnschrift","Avenir Next Condensed","Segoe UI",system-ui,sans-serif;
   --grid:rgba(255,255,255,.045);
   --d-player:#f28cb1; --d-experience:#f59e5b; --d-core:#f2cd4a; --d-systems:#a9d15b; --d-content:#5ccf9a;
   --d-level:#4fc9c0; --d-ux:#63b8f0; --d-narrative:#9b98f5; --d-presentation:#c58cf2; --d-product:#f47c7c;
@@ -601,7 +612,7 @@ nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(-
 .role{border-top:3px solid var(--d-ai)}
 .role h3{color:var(--fg)!important}
 .mapwrap{background:var(--panel);border-radius:var(--r2)}
-.mapwrap .center text{font-family:var(--display);font-stretch:87.5%;letter-spacing:.06em}
+.mapwrap .center text{font-family:var(--display);font-stretch:85%;letter-spacing:.03em}
 .mapwrap .node text{font-family:var(--display);font-stretch:92%;letter-spacing:.02em}
 .mapwrap .edge{stroke-dasharray:3 4}
 .mapwrap .edge.hl{stroke-dasharray:none}
