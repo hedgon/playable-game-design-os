@@ -97,6 +97,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       visits++;
       errors.length = 0;
       await page.evaluate(route => new Promise(res => { if (location.hash === route) return res(); const f = () => { removeEventListener('hashchange', f); res(); }; addEventListener('hashchange', f); location.hash = route; }), r);
+      await page.evaluate(() => window.PlayableApp.settled());   // a route draws once its content file is in
       const s = await page.evaluate(() => { const p = document.getElementById('pane'), rect = p.getBoundingClientRect(); return { text: (p.querySelector('.view') || p).innerText.trim().length, onScreen: rect.width > 0 && rect.left >= -1 && rect.right <= innerWidth + 1 }; });
       // Nothing inside the content pane may run past its right edge, unless it sits inside a horizontal scroller.
       const over = await page.evaluate(() => {

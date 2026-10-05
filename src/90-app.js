@@ -251,7 +251,9 @@ function route(){
   const finish = () => { if(seq !== routeSeq) return; routePending = false; routedHash = at; };   // a redirect while drawing leaves the next route to settle
   if(!needs.length){ drawRoute(); finish(); return; }
   const slow = setTimeout(() => { if(seq === routeSeq) setView(`<p class="dim" role="status">Loading…</p>`); }, 150);
-  PlayableContent.needAll(needs).then(() => { clearTimeout(slow); if(seq === routeSeq){ drawRoute(); finish(); } }, err => {
+  // draw only if the address is still the one this route loaded for: a new hash can be
+  // set before its hashchange event runs, and that route will draw itself
+  PlayableContent.needAll(needs).then(() => { clearTimeout(slow); if(seq === routeSeq && location.hash === at){ drawRoute(); finish(); } }, err => {
     clearTimeout(slow); if(seq !== routeSeq) return;
     console.warn(err);
     setView(`<h1>This page could not be loaded</h1><div class="callout"><p>Its content file did not arrive. If you are offline, the pages you have opened before still work.</p><p><button type="button" class="btn sm" data-action="reload-page">Try again</button></p></div>`);
@@ -366,9 +368,9 @@ let SHELL = false;
 function ensureShell(){
   if(SHELL) return;
   app.innerHTML = `<div class="shell" id="shell">
-    <aside class="rail" id="rail"></aside>
+    <nav class="rail" id="rail" aria-label="Index"></nav>
     <div class="splitter" id="splitL" title="Drag to resize"></div>
-    <section class="mapstage" id="mapstage">
+    <section class="mapstage" id="mapstage" aria-label="Map"><h1 class="sr-only" id="mapH1" hidden>Map</h1>
       <div class="mapbar"><div class="mapcrumbs"></div>
         <div class="mapfind"><input type="search" id="mapFind" placeholder="Find in map" aria-label="Find in map" aria-describedby="mapFindN" autocomplete="off" spellcheck="false"><span class="mapfind-n" id="mapFindN"></span></div>
         <div class="row mapctl" style="gap:4px">
@@ -388,7 +390,7 @@ function ensureShell(){
       <div class="mapfoot-live" id="maplive" role="status" aria-live="polite" aria-atomic="true"></div>
     </section>
     <div class="splitter" id="splitR" title="Drag to resize"></div>
-    <section class="pane" id="pane"></section>
+    <main class="pane" id="pane"></main>
   </div><div class="scrim" id="scrim"></div><button class="drawer-close" id="drawerClose" aria-label="Close panel">✕</button>`;
   SHELL = true; wireShell();
 }
@@ -510,6 +512,11 @@ function syncScrim(){
   syncInert();
   const railOpen = $('#rail').classList.contains('open'), paneOpen = $('#pane').classList.contains('open'), narrow = isNarrow();
   $('#scrim').classList.toggle('show', narrow && (railOpen || (paneOpen && !phoneMQ.matches)));
+  // With the reading pane closed on a narrow screen the map is the page: it takes the
+  // main landmark and a heading; when the pane opens, the pane has both again.
+  const mapMain = narrow && !paneOpen, ms = $('#mapstage'), mh = $('#mapH1');
+  if(ms){ if(mapMain) ms.setAttribute('role', 'main'); else ms.removeAttribute('role'); }
+  if(mh) mh.hidden = !mapMain;
   const dc = $('#drawerClose'); if(!dc) return;
   const page = narrow && paneOpen && !railOpen && phoneMQ.matches;
   // The "Map" pill belongs to pages whose content is part of the map (topics, domains,
@@ -709,9 +716,9 @@ function workedFile(w){
 }
 function workedCard(w, color){
   const table = w.kind === 'table' ? `<div class="tablewrap" tabindex="0" role="region" aria-label="${esc(w.t)}, table"><table class="worked"><caption>${esc(w.t)}</caption><thead><tr>${w.columns.map(c => `<th scope="col">${esc(c.h)}${c.unit ? ` <span class="muted small">(${esc(c.unit)})</span>` : ''}</th>`).join('')}</tr></thead><tbody>${w.rows.map(r => `<tr>${r.map(v => typeof v === 'number' ? `<td class="num">${esc(v)}</td>` : `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
-    : w.sections.map(s => `<h5>${esc(s.h)}</h5><p>${esc(s.body)}</p>`).join('');
+    : w.sections.map(s => `<h4>${esc(s.h)}</h4><p>${esc(s.body)}</p>`).join('');
   const formulas = (w.formulas || []).length ? `<p class="small"><b>How it is worked out.</b></p><ul class="small">${w.formulas.map(f => `<li><b>${esc(f.col)}:</b> ${esc(f.f)}</li>`).join('')}</ul>` : '';
-  return `<div class="card worked-card" id="worked-${esc(w.id)}" style="--dc:${color}"><h4>${esc(w.t)}</h4><p class="small dim">${esc(w.intro)}</p>${table}${formulas}<p class="small"><b>Try it.</b></p><ul class="small">${w.try.map(q => `<li>${esc(q)}</li>`).join('')}</ul><p class="small muted">${esc(w.note)}</p><button type="button" class="btn sm" data-action="worked-download" data-topic="${esc(w.topic)}" data-w="${esc(w.id)}">${w.kind === 'table' ? 'Download CSV' : 'Download Markdown'}</button></div>`;
+  return `<div class="card worked-card" id="worked-${esc(w.id)}" style="--dc:${color}"><h3 class="h4look">${esc(w.t)}</h3><p class="small dim">${esc(w.intro)}</p>${table}${formulas}<p class="small"><b>Try it.</b></p><ul class="small">${w.try.map(q => `<li>${esc(q)}</li>`).join('')}</ul><p class="small muted">${esc(w.note)}</p><button type="button" class="btn sm" data-action="worked-download" data-topic="${esc(w.topic)}" data-w="${esc(w.id)}">${w.kind === 'table' ? 'Download CSV' : 'Download Markdown'}</button></div>`;
 }
 function workedHTML(t, color){
   if(!t.worked || !t.worked.length) return '';
@@ -797,26 +804,30 @@ function shotHTML(g, s){
   return `<figure class="shot"><div class="shotframe"><img src="${esc(s.img)}" alt="${esc(s.alt)}" loading="lazy">${co.map((c, i) => `<span class="calloutdot" style="left:${c.x * 100}%;top:${c.y * 100}%" aria-hidden="true">${i + 1}</span>`).join('')}</div>
     <figcaption>${esc(s.caption)}${co.length ? `<ol class="calloutlist">${co.map(c => `<li>${esc(c.t)}</li>`).join('')}</ol>` : ''}<span class="small muted"> ${creditLine(credit)}</span></figcaption></figure>`;
 }
-function lensesHTML(g){
+function lensesHTML(g, openLens){
   if(!g.lens) return '';
   const topicChips = (l, k) => `<span class="chips">${lensTopics(l, k).filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span>`;
   const shots = k => (g.shots || []).filter(s => s.lens === k).map(s => shotHTML(g, s)).join('');
-  // Each lens is an argument: the claim leads, then the evidence (with any
-  // screenshot), how it works, what it does to the player, how it compares,
-  // what it costs, and the lesson that travels.
-  const src = l => (l.sources || []).length ? `<div class="small muted lenssrc">Sources: ${l.sources.map(u => { let h = u; try { h = new URL(u).hostname.replace(/^www\./, ''); } catch (e) {} return `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(h)}</a>`; }).join(' · ')}</div>` : '';
-  const row = (label, v, cls) => v ? `<p class="${cls || ''}"><b>${label}</b> ${esc(v)}</p>` : '';
+  // Each lens is an argument. The page shows each one's name and claim, the
+  // argument opens on request (all ten open made a game page fifteen screens of
+  // prose): the evidence (with any screenshot), how it works, what it does to
+  // the player, how it compares, what it costs, and the lesson that travels.
+  const host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch(e){ return u; } };
+  const src = l => (l.sources || []).length ? `<details class="lenssrc small"><summary>Sources (${l.sources.length})</summary><ul>${l.sources.map(u => `<li><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(host(u))}</a></li>`).join('')}</ul></details>` : '';
+  const part = (label, v, extra) => v ? `<dt>${label}</dt><dd>${esc(v)}${extra || ''}</dd>` : '';
   const keys = GAME_LENSES.filter(([k]) => g.lens[k]);
-  return `<div class="section-head"><h2>Through ten lenses</h2><span class="muted">claim, evidence, mechanism, effect, comparison, cost, principle</span></div>
-    <nav class="lensnav chips" aria-label="Lenses">${keys.map(([k, label]) => `<button type="button" class="chip lnk" data-action="lens-jump" data-lens="${k}">${esc(label)}</button>`).join('')}</nav>
-    ${keys.map(([k, label]) => { const l = g.lens[k]; return `<section class="card lenscard" id="lens-${k}"><div class="overline">${esc(label)}</div>
-      ${l.na ? `<p class="muted">${esc(l.na)}</p>` : `<h3 class="lensclaim">${esc(l.claim)}</h3>
-      ${row('Evidence.', l.evidence)}${shots(k)}${row('How it works.', l.mechanism)}${row('What it does to the player.', l.effect)}${row('Compared with.', l.compare)}${row('The cost.', l.cost)}${row('Context.', l.context)}${row('Principle.', l.principle, 'steal')}`}
-      ${topicChips(l, k)}${src(l)}</section>`; }).join('')}`;
+  return `<div class="section-head"><h2>Through ten lenses</h2><span class="muted">each a claim you can dispute, then its evidence, mechanism, effect, comparison, cost and principle</span></div>
+    <div class="row lensbar"><nav class="lensnav chips" aria-label="Lenses">${keys.map(([k, label]) => `<button type="button" class="chip lnk" data-action="lens-jump" data-lens="${k}">${esc(label)}</button>`).join('')}</nav><button type="button" class="btn sm ghost" data-action="lens-all">Open all</button></div>
+    ${keys.map(([k, label]) => { const l = g.lens[k]; return `<details class="card lenscard" id="lens-${k}"${k === openLens ? ' open' : ''}>
+      <summary><h3 class="lenshead">${esc(label)}</h3>${l.na ? `<span class="lensclaim muted">Does not apply here: open to read why.</span>` : `<span class="lensclaim">${esc(l.claim)}</span>`}</summary>
+      ${l.na ? `<p>${esc(l.na)}</p>` : `<dl class="lensparts">${part('Evidence', l.evidence, shots(k))}${part('How it works', l.mechanism)}${part('What it does to the player', l.effect)}${part('Compared with', l.compare)}${part('The cost', l.cost)}${part('Context', l.context)}</dl>
+      ${l.principle ? `<p class="steal"><b>Principle.</b> ${esc(l.principle)}</p>` : ''}`}
+      ${topicChips(l, k)}${src(l)}</details>`; }).join('')}`;
 }
 // A compact contents strip under the summary: each lens is a link that opens the page on it.
 const lensContents = g => `<nav class="lensnav chips lenscontents wdup" aria-label="Lenses on this page"><span class="small muted">Jump to</span>${GAME_LENSES.filter(([k]) => g.lens[k]).map(([k, label]) => `<a class="chip lnk" href="#/games/${g.id}/${k}">${esc(label)}</a>`).join('')}</nav>`;
-ACTIONS['lens-jump'] = el => { const c = document.getElementById('lens-' + el.dataset.lens); if(c) c.scrollIntoView({ block: 'start' }); };
+ACTIONS['lens-jump'] = el => { const c = document.getElementById('lens-' + el.dataset.lens); if(c){ c.open = true; c.scrollIntoView({ block: 'start' }); } };
+ACTIONS['lens-all'] = el => { const all = $$('#pane details.lenscard'), open = !all.every(d => d.open); all.forEach(d => { d.open = open; }); el.textContent = open ? 'Close all' : 'Open all'; };
 function signatureHTML(g){
   const s = g.signature; if(!s) return '';
   return `<section class="card sigcard"><div class="overline">The idea worth stealing</div><h2>${esc(s.idea)}</h2>${SIGNATURE_PARTS.map(([k, label]) => `<h3 class="h4look">${esc(label)}</h3><p>${esc(s[k])}</p>`).join('')}</section>`;
@@ -824,7 +835,7 @@ function signatureHTML(g){
 // Series pages list their entries (linking any analysed on its own) and say
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
-  if(g.kind === 'series') return `<div class="card seriescard"><div class="overline">The series, entry by entry</div><ol class="serieslist${g.entries.some(e => e.shot) ? ' withshots' : ''}">${g.entries.map(e => `<li>${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : (g.entries.some(x => x.shot) ? entryRefArt(e) || '<div></div>' : '')}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
+  if(g.kind === 'series') return `<div class="card seriescard"><h2 class="overline">The series, entry by entry</h2><ol class="serieslist${g.entries.some(e => e.shot) ? ' withshots' : ''}">${g.entries.map(e => `<li>${e.shot ? `<figure class="entryshot"><img src="${esc(e.shot.img)}" alt="${esc(e.shot.alt)}" loading="lazy"><figcaption class="small muted">${creditLine(e.shot.credit)}</figcaption></figure>` : (g.entries.some(x => x.shot) ? entryRefArt(e) || '<div></div>' : '')}<div><b>${e.ref ? `<a href="#/games/${e.ref}">${esc(e.t)}</a>` : esc(e.t)}</b> <span class="muted small">${e.year} · ${esc(e.platform)}</span><br>${esc(e.added)}${e.ref ? ' <span class="small muted">(analysed on its own page)</span>' : ''}</div></li>`).join('')}</ol>
     <h3 class="h4look">What stays constant</h3><p>${esc(g.constant)}</p><h3 class="h4look">What changes</h3><p>${esc(g.changed)}</p></div>${receptionHTML(g)}`;
   if(!g.series) return '';
   const S = REFERENCE_GAMES.find(x => x.kind === 'series' && x.id === g.series.id);
@@ -872,7 +883,7 @@ function renderGames(id, lensId){
     ${g.kind === 'series' ? seriesHTML(g) : ''}
     ${signatureHTML(g)}
     ${(g.diagrams || []).map(d => diagramCard(d, null, d.topics ? `<div class="dgm-foot"><span class="overline">Illustrates</span><span class="chips">${d.topics.filter(t => TOPICS[t]).map(t => `<a class="chip lnk" href="#/map/t/${t}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : '')).join('')}
-    ${lensesHTML(g)}
+    ${lensesHTML(g, lensId)}
     <div class="card">${row('Why it worked.', g.why)}${row('What players complain about.', g.complaints)}${row('The lesson.', g.lesson)}${row('What copies miss.', g.misses)}${pathChips('game:' + g.id, 'game')}</div>
     ${comparedWith(g)}
     <div class="row wdup"><a class="btn" href="#/build/dissect">Dissect your idea against it</a></div>`, side, 'This game'));
@@ -1091,13 +1102,13 @@ function sectionBody(key, t){
     case 'what': return `<p>${esc(t.what)}</p>`;
     case 'why': return list(t.why);
     case 'think': return `<div class="think-grid">
-      <div class="box"><h4>Questions to ask</h4>${list(t.think.q)}</div>
-      <div class="box"><h4>Tradeoffs</h4>${list(t.think.trade)}</div>
-      <div class="box trap"><h4>Common traps</h4>${list(t.think.traps)}</div>
-      <div class="box good"><h4>Signals of good design</h4>${list(t.think.good)}<h4 style="margin-top:8px;color:var(--bad)">Signals of bad design</h4>${list(t.think.bad)}</div></div>`;
+      <div class="box"><h3 class="h4look">Questions to ask</h3>${list(t.think.q)}</div>
+      <div class="box"><h3 class="h4look">Tradeoffs</h3>${list(t.think.trade)}</div>
+      <div class="box trap"><h3 class="h4look">Common traps</h3>${list(t.think.traps)}</div>
+      <div class="box good"><h3 class="h4look">Signals of good design</h3>${list(t.think.good)}<h3 class="h4look" style="margin-top:8px;color:var(--bad)">Signals of bad design</h3>${list(t.think.bad)}</div></div>`;
     case 'how': return `<ol class="numbered">${t.how.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`;
-    case 'tech': return `<p class="small dim">Techniques that solve this, compared on how they work, when they fit, and what they cost. Pick one to prototype, not all of them.</p><div class="think-grid">${(t.tech||[]).map(x => `<div class="box"><h4>${esc(x.n)}</h4><div class="small"><b>How it works.</b> ${esc(x.how)}</div><div class="small" style="margin-top:4px"><b>Fits when.</b> ${esc(x.fit)}</div><div class="small" style="margin-top:4px"><b>Cost / risk.</b> ${esc(x.cost)}</div><div class="small muted" style="margin-top:4px"><b>Watch out / instead.</b> ${esc(x.alt)}</div></div>`).join('')}</div>`;
-    case 'ai': return `<div class="ai-split"><div class="box yes"><h4 style="color:var(--d-ai)">AI is good at</h4>${list(t.ai.yes)}</div><div class="box no"><h4 style="color:var(--d-player)">AI should not decide</h4>${list(t.ai.no)}</div></div>`;
+    case 'tech': return `<p class="small dim">Techniques that solve this, compared on how they work, when they fit, and what they cost. Pick one to prototype, not all of them.</p><div class="think-grid">${(t.tech||[]).map(x => `<div class="box"><h3 class="h4look">${esc(x.n)}</h3><div class="small"><b>How it works.</b> ${esc(x.how)}</div><div class="small" style="margin-top:4px"><b>Fits when.</b> ${esc(x.fit)}</div><div class="small" style="margin-top:4px"><b>Cost / risk.</b> ${esc(x.cost)}</div><div class="small muted" style="margin-top:4px"><b>Watch out / instead.</b> ${esc(x.alt)}</div></div>`).join('')}</div>`;
+    case 'ai': return `<div class="ai-split"><div class="box yes"><h3 class="h4look" style="color:var(--d-ai)">AI is good at</h3>${list(t.ai.yes)}</div><div class="box no"><h3 class="h4look" style="color:var(--d-player)">AI should not decide</h3>${list(t.ai.no)}</div></div>`;
     case 'prompts': return (t.prompts||[]).map(p => promptBox(p.l, p.p)).join('') + `<p class="small muted" style="margin-top:8px">Every prompt assumes you filled the brackets with your real player, fantasy, loop, constraints and evidence. Unfilled brackets produce genre averages. See ${topicLink('prompting-framework')} and the <a href="#/build/prompt">Prompt Generator</a>.</p>`;
     case 'verify': return list(t.verify) + `<details><summary>Universal verification questions (apply to every AI output)</summary><div class="body">${list(['What assumptions are you making? Mark each as given, inferred, or invented.','What evidence supports this?','What could make this fail?','What player behaviour would prove this wrong?','Is this solving the actual problem or producing more content?','Is this complexity necessary?','What is the smallest prototype that tests this?','What alternatives did we reject?','What tradeoff are we making?'])}<a class="btn sm" href="#/checklists/ai-verify">Open the verification checklist</a></div></details>`;
     case 'test': return list(t.test) + `<div class="row"><a class="btn sm" href="#/build/hypothesis">Write the hypothesis</a><a class="btn sm" href="#/playtest">Playtest question bank</a></div>`;
@@ -1146,7 +1157,7 @@ function contextsPanel(t){
   const c = topicContexts(t);
   const chips = [`<span class="chip dom" style="--dc:${c.home.color}">${esc(c.home.t)} · home</span>`]
     .concat(c.refs.map(x => `<a class="chip lnk" style="cursor:pointer" href="#/map/t/${x.id}">${esc(DOM[x.d].t)} · ${esc(x.t)}</a>`));
-  return `<div class="card contexts"><h4>Appears in</h4><div class="small muted">One concept, several contexts. Its home domain, then every concept that references it. The article is not duplicated.</div>
+  return `<div class="card contexts"><h2 class="h4look">Appears in</h2><div class="small muted">One concept, several contexts. Its home domain, then every concept that references it. The article is not duplicated.</div>
     <div class="chips" style="margin-top:8px">${chips.join('')}</div>
     ${c.smells.length ? `<div class="small" style="margin-top:8px"><b>Diagnoses smells:</b> ${c.smells.map(s => `<a href="#/smell/${s.id}">${esc(s.t)}</a>`).join(', ')}</div>` : ''}
     ${c.loops.length ? `<div class="small" style="margin-top:4px"><b>Core-loop links:</b> ${c.loops.map(p => esc(p.t)).join(', ')}</div>` : ''}
@@ -1286,7 +1297,7 @@ function goBody(t){
   const v = t.go, d = DOM[t.d];
   return `<div class="engview" style="--dc:${d.color}">
     <div class="overline">Go · the same idea in a Go service</div>
-    <h4>Reach for</h4><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
+    <h2 class="h4look">Reach for</h2><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
     ${snippetNote(snippetLabel('go', t, v))}
     <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>
     <div class="callout bad"><b>Pitfall.</b> ${esc(v.pitfall)}</div></div>`;
@@ -1296,7 +1307,7 @@ function engineBody(t, which){
   return `<div class="engview" style="--dc:${d.color}">
     <div class="overline">${which === 'godot' ? 'Godot 4' : 'Unity 6'} · what this is called here</div>
     <p>${esc(v.term)}</p>
-    <h4>Reach for</h4><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
+    <h2 class="h4look">Reach for</h2><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
     ${snippetNote(snippetLabel(which, t, v))}
     <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>
     <div class="callout bad"><b>Pitfall.</b> ${esc(v.pitfall)}</div>
@@ -1315,9 +1326,9 @@ function ivCards(arr, color, key){
   // questions never marks the wrong one as queued.
   return `<div class="ivlist">${arr.map(x => { const k = `${key}:${x.q}`, on = !!queued[k];
     return `<details class="ivq" style="--dc:${color}"><summary>${esc(x.q)}</summary><div class="body">
-    <h4>Answer outline</h4><p>${esc(x.a)}</p>
-    <h4>Follow-up coming</h4><p>${esc(x.follow)}</p>
-    <h4 class="redflag">Red flag</h4><p>${esc(x.red)}</p>
+    <h3 class="h4look">Answer outline</h3><p>${esc(x.a)}</p>
+    <h3 class="h4look">Follow-up coming</h3><p>${esc(x.follow)}</p>
+    <h3 class="h4look redflag">Red flag</h3><p>${esc(x.red)}</p>
     <button type="button" class="btn sm ghost" data-action="review-toggle" data-key="${esc(k)}" aria-pressed="${on}">${on ? 'In your review queue' : 'Review later'}</button></div></details>`; }).join('')}</div>`;
 }
 function interviewBody(iv, color, storyKey, near){
@@ -1347,8 +1358,8 @@ function topicBody(id){
   const prev = idx > 0 ? d.topics[idx-1] : null, next = idx < d.topics.length-1 ? d.topics[idx+1] : null;
   const openSecs = new Set(store.get('openSecs', ['what','why','think']));
   const secTitle = key => (d.titles && d.titles[key]) || SECTION_META.find(m => m[0] === key)[2];
-  const secs = glossify(SECTION_META.map(([key, letter]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header data-action="toggle-sec"><span class="letter">${letter}</span><h3><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has(key)}">${esc(secTitle(key))}</button></h3><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join(''), { cur: id });
-  const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header data-action="toggle-sec"><span class="letter">T</span><h3><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has('tech')}">Techniques to compare</button></h3><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
+  const secs = glossify(SECTION_META.map(([key, letter]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header><span class="letter">${letter}</span><h2 class="sec-h"><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has(key)}">${esc(secTitle(key))}</button></h2><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join(''), { cur: id });
+  const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header><span class="letter">T</span><h2 class="sec-h"><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has('tech')}">Techniques to compare</button></h2><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
   const rel = (t.rel||[]).map(([rid, why]) => { const rt = TOPICS[rid]; const v = VIEW_LINKS[rid]; const href = rt ? `#/map/t/${rid}` : (v ? v[0] : '#/explore'); const label = rt ? rt.t : (v ? v[1] : rid); const dc = rt ? DOM[rt.d].color : 'var(--accent)'; return `<a class="rel lnk blk" style="border-left:3px solid ${dc}" href="${href}"><b>${esc(label)}</b><div class="why">${esc(why)}</div></a>`; }).join('');
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
   // Diagram and "Appears in" belong to the Overview body, so the engine and
@@ -1357,7 +1368,7 @@ function topicBody(id){
   // cross-references after it (on a phone the chips pushed "What is it?"
   // more than a screen down).
   // Rules and rulings that change, each with the day it was checked.
-  const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h4>Dated facts</h4><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
+  const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h2 class="h4look">Dated facts</h2><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
   const inGames = gameLinks()[id] || [];
   const smellChips = `<div class="chips">${smells.map(s => `<a class="chip lnk" style="cursor:pointer;padding:6px 10px" href="#/smell/${s.id}">${esc(s.t)}</a>`).join('')}</div>`;
   // Six chips, then the rest behind a toggle: with sixty games a common
@@ -2063,7 +2074,7 @@ function citedHTML(){
 function renderSources(){
   const tag = k => ({research:'<span class="chip ok">research-backed</span>', heuristic:'<span class="chip">practitioner heuristic</span>', contested:'<span class="chip warn">contested</span>', practice:'<span class="chip shared">practice</span>'})[k];
   setView(`${crumbs([['Library','#/games'],['Sources and lineage']])}<h1>Sources and lineage</h1><p class="dim" style="max-width:820px">This guide synthesises established game-design thinking rather than inventing a framework. Nothing here is a law. Most of it is practitioner heuristics that have survived across genres. A few items rest on research. Several are contested and marked as such. Verify against your players.</p>
-    <div class="grid c2 fill">${SOURCES.map(s => `<div class="card"><div class="row between"><h3 style="margin:0">${esc(s[0])}</h3>${tag(s[3])}</div><p style="margin:8px 0 6px">${esc(s[1])}</p><div class="small muted">${esc(s[2])}</div></div>`).join('')}</div>
+    <h2>The frameworks it draws on</h2><div class="grid c2 fill">${SOURCES.map(s => `<div class="card"><div class="row between"><h3 style="margin:0">${esc(s[0])}</h3>${tag(s[3])}</div><p style="margin:8px 0 6px">${esc(s[1])}</p><div class="small muted">${esc(s[2])}</div></div>`).join('')}</div>
     ${citedHTML()}
     <div class="callout" style="margin-top:14px"><b>How the synthesis was done.</b> Frameworks were checked for attribution and date. Where a maxim is routinely misquoted, the guide states the original intent. Where a template has no game-specific origin (the hypothesis form), the guide says so. Where ideas conflict (definitions of fun, flow literalism, player types), they are presented as lenses and the reader is told to test against players.</div>`);
 }

@@ -35,11 +35,11 @@ the evidence line), `[-]` set aside (with the reason).
 - [x] P2.6 CI checks playable.html and content/ with git status; page budget 300 KB gzipped in the build (292 KB)
 - [x] P2.7 Measured (research/split-architecture.md): 2,844 to 292 KB gz; slow-4G phone 48 s to 7-9 s; first search key 3.4 s to 62-77 ms; phone longest task 0.4-1.2 s, target 200 ms NOT met (map first paint; follow-up); file:// works
 - [x] P2.8 README and CONTRIBUTING updated (how the page loads content, LIGHT, budget, load-data.js)
-- [ ] P2.9 Checks, CI replay, commit, push, real CI run, live Pages check
+- [x] P2.9 Commit 14d3254 pushed after build, sync, tsc, smoke (0 failures), e2e (105/105). TODO next session: confirm the GitHub run and check the live Pages site loads content/ files
 - [x] P2.10 Owner (2026-10-05): old.html, trace.html and scratch outputs deleted after the golden master passed; obsolete code removed with the split: the in-page index build, citedSources' loop, routeDone (moved or replaced, listed in the report)
 
 ## P3 Audit fixes (presentation only)
-- [ ] P3.1 Game lenses: claim visible, body behind heading and disclosure; reading measure about 70 characters
+- [~] P3.1 (UNCOMMITTED, UNTESTED work in the tree: lenses as details + dl + sources disclosure + Open all; topic sections h2 with stretched button, sub-heads re-levelled with h4look classes, CSS selectors widened with :is(); series/sources headings; 68ch measure; #app div, pane main, rail nav. Next: run build, smoke, e2e, axe; then S5 buttons-to-links for .btn/.path/.symptom only, tab strips set aside) Game lenses: claim visible, body behind heading and disclosure; reading measure about 70 characters
 - [ ] P3.2 Semantics: `main` content only, heading order, h1 everywhere, links not button[data-href], lists, types, landmark names, lab markup
 - [ ] P3.3 Contrast pairs; check-contrast.js extended to composited surfaces
 - [ ] P3.4 Remaining site-audit rows (except N1-N4) fixed or set aside with reasons
@@ -57,7 +57,7 @@ the evidence line), `[-]` set aside (with the reason).
 
 ## P6 New topics (20)
 - [x] P6.0 briefs/factcheck.md
-- [~] P6.1 Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
+- [~] P6.1 Workflow wf_e1ce23b6-77b PAUSED at the usage limit (single lane); resume with Workflow({scriptPath: <session workflows/scripts/playable-topic-pipeline-wf_e1ce23b6-77b.js>, resumeFromRunId: 'wf_e1ce23b6-77b'}). Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
 - [ ] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks
 - [ ] P6.3 Paths: realtime-at-scale-engineer, performance-engineer; steps in existing paths; chooser
 - [ ] P6.4 Wiring: lens topics on existing games, review steps, glossary terms, spatial-composition pointer

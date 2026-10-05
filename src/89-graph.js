@@ -37,7 +37,7 @@ window.PlayableGraph = (function(){
   // The horizontal gap between a node and its parent, and the vertical gap
   // after a node, by kind. Columns follow the widths above, not a fixed step.
   // From docs/program-2026-10/research/map-layout.md: a level gap about 1.8 to 2
-  // times the old one leaves room for the elbow edges to fan out one per child,
+  // times the old one leaves room for the edges to fan out one per child,
   // and sibling gaps of 8 to 10 match the tool defaults for boxed cards (4 sat
   // nearer than any of them). A phone's stage has no width to spare, so it keeps
   // narrow columns and spends its slack vertically.
@@ -91,16 +91,6 @@ window.PlayableGraph = (function(){
   // points sit from each end (negative to bow left, as the cross links do).
   const link = (ax, ay, bx, by, dx) => `M${ax},${ay} C${ax + dx},${ay} ${bx + dx},${by} ${bx},${by}`;
   const smooth = (ax, ay, bx, by) => `M${ax},${ay} C${(ax + bx) / 2},${ay} ${(ax + bx) / 2},${by} ${bx},${by}`;
-  // A tree edge as a rounded elbow: out of the parent, along a trunk halfway
-  // across the gap, and into the child level. Every child of one parent shares
-  // the trunk, so a column of 13 children reads as 13 separate stubs one card
-  // apart instead of 13 S-curves squeezed into the gap (research/map-layout.md).
-  const elbow = (sx, sy, ex, ey) => {
-    const dir = ex >= sx ? 1 : -1, tx = sx + (ex - sx) / 2, dy = ey - sy;
-    if(Math.abs(dy) < 1) return `M${sx},${sy} H${ex}`;
-    const vs = dy > 0 ? 1 : -1, r = Math.min(8, Math.abs(dy) / 2, Math.abs(ex - sx) / 4);
-    return `M${sx},${sy} H${tx - dir * r} Q${tx},${sy} ${tx},${sy + vs * r} V${ey - vs * r} Q${tx},${ey} ${tx + dir * r},${ey} H${ex}`;
-  };
 
   const LEAF_KINDS = { leaf:1, item:1, group:1 };
   const innerX = n => n.side < 0 ? n.x + n.w : n.x;   // edge facing the root
@@ -181,7 +171,7 @@ window.PlayableGraph = (function(){
       if(parent){
         const sx = n.side < 0 ? parent.x : parent.x + parent.w, sy = parent.y;
         const ext = LEAF_KINDS[n.kind] ? ' ext' : '';
-        edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="${elbow(sx, sy, innerX(n), n.y)}"/>`);
+        edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="${smooth(sx, sy, innerX(n), n.y)}"/>`);
       }
       n.children.forEach((c, i) => walk(c, n, i + 1, n.children.length));
     };
