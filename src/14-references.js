@@ -259,3 +259,11 @@ const lensTopics = (l, key) => (l && l.topics && l.topics.length) ? l.topics : (
 const COMPARISONS = [];
 /** @param {Comparison} c */
 function COMPARE(c){ COMPARISONS.push(c); }
+/* The comparisons shelf, grouped by the design problem they share: each shelf names
+   the problem, says why the pairs on it belong together, and lists them in the
+   order to read them (#/games/compare). Every comparison sits on exactly one shelf. */
+/** @typedef {{id: string, t: string, why: string, ids: string[]}} CompareShelf */
+/** @type {CompareShelf[]} */
+const COMPARE_SHELVES = [];
+/** @param {string} id @param {string} t @param {string} why @param {string[]} ids */
+function COMPARE_SHELF(id, t, why, ids){ COMPARE_SHELVES.push({ id, t, why, ids }); }

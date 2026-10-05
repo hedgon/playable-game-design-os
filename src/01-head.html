@@ -1315,6 +1315,11 @@ ol.pathsteps{list-style:none;padding:0;margin:0 0 10px}
 .fight-idea input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
 .fight-sum{margin:4px 0 8px}
 .pathcheck .allq{margin:8px 0}
+/* the comparisons shelf: pairs numbered in reading order */
+ol.compareorder{list-style:none;padding:0;margin:0 0 18px;counter-reset:co}
+ol.compareorder > li{counter-increment:co;display:flex}
+ol.compareorder > li > .comparecard{flex:1}
+ol.compareorder > li .overline::before{content:counter(co) ". "}
 .pathsolution{margin:10px 0}
 .pathsolution h4{margin:10px 0 4px}
 /* snippet scope label, glossary toggletip and its bubble */

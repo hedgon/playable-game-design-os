@@ -94,13 +94,13 @@ the evidence line), `[-]` set aside (with the reason).
 - [x] P7.1 Drafts (writer-sonnet-low), checks (factcheck-opus-medium) and fixes in workflow wf_12f5bf60-4f8: crosscode, rhythm-heaven and rhythm-doctor, all PASS WITH FIXES, fixed (rhythm-doctor rewritten around the checker’s corrected thesis: the button and the seventh-beat core are fixed, the beat types vary)
 - [x] P7.2 Images: CrossCode header and 4 Steam screens (viewed, captions and callouts written from the images; 330 KB on the page); Rhythm Heaven header and 2 lens shots from Nintendo’s Groove gallery, entries 1-3 from LaunchBox captures (no Nintendo page left), entry 4 (3DS) without a shot (none found; 4 of 5 is the validator’s minimum). Rhythm Doctor header and 4 Steam screens (row, three rows with crosses, split screen, level editor; 188 KB). Every image was viewed before its alt and caption were written; a cross whose meaning the image does not show is described, not explained
 - [x] P7.3 Integrated: crosscode (18-games-innovative.js; steps in games-that-broke-the-mould s4 and study-the-hits-worlds s1), rhythm-heaven (18-games-series.js; steps in games-that-broke-the-mould s3 and study-the-hits-play s2); lens topics already name the new topics. One CrossCode screen region resized (its label was cut). Rhythm Doctor in 18-games-innovative.js, step in study-the-hits-play s2 beside Rhythm Heaven (the imitator question in one stage); its screen diagram re-laid out without overlaps
-- [~] P7.4 Checks, CI replay, commit, push
+- [x] P7.4 Checks, CI replay (build, diff 0, tsc, smoke 0, e2e 125/125), commits 701f149 and 7f9320d, pushed
 
 ## P8 Two games, one problem
-- [ ] P8.1 `COMPARE` optional diagram: schema, renderer, validator, layout check
-- [ ] P8.2 briefs/comparisons.md; four deepened; eight new; fact-checks
-- [ ] P8.3 Shelf grouped by problem with a reading order
-- [ ] P8.4 Checks, CI replay, commit, push
+- [x] P8.1 `COMPARE` optional diagram: typedef, renderer (diagramCard under the two heads), validator (checkDiagram), layout check (compare:<id> specs); in commit 4db0049
+- [x] P8.2 Comparisons: four deepened (3-4 sections to 6-7, each with a diagram), eight new, all fact-checked; eleven PASS WITH FIXES, one FAIL (balance-patches-in-a-live-game: Overwatch: Classic, 5v5 and the 2026 rename reversed its contrast) rewritten and re-read against its report before integration. The library’s Elden Ring fast-travel sentences corrected on the checker’s finding
+- [x] P8.3 Shelf: four problems (when the player fails; teaching without stopping play; bringing the player back; keeping a live game fair as it grows), each with its reason and a reading order; all 12 comparisons placed once
+- [~] P8.4 Checks (build 0 problems; 12 comparison pages visited at 1440 and 375, no errors), CI replay, commit, push
 
 ## P9 Adventure paths
 - [x] P9.1 Stage map (default) with a Plain list toggle: an ordered list of regions in the reading pane (steps read, checkpoint recall state, reviews due, You are here), every region a link, never a gate; the plain list shows every stage

@@ -746,6 +746,12 @@ ACTIONS['worked-download'] = el => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 const compareCard = c => `<a class="card lnk comparecard" href="#/games/compare/${esc(c.id)}"><div class="overline">${esc(compareTitle(c))}</div><b>${esc(c.t)}</b><p class="small dim" style="margin:6px 0 0">${esc(c.problem)}</p></a>`;
+// The comparisons page: one section per shared problem, its pairs in reading order; any comparison not on a shelf follows under More.
+function compareShelvesHTML(){
+  const placed = new Set(COMPARE_SHELVES.flatMap(s => s.ids)), rest = COMPARISONS.filter(c => !placed.has(c.id));
+  const shelf = (t, why, list) => list.length ? `<section class="compareshelf"><div class="section-head"><h2>${esc(t)}</h2></div>${why ? `<p class="dim small" style="max-width:760px;margin-top:0">${esc(why)}</p>` : ''}<ol class="grid auto compareorder">${list.map(c => `<li>${compareCard(c)}</li>`).join('')}</ol></section>` : '';
+  return COMPARE_SHELVES.map(s => shelf(s.t, s.why, s.ids.map(id => COMPARISONS.find(c => c.id === id)).filter(Boolean))).join('') + shelf('More', '', rest);
+}
 function compareShelf(){
   return COMPARISONS.length ? `<div class="section-head"><h2>Two games, one problem</h2><span class="muted"><a href="#/games/compare">${COMPARISONS.length} comparison${COMPARISONS.length === 1 ? '' : 's'}</a></span></div><div class="grid auto">${COMPARISONS.map(compareCard).join('')}</div>` : '';
 }
@@ -756,7 +762,7 @@ function comparedWith(g){
 function renderCompare(id){
   const c = COMPARISONS.find(x => x.id === id);
   if(!c){
-    setView(`${crumbs([['Library','#/games'],['Two games, one problem']])}<h1>Two games, one problem</h1><p class="dim" style="max-width:820px">The same design problem, solved two ways. Each comparison sets two reference games side by side, says what each choice costs and gains, and ends with the lesson that carries over.</p>${COMPARISONS.length ? `<div class="grid auto">${COMPARISONS.map(compareCard).join('')}</div>` : '<div class="empty">No comparisons yet.</div>'}`);
+    setView(`${crumbs([['Library','#/games'],['Two games, one problem']])}<h1>Two games, one problem</h1><p class="dim" style="max-width:820px">The same design problem, solved two ways. Each comparison sets two reference games side by side, says what each choice costs and gains, and ends with the lesson that carries over.</p>${COMPARISONS.length ? compareShelvesHTML() : '<div class="empty">No comparisons yet.</div>'}`);
     return;
   }
   const [A, B] = c.games.map(gameById);

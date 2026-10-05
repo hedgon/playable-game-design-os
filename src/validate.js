@@ -27,7 +27,7 @@ function imageSize(file) {
 const DRAFTS = (process.env.PLAYABLE_DRAFTS || '').split(',').map(s => s.trim()).filter(Boolean);
 const src = [...DATA.map(f => path.join(__dirname, f)), ...DRAFTS.map(f => path.resolve(f))]
   .map(f => fs.readFileSync(f, 'utf8')).join('\n');
-const RETURNS = '\nreturn {GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,COMPARISONS,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {COMPARE_SHELVES,GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,COMPARISONS,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 // A draft may rewrite an existing comparison: the later definition replaces the earlier one.
 if (DRAFTS.length) { const last = new Map(ctx.COMPARISONS.map(c => [c.id, c])); ctx.COMPARISONS.splice(0, ctx.COMPARISONS.length, ...last.values()); }
@@ -892,6 +892,10 @@ if (orphans.length) console.log('WARN topics with no inbound links:', orphans.jo
     if (c.diagram !== undefined) checkDiagram(c.diagram, `${where}: diagram`, errors);
     if (!Array.isArray(c.sources) || !c.sources.length || c.sources.some(u => !/^https:\/\/[^/\s]+/.test(u))) errors.push(`${where}: needs 1 or more https sources`);
   }
+  // the shelf: every comparison on exactly one shelf, every shelf id a real comparison
+  const onShelf = {};
+  for (const s of (ctx.COMPARE_SHELVES || [])) { if (!s.t || !s.why || !Array.isArray(s.ids) || !s.ids.length) errors.push(`comparison shelf ${s.id}: needs t, why and ids`); for (const id of s.ids || []) { if (!cids.has(id)) errors.push(`comparison shelf ${s.id}: unknown comparison ${id}`); onShelf[id] = (onShelf[id] || 0) + 1; } }
+  for (const id of cids) if (onShelf[id] !== 1) errors.push(`comparison ${id}: on ${onShelf[id] || 0} shelves, expected 1`);
   console.log(`worked examples: ${nw}, comparisons: ${(ctx.COMPARISONS || []).length}`);
 }
 const flowCount = (CASE_STUDIES || []).reduce((n, c) => n + (Array.isArray(c.flows) ? c.flows.length : 0), 0);
