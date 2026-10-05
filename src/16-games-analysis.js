@@ -94,7 +94,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Super Metroid’s Zebes is smaller and more linear, with upgrades opening areas in a mostly set order. Hollow Knight opens several routes early, so sequence varies more between players.',
       cost: 'A world grown this way has uneven pacing, with dead ends and long walks, and non-linear routes make it hard to guide a stuck player without markers. Size also meant years of development for a very small team.',
       principle: 'Connect each region in more than one place and players will write their own route, but plan how a lost player finds the next step.',
-      topics: ['spatial-composition'],
+      topics: ['spatial-composition', 'backtracking-and-return-trips'],
       sources: ['https://www.pcgamer.com/how-to-design-a-great-metroidvania-map/', 'https://hollowknight.wiki/w/Mantis_Tribe', 'https://en.wikipedia.org/wiki/Super_Metroid'] },
     env: {
       claim: 'Hollow Knight’s places show the kingdom’s fall in progress: the City of Tears keeps its grandeur, its rain and its guards, so the player reads what Hallownest was and what happened to it in the same room.',

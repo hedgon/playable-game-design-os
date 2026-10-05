@@ -1506,7 +1506,7 @@ T('backend-observability',{ d:'backend', t:'Logging, tracing, profiling and acti
   test:[`Take a real past incident and try to diagnose it using only what you log today. The gaps are your instrumentation backlog, in priority order.`,
     `Measure the latency instrumentation adds on a hot endpoint by running it with tracing and logging off. It is not free and you should know the number.`,
     `Search a day of logs for anything shaped like a token or an address. One hit is a policy failure, not a curiosity.`],
-  rel:[['metrics-and-success','Instrumentation is what turns a success metric from an opinion into a number.'],
+  rel:[['backend-latency-and-query-optimisation','Traces and latency histograms are the evidence the latency method starts from, before any query is changed.'],['metrics-and-success','Instrumentation is what turns a success metric from an opinion into a number.'],
     ['ai-for-playtest-analysis','The event stream is the raw material analysis runs on, and a bad taxonomy poisons every conclusion.'],
     ['backend-errors','Codes and captured stacks are what make an error log searchable under pressure.'],
     ['infra-monitoring','Logs and traces feed the alerts, and an alert with no trace behind it wastes the page.'],
@@ -1990,3 +1990,458 @@ func main() {
 `,
   pitfall:'A bare http.ListenAndServe has no timeouts, so one slow client can hold a connection open forever. Set the timeouts on an http.Server you own, and give Shutdown its own deadline so a stuck request cannot block a deploy.'
 });
+
+T('realtime-connection-tier-at-scale',{ d:'backend', t:'Real-time connections at scale: gateways, pub/sub and fan-out', tag:'Holding a million sockets is a memory problem. Delivering one message to a hundred thousand of them is a multiplication problem. They need different tiers.',
+  what:`The service that keeps long-lived client connections open and moves messages between them: chat, presence, notifications, live leaderboards, lobby state, guild events. It has four parts. A gateway tier that only holds sockets (accept, authenticate, keep alive, write buffered frames) and knows nothing about the game. A logic tier that owns rooms, guilds or channels and decides who should hear what. A pub/sub or routing layer between the two, which maps a channel to the gateways that hold its subscribers. And per-connection discipline: a bounded send queue, a rule for what happens when it fills, and a reconnect policy that does not turn one restart into an outage. Per-tick state sync, interest management and wire format belong to the server topics; this one is about the many-connections, few-messages-per-connection shape of social and live-service traffic.`,
+  why:[`Idle connections are cheap and busy channels are not. A 1999 framing, the C10K problem (named by Dan Kegel), asked how to serve ten thousand clients at once; today one tuned machine holds millions of open sockets (WhatsApp reported 2.3 million on one server in 2012), and the framing has been restated as C10M, ten million concurrent connections. The limit has moved from holding connections to delivering messages to them. In the Erlang virtual machine, which both Discord and WhatsApp run, that holding cost is small by design: a new process starts at 327 words of memory, so one process per connection is the normal model.`,`Fan-out is multiplication. Discord’s engineers put it as notifications growing with the square of the people online: a thousand online is a million notifications for everyone talking, a hundred thousand is ten billion. Any design that treats a big channel like a small one works in testing and fails at the first big launch.`,`One slow reader can hold a whole room hostage. If a publisher waits for each client in turn, the slowest phone on the worst network sets everyone’s latency, and an unbounded queue per client turns it into an out-of-memory crash instead.`,`A restart is a reconnect storm. When a gateway dies, every client it held comes back at once, each one re-authenticating, re-subscribing and asking for what it missed. Discord estimated the ring lookups for one such burst, after a session-server restart, at about 30 seconds of lookup time, and cut them to 17.5 seconds and then 750 milliseconds.`,`Mobile changes the contract. A socket is not a promise: the operating system suspends background apps, so reaching a player who left the app is a push-notification job, and the socket is only for the foreground.`],
+  think:{ q:[`How many connections does one gateway hold at the point it runs out of memory, file descriptors or CPU, and which of those three is first?`,`What is the largest number of deliveries a single publish can cause, and who is allowed to trigger it?`,`If a client reads at one tenth the speed it is sent to, what happens to its queue, to the room, and to the process?`,`Which messages may be lost, which may be coalesced into the latest value, and which must never be skipped?`,`If one gateway restarts right now, how many clients reconnect, over how long, and what does each one cost the login and database tiers?`,`Does this need a socket at all, or would a push notification or a poll every 30 seconds do?`],
+    trade:[`A gateway that is only a socket holder scales and deploys separately from game logic, and costs one more network hop and a routing table that must stay correct.`,`At-most-once pub/sub (Redis Pub/Sub, core NATS) is fast and has no memory of a message. A durable log (Kafka, Redis Streams, NATS JetStream) lets a client replay what it missed and costs storage, offsets and latency.`,`Dropping to the latest value keeps a slow client current and loses the history; disconnecting a slow client protects the room and costs that player a reconnect. Block-and-wait looks like the safe option and is the only one that lets one client hurt everyone.`,`Coalescing a tenth of a second of events into one frame cuts syscalls and headers by the number of events a client would otherwise get in that interval (tenfold at ten events, only twofold at two) and adds up to that tenth of a second of latency.`,`Sticky routing (a load balancer pins a client to one gateway by address, cookie or session id) keeps per-session state local and makes that gateway’s failure the whole session’s problem; it also pins a hot client or a hot room to one box. Stateless gateways with a resume token cost a lookup on every reconnect. This is the author’s judgement of the trade, not a sourced benchmark.`],
+    traps:[`Publishing to each client with a blocking write inside the publish loop, so one stalled TCP window freezes the room.`,`An unbounded per-client queue. It looks like reliability and is a memory leak that is paid by the healthy majority when the slow minority grows.`,`Counting “connected users” and sizing by that. Capacity is deliveries per second: connected users multiplied by the messages each one is sent.`,`Broadcasting presence changes to every friend or every guild member. Presence is the classic quadratic channel; Discord’s large-community fix was to stop sending most of it to sessions that are not looking.`,`Reconnecting with a fixed one-second retry, or exponential backoff without jitter. A thousand clients that failed together retry together, at 1 s, 2 s, 4 s, as a synchronised wave.`,`Assuming a subscription survived a pub/sub node restart. Redis Pub/Sub is at-most-once and a disconnected subscriber loses messages for good, so the client must resubscribe and ask what it missed.`,`Using one hot channel key for a hot room. Sharding by channel name sends all of that room to one node, however many nodes you added.`,`Keeping the socket alive in the background to save the player a notification. The OS will suspend or kill it, and the battery bill is yours.`],
+    good:[`You can state per-gateway capacity as three numbers (connections, deliveries per second, memory per connection) and where each came from.`,`A gateway restart in staging, under load, produces a reconnect curve you have already seen, with the login tier’s peak requests per second written down.`,`The send queue depth, the number of slow-consumer disconnects and the reconnect rate are on a dashboard.`],
+    bad:[`The first sign of a slow client is the publisher’s latency graph.`,`Capacity planning is “we tested 10,000 connections and it was fine”.`,`Nobody can say what a message to the biggest channel costs.`] },
+  how:[`Do the memory arithmetic before choosing a language. Per connection you pay the kernel’s socket buffers, the runtime’s per-connection state (a goroutine stack of a few kilobytes in Go, a lightweight process in Erlang), and your own session object. Multiply by your target, add the TLS state if you terminate TLS in the process, and measure the real number by opening 100,000 idle connections to a test build and reading resident memory.`,`Raise the limits explicitly and write them down. Each connection is a file descriptor, so set the per-process limit (RLIMIT_NOFILE) and the system-wide file limit above your target, widen the ephemeral port range on the load generators, and check the TCP memory limits. The 2-million-connection Phoenix benchmark had to raise ulimit -n and fs.file-max before anything else worked.`,`Choose the concurrency model for connection count. Erlang and Elixir give each connection a lightweight process (327 words at spawn, per the Erlang efficiency guide) scheduled by the VM, which is why WhatsApp and Discord could hold millions per machine; Go gives each a goroutine. Use readiness notification, not a thread per connection. epoll on Linux and kqueue on BSD, wrapped by Go’s netpoller, Erlang’s scheduler, Node’s libuv or Netty, mean an idle socket costs a registration (the epoll man page puts it at about 160 bytes on a 64-bit kernel) and no thread.`,`Split the tiers. The gateway terminates TLS or the WebSocket, authenticates once, keeps a map of subscriptions and sends frames. It does not know rules. The logic tier owns channels and decides recipients. Deploy and scale them separately: gateways on connection count, logic on CPU and memory. Decide early whether routing is sticky: pinning a client to one gateway keeps session state local but loses it with the gateway, while stateless gateways with a resume token let any gateway take any client at the cost of a state lookup on resume.`,`Give every connection a bounded send queue and a policy. For state that is superseded by the next message (positions, presence, typing), keep only the latest and drop the rest (a one-slot mailbox that is overwritten does this; the simpler Go snippet below drops the newest frame when the queue is full, which is cheaper and keeps a slow client on older positions). For events that matter (a purchase, a match result), disconnect a client whose queue fills and let it resume from a sequence number. Never block the publisher.`,`Fan out in two stages once a channel is large. The logic process sends one message to each gateway that has subscribers, and each gateway writes to its own sockets. Discord’s relays are this idea: each relay serves up to about 15,000 sessions so for a server with about a million people online the guild process sends to dozens of relays (about 67 at the full 15,000 each), not a million sessions.`,`Cut what you send. Mark sessions that are not looking at a channel as passive and send them a count or nothing; Discord reports about 90 per cent of user-to-large-guild connections were passive. Coalesce bursts into one frame per client per interval, and send a changed-fields delta rather than the object.`,`Pick the pub/sub primitive by its failure behaviour. Redis Pub/Sub or core NATS if losing a message while a node is down is acceptable and the client can resync from a database or cache. A log (Kafka, Redis Streams, JetStream) if the client must replay. In Redis Cluster use sharded Pub/Sub (SSUBSCRIBE and SPUBLISH, Redis 7.0 onwards) so a message travels only inside the shard that owns its slot instead of across the whole cluster bus.`,`Shard channels by consistent hashing of the channel id, so a channel always lands on a known logic node and replacing a node moves only its share. Slack’s channel servers are mapped this way, and a replacement was reported ready in under 20 seconds.`,`Plan the reconnect. Clients retry with exponential backoff and full jitter (wait a random time between zero and the current cap; a 30-second cap is a common starting point, not a sourced value), ask a directory for a gateway each time, and present a resume token with their last sequence number. The server limits handshakes per second and answers “try later” (WebSocket close code 1013) when over it rather than failing slowly.`,`Drain gateways, do not kill them. Stop accepting, send a close frame with code 1001 (going away) in small batches spread across a window, and let clients reconnect elsewhere. A rolling deploy of a gateway fleet is a controlled reconnect storm; size the window so the login tier sees a rate it has been tested at.`,`Decide per feature whether it needs a socket. Reaching a player outside the app is a push notification (APNs, FCM) with collapse keys so a backlog becomes one notification. Many sensors or devices with unreliable links are an MQTT case, with its three QoS levels, retained last-value messages and shared subscriptions for load-balancing consumers.`],
+  ai:{ yes:[`Compute deliveries per second, bandwidth and queue memory for a described channel layout, showing the arithmetic and naming the dominant channel.`,`Review a hub or gateway for blocking writes, unbounded queues, missing close paths and goroutine or process leaks.`,`Draft a reconnect and drain plan with the jitter window, the handshake rate limit and what each client sees.`,`Write the load-generator scenario: connect rate, idle time, message mix, a mid-test gateway kill.`,`Compare two pub/sub choices against a stated loss tolerance and ordering need.`],
+       no:[`Tell you your per-connection memory or your maximum connections per host. Measure them on your build with your TLS and your session object.`,`Choose which messages may be dropped. That is a design decision about what the player may miss.`,`Certify a reconnect storm is survivable. Only killing a loaded gateway shows it.`] },
+  prompts:[{l:'Fan-out and queue budget',p:`Our channels are: [CHANNELS] with online subscribers [N], messages per second [RATE], average frame size [BYTES]. Compute deliveries per second, outbound bandwidth, and the memory used if each client has a send queue of [Q] frames. Name the channel that dominates. Then propose two changes (passive sessions, coalescing, relays, delta frames) with what each one costs in latency and features.`},
+    {l:'Reconnect storm plan',p:`We run [G] gateways each holding about [C] connections. One gateway restarts. Compute how many clients reconnect, and the handshakes per second at the login tier if they retry (a) every 1 second, (b) with exponential backoff and no jitter, (c) with full jitter over [W] seconds. Then write the drain procedure for a rolling deploy, including the resume token, the per-gateway handshake limit and what the player sees.`},
+    {l:'Slow consumer review',p:`Here is our hub code: [CODE]. List every place a publisher can block or a queue can grow without bound. For each message type we send ([TYPES]) say whether to drop, keep latest, or disconnect, and why. Show the change as a small diff.`}],
+  verify:[`Is every per-client queue bounded, and does the publisher use a non-blocking send?`,`Does a client that stops reading get dropped or disconnected within a known time, and is that counted?`,`Does the client resubscribe and resync after every reconnect, with jitter on its retry?`,`Is the file-descriptor limit above the connection target on the real host and in the container, not only on your laptop?`,`Does the gateway restart test show the login tier’s peak requests per second, and is it below what the login tier was load-tested at?`,`Is the pub/sub choice’s loss behaviour (at-most-once or durable) written beside each feature that uses it?`],
+  test:[`Open connections in steps (10,000, 100,000, 500,000) from several generator machines, hold them idle, and record resident memory per connection, file descriptors used and CPU. The slope, not one point, is your capacity model.`,`Publish to a channel with the largest subscriber count you expect, at your peak rate, and record the time from publish to the last delivery (not the average), and the publisher’s own latency during it.`,`Add 1,000 deliberately slow clients (read one frame per second) to a busy room. Healthy clients’ latency must not change, and the slow ones must be dropped or thinned on the policy you chose.`,`Kill a gateway holding 10 per cent of the load, then plot reconnects per second at the login tier and the time until the last client has resumed. Repeat with jitter off to see the wave you avoided.`,`Restart the pub/sub node and measure how long clients receive nothing, and whether any client stays silent until restarted.`],
+  rel:[['server-scaling','Scaling covers rooms, directories and drains for the session tier; this topic is the connection tier in front of it and the fan-out between the two.'],['server-realtime-protocol','The protocol defines frames, ops and reliability per message; this topic decides what happens to those frames when a client cannot keep up.'],['backend-caching-redis','Redis Pub/Sub and Streams are one of the fan-out primitives compared here, and the cache or database is where a resyncing client gets what it missed.'],['infra-monitoring','Send queue depth, slow-consumer disconnects and the reconnect rate are the signals that show a connection tier failing before players do.'],['backend-api-protocol','Request and response APIs stay on plain HTTP; the choice of what travels over a socket instead is made here.'],['server-bandwidth-and-interest-management','That topic budgets bytes per client for simulation state; here the budget is deliveries per channel and the passive-session trick is its cousin.'],['server-transport-and-relays','The carrier (WebSocket, QUIC, WebRTC) is chosen there; this topic is what you run when ten million of them are open.'],['server-load-testing-and-capacity','Connection holds, slow-consumer injection and gateway kills are load-test scenarios; the open-versus-closed model matters for reconnect storms.']],
+  tech:[
+    {n:'Gateway and logic tiers split', how:`Gateways hold sockets, authenticate and write frames. Logic nodes own channels and rooms. A routing layer maps channels to gateways that hold subscribers, and logic sends one message per gateway rather than one per client.`, fit:`Any service where connections number in the hundreds of thousands, or where logic deploys more often than the connection layer.`, cost:`One more hop, a subscription table that must be rebuilt after any gateway or logic restart, and two deployments to run.`, alt:`One process that holds sockets and runs the logic, which is simpler to debug and ties every logic deploy to a reconnect storm.`},
+    {n:'Bounded send queue with a slow-consumer policy', how:`Each connection has a fixed-size buffered channel or mailbox. A non-blocking send either succeeds, or the policy runs: drop this frame, replace the queued state with the latest, or close the connection with a resume token.`, fit:`Every fan-out path. Choose the policy per message class.`, cost:`Decisions about what may be lost, and a counter someone must watch. Disconnecting is visible to the player as a reconnect.`, alt:`Blocking writes, which preserve every message for every client until the slowest one stalls everybody.`},
+    {n:'Two-stage fan-out through relays', how:`The logic process for a large channel sends to relay processes, each serving a bounded number of sessions (Discord’s are about 15,000), and relays write to sessions. The logic process’s work is the number of relays, not the number of members.`, fit:`Channels with tens of thousands of online members, where a single sender spends too long in the send loop.`, cost:`Relays hold copies of the data they filter on (Discord had to stop relays storing whole member lists), and a relay failure drops a slice of the audience.`, alt:`One process sending to everyone, which is fine under a few thousand and shows up as delay on the busiest channel first.`},
+    {n:'Passive sessions and lazy channels', how:`A session that is not displaying a channel is marked passive and receives only a count or a periodic summary. Opening the channel subscribes it fully and sends a snapshot.`, fit:`Large community channels and presence, where most subscribers are not looking.`, cost:`A snapshot path, and a state machine for a session changing between passive and active under load.`, alt:`Sending everything to everyone, which is simpler and grows with the square of the audience.`},
+    {n:'Coalescing and batching', how:`Hold events for an interval (50 to 100 ms is a common starting point, not a sourced value; tune it against your latency budget), merge those that overwrite each other, and write one frame per client per interval. Send changed fields as a delta.`, fit:`Presence, counters, leaderboards, typing indicators and any burst of small events.`, cost:`Up to one interval of added latency, and a merge rule per event type.`, alt:`Sending each event as it happens, which is the lowest latency and the most syscalls and headers.`},
+    {n:'Durable log for resume', how:`Events are appended to a log with offsets (Kafka, Redis Streams, JetStream). A reconnecting client sends its last offset and the gateway replays the gap.`, fit:`Chat history, notifications and anything the player must not miss across a reconnect.`, cost:`Storage, retention policy, an offset per client, and replay load that arrives exactly when a storm does.`, alt:`At-most-once pub/sub plus a database read on reconnect, which is cheaper to run and puts the resync cost on the database.`},
+    {n:'Jittered backoff and resume tokens', how:`The client waits a random time between zero and min(cap, base times 2^attempt), asks a directory for a gateway, then resumes with a token and the last sequence number. The server rate-limits handshakes and sheds load with a close code.`, fit:`Every persistent-connection client.`, cost:`A resume path on the server and a token store with a lifetime.`, alt:`Immediate reconnect and full login, which works until the day many clients fail together.`},
+    {n:'Push notifications for the background', how:`Send APNs or FCM messages for events a player should see outside the app, with a priority, an expiry and a collapse key so a backlog is one notification.`, fit:`Anything that matters after the player has left the app.`, cost:`A second delivery path with its own limits, and no ordering or delivery guarantee.`, alt:`A background socket, which the OS suspends and which costs battery.`}
+  ] });
+ENGINE('realtime-connection-tier-at-scale',{
+  godot:{ term:`The client’s share of a connection tier is the reconnect: ask a directory for a gateway each time, wait a random time, and never retry in step with every other player. Godot’s WebSocketPeer is polled, so the state machine lives in _process. Directory is a placeholder for your own gateway lookup, and the 30 s cap and 10 s survival time are common starting points, not sourced values.`,
+    api:['WebSocketPeer.poll()','WebSocketPeer.get_ready_state()','WebSocketPeer.STATE_OPEN / STATE_CLOSED','WebSocketPeer.connect_to_url()','SceneTree.create_timer()','randf()','minf() / pow()'],
+    snippet:`extends Node
+var _ws := WebSocketPeer.new(); var _attempt := 0; var _up := 0.0; var _waiting := false
+func _process(dt: float) -> void:
+	_ws.poll(); var s := _ws.get_ready_state()
+	if s == WebSocketPeer.STATE_OPEN:
+		_up += dt
+		if _up > 10.0: _attempt = 0      # reset only once it has survived
+	elif s == WebSocketPeer.STATE_CLOSED and not _waiting:
+		_up = 0.0; _retry()
+func _retry() -> void:
+	_waiting = true
+	await get_tree().create_timer(randf() * minf(30.0, pow(2.0, _attempt))).timeout  # full jitter
+	_attempt += 1; _ws = WebSocketPeer.new()
+	_ws.connect_to_url(Directory.next_gateway())     # ask again, never reuse
+	_waiting = false`,
+    pitfall:`Retrying on a fixed delay, or on the frame after the close. After a gateway restart every client does the same, so the new gateway sees all of them in the same second and the login tier sees them too. The attempt counter resets only after the socket has stayed open for ten seconds (a starting point, not a sourced value). Also reusing the old URL: the gateway that held you may be draining, and the directory is how you are told.`,
+    map:`Godot’s polled peer, with the state read each frame, is what Unity’s ClientWebSocket hides behind await; the backoff and jitter logic is identical.` },
+  unity:{ term:`The client loops: resolve a gateway, connect, pump messages, and on any failure wait a jittered time before resolving again. A CancellationToken ends it on quit, so no retry outlives the scene. Directory, Pump (which sends the resume token and reads frames) and Backoff.FullJitter are placeholders, and the usings (System, System.Net.WebSockets, System.Threading, System.Threading.Tasks) are omitted for length. The full-jitter arithmetic (random wait between zero and min(cap, base times 2^attempt)) is shown in the load-testing topic.`,
+    api:['ClientWebSocket.ConnectAsync(uri, ct)','WebSocketException','Task.Delay(TimeSpan, ct)','Time.realtimeSinceStartup','CancellationToken'],
+    snippet:`public class Reconnector : MonoBehaviour {
+    int attempt; string resume;
+    public async Task RunAsync(CancellationToken ct) {
+        while (!ct.IsCancellationRequested) {
+            var uri = await Directory.NextGatewayAsync(ct);  // never a cached address
+            using var ws = new ClientWebSocket();
+            var t0 = Time.realtimeSinceStartup;
+            try { await ws.ConnectAsync(uri, ct); await Pump(ws, resume, ct); }
+            catch (WebSocketException) { }
+            // reset only if the connection survived; else back off further
+            attempt = Time.realtimeSinceStartup - t0 > 10f ? 0 : attempt + 1;
+            await Task.Delay(Backoff.FullJitter(attempt), ct);
+        }
+    }
+}`,
+    pitfall:`Resetting the attempt counter when the socket opens, not when it has survived a while. A gateway that accepts and then drops you (because it is over its handshake limit) looks like success, and the client retries at the minimum delay forever. The snippet resets only after ten seconds up, a starting point, not a sourced value.`,
+    map:`The directory call, the full-jitter wait and the reset-after-survival rule are the same in Godot; only the polling versus await structure differs.` },
+  note:`The server-side half of this topic is Go; the client contract here is three rules: wait a random time, ask for the gateway again, and resume from your last sequence number.` });
+GO('realtime-connection-tier-at-scale', {
+  api:['chan []byte with make(chan, n)','select with default','sync.RWMutex','sync.Once','close(chan)'],
+  snippet:`package hub
+
+import "sync"
+
+// Client is one connection. A writer goroutine selects on Out and Done.
+type Client struct {
+	send chan []byte
+	done chan struct{}
+	once sync.Once
+}
+
+func NewClient(queue int) *Client {
+	return &Client{send: make(chan []byte, queue), done: make(chan struct{})}
+}
+
+func (c *Client) Out() <-chan []byte    { return c.send }
+func (c *Client) Done() <-chan struct{} { return c.done }
+func (c *Client) Close()                { c.once.Do(func() { close(c.done) }) }
+
+type Hub struct {
+	mu    sync.RWMutex
+	rooms map[string]map[*Client]struct{}
+}
+
+func New() *Hub { return &Hub{rooms: make(map[string]map[*Client]struct{})} }
+
+func (h *Hub) Join(room string, c *Client) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.rooms[room] == nil {
+		h.rooms[room] = make(map[*Client]struct{})
+	}
+	h.rooms[room][c] = struct{}{}
+}
+
+func (h *Hub) Leave(room string, c *Client) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	delete(h.rooms[room], c)
+	if len(h.rooms[room]) == 0 {
+		delete(h.rooms, room)
+	}
+}
+
+// Publish never blocks on one client. A full queue means that client is behind:
+// droppable frames (positions, presence) are skipped for it (drop newest); must-deliver
+// frames close it, and it reconnects and resumes from its last sequence number.
+func (h *Hub) Publish(room string, msg []byte, droppable bool) (dropped, kicked int) {
+	var slow []*Client
+	h.mu.RLock()
+	for c := range h.rooms[room] {
+		select {
+		case c.send <- msg:
+		default:
+			if droppable {
+				dropped++
+			} else {
+				slow = append(slow, c)
+			}
+		}
+	}
+	h.mu.RUnlock()
+	for _, c := range slow {
+		c.Close()
+		h.Leave(room, c)
+	}
+	return dropped, len(slow)
+}
+`,
+  pitfall:'Closing the send channel from the publisher. A second publish to a closed channel panics, and the publisher cannot know the writer has stopped. Close a separate done channel instead, as here, and let the writer select on both. The other classic is a blocking send inside the loop: one stalled client then holds the read lock and stops every Join and Leave.'
+});
+INTERVIEW('realtime-connection-tier-at-scale',{
+  junior:[
+    { q:`Why can one server hold a million idle connections but struggle to send one message to a hundred thousand of them?`,
+      a:`An idle connection costs memory (socket buffers, a runtime object) and a file descriptor registered with epoll or kqueue, and no CPU. A message to a hundred thousand subscribers is a hundred thousand writes, each a syscall and a frame, so the cost is deliveries per second, not connections. Say the arithmetic: 20,000 online members and 10 messages a second is 200,000 deliveries a second.`,
+      follow:`What would you change to bring the 200,000 down without removing the feature?`,
+      red:`Says the limit is the number of connections and gives no cost per message.` },
+    { q:`What does it mean that Redis Pub/Sub is at-most-once, and what does a client do about it?`,
+      a:`A message is delivered once if the subscriber is connected at that moment; a disconnected or failing subscriber loses it for good. So a reconnecting client must resubscribe and then fetch what it missed from a store, or a log (Redis Streams, Kafka) must be used. Mention that core NATS has the same behaviour and JetStream is its persistent layer.`,
+      follow:`How does a client notice it missed something after a reconnect that looked successful?`,
+      red:`Assumes subscriptions and messages survive a restart.` },
+    { q:`Why do clients add random jitter to their reconnect delay?`,
+      a:`Clients that lost the same server fail at the same moment, so a fixed or purely exponential delay makes them all return together, in waves. Randomising the wait spreads the same number of reconnects over the window. Give a number: a million clients over 60 seconds is about 17,000 handshakes a second instead of a million at once.`,
+      follow:`Where else in the stack does the same waves problem appear?`,
+      red:`Thinks backoff alone is enough.` }
+  ],
+  mid:[
+    { q:`Write the core of a hub that fans a message out to the clients in a room. What happens when one client stops reading?`,
+      a:`A bounded buffered channel per client, a non-blocking send in the publish loop, and a policy when the buffer is full: skip or keep-latest for state that is superseded, close the connection for events that must not be lost. A separate done signal so the writer exits without the publisher closing a channel it sends on. Say why blocking is wrong: one slow client delays all recipients and holds locks.`,
+      follow:`What would you count and alert on so you know the policy is firing?`,
+      red:`Uses an unbounded queue or a blocking write and calls it reliable.` },
+    { q:`Compare Redis Pub/Sub, NATS, and Kafka for delivering chat messages to gateways.`,
+      a:`Redis Pub/Sub and core NATS are at-most-once and fast, with no replay, so they fit live fan-out where the database or cache supplies history. Kafka is a durable partitioned log, ordered within a partition, with consumer groups; it fits replayable streams and costs latency, offsets and storage, and, in the author’s judgement, it is a poor fit for millions of per-user subscriptions, because topics and partitions are coarse units and per-user filtering would have to happen downstream. In Redis Cluster, sharded Pub/Sub limits propagation to the shard that owns the channel.`,
+      follow:`Which would you use for per-user notification channels with ten million users, and why?`,
+      red:`Picks Kafka for everything or treats all three as equivalent.` },
+    { q:`A 100,000-member guild channel is slow. Where do you look, and what are your options?`,
+      a:`Measure the sender: time per publish, send queue depth, time to the last delivery. Options in order of cost: coalesce bursts, mark inactive sessions passive and send them less, delta frames, then two-stage fan-out through relays so the central process sends to dozens of relays rather than every session. Cite Discord’s numbers: about 90 per cent of sessions passive in large servers, relays of up to about 15,000 sessions.`,
+      follow:`What state must a relay hold, and what goes wrong if it holds too much?`,
+      red:`Proposes only a bigger machine.` }
+  ],
+  senior:[
+    { q:`You must size a gateway fleet for 5 million concurrent connections. Walk through memory, limits and failure planning.`,
+      a:`Measure bytes per connection on your build, kernel buffers plus runtime plus session, and multiply; read file descriptor and TCP memory limits for the host and container; choose connections per gateway by the smaller of memory, CPU at your message rate, and blast radius (a gateway’s failure reconnects its share at once, so a smaller share keeps the storm survivable). Then size the login tier for the storm: share per gateway divided by the jitter window. Reference points: Erlang servers at about 2 million connections in 2012 (reported), the Phoenix 2 million benchmark.`,
+      follow:`Does your answer change if TLS is terminated in the gateway process rather than at a load balancer?`,
+      red:`Divides 5 million by a vendor’s headline number without measuring or planning the failure case.` },
+    { q:`Design the reconnect and drain behaviour for a gateway fleet so a deploy is not an outage.`,
+      a:`Drain: stop accepting, close clients in batches with code 1001 spread over a window, clients ask a directory for a new gateway. Reconnect: full jitter, a resume token with the last sequence number, a per-gateway handshake rate limit with 1013 as the answer when over, and a floor on how long a connection must live before the backoff resets. Check the login and database tiers at the peak handshake rate. Name the trade-off: a longer window is safer and slower to deploy.`,
+      follow:`Half the fleet fails at once rather than draining. What is different?`,
+      red:`Restarts all gateways together or assumes clients will retry politely.` },
+    { q:`Choose, for each feature, socket, push notification, or poll: live chat, guild event starting in 10 minutes, a leaderboard, a friend coming online.`,
+      a:`Chat while in the app: socket with durable resume. Guild event: push notification with a collapse key and an expiry, since the player may be outside the app and the OS suspends sockets. Leaderboard: poll or a coalesced low-rate push, since staleness is fine. Friend online: presence over the socket only for the visible list, never to everyone, because presence is quadratic. State the reason for each in terms of loss tolerance, fan-out and background limits.`,
+      follow:`Push is not guaranteed or ordered. How does the game stay correct if a push never arrives?`,
+      red:`Keeps a socket open in the background for every feature.` },
+    { q:`Discord runs one Elixir process per guild and Slack maps channels to servers by consistent hashing. What does that choice cost?`,
+      a:`A hot channel lives on one process or node and cannot be split by adding machines, so the answer is making its work cheaper (passive sessions, relays, caching member data in shared tables) rather than sharding further. Consistent hashing makes node replacement move only a slice. Both designs are single-writer per channel, which gives ordering and simplicity, and cap the busiest channel at one process’s speed.`,
+      follow:`How would you shard a single channel that outgrows one process?`,
+      red:`Says to shard by channel name without noting that one channel stays on one shard.` }
+  ] });
+FACTS('realtime-connection-tier-at-scale',[
+  { claim:`Discord’s 2017 post reports 5,000,000 concurrent users, a send/2 cost of 30 to 70 microseconds that makes a 30,000-user guild fan-out take 0.9 to 2.1 seconds, and a reconnect-burst ring lookup cost cut from 17.5 s to 750 ms by FastGlobal.`, asOf:'2026-10-05', src:'https://discord.com/blog/how-discord-scaled-elixir-to-5-000-000-concurrent-users' },
+  { claim:`Discord’s large-guild post reports a server with over 1 million concurrent online users, about 90 per cent passive sessions, and relays handling up to about 15,000 sessions each.`, asOf:'2026-10-05', src:'https://discord.com/blog/maxjourney-pushing-discords-limits-with-a-million-plus-online-users-in-a-single-server' },
+  { claim:`WhatsApp reported 2,277,845 open TCP connections on one 24-core, about 103 GB server in 2012 (FreeBSD 8.2, Erlang R14B03).`, asOf:'2026-10-05', src:'https://blog.whatsapp.com/196/1-million-is-so-2011?lang=en' },
+  { claim:`Slack’s channel servers are mapped by consistent hashing, with a replacement ready in under 20 seconds and about 16 million channels per host at peak (a Slack channel here is an abstract id used for users, teams and files as well as chat rooms).`, asOf:'2026-10-05', src:'https://slack.engineering/real-time-messaging/' },
+  { claim:`Redis Pub/Sub is at-most-once; sharded Pub/Sub (SSUBSCRIBE, SPUBLISH) exists from Redis 7.0 and keeps messages inside the shard that owns the slot.`, asOf:'2026-10-05', src:'https://redis.io/docs/latest/develop/pubsub/' },
+  { claim:`A newly spawned Erlang process uses 327 words of memory, 233 of them initial heap including the stack.`, asOf:'2026-10-05', src:'https://www.erlang.org/doc/system/eff_guide_processes.html' },
+  { claim:`Core NATS delivers a message at most once to interested connected subscribers; JetStream is the persistence layer. A server closes a connection that cannot take writes within its write deadline; the Go client’s default pending limit is 500,000 messages and 64 MB per subscription.`, asOf:'2026-10-05', src:'https://docs.nats.io/running-a-nats-service/nats_admin/slow_consumers; at-most-once statement: https://docs.nats.io/nats-concepts/core-nats' },
+  { claim:`FCM normal-priority messages may be delayed while a device is in Doze; high priority can wake it. The default time-to-live is four weeks (maximum 2,419,200 seconds).`, asOf:'2026-10-05', src:'https://firebase.google.com/docs/cloud-messaging/android/message-priority; TTL: https://firebase.google.com/docs/cloud-messaging/customize-messages/setting-message-lifespan' },
+  { claim:`APNs: payload limit 4 KB, apns-collapse-id up to 64 bytes, apns-priority 10 or 5 or 1.`, asOf:'2026-10-05', src:'https://developer.apple.com/documentation/usernotifications/sending-notification-requests-to-apns' },
+  { claim:`WebSocket close code 1001 (going away) is defined in RFC 6455; 1013 (try again later) is in the IANA WebSocket close code registry.`, asOf:'2026-10-05', src:'https://www.iana.org/assignments/websocket/websocket.xhtml' },
+  { claim:`The epoll man page puts the cost of each registered descriptor at about 160 bytes on a 64-bit kernel.`, asOf:'2026-10-05', src:'https://man7.org/linux/man-pages/man7/epoll.7.html' },
+  { claim:`MQTT 5.0 defines QoS 0 (at most once), 1 (at least once) and 2 (exactly once), retained messages, session expiry and shared subscriptions.`, asOf:'2026-10-05', src:'https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html' }
+]);
+DIAGRAM('realtime-connection-tier-at-scale', { kind:'flow', title:'One message, from publisher to a million sockets',
+  steps:[{id:'pub',t:'Logic node',d:'owns the channel'},{id:'bus',t:'Pub/sub or relays',d:'one send per gateway'},{id:'gwa',t:'Gateway A',d:'holds sockets'},{id:'gwb',t:'Gateway B',d:'holds sockets'},{id:'qa',t:'Per-client queue',d:'bounded'},{id:'slow',t:'Slow client',d:'drop or disconnect'},{id:'ok',t:'Healthy client',d:'frame written'}],
+  edges:[['pub','bus'],['bus','gwa'],['bus','gwb'],['gwa','qa'],['gwb','qa'],['qa','slow'],['qa','ok']] });
+EXPLAINER('realtime-connection-tier-at-scale', { kind:'explainer', title:'A gateway restart: the reconnect storm with and without jitter',
+  frames:[
+    { t:'A gateway holds 100,000 clients', spec:{ kind:'stack', arrow:'Each layer calls the one below it', layers:[{ t:'Clients', d:'100,000 open connections' }, { t:'Gateway', d:'holds the connections' }, { t:'Logic tier', d:'game and chat state' }, { t:'Login tier', d:'checks credentials, the expensive step' }] } },
+    { t:'The gateway dies, and every client needs a new one at the same instant', spec:{ kind:'matrix', rows:['Gateway'], cols:['Clients connected','Clients reconnecting'], cells:[['0','100,000']] } },
+    { t:'Backoff without jitter: everyone comes back together, at 1 s, 2 s and 4 s', d:'Each wave is the whole population at once.', spec:{ kind:'curve', x:'Seconds after the crash (0 to 8)', y:'Login attempts per second', alt:'Three tall spikes at 1, 2 and 4 seconds, each far above what the login tier can take.', band:{ t:'more than the login tier can take', from:0.3, to:1 }, series:[{ t:'No jitter', pts:[[0,0],[0.11,0],[0.125,1],[0.14,0],[0.24,0],[0.25,0.9],[0.26,0],[0.49,0],[0.5,0.8],[0.51,0],[1,0]] }] } },
+    { t:'Full jitter: each client waits a random time between zero and the cap', d:'The same clients, spread out: the spikes become a low plateau.', spec:{ kind:'curve', x:'Seconds after the crash (0 to 8)', y:'Login attempts per second', alt:'The jittered line is a low, wide plateau under the limit; the old spikes are shown beside it.', band:{ t:'more than the login tier can take', from:0.3, to:1 }, series:[{ t:'No jitter', pts:[[0,0],[0.11,0],[0.125,1],[0.14,0],[0.24,0],[0.25,0.9],[0.26,0],[0.49,0],[0.5,0.8],[0.51,0],[1,0]] }, { t:'Full jitter', pts:[[0,0],[0.05,0.25],[0.6,0.25],[0.65,0],[1,0]] }] } },
+    { t:'A handshake limit answers the excess with "try again later" (WebSocket close code 1013)', d:'The plateau is flat at the rate that was tested.', spec:{ kind:'curve', x:'Seconds after the crash (0 to 8)', y:'Login attempts per second', alt:'With the limit, the line is flat at the tested rate for longer, and never crosses into the band.', band:{ t:'more than the login tier can take', from:0.3, to:1 }, series:[{ t:'Full jitter', pts:[[0,0],[0.05,0.25],[0.6,0.25],[0.65,0],[1,0]] }, { t:'Jitter, capped', pts:[[0,0],[0.05,0.2],[0.75,0.2],[0.8,0],[1,0]] }] } },
+    { t:'Resume, not re-login', d:'The login tier barely moves, because a resume skips it.', spec:{ kind:'flow', steps:[{ id:'c', t:'Client reconnects' }, { id:'t', t:'Presents its session token and last sequence number' }, { id:'g', t:'Gateway checks the token', d:'no password, no login tier' }, { id:'s', t:'Sends only the missed messages' }], edges:[['c','t'],['t','g'],['g','s']] } }
+  ] });
+
+T('backend-latency-and-query-optimisation',{ d:'backend', t:'Backend latency: find it, then cut it', tag:'Averages hide the slow requests, and one screen that makes 100 calls turns a 1-in-100 slow call into a slow screen for 63 players in 100.',
+  what:`Latency work on a game backend has four parts, in this order. Measure it as a distribution (p50, p99, p99.9), never as a mean, because players meet the tail: a screen that makes many calls is as slow as its slowest call. Give each request a budget and split it between the calls it makes, with one deadline that travels down the call chain. Find where the time goes with a profile, a trace and the database's own statistics, before changing anything. Then cut it with the small set of fixes that cause most real wins: stop the N+1 query, add or reshape an index, page by key rather than by offset, size the connection pool to the database rather than to the traffic, batch and coalesce duplicate work, and, for the tail itself, use timeouts, retries with a budget and jitter, hedged requests and load shedding. Which cache to use and how to invalidate it belongs to the caching topic; this one is about knowing when a cache is the wrong fix.`,
+  why:[`Players do not feel the mean. Dean and Barroso's example: if each server answers in 10 ms but 1 request in 100 takes a second, a request that waits on 100 such servers is slow 63 per cent of the time. A game home screen that loads inventory, mail, shop, events and friends in parallel is that shape.`,`Latency and capacity are the same problem seen twice. A request that spends longer in the system holds a connection, a goroutine, a lock and memory for longer, so Little's law turns every extra millisecond into a lower ceiling on concurrent players.`,`Most backend slowness in a live game is not a clever algorithm. It is a query with no index, a loop that asks the database one row at a time, a pool that is too big or too small, or a retry that triples the load on a service that is already struggling. These are cheap to find if you measure and expensive to guess.`,`Launch day and live events change the shape of load faster than a release cycle. A cut that was free at 100 requests per second can be the cause of an outage at 10,000.`],
+  think:{ q:[`What is the latency budget for this request, and which calls spend it? If nobody wrote the budget, what is the p99 today?`,`Is the slow case slow for every request, or only the 1 in 100? Those have different causes: a plan or an index versus a lock, a GC pause, a cold cache or a bad replica.`,`How many database round trips does one request make, and does that number grow with the size of the player's data (inventory, friend list, mail)?`,`How long is the queue at each tier, and what happens to a request that has already waited longer than its client will?`,`If this call fails, who retries, how many layers retry, and is the call safe to repeat?`,`Is the number I am about to improve measured on production-shaped data and load, or on an empty database on my laptop?`],
+    trade:[`An index makes one read fast and every write to that table slower, and uses disk and cache. Add indexes for the queries that run all the time, not for every query that ever ran.`,`A hedged request cuts the tail and costs extra load (about 2 per cent in Google's BigTable benchmark with a 10 ms delay). The same trick pointed at an overloaded backend makes the overload worse.`,`A cache removes a query and adds a staleness rule that someone has to own. If the real problem is a missing index, the cache hides it until the cache is cold.`,`A bigger connection pool feels like more capacity. Past a point it adds context switching and lock contention in the database, and the response time rises.`,`Batching raises throughput and adds the wait for the batch to fill. A 20 ms batching window is a 20 ms floor on every call it touches.`,`Shedding load on purpose drops some requests to keep the rest fast. It is the honest choice when the alternative is to serve everyone slowly, and it needs a rule about who is dropped first.`],
+    traps:[`Reporting the average or the median. A dashboard of mean latency stays green while 1 request in 100 times out.`,`Optimising in the wrong order: caching, then indexing, then profiling. The profile and EXPLAIN come first because they say which of the others matters.`,`Testing queries on a small table. A plan that scans 500 rows in the dev database scans 50 million in production, and the planner may pick a different plan once the statistics change.`,`Averaging percentiles across servers or across minutes. A percentile cannot be averaged; merge the histograms, or alert on a per-instance value and take the worst.`,`The N+1 hidden inside an ORM or a helper: the handler looks like one call, the SQL log shows 201 statements.`,`Retrying at every layer. With three layers each making three attempts, one failure at the bottom becomes up to 27 attempts at the database.`,`Using OFFSET for a leaderboard or a mail list. Page 5,000 reads and throws away 100,000 rows to return 20.`,`Setting a timeout longer than the caller's own timeout. The work finishes after the client has gone and still costs the full price.`,`Measuring from a load generator that waits for each response before it sends the next, which hides the stalls it caused (coordinated omission). The slow period is under-counted, and the p99 looks better than it is.`,`Fixing latency by raising the pool size, the instance count or the timeout, and calling it done without a before-and-after number.`],
+    good:[`Every endpoint has a written p99 target and a per-call split of it, and a dashboard shows p50, p99 and p99.9 per route, with the count of requests that hit the deadline.`,`A top-ten list of the slowest and most frequent SQL statements is reviewed on a schedule, and a new query that appears in it has an EXPLAIN attached to the pull request.`,`Deadlines are set once at the edge, carried in the context and checked by every call below. A request that is already late is dropped, not served.`,`Retries have a budget, use jitter and apply only to calls that are safe to repeat.`],
+    bad:[`The only latency number anyone quotes is an average, or one measured by hand on a developer machine.`,`The fix for a slow endpoint is a larger instance, and nobody can say what the slow part was.`,`Some queries ordered by a column with no index are paged with OFFSET, and every list screen gets slower as the player's data grows.`] },
+  how:[`Pick the unit of work (a route, a screen load, a match-end write) and record its latency as a histogram with fixed buckets, per route. Alert and report on p99 and p99.9. A mean and a max are not enough: one hides the tail and the other is one unlucky request.`,`Write the budget. If the screen must feel instant, aim for about 100 ms end to end (the figure the Dean and Barroso paper opens with), then divide it: edge and TLS, handler, each downstream call, the database. A call that cannot fit its share is the first one to fix or move off the request path.`,`Set one deadline at the edge and carry it. In Go that is a context created with a timeout and passed as the first argument to every call; in each downstream call, subtract the time already spent and refuse to start work that cannot finish.`,`Find the cost before changing it. In order: the trace for one slow request (which call, which wait), the database's statement statistics (pg_stat_statements in PostgreSQL, the slow query log in MySQL) sorted by total time, then a CPU and allocation profile of the service (pprof, read as a flame graph), and for lock contention the block and mutex profiles.`,`Count the round trips. Turn on the SQL log for one request and count statements. If the count grows with the size of a list, you have an N+1: replace the loop with one query using IN or ANY, a join, or a batch load keyed by id.`,`Run EXPLAIN (ANALYZE, BUFFERS in PostgreSQL) on each of the top statements, on production-shaped data, and read the plan: a sequential scan on a large table, a sort that spills to disk, or an estimate that is far from the actual row count each point to a fix (an index, a composite index in the right column order, a covering index, fresh statistics).`,`Replace OFFSET paging with keyset paging: remember the last row's sort key and id, and ask for rows after it. Index the same columns in the same order, and always add the unique id as the last sort column so the order is total.`,`Size the connection pool from the database, not from the traffic. Start near twice the database's core count plus a small number for disk, load test the pool size, and watch the wait time and wait count (in Go, DB.Stats). If many service instances multiply the pool, put a pooler (PgBouncer, ProxySQL) in front.`,`Remove duplicate work before adding a cache: coalesce simultaneous identical reads into one (singleflight in Go), batch writes that can wait a few milliseconds, and move work that does not need to be in the response (mail, analytics, achievements) to a queue.`,`Set timeouts per call from the measured p99.9 of that call, not a round number, and always shorter than the caller's deadline. Retry only calls that are safe to repeat, at most once or twice, with full jitter, and cap retries as a ratio of live traffic (Google's SRE book uses 10 per cent per client). Hedge reads only after the p95 and only to a different replica.`,`Bound the queue. When in-flight requests pass a limit, answer 503 early with a retry-after hint, shed the least important traffic first (analytics, then background sync, then purchases last), and keep queues short relative to the worker pool so that waiting does not eat the deadline.`,`Look at allocation and the garbage collector when p99 moves but the average does not. In Go, read the allocation profile and the GC trace (GODEBUG=gctrace=1), and cut allocations in the hot path (reuse buffers, avoid building intermediate strings) before touching GOGC. Raising GOGC trades memory for less GC CPU; GOMEMLIMIT sets a soft ceiling so the larger heap does not run the process out of memory.`,`Count and shrink the work per response. A chatty screen that makes many small calls pays the fan-out tail on each one: aggregate them behind one endpoint that runs the reads in parallel on the server. If a flame graph shows JSON encoding wide, send fewer fields, encode once and reuse the bytes for identical responses, or use a binary format; measure the size and the encode time before and after.`,`Write the before and after for every change in the pull request: the p99 on the same load, and the plan or profile that explains it.`],
+  ai:{ yes:[`Read an EXPLAIN (ANALYZE, BUFFERS) output and say which node dominates, where the estimate and the actual row count disagree, and which index would change the plan.`,`Turn a flame graph export or a pprof text report into a ranked list of costs with a likely cause for each.`,`Find N+1 patterns by reading handler and repository code and SQL logs, and propose the batched replacement.`,`Draft a keyset-pagination query and the matching index for a given sort order, including the tie-break column and the first-page case.`,`Do the arithmetic: fan-out amplification, connections needed from Little's law, retry amplification across layers, hedging overhead for a chosen delay.`],
+       no:[`Say which query is slow without the plan and the statistics from your database. The same SQL plans differently on different data.`,`Promise a speed-up from an index or a rewrite. Only a measurement on production-shaped data does.`,`Pick the timeout, the retry count or the shedding order. Those are product decisions about which player experience to protect.`,`Tell you your p99 target. That comes from what players tolerate and from your own telemetry.`] },
+  prompts:[{l:'Read this plan',p:`Database: [POSTGRESQL OR MYSQL AND VERSION]. This statement runs [HOW OFTEN] and its p99 is [MS]. Table sizes: [ROWS PER TABLE]. Here is the schema and the existing indexes: [PASTE]. Here is EXPLAIN (ANALYZE, BUFFERS) output: [PASTE]. Tell me which plan node costs the most, whether the estimated and actual row counts disagree, and propose at most two changes (an index, a rewrite) with what each costs on writes. Do not suggest a cache.`},
+    {l:'Find the N+1',p:`Here is a handler and the repository functions it calls: [PASTE]. Here is the SQL log for one request: [PASTE]. Count the statements, say which loop produces the repeats and how the count grows with [LIST SIZE]. Rewrite it to a fixed number of queries and show the new SQL. State what could change in the result ordering.`},
+    {l:'Latency budget',p:`Our [SCREEN OR ENDPOINT] must answer in [TARGET MS] at p99. It makes these calls: [LIST WITH TODAY'S p50 AND p99 FOR EACH, AND WHICH RUN IN PARALLEL]. Compute the probability that a request is slower than each call's p99, then split the budget between the calls, name the first two to fix and the first one to move off the request path, and say what a timeout, retry and fallback should be for each.`}],
+  verify:[`Is the before and after p99 (not only the mean) recorded on the same load and on production-shaped data?`,`Does the new index get used? Check the plan, then check pg_stat_user_indexes or the equivalent for scans after a day, and look at the write latency of that table.`,`Is every retry limited, jittered and on an idempotent call? Does a failure at the bottom of the stack produce at most one extra attempt per layer, or a multiplication?`,`Does every call below the edge take its timeout from the remaining deadline, and does a cancelled request actually stop its database query?`,`Does keyset paging return every row once, with no gap and no repeat, when two rows share the sort value and when rows are inserted between pages?`],
+  test:[`Take 100 slow-request traces and sort them by which call was slowest. If the answers are spread across many calls, the cause is variance (GC, noisy neighbour, cold cache), not one query.`,`Run the real top statements with EXPLAIN (ANALYZE, BUFFERS) against a copy of production data, with a warm and a cold cache, and compare the buffer hits and reads.`,`Load test with an open model (a fixed arrival rate), raise it past the point where p99 leaves its target and record the utilisation where it did. That is the knee, and your safe ceiling is below it.`,`Make one replica slow on purpose (add 200 ms or pause it) and check that the timeout, the hedge and the shed rule each do what you wrote, and that the player-visible p99 stays inside the budget.`,`Page through a list of 1,000,000 rows with OFFSET and with keyset, and record the time of page 1, page 1,000 and page 50,000 for each.`],
+  rel:[['backend-data-access','The query layer is where an N+1 is born and where a transaction can hold a lock for the whole request. This topic is how to measure and fix what that layer produces.'],['backend-caching-redis','Caching is one fix among several. Read it for the tiers and invalidation, and come back here to decide whether a cache or an index is the cheaper cure.'],['backend-observability','Percentiles, traces and pprof are only useful if they are collected. That topic sets up the instruments; this one says what to read off them and what to do next.'],['infra-monitoring','A latency objective is a service level objective. That topic covers alerting on it and the on-call practice around it.'],['infra-data-stores','Replicas, shard keys and pooler placement set the physical limits that query tuning works within.'],['server-load-testing-and-capacity','The open-model load test and the breakpoint test are how you find the utilisation knee this topic describes; it also covers retry budgets and full-jitter backoff in the client.'],['realtime-connection-tier-at-scale','Slow-consumer queues and coalescing are the same ideas applied to sockets: bounded queues, and batching with a deliberate delay.'],['craft-performance','A frame budget and a request budget are the same discipline: split a fixed number of milliseconds between systems and measure the worst case, not the average.']]
+});
+TECH('backend-latency-and-query-optimisation',[
+  {n:'Percentile histograms per route', how:`Record every request's duration into a histogram with fixed buckets (Prometheus histograms, OpenTelemetry histograms, HdrHistogram). Report p50, p99 and p99.9 per route, and merge histograms rather than averaging percentiles.`, fit:`Every service. It is the first thing to put in before any tuning.`, cost:`Bucket boundaries must be chosen to bracket the target; a coarse bucket around the target hides whether you are inside it. Per-route labels multiply series, so keep the label set small.`, alt:`Mean and max, which are cheap and hide the tail. Or logging every request, which is exact and expensive to query.`},
+  {n:'Latency budget with deadline propagation', how:`Set one deadline at the edge, pass it as a context, and have each downstream call subtract elapsed time and refuse to start if the remainder is too small. Google's SRE book describes the same rule.`, fit:`Any request that fans out to other services or to several queries.`, cost:`Every library call must accept and honour the context, including the database driver. One call that ignores it keeps working after the client has gone.`, alt:`Fixed per-call timeouts, which are simple and can add up to longer than the caller will wait.`},
+  {n:'Statement statistics first', how:`Turn on pg_stat_statements (it needs shared_preload_libraries and a restart) or the MySQL slow query log. Sort by total time (calls times mean), not by the single slowest call: a 3 ms query that runs 5,000 times a second beats a 2 s report that runs once a day.`, fit:`Any relational database in production, before touching a single index.`, cost:`A small overhead on every statement, and a restart to enable it in PostgreSQL. Constants are normalised, so you need the log or a trace to see a specific value.`, alt:`Reading the code and guessing which queries are heavy. The ranking is often different from the guess.`},
+  {n:'Flame graph from a CPU profile', how:`Capture a CPU profile of the live service for 30 seconds under load (in Go, the /debug/pprof/profile endpoint, then go tool pprof and its flame graph view). Width is the share of samples and height is call depth. The order across the page is never time: Gregg's tool sorts it alphabetically, and pprof's view orders boxes by size. Look for the wide boxes at the top.`, fit:`The service is CPU-bound or the CPU is spent somewhere surprising (JSON encoding, regular expressions, GC).`, cost:`It shows where CPU time went, not where requests waited. A request blocked on a lock or the database spends no CPU; use traces, the block profile and the mutex profile for that.`, alt:`Distributed traces, which show waiting; an allocation profile, when the cost is the garbage collector.`},
+  {n:'Batch load by id (kill the N+1)', how:`Collect the ids first, then fetch in one statement with WHERE id = ANY($1) (PostgreSQL) or IN (...) and stitch the results in memory. In a graph-shaped API, put a small loader in front that batches calls made in the same tick.`, fit:`A list of parents each with children, a screen loading many items by id, a leaderboard needing player names.`, cost:`Big id lists become big statements: chunk at a few hundred to a few thousand ids. The result order is no longer the loop order, so sort explicitly.`, alt:`A join, which is one statement and can multiply rows; a cached lookup, which hides the cost until it is cold.`},
+  {n:'Composite and covering indexes', how:`Order the columns of a composite index: equality columns first, then the range or sort column. Add the columns the query only reads with INCLUDE (PostgreSQL 11 and later) so the index alone answers it (an index-only scan; "Using index" in MySQL EXPLAIN).`, fit:`A query that runs all the time and reads a few columns of many rows, such as a leaderboard page or an inbox list.`, cost:`Each index slows every write to the table and takes space. In PostgreSQL an index-only scan only wins when most heap pages are marked all-visible, so on heavily updated tables it can still touch the heap.`, alt:`A narrower query that fetches fewer columns; a partial index when only a small slice of rows is ever read.`},
+  {n:'Keyset (seek) pagination', how:`Return a cursor made of the last row's sort value and id. The next page is WHERE (sort_col, id) < ($1, $2) ORDER BY sort_col DESC, id DESC LIMIT 20, with an index on (sort_col DESC, id DESC). Rows are never skipped, so cost does not grow with page depth.`, fit:`Infinite scroll, mail, activity feeds, leaderboard windows, any list that grows.`, cost:`No jump to page N, no total count for free, and the sort must be total (add the id). Row-value comparison with mixed ASC and DESC directions does not index cleanly; check the plan on your database.`, alt:`OFFSET paging, which is fine for a few hundred rows and costs the skipped rows on every page; a precomputed rank table for "show me my position".`},
+  {n:'Small, measured connection pool', how:`Set the pool to a small multiple of the database's cores (the PostgreSQL-derived rule of thumb is 2 times cores plus the number of disks), load test, and watch the pool's wait count and wait time. If the instance count is large, a transaction-mode pooler such as PgBouncer holds the server connections.`, fit:`A service whose p99 rises with load while database CPU is saturated and the app's pool is large.`, cost:`A pool that is too small queues requests in the app; a transaction-mode pooler breaks session state, session advisory locks, LISTEN and SQL-level PREPARE (protocol-level prepared statements work in recent PgBouncer versions through max_prepared_statements, which defaults to 200, so check your version).`, alt:`One connection per request (needs a pooler anyway) or a very large pool, which is the common cause of the problem.`},
+  {n:'Request coalescing (singleflight)', how:`When many requests ask for the same key at once, let one run and give all of them its answer (golang.org/x/sync/singleflight: Group.Do). Combine with a short cache for hot keys.`, fit:`A hot key (the current event, the season leaderboard, a config blob) that many players ask for at the same moment, especially after a cache expiry.`, cost:`One slow or failed call fails every waiter, so give the shared call its own deadline. It only helps within one process; across many instances you still send one call per instance.`, alt:`A cache with a lock or early refresh, covered in the caching topic.`},
+  {n:'Hedged and tied requests', how:`Send the read to one replica, and if no answer arrives by about the p95 for that call, send it to a second one and take whichever answers first, cancelling the other. A tied request sends to two at once with each telling the other to cancel when it starts.`, fit:`Reads that are idempotent, served by replicas, whose slowness is random per server (GC, noisy neighbour, a compaction) rather than caused by the request.`, cost:`About 5 per cent more load at a p95 delay, and double the work if you hedge too early. It does nothing when every replica is slow for the same reason, and must never be used on writes unless they are idempotent.`, alt:`A shorter timeout with one retry; sending a copy to a spare replica only for the slowest queries.`},
+  {n:'Retry budget and full jitter', how:`Allow a small number of attempts per request (Google's SRE book: up to three) and a per-client cap on the ratio of retries to requests (10 per cent). Sleep a random time between zero and min(cap, base times 2 to the attempt) before each retry. Only retry calls that are safe to repeat.`, fit:`Calls to a dependency that fails briefly: a leader change, a deploy, a dropped connection.`, cost:`Retries add load exactly when the dependency is weak. Without the budget, three layers of three attempts each make 27 attempts per call at the bottom (3 x 3 x 3).`, alt:`Fail fast with a clear error and let the player retry; shed at the server instead.`},
+  {n:'Load shedding by priority with an adaptive limit', how:`When in-flight work or queue age passes a limit, return 503 and a retry hint for the lowest-priority class first. Google's SRE book sorts requests into criticality classes and makes clients throttle themselves once their requests reach K times the requests the backend accepted, with K at 2.`, fit:`A service that becomes slower for everyone under overload, such as a login or purchase path during an event.`, cost:`Someone has to decide which traffic is sheddable, and the rule must be tested, because it runs rarely and breaks silently.`, alt:`Autoscaling, which is slower than a spike; a bigger queue, which turns overload into latency.`}
+]);
+ENGINE('backend-latency-and-query-optimisation',{
+  godot:{ term:`The client's share of latency control is a deadline and a polite retry. Godot's HTTPRequest waits for ever by default, so set timeout on every request and retry only reads, with a random wait.`,
+    api:['HTTPRequest.timeout','HTTPRequest.request()','HTTPRequest.request_completed','HTTPRequest.RESULT_SUCCESS','SceneTree.create_timer()','randf() / minf() / pow()','JSON.parse_string()'],
+    snippet:`extends Node
+func get_json(url: String, attempt := 0) -> Variant:
+	var req := HTTPRequest.new()
+	req.timeout = 3.0                    # a deadline; the default 0 waits for ever
+	add_child(req)
+	req.request(url)
+	var r: Array = await req.request_completed   # result, code, headers, body
+	req.queue_free()
+	if r[0] == HTTPRequest.RESULT_SUCCESS and r[1] == 200:
+		return JSON.parse_string(r[3].get_string_from_utf8())
+	if attempt >= 2:
+		return null
+	await get_tree().create_timer(randf() * minf(8.0, pow(2.0, attempt + 1))).timeout
+	return await get_json(url, attempt + 1)   # full jitter, reads only`,
+    pitfall:`Retrying a purchase or a reward claim the same way. A timeout does not say the server did not act, so a repeated write can grant twice unless the call carries an idempotency key. The snippet is for reads. The snippet also retries every non-200 answer, including a 4xx, which will fail the same way again: retry only timeouts, connection errors, 503 and 429. Also, request() returns an error code, and if it is not OK no completion signal arrives: a production version checks it before it awaits. The 3 s timeout and 8 s cap are starting points, not sourced values.`,
+    map:`Unity's UnityWebRequest has the same shape: a timeout that is 0 (none) by default, and a retry the caller writes. The jittered wait is identical.` },
+  unity:{ term:`UnityWebRequest has no deadline unless you set one. Set timeout, honour a CancellationToken so a closed screen stops its call, and retry reads with a random wait.`,
+    api:['UnityWebRequest.Get()','UnityWebRequest.timeout','UnityWebRequest.SendWebRequest()','UnityWebRequest.Abort()','UnityWebRequest.Result.Success','Task.Yield()','Task.Delay(TimeSpan, CancellationToken)','UnityEngine.Random.Range()'],
+    snippet:`public async Task<string> GetAsync(string url, CancellationToken ct, int attempt = 0) {
+    using var req = UnityWebRequest.Get(url);
+    req.timeout = 3;                          // seconds; the default 0 means no limit
+    var op = req.SendWebRequest();
+    while (!op.isDone) {
+        if (ct.IsCancellationRequested) { req.Abort(); break; }   // a closed screen stops the call
+        await Task.Yield();
+    }
+    ct.ThrowIfCancellationRequested();
+    if (req.result == UnityWebRequest.Result.Success) return req.downloadHandler.text;
+    if (attempt >= 2) throw new Exception(req.error);
+    var wait = UnityEngine.Random.Range(0f, Mathf.Min(8f, Mathf.Pow(2f, attempt + 1)));
+    await Task.Delay(TimeSpan.FromSeconds(wait), ct);   // full jitter, reads only
+    return await GetAsync(url, ct, attempt + 1);
+}`,
+    pitfall:`Setting the timeout and forgetting that HTTP errors are not network errors: a 500 or 429 is a completed request with a failed result, and the snippet retries it, which is wrong for a 400 and for any call that is not safe to repeat. Retry only on timeouts, connection errors and 503 or 429 with their retry hint, and honour Retry-After. The usings (System, System.Threading, System.Threading.Tasks, UnityEngine, UnityEngine.Networking) are omitted for length.`,
+    map:`Godot's HTTPRequest.timeout and the await on request_completed play the same parts as timeout and the isDone loop here.` },
+  note:`Both clients hold the same two rules: every request has a deadline, and a retry waits a random time and applies only to reads. The server-side half of this topic is the Go tab.` });
+GO('backend-latency-and-query-optimisation', {
+  api:['context.WithTimeout','context.WithCancel','http.NewRequestWithContext','time.NewTimer','select','errors.Is(err, context.DeadlineExceeded)'],
+  snippet:`package hedge
+
+import (
+	"context"
+	"errors"
+	"io"
+	"net/http"
+	"time"
+)
+
+type result struct {
+	body []byte
+	err  error
+}
+
+// Fetch asks replica a, and if there is no answer after hedgeAfter (about the
+// call's p95) asks b as well. The first success wins and cancels the other.
+func Fetch(ctx context.Context, get func(context.Context, string) ([]byte, error), a, b string, hedgeAfter time.Duration) ([]byte, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	out := make(chan result, 2) // buffered: a late loser never blocks
+	start := func(addr string) {
+		go func() {
+			body, err := get(ctx, addr)
+			out <- result{body, err}
+		}()
+	}
+	start(a)
+	timer := time.NewTimer(hedgeAfter)
+	defer timer.Stop()
+	pending := 1
+	var firstErr error
+	for pending > 0 {
+		select {
+		case r := <-out:
+			pending--
+			if r.err == nil {
+				return r.body, nil
+			}
+			if firstErr == nil {
+				firstErr = r.err
+			}
+			if pending == 0 && b != "" { // the first replica failed fast: use the second
+				start(b)
+				b = ""
+				pending++
+			}
+		case <-timer.C:
+			if b != "" {
+				start(b)
+				b = ""
+				pending++
+			}
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+	return nil, firstErr
+}
+
+func httpGet(ctx context.Context, url string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
+	return io.ReadAll(resp.Body)
+}
+
+// Profile serves a read with a 250 ms deadline for the whole request.
+func Profile(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 250*time.Millisecond)
+	defer cancel()
+	body, err := Fetch(ctx, httpGet, "http://replica-a/profile", "http://replica-b/profile", 30*time.Millisecond)
+	if errors.Is(err, context.DeadlineExceeded) {
+		http.Error(w, "too slow", http.StatusGatewayTimeout)
+		return
+	}
+	if err != nil {
+		http.Error(w, "unavailable", http.StatusBadGateway)
+		return
+	}
+	w.Write(body)
+}
+`,
+  pitfall:'Hedging a call that is not safe to repeat, or hedging before the p95. A purchase sent to two replicas can be applied twice, and a 30 ms delay on a call whose median is 40 ms sends a second request for most calls and comes close to doubling the load (more than half the calls are hedged). Pick the delay from the measured p95 of this call (the 30 ms here is a placeholder), hedge only idempotent reads to a different replica, and watch the hedge rate: Google reports about 2 per cent extra requests at a 10 ms delay on one benchmark, and a rate far above 5 per cent means the delay is too short. Also: hedging does nothing when every replica is slow for the same reason, such as a missing index.'
+});
+INTERVIEW('backend-latency-and-query-optimisation',{
+  junior:[
+    { q:`Why do we look at p99 and not the average response time?`,
+      a:`The average is dominated by the many fast requests and hides the slow ones, but a player who meets a slow one has a bad session. Percentiles describe the distribution: p50 is the typical request, p99 is the slowest 1 in 100. Give the fan-out point: if a screen waits on 100 calls and each is slow 1 in 100, about 63 per cent of screens contain a slow call (1 minus 0.99 to the power 100).`,
+      follow:`Why can you not average the p99 of ten servers to get the p99 of the service?`,
+      red:`Says the average is fine if it is low, or reports the max as the tail.` },
+    { q:`What is an N+1 query, and how do you find one?`,
+      a:`One query fetches a list and then the code runs one more query per row, so a list of 200 items causes 201 statements. Find it by logging the SQL of one request and counting, or by a trace with many identical short spans. Fix with one query by id list (IN or ANY), a join, or a batch loader.`,
+      follow:`When is a join worse than a batch load by id?`,
+      red:`Proposes caching the per-row query instead of removing it.` },
+    { q:`What does EXPLAIN show, and what is the first thing you look at?`,
+      a:`The plan the database chose: scans, joins, sorts, with estimated cost and row counts. EXPLAIN ANALYZE also runs the query and shows actual time and rows, so it executes writes too (wrap in a transaction and roll back). Look first for a sequential scan over a large table, a sort that spills to disk, and an estimate that is far from the actual row count.`,
+      follow:`The plan shows an index exists but it is not used. Why might that be?`,
+      red:`Runs EXPLAIN ANALYZE on an UPDATE or DELETE in production without a transaction.` }
+  ],
+  mid:[
+    { q:`A leaderboard list is paged with OFFSET and gets slower for deep pages. Fix it.`,
+      a:`The database must produce and discard every skipped row, so page 5,000 at 20 per page walks 100,000 rows. Switch to keyset paging: the cursor is the last row's sort value and id, the query is WHERE (score, id) < ($1,$2) ORDER BY score DESC, id DESC LIMIT 20, and an index on those columns in that order makes each page cost the same. State the costs: no jump to an arbitrary page, a total sort order needs the id, and rows inserted between pages do not shift the window.`,
+      follow:`Product wants "your rank is 48,213". How do you do that without OFFSET?`,
+      red:`Adds an index on the sort column and leaves OFFSET in place.` },
+    { q:`p99 climbs under load while database CPU is pegged and the app pool is 200 connections. What do you try?`,
+      a:`The pool is probably too big: too many concurrent statements create context switching and lock contention, so each takes longer and the queue grows. Cut the pool toward a small multiple of database cores, watch wait count and wait time, load test each size, and use a pooler if many instances multiply the connections. Back this with the statement statistics to rule out one bad query.`,
+      follow:`What breaks if you put PgBouncer in transaction mode?`,
+      red:`Raises the pool size or adds instances without a measurement.` },
+    { q:`How do you pick a timeout, and how does it relate to a retry?`,
+      a:`From the measured latency distribution of that call, a little above its p99.9, and shorter than the caller's own deadline so work does not outlive its client. A retry must be on an idempotent call, limited per request and as a ratio of traffic (Google's SRE book: three attempts, 10 per cent), with full jitter to avoid synchronised retries. Mention amplification across layers.`,
+      follow:`Three layers each make three attempts per call (one try and two retries). What is the worst case at the database?`,
+      red:`Picks 30 seconds because "it is safe", or retries every error immediately.` },
+    { q:`Explain Little's law and use it to size something.`,
+      a:`The average number in the system equals the arrival rate times the average time in the system (L = λW), and it holds without assumptions about the arrival pattern. At 2,000 requests per second and 50 ms each, 100 requests are in flight on average, so a pool or thread limit below that queues; and if latency doubles the in-flight count doubles at the same traffic.`,
+      follow:`Why does latency rise sharply as utilisation approaches 100 per cent?`,
+      red:`Cannot say what the symbols mean, or applies it to a peak rather than an average.` }
+  ],
+  senior:[
+    { q:`A home screen makes 40 parallel backend calls, and players complain it is slow even though every service meets its p99 target. What is going on and what do you change?`,
+      a:`Fan-out amplification: if each call is slower than its p99 once in 100, a screen with 40 calls hits at least one slow call about 33 per cent of the time (1 minus 0.99 to the 40th power). The screen's latency is a high percentile of its slowest dependency. Options: reduce the number of calls (aggregate behind one endpoint), tighten each service's p99.9 not only p99, hedge idempotent reads after the p95, return a partial screen at a deadline and fill in the rest, and cache what is stable. Say which you would try first and how you would measure the gain.`,
+      follow:`The hedge cut p99 and raised database load by 20 per cent. What do you do?`,
+      red:`Says to optimise each service's average, or to add more instances.` },
+    { q:`Design retry, hedging and shedding for a purchase path and a catalogue read path in the same service.`,
+      a:`They need different rules. The catalogue read is idempotent and replica-served: short timeout from the p99.9, one jittered retry or a hedge after the p95, within a retry budget, cacheable, first to be shed under overload. The purchase is not safe to repeat without an idempotency key stored with the order, should not be hedged, retries only after an unambiguous failure or with the key, has the highest criticality and is shed last. Show that the deadline is carried through both and that a retry layer exists in only one tier.`,
+      follow:`The client times out at 3 s but the purchase completed at 4 s. What does the player see, and how does the system reconcile it?`,
+      red:`Applies one timeout and retry policy to both, or hedges the purchase.` },
+    { q:`After a release, p99 doubled but the average barely moved, and the CPU profile looks the same. How do you find the cause?`,
+      a:`Look at where requests wait, not where CPU goes: traces for slow requests, the block and mutex profiles for lock contention, the allocation profile and GC pauses for stalls, pool wait time, and the statement statistics for a changed plan (an index no longer used after a schema or statistics change). Compare slow requests with fast ones: same route, same data size? Use the release diff to rank suspects, and roll back the one that fits to prove it.`,
+      follow:`The traces show the time inside one SQL statement. What next?`,
+      red:`Opens only the CPU profile, or reasons from the average.` }
+  ] });
+FACTS('backend-latency-and-query-optimisation',[
+  { claim:`Dean and Barroso (CACM, February 2013): for a server with a 1 second 99th percentile, a request that waits on 100 such servers is slower than a second 63 per cent of the time. A hedged request sent after a 10 ms delay cut the 99.9th percentile for reading 1,000 BigTable keys across 100 servers from 1,800 ms to 74 ms with 2 per cent more requests; waiting for the 95th percentile before hedging limits extra load to about 5 per cent.`, asOf:'2026-10-05', src:'https://www.barroso.org/publications/TheTailAtScale.pdf' },
+  { claim:`Google's SRE book (Handling Overload) describes per-request retry limits of up to three attempts, a per-client retry ratio limit of 10 per cent, and adaptive client throttling that rejects locally once requests exceed K times accepts, with K = 2.`, asOf:'2026-10-05', src:'https://sre.google/sre-book/handling-overload/' },
+  { claim:`Google's SRE book (Addressing Cascading Failures) advises keeping queues short relative to the thread pool (for example 50 per cent or less), setting deadlines high in the stack and propagating them with the elapsed time subtracted, and using randomised exponential backoff with a server-wide retry budget (a cap on retries per process).`, asOf:'2026-10-05', src:'https://sre.google/sre-book/addressing-cascading-failures/' },
+  { claim:`PostgreSQL documentation: EXPLAIN ANALYZE executes the statement; the rows skipped by OFFSET still have to be computed inside the server; an index-only scan is a win only if a significant fraction of heap pages have their all-visible bit set; INCLUDE adds payload columns to an index.`, asOf:'2026-10-05', src:'https://www.postgresql.org/docs/current/using-explain.html; https://www.postgresql.org/docs/current/queries-limit.html; https://www.postgresql.org/docs/current/indexes-index-only-scans.html; https://www.postgresql.org/docs/current/sql-createindex.html' },
+  { claim:`PostgreSQL defaults: shared_buffers 128 MB, work_mem 4 MB per sort or hash operation (so total memory can be many times work_mem). pg_stat_statements needs shared_preload_libraries and a restart, and tracks calls, total_exec_time and mean_exec_time per normalised statement.`, asOf:'2026-10-05', src:'https://www.postgresql.org/docs/current/runtime-config-resource.html; pg_stat_statements: https://www.postgresql.org/docs/current/pgstatstatements.html' },
+  { claim:`Go's database/sql: the default maximum open connections is unlimited, the default maximum idle connections is 2 and may change; DB.Stats reports WaitCount and WaitDuration.`, asOf:'2026-10-05', src:'https://pkg.go.dev/database/sql#DB.SetMaxOpenConns' },
+  { claim:`Go GC guide: GOGC defaults to 100, doubling it roughly halves GC CPU cost and doubles heap overhead; GOMEMLIMIT (Go 1.19 and later) is a soft memory limit.`, asOf:'2026-10-05', src:'https://tip.golang.org/doc/gc-guide' },
+  { claim:`Godot's HTTPRequest.timeout defaults to 0.0 seconds, which means the request never times out; Unity's UnityWebRequest.timeout is an integer in seconds and the default 0 means no timeout.`, asOf:'2026-10-05', src:'https://docs.godotengine.org/en/stable/classes/class_httprequest.html; Unity: https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Networking.UnityWebRequest-timeout.html' },
+  { claim:`PgBouncer transaction pooling assigns a server connection only for the duration of a transaction and breaks session-based features, including session-level advisory locks, LISTEN and SQL-level PREPARE. Protocol-level prepared statements are supported in transaction mode through max_prepared_statements (default 200 in the current docs).`, asOf:'2026-10-05', src:'https://www.pgbouncer.org/features.html; https://www.pgbouncer.org/config.html' }
+]);
+DIAGRAM('backend-latency-and-query-optimisation', { kind:'curve', title:'Latency rises slowly, then sharply, as utilisation nears 100 per cent',
+  x:'Utilisation (0 to 98 per cent of capacity)', y:'Time vs an idle server',
+  alt:'A single-server queue: time in system rises slowly at first, doubles at 50 per cent of capacity, is 5 times higher at 80, 10 times at 90 and 50 times at 98 per cent.',
+  series:[{ t:'One server (M/M/1)', pts:[[0,0.02],[0.51,0.04],[0.82,0.1],[0.92,0.2],[1,1]] }],
+  band:{ t:'Past the knee', from:0.82, to:1 },
+  note:'Textbook M/M/1 queue: time in system = service time / (1 - utilisation). The x axis is rescaled so 0 to 1 spans 0 to 98 per cent; the y values are 1 / (1 - u) divided by 50. A real system differs in shape and the knee is lower when service times vary. Illustrative.' });
+EXPLAINER('backend-latency-and-query-optimisation', { kind:'explainer', title:'One slow call in 100 becomes a slow screen: fan-out, hedging, deadline',
+  frames:[
+    { t:'One server: 1 request in 100 is slow', d:'Illustrative numbers. On its own, a player meets the slow answer 1 time in 100.', spec:{ kind:'matrix', rows:['Fast answer','Slow answer'], cols:['Time','Share of requests'], cells:[['10 ms','99 in 100'],['1 s','1 in 100']] } },
+    { t:'Fan out to 100 servers, and the screen waits for the slowest', d:'With 100 calls per screen, 1 - 0.99^100 = 63% of screens contain at least one slow call.', spec:{ kind:'curve', x:'Servers called per screen (1 to 100)', y:'Screens with a slow call', alt:'The share of slow screens rises from 1% with one call to 63% with 100 calls.', series:[{ t:'Slow screens', pts:[[0.01,0.01],[0.1,0.096],[0.25,0.222],[0.5,0.395],[1,0.634]] }] } },
+    { t:'Hedge after the p95: ask a second replica, use whichever answers first', d:'It costs about 2 to 5% extra requests.', spec:{ kind:'flow', steps:[{ id:'a', t:'Send to replica 1' }, { id:'w', t:'Wait the p95', d:'about 20 ms here' }, { id:'h', t:'Send a hedge to replica 2' }, { id:'u', t:'Use the first answer, cancel the other' }], edges:[['a','w'],['w','h'],['h','u']] } },
+    { t:'Retries without a budget multiply at every layer', spec:{ kind:'matrix', rows:['Tier 1','Tier 2','Database'], cols:['Attempts','Why'], cells:[['3','it retries 3 times'],['9','each of those retries 3 times'],['27','one failure became 27 queries']] } },
+    { t:'A deadline travels with the request, and work past it is dropped', spec:{ kind:'flow', steps:[{ id:'e', t:'Edge', d:'deadline 250 ms' }, { id:'t1', t:'Tier 1', d:'180 ms left' }, { id:'t2', t:'Tier 2', d:'0 ms left: drop it' }, { id:'db', t:'Database', d:'not called, stays calm' }], edges:[['e','t1'],['t1','t2'],['t2','db','skipped']] } },
+    { t:'With hedging, a retry budget and deadlines, the p99 is back inside the budget', spec:{ kind:'matrix', rows:['p99 before','p99 after'], cols:['Latency','Budget'], cells:[['1.1 s','250 ms'],['240 ms','250 ms']] } }
+  ] });

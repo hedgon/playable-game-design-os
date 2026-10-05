@@ -62,31 +62,31 @@ the evidence line), `[-]` set aside (with the reason).
 - [x] P6.0 briefs/factcheck.md
 - [x] P6.0b Page budget headroom: tool code (90-app tools, 92-ideas, 93-lab; new 94-tools.js) loads on demand as content/code/tools.js and lab.js; per-file hash map replaced by ?v=BUILD (it changed every build anyway); build id hashes code too. Page 295 -> 259 KB gzipped. build, smoke 269/0, e2e 105/105, tool interactions from file:// checked
 - [~] P6.1 Workflow wf_e1ce23b6-77b running again (task wwmkcggai, single lane); if interrupted, resume with Workflow({scriptPath: <session workflows/scripts/playable-topic-pipeline-wf_e1ce23b6-77b.js>, resumeFromRunId: 'wf_e1ce23b6-77b'}). Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
-- [ ] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks
-- [ ] P6.3 Paths: realtime-at-scale-engineer, performance-engineer; steps in existing paths; chooser
-- [ ] P6.4 Wiring: lens topics on existing games, review steps, glossary terms, spatial-composition pointer
+- [~] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks. 15 of 20 done (2026-10-05): each draft appended to its domain file; 14 EXPLAINER() calls authored from the outlines (frames in existing diagram kinds, illustrative numbers labelled); framework-landscape matrix split into a 2-column diagram plus the full 5-column worked table framework-families; legends, axis names and row labels fitted to the renderer (layout 0, text-fit 0). Integrated .js drafts deleted; .sources.md and .factcheck.md kept as evidence
+- [~] P6.3 Paths: realtime-at-scale-engineer (5 stages, 8.5 h) and performance-engineer (6 stages, 9.67 h) written, prereq next links, chooser (backend senior; gameplay and backend some/senior). Steps added: backtracking in level-and-ux-designer s1 and games-that-broke-the-mould s2; power creep in systems-designer s3 and senior-game-designer s3; balance in systems-designer s4 and senior-game-designer s2; hours recomputed. Remaining: the five topics still in the workflow
+- [~] P6.4 Wiring: lens topics (Hearthstone and EA FC replay -> power creep; Hollow Knight, Zelda and RE4 world, Dark Souls ui, Elden Ring lineage -> backtracking, each checked against the lens text); 12 glossary terms; inbound rels (content-multiplies, level-structure, spatial-composition, backend-observability, server-stack-choices, soft-launch-and-playable-ads, craft-performance); spatial-composition trap line points to backtracking. Set aside: review entries in other paths for topics those paths never teach (the P5 guide flags them). Remaining: the five workflow topics
 - [ ] P6.5 Checks, CI replay, commit, push
 
 | Topic | Draft | Fact-check | Integrated |
 | --- | --- | --- | --- |
-| backtracking-and-return-trips | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| balance-methods | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| power-creep-and-content-growth | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| server-bandwidth-and-interest-management | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| server-transport-and-relays | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| server-world-partitioning | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| server-load-testing-and-capacity | [x] | [x] checked, fixed | [ ] |
-| server-framework-landscape | [x] | [x] checked, fixed | [ ] |
-| realtime-connection-tier-at-scale | [x] | [x] checked, fixed | [ ] |
-| craft-cpu-cache-and-data-layout | [x] | [x] checked, fixed | [ ] |
-| craft-gpu-rendering-cost | [x] | [x] checked, fixed | [ ] |
-| craft-mobile-gpu-and-thermals | [x] | [x] checked, fixed | [ ] |
-| craft-memory-loading-and-streaming | [x] | [x] checked, fixed | [ ] |
-| web-performance-basics | [x] | [~] checked, fixing in workflow | [ ] |
-| backend-latency-and-query-optimisation | [ ] | [ ] | [ ] |
-| puzzles-in-action-spaces | [ ] | [ ] | [ ] |
-| pixel-art-direction | [ ] | [ ] | [ ] |
-| worldbuilding-method | [ ] | [ ] | [ ] |
+| backtracking-and-return-trips | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| balance-methods | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| power-creep-and-content-growth | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| server-bandwidth-and-interest-management | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| server-transport-and-relays | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| server-world-partitioning | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| server-load-testing-and-capacity | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| server-framework-landscape | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| realtime-connection-tier-at-scale | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| craft-cpu-cache-and-data-layout | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| craft-gpu-rendering-cost | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| craft-mobile-gpu-and-thermals | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| craft-memory-loading-and-streaming | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| web-performance-basics | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| backend-latency-and-query-optimisation | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| puzzles-in-action-spaces | [x] | [~] workflow | [ ] |
+| pixel-art-direction | [~] workflow | [ ] | [ ] |
+| worldbuilding-method | [~] workflow | [ ] | [ ] |
 | rhythm-and-music-timed-design | [ ] | [ ] | [ ] |
 | craft-audio-clock-and-input-latency | [ ] | [ ] | [ ] |
 

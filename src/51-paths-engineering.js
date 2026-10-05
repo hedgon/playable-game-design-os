@@ -19,7 +19,7 @@ PATH('gameplay-engineer-godot', {
   track:'engineering', level:'beginner', hours:18.25,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4. Game designer foundations is optional: steps marked as refreshers repeat its ideas in a few minutes.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
-  prereq:[], next:['senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
+  prereq:[], next:['performance-engineer','senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
   stages:[
     { id:'s1', t:'The loop, in Godot', level:'beginner',
       goal:'See the design idea of a core loop, then build it as a physics tick with a signal for the consequence.', hours:2.5,
@@ -167,7 +167,7 @@ PATH('gameplay-engineer-unity', {
   track:'engineering', level:'beginner', hours:18.5,
   audience:'Programmers new to Unity who already know how to code and want to implement a documented gameplay system end to end, in Unity 6. Game designer foundations is optional: steps marked as refreshers repeat its ideas in a few minutes.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Unity, and you can point at the Update/FixedUpdate split, the UnityEvent, and the ScriptableObject that make each one work.',
-  prereq:[], next:['senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
+  prereq:[], next:['performance-engineer','senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
   stages:[
     { id:'s1', t:'The loop, in Unity', level:'beginner',
       goal:'See the design idea of a core loop, then build it across Update and FixedUpdate with an event for the consequence.', hours:2.5,
@@ -317,7 +317,7 @@ PATH('live-game-backend-engineer', {
   track:'engineering', level:'intermediate', hours:15.5,
   audience:'Backend or Go engineers moving into games, who already ship services (the exercises are in Go) and want the constraints unique to a live game: state that must survive a crash, a client that lies, and players who do not stop playing while you ship.',
   outcome:'You can design and defend a request path, a caching and migration strategy, and a live-ops rollout for a game backend, and verify what an AI assistant wrote for you before it ships.',
-  prereq:[], next:['netcode-server-engineer','senior-game-developer-ai-era','interview-prep-engineer','technical-lead'],
+  prereq:[], next:['netcode-server-engineer','performance-engineer','senior-game-developer-ai-era','interview-prep-engineer','technical-lead'],
   stages:[
     { id:'s1', t:'Shape the service', level:'intermediate',
       goal:'Decide which way dependencies point, how one binary can boot as many roles, and which protocol fits your client, then build the skeleton that proves it.', hours:2.75,
@@ -439,7 +439,7 @@ PATH('netcode-server-engineer', {
   track:'engineering', level:'advanced', hours:16.57,
   audience:'Backend engineers specialising in real-time multiplayer, who already run a service in production and want to reason about latency, authority, and reconciliation with the same rigour as a request handler.',
   outcome:'You can choose an authority model and defend it, hide latency with prediction, reconciliation, interpolation and rollback, design a wire protocol and a fan-out layer, and explain why a client’s result is never trusted by itself.',
-  prereq:['live-game-backend-engineer'], next:['senior-game-developer-ai-era','interview-prep-engineer'],
+  prereq:['live-game-backend-engineer'], next:['realtime-at-scale-engineer','senior-game-developer-ai-era','interview-prep-engineer'],
   stages:[
     { id:'s1', t:'Authority and truth', level:'advanced',
       goal:'Decide who is right when two machines disagree, judge a shot fairly despite latency, and see what bit-for-bit costs to guarantee.', hours:3.25,
@@ -567,6 +567,228 @@ PATH('netcode-server-engineer', {
         build:'Attach the log of a run with 200 ms latency, 10 percent packet loss and a mid-match suspend, with each failure traced to a node in the finished System Relationship Map, and the map itself.',
         solution:{ outline:'Run the full system with 200 ms latency, 10 percent packet loss and a mid-match suspend, and attach the log. For each failure that appears, trace it to a node on the System Relationship Map and say which layer should have handled it. Attach the finished map. Compare against the netcode layers, host interpolation, reconnect and conflict pages, and note which of those your build lacks.', selfcheck:['Does the log show all three conditions applied?', 'Is every failure tied to a named node on the map?', 'Does the map show what depends on what, not just what exists?', 'Is any missing layer named as a gap?'] },
         skip:['Can you name a server-side change you would need a version gate to ship safely mid-match?','Do you know which layer, transport or hand-written protocol, would own a desync bug in your own stack?','Have you already found a build step in your own pipeline that resolves something by name at runtime?','Can you trace every system in your design back to the wait time a player feels?']
+      } }
+  ]
+});
+
+PATH('realtime-at-scale-engineer', {
+  t:'Realtime at scale engineer', tag:'Spend every byte on purpose, cut the world where the crowd is, and know the number of players a server carries before launch day does.',
+  pick:'Take multiplayer from one room to a launch-day crowd',
+  track:'engineering', level:'advanced', hours:8.5,
+  audience:'Engineers who already run an authoritative game server and now need it to carry thousands of players: bandwidth per client, many rooms and one world, hundreds of thousands of open connections, a framework choice they can defend, and a capacity number from a test.',
+  outcome:'You can write a per-client bandwidth budget and fill packets by priority, choose and operate a partition of the world, run a gateway tier that survives its own restart, compare multiplayer frameworks by mechanism and cost, and state players per instance from a load test, with the knee and the headroom.',
+  prereq:['netcode-server-engineer'], next:['senior-game-developer-ai-era','interview-prep-engineer'],
+  stages:[
+    { id:'s1', t:'Budget the bytes', level:'advanced',
+      goal:'Choose a carrier for each kind of message, and write the bytes per client per second as a number every later decision is checked against.', hours:1.83,
+      steps:[
+        { kind:'topic', ref:'server-transport-and-relays', why:'A lost packet blocks everything behind it on a stream, so which carrier you choose decides whether one loss freezes the game or skips one tick. Most of this layer is a library choice, not code to write.', do:'Label every message in your protocol by what losing it costs: latest-wins state, input, or a one-off event. Choose the carrier and reliability for each, then write the wrap-around sequence comparison as one function with a test across the boundary from 65,535 to 0.', min:45 },
+        { kind:'topic', ref:'server-bandwidth-and-interest-management', why:'Bandwidth is a budget per client, filled in priority order, not a hope that the state fits. Writing the number first turns every later field and update rate into arithmetic.', do:'Write the budget for the worst connection you support: subtract the headers at your tick rate, divide by the entities you show at once, and write the bytes each entity may cost. Then quantise one position field from your map size and the resolution you need.', min:45 },
+        { kind:'game', ref:'counter-strike-2', lens:'ui', why:'Counter-Strike 2 times every action to the instant it happened instead of the tick it fell in, which means the input message carries more than the key that was pressed.', do:'Read its ui lens, then work out what an input message costs per second at your tick rate if it carries a time within the tick, and check it against the upstream half of the budget you wrote.', min:20 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'Why does one lost snapshot freeze a TCP client, but not a UDP one?', a:'TCP delivers bytes in order, so snapshots 4, 5 and 6 wait until 3 is resent, more than a round trip later, and then arrive in a burst of old data. Over UDP the game uses 4 when it arrives. Snapshot 3 is never resent, because 4 replaced it; only a reliable event rides again until it is acknowledged.' },
+          { q:'How does a priority accumulator keep a packet inside its budget without starving anything?', a:'Each tick every entity adds its priority to its own accumulator. The sender sorts by that value and writes entities until the byte budget is spent, then resets only the ones that fit. The rest keep their accumulated value, so a low-priority door eventually outranks a grenade and is sent.' },
+          { q:'What decides how many bits a position costs on the wire?', a:'The range and resolution you choose from the map and the rules. A 2 km axis at 5 cm is 40,000 steps, which is 16 bits, so a whole position can be 44 bits instead of 96. Write the range and resolution next to the field as constants, and reject a value outside the range when reading.' }
+        ],
+        build:'Attach your message table labelled by failure cost with the carrier for each kind, the budget sheet (worst connection, headers at your tick rate, bytes per entity), one quantised field with its range and resolution, and the sequence-comparison test across the wrap.',
+        solution:{ outline:'List every message and label it latest-wins, input or one-off event; send the first unreliable, the second unreliable with the last few inputs repeated, the third reliable. Write the budget: worst connection in bytes per second, minus headers times the tick rate, divided by the entities on screen. Quantise one position from the map size and a resolution such as 5 cm. Test the sequence comparison at 65,535 and 0.', selfcheck:['Is every message labelled by what losing it costs?', 'Does the budget subtract headers at your actual tick rate?', 'Is the resolution of the quantised field written next to it?', 'Does the test cover numbers either side of the wrap?'] },
+        skip:['Can you say which of your messages are latest-wins, inputs and one-off events, without checking?','Do you know your bytes per client per second at the busiest moment, from a measurement?','Have you already written a priority-ordered packet writer that resets only what it sent?','Could you quantise a position for your map in your head?']
+      } },
+    { id:'s2', t:'Many rooms, one world', level:'advanced',
+      goal:'Pick the cut that spreads your population over processes, make ownership explicit, and move what every shard shares into services.', hours:2,
+      steps:[
+        { kind:'topic', ref:'server-world-partitioning', why:'Shards, instances, layers, zones and match servers each answer who sees whom and what crosses a seam. The one cost that more machines never fix is a single cell that is too busy.', do:'Do the arithmetic for your worst moment: players in one space, pairs per tick and bytes per second, against what one process held in your load test. Write the family of cut it leaves you, and what you will do when one cell is still too busy.', min:45 },
+        { kind:'game', ref:'world-of-warcraft', lens:'ui', why:'World of Warcraft’s cross-realm Dungeon Finder took group-finding out of the realm, a shard boundary, and put it in a service every realm could reach. Its ui lens records what that cost socially.', do:'Read its ui lens, then sort your own features into those that live in the zone or shard process and those that sit behind a service keyed by player or guild id, reachable from any shard. Name one social tie a cross-shard service would remove.', min:20 },
+        { kind:'topic', ref:'server-scaling', why:'Stateless parts scale by adding copies. Partitioning is how the stateful part scales, and it only works if you know which part is which.', do:'Mark which of your components move into a shared service when you add a second shard and which stay per shard, and write the one that would break first if two shards wrote it at once.', min:25 },
+        { kind:'tool', ref:'sysmap', why:'Ownership that changes in two places is a duplication bug waiting for a crash in the middle of a handoff. A map shows where it changes.', do:'Build a System Relationship Map of the ownership table, the handoff, the zone processes and the shared services, and mark the single place where ownership of an entity changes.', min:30 }
+      ],
+      review:['server-bandwidth-and-interest-management'],
+      check:{
+        recall:[
+          { q:'Why does adding machines not fix a single crowded cell?', a:'Its cost grows with the players inside one space, roughly with the pairs that must see each other each tick, and one zone process must simulate them together. Only splitting the region by load, capping it, slowing time or spilling players to a layer helps that cell.' },
+          { q:'What are the three steps of a safe handoff between two zone processes?', a:'The old owner sends the entity and its state with a version, the new owner accepts and acknowledges, and only then does the old owner release it. If the acknowledgement never arrives, the old owner keeps the entity and tries again, so the entity is never owned by nobody or by both.' },
+          { q:'Why split a hot region at the median of the crowd, and merge at a lower threshold?', a:'The median puts about half the entities on each side, so both halves get relief, which a split by area does not promise. A merge threshold well below the split threshold stops a crowd that drifts back and forth from splitting and merging the zone over and over.' }
+        ],
+        build:'Attach the worst-moment arithmetic and the cut it led to, the ownership table with the three-step handoff, the list of features behind cross-shard services, and the System Relationship Map with the single place ownership changes.',
+        solution:{ outline:'Work the worst moment: players in the busiest space, pairs per tick, bytes per second, compared with one process’s measured limit. Choose the cut (match per process, shards with instances, or zones with a plan for the densest cell). Keep a table from region to owning process, changed only in one place, and hand off in three steps with a margin around each border. Put chat, trade and guilds in services keyed by player or guild id.', selfcheck:['Is the arithmetic for the busiest moment, not the average?', 'Does the handoff release the entity only after the acknowledgement?', 'Are the split and merge thresholds different?', 'Is every shared feature reachable from any shard?'] },
+        skip:['Can you name the cut your game uses and the number that made you choose it?','Have you already written a handoff that survives a crash between send and acknowledge?','Do you know which of your features would need a cross-shard service tomorrow?','Can you say what you do when one cell is still too busy after a split?']
+      } },
+    { id:'s3', t:'Many connections', level:'advanced',
+      goal:'Hold hundreds of thousands of long-lived connections, fan a message out without blocking on slow clients, and survive the restart of a gateway.', hours:1.58,
+      steps:[
+        { kind:'topic', ref:'realtime-connection-tier-at-scale', why:'Chat, presence and live events are many connections and few messages each, the opposite shape to a match server. The memory per connection and the reconnect after a restart decide whether it holds.', do:'Work out the memory for 100,000 idle connections in your stack: kernel socket buffers, the runtime’s state per connection and your session object. Then open as many idle connections as your machine allows against a test build and compare resident memory with the estimate.', min:50 },
+        { kind:'part', ref:'cs-go-game-backend/realtime/realtime-fanout', why:'A shipped fan-out layer between a dispatch loop and Redis shows the first stage of fan-out in a real system, before a channel is large enough to need the second.', do:'Write whether that design publishes once per instance holding subscribers or once per subscriber, and what changes for a channel with a million people online, based on how it hashes each channel to a Redis publish-subscribe shard.', min:25 },
+        { kind:'topic', ref:'server-realtime-protocol', why:'A client that resumes instead of logging in again needs the envelope to carry a sequence number and a token. The resume is a protocol feature before it is a server one.', do:'Add a resume token and the last sequence number received to your envelope, and write the test in which a client reconnects after missing five messages and receives exactly those five.', min:20 }
+      ],
+      review:['server-world-partitioning'],
+      check:{
+        recall:[
+          { q:'Why split the gateway tier from the logic tier?', a:'The gateway only holds sockets: it accepts, authenticates once, keeps the map of subscriptions and writes frames, so it scales on connection count. The logic tier owns channels and decides who hears what, so it scales on CPU and memory. Deploying them separately means a rules change does not drop every connection.' },
+          { q:'What should a connection’s send queue do when it fills?', a:'It is bounded and never blocks the publisher. For state that the next message replaces, such as presence or positions, keep only the latest and drop the rest. For events that matter, such as a purchase or a match result, disconnect the slow client and let it resume from its last sequence number.' },
+          { q:'Why does a gateway restart need full jitter and a handshake limit?', a:'Without jitter every client retries at the same backoff times, so the whole population reaches the login tier in waves. Full jitter spreads each retry randomly between zero and the cap, and a handshake limit answers the excess with try later (WebSocket close code 1013), keeping the rate at one that was tested.' }
+        ],
+        build:'Attach the estimate and the measured resident memory for your idle-connection test, the send-queue policy for each message type, the resume test that delivers exactly the missed messages, and your reconnect backoff with full jitter.',
+        solution:{ outline:'Estimate memory per connection from socket buffers, runtime state and the session object, multiply by your target, then measure it with idle connections against a test build. Bound each send queue: latest-wins messages overwrite, important events disconnect the slow client so it resumes by sequence number. Add a resume token and last sequence to the envelope and test a resume after five missed messages. Retry with exponential backoff and full jitter, and limit handshakes per second.', selfcheck:['Was the memory per connection measured, not only estimated?', 'Does no send path ever block the publisher?', 'Does the resume test check that exactly the missed messages arrive?', 'Is the jitter random between zero and the cap?'] },
+        skip:['Do you know the resident memory of 100,000 idle connections in your stack, from a test?','Have you already bounded a per-connection send queue and chosen what it drops?','Can you describe what your clients do in the minute after a gateway dies?']
+      } },
+    { id:'s4', t:'Pick a framework', level:'advanced',
+      goal:'Compare multiplayer frameworks by mechanism and by what they bill or limit, and prove the choice with a vertical slice you measured.', hours:1.58,
+      steps:[
+        { kind:'topic', ref:'server-framework-landscape', why:'Every framework answers the same five questions: who owns the state, what travels, how latency is hidden, where it runs and what it costs. Reading them that way turns a marketing page into a comparison.', do:'Write your session model on one line and your authority model in one word. Then fill a three-column sheet for three candidates from their official pages (how latency is hidden, the unit billed or limited, the number at which it stops being free) with the date beside each cell.', min:45 },
+        { kind:'topic', ref:'server-stack-choices', why:'The framework sits inside a hosting layer and behind a seam you own. The cost of leaving it is the authority and prediction code you would rewrite, not the calls you would re-link.', do:'Write the small interface your rule code would call (spawn, set state, send input, receive a snapshot), and for each candidate the code you would have to rewrite rather than re-link if you left it.', min:25 },
+        { kind:'tool', ref:'hypothesis', why:'A framework choice is a claim about cost and feel that a two-player slice can refute in a week. Writing the result that would make you drop it keeps the test honest.', do:'Write the vertical slice as a hypothesis: the framework holds your planned players per session at a stated server CPU, bytes per second per player and correction rate on a 100 ms, 2% loss link, and the measurement that would make you drop it.', min:25 }
+      ],
+      review:['realtime-connection-tier-at-scale'],
+      check:{
+        recall:[
+          { q:'Which five questions does every multiplayer framework answer?', a:'Who owns the state: a server, a host, each client for its own objects, or nobody under determinism. What travels: snapshots, remote calls or input. How latency is hidden. Where it runs: a dedicated process, a player’s machine or a cloud room. What it costs or limits: a licence, a price per concurrent user, or the size of the box.' },
+          { q:'Which family suits a fighting game, and which suits a co-op social room?', a:'A fighting game or a real-time strategy game wants deterministic input-only rollback: only inputs travel and every machine runs the same simulation. A co-op, social or casual room can take shared authority, where each client owns its own objects, because there is little to gain by cheating it.' },
+          { q:'Why measure a two-player slice instead of comparing feature lists?', a:'The limits that decide the choice, such as server CPU per session, bytes per second per player and the correction rate on a bad link, only appear when the framework runs your tick rate and player count. A feature list says what exists, not what it costs you.' }
+        ],
+        build:'Attach your session model and authority word, the dated three-column sheet for three candidates, the interface your rule code calls with the rewrite cost per candidate, and the hypothesis card with the slice’s measured numbers or the plan to measure them.',
+        solution:{ outline:'One line of session model (players, sessions at peak, length, persistence) and one word of authority. A sheet per candidate with latency hiding, billing unit and free limit, each cell dated from the official page. An interface for spawn, set state, send input and snapshots that keeps vendor types out of rule code. A hypothesis card naming the numbers the slice must reach on a 100 ms, 2% loss link and the result that rejects the framework.', selfcheck:['Is every cell of the sheet dated and from an official page?', 'Does the interface hide ownership, prediction and interest management?', 'Does the hypothesis say what result would make you drop the framework?'] },
+        skip:['Can you name your authority model in one word and the frameworks that cannot run it?','Do you know what your current framework bills by and where it stops being free?','Have you already measured a framework on a lossy link before choosing it?']
+      } },
+    { id:'s5', t:'Prove it under load', level:'advanced',
+      goal:'Find the knee with an open-model load test, set capacity left of it, and show the server sheds load instead of collapsing.', hours:1.5,
+      steps:[
+        { kind:'topic', ref:'server-load-testing-and-capacity', why:'The number of players a server carries is a measurement, and its overload behaviour is part of the product. Both come from a load test shaped like real players.', do:'Write a bot as a protocol client that connects, joins a room and sends inputs at the real rate, driven by an open-model generator at a chosen arrival rate. Ramp by doubling and plot p99 tick time against players per instance until it bends.', min:50 },
+        { kind:'topic', ref:'infra-monitoring', why:'A capacity number stays true only while the readings that produced it are watched in production, where the real crowd arrives.', do:'Choose the four or five readings from your load test to alert on in production (p99 tick time, memory per room, connections, error rate) and write the threshold for each, below the capacity you measured.', min:25 },
+        { kind:'reflect', why:'A capacity number without the conditions it was measured under is a guess, and the launch review will act on it.', do:'Write the paragraph your launch review reads: players per instance, where the knee was, the headroom kept, cost per concurrent user per hour, the recovery time after overload, and what you do at twice the expected peak.', min:15 }
+      ],
+      review:['server-bandwidth-and-interest-management','realtime-connection-tier-at-scale'],
+      check:{
+        recall:[
+          { q:'Why does a closed-loop load generator hide a collapse?', a:'Each simulated client waits for its answer before sending the next request, so when the server slows down the generator slows with it and the chart stays calm. An open model sends at a chosen arrival rate, as real players do, so the growing queue and the timeouts show.' },
+          { q:'Where do you set the capacity number, and why not at the knee?', a:'Comfortably left of where p99 tick time bends, commonly where it reaches 60 to 70% of the tick budget, so a busy moment, a lost zone or a slow dependency still fits. At the knee any extra load builds a queue and useful work starts to fall.' },
+          { q:'What is goodput, and what keeps it flat under overload?', a:'Goodput is the work that finishes in time to be useful. Past the knee, queued requests time out and clients retry, so the server stays busy while goodput falls. Capping sessions, bounding every queue and refusing the excess early with a retry-after hint keeps goodput at capacity.' }
+        ],
+        build:'Attach the generator scripts and pass thresholds checked into the repo, the plot of p99 tick time against players per instance with the knee and the capacity marked, the capacity model (players per core, cost per concurrent user per hour) and the overload run at twice capacity showing shedding and the recovery time.',
+        solution:{ outline:'Drive bots that speak your protocol from an open-model generator, doubling the arrival rate each passing run. Record p50, p99 and max tick time, memory per room, connections and error rate. Plot p99 tick time against players per instance, mark the knee and set capacity where p99 is about 60 to 70% of the tick budget. Turn it into players per core and cost per concurrent user per hour, then run at twice capacity and time the recovery.', selfcheck:['Is the generator open-model, sending at a chosen rate?', 'Is capacity set left of the knee, with the reason written?', 'Does the overload run show refused requests rather than a collapse?', 'Is the recovery time after the load drops recorded?'] },
+        skip:['Do you know your players per instance from a load test, and where the knee was?','Have you already run a spike or breakpoint test and timed the recovery?','Can you say whether your load generator is open or closed model?']
+      } }
+  ]
+});
+
+PATH('performance-engineer', {
+  t:'Performance engineer', tag:'Measure on the device that matters, then make the CPU, the GPU, memory, the backend and the web page each fit a written budget.',
+  pick:'Make games and services fast on the hardware players own',
+  track:'engineering', level:'intermediate', hours:9.67,
+  audience:'Gameplay or backend engineers who can ship a feature and now own the frame time, the memory, the load time or the p99: they want the method behind each kind of slowness and the official tools that find it.',
+  outcome:'You can capture before you change, decide whether the CPU or the GPU sets the frame time, lay data out for the cache, cut draws and overdraw, keep a phone out of thermal throttling, stream a world inside a memory budget, cut a backend’s tail latency and pass a web page’s Core Web Vitals, each with a before and after.',
+  prereq:[], prereqAny:['gameplay-engineer-godot','gameplay-engineer-unity','live-game-backend-engineer'], next:['senior-game-developer-ai-era'],
+  stages:[
+    { id:'s1', t:'Measure first', level:'intermediate',
+      goal:'Set a budget, capture the worst case on the target device, and state each optimisation as a claim you will re-measure.', hours:1.33,
+      steps:[
+        { kind:'topic', ref:'craft-performance', why:'Every later stage starts from a capture on the target device and a budget per system. Optimising before that is guessing where the time goes.', do:'Write your frame budget split by system, then profile a development build of your worst scene on the lowest target device and write frame time percentiles and the top three costs, with whether the CPU or the GPU sets the frame time.', min:40 },
+        { kind:'game', ref:'cities-skylines', lens:'gameplay', why:'Cities: Skylines simulates every citizen as a traceable individual, a design decision that sets its CPU cost, and its lineage lens records the studio warning that the sequel’s performance might disappoint at launch.', do:'Read its gameplay and lineage lenses, then write the design decision in your own game that sets its CPU cost per frame, and the measured number that would tell you it has gone over budget.', min:20 },
+        { kind:'tool', ref:'hypothesis', why:'An optimisation is a claim: this change will cut this cost by this much. Written as a hypothesis, it gets re-measured instead of assumed.', do:'Write your first optimisation as a hypothesis: the cost you measured, the change, the number you expect afterwards, and the capture that will confirm or refute it.', min:20 }
+      ],
+      review:[],
+      check:{
+        recall:[
+          { q:'Why record frame time percentiles rather than an average?', a:'Players feel the slow frames, not the mean. A game that averages 14 ms with a 40 ms frame every second stutters. Percentiles over a capture of the worst scene show the hitches that an average smooths away.' },
+          { q:'What do you do before changing code to make it faster?', a:'Set the budget, capture a development build of the worst scene on the target device, find the top costs and whether the CPU or the GPU sets the frame time, and write the gain you expect. Then change one thing and re-capture the same scene with the same settings.' }
+        ],
+        build:'Attach the frame budget split by system, the capture of your worst scene on the lowest target device with percentiles and the top three costs, and the hypothesis card for your first optimisation.',
+        solution:{ outline:'Write the target hardware, the frame rate and a split per system (gameplay, physics, animation, rendering, UI). Profile a development build of the worst scene on the lowest target device, record frame time percentiles and the top three costs, and say whether the CPU or the GPU is the bottleneck. Write the first optimisation as a hypothesis with the expected number and the capture that will check it.', selfcheck:['Was the capture taken on the target device, not the editor?', 'Are percentiles recorded, not one frame?', 'Does the hypothesis name a number to re-measure?'] },
+        skip:['Do you know your frame budget per system, written down?','Have you profiled your worst scene on the lowest target device this month?','Can you say whether your game is CPU or GPU bound, and how you know?']
+      } },
+    { id:'s2', t:'The CPU and its data', level:'intermediate',
+      goal:'Make hot loops read fewer cache lines, shrink the work before laying it out, and stop allocating in the frame.', hours:1.58,
+      steps:[
+        { kind:'topic', ref:'craft-cpu-cache-and-data-layout', why:'A loop is limited by how many cache lines it drags in, not by how many additions it does. The fix is arithmetic you can do before you touch the code.', do:'For your hottest loop write elements per frame, bytes per element and bytes it reads per element. Split the hot fields into packed arrays and the cold ones elsewhere, then re-capture and keep the before and after.', min:50 },
+        { kind:'topic', ref:'craft-memory-and-gc', why:'An allocation in the frame loop is a cost the collector charges later, at a moment you did not choose.', do:'Count the allocations per frame in your hot loop with the engine profiler, and pool or reuse the one made most often.', min:25 },
+        { kind:'topic', ref:'craft-entities-and-scenes', why:'The engine’s entity model decides where your data lives: on objects in a tree, or in arrays an entity system packs for you.', do:'Write where the data of your hottest loop lives in your engine’s entity model, and whether a packed array of your own or the engine’s entity system should hold it.', min:20 }
+      ],
+      review:['craft-performance'],
+      check:{
+        recall:[
+          { q:'Why is a loop over objects often limited by cache lines, not arithmetic?', a:'Memory moves in 64-byte lines, and a miss to RAM costs hundreds of cycles against a few for a level 1 hit. A loop that reads 16 bytes of a 128-byte struct drags in a whole line per element and uses at most a quarter of it, so the fetches set its time, not the additions.' },
+          { q:'What does splitting hot from cold change for a loop over 5,000 enemies?', a:'Position and velocity move into packed arrays, so the loop reads 80,000 bytes in 1,250 lines instead of striding over 640,000 bytes and 5,000 to 10,000 lines. Every fetched byte is used, and the hardware prefetcher can follow one dense stream.' },
+          { q:'Why fix an O(n squared) loop before the data layout?', a:'No layout beats a smaller n. Testing 10,000 units against each other is about 50 million tests a frame, 50 ms even at a nanosecond each. A uniform grid with cells as wide as the query radius tests only the 3 by 3 neighbouring cells.' }
+        ],
+        build:'Attach the byte count for your hottest loop, the before and after captures of the hot and cold split, and the allocation count per frame before and after pooling.',
+        solution:{ outline:'For the hottest loop, write elements per frame, bytes per element and bytes read per element, and the cache lines that implies. Move the fields the loop reads into packed arrays indexed by id and leave the rest elsewhere. Remove any pairwise test with a uniform grid first if there is one. Count allocations per frame and pool the most frequent. Re-capture the same scene and keep both captures.', selfcheck:['Is the cache-line count worked out before the change?', 'Do the before and after captures use the same scene and settings?', 'Is the allocation count per frame lower afterwards?'] },
+        skip:['Can you say how many bytes your hottest loop reads per element, and how many it fetches?','Have you already split hot and cold data and measured the result?','Do you know how many allocations your game makes per frame?']
+      } },
+    { id:'s3', t:'The GPU, desktop and phone', level:'advanced',
+      goal:'Read a frame pass by pass, cut draws, overdraw and shader cost, and keep a phone out of thermal throttling.', hours:1.92,
+      steps:[
+        { kind:'topic', ref:'craft-gpu-rendering-cost', why:'The CPU records the frame and the GPU executes it, in parallel, and the slower one sets the frame time. A graphics debugger shows which pass is the expensive one.', do:'Decide whether you are CPU or GPU bound with the engine’s timers and a render scale of 0.5. Capture one frame with a graphics debugger and write the draws and milliseconds of each pass, then cut the tallest.', min:50 },
+        { kind:'topic', ref:'craft-mobile-gpu-and-thermals', why:'A phone GPU shades the screen tile by tile in on-chip memory, so bandwidth to main memory is what costs heat. A phone that has warmed up runs slower than it did at minute one.', do:'Play your heaviest scene on the lowest phone you support for 15 minutes and log frame time and thermal status. Then audit one render pass: what each attachment loads and stores, and which stores nothing reads again.', min:45 },
+        { kind:'reflect', why:'A render budget for the lowest device after ten minutes of play turns every new effect into a number to check, not a debate after it ships.', do:'Write the render budget for your lowest supported device from its minute-15 measurement: draws, on-screen triangles, overdraw factor, shadow-casting lights, texture memory and milliseconds per pass.', min:20 }
+      ],
+      review:['craft-cpu-cache-and-data-layout'],
+      check:{
+        recall:[
+          { q:'How do you tell whether a frame is CPU or GPU bound before optimising?', a:'Compare the game and render threads and the GPU time against the frame time (Unreal’s stat unit, Unity’s Profiler, Godot’s Visual Profiler); the one close to the frame time is the bottleneck. Then drop the render scale to 0.5: a large fall in frame time means the frame is bound by pixels or bandwidth.' },
+          { q:'Why does overdraw from transparent layers cost more than opaque overdraw?', a:'Opaque objects drawn front to back let the depth test skip hidden pixels before they are shaded. Transparent layers are drawn back to front and every layer is shaded and blended, so where smoke, glass and glow overlap one pixel can be shaded five times.' },
+          { q:'Why is storing a depth buffer that nothing reads again expensive on a tile-based phone GPU?', a:'The GPU keeps colour and depth on chip while it shades a tile. Writing out a buffer nobody reads adds main-memory traffic to every tile of every frame, and that traffic costs far more energy than on-chip memory, so the phone heats and throttles sooner.' },
+          { q:'Why measure a phone after fifteen minutes of play and not at launch?', a:'A phone without a fan runs at peak clocks only until it heats up, then lowers them, so its sustained speed is below its peak. The frame rate at minute 15 against minute 1 is the throttling cost players actually meet.' }
+        ],
+        build:'Attach the frame capture with draws and milliseconds per pass and the change to the tallest pass, the 15-minute warm log of frame time and thermal status on your lowest phone, and the load and store audit of one render pass.',
+        solution:{ outline:'Show the CPU or GPU verdict with the engine timers and the render-scale test. Attach a frame capture listing each pass with its draws and milliseconds, and the change that cut the tallest pass with its new time. Log frame time and thermal status every few seconds for 15 minutes on the lowest phone and compare minute 1 with minute 15. List each attachment of one pass with its load and store action and remove stores nothing reads.', selfcheck:['Is the verdict backed by the render-scale test?', 'Is the cut pass re-captured on the same camera and device?', 'Does the warm log cover 15 minutes on the lowest phone?', 'Is each removed store one that no later pass reads?'] },
+        skip:['Can you name the most expensive pass in your frame and its milliseconds?','Do you know your frame rate at minute 15 on the lowest phone you support?','Have you audited the load and store actions of your render passes?']
+      } },
+    { id:'s4', t:'Memory and loading', level:'advanced',
+      goal:'Keep every device inside a written memory budget, and get each streamed area in before the player arrives.', hours:1.92,
+      steps:[
+        { kind:'topic', ref:'craft-memory-loading-and-streaming', why:'Memory budgets, load time and streaming each have a standard fix, and streaming is arithmetic you can do on paper: bytes, throughput, distance and speed.', do:'Write the memory budget for each supported device with a 10 to 15% margin. Then do the deadline arithmetic for one streamed area: margin over top speed against bytes over the throughput of your slowest load stage, and name the seam that buys time if it does not fit.', min:50 },
+        { kind:'topic', ref:'infra-cdn-assets', why:'What the player downloads, and when, is the outer half of loading: the first install, background packs and the size of each update.', do:'Decide what goes into the first install and what arrives as background packs, and group your bundles by how often their contents change so an update does not re-download unchanged art.', min:20 },
+        { kind:'game', ref:'microsoft-flight-simulator', lens:'business', why:'Microsoft Flight Simulator streams its scenery from the cloud, which its business lens says made the console version possible without the whole world on disk.', do:'Read its business and lineage lenses, then write which of your assets could stream after install, and what the game shows while they have not arrived.', min:20 },
+        { kind:'part', ref:'cs-unity-multiplatform-port/runtime/runtime-budgets', why:'A shipped port sets its memory budget from the device’s measured memory tier, not from which platform it is, with separate figures for steady state, the spike of a scene load and the loading stage.', do:'Compare your budget sheet with its three numbers per tier, and add the load-spike and loading-stage figures if your sheet has only one.', min:25 }
+      ],
+      review:['craft-mobile-gpu-and-thermals'],
+      check:{
+        recall:[
+          { q:'How do you work out whether a streamed area arrives in time?', a:'The deadline is the margin distance divided by the player’s top speed. The load time is the bytes divided by the effective throughput, which is the slowest stage you measured. If the load takes more than half the deadline, shrink the area or its assets, slow the player there, or add a seam.' },
+          { q:'What is a seam, and why does it work?', a:'A lift, slow door, crawl space or airlock where the design controls the player’s speed and the camera, so it guarantees a number of seconds in which the next area can load. Write down those seconds and the data that must be in memory when the seam ends.' },
+          { q:'Why can one stray handle keep a whole asset bundle in memory?', a:'Addressables counts references per asset and per bundle, and unloads a bundle only when its count reaches zero. One load never paired with a release holds everything in that bundle, so pair every load with a release and log the live handle counts in development builds.' }
+        ],
+        build:'Attach the memory budget sheet per device, the deadline arithmetic for one streamed area with its seam, the first-install and background-pack split, and a memory snapshot of your worst scene on the lowest device.',
+        solution:{ outline:'List each device’s usable memory and split it into textures, audio, meshes, animation, scripts and engine, UI and a margin of 10 to 15%. Snapshot the worst scene on the lowest device and fix the top items. For one streamed area, compute margin over speed and bytes over the slowest measured stage, and design a seam with its guaranteed seconds if it does not fit. Keep the first install to the first hour and group bundles by how often they change.', selfcheck:['Is usable memory measured on the device, not taken from a spec sheet?', 'Does the throughput come from your slowest measured load stage?', 'Does the seam state its guaranteed seconds?', 'Are bundles grouped by how often they change?'] },
+        skip:['Do you have a memory budget per device in the repo?','Can you work out the loading deadline of one of your areas in your head?','Do you know which load stage is slowest on your slowest drive?']
+      } },
+    { id:'s5', t:'Services and queries', level:'advanced',
+      goal:'Measure a backend’s latency as a distribution, carry one deadline down the call chain, and fix the queries that cause most of the tail.', hours:1.5,
+      steps:[
+        { kind:'topic', ref:'backend-latency-and-query-optimisation', why:'Players meet the tail, and a screen that makes many calls is as slow as its slowest. The fixes that cause most real wins are a short, known list.', do:'Record the latency of one route as a histogram and report p99 and p99.9. Turn on the SQL log for one request and count its statements, then run EXPLAIN on the slowest statement against production-shaped data.', min:50 },
+        { kind:'topic', ref:'backend-observability', why:'A trace shows where one slow request spent its time, call by call, which an average across all requests never will.', do:'Add a span around the slowest downstream call of your route, and read one slow request end to end to find the call or the wait that took the time.', min:20 },
+        { kind:'topic', ref:'backend-data-access', why:'N+1 queries and OFFSET paging are the two data-access patterns that turn a fast query slow as the data grows.', do:'Replace one OFFSET page with keyset paging on the last row’s sort key and id, and compare the query plans before and after.', min:20 }
+      ],
+      review:['craft-memory-and-gc'],
+      check:{
+        recall:[
+          { q:'Why does a screen that makes 100 calls meet the slow tail far more often than one call does?', a:'The screen is as slow as its slowest call. If 1 call in 100 is slow, the chance that a screen making 100 calls contains at least one slow call is 1 - 0.99 to the power of 100, about 63%, so the rare tail of one call becomes the usual case for the screen.' },
+          { q:'What does a deadline carried down the call chain prevent?', a:'Work that cannot finish in time. Each call subtracts the time already spent and refuses to start if nothing is left, so a request past its deadline is dropped early instead of reaching the database. With a retry budget it also stops three layers that each retry three times from becoming 27 attempts.' },
+          { q:'How do you spot an N+1 query?', a:'Log the SQL for one request and count the statements. If the count grows with the length of a list, each item is fetching its own rows. Replace the loop with one query using IN or ANY, a join, or a batch load keyed by id.' }
+        ],
+        build:'Attach the latency histogram for one route with p99 and p99.9 before and after, the statement count for one request and the plan of the slowest statement, the trace of one slow request, and the keyset paging change with both query plans.',
+        solution:{ outline:'Record one route as a histogram with fixed buckets and report p99 and p99.9. Write the budget for the route and split it between its calls, with one deadline created at the edge and passed down. Count SQL statements for one request and remove any N+1 with a single query. Run EXPLAIN on the slowest statement, add or reshape the index it needs, replace OFFSET paging with keyset paging, and show p99 before and after on the same load.', selfcheck:['Are p99 and p99.9 reported, not a mean?', 'Does one deadline travel from the edge to every call?', 'Is the statement count independent of the list length afterwards?', 'Are before and after measured on the same load?'] },
+        skip:['Do you know the p99 and p99.9 of your slowest route?','Have you already found and removed an N+1 query?','Does your service carry one deadline from the edge to the database?']
+      } },
+    { id:'s6', t:'The web, and the budget sheet', level:'advanced',
+      goal:'Pass a web page’s Core Web Vitals on the device you test, then write the performance budget the rest of the team works inside.', hours:1.42,
+      steps:[
+        { kind:'topic', ref:'web-performance-basics', why:'A web page has two problems: bytes arriving, and one main thread answering input. Core Web Vitals turn both into three numbers judged on real page loads.', do:'Split the Largest Contentful Paint of your page into its four parts in the DevTools Performance panel and fix the largest. Then find one task over 50 ms and break it into chunks that yield between them.', min:45 },
+        { kind:'topic', ref:'soft-launch-and-playable-ads', why:'A playable ad is the strictest web budget there is: the network sets a size cap and rejects anything over it.', do:'Write the size cap of the ad network you would target, and add a size check to your build that fails when the output goes over it.', min:20 },
+        { kind:'reflect', why:'A performance engineer’s main output is a budget other people build inside. Written down, it turns a slowdown into a failed check instead of an argument.', do:'Write the performance budget sheet for your game: frame time per system or pass, memory per device, the loading deadline, p99 per route, and LCP and INP if you ship on the web. Mark each number that comes from a measurement and each that is still a guess.', min:20 }
+      ],
+      review:['backend-latency-and-query-optimisation'],
+      check:{
+        recall:[
+          { q:'What are the three Core Web Vitals thresholds, and at what percentile are they judged?', a:'Largest Contentful Paint is good at 2.5 s or less. Interaction to Next Paint is good at 200 ms or less. Cumulative Layout Shift is good at 0.1 or less. All three are judged at the 75th percentile of real page loads.' },
+          { q:'Why does a 300 ms script task make a tap feel slow, and what fixes it?', a:'One main thread runs scripts and input handlers, so a tap during the task waits for the task to end. Splitting the work into chunks of about 50 ms and yielding between them, with scheduler.yield and a setTimeout fallback, lets the tap run at the next yield.' },
+          { q:'Why should the main image be in the HTML rather than added by a script?', a:'The browser’s preload scanner finds resources in the HTML and starts their download at once. An image a script adds is found only after the script runs, which adds delay to Largest Contentful Paint. Mark it fetchpriority="high" and never lazy-load it.' }
+        ],
+        build:'Attach the LCP breakdown before and after your fix, the long task before and after splitting it, the size check failing on an oversized build, and the performance budget sheet with measured and guessed numbers marked.',
+        solution:{ outline:'In the Performance panel, split LCP into time to first byte, load delay, load duration and render delay, and fix the largest part, for example by putting the image in the HTML with fetchpriority high. Break one long task into chunks of about 50 ms that yield. Add a build step that fails when the output exceeds the network’s cap. Write one budget sheet covering frame time, memory, loading, p99 and the web vitals, marking measured numbers.', selfcheck:['Is LCP split into its four parts?', 'Does the split task yield at least every 50 ms of work?', 'Does the size check actually fail the build when exceeded?', 'Does the budget sheet mark which numbers are measured?'] },
+        skip:['Do you know your page’s LCP and INP at the 75th percentile of real loads?','Have you already broken a long task into chunks that yield?','Does your team have a written performance budget that a build can fail?']
       } }
   ]
 });

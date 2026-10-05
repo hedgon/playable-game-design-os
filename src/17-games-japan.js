@@ -843,7 +843,7 @@ GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n
       compare: 'Skyrim, released a month later, lets players fast-travel from its world map to any place already discovered; Dark Souls gives no map at all and withholds warping until the Lordvessel.',
       cost: 'A minimal HUD and no quest guidance strands players who get lost with no in-game recourse beyond memory or outside help, and it depends entirely on level geometry being legible enough, recognisable landmarks, readable sightlines, to substitute for the map the game refuses to give.',
       principle: 'Reserve the permanent HUD for what a player needs in every single fight, and let anything only sometimes useful (a map, a hint, another player’s experience) live in a layer the player opts into, so the moment-to-moment screen stays about the moment-to-moment danger.',
-      topics: ['ux-as-design', 'readability-and-hierarchy'],
+      topics: ['ux-as-design', 'readability-and-hierarchy', 'backtracking-and-return-trips'],
       sources: ['https://en.wikipedia.org/wiki/Dark_Souls_(video_game)', 'https://en.wikipedia.org/wiki/Demon%27s_Souls'] },
     art: {
       claim: 'Dark Souls organises its whole visual design around four named themes tied to specific places, so a player can read what a region is about architecturally before any dialogue or item text explains it.',

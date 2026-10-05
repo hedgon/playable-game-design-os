@@ -1193,7 +1193,7 @@ GAME({ id:'elden-ring', img:'assets/games/elden-ring.jpg', cardPos:'50% 0%', dev
       compare: 'Dark Souls builds its entire world as one repeated version of this payoff at increasing scale; Elden Ring instead reserves the payoff for its dungeons alone and answers the field’s larger-scale version of the same problem with a menu rather than more level design.',
       cost: 'Relying on fast travel to solve the field’s return-trip problem means the field never delivers the spatial memory reward Lordran’s world does, arguably the trade-off that players who loved Dark Souls’ interconnectivity feel most.',
       principle: 'When scaling a beloved structural trick to a much larger space, decide explicitly whether to rebuild it at the new scale or retire it there and answer the new scale with a blunter tool, such as a menu; keeping a trick only where the original design fits can be more honest than diluting it everywhere.',
-      topics: ['learning-from-success', 'level-structure'],
+      topics: ['learning-from-success', 'level-structure', 'backtracking-and-return-trips'],
       sources: ['https://en.wikipedia.org/wiki/Elden_Ring', 'https://en.wikipedia.org/wiki/Stormveil_Castle'] }
   },
   shots: [
@@ -3674,7 +3674,7 @@ GAME({ id:'resident-evil-4', series:{ id:'resident-evil', t:'Resident Evil', n:'
       compare: 'The first Resident Evil, set in one mansion, asks the player to learn and revisit one interconnected building; Resident Evil 4 gives up that mastery of place for a road movie.',
       cost: 'A linear route removes the knowledge of a single place that made the mansion satisfying, and the game is long for a linear action game; players who liked backtracking and memory pay.',
       principle: 'When each region brings its own enemy culture, a linear route can feel like exploration because every new place changes what the player is fighting.',
-      topics: ['level-structure', 'premise-and-world'],
+      topics: ['level-structure', 'premise-and-world', 'backtracking-and-return-trips'],
       sources: ['https://en.wikipedia.org/wiki/Resident_Evil_4'] },
     env: {
       claim: 'The opening village is a combat arena disguised as a place: its houses, ladders and upper floors are what the player uses to survive the first crowd, so the environment teaches positioning before the story explains anything.',
@@ -5775,7 +5775,7 @@ GAME({ id:'hearthstone', img:'assets/games/hearthstone.jpg', card:'assets/games/
       compare: 'Magic: The Gathering also rotates Standard and keeps old cards in formats such as Modern; Hearthstone puts that safety net in one Wild ladder in the same client.',
       cost: 'Players pay for sets that leave Standard after about two years, and a returning player may find most of their decks retired.',
       principle: 'Rotating the pool keeps a live game learnable; always leave a format where what players bought still works.',
-      topics: ['live-operations', 'return-and-quit'],
+      topics: ['live-operations', 'return-and-quit', 'power-creep-and-content-growth'],
       sources: ['https://hearthstone.blizzard.com/en-us/news/19995505/a-new-way-to-play-2-2-2016', 'https://hearthstone.wiki.gg/wiki/Arena', 'https://en.wikipedia.org/wiki/Hearthstone', 'https://www.hearthpwn.com/news/1745-ben-brode-on-randomness-in-hearthstone-karazhan'] },
     lineage: {
       claim: 'Hearthstone took Magic: The Gathering’s structure and the World of Warcraft Trading Card Game’s content and cut them down for a screen, and its own designers later carried the same cutting further.',

@@ -719,7 +719,7 @@ T('soft-launch-and-playable-ads',{ d:'product', t:'Soft launch and playable ads'
   test:[`Show the muted playable ad to someone who has never seen the game and time how long it takes them to reach the store button unprompted.`,
     `Run the exported playable through the target network’s own preview or validator before submission, on the same device tier the campaign will target.`,
     `Ask a soft-launch cohort to describe the game after their first session, and compare it with what the store page and any ad promised.`],
-  rel:[['business-model','The model decides what the monetisation gate must prove; this topic tests it in a real market.'],
+  rel:[['web-performance-basics','A playable ad is a web page with the strictest size cap, so web loading and responsiveness decide whether it ships.'],['business-model','The model decides what the monetisation gate must prove; this topic tests it in a real market.'],
     ['launch-and-discoverability','The store page and any ad make the same honesty promise a playable does, at global scale.'],
     ['live-operations','A game that clears soft launch still needs the first-ninety-days plan this topic assumes exists.'],
     ['metrics-and-success','Soft launch is where the kill criteria and instrumentation that topic argues for get their first real test.'],

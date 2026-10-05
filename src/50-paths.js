@@ -113,8 +113,8 @@ const CHOOSER = {
   times: /** @type {[string, string, number][]} */ ([['2','2 hours a week',2],['5','5 hours a week',5],['10','10 hours a week or more',10]]),
   paths: /** @type {Record<string, Record<string, string[]>>} */ ({
     design:{ new:['first-tiny-game','game-designer-foundations','idea-to-prototype-30-days'], some:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'], senior:['senior-game-designer','systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould','study-the-hits-play','study-the-hits-worlds'] },
-    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer'], senior:['senior-game-developer-ai-era','game-ai-programmer','gameplay-engineer-godot','gameplay-engineer-unity'] },
-    backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer'], senior:['senior-game-developer-ai-era','netcode-server-engineer','live-game-backend-engineer'] },
+    gameplay:{ new:['gameplay-engineer-godot','gameplay-engineer-unity'], some:['gameplay-engineer-godot','gameplay-engineer-unity','game-ai-programmer','performance-engineer'], senior:['senior-game-developer-ai-era','game-ai-programmer','gameplay-engineer-godot','gameplay-engineer-unity','performance-engineer'] },
+    backend:{ new:['live-game-backend-engineer'], some:['live-game-backend-engineer','netcode-server-engineer','performance-engineer'], senior:['senior-game-developer-ai-era','netcode-server-engineer','live-game-backend-engineer','realtime-at-scale-engineer','performance-engineer'] },
     ship:{ new:['ship-it'], some:['ship-it','build-and-release-engineer','casual-game-people-keep'], senior:['ship-it','build-and-release-engineer','casual-game-people-keep'] },
     lead:{ new:['technical-lead'], some:['technical-lead','studio-practice-ai-era'], senior:['technical-lead','senior-game-developer-ai-era','studio-practice-ai-era','senior-game-designer'] },
     'iv-design':{ new:['interview-prep-designer'], some:['interview-prep-designer'], senior:['interview-prep-designer'] },
@@ -422,7 +422,7 @@ PATH('game-designer-foundations', {
 PATH('systems-designer', {
   t:'Systems designer', tag:'Economy, progression, and the discipline to prove a system by breaking it.',
   pick:'Own an economy, a progression curve or any system',
-  track:'design', level:'intermediate', hours:12.75,
+  track:'design', level:'intermediate', hours:14,
   audience:'Designers past the basics who want to own an economy, a progression curve, or any system with more than three moving parts.',
   outcome:'You can map a system’s parts and feedback loops, run a rule audit that separates decisions from load, and turn a design smell into a testable experiment instead of a guess.',
   prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-play'],
@@ -473,10 +473,11 @@ PATH('systems-designer', {
         skip:['Does a player have to weigh your rewards before knowing they are upgrades?','Can you point to the exact spot on your curve where difficulty and power cross?','Can you defend every currency in your game with the one decision it alone enables?','Have you already cut an unlock because a rule audit showed it was load, not depth?','Can you name a real game whose progression curve you would redesign, and why?']
       } },
     { id:'s3', t:'Depth, content, and diminishing returns', level:'advanced',
-      goal:'Tell a system problem from a content problem, and know when adding more stops helping.', hours:2.5,
+      goal:'Tell a system problem from a content problem, and know when adding more stops helping.', hours:3,
       steps:[
         { kind:'topic', ref:'depth-vs-complexity', why:'Depth and complexity look identical on a feature list. Only the player’s decisions tell them apart.', do:'Take the ten rules that drive your economy or progression (not your whole game) and, for each, write which decision disappears if you delete it. Count the rules whose deletion removes none.', min:25 },
         { kind:'topic', ref:'content-multiplies', why:'Content only multiplies a system’s value if the system can absorb it. Past that point, more content just adds cost.', do:'List the last five content items you added to this system, and mark which ones created a new decision versus just a new skin on an old one.', min:25 },
+        { kind:'topic', ref:'power-creep-and-content-growth', why:'Every release adds content, and if each is a little stronger than the last, the older pool quietly stops being worth choosing. Rotation and a stat squish change the symptoms; only a written power budget changes the rate.', do:'Take your content plan for the next three releases and write the power budget each new item is held to, then name the old items your plan makes pointless and what you will do about them.', min:30 },
         { kind:'game', ref:'balatro', lens:'gameplay', why:'Balatro multiplies a small card vocabulary with Jokers that rewrite how a hand scores, a clear case of content that multiplies rather than adds.', do:'Read its gameplay lens and count how many rules a single Joker changes, then name one piece of your content that could work the same way.', min:15 },
         { kind:'game', ref:'cookie-clicker', lens:'gameplay', why:'Cookie Clicker is the counterweight to Balatro in this stage: its twenty buildings are content that adds rather than multiplies, each changing only a production rate on the same 15% price curve, yet players stay for hundreds of hours.', do:'Read its gameplay lens, then sort your own content into items that change a decision and items that change only a number, and write what each number-only item is for.', min:20 },
         { kind:'diagnostic', ref:'content', why:'The content-or-mechanic diagnostic gives you a repeatable answer instead of a guess, the next time someone asks for more content.', do:'Run the content-or-mechanic diagnostic on your next planned addition and act on what it tells you.', min:15 },
@@ -495,9 +496,10 @@ PATH('systems-designer', {
         skip:['Can you classify a rule as decision, interaction, or load in under ten seconds?','Can you name the point where adding content to your system stopped paying off?','Have you already found a one-build problem in your own system and named its cause?','Do you know which item in your backlog a scope check would cut first?']
       } },
     { id:'s4', t:'Experiments, not opinions', level:'advanced',
-      goal:'Turn a smell you found into an experiment with a real signal, not just a fix you feel confident about.', hours:2.75,
+      goal:'Turn a smell you found into an experiment with a real signal, not just a fix you feel confident about.', hours:3.5,
       steps:[
         { kind:'topic', ref:'builds-and-loadouts', why:'Builds and loadouts are where depth becomes visible to the player. A healthy build space is the clearest proof a system is working.', do:'List every viable build in your system today, and rank them by how often you would guess players pick each one.', min:25 },
+        { kind:'topic', ref:'balance-methods', why:'Balanced means every option has a situation where picking it is right. A cost curve, a payoff matrix and a seeded simulation check that before players do, and telemetry checks it after.', do:'Fit a cost curve to the plain options in your game, price each ability on top of it and list the ones more than a set margin over or under. Then write the win-rate claim, with skill tier and sample size, you would need before changing one.', min:35 },
         { kind:'topic', ref:'combat-design', why:'Combat is a system with a build space of its own: attack timings, commitment and enemy patterns are the numbers that decide whether a fight has one answer or several.', do:'Write three of your attacks as anticipation, active and recovery, then name the answer each one asks of the player and whether a second answer exists.', min:20 },
         { kind:'game', ref:'monster-hunter', lens:'replay', why:'Monster Hunter’s replay loop is repeating hunts for better gear against harder versions of monsters already beaten, and Monster Hunter Wilds launching with too little endgame shows what happens when that gear has nothing left to be tested against.', do:'Read its replay lens, then for each build on your list name the content it is tested against, and mark any build that has no reason to exist once that content runs out.', min:15 },
         { kind:'smell', ref:'ignore-mechanics', why:'A mechanic nobody uses is not neutral. It is a cost the system pays for a decision players never make.', do:'Mark which of your mechanics you would bet is currently ignored, based on the “Players ignore half the mechanics” smell.', min:20 },
@@ -544,19 +546,20 @@ PATH('systems-designer', {
 PATH('level-and-ux-designer', {
   t:'Level and UX designer', tag:'Pacing, readability, and the first five minutes nobody skips.',
   pick:'Pace levels and teach players without a wall of text',
-  track:'design', level:'intermediate', hours:12.75,
+  track:'design', level:'intermediate', hours:13.42,
   audience:'Designers who block out levels or own onboarding and moment-to-moment feedback, and want players to know what to do without a wall of text.',
   outcome:'You can pace a level on purpose, diagnose why players stall, and run an onboarding pass that teaches by doing instead of telling.',
   prereq:['game-designer-foundations'], next:['senior-game-designer','technical-lead','interview-prep-designer','study-the-hits-worlds'],
   stages:[
     { id:'s1', t:'Level structure and pacing', level:'intermediate',
-      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:2.75,
+      goal:'Build a level as a deliberate sequence of teach, test and rest, not a pile of encounters.', hours:3.42,
       steps:[
         { kind:'topic', ref:'level-structure', why:'Teach, test, twist, combine, master, rest is a sequence for a reason. Skip a step and the player either stalls or gets bored.', do:'Take a level you are building or know well, and label each section with one of the six beats. Mark any beat that is missing entirely.', min:25 },
         { kind:'topic', ref:'pacing', why:'Pacing is not just difficulty. It is the rhythm of intensity and rest, and a level with no rest beat exhausts players before it challenges them.', do:'Graph the intensity of your level over its length by hand, on paper, and mark the flattest and steepest sections.', min:25 },
         { kind:'topic', ref:'spatial-composition', why:'Where the player can see, and where they cannot, shapes the pacing graph you just drew as much as any encounter does.', do:'Mark on your level layout the three sightlines that most control what the player expects to happen next.', min:25 },
         { kind:'topic', ref:'level-blockout-and-metrics', why:'Pacing and sightlines are opinions until they are built to the character’s real metrics in plain boxes and walked by someone else.', do:'Measure your character’s jump height, jump distance and cover height, then block out your level’s critical path and one optional room to those numbers.', min:20 },
         { kind:'game', ref:'hollow-knight', lens:'world', why:'Hollow Knight makes being lost part of the design: regions with their own look and sound, few markers, and a map the player has to buy.', do:'Read its world lens and list the cues it gives a lost player instead of a marker.', min:15 },
+        { kind:'topic', ref:'backtracking-and-return-trips', why:'A connected world asks the player to come back, and whether the return feels like discovery or a chore is designed: what changed, how long the walk is, and what shortens it.', do:'Draw the map of one area of your level with every lock, the key that opens it and the walk between them. Mark where a shortcut or a fast-travel point would cut the longest return, and what is new in each room the player passes again.', min:30 },
         { kind:'game', ref:'half-life-2', lens:'gameplay', why:'Half-Life 2 dresses each room with the props its fights need, sawblades and barrels placed as ammunition, so what is left lying in a room sets how hard its fight is as much as the enemies do.', do:'Read its gameplay lens, then mark on your own layout the three objects a player sees on entering one combat space, and what each one tells them to do next.', min:15 },
         { kind:'checklist', ref:'design-review', why:'A pacing graph and a beat map are opinions until someone else is forced to check them against a real question.', do:'Run the design review checklist against your level’s pacing plan before you block anything out.', min:20 },
         { kind:'smell', ref:'tutorial-too-long', why:'A tutorial that runs long is usually a pacing problem wearing a teaching-text costume.', do:'Check whether your first teach beat is one beat, or three beats pretending to be one, based on the “The tutorial is too long” smell.', min:15 },
@@ -666,7 +669,7 @@ PATH('level-and-ux-designer', {
 PATH('games-that-broke-the-mould', {
   t:'Learn from games that broke the mould', tag:'Rules that teach themselves, knowledge as progress, time bent, genres fused.',
   pick:'Study the games that invented something new',
-  track:'design', level:'intermediate', hours:14,
+  track:'design', level:'intermediate', hours:14.42,
   audience:'Designers who know the fundamentals and want to see how some of the most original games of the last twenty-five years solved problems the usual answers could not.',
   outcome:'You can take apart an unusual game through ten lenses, name the one idea it contributed, and adapt that idea to your own design without copying its surface.',
   prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer','senior-game-designer','study-the-hits-play'],
@@ -692,9 +695,10 @@ PATH('games-that-broke-the-mould', {
         skip:['Can you name the three steps of a wordless teaching sequence and give an example of each?','Can you explain how a puzzle is confirmed as fair without playing it?','Have you already taught a rule in your own game with no text and watched a new player learn it?']
       } },
     { id:'s2', t:'Knowledge as progression', level:'intermediate',
-      goal:'Understand games where progress is what the player knows, and plan a gate that is understanding rather than a lock.', hours:3,
+      goal:'Understand games where progress is what the player knows, and plan a gate that is understanding rather than a lock.', hours:3.42,
       steps:[
         { kind:'topic', ref:'knowledge-as-progression', why:'Most games store progress in stats and items. A few store it only in the player’s head, which changes how every gate and reward works.', do:'List three gates in a game you know and say whether each is a lock (an item or stat) or an understanding (something the player must know).', min:25 },
+        { kind:'topic', ref:'backtracking-and-return-trips', why:'A knowledge gate opens by understanding and an item gate by a key, and both send the player back through space they know. What has changed on the way decides whether the return feels like a reward.', do:'Take one knowledge gate from the games in this stage and write the return trip it causes: where the player has to go back to, how long the walk takes, and what they now see differently on the way.', min:25 },
         { kind:'game', ref:'outer-wilds', lens:'gameplay', why:'Outer Wilds resets the solar system every 22 minutes and keeps only what the player learned, the clearest case of knowledge as the only progression.', do:'Read its gameplay lens and write how the ship’s log keeps a player oriented without telling them the answer.', min:30 },
         { kind:'game', ref:'return-of-the-obra-dinn', lens:'gameplay', why:'Obra Dinn turns deduction into a ledger and confirms fates only in sets of three, so single guesses cannot be checked and reasoning is rewarded.', do:'Read its gameplay lens and explain in two sentences why confirming in threes changes how players reason.', min:30 },
         { kind:'game', ref:'zero-escape-999', lens:'lore', why:'999 rations its explanation across six mutually exclusive endings, so one run leaves the player with a wrong theory on purpose, and what they learned in earlier runs is the real progression.', do:'Read its lore lens, then write what a player knows after their first ending that changes their next run, and how the later flowchart changed the cost of reaching that knowledge.', min:25 },
@@ -1112,7 +1116,7 @@ PATH('study-the-hits-worlds', {
 PATH('senior-game-designer', {
   t:'Senior game designer', tag:'Own the vision, the numbers, the live calendar and the team’s designs, and make the case for all of it.',
   pick:'Own the vision, the numbers and the team’s designs',
-  track:'design', level:'advanced', hours:22,
+  track:'design', level:'advanced', hours:23.42,
   audience:'Working designers with a few shipped features or a shipped game, who own a feature and its outcome and now have to own a pillar set, an economy, a season or other designers’ work.',
   outcome:'You can write pillars a team decides by, model and tune an economy, plan a live season with pre-registered metrics and guardrails, run a design review that keeps the owner in charge, and pitch the result with a cut list behind it.',
   prereq:[], prereqAny:['systems-designer','level-and-ux-designer','casual-game-people-keep','games-that-broke-the-mould'], next:['technical-lead','studio-practice-ai-era','interview-prep-designer'],
@@ -1140,10 +1144,11 @@ PATH('senior-game-designer', {
         skip:['Can you give the tie-break between your two most likely colliding pillars?','Did your last pillar set settle at least five real debates in writing?','Could a new joiner name each pillar and what it forbids?','Do you know who may change a pillar and what evidence they need?']
       } },
     { id:'s2', t:'Economies', level:'advanced',
-      goal:'Model an economy as numbers you can run, find its hole before players do, and check the model against what they did.', hours:5,
+      goal:'Model an economy as numbers you can run, find its hole before players do, and check the model against what they did.', hours:5.75,
       steps:[
         { kind:'topic', ref:'economy-and-resources', why:'The parts come first: sources, sinks, converters and what each does to pacing.', do:'List every resource in a game you know with its sources and sinks, and mark which resource piles up first.', min:40 },
         { kind:'topic', ref:'economy-modelling-and-balance', why:'This is the method: an anchor, rates per archetype, sweeps and a check against logs, so design and monetisation can argue about numbers.', do:'Build your economy in a spreadsheet with a balance anchor and three archetypes, sweep each input by 10 percent, and mark any where time-to-target moves by more than 30 percent as fragile.', min:60 },
+        { kind:'topic', ref:'balance-methods', why:'An economy prices currencies; balance prices the options themselves, and the two meet in what an item costs. A senior designer owns both, and decides when the data overrules the curve.', do:'Write how your team decides a balance change: what balanced means for your game in three sentences, the target skill tier, the data and sample size that justify a change, and the size of the step you take.', min:45 },
         { kind:'topic', ref:'progression', why:'Progression is paid for through the economy, and its pacing is the archetype’s time-to-target.', do:'Write the hours each archetype needs to reach your anchor item, and say which one your progression is really built for.', min:35 },
                 { kind:'tool', ref:'sysmap', why:'Two economies that touch each other are where the hidden loops live, and the map asks the collision questions.', do:'Map your resources as nodes with typed edges and answer the collision questions the tool generates for the loop that inflates.', min:35 },
         { kind:'game', ref:'cookie-clicker', lens:'gameplay', why:'An economy stripped to one price rule shows what a single growth curve does on its own, before any anchor is added.', do:'Read the gameplay lens, write its price rule as a formula, then compute the price of the 1st, 10th and 50th copy of a 100-cookie building and say what that does to the value of buying more of it.', min:30 },
@@ -1162,11 +1167,12 @@ PATH('senior-game-designer', {
         skip:['Can you state your economy’s anchor in one sentence and read any price against it?','Have you run at least three archetypes, not just an average?','Have you swept each input and named the fragile ones?','Can you say how you would compare the model with real balances at day seven?','Have you reconciled flow totals from two data sources before?']
       } },
     { id:'s3', t:'Live', level:'advanced',
-      goal:'Plan a season from cohorts, pre-registered metrics and guardrails, and know which questions data cannot answer.', hours:4.5,
+      goal:'Plan a season from cohorts, pre-registered metrics and guardrails, and know which questions data cannot answer.', hours:5.17,
       steps:[
         { kind:'topic', ref:'live-design-seasons-and-data', why:'Live design is a judgement about which cohort to trust and when a test result is real, and the topic gives the checks that stop a result being chosen afterwards.', do:'Take a season plan and write its goal as one question, two guardrails, the smallest effect worth shipping, the sample size and the end date, before you look at any data.', min:60 },
         { kind:'topic', ref:'metrics-and-success', why:'A season goal is only as good as the metric definitions under it.', do:'Define the goal metric and both guardrails precisely: population, window and what counts as an event.', min:35 },
         { kind:'topic', ref:'live-operations', why:'The 90-day plan and the calendar set how much a season can hold with slack.', do:'Set the season length from your last three releases and mark the release you would have missed.', min:45 },
+        { kind:'topic', ref:'power-creep-and-content-growth', why:'A live game sells new content, and content that must be stronger to sell is how power creep starts. The decision belongs in the live plan, not in a later rebalance.', do:'Write the power budget and the rotation, if any, for your next year of releases, and the measurement that would show creep has started: how often older content is picked against newer.', min:40 },
         { kind:'game', ref:'candy-crush-saga', lens:'business', why:'A game whose revenue sits on one moment of failure shows why a goal metric needs guardrails set against each other: easier levels convert less, and retention is the counterweight.', do:'Read the business lens and name the moment it turns into a purchase, then write the goal metric and the retention guardrail you would set for a season that makes levels easier.', min:25 },
         { kind:'topic', ref:'monetisation-design', why:'A season plan has to say what it sells, and monetisation is where a metric can start eating the fun.', do:'List what your season sells and mark any offer that depends on a few heavy spenders.', min:30 },
         { kind:'topic', ref:'ethics-and-responsibility', why:'Guardrails are ethical as well as commercial, and a senior designer should hand the decision record to a lawyer or a journalist without embarrassment.', do:'Write a decision record for one monetisation choice in the season: the pattern, who approved it, the guardrail and the date to revisit.', min:45 },

@@ -2420,7 +2420,7 @@ SERIES({
       compare: 'Majora’s Mask solved the same schedule pressure, reuse what exists to ship fast, by keeping the engine and cast but inventing a new setting; Tears of the Kingdom solved it by keeping the setting itself and building new layers above and below it instead.',
       cost: 'Keeping the same landmass means the game cannot offer the pure discovery of an unfamiliar map to players who finished Breath of the Wild, so all of the sense of newness has to come from the vertical additions and the changes layered onto ground players may already know by heart.',
       principle: 'When a sequel keeps its predecessor’s map, put the new content on a different axis rather than scattering it across the old ground: a new layer above or below gives returning players a direction the old map never had.',
-      topics: ['premise-and-world', 'spatial-composition'],
+      topics: ['premise-and-world', 'spatial-composition', 'backtracking-and-return-trips'],
       sources: ['https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Tears_of_the_Kingdom', 'https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Majora%27s_Mask', 'https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_A_Link_Between_Worlds'] },
     env: {
       claim: 'Breath of the Wild’s hundred-year-old ruins carry a second layer of environmental storytelling invisible to a first-time player: a returning series veteran can recognise a specific pile of rubble as a place they once walked through intact in an earlier Hyrule.',
@@ -3185,7 +3185,7 @@ SERIES({
       compare: 'Rocket League, an unlicensed vehicular-football game with nothing to protect on the pitch, went free-to-play in September 2020 and sells only cosmetic items, car bodies, decals, wheels, each body skinned onto one of six shared hitboxes so a bought car plays like a free one; its live content refreshes constantly without ever letting a purchase make a player’s car better than a free one.',
       cost: 'Because Ultimate Team’s new cards can be genuinely stronger, not just different-looking, its replay economy ties competitive standing to spending in a way Rocket League’s cosmetic-only model never does, precisely the design choice consumer bodies and regulators have targeted when comparing FIFA’s packs to gambling rather than ordinary cosmetic monetisation.',
       principle: 'A live economy can manufacture replay value either through power, letting new purchasable content out-perform old content, or through cosmetics that never touch performance; the first keeps players spending to stay competitive but invites gambling scrutiny, the second protects fairness but must sell purely on looking good.',
-      topics: ['economy-and-resources'],
+      topics: ['economy-and-resources', 'power-creep-and-content-growth'],
       sources: ['https://en.wikipedia.org/wiki/Rocket_League', 'https://www.gamedeveloper.com/game-platforms/ea-generated-1-6-billion-in-revenue-last-year-from-just-i-ultimate-team-i-modes'] },
     lineage: {
       claim: 'FIFA chose to iterate by replacing the whole product every year at full price, where Street Fighter II, the fighting-game genre’s own long-running annual-ish cycle, iterated by re-releasing revisions of the same game, and that difference in lineage strategy shaped what each franchise’s history actually looks like today.',
