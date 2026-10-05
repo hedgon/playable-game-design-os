@@ -796,7 +796,7 @@ PATH('games-that-broke-the-mould', {
 PATH('study-the-hits-play', {
   t:'Study the hits: how play holds people', tag:'Why some games are played for years: the dimensions of fun, skill you can feel, content that keeps asking, systems that surprise, stakes and other people.',
   pick:'Learn what keeps players playing from the hits',
-  track:'design', level:'intermediate', hours:13.83,
+  track:'design', level:'intermediate', hours:14.17,
   audience:'Designers who know the fundamentals and want to see, through fifteen well-known games, how play holds people past the first hour.',
   outcome:'You can name the dimensions of fun a game runs on, say what the player is getting better at, judge whether content asks a new question, and find the rhythm and the other people your own design depends on.',
   prereq:['game-designer-foundations'], next:['games-that-broke-the-mould','systems-designer'],
@@ -823,12 +823,13 @@ PATH('study-the-hits-play', {
         skip:['Can you name the two or three dimensions your game is mostly made of?','Can you separate the causes of returning from the causes of quitting?','Can you say which of mastery, discovery or expression your game runs on?']
       } },
     { id:'s2', t:'Skill you can feel', level:'intermediate',
-      goal:'Say what a player gets better at in a game, how the game shows them, and why a loss feels fair or not.', hours:3.08,
+      goal:'Say what a player gets better at in a game, how the game shows them, and why a loss feels fair or not.', hours:3.42,
       steps:[
         { kind:'topic', ref:'skill-and-mastery', why:'A skill has to be perceivable to reward the player, and this topic gives the vocabulary for what the game asks and how it shows growth.', do:'List the skills one game you know asks for, and mark each as taught, exercised, combined or shown back to the player.', min:20 },
         { kind:'game', ref:'celeste', lens:'gameplay', why:'Celeste hides forgiving timing windows under a punishing-looking platformer, so a death reads as the player’s mistake rather than the game’s.', do:'Read its gameplay lens and pick two of the timing windows it names, then write what a death would feel like without each.', min:25 },
         { kind:'topic', ref:'rhythm-and-music-timed-design', why:'Celeste forgives a late jump with a few frames of grace; a rhythm game makes that forgiveness the whole design. Timing windows are how a game decides that a press was skilful.', do:'Compare one of Celeste’s grace windows with a rhythm game’s judgement window: write both in milliseconds, and what each forgives and what it still asks of the player.', min:30 },
         { kind:'game', ref:'rhythm-heaven', lens:'lineage', why:'Many games copied Rhythm Heaven’s look; its lineage lens separates what imitators copied (short minigames, comic art) from the mechanism the few close ones kept and changed.', do:'Read its lineage lens, then name one thing an imitator kept and one thing it missed, and which of the two your own game would need.', min:20 },
+        { kind:'game', ref:'rhythm-doctor', lens:'lineage', why:'Rhythm Doctor is one of the few games that captured what Rhythm Heaven does: it keeps the mechanism (a cue by ear, one button, a rule that holds within a level) and changes the structure, instead of copying the look.', do:'Read its lineage lens beside Rhythm Heaven’s, then write what Rhythm Doctor kept, what it changed, and the one change that made it its own game rather than a copy.', min:20 },
         { kind:'game', ref:'tetris', lens:'replay', why:'Tetris shows how changing the piece generator changed what a high score measures, luck or skill.', do:'Read its replay lens and write what a high score measured before and after the seven-bag generator.', min:25 },
         { kind:'game', ref:'into-the-breach', lens:'gameplay', why:'Into the Breach shows every queued attack and removes chance from attacks, so a lost mech traces back to a misread.', do:'Read its gameplay lens and write the one misread that could lose a mech, then say how the game makes that misread visible.', min:25 },
         { kind:'tool', ref:'hypothesis', why:'A claim that players can see their improvement is a hypothesis until a playtest shows it.', do:'Write a playtest hypothesis for one skill in your game: what players should get better at, and what you will observe to know they did.', min:25 },

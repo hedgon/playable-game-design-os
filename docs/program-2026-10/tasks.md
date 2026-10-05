@@ -91,10 +91,10 @@ the evidence line), `[-]` set aside (with the reason).
 | craft-audio-clock-and-input-latency | [x] | [x] PASS WITH FIXES, fixed | [x] |
 
 ## P7 New games
-- [ ] P7.1 Drafts (writer-sonnet-low): crosscode, rhythm-heaven, rhythm-doctor
-- [ ] P7.2 Images downloaded and converted, credits
-- [ ] P7.3 Fact-checks, fixes, integration, paths, game-topic wiring
-- [ ] P7.4 Checks, CI replay, commit, push
+- [x] P7.1 Drafts (writer-sonnet-low), checks (factcheck-opus-medium) and fixes in workflow wf_12f5bf60-4f8: crosscode, rhythm-heaven and rhythm-doctor, all PASS WITH FIXES, fixed (rhythm-doctor rewritten around the checker’s corrected thesis: the button and the seventh-beat core are fixed, the beat types vary)
+- [x] P7.2 Images: CrossCode header and 4 Steam screens (viewed, captions and callouts written from the images; 330 KB on the page); Rhythm Heaven header and 2 lens shots from Nintendo’s Groove gallery, entries 1-3 from LaunchBox captures (no Nintendo page left), entry 4 (3DS) without a shot (none found; 4 of 5 is the validator’s minimum). Rhythm Doctor header and 4 Steam screens (row, three rows with crosses, split screen, level editor; 188 KB). Every image was viewed before its alt and caption were written; a cross whose meaning the image does not show is described, not explained
+- [x] P7.3 Integrated: crosscode (18-games-innovative.js; steps in games-that-broke-the-mould s4 and study-the-hits-worlds s1), rhythm-heaven (18-games-series.js; steps in games-that-broke-the-mould s3 and study-the-hits-play s2); lens topics already name the new topics. One CrossCode screen region resized (its label was cut). Rhythm Doctor in 18-games-innovative.js, step in study-the-hits-play s2 beside Rhythm Heaven (the imitator question in one stage); its screen diagram re-laid out without overlaps
+- [~] P7.4 Checks, CI replay, commit, push
 
 ## P8 Two games, one problem
 - [ ] P8.1 `COMPARE` optional diagram: schema, renderer, validator, layout check
