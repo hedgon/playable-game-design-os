@@ -304,6 +304,13 @@ const server = http.createServer((req, res) => {
     const boxes = Object.values(fr.review).map(r => r.box);
     check(`${tag} the end shows what was recalled, no score, and the guess and the miss come back tomorrow`, /What you recalled/.test(endF) && /1 of 2: got it/.test(endF) && !/score|points/i.test(endF) && boxes.length === 2 && boxes.every(b => b === 0), JSON.stringify({ boxes, endF: endF.slice(0, 200) }));
     check(`${tag} the checkpoint result is kept for the stage map`, fr.check && fr.check.n === 2 && fr.check.got === 1 && fr.check.missed === 1, JSON.stringify(fr.check));
+    // --- answering the same checkpoint again the same day is practice: it must not stretch the spacing
+    const rvA = await page.evaluate(() => localStorage.getItem('playable.review'));
+    await page.click(F + ' [data-action="fight-close"]'); await page.waitForTimeout(150);
+    await page.click(F + ' [data-action="fight-start"]');
+    for (let k = 0; k < 6 && await page.evaluate(f => !!document.querySelector(f + ' [data-action="fight-conf"]'), F); k++) await answer(F, 'sure', true);
+    const rvB = await page.evaluate(() => localStorage.getItem('playable.review'));
+    check(`${tag} a same-day re-run of a checkpoint leaves the review schedule unchanged`, rvA === rvB, JSON.stringify({ before: Object.values(JSON.parse(rvA)).map(r => r.box), after: Object.values(JSON.parse(rvB)).map(r => r.box) }));
     // --- the test-out: recalling everything marks the stage tested out and moves on
     await nav('#/paths/performance-engineer/s2'); await page.waitForTimeout(150);
     const T = '#pane .pathstage[data-stage="s2"] .fight[data-mode="testout"]';
@@ -314,10 +321,18 @@ const server = http.createServer((req, res) => {
     check(`${tag} a test-out that recalls the stage marks it tested out`, to.stage === 'skipped' && /You know most of this stage/.test(to.text), JSON.stringify({ stage: to.stage, text: to.text.slice(0, 160) }));
     await page.click(T + ' [data-action="fight-close"][data-next="1"]'); await page.waitForTimeout(200);
     check(`${tag} after a test-out, "Go to the next stage" opens it`, (await page.evaluate(() => location.hash)).endsWith('/s3'), await page.evaluate(() => location.hash));
-    // --- the stage map is a view: every stage opens, its state comes from recall; the plain list shows every stage
+    // --- a test-out that recalls little leaves the stage open and points at its first step
+    await nav('#/paths/performance-engineer/s4'); await page.waitForTimeout(150);
+    const T4 = '#pane .pathstage[data-stage="s4"] .fight[data-mode="testout"]';
+    await page.evaluate(() => { document.querySelector('#pane .pathstage[data-stage="s4"] .pathskip').open = true; });
+    await page.click(T4 + ' [data-action="fight-start"]');
+    for (let k = 0; k < 8 && await page.evaluate(t => !!document.querySelector(t + ' [data-action="fight-conf"]'), T4); k++) await answer(T4, 'sure', false);
+    const tf = await page.evaluate(t => { const prog = JSON.parse(localStorage.getItem('playable.path.performance-engineer')); const a = document.querySelector(t + ' a[data-action="fight-close"]'); return { stage: (prog.stages || {}).s4 || null, check: (prog.check || {}).s4 || null, text: document.querySelector(t).textContent, href: a && a.getAttribute('href'), first: stepHref(PATHS.find(x => x.id === 'performance-engineer').stages.find(x => x.id === 's4').steps[0], 'performance-engineer', 's4') }; }, T4);
+    check(`${tag} a test-out that recalls little leaves the stage open and links its first step`, !tf.stage && tf.check && tf.check.got === 0 && /Start with the first step/.test(tf.text) && tf.href === tf.first, JSON.stringify({ stage: tf.stage, check: tf.check, href: tf.href, first: tf.first }));
+    // --- the stage map is a view: every stage opens, its state comes from the latest recall (s1 re-run above, s4 failed test-out); the plain list shows every stage
     await nav('#/paths/performance-engineer'); await page.waitForTimeout(150);
     const ow = await page.evaluate(() => [...document.querySelectorAll('#pane .overworld .region')].map(r => ({ t: r.textContent, href: r.querySelector('a').getAttribute('href') })));
-    check(`${tag} the stage map lists every stage as a link with its recall state`, ow.length === 6 && ow.every(r => /^#\/paths\/performance-engineer\/s\d$/.test(r.href)) && /1 of 2 recalled/.test(ow[0].t) && /tested out/.test(ow[1].t) && /checkpoint not tried/.test(ow[2].t), JSON.stringify(ow.map(r => r.t.slice(0, 90))));
+    check(`${tag} the stage map lists every stage as a link with its recall state`, ow.length === 6 && ow.every(r => /^#\/paths\/performance-engineer\/s\d$/.test(r.href)) && /all recalled/.test(ow[0].t) && /tested out/.test(ow[1].t) && /checkpoint not tried/.test(ow[2].t) && /0 of \d+ recalled/.test(ow[3].t), JSON.stringify(ow.map(r => r.t.slice(0, 90))));
     await page.click('#pane [data-action="path-view"][data-v="list"]'); await page.waitForTimeout(150);
     const pl = await page.evaluate(() => ({ sections: document.querySelectorAll('#pane .pathstage').length, regions: document.querySelectorAll('#pane .overworld .region').length, pressed: document.querySelector('#pane [data-action="path-view"][data-v="list"]').getAttribute('aria-pressed') }));
     check(`${tag} the plain list shows every stage's steps`, pl.sections === 6 && pl.regions === 0 && pl.pressed === 'true', JSON.stringify(pl));

@@ -675,7 +675,7 @@ SERIES({
       compare: 'A live-service game edits existing numbers after launch, whenever its data says so. Pokémon holds its corrections for the next generation, two or three years later, and ships them mostly as new content that changes an old chart’s meaning.',
       cost: 'Older Pokémon inherit matchups nobody designed for them: first-generation Psychic types only gained a real predator once Dark existed, and first-generation Dragons such as Dragonite met Fairy seventeen years after their debut, so old species keep being redefined long after release.',
       principle: 'If a core numeric system only changes at major releases, pair each correction with a new category aimed at whatever dominates, so the fix arrives as content players want to learn rather than a nerf they must accept.',
-      topics: ['mechanics-and-rules'],
+      topics: ['mechanics-and-rules', 'balance-methods'],
       sources: ['https://en.wikipedia.org/wiki/Pok%C3%A9mon_Red_and_Blue', 'https://en.wikipedia.org/wiki/Pok%C3%A9mon_Gold_and_Silver', 'https://www.siliconera.com/pokemon-gold-silvers-helped-make-series-balanced-detailed/', 'https://en.wikipedia.org/wiki/Pok%C3%A9mon_X_and_Y'] },
     ui: {
       claim: 'The Pokédex works as a Fagerholt and Lorentzon meta interface: an in-fiction device the player’s character carries, read through a menu outside the 3D game space rather than modelled as a prop inside it.',

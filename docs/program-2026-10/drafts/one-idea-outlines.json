@@ -1,0 +1,927 @@
+[
+ {
+  "key": "first-tiny-game/s2/2",
+  "q": "What does feedback do for a one-button game?",
+  "a": "It tells the player what their press did and when to press next, such as a sound on landing or a clear shape for the obstacle."
+ },
+ {
+  "key": "first-tiny-game/s3/1",
+  "q": "Why use plain boxes?",
+  "a": "Boxes are quick to make and change, so the time goes into the jump and the speed, which are what the game is about."
+ },
+ {
+  "key": "first-tiny-game/s3/2",
+  "q": "What can you tune first to make the jump feel right?",
+  "a": "The jump height and how fast the box falls back down, checked against the speed of the first obstacle."
+ },
+ {
+  "key": "game-designer-foundations/s1/0",
+  "q": "What makes a design pillar more than a slogan?",
+  "a": "A pillar can say no: it is specific enough that it forbids a feature someone wants, so the team can settle an argument by checking it instead of asking the director."
+ },
+ {
+  "key": "game-designer-foundations/s1/3",
+  "q": "What breaks if you skip straight from a feature idea to a feature?",
+  "a": "You build the first implementation you imagined instead of the smallest mechanic that produces the intended behaviour, so the result is often bigger or more complex than what the ladder would have found, or aimed at the wrong experience."
+ },
+ {
+  "key": "game-designer-foundations/s2/0",
+  "q": "How can a game keep decisions alive for a player who is losing, and what does Mario Kart 8’s item table show about it?",
+  "a": "Its item table is weighted towards whoever is behind, so a trailing player still gets strong items and a real choice about when to use them, and the leader still has a position to defend."
+ },
+ {
+  "key": "game-designer-foundations/s2/1",
+  "q": "What are the five links in the core loop?",
+  "a": "Decision, action, consequence, feedback, and new situation: the player decides, acts, the game state changes, the game shows what changed, and the changed state is a fresh situation that asks for another decision."
+ },
+ {
+  "key": "game-designer-foundations/s4/0",
+  "q": "What five parts does a hypothesis need?",
+  "a": "Player, behaviour and reason, in the form “we believe [player] will [behaviour] because [reason]”, plus the observable signal that shows it is true and a kill criterion written before the build."
+ },
+ {
+  "key": "systems-designer/s2/0",
+  "q": "What keeps a loot drop a decision instead of a reflex, as in Diablo II?",
+  "a": "The colour gives its tier instantly, but the affixes and where each one rolled in its range must be read and weighed against the equipped item, so the upgrade is judged, not handed over."
+ },
+ {
+  "key": "systems-designer/s3/2",
+  "q": "What is the one change the no-experiment smell asked you to name?",
+  "a": "The one change that would make trying something new worth the risk, usually by lowering the cost of failure, rewarding curiosity with real feedback, hiding the obviously optimal option, or exposing a visible cross-system interaction worth chasing."
+ },
+ {
+  "key": "systems-designer/s5/0",
+  "q": "Why should a simulated failure point at a traceable cause, as a traffic jam does in Cities: Skylines?",
+  "a": "Each citizen is simulated with a home and a job, so congestion is the traceable result of a specific road or zoning decision, and the info-views isolate one variable so the player can find it."
+ },
+ {
+  "key": "systems-designer/s5/3",
+  "q": "What has to be true of an audit for someone else to act on it without you?",
+  "a": "It has to name the smells found with evidence, the experiment run or planned, and the expected result on one page, with a build task concrete enough that another person could run it and interpret the result without asking you first."
+ },
+ {
+  "key": "level-and-ux-designer/s1/0",
+  "q": "How can level dressing shape a fight, as props do for the Gravity Gun in Half-Life 2?",
+  "a": "Props are placed as ammunition for the Gravity Gun, so reading a room means finding what can be thrown, and the designer controls the fight by what is left lying around rather than only by enemy count."
+ },
+ {
+  "key": "level-and-ux-designer/s1/1",
+  "q": "What are the six beats a level structure moves through?",
+  "a": "Teach, test, twist, combine, master, rest: introduce the idea safely, demand it under pressure, reframe it unexpectedly, mix it with something known, demand fluency, then release."
+ },
+ {
+  "key": "level-and-ux-designer/s1/2",
+  "q": "Why can a level be well paced and still exhaust a player?",
+  "a": "Pacing has two curves, intensity and cognitive load, and a level can manage one while leaving the other constantly high, or vary intensity correctly but never give a genuine rest beat that carries a reward, so the player never recovers."
+ },
+ {
+  "key": "level-and-ux-designer/s1/3",
+  "q": "How does a sightline control pacing before an encounter even starts?",
+  "a": "What is visible from the entrance, the goal, the danger, or the choice, sets the player’s expectation and readiness before anything happens, so the sightline paces anticipation and tension ahead of the encounter design itself."
+ },
+ {
+  "key": "level-and-ux-designer/s2/0",
+  "q": "Why does distinct enemy silhouette and range count as readability, as in Doom?",
+  "a": "Each monster has its own silhouette and attack range, so the player identifies the threat and chooses a response from the shape before the enemy acts, instead of learning it by being hit."
+ },
+ {
+  "key": "level-and-ux-designer/s3/2",
+  "q": "Why is “floaty” usually a feedback problem, not a physics problem?",
+  "a": "Floaty is what players say when feedback lags behind or contradicts the input that caused it, such as a missing impact cue or a hit with no visible consequence, rather than the underlying physics values being wrong."
+ },
+ {
+  "key": "level-and-ux-designer/s3/3",
+  "q": "What is friction, in one sentence?",
+  "a": "Friction is the cost in inputs, mode switches, menu depth or latency between the player’s intent and the game’s response, and every unintended increment of it is a tax on the action, even though some deliberate friction can add real weight."
+ },
+ {
+  "key": "level-and-ux-designer/s5/0",
+  "q": "Why do players trust environmental storytelling more than text?",
+  "a": "They discover it themselves by reading the space, so the conclusion feels owned, while told story feels imposed; it also costs no player time, because it is read while playing."
+ },
+ {
+  "key": "level-and-ux-designer/s5/2",
+  "q": "What does dissecting someone else’s level show that reading about it cannot?",
+  "a": "Dissection forces you to name the exact structural beats, sightlines and readability choices another designer made, giving concrete mechanisms to compare directly against your own level, which reading about level design in the abstract cannot surface."
+ },
+ {
+  "key": "games-that-broke-the-mould/s1/1",
+  "q": "What changes when a puzzle’s rules are themselves manipulable objects, as in Baba Is You?",
+  "a": "Its rules are written as word blocks in the level, and pushing the blocks rewrites the rules, so the player solves puzzles by changing what is true rather than by working within fixed rules."
+ },
+ {
+  "key": "games-that-broke-the-mould/s1/2",
+  "q": "What makes a puzzle fair?",
+  "a": "The answer can be reached and confirmed from information the player has already been given, so the aha is a realisation rather than a guess or a hunt for a hidden clue."
+ },
+ {
+  "key": "games-that-broke-the-mould/s2/0",
+  "q": "Why might a design withhold its explanation across several runs, as 999 does?",
+  "a": "Its explanation is split across six exclusive endings, and only the true ending, reachable after one specific other ending, supplies all of it; the knowledge carried into later runs is what moves the player forward."
+ },
+ {
+  "key": "games-that-broke-the-mould/s2/1",
+  "q": "What is the difference between a lock and an understanding as a gate?",
+  "a": "A lock opens when the player has an item or stat, whoever they are; an understanding opens when the player knows something, so a new save with the same knowledge can pass it at once."
+ },
+ {
+  "key": "games-that-broke-the-mould/s2/2",
+  "q": "What does a log do in a game where progress is only knowledge, as in Outer Wilds?",
+  "a": "The log records what the player has found and where threads lead without solving them, so the player stays oriented across resets while the reasoning stays theirs."
+ },
+ {
+  "key": "games-that-broke-the-mould/s2/3",
+  "q": "What does Obra Dinn’s three-at-a-time confirmation prevent?",
+  "a": "Brute-force guessing: a single wrong answer hides which fates are right, so the player has to reason several deductions to certainty before the game confirms any of them."
+ },
+ {
+  "key": "games-that-broke-the-mould/s3/0",
+  "q": "What does a retreat window after the attack add to a turn, as in Worms Armageddon?",
+  "a": "The worm gets a few seconds of real-time retreat to get clear of the crater its own shot made, so the turn tests aim under wind and then quick movement."
+ },
+ {
+  "key": "games-that-broke-the-mould/s3/1",
+  "q": "What can a hybrid keep from turn-based tactics and what must it change, as Valkyria Chronicles’ BLiTZ does?",
+  "a": "It keeps turns, units and command points; it changes moving a unit into a real-time run in which enemies in sight open fire, so carrying out the plan becomes a skill."
+ },
+ {
+  "key": "games-that-broke-the-mould/s3/2",
+  "q": "How does Press Turn reward hitting a weakness?",
+  "a": "A weakness or critical hit costs only half a turn icon, giving the side extra actions, while misses and blocked or nullified attacks cost more, so the turn itself becomes a resource."
+ },
+ {
+  "key": "games-that-broke-the-mould/s3/3",
+  "q": "What skill does a game test when time moves only as the player moves, as in Superhot?",
+  "a": "Planning under a near-frozen clock: because time runs at full speed only when the player moves, it tests reading the scene and choosing a sequence rather than reaction speed."
+ },
+ {
+  "key": "games-that-broke-the-mould/s4/0",
+  "q": "How can a hybrid add an execution demand to a deduction move, as Danganronpa does to Ace Attorney’s?",
+  "a": "It keeps arguing testimony apart but makes selecting the lie a timed aiming task, so deduction and execution become two skills, and drops the law and judge in favour of persuasion alone."
+ },
+ {
+  "key": "games-that-broke-the-mould/s4/1",
+  "q": "What makes a genre hybrid work?",
+  "a": "Each loop produces something the other needs, so playing one makes the player better at or more invested in the other; if a loop only consumes, it becomes a chore."
+ },
+ {
+  "key": "games-that-broke-the-mould/s4/2",
+  "q": "What can a calendar give the dungeons of a hybrid, as in Persona 5 Royal?",
+  "a": "Time spent with Confidants and on social stats unlocks abilities, fusion bonuses and options that make the party stronger, while the calendar’s deadlines give the dungeons urgency."
+ },
+ {
+  "key": "games-that-broke-the-mould/s4/3",
+  "q": "How can you tell a blend is two half-games?",
+  "a": "Players skip or rush one side, its rewards do not change how the other side plays, and removing it would not change the other loop."
+ },
+ {
+  "key": "games-that-broke-the-mould/s5/1",
+  "q": "How can a game create pressure from a desk and a clock, as Papers, Please does?",
+  "a": "Through the desk: limited space, documents that must be cross-checked, a day that ends with rent and family needs, so every careful check costs money and every shortcut risks a citation."
+ },
+ {
+  "key": "games-that-broke-the-mould/s5/2",
+  "q": "What does it mean for the HUD to be a system the player can change, as in NieR: Automata?",
+  "a": "Remove parts of the HUD to free chip space for abilities, and even remove the OS chip that keeps the android running, so the interface becomes a resource and part of the game’s theme."
+ },
+ {
+  "key": "games-that-broke-the-mould/s5/3",
+  "q": "Why does it matter when a game remembers the player’s resets, as Undertale does?",
+  "a": "It removes the usual safety of reloading: some characters, such as Flowey and Sans, remember what a reload undid, so the player treats a choice as real rather than as a branch to try and undo."
+ },
+ {
+  "key": "study-the-hits-play/s1/0",
+  "q": "Why is “make it more fun” not actionable?",
+  "a": "Fun is a bundle of dimensions, so the useful question is which dimension is flat or missing, such as mastery, discovery or tension."
+ },
+ {
+  "key": "study-the-hits-play/s1/1",
+  "q": "What brings players back after mastery, as the streak does in Wordle?",
+  "a": "The streak counter: one puzzle a day, no replay, and one failed day resets the number to zero, so what is at stake is the unbroken streak, not a fresh challenge."
+ },
+ {
+  "key": "study-the-hits-play/s2/0",
+  "q": "How can a hard game feel kind, as Celeste does?",
+  "a": "It hides forgiving timing windows such as coyote time and jump buffering, so a death reads as a mistimed jump rather than an unregistered input, and players keep retrying."
+ },
+ {
+  "key": "study-the-hits-play/s2/1",
+  "q": "What does a piece generator change about what a score measures, using Tetris’s seven-bag as the example?",
+  "a": "It removed droughts of unlucky pieces by dealing every shape once before reshuffling, so a high score measures placement skill more than surviving bad luck."
+ },
+ {
+  "key": "study-the-hits-play/s2/2",
+  "q": "Why does showing every queued attack make a loss traceable to the player, as in Into the Breach?",
+  "a": "Attacks never miss, damage is fixed and every queued Vek attack shows on the tile it will hit, so a loss traces to one ignored icon rather than to chance."
+ },
+ {
+  "key": "study-the-hits-play/s3/0",
+  "q": "What test does the encounters topic give an enemy?",
+  "a": "It should ask a distinct question that needs a distinct answer from the player’s verbs; an enemy that asks the same question with more health is a slower version of the same fight."
+ },
+ {
+  "key": "study-the-hits-play/s3/1",
+  "q": "What makes a build a series of trade-offs, as contested ability slots do in Hades?",
+  "a": "Five ability slots (Attack, Special, Cast, Dash, Call) are contested by different gods, so taking one god’s boon for a slot means refusing or replacing another’s."
+ },
+ {
+  "key": "study-the-hits-play/s3/2",
+  "q": "What does a single seed value give players of a generated world, as in Minecraft?",
+  "a": "A single value that reproduces a whole world, so the same ruleset gives an effectively unlimited number of distinct worlds and players can share a seed like a recipe."
+ },
+ {
+  "key": "study-the-hits-play/s3/3",
+  "q": "How should a generator be judged?",
+  "a": "By whether it varies the player’s decision or only decoration; mathematically unique outputs that feel identical are oatmeal, not content."
+ },
+ {
+  "key": "study-the-hits-play/s4/1",
+  "q": "Why can a system game keep producing new problems, as Factorio does?",
+  "a": "Solving one shortage always exposes the next limit, such as furnaces then belts then inserters, so the player keeps diagnosing what is starved."
+ },
+ {
+  "key": "study-the-hits-play/s4/2",
+  "q": "How can one tool change what a puzzle asks, as the portal gun does?",
+  "a": "It edits which two points in a level are adjacent, so puzzles ask where the two ends must sit rather than whether the player survives what stands in the way."
+ },
+ {
+  "key": "study-the-hits-play/s5/0",
+  "q": "What are the failures of flat and constant tension?",
+  "a": "Flat tension is boredom and constant tension is exhaustion; release is what makes the next tension legible and lets a peak be felt."
+ },
+ {
+  "key": "study-the-hits-play/s5/1",
+  "q": "How can busywork become evidence, as tasks do in Among Us?",
+  "a": "Most tasks are meaningless chores, but some animate for anyone nearby and Impostors cannot do tasks, so one witnessed animation clears a player; common tasks let a claimed route be checked."
+ },
+ {
+  "key": "study-the-hits-play/s5/2",
+  "q": "How can two opposite actions on the same unit turn farming into open conflict, as last-hitting and denying do in Dota 2?",
+  "a": "Last-hitting takes the gold from a creep for yourself and denying takes experience away from the enemy, so two opposite actions on the same creep make farming into conflict."
+ },
+ {
+  "key": "study-the-hits-play/s5/3",
+  "q": "How does a paid, chosen window of risk work, as an Age advance does in Age of Empires II?",
+  "a": "A lump sum paid when it is queued, which empties the stockpile, and Town Centre time in which no villagers are trained, so a rival can raid while resources are sunk."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s1/0",
+  "q": "What should you do with a failed predecessor before rebuilding its idea, as Psyonix did for Rocket League?",
+  "a": "It diagnosed the specific reasons its 2008 predecessor underperformed and rebuilt the game around fixing each one, rather than abandoning the idea or repeating it unchanged."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s1/1",
+  "q": "What does dissecting a reference game give you that just enjoying it does not?",
+  "a": "It turns liking a game into specific, stealable structure, the exact mechanism of information, decision, time pressure, consequence and feedback that produces the feeling you admire, rather than a vague impression you cannot act on."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s1/2",
+  "q": "What is the one gap your idea is supposed to fill?",
+  "a": "It should be an exit reason or an unmet want players state or work around in reviews and forums for close reference games, never a tolerated cost or your own taste, named precisely enough to quote a player’s own words for it."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s1/3",
+  "q": "What would make you conclude your idea does not beat its closest reference?",
+  "a": "If you cannot name the specific gap your idea fills that the reference does not, if players of the reference do not recognise the gap when you describe it, or if an incumbent could ship your mechanism without breaking their own model."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s2/1",
+  "q": "What does the core experience statement have to survive, going forward?",
+  "a": "Every later decision and every discipline’s local optimization: it is the one-sentence target that every system, feature review and scope cut answers to, so it has to survive contact with a real prototype and a real playtest, not just a pitch meeting."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s3/0",
+  "q": "What are the five parts a hypothesis needs?",
+  "a": "Player, behaviour and reason, in the form “we believe [player] will [behaviour] because [reason]”, plus the observable signal that shows it is true and a kill criterion written before the build."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s3/2",
+  "q": "Why does predicting the result beforehand matter?",
+  "a": "Writing the prediction before running the test is what lets a surprising result count as real evidence instead of being rationalised afterwards into whatever happened, which prevents you from unconsciously reading confirmation into an ambiguous outcome."
+ },
+ {
+  "key": "idea-to-prototype-30-days/s4/1",
+  "q": "What makes a slice vertical instead of just small?",
+  "a": "A vertical slice cuts through every layer, art, feel and systems, to shipping quality in one small section end to end, proving both the experience and the real cost per unit, unlike a small build that stays shallow across every discipline."
+ },
+ {
+  "key": "study-the-hits-worlds/s1/1",
+  "q": "How can one fixed map hold several stories, as Subnautica’s does?",
+  "a": "The Aurora’s crew, the Sunbeam, the Degasi and the Precursors all leave physical remains on the same fixed map, and the player reconstructs each fate independently, in whatever order their descent takes them."
+ },
+ {
+  "key": "study-the-hits-worlds/s1/2",
+  "q": "What does borrowing an existing setting gain and cost, as Baldur’s Gate 3 shows?",
+  "a": "It gains a setting that feels complete at once to anyone who knows Dungeons & Dragons; it gives up freedom to retire or contradict factions, gods or endings, because the canon belongs to a licensor, Wizards of the Coast."
+ },
+ {
+  "key": "study-the-hits-worlds/s2/0",
+  "q": "Why is choosing a faction in New Vegas a judgement?",
+  "a": "Caesar voices a coherent argument for order, and companions such as Boone argue back from lived experience, so the player weighs a case against testimony instead of picking the winner of a scoreboard."
+ },
+ {
+  "key": "study-the-hits-worlds/s2/1",
+  "q": "What gap can open between a story’s message and its mechanics, as some reviewers see in Grand Theft Auto V?",
+  "a": "The plot frames the pursuit of wealth as corrosive, yet every heist pays the player in cash and nothing docks a character for succeeding at crime, so some read emptiness rather than critique."
+ },
+ {
+  "key": "study-the-hits-worlds/s2/2",
+  "q": "Where can a game’s stories come from when no plot is authored, as in The Sims and Crusader Kings III?",
+  "a": "In The Sims from aspirations and a memory log with no authored plot, so a dull stretch has nothing scripted in reserve; in Crusader Kings III from stress gained by acting against a ruler’s personality."
+ },
+ {
+  "key": "study-the-hits-worlds/s3/0",
+  "q": "How can a game show that the past has changed without saying so, as Chrono Trigger does?",
+  "a": "It rarely says so: the player revisits a familiar place across eras and finds the change already there, and the payoff is noticing it before any character comments."
+ },
+ {
+  "key": "study-the-hits-worlds/s3/1",
+  "q": "What does a plot’s turning point do, using Final Fantasy XII’s as the example?",
+  "a": "Ashe rejects the Occuria’s revenge plan and has the Sun-cryst destroyed rather than use nethicite, which recasts the hunt for shards as a story about restraint."
+ },
+ {
+  "key": "study-the-hits-worlds/s3/2",
+  "q": "What does the Bloody Baron questline show about side content?",
+  "a": "That a side quest can carry main-plot craft: Family Matters becomes a story about the Baron’s drinking and violence towards his family, so players stop treating contracts as a lesser tier."
+ },
+ {
+  "key": "study-the-hits-worlds/s3/3",
+  "q": "Where does the topic put exposition?",
+  "a": "After the first meaningful play, delivered as answers to questions the play raised, with the longest cutscenes converted to in-play delivery where possible."
+ },
+ {
+  "key": "study-the-hits-worlds/s4/0",
+  "q": "How can a consistent visual cue teach trust, as the gold of grace does in Elden Ring?",
+  "a": "It shares the warm gold of the Sites of Grace and the Erdtree, so a player follows the glow on sight, before reading the optional tip that explains it."
+ },
+ {
+  "key": "study-the-hits-worlds/s4/1",
+  "q": "What does New Horizons’ hourly score do?",
+  "a": "A distinct piece plays for each hour of the real day, with variations for season and weather, so an experienced player can tell roughly what time it is by music alone."
+ },
+ {
+  "key": "study-the-hits-worlds/s4/2",
+  "q": "What trade does a game make when it hands its mood to outside audio, as Euro Truck Simulator 2 does?",
+  "a": "It streams real internet stations and the player’s own files, giving up control of the mood in exchange for a soundtrack that is free and always changing."
+ },
+ {
+  "key": "study-the-hits-worlds/s5/0",
+  "q": "What does FIFA’s licensed world buy over Pro Evolution Soccer’s?",
+  "a": "A player does not have to decode fictional stand-ins such as “Man Red” or “West London Blue” back to real clubs, and FIFA added the Champions League and Europa League licences in FIFA 19 once Konami’s UEFA deal expired."
+ },
+ {
+  "key": "study-the-hits-worlds/s5/1",
+  "q": "Why choose a setting tied to the team’s own culture, as Clair Obscur did with Belle Époque France?",
+  "a": "The team weighed a Steampunk Victorian England and chose a look tied to Sandfall’s French origin, so players read Lumière as a particular place before exposition and feel the impossible geometry as a break from it."
+ },
+ {
+  "key": "study-the-hits-worlds/s5/2",
+  "q": "What does the localization topic ask you to budget for?",
+  "a": "Externalised strings, text expansion in the longest language, translator context, locale-aware formats and early platform and rating checks, and to weigh what an adaptation removes as well as what it smooths."
+ },
+ {
+  "key": "senior-game-designer/s3/0",
+  "q": "Why pre-register the metric, the guardrails and the end date?",
+  "a": "Writing the goal metric, two guardrails, the smallest effect worth shipping, the sample size and the end date before the data arrives stops a result from being chosen afterwards, and stops peeking from inflating false positives."
+ },
+ {
+  "key": "senior-game-designer/s5/0",
+  "q": "What must a pitch contain?",
+  "a": "An ask with a date, the claim tied to a pillar or goal, evidence at the cheapest rung that removes the doubt, the main risk and the answers to likely objections."
+ },
+ {
+  "key": "technical-lead/s1/0",
+  "q": "Where should a hiring loop be designed from?",
+  "a": "Backwards from the work: the tasks the hire will actually do, each tested by an exercise that resembles it, rather than puzzles that test whether a candidate enjoys interviews."
+ },
+ {
+  "key": "technical-lead/s5/0",
+  "q": "What can seeing a whole workflow chart show you that seeing only your own step cannot?",
+  "a": "Where the process breaks structurally: which handoffs have no artifact, which gates exist because of a past incident, and where your own team’s process diverges from a working example, none of which is visible from inside a single step."
+ },
+ {
+  "key": "technical-lead/s5/2",
+  "q": "What made the process change you named the right one to lead with?",
+  "a": "The strongest first change is one traceable to a real gap the workflow walk or a design review checklist surfaced, small enough to run right away, and named alongside exactly who needs to agree to it before it can happen."
+ },
+ {
+  "key": "interview-prep-designer/s1/1",
+  "q": "What does defending a player mean in an interview answer?",
+  "a": "Naming a concrete player model, recent games they finished, session shape, device, the feeling they came for, then giving one real decision that model changed, such as a cut tutorial or a rejected control scheme, instead of a demographic label like “gamers.”"
+ },
+ {
+  "key": "interview-prep-designer/s1/3",
+  "q": "What is the fastest way to have a concrete reference-game example ready?",
+  "a": "Dissect one game you did not design ahead of time, using Reference Dissection, so you already hold the two-sentence structural summary of what it does and why, instead of improvising an analysis live in the interview."
+ },
+ {
+  "key": "interview-prep-designer/s2/0",
+  "q": "How can unlike factions stay fair, as StarCraft’s races do?",
+  "a": "Through the shared economy rather than matched units: every race gathers minerals and gas under a strict supply cap, so macro discipline is the same test for everyone however different the armies look."
+ },
+ {
+  "key": "interview-prep-designer/s2/2",
+  "q": "How would you explain your economy’s central trade-off to someone non-technical?",
+  "a": "Name the one decision a currency forces, what a player gives up now to get something later, in plain terms, without spreadsheet vocabulary, and say why that tension is the actual point of the currency existing."
+ },
+ {
+  "key": "interview-prep-designer/s3/0",
+  "q": "What makes an environmental storytelling answer strong?",
+  "a": "A concrete space, the event behind it and the evidence a player read without text, plus how you checked it: ask players what they think happened there and watch where they stop unprompted."
+ },
+ {
+  "key": "interview-prep-designer/s3/1",
+  "q": "Why does naming the structural beats you used beat describing the level generally?",
+  "a": "Naming teach, test, twist, combine, master or rest proves the level was designed as a deliberate lesson rather than assembled as a pile of encounters, and it gives the interviewer something specific to probe instead of a vague description."
+ },
+ {
+  "key": "interview-prep-designer/s3/3",
+  "q": "What did the determinism part give you for a fairness question?",
+  "a": "A concrete story about keeping simulation results bit-exact between client and server, a ported random generator, forbidding a compiler fold that changed outcomes, diffing traces step by step, which beats a general claim about caring about fairness."
+ },
+ {
+  "key": "interview-prep-designer/s4/1",
+  "q": "What kill criterion have you used, and can you name it fast?",
+  "a": "It should be a concrete rate or behaviour stated before a real prototype was tested, such as a voluntary-repetition rate below a stated threshold, that you can recall instantly rather than inventing on the spot for the interview."
+ },
+ {
+  "key": "interview-prep-designer/s4/2",
+  "q": "What transferred from the second game you dissected?",
+  "a": "One specific mechanism, a pacing beat, a feedback technique, a risk-reward structure, from a game outside your usual genre that applies to your own project, showing dissection works as a general skill and not just on games like yours."
+ },
+ {
+  "key": "interview-prep-designer/s5/3",
+  "q": "What should an AI-process answer describe, beyond a workflow?",
+  "a": "A concrete safeguard, such as the AI output verification checklist covering assumptions, sources, problem fit, testability and who owns the embedded decisions, rather than just a description of which AI tools get used and when."
+ },
+ {
+  "key": "casual-game-people-keep/s1/2",
+  "q": "How does the platform shape the session?",
+  "a": "You write a session profile (median length, interruptions, device, posture), build a satisfying unit that fits inside the median session, and treat saving and resuming as core features so an interruption loses nothing."
+ },
+ {
+  "key": "casual-game-people-keep/s2/1",
+  "q": "How do you tune casual difficulty from data?",
+  "a": "Plot the intended curve and overlay observed failure rates per level, fix spikes by teaching before lowering demands, and track time to quit and time to pass as two numbers, as King does, since a hard level can still be fun if it is short."
+ },
+ {
+  "key": "casual-game-people-keep/s3/1",
+  "q": "Why does every source need a sink?",
+  "a": "Without sinks strong enough to keep a resource scarce, it piles up and stops forcing decisions: players hoard because nothing is worth buying, or spend without thinking because everything is affordable."
+ },
+ {
+  "key": "casual-game-people-keep/s3/2",
+  "q": "Name two monetisation patterns that damage trust.",
+  "a": "Undisclosed odds on paid random items, which Apple and Google both require to be shown, and fear of missing out used as the retention engine; a paid skip for a problem the design created is a third."
+ },
+ {
+  "key": "casual-game-people-keep/s4/0",
+  "q": "Why soft launch in a few countries first?",
+  "a": "To measure real retention, monetisation and install cost at small spend, and fix or kill the game before the expensive global marketing push."
+ },
+ {
+  "key": "casual-game-people-keep/s4/1",
+  "q": "What makes a good playable ad?",
+  "a": "It is built from a real moment a player reaches in the current build, fits in one self-contained file under the network’s cap (5 MB at Unity, AppLovin, Google and Meta), routes its call to action through the network’s own click API, and is tested on strangers like the game itself."
+ },
+ {
+  "key": "casual-game-people-keep/s5/0",
+  "q": "How can live content stay sustainable, as Subway Surfers’ World Tour shows?",
+  "a": "Since 2013 it has changed the visible city every three or four weeks while the lane-and-swipe run never changes, so the game stays current without touching the mechanic that makes it playable."
+ },
+ {
+  "key": "casual-game-people-keep/s5/1",
+  "q": "What should be changeable without a client build at launch?",
+  "a": "Values you expect to tune often, such as level difficulty, prices and offers, and event dates and rewards, shipped as versioned data the installed clients can read, so changes do not wait on a store review."
+ },
+ {
+  "key": "casual-game-people-keep/s5/2",
+  "q": "How do you know a live-ops cadence is sustainable?",
+  "a": "Measure planned against delivered items per cycle over a quarter and build the next calendar on the delivered number, with review, localisation and a buffer as fixed blocks and one quiet week per cycle."
+ },
+ {
+  "key": "game-skills-elsewhere/s1/2",
+  "q": "What rarely transfers?",
+  "a": "Genre knowledge, engine-specific trivia, the assumption that the user wants to be entertained, and passion for the medium, which outside games can read as a sign you will go back at the first chance."
+ },
+ {
+  "key": "game-skills-elsewhere/s2/2",
+  "q": "How do you judge whether an AI tooling employer is safe?",
+  "a": "Dated funding and runway from the company or its investors, paying customers, spending against revenue, and whether the product survives the model provider shipping the same feature."
+ },
+ {
+  "key": "game-skills-elsewhere/s3/0",
+  "q": "How would you translate \"vertical slice\" and \"live ops\" for a non-games reader?",
+  "a": "A vertical slice is a production-quality prototype that validated scope and cost; live ops is running a weekly release and experiment cadence against retention and revenue metrics."
+ },
+ {
+  "key": "game-skills-elsewhere/s3/1",
+  "q": "What should a portfolio case study cover, following the Nielsen Norman Group checklist?",
+  "a": "The problem, your role and who you worked with, how you reached the solution, the outcome, the challenges and discarded options, the effect on users and the business, and what you learned; keep three to five pieces, not everything."
+ },
+ {
+  "key": "game-skills-elsewhere/s4/0",
+  "q": "What goes wrong when a game engineer answers a system-design round?",
+  "a": "They describe an engine architecture, an update loop and an entity system, instead of starting from requirements and load, drawing the data path, and naming the bottleneck and failure mode."
+ },
+ {
+  "key": "game-skills-elsewhere/s4/1",
+  "q": "What makes a strong answer to \"why are you leaving games\"?",
+  "a": "A short, forward-looking answer naming what the new work offers and what you bring, not what the old work lacked; if laid off, say so plainly, with no complaints about crunch or a former studio."
+ },
+ {
+  "key": "game-skills-elsewhere/s4/2",
+  "q": "How should you treat an open-ended take-home?",
+  "a": "Confirm the time limit and stay near it, ship a working core with a README on how to run it and the trade-offs, and decline or negotiate one that looks like real product work or comes with no feedback."
+ },
+ {
+  "key": "game-skills-elsewhere/s4/3",
+  "q": "What does USDA data say about leaving tech for small-scale farming?",
+  "a": "The median farm household loses money on farming and depends on off-farm income, so work a season first, budget for several years of farm losses, and keep an income."
+ },
+ {
+  "key": "gameplay-engineer-godot/s1/1",
+  "q": "What is the difference between an action, a decision, and a consequence in the core loop?",
+  "a": "A decision is the choice the player makes, an action is what they physically do to carry it out, and a consequence is the state change the action causes; feedback then shows that change, and the changed state is the new situation the next decision responds to."
+ },
+ {
+  "key": "gameplay-engineer-godot/s1/3",
+  "q": "Which Godot features play the component, prototype and observer patterns?",
+  "a": "Nodes composed in a scene are components, a scene instanced many times is a prototype, and signals are the observer pattern, visible in the Node dock."
+ },
+ {
+  "key": "gameplay-engineer-godot/fund/1",
+  "q": "What does the dot product of a facing direction and the direction to a target tell you?",
+  "a": "For unit vectors it is 1 when the target is straight ahead, 0 at right angles and -1 behind, so comparing it with the cosine of half the field of view gives an in-cone test without computing an angle."
+ },
+ {
+  "key": "gameplay-engineer-godot/s2/1",
+  "q": "How do you decide whether a rule belongs in code or in a Resource?",
+  "a": "The rule stays in code, since logic is what governs behaviour, but its numbers and flags move into a Resource once there is more than one instance of the mechanic, so a designer can tune values in a .tres file without touching code."
+ },
+ {
+  "key": "gameplay-engineer-godot/s3/3",
+  "q": "Where do you look in Godot to see what a frame costs?",
+  "a": "The Debugger panel: the Profiler for script functions, the Visual Profiler for CPU and GPU render time, and Monitors for engine counters; the Performance singleton reads the same monitors in code."
+ },
+ {
+  "key": "gameplay-engineer-godot/s4/3",
+  "q": "Which Godot objects free themselves and which do you free?",
+  "a": "RefCounted objects free themselves when their references reach zero; Nodes and plain Objects are freed by you, and C# scripts use the .NET collector instead."
+ },
+ {
+  "key": "gameplay-engineer-godot/s5/0",
+  "q": "Why does putting a tuning value on @export_range beat hardcoding it, even for a throwaway scene?",
+  "a": "An export_range slider lets you retune the one value you are least sure about live, in the inspector or during play, without editing and recompiling code, which is what makes a throwaway scene fast enough to test something in one sitting."
+ },
+ {
+  "key": "gameplay-engineer-godot/s5/3",
+  "q": "When does a Godot node you called queue_free() on stop passing validity checks?",
+  "a": "Only at the end of the frame, when it is actually freed; until then != null and is_instance_valid() both still pass, and is_queued_for_deletion() is the check that says it is pending."
+ },
+ {
+  "key": "gameplay-engineer-unity/s1/0",
+  "q": "Why can reading a single-frame input inside FixedUpdate drop or double-count a press?",
+  "a": "FixedUpdate can run zero, one or several times within a single rendered frame, so a check for a press made there can miss it entirely or count it twice, producing exactly the input dropouts and double-triggers players report as an unresponsive control scheme."
+ },
+ {
+  "key": "gameplay-engineer-unity/s1/3",
+  "q": "Which Unity features play the component, prototype and observer patterns?",
+  "a": "MonoBehaviours are components, prefabs are prototypes, and C# events and UnityEvent are the observer pattern; the state pattern is plain C#."
+ },
+ {
+  "key": "gameplay-engineer-unity/fund/1",
+  "q": "What does the dot product of a facing direction and the direction to a target tell you?",
+  "a": "For unit vectors it is 1 when the target is straight ahead, 0 at right angles and -1 behind, so comparing it with the cosine of half the field of view gives an in-cone test without computing an angle."
+ },
+ {
+  "key": "gameplay-engineer-unity/s2/0",
+  "q": "Why does a full scene reload past a certain size cost you retries?",
+  "a": "SceneManager.LoadScene reloads and reinitializes the whole scene, including everything unrelated to the failed encounter, so past a certain scene size the load time itself turns a short failure lesson into a wait long enough that players stop retrying."
+ },
+ {
+  "key": "gameplay-engineer-unity/s2/1",
+  "q": "How do you decide whether a rule belongs in code or in a ScriptableObject?",
+  "a": "The logic stays in code, but once a mechanic has more than one instance its numbers and flags move into a ScriptableObject asset, so a diff shows exactly which value moved and a designer can tune it without touching a script."
+ },
+ {
+  "key": "gameplay-engineer-unity/s3/3",
+  "q": "How do you make your own code visible in the Unity Profiler, and read a counter in a build?",
+  "a": "Wrap it in a ProfilerMarker so it appears by name in the Profiler; ProfilerRecorder reads counters in code, so a build can report its own frame time."
+ },
+ {
+  "key": "gameplay-engineer-unity/s4/3",
+  "q": "Why does garbage made in Update cost you later, and what does Unity give you to avoid it?",
+  "a": "Managed objects sit on a heap swept by an incremental collector, so allocation is paid for in collection work at a time you do not choose; UnityEngine.Pool.ObjectPool and NonAlloc queries avoid the allocation."
+ },
+ {
+  "key": "gameplay-engineer-unity/s5/0",
+  "q": "Why does putting a tuning value in a Range field beat hardcoding it, even for a throwaway scene?",
+  "a": "A Range field on a ScriptableObject tuning asset lets you retune the one uncertain value live, and because it lives on an asset rather than a scene instance, the value you tuned during play survives after you press Stop, unlike a change made directly on a MonoBehaviour."
+ },
+ {
+  "key": "live-game-backend-engineer/s2/0",
+  "q": "Where should an idempotency gate sit relative to the handler, and why?",
+  "a": "It sits in the middleware chain before the handler runs, typically as an add-if-absent cache key of player, method, and path with a short expiry, so a duplicate submission is rejected or replayed at the boundary instead of the handler executing the write twice."
+ },
+ {
+  "key": "live-game-backend-engineer/s2/2",
+  "q": "What must an AI output verification pass check, beyond whether the code compiles?",
+  "a": "Whether the code matches the actual design intent, not just that it builds: whether it introduced behaviour nobody asked for, whether error handling and transaction boundaries follow the agreed pattern, and whether it silently changed something the original brief never mentioned."
+ },
+ {
+  "key": "live-game-backend-engineer/s5/3",
+  "q": "Where does a defensive check belong in a layered service?",
+  "a": "At the boundary, where external input, deserialized data or an async re-entry arrives; behind it the code relies on that guarantee instead of re-checking it at every layer."
+ },
+ {
+  "key": "live-game-backend-engineer/s4/2",
+  "q": "What decides whether a live-ops change is safe to ship while players are online?",
+  "a": "Whether it can go through a version or maintenance gate that lets only the endpoints that must still respond keep working, and whether every intermediate state between the data, server, and client releases is one a live session can safely sit inside."
+ },
+ {
+  "key": "live-game-backend-engineer/s4/3",
+  "q": "Why profile against a budget instead of optimising what looks slow?",
+  "a": "A budget says how much time the work may take and a profile says where it actually goes, so you fix the measured largest cost rather than a guess."
+ },
+ {
+  "key": "netcode-server-engineer/s2/2",
+  "q": "What field lets a realtime message detect and drop a duplicate delivery?",
+  "a": "A client-generated intent or request id repeated on every retry of the same action, so the server can store the outcome against that id and replay it rather than applying the action a second time when a retried packet arrives."
+ },
+ {
+  "key": "netcode-server-engineer/s2b/3",
+  "q": "What does timestamping inputs inside a tick change, and what does it keep, as Counter-Strike 2’s sub-tick does?",
+  "a": "It keeps a 64-tick server simulation but records each input’s exact time instead of snapping it to the next tick boundary, so timing within a tick is no longer rounded away."
+ },
+ {
+  "key": "netcode-server-engineer/s3/3",
+  "q": "What does a cross-server matchmaking queue gain and lose, as World of Warcraft’s Dungeon Finder did?",
+  "a": "Players on quiet realms could find a group at any hour through one cross-realm role queue, but server-based socialising, recognising names, building a reputation, asking a guild for help, stopped being needed to progress."
+ },
+ {
+  "key": "netcode-server-engineer/s4/2",
+  "q": "Why does re-simulation give you an anti-cheat signal for free?",
+  "a": "Because the server already re-runs the same simulation independently to confirm the result is correct, comparing its own computed outcome against what the client submitted costs nothing extra to implement and catches a client lying about the result, on top of the parity check it already needed."
+ },
+ {
+  "key": "netcode-server-engineer/s5/1",
+  "q": "What kind of bug does a name-based renaming pass risk breaking in a netcode layer?",
+  "a": "A netcode library that resolves some of its generated network members by name at runtime is structurally incompatible with any renaming or obfuscation pass, because renaming those members silently breaks remote registration or replication in a way that only appears in a protected build, never in the editor."
+ },
+ {
+  "key": "netcode-server-engineer/s5/2",
+  "q": "Which step in match verification is likely to fail first under load, and how would you decide?",
+  "a": "A well-grounded answer names the actual bottleneck in the design, such as the step that re-simulates or looks up a stored result under peak concurrent load, and explains why that specific step, rather than authentication or scoring, is where contention would first appear."
+ },
+ {
+  "key": "build-and-release-engineer/s1/0",
+  "q": "Why does pinning the toolchain in an image remove a whole class of bug, not just reduce it?",
+  "a": "Pinning the toolchain, database, and OS packages in an image means every laptop and every build agent run identical versions, so a whole category of failure, a query that works locally and fails in CI on a different collation or default, cannot occur rather than merely occurring less often."
+ },
+ {
+  "key": "build-and-release-engineer/s1/1",
+  "q": "What does a job-name table let you collapse that eight near-identical jobs could not?",
+  "a": "A table keyed on job name, holding the handful of values that differed between eight near-identical jobs, lets one declarative pipeline with stages guarded by that name replace eight separate job definitions that had drifted apart under years of manual edits."
+ },
+ {
+  "key": "build-and-release-engineer/s3/0",
+  "q": "What does a single parameterised entry point buy you over ten separate build scripts?",
+  "a": "The difference between build targets becomes data, a set of command-line flags read by one entry point, instead of ten separate scripts that duplicate setup and teardown and quietly drift apart from each other as each is edited independently."
+ },
+ {
+  "key": "build-and-release-engineer/s3/3",
+  "q": "What does game source control do differently from ordinary Git use?",
+  "a": "It keeps Git for text, locks binaries that cannot merge, and never commits what the engine can rebuild, such as import caches."
+ },
+ {
+  "key": "build-and-release-engineer/s4/2",
+  "q": "What does sharing one stage shape across pipelines prevent?",
+  "a": "It prevents the platform pipelines from drifting into different processes over time, because a change to how setup validates parameters or how a failure is graded is one edit applied everywhere those pipelines share a stage, rather than several edits that can fall out of sync with each other."
+ },
+ {
+  "key": "build-and-release-engineer/s4/3",
+  "q": "How does a CI job deliver a build to itch.io?",
+  "a": "With butler: BUTLER_API_KEY as a runner secret, then butler push per platform channel with a --userversion; later pushes to a channel patch players automatically."
+ },
+ {
+  "key": "build-and-release-engineer/s5/1",
+  "q": "Why does re-prefixing a failure with its phase name matter for a two-hour log?",
+  "a": "When every stage tags a failure with the name of the phase that produced it, a two-hour build log can be triaged by reading that single re-prefixed line instead of scrolling through the entire log to find where things went wrong."
+ },
+ {
+  "key": "build-and-release-engineer/s5/2",
+  "q": "What does validating and restoring around every build prevent?",
+  "a": "Validating parameters in a cheap setup stage before an expensive build starts catches a bad input in the first minute instead of after hours of work, and restoring the working tree before each run stops a build that mutates or deletes files from leaving broken state for the next run."
+ },
+ {
+  "key": "build-and-release-engineer/s5/3",
+  "q": "How does a build reach the Epic Games Store?",
+  "a": "BuildPatchTool uploads it with the product’s BPT credentials and artifact ID; you set it active, test it in Dev through the launcher, push to Stage and submit for review."
+ },
+ {
+  "key": "game-ai-programmer/s2/3",
+  "q": "Which three things decide the technique for an agent?",
+  "a": "The shape of decision it expresses well, how cheap it is to author and change, and how easy it is to debug when the agent does something stupid."
+ },
+ {
+  "key": "game-ai-programmer/s4/0",
+  "q": "Why set an AI budget and build the debug view first?",
+  "a": "Cost and balance grow with agents and capability, so a budget and worst-case agent count keep the design affordable, and a debug view of state, target and decision reason turns the AI is dumb into a specific, fixable cause."
+ },
+ {
+  "key": "interview-prep-engineer/s1/0",
+  "q": "What makes a layering answer sound like an interview cliché versus a real trade-off?",
+  "a": "An interviewer wants the actual trade-off a candidate hit while enforcing layering, such as a specific import-direction violation and what it cost to fix, not a textbook recitation of dependency inversion or the names of the rings."
+ },
+ {
+  "key": "interview-prep-engineer/s1/1",
+  "q": "What follow-up question would you ask a candidate who gives a textbook authority-model answer?",
+  "a": "Ask for a concrete case that tests whether they built it: what happens when the model disagrees with the client, what a cheating client could get away with in the gap, or what the player literally sees during a correction."
+ },
+ {
+  "key": "interview-prep-engineer/s1/2",
+  "q": "What is the difference between “we write tests” and naming a specific rule your team enforces?",
+  "a": "We write tests is a general claim nobody can verify, while naming a specific enforced rule, such as requiring a failing test shown red before the fix that makes it pass, gives the interviewer something concrete to probe and shows the practice is followed."
+ },
+ {
+  "key": "interview-prep-engineer/s1/3",
+  "q": "How do you answer a garbage collection question well?",
+  "a": "Explain where allocation happens, when the collector pays for it and how you would measure it, then name one fix such as pooling and the trade-off it brings, such as reset bugs in reused objects."
+ },
+ {
+  "key": "interview-prep-engineer/s2/3",
+  "q": "What do interviewers listen for in a performance answer?",
+  "a": "Profiling before optimising, a stated budget such as frame time or latency, and a fix chosen by the measured largest cost."
+ },
+ {
+  "key": "interview-prep-engineer/s3/3",
+  "q": "What should an answer about AI coding agents cover?",
+  "a": "That results come from the whole system, model, context, tools, instructions, feedback and evals, so you attribute a failure before upgrading the model and back any claim with your own eval rather than a leaderboard, with an example from your own work."
+ },
+ {
+  "key": "interview-prep-engineer/code/1",
+  "q": "How do you explain a fixed timestep with an accumulator?",
+  "a": "Add the real elapsed time to a bucket, run the simulation in equal steps while the bucket holds a whole step, clamp a huge hitch so it cannot spiral, and draw with a blend between the previous and current state using the leftover time."
+ },
+ {
+  "key": "interview-prep-engineer/code/2",
+  "q": "What do you do first in a game system-design question?",
+  "a": "Ask for the numbers that shape it (players, tick rate, latency budget), say who is authoritative, draw the smallest design that meets them, and name the first failure you would test, instead of listing technologies."
+ },
+ {
+  "key": "senior-game-developer-ai-era/s2/3",
+  "q": "How does a replayable seed help verification?",
+  "a": "A fixed timestep and seed give the same run every time, so a behaviour change becomes a failing assertion instead of a feeling."
+ },
+ {
+  "key": "senior-game-developer-ai-era/s4/2",
+  "q": "What goes into a cost and latency budget for an AI feature?",
+  "a": "Cost per request, per player and per day, caching and batch effects, a cap per player, the p95 latency you will accept, a fallback, and a date to re-check because prices and models change."
+ },
+ {
+  "key": "senior-game-developer-ai-era/s6/2",
+  "q": "How do you make a technical no fair to design?",
+  "a": "State the cost in units they can compare, offer options including a cut, and say what you would need to say yes."
+ },
+ {
+  "key": "studio-practice-ai-era/s1/2",
+  "q": "What has moved from production to judgment as the bottleneck?",
+  "a": "Taste, framing, prioritisation, understanding players, recognising fun, separating signal from noise, trade-offs and knowing what not to build."
+ },
+ {
+  "key": "studio-practice-ai-era/s2/0",
+  "q": "Why are AI failure modes systematic rather than random?",
+  "a": "They follow from AI’s strengths (fluency, volume, plausibility) meeting human weaknesses (deference, impatience, fear of deciding), so each has a symptom, a cause, a detector and a correction."
+ },
+ {
+  "key": "studio-practice-ai-era/s2/1",
+  "q": "What makes AI-written prototype code worth having?",
+  "a": "Precise briefs on what to build, what to expose and what to log, instrumentation, and treating the prototype as disposable."
+ },
+ {
+  "key": "studio-practice-ai-era/s2/2",
+  "q": "Where in the AI-era loop does player evidence sit?",
+  "a": "Between exploration and commitment: prototype, play, measure and interpret come before decide and implement, and polish is the setup for the next hypothesis."
+ },
+ {
+  "key": "studio-practice-ai-era/s3/0",
+  "q": "What changed about correctness when models write the code?",
+  "a": "Its value is unchanged and its method changed: correctness is now shown by checks, not by the author’s care."
+ },
+ {
+  "key": "studio-practice-ai-era/s3/1",
+  "q": "Why do small diffs matter more than before?",
+  "a": "Typing got cheap so a large diff costs nothing to produce, but reviewing it costs as much as ever, and a reviewer’s attention runs out before the diff does."
+ },
+ {
+  "key": "studio-practice-ai-era/s3/3",
+  "q": "Why do distinctive names help an agent?",
+  "a": "An agent navigates by searching names, so a distinctive consistent name is found in one search and a generic or inconsistent one is missed."
+ },
+ {
+  "key": "studio-practice-ai-era/s4/1",
+  "q": "What is the difference between total and active parameters?",
+  "a": "Memory scales with total parameters because every expert must be loaded, while compute per token scales with active parameters in a mixture-of-experts model."
+ },
+ {
+  "key": "studio-practice-ai-era/s4/2",
+  "q": "What does open weights not guarantee?",
+  "a": "Many open-weight licences are custom and may cap company size, require attribution or bind you to an acceptable use policy, and open weights alone fall short of an open-source definition."
+ },
+ {
+  "key": "studio-practice-ai-era/s5/1",
+  "q": "Why does AI make scope control harder?",
+  "a": "Implementation is cheap enough that a lot of mediocre content can be produced before anyone asks whether the core is fun, so scope must follow validated value, not what could be built."
+ },
+ {
+  "key": "studio-practice-ai-era/s6/0",
+  "q": "Why change one important thing per iteration?",
+  "a": "Changing many things at once makes the result unattributable, so you learn nothing even when it improves."
+ },
+ {
+  "key": "studio-practice-ai-era/s6/2",
+  "q": "What is the point of the PC store checklist?",
+  "a": "Every item is checked against the actual build and store page, not against the plan for them."
+ },
+ {
+  "key": "ship-it/s1/2",
+  "q": "When is a UGC platform a better home than a store?",
+  "a": "When the game fits what that platform rewards (multiplayer, short sessions, engagement-ranked discovery), and the team accepts building inside its runtime and earning inside its economy in exchange for its audience, servers and payments."
+ },
+ {
+  "key": "ship-it/s1/3",
+  "q": "How does a Roblox game go public?",
+  "a": "Publish the place from Studio, verify your age, answer the content questionnaire in Creator Dashboard, then move the audience from Private to Limited to Public."
+ },
+ {
+  "key": "ship-it/s2/0",
+  "q": "Why start platform access before the build is ready?",
+  "a": "Entity, identity and NDA steps (a registered company, a D-U-N-S number, a signed NDA, a dev-kit request) can take longer than the technical work, and a console SDK does not exist for you until they are done."
+ },
+ {
+  "key": "ship-it/s2/2",
+  "q": "What should a CI pipeline for several platforms guarantee?",
+  "a": "That every platform’s player is built from one parameterised entry point by the same steps every time, so a requirement checked once stays checked on the next build."
+ },
+ {
+  "key": "ship-it/s2/3",
+  "q": "What must happen before a Quest build can be submitted?",
+  "a": "The organisation is verified, the build is uploaded to a release channel with ovr-platform-util, tested against the Virtual Reality Checks in RC, and submitted at least two weeks before launch."
+ },
+ {
+  "key": "ship-it/s3/1",
+  "q": "Which storefronts need something other than the shared IARC questionnaire?",
+  "a": "Steam and Apple run their own questionnaires, and a console release in Japan or any boxed release needs a rating from the local board directly, because that board is not part of the shared system."
+ },
+ {
+  "key": "ship-it/s3/2",
+  "q": "What must a privacy form cover besides your own code?",
+  "a": "What every third-party SDK in the build collects on your behalf, such as ads, analytics and crash reporting, because the form is a statement about the whole game."
+ },
+ {
+  "key": "ship-it/s3/3",
+  "q": "What comes before a PlayStation build can be submitted?",
+  "a": "Registering with PlayStation Partners, signing the GDPA, getting dev and test kits, building to the TRC and rating the game through IARC, CERO or boards."
+ },
+ {
+  "key": "ship-it/s4/0",
+  "q": "Why open a Coming Soon or pre-registration page early?",
+  "a": "It turns attention gathered before launch into wishlists or pre-registrations the store can notify at launch, and some stores require the page to be public for a minimum time before release."
+ },
+ {
+  "key": "ship-it/s4/3",
+  "q": "How does a CrazyGames launch progress?",
+  "a": "A Basic Launch to a limited audience, with the SDK optional and no monetisation, for 7 to 21 days; Full Launch depends on playtime, conversion to gameplay and retention against benchmarks, and needs the SDK."
+ },
+ {
+  "key": "ai-engineering-for-game-devs/s1/2",
+  "q": "What does prompt caching reward?",
+  "a": "A long, stable prefix (instructions, rules, reference files) that stays byte-identical across calls, with the changing part at the end."
+ },
+ {
+  "key": "ai-engineering-for-game-devs/s2/2",
+  "q": "What is an agent harness responsible for?",
+  "a": "Running the loop: building the context for each call, offering tools, executing tool calls, enforcing permissions, and deciding when to stop."
+ },
+ {
+  "key": "ai-engineering-for-game-devs/s3/0",
+  "q": "What makes an eval useful rather than decorative?",
+  "a": "Real inputs across the spread plus adversarial ones, never the examples the prompt was tuned on; a rubric with hard fails, checked in code where code can; a model judge only where needed, compared against human labels; and a rerun on every prompt, model or data change, reading the outputs that changed rather than only the score."
+ },
+ {
+  "key": "ai-engineering-for-game-devs/s3/1",
+  "q": "Why prefer tools with text formats and a CLI when working with agents?",
+  "a": "The agent can read, diff and run them itself, so it can check its own work; a tool that needs a person at a screen puts every check back on you."
+ },
+ {
+  "key": "ai-engineering-for-game-devs/s4/1",
+  "q": "What must a model feature do when the service fails?",
+  "a": "Fall back to something playable (scripted lines, a default choice, cached content), tested by forcing each failure, and the game must still start and save without the service."
+ },
+ {
+  "key": "ai-engineering-for-game-devs/s4/2",
+  "q": "Why is a model rarely the first choice for enemy AI?",
+  "a": "It is hard to make readable, fair and tunable, it costs latency and money per decision, and state machines, behaviour trees and utility systems already give designers direct control."
+ }
+]

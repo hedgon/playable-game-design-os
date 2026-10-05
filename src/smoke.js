@@ -140,7 +140,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     {
       const wid = WORKED_TOPIC && { topic: WORKED_TOPIC.id, w: WORKED_TOPIC.worked[0] };
       if (wid) {
-        await page.evaluate(route => { location.hash = route; }, '#/map/t/' + wid.topic + '/overview'); await page.waitForTimeout(250);
+        await page.evaluate(route => { location.hash = route; }, '#/map/t/' + wid.topic + '/overview'); await page.evaluate(() => window.PlayableApp.settled());
         const card = await page.evaluate(id => { const c = document.getElementById('worked-' + id); return c && { caption: !!c.querySelector('caption'), ths: [...c.querySelectorAll('th')].every(h => h.getAttribute('scope') === 'col'), rows: c.querySelectorAll('tbody tr').length, btn: (c.querySelector('[data-action="worked-download"]') || {}).textContent, wide: document.documentElement.scrollWidth }; }, wid.w.id);
         if (!card) failures.push(w + 'px worked example card is missing on ' + wid.topic);
         else {
@@ -165,15 +165,17 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     {
       const C0 = FULL.COMPARISONS[0], cmp = C0 && { id: C0.id, games: C0.games, n: C0.sections.length };
       if (cmp) {
-        await page.evaluate(route => { location.hash = route; }, '#/games/compare/' + cmp.id); await page.waitForTimeout(250);
+        await page.evaluate(route => { location.hash = route; }, '#/games/compare/' + cmp.id); await page.evaluate(() => window.PlayableApp.settled());
+        // the head images load lazily: wait for each one's own load (or error), not a timer
+        await page.evaluate(() => Promise.all([...document.querySelectorAll('#pane .comparehead img')].map(i => i.complete ? 0 : new Promise(r => { i.addEventListener('load', r); i.addEventListener('error', r); setTimeout(r, 5000); }))));
         const pg = await page.evaluate(() => ({ links: [...document.querySelectorAll('#pane .comparehead')].map(a => a.getAttribute('href')), imgs: [...document.querySelectorAll('#pane .comparehead img')].every(i => i.complete && i.naturalWidth > 0), secs: document.querySelectorAll('#pane .comparesec').length, wide: document.documentElement.scrollWidth }));
         if (pg.links.join() !== cmp.games.map(g => '#/games/' + g).join() || !pg.imgs || pg.secs !== cmp.n) failures.push(w + 'px comparison page: ' + JSON.stringify(pg));
         if (w === 375 && pg.wide > 375) failures.push('375px comparison page widens the page to ' + pg.wide);
-        await page.evaluate(route => { location.hash = route; }, '#/games'); await page.waitForTimeout(250);
+        await page.evaluate(route => { location.hash = route; }, '#/games'); await page.evaluate(() => window.PlayableApp.settled());
         if (!await page.evaluate(() => !!document.querySelector('#pane a[href^="#/games/compare/"]'))) failures.push(w + 'px library has no "Two games, one problem" shelf');
-        await page.evaluate(route => { location.hash = route; }, '#/games/' + cmp.games[0]); await page.waitForTimeout(250);
+        await page.evaluate(route => { location.hash = route; }, '#/games/' + cmp.games[0]); await page.evaluate(() => window.PlayableApp.settled());
         if (!await page.evaluate(id => !!document.querySelector('#pane a[href="#/games/compare/' + id + '"]'), cmp.id)) failures.push(w + 'px game page does not list its comparison');
-        await page.evaluate(route => { location.hash = route; }, '#/games/compare/nope'); await page.waitForTimeout(150);
+        await page.evaluate(route => { location.hash = route; }, '#/games/compare/nope'); await page.evaluate(() => window.PlayableApp.settled());
         if (await page.evaluate(() => (document.querySelector('#pane h1') || {}).textContent) !== 'Not found') failures.push(w + 'px unknown comparison is not a not-found page');
       }
     }

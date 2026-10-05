@@ -739,6 +739,7 @@ for (const pth of (PATHS || [])) {
         if (!q || !String(q).trim()) errors.push(`${sw}: check.recall[${i}] empty`);
         if (typeof x === 'string') recallNoAnswer++;
         else if (!x.a || !String(x.a).trim()) errors.push(`${sw}: check.recall[${i}] has an empty answer outline`);
+        else if (x.ideas !== undefined && (!Array.isArray(x.ideas) || x.ideas.length < 2 || x.ideas.some(t => typeof t !== 'string' || !t.trim() || !x.a.toLowerCase().includes(t.toLowerCase().replace(/^(and|but|so|which|because)s+/, '').replace(/[.,;:!?]+$/, '').trim())))) errors.push(`${sw}: check.recall[${i}].ideas must list 2 or more ideas, each copied from the answer outline`);
         else if (x.a.length > 420) longs.push(`${sw}: check.recall[${i}] answer outline is ${x.a.length} characters (guide: under 420)`);
         if (typeof x === 'object' && x.a && answerIdeas(x).length < 2) guide('an answer outline gives one idea to compare against (split it, or give ideas)', `${sw}: check.recall[${i}]`);
       });

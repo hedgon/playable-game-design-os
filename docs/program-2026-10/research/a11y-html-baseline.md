@@ -39,3 +39,26 @@ Tools: axe-core 4.x (all rules) and html-validate (recommended preset, style-onl
 | dark | link-in-text-block 1.43:1 vs body text | — | guide hint link on #/paths (colour-only link) |
 
 check-contrast.js passes because it checks token pairs on the page background, not these composited surfaces (tinted next-step row, chip tint, button fill). P3 extends it to them.
+
+## After (2026-10-05, end of the programme)
+
+Measured on the built page from file://, Edge, at 1440 and 375 px, with axe-core run on the
+reading pane after transitions settle (1.2 s) and html-validate (recommended rules, the same
+exclusions as the baseline) on the pane's markup at 1440:
+
+| State | axe violations | html-validate messages |
+| --- | --- | --- |
+| `#/paths` (the door) | 0 | 0 |
+| `#/paths/performance-engineer` (stage map) | 0 | 0 |
+| `#/paths/performance-engineer/s1`, checkpoint question | 0 | 0 |
+| `#/paths/performance-engineer/s1`, outline revealed with ideas to tick | 0 | 0 |
+| `#/paths/systems-designer`, plain list | 0 | 0 |
+| `#/paths/systems-designer`, adventure look | 0 | 0 |
+
+The path-page heading order and the step-row markup (a list of rows; the checkbox's label
+holds no links or glossary buttons) that the baseline left for P9 are fixed. Taken mid-transition,
+axe reported three contrast hits on colours that are in no token; after the transitions settle it
+reports none. The final review's own probe of ten new routes (no duplicate ids, untyped buttons,
+heading skips, images without alt, or page widening) agreed. Contrast pairs below 4.5:1 in the
+build's token check: 0 of 682. The audit script lives outside the repo (session scratchpad); this
+table is its output.

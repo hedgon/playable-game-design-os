@@ -2343,7 +2343,7 @@ function solutionHTML(st){
 }
 function stageFooterHTML(pth, st, prog){
   const next = pathNextStep(pth.id), live = fight && fight.path === pth.id && fight.stage === st.id ? fight : null;
-  const checkpointOpen = (!!next && next.type === 'checkpoint' && next.stage.id === st.id) || (live && live.mode === 'check');
+  const checkpointOpen = (!!next && next.type === 'checkpoint' && next.stage.id === st.id) || (live && live.mode === 'check') || keepCheckOpen === pth.id + '/' + st.id;
   const review = (st.review || []).map(tid => { const t = TOPICS[tid]; return t ? `<a class="chip lnk" style="cursor:pointer" href="#/map/t/${tid}">${esc(t.t)}</a>` : ''; }).join('');
   const status = prog.stages[st.id], last = prog.check[st.id], skin = adventureSkin(), asked = recallItems(st).length;
   const lastLine = last ? `<p class="small muted">Last time (${esc(new Date(last.at).toLocaleDateString())}): ${last.got} of ${last.n} recalled${last.partial ? `, ${last.partial} partly` : ''}.</p>` : '';
@@ -2351,7 +2351,7 @@ function stageFooterHTML(pth, st, prog){
     <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>${skin ? 'The castle: this stage’s checkpoint' : 'Checkpoint'}</summary><div class="body">
       <h3 class="h4look">Can you answer these?</h3>
       ${asked ? `<p class="small" style="margin:0 0 6px">One question at a time, from memory: answer, say how sure you are, then compare with the outline. Questions you miss come back in your review queue.</p>
-      <div class="fight" data-mode="check">${live && live.mode === 'check' ? fightHTML(pth, st) : `${lastLine}<button type="button" class="btn sm primary" data-action="fight-start" data-mode="check" data-path="${pth.id}" data-stage="${st.id}">${skin ? 'Enter the castle' : 'Start the checkpoint'} (${asked} question${asked === 1 ? '' : 's'})</button>`}</div>
+      <div class="fight" data-mode="check">${live && live.mode === 'check' ? fightHTML(pth, st) : `${lastLine}<button type="button" class="btn sm primary" data-action="fight-start" data-mode="check" data-path="${pth.id}" data-stage="${st.id}">${skin ? 'Enter the castle' : 'Start the checkpoint'} (${asked} question${asked === 1 ? '' : 's'})</button><span class="small muted blk" style="margin-top:4px">A round in progress is not kept if you leave or reload the page; answers you have given stay in your review queue.</span>`}</div>
       <details class="small allq"><summary>Or see all the questions at once</summary>${recallHTML(pth, st)}</details>` : recallHTML(pth, st)}
       <h3 class="h4look">Build</h3><p>${esc(st.check.build)}</p>${solutionHTML(st)}
       <button type="button" class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
@@ -2374,6 +2374,8 @@ function stageFooterHTML(pth, st, prog){
    back tomorrow like a partial answer. There is no score and nothing is
    locked; the result is kept per stage for the stage map. */
 let fight = null;
+// Closing a checkpoint's result keeps that checkpoint open: the reader is still in it.
+let keepCheckOpen = null;
 const CONFIDENCE = [['guess', 'A guess'], ['fair', 'Fairly sure'], ['sure', 'Sure']];
 const OUTCOME = { got: 'Got it', partial: 'Partly', missed: 'Not yet' };
 // The ideas a good answer contains: the outline's own list when it has one, else its sentences.
@@ -2410,19 +2412,23 @@ function fightEndHTML(pth, st){
   return `<h4 class="fight-q" tabindex="-1">What you recalled</h4>
     <ul class="fight-sum"><li>${got} of ${n}: got it</li>${partial ? `<li>${partial}: partly</li>` : ''}${missed ? `<li>${missed}: not yet</li>` : ''}</ul>
     <p class="small">Coming back: ${soon ? `${soon} tomorrow` : ''}${soon && later ? ', ' : ''}${later ? `${later} after a longer gap` : ''}${!soon && !later ? 'nothing queued' : ''} (<a href="#/review">your review queue</a>).</p>
-    ${missed || partial ? `<details class="small"><summary>The steps behind these questions</summary><ul>${steps}</ul></details>` : ''}
+    ${missed || partial ? `<details class="small"><summary>This stage’s steps, to go back over</summary><ul>${steps}</ul></details>` : ''}
     ${action}`;
 }
 // Puts one answer into the review queue at the gap its outcome earns.
 function scheduleRecall(pth, st, x, outcome, conf){
   const items = reviewItems(), k = `ck:${pth.id}:${st.id}:${x.q}`, r = items[k] || { q: x.q, a: x.a, src: `#/paths/${pth.id}/${st.id}`, box: -1 };
-  r.box = outcome === 'got' && conf !== 'guess' ? Math.min(REVIEW_DAYS.length - 1, r.box + 1) : 0;
+  // a right answer earns the next gap only when the question was new or due: answering it
+  // again the same day is practice, as on the Review page, and must not stretch the spacing
+  if(outcome === 'got' && conf !== 'guess'){ if(items[k] && items[k].due > today()) return; r.box = Math.min(REVIEW_DAYS.length - 1, r.box + 1); }
+  else r.box = 0;
   r.due = today() + REVIEW_DAYS[r.box];
   items[k] = r; store.set('review', items);
 }
-function redrawFight(){
+// After a redraw focus goes to the new question, or, after a confidence tap, to the reveal it unlocked.
+function redrawFight(focus){
   keepScroll = true; route();
-  const q = document.querySelector('#pane .fight .fight-q'); if(q) q.focus({ preventScroll: true });
+  const q = document.querySelector('#pane .fight ' + (focus || '.fight-q')); if(q) q.focus({ preventScroll: true });
 }
 ACTIONS['fight-start'] = el => {
   const pth = PATHS.find(p => p.id === el.dataset.path), st = pth && pth.stages.find(s => s.id === el.dataset.stage); if(!st) return;
@@ -2431,7 +2437,7 @@ ACTIONS['fight-start'] = el => {
   store.set('paths.active', pth.id);
   redrawFight();
 };
-ACTIONS['fight-conf'] = el => { fight.conf = el.dataset.v; redrawFight(); };
+ACTIONS['fight-conf'] = el => { fight.conf = el.dataset.v; redrawFight('[data-action="fight-reveal"]'); };
 ACTIONS['fight-reveal'] = () => { if(fight.conf){ fight.phase = 'reveal'; redrawFight(); } };
 ACTIONS['fight-mark'] = el => {
   const f = fight, pth = PATHS.find(p => p.id === f.path), st = pth.stages.find(s => s.id === f.stage), items = recallItems(st), idx = f.order[f.at];
@@ -2453,7 +2459,7 @@ ACTIONS['fight-mark'] = el => {
   }
   redrawFight();
 };
-ACTIONS['fight-close'] = el => { const next = el.dataset.next === '1', p = el.dataset.path, s = el.dataset.stage; fight = null; if(next) goPastStage(p, s); else if(p) { keepScroll = true; route(); } };
+ACTIONS['fight-close'] = el => { const next = el.dataset.next === '1', p = el.dataset.path, s = el.dataset.stage; keepCheckOpen = fight && fight.mode === 'check' ? fight.path + '/' + fight.stage : null; fight = null; if(next) goPastStage(p, s); else if(p) { keepScroll = true; route(); } };
 document.addEventListener('input', e => { if(fight && e.target.matches && e.target.matches('textarea[data-fight-answer]')) fight.answer = e.target.value; });
 
 // The stage map: every stage as a region with what is true of it (steps read,
