@@ -465,6 +465,8 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     const fail = m => failures.push(`${tag}: ${m}`);
     const hash = () => page.evaluate(() => location.hash);
     const goto = async r => { await page.evaluate(x => { location.hash = x; }, r); await page.waitForTimeout(750); };
+    // on a phone the map is drawn once the reading pane stops covering it: show it, as a reader would
+    const seeMap = async () => { if (await page.evaluate(() => matchMedia('(max-width: 700px)').matches && document.getElementById('pane').classList.contains('open'))) { await page.evaluate(() => document.getElementById('drawerClose').click()); await page.waitForTimeout(600); } };
     const vb = () => page.evaluate(MAP_VB);
     // the map's own buttons, pressed in the page: on a phone a content pane can sit over them
     const press = id => page.evaluate(i => document.getElementById(i).click(), id);
@@ -667,7 +669,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     if (canvas) { const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9 || !px.inView) fail(`after rapid route changes labels are ${px.min.toFixed(1)}px, in view: ${px.inView}`); }
 
     // -- a topic's neighbourhood: groups open in place; on the canvas the selected topic stays in view and hovered leaves keep readable words
-    await goto('#/map/t/scope-control/overview');
+    await goto('#/map/t/scope-control/overview'); await seeMap();
     {
       const groups = await page.evaluate(([root, item]) => [...document.querySelectorAll(item + '[data-kind="group"]')].map(n => ({ key: n.dataset.key, expanded: n.getAttribute('aria-expanded') })), [ROOT, ITEM]);
       const closedG = groups.find(g => g.expanded === 'false');
@@ -687,7 +689,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       for (const [vw, vh] of w > 700 ? [[1440, 900], [1280, 800], [1024, 768]] : [[w, h]]) {
         await page.setViewportSize({ width: vw, height: vh }); await page.waitForTimeout(500);
         for (const t of ['scope-control', 'core-loop', 'economy-and-resources']) {
-          await goto('#/map/home'); await goto('#/map/t/' + t + '/overview');
+          await goto('#/map/home'); await goto('#/map/t/' + t + '/overview'); await seeMap();
           const v = await page.evaluate(() => { const wr = document.getElementById('mapwrap').getBoundingClientRect(), s = document.querySelector('#mapsvg .node.sel .disc'); if (!s) return null; const r = s.getBoundingClientRect(); return { l: r.left - wr.left, r: wr.right - r.right, t: r.top - wr.top, b: wr.bottom - r.bottom, wrapW: wr.width }; });
           if (!v) fail(`${t} at ${vw}px: no selected topic node`);
           else if (v.wrapW > 50 && Math.min(v.l, v.r, v.t, v.b) < -0.5) fail(`${t} at ${vw}px: the selected topic is cut by the stage edge ${JSON.stringify(v)}`);
@@ -870,10 +872,11 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       const tid = await page.evaluate(() => document.querySelector('#mapoutline li[data-kind="topic"]').dataset.id);
       await page.click('#mapoutline li[data-kind="topic"] > .oi-row'); await page.waitForTimeout(900);
       const pg = await page.evaluate(() => ({ hash: location.hash, pane: document.getElementById('pane').classList.contains('open'), sel: [...document.querySelectorAll('#mapoutline [aria-selected="true"]')].map(n => n.dataset.id), back: document.getElementById('drawerClose').textContent, backLabel: document.getElementById('drawerClose').getAttribute('aria-label') }));
-      if (pg.hash !== '#/map/t/' + tid || !pg.pane || pg.sel.join() !== tid) fail('phone outline: opening a topic ' + JSON.stringify(pg));
+      if (pg.hash !== '#/map/t/' + tid || !pg.pane) fail('phone outline: opening a topic ' + JSON.stringify(pg));
       if (!/Map/.test(pg.back) || !/outline/.test(pg.backLabel || '')) fail(`the back button on a phone reads "${pg.back}" / "${pg.backLabel}"`);
       await page.evaluate(() => document.getElementById('drawerClose').click()); await page.waitForTimeout(500);
-      const back = await page.evaluate(() => { const li = document.querySelector('#mapoutline [aria-selected="true"]'), o = document.getElementById('mapoutline'), r = li.querySelector(':scope > .oi-row').getBoundingClientRect(), b = o.getBoundingClientRect(); return { shown: getComputedStyle(o).display !== 'none' && o.getBoundingClientRect().width > 0, inView: r.top >= b.top - 1 && r.bottom <= b.bottom + 1, groups: o.querySelectorAll('li[data-kind="group"]').length }; });
+      const back = await page.evaluate(() => { const li = document.querySelector('#mapoutline [aria-selected="true"]'), o = document.getElementById('mapoutline'), r = li.querySelector(':scope > .oi-row').getBoundingClientRect(), b = o.getBoundingClientRect(); return { id: li.dataset.id, shown: getComputedStyle(o).display !== 'none' && o.getBoundingClientRect().width > 0, inView: r.top >= b.top - 1 && r.bottom <= b.bottom + 1, groups: o.querySelectorAll('li[data-kind="group"]').length }; });
+      if (back.id !== tid) fail('phone outline: the opened topic is not the one selected on returning ' + JSON.stringify(back));
       if (!back.shown || !back.inView) fail('phone outline: the selected topic is not in view on returning ' + JSON.stringify(back));
     }
     await ctx.close();

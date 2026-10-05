@@ -81,9 +81,10 @@ const server = http.createServer((req, res) => {
 
     // --- one structure view: exactly the four named indicators on an open path
     await nav('#/paths/systems-designer'); await page.waitForTimeout(700);
+    // on a phone the map is drawn once the pane stops covering it, so count its nodes after showing it, then put the pane back
+    const mapNodes = await page.evaluate(async () => { const covered = matchMedia('(max-width: 700px)').matches && document.getElementById('pane').classList.contains('open'); if (covered) { document.getElementById('collapseRight').click(); await new Promise(r => setTimeout(r, 700)); } const n = document.querySelectorAll('#mapsvg .node[data-scope="path"]').length; if (covered) { document.getElementById('collapseRight').click(); await new Promise(r => setTimeout(r, 300)); } return n; });
     const ind = await page.evaluate(() => ({
       bar: document.querySelectorAll('#pane .pathbar').length,
-      mapNodes: document.querySelectorAll('#mapsvg .node[data-scope="path"]').length,
       progress: document.querySelectorAll('#pane .progress').length,
       stages: document.querySelectorAll('#pane .pathstages').length,
       crumbs: document.querySelectorAll('#pane .view .crumbs').length,
@@ -92,7 +93,7 @@ const server = http.createServer((req, res) => {
       railPaths: document.querySelectorAll('#rail .railtopic[data-path]').length,
       counter: document.getElementById('progressText').textContent
     }));
-    check(`${tag} an open path shows exactly: path bar, map path nodes, one progress line, the stage view`, ind.bar === 1 && ind.mapNodes > 0 && ind.progress === 1 && ind.stages === 1, JSON.stringify(ind));
+    check(`${tag} an open path shows exactly: path bar, map path nodes, one progress line, the stage view`, ind.bar === 1 && mapNodes > 0 && ind.progress === 1 && ind.stages === 1, JSON.stringify(ind));
     check(`${tag} no second breadcrumb, no Next callout, no rail step outline`, !ind.crumbs && !ind.callouts && !ind.railSteps && ind.railPaths >= 12, JSON.stringify(ind));
     check(`${tag} the global counter reads "Topics read N/M"`, /^Topics read \d+\/\d+$/.test(ind.counter), ind.counter);
     const next = await page.evaluate(() => { const r = document.querySelector('#pane .pathstage.open .pathstep.next'); return r ? r.dataset.row : null; });

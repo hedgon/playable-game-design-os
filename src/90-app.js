@@ -281,6 +281,9 @@ function drawRoute(){
   $('#navMore').classList.toggle('active', !!group && NAV.indexOf(group) >= NAV_BAR); closeNavMore();
   closeModals(); closeTip();
   syncMapMode(view, parts[1]);
+  // the pane's open state for this route is set before the view draws, so the map
+  // knows whether the pane will cover it (renderTree); showPaneFor below syncs the rest
+  ensureShell(); if(isNarrow()) $('#pane').classList.toggle('open', !mapOnly(parts));
   drawView(view, parts);
   rememberPage();
   $("#shell").classList.toggle("work", !usesMap(parts));
@@ -452,6 +455,8 @@ function wireShell(){
   $('#drawerClose').onclick = closeTopDrawer;
   $('#collapseLeft').onclick = () => { delete shell.dataset.autofold; if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
   $('#collapseRight').onclick = () => { if(isNarrow()){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
+  // on a phone the route's pane may cover the map: say so before the first draw, so it waits (renderTree)
+  if(isNarrow()) $('#pane').classList.toggle('open', !mapOnly(currentParts()));
   renderTree('home');
 }
 function railHTML(activeDom, activeTopic){
@@ -516,6 +521,8 @@ const phoneMQ = window.matchMedia('(max-width: 700px)');
 function syncInert(){ const railOpen = !!$('#rail') && $('#rail').classList.contains('open'); ['#rail', '#pane'].forEach(s => { const el = $(s); if(el) el.inert = isNarrow() && (!el.classList.contains('open') || (s === '#pane' && railOpen)); }); }
 function syncScrim(){
   syncInert();
+  // a map drawing deferred while the phone pane covered it is drawn once it can be seen
+  if(A.drawPendingMap) A.drawPendingMap();
   const railOpen = $('#rail').classList.contains('open'), paneOpen = $('#pane').classList.contains('open'), narrow = isNarrow();
   $('#scrim').classList.toggle('show', narrow && (railOpen || (paneOpen && !phoneMQ.matches)));
   // With the reading pane closed on a narrow screen the map is the page: it takes the

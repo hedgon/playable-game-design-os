@@ -1540,7 +1540,7 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 
-window.PLAYABLE_BUILD = "1971ac97";
+window.PLAYABLE_BUILD = "1272ef4b";
 window.PLAYABLE_NOFILE = {};
 const TOOLS = [["idea","Idea Shaper","Read a market for an unserved want, then shape one core idea to fill it","You have a genre or a hunch, but no idea yet.","finding-an-idea"],["dissect","Reference Dissection","Is my idea actually good? Cross-reference it against games that succeeded","You have an idea and want to know whether it is good before you build it.","learning-from-success"],["loop","Game Loop Builder","Action → Decision → Feedback → Reward → New situation, with a weak-link check","Your idea is a list of features and you cannot tell whether it repeats.","core-loop"],["canvas","Core Experience Canvas","Player, fantasy, emotions, goals, what it is not","You need one page that says who it is for and what it should feel like.","core-experience"],["ladder","Behaviour Ladder","From a feature idea to the behavior and back to the smallest mechanic","Someone asks for a feature and you need the behavior it should cause.","feature-vs-experience"],["feature","Should We Build This?","Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE","A feature is on the table and the team is about to commit.","scope-control"],["hypothesis","Playtest Hypothesis Builder","We believe… we will know when… we will kill it if…","You are about to run a playtest and want it to settle a question.","hypothesis-driven-design"],["delegate","AI Delegation Planner","Human, AI, both, or player evidence required","You are deciding which parts of the work to hand to an AI.","ai-roles"],["sysmap","System Relationship Map","Nodes and typed edges. Collision questions generated","Two systems touch and you suspect they collide.","systemic-design"],["prompt","AI Prompt Generator","CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE","You are about to ask an AI for design help and want a prompt that gets a usable answer.","prompting-framework"],["gameai","In-game AI Technique Chooser","Decision shape + team + budget → primary technique, trade-offs, debug view","A character needs to decide things in play and you must pick a technique.","choosing-ai-technique"]];
 const TOOL_GROUPS = [["shape","Shape an idea",["idea","canvas","ladder"]],["test","Test an idea",["dissect","feature","hypothesis"]],["systems","Systems",["loop","sysmap"]],["ai","AI",["delegate","prompt","gameai"]]];
@@ -3021,6 +3021,7 @@ function drawRoute(){
   $('#navMore').classList.toggle('active', !!group && NAV.indexOf(group) >= NAV_BAR); closeNavMore();
   closeModals(); closeTip();
   syncMapMode(view, parts[1]);
+  ensureShell(); if(isNarrow()) $('#pane').classList.toggle('open', !mapOnly(parts));
   drawView(view, parts);
   rememberPage();
   $("#shell").classList.toggle("work", !usesMap(parts));
@@ -3174,6 +3175,7 @@ function wireShell(){
   $('#drawerClose').onclick = closeTopDrawer;
   $('#collapseLeft').onclick = () => { delete shell.dataset.autofold; if(isNarrow()){ $('#rail').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-left'); store.set('hideLeft', h); } syncScrim(); };
   $('#collapseRight').onclick = () => { if(isNarrow()){ $('#pane').classList.toggle('open'); } else { const h = shell.classList.toggle('hide-right'); store.set('hideRight', h); } syncScrim(); };
+  if(isNarrow()) $('#pane').classList.toggle('open', !mapOnly(currentParts()));
   renderTree('home');
 }
 function railHTML(activeDom, activeTopic){
@@ -3228,6 +3230,7 @@ const phoneMQ = window.matchMedia('(max-width: 700px)');
 function syncInert(){ const railOpen = !!$('#rail') && $('#rail').classList.contains('open'); ['#rail', '#pane'].forEach(s => { const el = $(s); if(el) el.inert = isNarrow() && (!el.classList.contains('open') || (s === '#pane' && railOpen)); }); }
 function syncScrim(){
   syncInert();
+  if(A.drawPendingMap) A.drawPendingMap();
   const railOpen = $('#rail').classList.contains('open'), paneOpen = $('#pane').classList.contains('open'), narrow = isNarrow();
   $('#scrim').classList.toggle('show', narrow && (railOpen || (paneOpen && !phoneMQ.matches)));
   const mapMain = narrow && !paneOpen, ms = $('#mapstage'), mh = $('#mapH1');
@@ -6036,8 +6039,13 @@ function legendHTML(){
     <div class="lgrow"><b>Other links</b><div class="lgset">${sw('item t-game', '◇ Game')}${sw('item t-smell', '! Smell')}${sw('item t-tool', 'Tool')}${sw('item t-checklist', 'Checklist')}${sw('item t-prompt', 'Prompt')}${sw('item t-path', 'Path')}${sw('item t-part', '◆ Project part')}</div></div>
     <div class="lgrow"><b>Lines</b><div class="lgset">${ln('', 'Parent to child')}${ln('open', 'The open branch')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div></div>`;
 }
+let pendingKind = null;
+const mapCovered = () => phoneQuery.matches && $('#pane').classList.contains('open');
+function drawPendingMap(){ if(pendingKind !== null && !mapCovered()){ const k = pendingKind; pendingKind = null; renderTree(k); } }
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
+  if(mapCovered()){ pendingKind = kind === undefined ? MAP.kind : kind; return; }
+  pendingKind = null;
   const st = curState();
   const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
   const first = mapStage !== stageKey || !MAP.vb || !MAP.stage || MAP.bootHome || MAP.lensKey !== mapState.lens;   // no stage yet: the map was folded away, so this is its first view
@@ -6084,7 +6092,7 @@ function syncMapMode(view, id){
   if(view !== 'map' && MAP && MAP.g) renderTree();
 }
 
-phoneQuery.addEventListener('change', () => { syncPhoneView(); if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
+phoneQuery.addEventListener('change', () => { syncPhoneView(); if(pendingKind !== null) drawPendingMap(); else if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
 function mapProgress(){
   if(!MAP || !MAP.g || mapMode !== 'domains' || !document.body.contains(MAP.svg)) return;
   paintGraph(); updateNext();
@@ -6106,7 +6114,7 @@ function mapProgress(){
     if(t){ t.click(); setTimeout(focusMap, 750); }
   });
 }
-Object.assign(A, { SYMPTOMS, mapProgress, lensSwitchHTML, renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
+Object.assign(A, { SYMPTOMS, mapProgress, lensSwitchHTML, renderMap, renderTree, drawPendingMap, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
 })(window.PlayableApp);
 
 </script>

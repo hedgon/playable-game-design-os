@@ -1049,8 +1049,16 @@ function legendHTML(){
     <div class="lgrow"><b>Other links</b><div class="lgset">${sw('item t-game', '◇ Game')}${sw('item t-smell', '! Smell')}${sw('item t-tool', 'Tool')}${sw('item t-checklist', 'Checklist')}${sw('item t-prompt', 'Prompt')}${sw('item t-path', 'Path')}${sw('item t-part', '◆ Project part')}</div></div>
     <div class="lgrow"><b>Lines</b><div class="lgset">${ln('', 'Parent to child')}${ln('open', 'The open branch')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div></div>`;
 }
+// On a phone an open reading pane covers the whole map, so drawing it there only
+// delays the page (the longest task of a topic page's load): it is drawn when the
+// pane closes or the screen widens (drawPendingMap, called from syncScrim).
+let pendingKind = null;
+const mapCovered = () => phoneQuery.matches && $('#pane').classList.contains('open');
+function drawPendingMap(){ if(pendingKind !== null && !mapCovered()){ const k = pendingKind; pendingKind = null; renderTree(k); } }
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
+  if(mapCovered()){ pendingKind = kind === undefined ? MAP.kind : kind; return; }
+  pendingKind = null;
   const st = curState();
   const stageKey = mapMode === 'project' && projState ? 'project:' + projState.cs : mapMode === 'path' && pathMapState ? 'path:' + pathMapState.id : 'domains';
   // the first view of a stage or lens is framed afresh; a move within it keeps the zoom and tweens
@@ -1110,7 +1118,7 @@ function syncMapMode(view, id){
 }
 
 // Crossing the phone width swaps the two-sided tree for the one-sided one.
-phoneQuery.addEventListener('change', () => { syncPhoneView(); if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
+phoneQuery.addEventListener('change', () => { syncPhoneView(); if(pendingKind !== null) drawPendingMap(); else if(MAP && MAP.g && document.body.contains(MAP.svg)) renderTree(MAP.kind); });
 // A topic was marked read or unread: the map's marks, counts and next-unread cue follow.
 function mapProgress(){
   if(!MAP || !MAP.g || mapMode !== 'domains' || !document.body.contains(MAP.svg)) return;
@@ -1137,5 +1145,5 @@ function mapProgress(){
     if(t){ t.click(); setTimeout(focusMap, 750); }
   });
 }
-Object.assign(A, { SYMPTOMS, mapProgress, lensSwitchHTML, renderMap, renderTree, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
+Object.assign(A, { SYMPTOMS, mapProgress, lensSwitchHTML, renderMap, renderTree, drawPendingMap, syncMapMode, enterProject, enterPathMap, fitMap, consumeMapKeyNav, currentLens, setLens });
 })(window.PlayableApp);

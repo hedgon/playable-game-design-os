@@ -135,6 +135,16 @@ elements), not script. Two forced layouts were removed on the way (the map's
 top). Getting under 200 ms needs the map's first paint deferred or slimmed on
 phones, where the map sits behind the reading pane: a follow-up, not done here.
 
+Follow-up done (2026-10-05, after P9): on a phone an open reading pane covers the
+whole map, so the map is no longer drawn there; it is drawn when the pane closes or the
+screen widens (renderTree / drawPendingMap in 91-map.js; the pane's state for a route is
+set before the view draws). Phone, 4x CPU, file://, two runs each, longest task:
+topic page 438-515 ms before, 221-260 ms after; game page 163-231 before, 192-208 after;
+paths 171-174 before, 105-107 after; map home unchanged at about 285 (the map is the
+page there). Under 200 ms holds for paths and is at the line for game pages; a topic
+page's remaining cost is its own content. Smoke and e2e checks of the phone map now
+show the map first, as a reader must.
+
 ## Page budget headroom (P6.0, 2026-10-05)
 
 Before P6 the page was 295 KB gzipped of its 300 KB budget, with about 10-12 KB of

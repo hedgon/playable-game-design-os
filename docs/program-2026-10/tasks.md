@@ -110,6 +110,8 @@ the evidence line), `[-]` set aside (with the reason).
 - [x] P9.5 Audit N1-N4: N1 chooser under the h1, hint and backup to the foot; N2 the duplicate intent list removed, one answer narrows the list; N3 path pages fold the rail and take the reading width, map kept (e2e and earlier map work rely on it); N4 no sub-nav on a path page. Path page markup: stage headings h2, step rows an ol of li with the checkbox and its label separate from links and glossary buttons; html-validate clean, axe clean after transitions. Set aside: N4 one-line path bar (the bar is tested as a whole and serves every route), N5-N7 (topic chrome, nav labels, global counter: not in P9 scope)
 - [~] P9.6 e2e-paths.js extended (fight, re-ask, scheduling, stored result, test-out, stage map, plain list, adventure look and reduced motion): 125/125 at 1440 and 375; two stage-count checks moved to the stage map. CI replay, commit, push
 
+- [x] P9.7 Follow-up from P2: the phone map is not drawn while the reading pane covers it (topic page longest task 438-515 -> 221-260 ms, paths 105 ms); 6 smoke and 1 e2e phone-map checks now reveal the map before measuring it
+
 ## P10 Close
 - [ ] P10.1 Independent final review; fixes; re-review of the fixes
 - [ ] P10.2 README, CONTRIBUTING; skill, rules, memory; archive this folder and ui-revamp
