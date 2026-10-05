@@ -671,7 +671,7 @@ PATH('level-and-ux-designer', {
 PATH('games-that-broke-the-mould', {
   t:'Learn from games that broke the mould', tag:'Rules that teach themselves, knowledge as progress, time bent, genres fused.',
   pick:'Study the games that invented something new',
-  track:'design', level:'intermediate', hours:15.42,
+  track:'design', level:'intermediate', hours:16.25,
   audience:'Designers who know the fundamentals and want to see how some of the most original games of the last twenty-five years solved problems the usual answers could not.',
   outcome:'You can take apart an unusual game through ten lenses, name the one idea it contributed, and adapt that idea to your own design without copying its surface.',
   prereq:['game-designer-foundations'], next:['systems-designer','level-and-ux-designer','senior-game-designer','study-the-hits-play'],
@@ -720,10 +720,11 @@ PATH('games-that-broke-the-mould', {
         skip:['Can you name what a player carries from one run of your game into the next?','Can you tell a knowledge gate from a lock in a game you are designing?','Have you already playtested a gate that depends on the player noticing something?','Can you explain how a game keeps players oriented without giving answers away?']
       } },
     { id:'s3', t:'Time and turns', level:'intermediate',
-      goal:'Compare the ways games structure time, and choose the one that makes your core decision matter.', hours:3.52,
+      goal:'Compare the ways games structure time, and choose the one that makes your core decision matter.', hours:3.93,
       steps:[
         { kind:'topic', ref:'time-and-turns', why:'Real time, turns and everything between them decide what kind of skill a game asks for: thinking, reacting, or both.', do:'Place five games you know on a line from pure turns to pure real time, and write what skill each one tests.', min:25 },
         { kind:'topic', ref:'rhythm-and-music-timed-design', why:'A rhythm game is the extreme case of time as a rule: the clock is the music, and the judgement window decides whether a press counts. Its forgiveness choices transfer to any timed input.', do:'Pick one timed action in your game and write its window in milliseconds and in frames at your frame rate, and whether early and late presses are judged the same. Then say what a player who is 40 ms late every time would experience.', min:30 },
+        { kind:'game', ref:'rhythm-heaven', lens:'gameplay', why:'Rhythm Heaven makes the song the rulebook: each minigame is one timing idea learned by ear, with no note lane on screen.', do:'Read its gameplay lens, then design a cue for one timed action in your game that a player could follow by ear alone, and say how the game shows a miss.', min:25 },
         { kind:'game', ref:'valkyria-chronicles', lens:'gameplay', why:'Valkyria Chronicles puts real-time movement inside a turn, so a plan is tested by the player’s own run under fire.', do:'Read its gameplay lens and name the one rule that makes real-time movement risky rather than a slower way to click a tile.', min:25 },
         { kind:'game', ref:'smt-iii-nocturne', lens:'gameplay', why:'Press Turn makes the turn itself a resource: hitting weaknesses earns extra actions and missing costs them.', do:'Read its gameplay lens and explain how Press Turn changes what a player wants to do on their first action of a turn.', min:28 },
         { kind:'game', ref:'superhot', lens:'gameplay', why:'Superhot slows time to a crawl whenever you stand still, turning an action game into a sequence of tiny decisions.', do:'Read its gameplay lens and write what a player can do in Superhot that they cannot in a normal shooter.', min:28 },
@@ -743,10 +744,11 @@ PATH('games-that-broke-the-mould', {
         skip:['Can you say which part of your turn is planning and which is execution?','Can you name four time structures between pure turns and pure real time with an example of each?','Can you say what skill your own game’s time structure tests?','Have you already changed a game’s time structure and seen what it did to players?']
       } },
     { id:'s4', t:'Genres blended', level:'intermediate',
-      goal:'Learn when two genres make one game and when they make two half-games, and test a blend of your own.', hours:3.23,
+      goal:'Learn when two genres make one game and when they make two half-games, and test a blend of your own.', hours:3.65,
       steps:[
         { kind:'topic', ref:'genre-hybrids', why:'A hybrid works when each loop feeds the other; otherwise the player plays one and tolerates the other.', do:'Pick a hybrid you know and draw an arrow from each loop to what it gives the other. Mark any arrow that is missing.', min:25 },
         { kind:'topic', ref:'puzzles-in-action-spaces', why:'The blend works when the puzzle is built from the action game’s own verbs, so a puzzle room teaches the fight and the fight tests the puzzle. Pausing the action for a separate puzzle game is the failure.', do:'List the verbs of an action game you know, then design one puzzle room that uses only those verbs and a fight right after it that asks for the same one under pressure.', min:30 },
+        { kind:'game', ref:'crosscode', lens:'gameplay', why:'CrossCode’s puzzles are its combat kit used on a room instead of a monster, so a puzzle dungeon and an action RPG train one set of skills.', do:'Read its gameplay lens, then list two puzzle rooms that use a combat verb and the fight that follows each, and say which skill the room trained for the fight.', min:25 },
         { kind:'game', ref:'persona-5-royal', lens:'gameplay', why:'Persona 5 Royal wraps a dungeon crawler in a school calendar, and each side makes the other stronger.', do:'Read its gameplay lens and write the two arrows: what the calendar gives the dungeons, and what the dungeons give the calendar.', min:30 },
         { kind:'game', ref:'slay-the-spire', lens:'gameplay', why:'Slay the Spire fused a deckbuilder with a roguelike so closely that it popularised a genre of its own.', do:'Read its gameplay lens and name what each parent genre would lose if the other were removed.', min:20 },
         { kind:'game', ref:'danganronpa', lens:'gameplay', why:'Danganronpa takes Ace Attorney’s testimony argument and turns picking the lie into a timed shooting gallery, so working out the answer and hitting it in time become two separate skills in one blend.', do:'Read its gameplay lens, then write the arrow each half gives the other, and say whether the shooting half feeds the deduction or only taxes it.', min:24 },
@@ -794,7 +796,7 @@ PATH('games-that-broke-the-mould', {
 PATH('study-the-hits-play', {
   t:'Study the hits: how play holds people', tag:'Why some games are played for years: the dimensions of fun, skill you can feel, content that keeps asking, systems that surprise, stakes and other people.',
   pick:'Learn what keeps players playing from the hits',
-  track:'design', level:'intermediate', hours:13.5,
+  track:'design', level:'intermediate', hours:13.83,
   audience:'Designers who know the fundamentals and want to see, through fifteen well-known games, how play holds people past the first hour.',
   outcome:'You can name the dimensions of fun a game runs on, say what the player is getting better at, judge whether content asks a new question, and find the rhythm and the other people your own design depends on.',
   prereq:['game-designer-foundations'], next:['games-that-broke-the-mould','systems-designer'],
@@ -821,11 +823,12 @@ PATH('study-the-hits-play', {
         skip:['Can you name the two or three dimensions your game is mostly made of?','Can you separate the causes of returning from the causes of quitting?','Can you say which of mastery, discovery or expression your game runs on?']
       } },
     { id:'s2', t:'Skill you can feel', level:'intermediate',
-      goal:'Say what a player gets better at in a game, how the game shows them, and why a loss feels fair or not.', hours:2.75,
+      goal:'Say what a player gets better at in a game, how the game shows them, and why a loss feels fair or not.', hours:3.08,
       steps:[
         { kind:'topic', ref:'skill-and-mastery', why:'A skill has to be perceivable to reward the player, and this topic gives the vocabulary for what the game asks and how it shows growth.', do:'List the skills one game you know asks for, and mark each as taught, exercised, combined or shown back to the player.', min:20 },
         { kind:'game', ref:'celeste', lens:'gameplay', why:'Celeste hides forgiving timing windows under a punishing-looking platformer, so a death reads as the player’s mistake rather than the game’s.', do:'Read its gameplay lens and pick two of the timing windows it names, then write what a death would feel like without each.', min:25 },
         { kind:'topic', ref:'rhythm-and-music-timed-design', why:'Celeste forgives a late jump with a few frames of grace; a rhythm game makes that forgiveness the whole design. Timing windows are how a game decides that a press was skilful.', do:'Compare one of Celeste’s grace windows with a rhythm game’s judgement window: write both in milliseconds, and what each forgives and what it still asks of the player.', min:30 },
+        { kind:'game', ref:'rhythm-heaven', lens:'lineage', why:'Many games copied Rhythm Heaven’s look; its lineage lens separates what imitators copied (short minigames, comic art) from the mechanism the few close ones kept and changed.', do:'Read its lineage lens, then name one thing an imitator kept and one thing it missed, and which of the two your own game would need.', min:20 },
         { kind:'game', ref:'tetris', lens:'replay', why:'Tetris shows how changing the piece generator changed what a high score measures, luck or skill.', do:'Read its replay lens and write what a high score measured before and after the seven-bag generator.', min:25 },
         { kind:'game', ref:'into-the-breach', lens:'gameplay', why:'Into the Breach shows every queued attack and removes chance from attacks, so a lost mech traces back to a misread.', do:'Read its gameplay lens and write the one misread that could lose a mech, then say how the game makes that misread visible.', min:25 },
         { kind:'tool', ref:'hypothesis', why:'A claim that players can see their improvement is a hypothesis until a playtest shows it.', do:'Write a playtest hypothesis for one skill in your game: what players should get better at, and what you will observe to know they did.', min:25 },
@@ -1007,16 +1010,17 @@ PATH('idea-to-prototype-30-days', {
 PATH('study-the-hits-worlds', {
   t:'Study the hits: worlds, stories and audiences', tag:'How fifteen well-known games build a place, let a story land, look and sound like themselves, and tell an audience who they are for.',
   pick:'Learn how hits build worlds, stories and audiences',
-  track:'design', level:'intermediate', hours:14,
+  track:'design', level:'intermediate', hours:14.33,
   audience:'Designers who know the fundamentals and want to see, through fifteen well-known games, how a world, a story and a presentation are built and pitched.',
   outcome:'You can state a premise a system backs up, make a choice leave a mark the player connects to it, place story beats on the play timeline, give sights and sounds a fixed grammar, and say who your game is for and what changes between markets.',
   prereq:['game-designer-foundations'], next:['interview-prep-designer'],
   stages:[
     { id:'s1', t:'A premise the world backs up', level:'intermediate',
-      goal:'Write a premise sentence and say which of your world’s rules a system also enforces.', hours:2.67,
+      goal:'Write a premise sentence and say which of your world’s rules a system also enforces.', hours:3,
       steps:[
         { kind:'topic', ref:'premise-and-world', why:'A premise gives the stakes and a world gives the systems somewhere to live, and this topic keeps the two apart so each can be tested.', do:'Write the premise sentence for a game you know, with the player’s role and the stakes, then list two world rules that a system also enforces.', min:20 },
         { kind:'topic', ref:'worldbuilding-method', why:'A premise is a sentence; a world is the set of facts that keep it true everywhere the player looks. Invention, completeness and consistency are tests you can run on a design document.', do:'Write five facts about your world that the player will meet in play, then run each through the three tests and name the place, object, interface or rule that carries it to the player.', min:30 },
+        { kind:'game', ref:'crosscode', lens:'world', why:'CrossCode builds its world in two layers, an online game with its own towns and players and the real world behind it, and the gap between them is the plot.', do:'Read its world lens, then write one rule of your own world that a frame like this could explain, and what the frame would cost the story.', min:20 },
         { kind:'game', ref:'viewfinder', lens:'world', why:'Viewfinder splits its world into five hubs, four of them built by a named scientist, so moving to the next hub is meeting someone new.', do:'Read its world lens and write how a hub shows whose workspace it is, and what a player who hurries through the puzzles misses.', min:25 },
         { kind:'game', ref:'subnautica', lens:'world', why:'Subnautica runs several unrelated groups’ histories across one hand-built map, so the world is one place with many pasts.', do:'Read its world lens and list the groups that leave remains on the map, then write what nothing in the game makes the player read in order.', min:25 },
         { kind:'game', ref:'baldurs-gate-3', lens:'world', why:'Baldur’s Gate 3 borrows a published tabletop setting whole, which shows what a world costs when it is borrowed rather than built.', do:'Read its world lens and write what a player who knows the lore gets, what a new player is given, and what the writers cannot change.', min:20 },
