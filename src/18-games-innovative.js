@@ -925,7 +925,7 @@ GAME({ id:'undertale', series:{ id:'undertale-deltarune', t:'Undertale and Delta
       compare: 'Contemporary indie games such as Bastion, hand-painted, or Owlboy, in dense pixel art, spent their budget on detail across a smaller cast. Undertale instead spent its much smaller budget on breadth: more characters, less rendering per character.',
       cost: 'The simplicity that let one developer draw so much also drew real criticism for looking unpolished, and some emotional beats rely on the player already caring about a character the art alone would not sell.',
       principle: 'When a tiny team draws a large cast, a simple, consistent shape language can afford far more named characters than detailed art ever could.',
-      topics: ['visual-language'],
+      topics: ['visual-language', 'pixel-art-direction'],
       sources: ['https://en.wikipedia.org/wiki/Undertale', 'https://undertale.wiki/w/Snowdin_Town'] },
     sound: {
       claim: 'Toby Fox’s score reuses its own melodies as a memory system, so a late boss theme stitched from earlier character themes makes the whole journey audible at once.',

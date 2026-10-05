@@ -61,11 +61,11 @@ the evidence line), `[-]` set aside (with the reason).
 ## P6 New topics (20)
 - [x] P6.0 briefs/factcheck.md
 - [x] P6.0b Page budget headroom: tool code (90-app tools, 92-ideas, 93-lab; new 94-tools.js) loads on demand as content/code/tools.js and lab.js; per-file hash map replaced by ?v=BUILD (it changed every build anyway); build id hashes code too. Page 295 -> 259 KB gzipped. build, smoke 269/0, e2e 105/105, tool interactions from file:// checked
-- [~] P6.1 Workflow wf_e1ce23b6-77b running again (task wwmkcggai, single lane); if interrupted, resume with Workflow({scriptPath: <session workflows/scripts/playable-topic-pipeline-wf_e1ce23b6-77b.js>, resumeFromRunId: 'wf_e1ce23b6-77b'}). Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
-- [~] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks. 15 of 20 done (2026-10-05): each draft appended to its domain file; 14 EXPLAINER() calls authored from the outlines (frames in existing diagram kinds, illustrative numbers labelled); framework-landscape matrix split into a 2-column diagram plus the full 5-column worked table framework-families; legends, axis names and row labels fitted to the renderer (layout 0, text-fit 0). Integrated .js drafts deleted; .sources.md and .factcheck.md kept as evidence
-- [~] P6.3 Paths: realtime-at-scale-engineer (5 stages, 8.5 h) and performance-engineer (6 stages, 9.67 h) written, prereq next links, chooser (backend senior; gameplay and backend some/senior). Steps added: backtracking in level-and-ux-designer s1 and games-that-broke-the-mould s2; power creep in systems-designer s3 and senior-game-designer s3; balance in systems-designer s4 and senior-game-designer s2; hours recomputed. Remaining: the five topics still in the workflow
-- [~] P6.4 Wiring: lens topics (Hearthstone and EA FC replay -> power creep; Hollow Knight, Zelda and RE4 world, Dark Souls ui, Elden Ring lineage -> backtracking, each checked against the lens text); 12 glossary terms; inbound rels (content-multiplies, level-structure, spatial-composition, backend-observability, server-stack-choices, soft-launch-and-playable-ads, craft-performance); spatial-composition trap line points to backtracking. Set aside: review entries in other paths for topics those paths never teach (the P5 guide flags them). Remaining: the five workflow topics
-- [ ] P6.5 Checks, CI replay, commit, push
+- [x] P6.1 Workflow wf_e1ce23b6-77b finished (39 agents, single lane): 20 drafts written, fact-checked (all PASS WITH FIXES) and fixed
+- [x] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks. 20 of 20 done (2026-10-05; the last five in a second pass, with three more explainers; the pixel-art rounding claim corrected, see below): each draft appended to its domain file; 14 EXPLAINER() calls authored from the outlines (frames in existing diagram kinds, illustrative numbers labelled); framework-landscape matrix split into a 2-column diagram plus the full 5-column worked table framework-families; legends, axis names and row labels fitted to the renderer (layout 0, text-fit 0). Integrated .js drafts deleted; .sources.md and .factcheck.md kept as evidence
+- [x] P6.3 Paths: realtime-at-scale-engineer (5 stages, 8.5 h) and performance-engineer (6 stages, 9.67 h) written, prereq next links, chooser (backend senior; gameplay and backend some/senior). Steps added: backtracking in level-and-ux-designer s1 and games-that-broke-the-mould s2; power creep in systems-designer s3 and senior-game-designer s3; balance in systems-designer s4 and senior-game-designer s2; hours recomputed. Last five: rhythm in games-that-broke-the-mould s3 and study-the-hits-play s2; puzzles in games-that-broke-the-mould s4; pixel art in level-and-ux-designer s2 and study-the-hits-worlds s4; worldbuilding in study-the-hits-worlds s1; the audio clock in both engine paths’ Feel stage (9 steps there, reported long)
+- [x] P6.4 Wiring: lens topics (Hearthstone and EA FC replay -> power creep; Hollow Knight, Zelda and RE4 world, Dark Souls ui, Elden Ring lineage -> backtracking, each checked against the lens text); 12 glossary terms; inbound rels (content-multiplies, level-structure, spatial-composition, backend-observability, server-stack-choices, soft-launch-and-playable-ads, craft-performance); spatial-composition trap line points to backtracking. Set aside: review entries in other paths for topics those paths never teach (the P5 guide flags them). Last five: lens links Beat Saber gameplay, Zelda gameplay, Stardew Valley and Undertale art, Hollow Knight world, Dark Souls lore; 4 more glossary terms (91); 5 inbound rels. Correction made on integration: the pixel-art outline and its fact-check both said banker’s rounding moves a 0.5 px/frame sprite on frames 2, 4, 6, 8; it gives 0,1,2,2,2,3,4,4 (uneven bursts on 2, 3, 6, 7). The explainer and the interview answer now say so. Integrated drafts are stubs until the P7/P8 workflow (which may load them) finishes, then deleted
+- [~] P6.5 Checks, CI replay, commit, push (topics 231/231 in paths; layout 0; text-fit 0)
 
 | Topic | Draft | Fact-check | Integrated |
 | --- | --- | --- | --- |
@@ -84,11 +84,11 @@ the evidence line), `[-]` set aside (with the reason).
 | craft-memory-loading-and-streaming | [x] | [x] PASS WITH FIXES, fixed | [x] |
 | web-performance-basics | [x] | [x] PASS WITH FIXES, fixed | [x] |
 | backend-latency-and-query-optimisation | [x] | [x] PASS WITH FIXES, fixed | [x] |
-| puzzles-in-action-spaces | [x] | [~] workflow | [ ] |
-| pixel-art-direction | [~] workflow | [ ] | [ ] |
-| worldbuilding-method | [~] workflow | [ ] | [ ] |
-| rhythm-and-music-timed-design | [ ] | [ ] | [ ] |
-| craft-audio-clock-and-input-latency | [ ] | [ ] | [ ] |
+| puzzles-in-action-spaces | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| pixel-art-direction | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| worldbuilding-method | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| rhythm-and-music-timed-design | [x] | [x] PASS WITH FIXES, fixed | [x] |
+| craft-audio-clock-and-input-latency | [x] | [x] PASS WITH FIXES, fixed | [x] |
 
 ## P7 New games
 - [ ] P7.1 Drafts (writer-sonnet-low): crosscode, rhythm-heaven, rhythm-doctor

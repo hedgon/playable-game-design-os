@@ -16,7 +16,7 @@
 PATH('gameplay-engineer-godot', {
   t:'Gameplay engineer, Godot', tag:'Ship the core loop in Godot: signals, physics ticks, and a technique you can debug.',
   pick:'Build a gameplay system end to end in Godot 4',
-  track:'engineering', level:'beginner', hours:18.25,
+  track:'engineering', level:'beginner', hours:18.6,
   audience:'Programmers new to Godot who already know how to code and want to implement a documented gameplay system end to end, in Godot 4. Game designer foundations is optional: steps marked as refreshers repeat its ideas in a few minutes.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Godot, and you can point at the physics tick, the signal, and the Resource that make each one work.',
   prereq:[], next:['performance-engineer','senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
@@ -89,7 +89,7 @@ PATH('gameplay-engineer-godot', {
         skip:['Have you already written a die() function that measures and logs its own recovery time?','Can you turn a mechanic into an @export Resource without checking the Godot docs?','Do you know what happens to an autoload’s state across reload_current_scene(), from experience rather than a guess?','Can you run a design review checklist on your own feature and act on an answer you did not want to hear?']
       } },
     { id:'s3', t:'Feel, in Godot', level:'intermediate',
-      goal:'Make outcomes legible with feedback, buy that legibility with juice, and keep controls forgiving.', hours:3.25,
+      goal:'Make outcomes legible with feedback, buy that legibility with juice, and keep controls forgiving.', hours:3.6,
       steps:[
         { kind:'topic', ref:'feedback-and-affordance', tab:'overview', why:'A refresher if you finished Game designer foundations, so skim it; otherwise it is the design idea the code needs. Without feedback the player cannot tell if their action worked, no matter how good the mechanic is underneath.', do:'List your three most common actions and, for each, what confirms the input and what confirms the outcome. Mark the empty cells.', min:12 },
         { kind:'topic', ref:'feedback-and-affordance', tab:'godot', why:'One outcome signal fanning out to animation, sound, and a tween means the miss case cannot be the one nobody wired.', do:'Emit a single outcome signal (hit, blocked, missed) from your resolver and connect one AnimationPlayer clip, one sound, and one create_tween() scale-pop to each of the three outcomes.', min:30 },
@@ -98,6 +98,7 @@ PATH('gameplay-engineer-godot', {
         { kind:'topic', ref:'controls-and-friction', tab:'overview', why:'A refresher if you finished Game designer foundations, so skim it; otherwise it is the design idea the code needs. Controls are the interface the player never stops touching. Friction there costs more than friction anywhere else.', do:'List your three most-repeated inputs and rate each for how forgiving it currently is, from instant to punishing a late press.', min:12 },
         { kind:'topic', ref:'controls-and-friction', tab:'godot', why:'Remapping rewrites the InputMap at runtime, and it has to be persisted or the player loses it on relaunch.', do:'Write a rebind() function that erases and re-adds an InputMap action, then saves the binding to a ConfigFile in user://.', min:25 },
         { kind:'tool', ref:'hypothesis', why:'A feel change is a claim, not a fact, until you write down the signal that would prove it worked.', do:'Write a hypothesis in the Hypothesis Builder for one feel change you just made (the buffer, the hit-stop, or the rebind), naming the signal and the kill criterion.', min:35 },
+        { kind:'topic', ref:'craft-audio-clock-and-input-latency', tab:'godot', why:'Anything timed to music drifts if it runs on the frame clock; feel that depends on sound needs the audio clock and a stated latency budget.', do:'Read the Godot tab, then play a short track and log the song position from the audio clock beside your frame-counted time every second, and write how far apart they are after a minute.', min:30 },
         { kind:'topic', ref:'craft-performance', tab:'godot', why:'Juice adds particles, tweens and shakes every frame, and only a profiler shows which one costs the frame.', do:'Read the Godot tab, then open the Debugger’s Profiler and Visual Profiler on your juiced scene, and write the three most expensive functions and the frame budget they share.', min:30 }
       ],
       review:['decisions'],
@@ -164,7 +165,7 @@ PATH('gameplay-engineer-godot', {
 PATH('gameplay-engineer-unity', {
   t:'Gameplay engineer, Unity', tag:'Ship the core loop in Unity: the Input System, FixedUpdate, and a technique you can debug.',
   pick:'Build a gameplay system end to end in Unity 6',
-  track:'engineering', level:'beginner', hours:18.5,
+  track:'engineering', level:'beginner', hours:19.02,
   audience:'Programmers new to Unity who already know how to code and want to implement a documented gameplay system end to end, in Unity 6. Game designer foundations is optional: steps marked as refreshers repeat its ideas in a few minutes.',
   outcome:'You can build a core loop, a decision UI, and a chosen AI technique in Unity, and you can point at the Update/FixedUpdate split, the UnityEvent, and the ScriptableObject that make each one work.',
   prereq:[], next:['performance-engineer','senior-game-developer-ai-era','interview-prep-engineer','ai-engineering-for-game-devs','game-ai-programmer','technical-lead'],
@@ -238,7 +239,7 @@ PATH('gameplay-engineer-unity', {
         skip:['Have you already pooled a retry path instead of reloading the whole scene?','Can you turn a mechanic into a ScriptableObject with a FormerlySerializedAs guard without checking the docs?','Do you know which of your own scripts breaks a strict one-way dependency direction, right now?','Can you run a design review checklist on your own feature and act on an answer you did not want to hear?']
       } },
     { id:'s3', t:'Feel, in Unity', level:'intermediate',
-      goal:'Make outcomes legible with an event per outcome, buy that legibility with juice, and keep controls forgiving.', hours:2.75,
+      goal:'Make outcomes legible with an event per outcome, buy that legibility with juice, and keep controls forgiving.', hours:3.27,
       steps:[
         { kind:'topic', ref:'feedback-and-affordance', tab:'overview', why:'A refresher if you finished Game designer foundations, so skim it; otherwise it is the design idea the code needs. Without feedback the player cannot tell if their action worked, no matter how good the mechanic is underneath.', do:'List your three most common actions and, for each, what confirms the input and what confirms the outcome. Mark the empty cells.', min:12 },
         { kind:'topic', ref:'feedback-and-affordance', tab:'unity', why:'A UnityEvent per outcome, consumed by an Animator trigger, an AudioSource, and a particle burst, means the miss case cannot be the one nobody wired.', do:'Raise a UnityEvent<T> per outcome (hit, blocked, missed) from your resolver, wire an Animator.SetTrigger(), an AudioSource.PlayOneShot(), and a ParticleSystem.Play() to each, and reset triggers before setting a new one.', min:25 },
@@ -247,6 +248,7 @@ PATH('gameplay-engineer-unity', {
         { kind:'topic', ref:'controls-and-friction', tab:'overview', why:'A refresher if you finished Game designer foundations, so skim it; otherwise it is the design idea the code needs. Controls are the interface the player never stops touching. Friction there costs more than friction anywhere else.', do:'List your three most-repeated inputs and rate each for how forgiving it currently is, from instant to punishing a late press.', min:12 },
         { kind:'topic', ref:'controls-and-friction', tab:'unity', why:'Interactive rebinding excludes the pointer and the cancel key, then the override has to be saved as JSON or the player loses it on relaunch.', do:'Set up PerformInteractiveRebinding on one action excluding the pointer, then save the result with SaveBindingOverridesAsJson().', min:25 },
         { kind:'tool', ref:'hypothesis', why:'A feel change is a claim, not a fact, until you write down the signal that would prove it worked.', do:'Write a hypothesis in the Hypothesis Builder for one feel change you just made (the buffer, the hit-stop, or the rebind), naming the signal and the kill criterion.', min:25 },
+        { kind:'topic', ref:'craft-audio-clock-and-input-latency', tab:'unity', why:'Anything timed to music drifts if it runs on the frame clock; feel that depends on sound needs the audio clock and a stated latency budget.', do:'Read the Unity tab, then play a short track and log AudioSettings.dspTime beside your frame-counted time every second, and write how far apart they are after a minute.', min:30 },
         { kind:'topic', ref:'craft-performance', tab:'unity', why:'Juice adds work to every frame, and only the Profiler shows which effect spends the budget.', do:'Read the Unity tab, then wrap your feedback code in a ProfilerMarker, open the Profiler on a juiced scene, and write the three most expensive markers against the 16.7 ms frame at 60 fps.', min:30 }
       ],
       review:['decisions'],

@@ -873,7 +873,7 @@ GAME({ id:'dark-souls', series:{ id:'souls', t:'FromSoftware’s Souls games', n
       compare: 'Most role-playing games deliver a comparable late reveal through a scripted cutscene everyone sees in the same order. Dark Souls instead makes the reveal conditional on two optional player behaviours, reading obscure items and choosing to attack an ostensibly friendly character, so large parts of the audience never receive it at all.',
       cost: 'Burying a major plot point this deeply means most players will simply never encounter it without external help, and relying on item text for revelations this significant asks a lot of patience from anyone who is not already inclined to read every description.',
       principle: 'A revelation delivered only through optional reading and an optional, faintly transgressive action rewards attentive players without punishing everyone else with exposition; the cost is that most of the audience will never see it.',
-      topics: ['narrative-pacing'],
+      topics: ['narrative-pacing', 'worldbuilding-method'],
       sources: ['https://en.wikipedia.org/wiki/Anor_Londo'] },
     world: {
       claim: 'Lordran’s cosmology gives every named god, place and monster a shared origin in one event, the First Flame, so the world holds together as one mythology even though the player only ever sees its fading, decayed end state.',

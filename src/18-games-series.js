@@ -2370,7 +2370,7 @@ SERIES({
       compare: 'Elden Ring (2022), whose director Hidetaka Miyazaki has cited Breath of the Wild as a design influence, adopts a similar all-at-once structure for a different genre: its Lands Between can be crossed in almost any direction from the opening hour, with difficulty managed by preparation and level rather than a required item sequence.',
       cost: 'Every shrine and Divine Beast must be solvable by a player who could, in principle, be missing nothing or almost everything, so no puzzle can assume a specific late-game tool the way A Link to the Past’s later dungeons assumed the hookshot; Nintendo pays with more general, less item-specific puzzle design.',
       principle: 'Removing a series’ oldest gating mechanism only stays fair if every remaining test can already be solved by whatever a player happens to be carrying at the time; design the puzzles around a shared toolkit’s interactions, not around the assumption that a specific tool has already been found.',
-      topics: ['mechanics-and-rules', 'progression'],
+      topics: ['mechanics-and-rules', 'progression', 'puzzles-in-action-spaces'],
       sources: ['https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Breath_of_the_Wild', 'https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_A_Link_to_the_Past', 'https://en.wikipedia.org/wiki/Elden_Ring'] },
     ui: {
       claim: 'Breath of the Wild (2017) turns one of its menus into a camera: a creature, weapon or material enters the Hyrule Compendium only after Link raises the Sheikah Slate, an in-fiction tablet, and photographs it in the world.',

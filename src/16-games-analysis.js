@@ -94,7 +94,7 @@ ANALYSIS('hollow-knight', {
       compare: 'Super Metroid’s Zebes is smaller and more linear, with upgrades opening areas in a mostly set order. Hollow Knight opens several routes early, so sequence varies more between players.',
       cost: 'A world grown this way has uneven pacing, with dead ends and long walks, and non-linear routes make it hard to guide a stuck player without markers. Size also meant years of development for a very small team.',
       principle: 'Connect each region in more than one place and players will write their own route, but plan how a lost player finds the next step.',
-      topics: ['spatial-composition', 'backtracking-and-return-trips'],
+      topics: ['spatial-composition', 'backtracking-and-return-trips', 'worldbuilding-method'],
       sources: ['https://www.pcgamer.com/how-to-design-a-great-metroidvania-map/', 'https://hollowknight.wiki/w/Mantis_Tribe', 'https://en.wikipedia.org/wiki/Super_Metroid'] },
     env: {
       claim: 'Hollow Knight’s places show the kingdom’s fall in progress: the City of Tears keeps its grandeur, its rain and its guards, so the player reads what Hallownest was and what happened to it in the same room.',
@@ -425,7 +425,7 @@ ANALYSIS('stardew-valley', {
       compare: 'Coral Island, a later farm sim reviewers set beside Stardew, is built in 3D in Unreal Engine 4 by the studio Stairway Games, trading one-person scope for a team pipeline. Stardew’s 2D pixel art is a scope decision as much as a style choice.',
       cost: 'A fixed low resolution limits how much detail one tile or face can carry, so emotional nuance leans on text and portrait swaps rather than animation, and each new expression costs a whole extra portrait.',
       principle: 'For a solo or small team, a small, consistent pixel grid is a scope tool as much as an aesthetic choice: it bounds how much art each new object costs, at the price of per-object nuance.',
-      topics: ['visual-language'],
+      topics: ['visual-language', 'pixel-art-direction'],
       sources: ['https://www.gamedeveloper.com/production/how-i-stardew-valley-i-creator-eric-barone-coped-with-a-four-year-dev-cycle', 'https://en.wikipedia.org/wiki/Stardew_Valley'] },
     sound: {
       claim: 'Barone scored Stardew Valley by season rather than by place, so the calendar the whole game runs on is something the player hears, not only a date read in a corner.',

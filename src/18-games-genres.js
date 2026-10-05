@@ -5828,7 +5828,7 @@ GAME({ id:'beat-saber', img:'assets/games/beat-saber.jpg', dev:'Beat Games', sto
       compare: 'Guitar Hero’s note highway asks for the right fret at the right time, and the hand stays on the guitar. Beat Saber keeps the highway but makes each note a whole-arm movement in space.',
       cost: 'The chart author carries the weight: a chart that ignores arm flow feels awful however good the song, and the swing-size scoring tires arms and shoulders over long sessions.',
       principle: 'When the input is a movement, design the sequence of movements and test it for flow, not only each input for timing.',
-      topics: ['core-loop', 'skill-and-mastery', 'mechanics-and-rules'],
+      topics: ['core-loop', 'skill-and-mastery', 'mechanics-and-rules', 'rhythm-and-music-timed-design'],
       sources: ['https://en.wikipedia.org/wiki/Beat_Saber', 'https://bsmg.wiki/ranking-guide.html', 'https://voicesofvr.com/644-beat-saber-lets-you-become-the-music-through-puzzles-your-body-solves/', 'https://blog.playstation.com/archive/2019/06/27/this-is-how-beat-sabers-awesome-action-rhythm-stages-are-built/'] },
     ui: {
       claim: 'Beat Saber puts almost every rule into the notes themselves, so the player reads the whole game in the place their eyes already are.',
