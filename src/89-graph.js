@@ -274,7 +274,10 @@ window.PlayableGraph = (function(){
       const v = views[rid] || safe(() => [VIEW_LINKS[rid]])[0];
       if(v && !used.has(rid)){ used.add(rid); same.push(item('view', rid, v[1], why, v[0])); }
     });
-    Object.values(TOPICS).forEach(x => { const r = (x.rel || []).find(([rid]) => rid === tid); if(r) relTopic(x.id, r[1]); });
+    // the page keeps only link ids for topics it has not loaded; a loaded topic brings the
+    // reasons others give for linking to it (relIn, written by the build) in the same order
+    (t.relIn || Object.values(TOPICS).map(x => [x.id, ((x.rel || []).find(([rid]) => rid === tid) || [])[1], (x.rel || []).some(([rid]) => rid === tid)]).filter(r => r[2]))
+      .forEach(([xid, why]) => relTopic(xid, why));
     add('rel', 'Related topics', same);
     LENSES.forEach(([lid, lname]) => { if(other[lid]) add('lens:' + lid, 'Also in ' + lname.split(/[ &]/)[0], other[lid]); });
 

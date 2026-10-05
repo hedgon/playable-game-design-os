@@ -39,7 +39,7 @@ Owner (2026-10-05):
   motion ideas. No footage of other people's games, no editor recordings.
 - **Images approved**: official images for CrossCode, Rhythm Doctor and Rhythm Heaven from
   Steam and publisher press pages (LaunchBox captures only where no official image exists).
-- **Agents**: at most two at once, plain agents or a Workflow.
+- **Agents**: at most two at once at first; **from later on 2026-10-05, one at a time** (owner: "cap down subagents count to only 1"), plain agents or a Workflow.
 - **Writers**: games on `writer-sonnet-low` (owner default), technical topics on
   `writer-sonnet-medium`, fact-checks on `factcheck-opus-medium`.
 - **Tests**: no unit tests (none exist; smoke.js and e2e-paths.js are browser end-to-end

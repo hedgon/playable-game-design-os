@@ -19,10 +19,13 @@ jobs:
       - name: Build and check
         run: node src/build.js
 
-      # playable.html is committed for GitHub Pages, so it must be the build
-      # of the committed sources.
-      - name: playable.html matches the sources
-        run: git diff --exit-code playable.html
+      # playable.html and content/ are committed for GitHub Pages, so they must be
+      # the build of the committed sources. git status also catches a content
+      # file the build wrote that was never committed, and one it removed.
+      - name: playable.html and content/ match the sources
+        run: |
+          changed=$(git status --porcelain -- playable.html content/)
+          if [ -n "$changed" ]; then echo "$changed"; echo "::error::playable.html or content/ differs from the build of the committed sources: run node src/build.js and commit the result"; exit 1; fi
 
       - name: Type-check the data
         run: npx -y -p typescript@5 tsc -p jsconfig.json

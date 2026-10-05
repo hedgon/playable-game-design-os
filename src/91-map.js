@@ -306,20 +306,23 @@ function applyVB(svg, vb){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} 
 function updateMoreCues(){
   const el = $('#mapmore'); if(!el || !MAP || !MAP.g || !MAP.vb) return;
   const cnt = { l:0, r:0, u:0, d:0 }, cx = { u:0, d:0 };
-  // measured on screen, where the reader sees it: the SVG fits the viewBox to its
-  // stage and centres it, so the stage can show more than the viewBox itself
-  // one transform per call, not a layout read per card: this runs on every frame of a camera move
-  const wr = MAP.wrap.getBoundingClientRect(), m = MAP.svg.getScreenCTM();
-  if(m && !phoneQuery.matches && wr.width > 50 && wr.height > 50)
+  // The window the reader sees, in graph units: the SVG fits the viewBox to its
+  // stage and centres it, so when their shapes differ the stage shows more than
+  // the viewBox. The stage size is cached by the resize observer: this runs on
+  // every frame of a camera move and must not force a layout.
+  const [W, H] = MAP.size || (MAP.size = [MAP.wrap.clientWidth, MAP.wrap.clientHeight]);
+  const s = Math.min(W / MAP.vb.w, H / MAP.vb.h) || 1, vb = { w: W / s, h: H / s };
+  vb.x = MAP.vb.x - (vb.w - MAP.vb.w) / 2; vb.y = MAP.vb.y - (vb.h - MAP.vb.h) / 2;
+  if(!phoneQuery.matches && W > 50 && H > 50)
     for(const n of MAP.g.nodes){
       if(n.kind !== 'leaf' && n.kind !== 'item') continue;
-      const x = m.a * n.x + m.e, w = m.a * n.w, y = m.d * n.y + m.f, mid = x + w / 2 - wr.left;
+      const mid = n.x + n.w / 2;
       // a card whose middle is above or below the window is "more"; one beside it is "cut off" once a sixth of it is hidden
-      if(y > wr.bottom){ cnt.d++; cx.d += mid; } else if(y < wr.top){ cnt.u++; cx.u += mid; }
-      else if(x + w > wr.right + w / 6) cnt.r++; else if(x < wr.left - w / 6) cnt.l++;
+      if(n.y > vb.y + vb.h){ cnt.d++; cx.d += mid; } else if(n.y < vb.y){ cnt.u++; cx.u += mid; }
+      else if(n.x + n.w > vb.x + vb.w + n.w / 6) cnt.r++; else if(n.x < vb.x - n.w / 6) cnt.l++;
     }
   // the up and down pills sit over the column of leaves they count
-  const at = k => cnt[k] ? Math.max(12, Math.min(88, cx[k] / cnt[k] / wr.width * 100)) : 50;
+  const at = k => cnt[k] ? Math.max(12, Math.min(88, (cx[k] / cnt[k] - vb.x) / vb.w * 100)) : 50;
   const ARROW = { l:'←', r:'→', u:'↑', d:'↓' }, sig = JSON.stringify([cnt, at('u'), at('d')]);
   if(el.dataset.sig === sig) return;
   el.dataset.sig = sig;
@@ -990,7 +993,7 @@ function initMapStage(){
   // When the stage changes size (window, rotation, a panel collapsed or
   // dragged) the camera is framed again, unless the reader moved it.
   let resizeT = 0;
-  const ro = new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
+  const ro = new ResizeObserver(entries => { const r = entries[entries.length - 1].contentRect; if(MAP) MAP.size = [Math.round(r.width), Math.round(r.height)]; clearTimeout(resizeT); resizeT = setTimeout(() => {
     if(wrap.clientWidth < 50 && MAP) MAP.stage = null;   // folded away: when it is shown again that is a first view
     if(!MAP.g || !document.body.contains(svg) || wrap.clientWidth < 50) return;
     // a resized stage shows a different part of the tree, whatever the camera does next

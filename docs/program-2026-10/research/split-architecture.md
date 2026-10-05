@@ -1,5 +1,5 @@
 ---
-status: draft
+status: shipped
 updated: 2026-10-05
 ---
 
@@ -88,3 +88,48 @@ So the split is: light fields as listed, plus four derived light fields built at
 time (`lensTopics` per game, `idea` per game, the step references of each path stage,
 the cited-source list for Sources), the domain-page diagrams and the AI-philosophy topic
 fields loaded on those routes, and a pre-built search index.
+
+## Result (P2, 2026-10-05)
+
+What shipped differs from the design above in four measured ways:
+
+- Smells, checklists and prompt templates are split too (a second trace, with those
+  lists wrapped, showed their long fields are read only on their own pages). The
+  glossary stays whole: its definitions are read on the one glossary page.
+- A topic keeps only the ids of its `rel` links; the reasons go to its file, and each
+  topic's file also carries `relIn`, the reasons other topics give for linking to it,
+  which the map shows on the selected topic's leaves.
+- The page drops data bindings its scripts never reach (registration helpers,
+  build-only tables), ships its scripts and stylesheet without whole-line comments
+  (an acorn token comparison proved the stripping removes comments only), parses
+  large values with `JSON.parse`, and runs each part as its own `<script>`.
+- Search is two files: a head (titles, synonyms, snippets) that answers at once and
+  a body (each entry's words, deduplicated with counts) that follows.
+
+| Check | Result |
+| --- | --- |
+| Lossless split | every entity: light merged with content equals the original (build check) |
+| Golden master, old single file vs new split, 1440 px | 2,363 routes empty and 2,414 after using the app: h1, visible text, links and rail identical on every route; 0 page errors on either build; map node counts equal on every route once animations settle (55 differed mid-animation) |
+| Search, 30 queries | first results identical; 3 queries differ lower down, because the new index counts every repeat of a word (the old count missed adjacent repeats) |
+| Text-fit sweep | measures 1,770 map states in the page, equal to the sources' map states (the build's 1,779 adds 9 workflow charts) |
+| smoke.js | 269 route visits (same as before), 0 failures |
+| e2e-paths.js | 105/105 |
+| `file://` | a game, a topic, a path, Sources, Checklists and a search all load from disk |
+
+Performance (Edge, cache disabled, median-ish single runs; the machine was also running writer agents):
+
+| Measure | Old single file | New | Target |
+| --- | --- | --- | --- |
+| `playable.html` gzipped | 2,844 KB | 292 KB | 300 KB (met; enforced by the build) |
+| Phone 4x CPU, slow 4G: page drawn | 48.4-48.9 s | 7.2-8.7 s | |
+| Phone 4x CPU: page drawn | 4.5-6.1 s | 1.7-4.0 s | under 2 s from DOMContentLoaded (met on #/paths; not on topic and game pages, where the map's first paint is the cost) |
+| Phone 4x CPU: longest task | 1.9-3.4 s | 0.4-1.2 s | under 200 ms (not met; see below) |
+| First search keystroke, longest task, phone 4x | 3.4 s | 62-77 ms | under 100 ms (met) |
+| Desktop: longest task | 256-373 ms | 99-211 ms | |
+
+Not met, and why: a CPU profile of a phone load shows the remaining long task is
+the first layout of the page and the map's SVG (style and layout of a few thousand
+elements), not script. Two forced layouts were removed on the way (the map's
+"more" cue read layout on every frame; every page reset its scroll even at the
+top). Getting under 200 ms needs the map's first paint deferred or slimmed on
+phones, where the map sits behind the reading pane: a follow-up, not done here.

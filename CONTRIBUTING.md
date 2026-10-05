@@ -5,15 +5,17 @@ has to pass. For what the guide is, see [README.md](README.md).
 
 ## Edit the sources, then build
 
-`playable.html` is generated. Edit the files in `src/`, then run:
+`playable.html` and `content/` are generated. Edit the files in `src/`, then run:
 
 ```bash
 node src/build.js
 ```
 
-The build concatenates the sources in the order listed in `src/manifest.js`
-(the single place to add or rename a file), writes `playable.html`, and fails
-loudly if any check fails:
+The build evaluates the data files listed in `src/manifest.js` (the single place
+to add or rename a file), splits every entity into the light part the page keeps
+and the long part that goes to its own file in `content/` (see "How the page
+loads content" below), writes `playable.html` from the head, the generated data
+and the page scripts, and fails loudly if any check fails:
 
 | Check | What it guards |
 | --- | --- |
@@ -23,9 +25,32 @@ loudly if any check fails:
 | syntax | The bundle and each source file parse. |
 | actions | Every `data-action` in the markup has a handler in `ACTIONS`. |
 | breakpoints | Every width the app tests with `matchMedia` is also a breakpoint in the stylesheet, so script and CSS agree on when the drawers apply. |
+| lossless split | Every entity's light part merged with its content file gives back exactly the original data. |
+| page budget | `playable.html` stays at or under 300 KB gzipped. Content files have no budget: a long field read only on its own page goes to content, never gets cut. |
 
-Do not edit `playable.html` by hand: CI rebuilds it and fails when the committed
-file differs from the build of the committed sources.
+Do not edit `playable.html` or `content/` by hand: CI rebuilds them and fails when
+the committed files differ from the build of the committed sources, including a
+content file that was never committed or one the build no longer writes.
+
+### How the page loads content
+
+The page keeps, for every topic, game, path, project, platform guide, engine
+guide, comparison, smell, checklist and prompt template, only the fields other
+pages read: titles, ids, links, tags, the map's structure. Those fields are
+declared per kind in `LIGHT` in `src/content-build.js`; every other field goes to
+`content/<kind>/<id>.js`. The router (`contentNeeds` in `90-app.js`) loads the
+files a route shows before drawing it (`src/86-content.js`), and the long fields
+are merged into the same objects, so view code reads `TOPICS[id].what` as always.
+Search loads its own index, built in advance from the full text
+(`searchIndexData` in `85-shared.js`): `content/file/search.js` with titles and
+snippets, then `search-body.js` with each entry's words.
+
+When new code on one page reads a long field of an entity from another page, add
+the field to `LIGHT` (or load that entity in `contentNeeds`); otherwise it reads
+`undefined`. The field-read trace and the golden master in
+`docs/program-2026-10/research/split-architecture.md` show how this was measured.
+Checks that need long fields (smoke.js) take them from the sources with
+`src/load-data.js`, never from the page.
 
 All scripts are plain Node (version 24 in CI) with no dependencies. Useful on
 their own:
@@ -70,10 +95,9 @@ Set `PLAYWRIGHT_CHANNEL=chrome` to use an installed Chrome instead.
 `src/e2e-paths.js` drives the learning paths the same way, at 375 and 1440 px:
 continue at a checkpoint, ticking a step, undo, the four structure indicators on
 an open path, map framing, the chooser, and a checkpoint question going into
-Review. Run it with `node src/e2e-paths.js` after the same Playwright setup. CI
-does not run it yet.
+Review. Run it with `node src/e2e-paths.js` after the same Playwright setup.
 
-CI (`.github/workflows/build.yml`) runs the build, the `playable.html` sync check,
+CI (`.github/workflows/build.yml`) runs the build, the `playable.html` and `content/` sync check,
 the type check, the smoke test and the paths test on every push and pull request.
 
 ## Source files
@@ -109,6 +133,8 @@ the type check, the smoke test and the paths test on every push and pull request
 45-go-samples.js          GO() sample entries (the Go tab); replace with real content
 50-paths.js               PATH, PATHS, TRACKS, LEVELS, step titles and links; design, leadership and interview paths
 51-paths-engineering.js   engineering-track paths
+85-shared.js              helpers, the AI prompt ladder and sources list, and the search index builder: run by the page and by the build
+86-content.js             the loader for content/ files (PlayableContent.need)
 87-diagrams.js            data diagrams: loop, stack, matrix, quad, curve, economy, state, screen
 88-flow.js                workflow chart renderer (also the diagrams' flow kind)
 89-graph.js               tidy-tree mind-map layout and rendering (topic map, project map, path map)
@@ -121,6 +147,8 @@ the type check, the smoke test and the paths test on every push and pull request
 99-tail.js                boot
 manifest.js               ordered file list
 build.js                  build and checks (above)
+content-build.js          the split into the page's light index and content/ files (LIGHT), the search index, the lossless check
+load-data.js              the full data from the sources, for checks that need long fields
 validate.js, check-layout.js, layout-core.js, check-contrast.js, inventory.js, smoke.js, e2e-paths.js, serve.js
 research-notes.md         verified sources behind the synthesis, with dates
 ```

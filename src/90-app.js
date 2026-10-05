@@ -216,7 +216,49 @@ function placeFocus(parts, samePage){
   t.focus({ preventScroll: true });
 }
 let lastRouteKey = null, booted = false, afterRoute = null;
+/* The long text of a topic, game, path, project, guide or comparison is in its
+   own file (86-content.js). A route first loads what it shows, then draws; a
+   reader who moves on before the file arrives is not dragged back. */
+function contentNeeds(parts){
+  const [v, a, b] = parts;
+  const every = (kind, list) => list.map(x => [kind, x.id]);
+  switch(v){
+    case 'map': return a === 't' && b ? [['topic', b]] : a === 's' && b ? [['smell', b]] : [];
+    case 'smell': return a ? [['smell', a]] : [];
+    case 'diagnose': return a === 'smells' && b ? [['smell', b]] : [];
+    case 'checklists': return a ? [['checklist', a]] : every('checklist', CHECKLISTS);
+    case 'prompts': case 'playtest': return a && v === 'prompts' ? [['prompt', a]] : every('prompt', PROMPT_TEMPLATES);
+    case 'explore': return a && DOMAIN_DIAGRAMS[a] ? [['topic', DOMAIN_DIAGRAMS[a]]] : [];
+    case 'games': return a === 'compare' ? (b ? [['compare', b]] : []) : a && a !== 'topic' ? [['game', a]] : [];
+    case 'paths': return a && a !== 'review' ? [['path', a]] : [];
+    case 'experience': return a ? [['case', a]] : [];
+    case 'platforms': return a ? [['platform', a]] : [];
+    case 'engines': return a ? [['engine', a]] : [];
+    case 'ai': return a === 'philosophy' ? [['topic', 'bottleneck-shift']] : [];
+    case 'sources': return [['file', 'cited']];
+  }
+  return [];
+}
+let routeSeq = 0, routePending = false, routedHash = null;
+// For tests and tools: resolves once the page for the current address is drawn,
+// including a hash change whose event has not fired yet.
+const settled = () => new Promise(res => { const check = () => routedHash === location.hash && !routePending ? res() : setTimeout(check, 10); check(); });
 function route(){
+  const seq = ++routeSeq, at = location.hash; routedHash = null;
+  const parts = (location.hash.replace(/^#\/?/, '') || 'map').split('/').filter(Boolean);
+  const needs = missing(parts) ? [] : contentNeeds(parts).filter(([k, id]) => !PlayableContent.has(k, id));
+  routePending = true;
+  const finish = () => { if(seq !== routeSeq) return; routePending = false; routedHash = at; };   // a redirect while drawing leaves the next route to settle
+  if(!needs.length){ drawRoute(); finish(); return; }
+  const slow = setTimeout(() => { if(seq === routeSeq) setView(`<p class="dim" role="status">Loading…</p>`); }, 150);
+  PlayableContent.needAll(needs).then(() => { clearTimeout(slow); if(seq === routeSeq){ drawRoute(); finish(); } }, err => {
+    clearTimeout(slow); if(seq !== routeSeq) return;
+    console.warn(err);
+    setView(`<h1>This page could not be loaded</h1><div class="callout"><p>Its content file did not arrive. If you are offline, the pages you have opened before still work.</p><p><button type="button" class="btn sm" data-action="reload-page">Try again</button></p></div>`);
+    finish();
+  });
+}
+function drawRoute(){
   const raw = location.hash.replace(/^#\/?/, '');
   // First-ever load (no hash, nothing in this browser yet) opens the door
   // instead of the map. Every other route, including a later empty hash
@@ -615,7 +657,8 @@ function setView(html){
   if(!pane.dataset.barScroll){ pane.dataset.barScroll = '1'; pane.addEventListener('scroll', syncBarCompact, { passive: true }); }
   if(bar){ pbWatch = new ResizeObserver(() => pane.style.setProperty('--pbH', bar.offsetHeight + 'px')); pbWatch.observe(bar); }
   // A new page starts at its top, in the window and in the pane's own scroll.
-  if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else { window.scrollTo({ top: 0 }); pane.scrollTop = 0; }
+  // (only when it is not there already: setting a scroll position forces a layout of the new page)
+  if(keep){ window.scrollTo({ top: y }); pane.scrollTop = py; } else { if(y) window.scrollTo({ top: 0 }); if(py) pane.scrollTop = 0; }
 }
 // The views of the current group, as sub-tabs. The map group shows them on
 // its landing views only, not above every domain and topic page.
@@ -641,8 +684,6 @@ function gameArt(g){
   if(g.artLicence) return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: a screenshot" loading="lazy"><figcaption>Image: ${esc(g.dev)}, ${esc(g.artLicence)}, via <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">${esc(g.artSource)}</a>.</figcaption></figure>`;
   return `<figure class="gameart"><img src="${g.img}" alt="${esc(g.t)}: store art" loading="lazy"><figcaption>Store art: ${esc(g.dev)}, from the <a href="${esc(g.store)}" target="_blank" rel="noopener noreferrer">official store page</a>.</figcaption></figure>`;
 }
-const familyLabel = id => (GAME_FAMILIES.find(f => f[0] === id) || [id, id])[1];
-const lensLabel = key => (GAME_LENSES.find(l => l[0] === key) || [key, key])[1];
 // The library's view and filters are a per-browser convenience.
 const libState = () => { const s = store.get('library', { view:'grid', shelf:'', family:'', tag:'', lens:'', topic:'', lensk:'' }); if (s.tag && !GAME_TAGS.includes(s.tag)) s.tag = ''; if (s.shelf && !GAME_SHELVES.some(x => x[0] === s.shelf)) s.shelf = ''; return s; };
 // From a game page: open the library showing that game's family.
@@ -682,8 +723,6 @@ ACTIONS['worked-download'] = el => {
   const a = document.createElement('a'); a.href = url; a.download = w.file; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
-const gameById = id => REFERENCE_GAMES.find(g => g.id === id);
-const compareTitle = c => gameById(c.games[0]).t + ' and ' + gameById(c.games[1]).t;
 const compareCard = c => `<a class="card lnk comparecard" href="#/games/compare/${esc(c.id)}"><div class="overline">${esc(compareTitle(c))}</div><b>${esc(c.t)}</b><p class="small dim" style="margin:6px 0 0">${esc(c.problem)}</p></a>`;
 function compareShelf(){
   return COMPARISONS.length ? `<div class="section-head"><h2>Two games, one problem</h2><span class="muted"><a href="#/games/compare">${COMPARISONS.length} comparison${COMPARISONS.length === 1 ? '' : 's'}</a></span></div><div class="grid auto">${COMPARISONS.map(compareCard).join('')}</div>` : '';
@@ -782,8 +821,6 @@ function signatureHTML(g){
   const s = g.signature; if(!s) return '';
   return `<section class="card sigcard"><div class="overline">The idea worth stealing</div><h2>${esc(s.idea)}</h2>${SIGNATURE_PARTS.map(([k, label]) => `<h3 class="h4look">${esc(label)}</h3><p>${esc(s[k])}</p>`).join('')}</section>`;
 }
-// A series shows the span of its entries; a single game its release year.
-const gameYears = g => g.kind === 'series' && (g.entries || []).length ? `${g.entries[0].year}–${g.entries[g.entries.length - 1].year}` : String(g.year);
 // Series pages list their entries (linking any analysed on its own) and say
 // what the formula keeps and changes; a game in a series links back to it.
 function seriesHTML(g){
@@ -1915,20 +1952,6 @@ function aiFrameworkView(){
 }
 const FORMULA_TERMS = [['CONTEXT','Player, fantasy, core loop, systems. The world as it is. Without it you get the genre average.'],['INTENT','The experience you want and the decision you need to make. Without it the AI picks the decision.'],['CONSTRAINTS','Platform, scope, team, off-limits. Without them you get the biggest plausible answer.'],['EVIDENCE','Playtest results, telemetry, known problems. Without it the task should be "design the test", not "design the feature".'],['ROLE','The stance: skeptical systems designer, UX researcher, devil’s advocate. Without it you get mild everything.'],['TASK','Analyse, generate N, compare, simulate, build with logging. Specific verbs and counts.'],['OUTPUT FORMAT','A table, a ranked list, code with an exposed tuning panel, a hypothesis in standard form. How you will consume it.'],['CRITIQUE','What the AI must attack in its own output and what it must not do: recommend, decide, add scope.']];
 function wireFramework(){ $$('#fmla button').forEach(b => b.onclick = () => { $$('#fmla button').forEach(x => x.classList.remove('active')); b.classList.add('active'); const t = FORMULA_TERMS[+b.dataset.i]; $('#fmlaInfo').innerHTML = `<h3>${esc(t[0])}</h3><p>${esc(t[1])}</p>`; }); }
-const LADDER = [
-  { n:1, stage:'Observe', role:'Observer', you:'Collect what players actually do: reviews, forums, streams, patch-note reactions, mods, spreadsheets, third-party tools.', ai:'Structure the raw artefacts, cluster recurring behaviour, and mark each claim fact, inference or speculation.', caution:'AI must never invent evidence. If it cannot cite the artefact, it is speculation.', prompt:`Here are raw player artefacts (reviews, forum posts, clips, tool descriptions): [PASTE]. Extract the recurring behaviours. For each, give the artefact it came from and label it fact, inference or speculation. Do not propose game ideas.` },
-  { n:2, stage:'Signal to tension', role:'Opportunity analyst', you:'Decide which signal is interesting. Complaints are not automatically opportunities.', ai:'Find the want underneath the behaviour: what players are trying to do, what they tolerate, what they work around, where the contradiction is.', caution:'Do not let AI turn every complaint into a feature.', prompt:`Signals: [SIGNALS]. For each, state the underlying want in the players' own words, the contradiction or friction around it, and the workaround players already use. Mark what is observed and what is inferred. Do not propose solutions.` },
-  { n:3, stage:'Tension to opportunity', role:'Opportunity analyst', you:'Decide whether the tension is worth building for.', ai:'State the opportunity in one sentence that names a player, a desire we can serve, and what they do instead today.', caution:'An opportunity is a claim, not a fact. Keep the evidence level attached.', prompt:`Tensions: [TENSIONS]. Write one opportunity sentence per tension: for [PLAYER], there may be an opportunity to [DO SOMETHING] that today they get from [WORKAROUND] instead. For each, say what evidence exists and what is only inferred.` },
-  { n:4, stage:'Opportunity to design question', role:'Question generator', you:'Choose the question that changes what the player does.', ai:'Turn opportunities into can-we questions. Questions only.', caution:'If AI starts answering, stop it. A question is the product of this stage.', prompt:`Opportunity: [OPPORTUNITY]. Write 5 design questions in the form Can we ... ? Each should change the player's behaviour rather than add a feature. Rank them by how much they change what the player does. Do not answer any of them.` },
-  { n:5, stage:'Design question to design space', role:'Design-space explorer', you:'Recognise which axes matter and which are noise.', ai:'Name the dimensions along which the problem can be solved, the options on each, and the extreme corners of the space.', caution:'Do not converge here. Expansion is the point.', prompt:`Design question: [QUESTION]. Identify the 3 axes that matter most for solving it, 3 to 5 options on each, and describe the extreme corner of each combination. Do not choose a direction.` },
-  { n:6, stage:'Design space to mechanisms', role:'Mechanism designer', you:'Look for rules that produce genuinely different behaviour, not reskins.', ai:'Generate mechanically distinct rules. For each: the rule, the decision it creates every minute, the intended emotion, the systemic interactions, the failure mode, the implementation cost.', caution:'Mechanisms, not pitches. Do not ask which is best yet.', prompt:`Design question: [QUESTION]. Design space: [SPACE]. Propose 6 mechanically distinct mechanisms, smallest first. For each: the rule in one sentence, the decision it creates, the intended emotion, the systems it touches, the failure mode, and the cheapest way to fake it for a test. Do not recommend one.` },
-  { n:7, stage:'Mechanisms to critique', role:"Devil's advocate", you:'Weigh the critique. Decide what it kills.', ai:'Attack each mechanism: who would not care, what breaks after 30 minutes and after 10 hours, why it might be a reskin, what an incumbent could copy, and the one assumption carrying it.', caution:'A critique is input, not a verdict. AI does not decide.', prompt:`Mechanisms: [MECHANISMS]. As a hostile reviewer, for each mechanism give: why a player would not care, the behaviour after 30 minutes and after 10 hours, whether the difference is mechanical or cosmetic, which incumbent could copy it, and the single assumption it depends on.` },
-  { n:8, stage:'Critique to hypothesis', role:'Hypothesis framer', you:'Commit to a claim you are willing to kill.', ai:'Help write it in standard form: we believe [player] will [behaviour] because [reason]. Signal. Kill criterion.', caution:'If the kill criterion is missing, it is hope, not a hypothesis.', prompt:`Chosen direction: [DIRECTION]. Write it as: we believe [PLAYER] will [OBSERVABLE BEHAVIOUR] because [MECHANISM]. We will know it works when [SIGNAL]. We will kill it if [CRITERION]. Then name the alternative explanation that would produce the same signal.` },
-  { n:9, stage:'Hypothesis to prototype', role:'Prototype designer', you:'Accept the scope. The prototype proves one thing.', ai:'Design the smallest test: only the mechanics needed, exposed tuning values, full logging, exclusions.', caution:'If the prototype answers more than the hypothesis, it is too big.', prompt:`Hypothesis: [HYPOTHESIS]. Build the smallest playable test in [ENGINE] that could disprove it. Only the mechanics needed, grey boxes, no menus or saves, expose [VALUES] as live sliders, log every input, decision, failure and session boundary with timestamps. List the design decisions the code will embed before writing it.` },
-  { n:10, stage:'Player evidence', role:'Playtest analyst', you:'Watch the players. Interpret the context only you have.', ai:'Find patterns in notes, transcripts and logs. Separate behaviour from self-report. Surface contradictions.', caution:'Simulation is not evidence. Only real players count.', prompt:`Here are observer notes, transcripts and logs: [DATA]. Cluster behaviour, mark patterns present in 3 or more players versus outliers, align notes to telemetry by time, and separate what players did from what they said. State what the evidence does and does not support. Do not interpret causes or recommend changes.` },
-  { n:11, stage:'Evidence to decision', role:'You, the human', you:'Kill, iterate, prototype again, or commit. Nobody else can make this call.', ai:'Summarise the evidence and the open questions. Nothing more.', caution:'If AI is choosing whether to continue, the process has failed.', prompt:`Here is the evidence: [EVIDENCE]. Summarise what it shows, what it cannot show, and the open questions. Present the options kill, iterate, prototype again, or commit, with the tradeoffs of each. Recommend nothing.` },
-  { n:12, stage:'Decision to Idea Card', role:'Concept editor', you:'Own the final words.', ai:'Compress the chain into the Idea Card: player, promise, mechanism, core verb, fantasy, constraints, hypothesis, biggest risk, cheapest test, evidence level.', caution:'Compression, not creation. If the card contains a claim the chain does not, delete it.', prompt:`Here is the full reasoning chain: [CHAIN]. Compress it into an Idea Card with: player, desire, tension, opportunity, promise, core verb, mechanism, differentiation, fantasy, constraints, hypothesis, biggest risk, cheapest test, and the evidence level of each claim. Do not add anything that is not in the chain.` }
-];
 function aiLadderView(){
   return `<div class="callout"><b>Do not ask AI for the game.</b> Ask it for one rung at a time, in order. Each rung names the partner, what you decide, what AI does, a prompt, and the failure to avoid.</div>
     <div class="ladderflow">${LADDER.map(s => `<div class="rung-card"><div class="rung-num">${s.n}</div><div class="rung-body"><div class="rung-stage">${esc(s.stage)}</div><div class="rung-grid"><div class="box"><h4>You decide</h4><p>${esc(s.you)}</p></div><div class="box"><h4>AI partner · ${esc(s.role)}</h4><p>${esc(s.ai)}</p></div></div>${promptBox('Prompt for this rung', s.prompt)}<div class="callout warn" style="margin-top:6px"><b>Failure to avoid:</b> ${esc(s.caution)}</div></div></div>`).join('<div class="rung-arrow">↓</div>')}</div>
@@ -2022,54 +2045,12 @@ function renderChecklists(id){
 /* =====================================================================
    SOURCES AND LINEAGE
    ===================================================================== */
-const SOURCES = [
-  ['MDA framework and the eight kinds of fun','Hunicke, LeBlanc and Zubek (2004): mechanics are what designers write, dynamics what happens at runtime, aesthetics what players feel. Designers build bottom-up. Players experience top-down. LeBlanc’s eight aesthetics (sensation, fantasy, narrative, challenge, fellowship, discovery, expression, submission) are an explicitly non-exhaustive vocabulary.','Used in: Fun dimensions, Mechanics and rules.','heuristic'],
-  ['Four keys to fun','Nicole Lazzaro (2004), from observing players’ emotional expressions: hard fun (mastery, fiero), easy fun (curiosity), people fun (social), serious fun (meaning). Her heuristic: successful games offer at least three.','Used in: Fun dimensions.','heuristic'],
-  ['Self-Determination Theory in games','Ryan, Rigby and Przybylski (2006) and Rigby and Ryan, Glued to Games (2011): enjoyment and continued play track satisfaction of competence, autonomy and relatedness. One of the few research-backed models here.','Used in: Player motivation, Return and quit, Social experience.','research'],
-  ['Flow and player-steered difficulty','Csikszentmihalyi’s flow (challenge matching skill). Jenova Chen’s thesis Flow in Games (2006) argues for letting players steer difficulty through play rather than hidden adjustment. Flow-channel literalism is contested. Some games live outside the band on purpose.','Used in: Difficulty, Fun dimensions.','contested'],
-  ['Interesting decisions','Sid Meier (GDC 2012): a game is a series of interesting decisions, interesting ones involve tradeoffs, depend on the situation, and express the player. Decisions need visible consequences and enough information to reason.','Used in: Meaningful decisions, Risk and reward, Core loop diagnostic.','heuristic'],
-  ['Depth versus complexity. Elegance','Popularised by Extra Credits (2013) and widely used since: complexity is what the player must learn, depth is the meaningful decisions that result, elegance is depth per rule. Soren Johnson’s Water Finds a Crack (2011): players exploit every hole. No agreed metric. Use as a lens.','Used in: Depth vs complexity, Rule audit tool.','heuristic'],
-  ['A Theory of Fun','Raph Koster (2004): fun is the pleasure of learning and mastering patterns, boredom arrives when the pattern is exhausted, trivial, or too noisy to perceive.','Used in: Fun dimensions, Skill and mastery, Repetitive smell.','heuristic'],
-  ['The Art of Game Design','Jesse Schell (2008): the elemental tetrad (mechanics, story, aesthetics, technology) and the lenses, question-sets that force one viewpoint at a time. This guide’s eight-part topic structure is in that spirit.','Used in: the topic structure, Narrative and Presentation domains.','heuristic'],
-  ['Game Feel and the Art of Screenshake','Steve Swink (2008): real-time control of virtual objects, in a simulated space, emphasised by polish, response within about 100 ms. Jan Willem Nijman (Vlambeer, 2013): a live demo of how much perceived quality comes from layered feedback.','Used in: Game feel and juice, Feedback, Floaty combat smell.','heuristic'],
-  ['Kishōtenketsu level structure','Koichi Hayashida (Nintendo, 2012 interview on Super Mario 3D Land): introduce, develop, twist, conclude, each level a short lesson about one idea. Celeste (Maddy Thorson, GDC 2017): one movement idea per room, failure kept cheap.','Used in: Level structure (teach, test, twist, combine, master, rest).','heuristic'],
-  ['Ludonarrative dissonance','Clint Hocking (2007), on a game whose mechanics rewarded self-interest while its story preached altruism. Sometimes a deliberate expressive tool, not always a defect.','Used in: Ludonarrative alignment.','heuristic'],
-  ['Ten thousand bowls of oatmeal','Kate Compton (2016): a generator can make endless mathematically unique outputs that all read as the same thing. Perceptual uniqueness is the real bar. Perceptual differentiation the minimum.','Used in: Procedural and AI-generated content, Content spam failure mode.','heuristic'],
-  ['Game UX: usability and engage-ability','Celia Hodent, The Gamer’s Brain (2017): usability (signs and feedback, clarity, form follows function, consistency, minimum workload, error recovery, flexibility) versus engage-ability. Don Norman’s affordances and signifiers. Nielsen’s heuristics adapted for games.','Used in: the whole UX domain.','research'],
-  ['Playtesting as empiricism','Mike Ambinder (Valve, GDC 2009): designs are hypotheses, playtests are experiments, observe behaviour and weigh self-report against it. Richard Lemarchand, A Playful Production Process (2021): concentric development, vertical slice, regular structured playtesting. Dan Cook: skill atoms, loops and arcs.','Used in: Playtesting, Hypothesis-driven design, Vertical slice, Content multiplies.','practice'],
-  ['Designing Games','Tynan Sylvester (2013): games are systems for generating experiences, target emotion, design for emergence, and maximise emotional power while minimizing burden on players and team.','Used in: Core experience, Systemic design, Agency and emergence.','heuristic'],
-  ['Studio maxims, read carefully','Jaime Griesemer’s “30 seconds of fun” (Bungie) meant nested loops of roughly 3 seconds, 30 seconds and 3 minutes, not one repeated loop. “Easy to learn, hard to master” is Bushnell’s Law (Atari), adopted by Blizzard. A slogan, not a method.','Used in: Core loop, Goals at three horizons.','contested'],
-  ['Hypothesis-driven design','The “We believe X will Y because Z. We will know when W” template comes from Lean Startup (Eric Ries) and Lean UX (Gothelf and Seiden), not from a game-specific source. Its game analogue is Ambinder’s and Lemarchand’s practice of testing with a written question.','Used in: Hypothesis Builder, the 12-step loop.','practice'],
-  ['Generative AI in design workflows (2024 to 2026)','Industry surveys in this period report rising developer concern about generative AI, with usage concentrated in research, brainstorming, code assistance and prototyping rather than shipped assets. Talks and articles (for example Rez Graham, GDC 2025. Raph Koster on depth and AI understanding) warn of derivative output and volume over quality. The recurring success pattern: designers own the first prototype, use AI to widen options rather than choose them, and validate with playtests.','Used in: the whole AI Collaboration domain, When AI makes your game worse.','practice'],
-  ['Agents, evals and model judges (2023 to 2026)','Model-graded evaluation spread in 2023. Zheng et al. (2023) found that a strong model judge agreed with people about as often as people agree with each other, and documented its biases toward answer position, answer length and its own answers. From 2025, coding agents that edit files, run commands and iterate against tests came into regular use. The guide’s position (runnable checks, calibrated judges, reviewed diffs) is the verification discipline of the rest of the domain, applied at a larger scale.','Used in: Agents that build, Evals.','practice'],
-  ['Postmortems that generalise','Into the Breach (Subset Games): cut by whether it serves the core decision loop. Spelunky (Derek Yu): generation earned its place after authored room templates made runs readable. Slay the Spire (Mega Crit): telemetry guided balance, designers kept the call. Hades (Supergiant): early access forced regular playable builds and tuning against real players.','Used in: Scope control, Procedural content, Builds and loadouts, Iteration on evidence.','practice'],
-  ['Game art and images','The reference games are shown with our own schematics of their loops and screens. Store art and a few official screenshots appear small, credited to the developer and linked to the official store page, each screenshot attached to the point it teaches, with no claim of endorsement. Games with no store page we can credit show an original drawing of ours, labelled as such. Any generated image would be marked as generated beside it. If you hold the rights to an image here and want it removed, open an issue on the guide’s repository (github.com/hedgon/playable-game-design-os) and it will be taken down.','Used in: Reference games, Reference Dissection.','practice'],
-  ['Player taxonomies','Bartle’s types (1996) came from text MUDs and were never validated as exclusive segments. Later work treats motivations as continuous scales: Nick Yee’s Quantic Foundry model measures twelve motivations in six pairs (Action, Social, Mastery, Achievement, Immersion, Creativity) from player surveys. This guide uses taxonomies as vocabulary, never as segmentation.','Used in: Who is the player, Player motivation.','contested'],
-  ['Behaviour trees and reactive architectures','Popularised in AAA by Damian Isla’s GDC talks on Halo 2’s behaviour tree, and by the constraints of the period: FSMs that grew unreadable, and the need for re-usable, designer-tunable sub-behaviour. Behaviour trees are now the default reactive layer in engines (Unity, Unreal).','Used in: Choosing a behaviour technique, In-game AI domain.','practice'],
-  ['Utility AI and goal-oriented planners','Dave Mark’s GDC work on utility/infinite-axis utility, and Jeff Orkin’s F.E.A.R. talk (GDC 2006) on a goal-oriented action planner, are the standard practitioner references for scoring competing actions and for long-horizon, emergent plans. Both are heuristics tuned per game, not general algorithms.','Used in: Choosing a behaviour technique, Adaptive AI and directors.','practice'],
-  ['Game AI as experience, not optimality','A long-standing practitioner position (Mick West on Killer Instinct’s readable AI, Richard Evans on The Sims, the “AI is a lie” thread in Game AI Pro) holds that in-game AI is judged by the experience it creates, not by how smart it is. Faked, scripted and telegraphed behaviour often reads better than simulation.','Used in: What in-game AI is for, Readable and fair AI, Scripted vs simulated.','practice'],
-  ['Learning-based game AI','Yannakakis and Togelius, Artificial Intelligence and Games (2018), plus headline results (DeepMind AlphaStar, OpenAI Five): learned policies reach superhuman play, but shipping constraints (determinism, debuggability, cost, unfair-but-strong play) keep most production wins in testing, balance, animation and control rather than shipped opponents.','Used in: Learning-based and ML-driven AI.','contested'],
-  ['Language models as characters','Park et al., Generative Agents (2023): characters driven by a language model with memory and planning produce believable social behaviour in a sandbox. Shipping them adds what research demos skip: the OWASP Top 10 for LLM applications ranks prompt injection first, and latency, cost, moderation and age ratings apply to every line. The guide keeps the game in charge of actions and falls back to authored lines.','Used in: Generative characters.','contested'],
-  ['Gaffer on Games','Glenn Fiedler (from 2004): articles on the fixed timestep, deterministic simulation and network state synchronisation, written by an engine programmer for other programmers. The site takes the fixed-step loop and the vocabulary of snapshots, inputs and determinism.','Used in: The game loop and fixed timestep, Rollback netcode and lockstep.','practice'],
-  ['GGPO and rollback netcode','Tony Cannon (GGPO, 2006): predict the remote player’s input, run the frame at once, and rewind and replay when the guess was wrong. Fighting games made it the standard. The site takes the idea that latency can be hidden by guessing, and the cost: a game that can save, restore and re-simulate its state exactly.','Used in: Rollback netcode and lockstep.','practice'],
-  ['Game Programming Patterns','Robert Nystrom (2014, free online): the classic patterns (game loop, update method, component, state, object pool, command) explained with game code and their trade-offs. The site takes the names and the warning that a pattern is a tool with a cost, not a goal.','Used in: Design patterns in games, The game loop and fixed timestep, Entities, scenes and ECS.','practice'],
-  ['Game Engine Architecture','Jason Gregory (3rd edition, 2018, from his work at Naughty Dog): a tour of what a whole engine contains, from memory and the main loop to resources and the runtime object model. The site uses it as a map of the engine, not as a rulebook for any one of them.','Used in: engine and craft topics that explain how an engine is put together (loop, scenes, memory).','practice'],
-  ['Game Mechanics: Advanced Game Design','Ernest Adams and Joris Dormans (2012): a game economy is a network of sources, sinks, converters and feedback loops, drawn and simulated in the Machinations tool. The site takes the habit of modelling an economy before tuning numbers.','Used in: Economy modelling and balance.','practice'],
-  ['Radical Candor','Kim Scott (2017): feedback works when you care personally and challenge directly. A popular framework rather than research, and directness norms vary by culture and power. The site uses it as one lens on giving feedback, next to written expectations and the law.','Used in: Feedback and performance management.','contested'],
-  ['Rules that change','Store rules, laws and court rulings on AI disclosure, loot boxes, payments and children’s data change every year. Topics that depend on them carry dated facts, each with its source and the day it was checked, and the build warns when one is a year old. They are a starting point for your own check, not legal advice.','Used in: Ethics and responsibility, Business model, Launch and discoverability, Disclosure and platform rules, Generative assets, Generative characters.','practice']
-];
 // Every dated fact in the data, grouped by the page that cites it: [title, href, facts] for topics, platform
 // and engine guides, and the curated channels.
 const hostOf = src => { try { return new URL(src).hostname.replace(/^www\./, ''); } catch(e) { return src; } };
-function citedSources(){
-  const groups = [];
-  const add = (t, href, facts) => { const f = (facts || []).filter(x => x && x.src); if(f.length) groups.push([t, href, f]); };
-  TOPIC_LIST.forEach(t => add(t.t, '#/map/t/' + t.id, t.facts));
-  PLATFORMS.forEach(p => add(p.t + ' (platform guide)', '#/platforms/' + p.id, Object.values(p.stages).flatMap(st => st.facts || [])));
-  ENGINES.forEach(e => add(e.t + ' (engine guide)', '#/engines/' + e.id, Object.values(e.stages).flatMap(st => st.facts || [])));
-  add('Curated and regional channels', '#/platforms', PLATFORM_NOTES.flatMap(n => n.facts || []));
-  return groups;
-}
+// Every dated fact's source, grouped by page: read from every topic's and guide's
+// long fields, so the build works it out (citedSourcesData in 85-shared.js).
+function citedSources(){ return PlayableContent.blob('cited') || []; }
 function citedHTML(){
   const groups = citedSources(), n = groups.reduce((k, g) => k + g[2].length, 0), hosts = new Set(groups.flatMap(g => g[2].map(f => hostOf(f.src))));
   if(!n) return '';
@@ -2091,7 +2072,6 @@ function renderSources(){
    EXPERIENCE: anonymised case studies
    ===================================================================== */
 // A snippet cut on a word boundary; "…" only when text was actually cut.
-function snip(s, n){ s = String(s); if(s.length <= n) return s; const c = s.slice(0, n), i = c.lastIndexOf(' '); return (i > n * 0.6 ? c.slice(0, i) : c).replace(/[s,;:.-–—]+$/, '') + '…'; }
 function caseCard(c){ return `<a class="card clickable tint lnk blk" style="--dc:var(--accent2)" href="#/experience/${c.id}"><h3>${esc(c.t)}</h3>${c.sub ? `<div class="casesub">${esc(c.sub)}</div>` : ''}<div class="small muted">${esc(c.role)} · ${esc(c.period)}</div><p class="dim small" style="margin:6px 0 0"><span class="csnip">${esc(snip(c.context, 180))}</span><span class="cfull">${esc(c.context)}</span></p><div class="chips" style="margin-top:8px">${c.stack.slice(0, 5).map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></a>`; }
 // The head is separate from the body because the project page puts a tab
 // strip between them: the codename, its description and the chips stay put
@@ -2260,6 +2240,7 @@ const REVIEW_DAYS = [1, 2, 4, 8, 16];
 const today = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); };
 const reviewItems = () => Object.fromEntries(Object.entries(store.get('review', {})).filter(([, r]) => r && typeof r === 'object' && !Array.isArray(r)));
 const reviewDue = () => Object.entries(reviewItems()).filter(([, r]) => r.due <= today());
+ACTIONS['reload-page'] = () => location.reload();
 ACTIONS['review-toggle'] = el => {
   const items = reviewItems(), k = el.dataset.key, body = el.closest('.body'), q = el.closest('details').querySelector('summary').textContent;
   if(items[k]) delete items[k];
@@ -2659,82 +2640,25 @@ const withNext = (main, rows, label) => { const b = nextBlocks(rows); return wid
 /* =====================================================================
    SEARCH
    ===================================================================== */
-let _INDEX = null;
-// Other names readers type for a topic. Topic data carries no synonyms, so they live here, beside the index that reads them.
-const TOPIC_SYNONYMS = {
-  'design-documents':['gdd','design doc','game design document'],
-  'economy-modelling-and-balance':['balance','balancing','game balance'],
-  'onboarding':['ftue','first time user experience'],
-  'game-feel-and-juice':['juice','juicy'],
-  'difficulty':['flow','flow state','challenge and skill'],
-  'combat-design':['boss','bosses','boss fight','telegraph'],
-  'three-cs':['3cs','3 cs'],
-  'camera-design':['camera']
-};
-function buildIndex(){
-  const INDEX = [];
-const engText = t => (t.eng ? ['godot','unity'].flatMap(k => t.eng[k] ? [t.eng[k].term, ...(t.eng[k].api||[]), t.eng[k].pitfall, t.eng[k].map] : []) : []).concat(t.go ? [...t.go.api, t.go.pitfall] : []);
-const ivQ = t => t.iv ? ['junior','mid','senior'].flatMap(k => (t.iv[k]||[]).map(x => x.q)) : [];
-TOPIC_LIST.forEach(t => INDEX.push({ type:'topic', t:t.t, snip:t.tag, href:'#/map/t/'+t.id, aka:TOPIC_SYNONYMS[t.id] || [], text:[t.t, t.tag, t.what, ...(t.why||[]), ...(t.think.q||[]), ...(t.think.traps||[]), ...(t.how||[]), ...(t.prompts||[]).map(p=>p.l+' '+p.p), ...(t.facts||[]).map(f=>f.claim), ...engText(t), ...ivQ(t)].join(' ').toLowerCase() }));
-TOPIC_LIST.filter(t => t.iv).forEach(t => INDEX.push({ type:'interview', t:t.t+' · interview', snip:`${DOM[t.d].t} · questions, model answers and red flags`, href:'#/map/t/'+t.id+'/interview', text:('interview questions answers red flag junior mid senior '+t.t+' '+ivQ(t).join(' ')).toLowerCase() }));
-CASE_STUDIES.forEach(c => INDEX.push({ type:'experience', t:c.t, snip:`${c.sub ? c.sub + ' · ' : ''}${c.role} · ${c.period}`, href:'#/experience/'+c.id, text:(c.t+' '+(c.sub||'')+' '+c.role+' '+c.stack.join(' ')+' '+c.context+' '+c.arch.join(' ')+' '+c.decisions.map(x=>x.d+' '+x.why+' '+x.trade).join(' ')+' '+c.lessons.map(x=>x.what+' '+x.lesson).join(' ')+' '+c.stories.map(s=>s.s+' '+s.t+' '+s.a+' '+s.r).join(' ')).toLowerCase() }));
-CASE_STUDIES.forEach(c => (c.systems||[]).forEach(s => (s.parts||[]).forEach(p => INDEX.push({ type:'experience', t:c.t+' · '+p.t, snip:`${s.t} · ${p.why}`, href:`#/experience/${c.id}/${s.id}/${p.id}`, text:(c.t+' '+s.t+' '+s.kind+' '+(s.stack||[]).join(' ')+' '+p.t+' '+p.what+' '+(p.how||[]).join(' ')+' '+p.why+' '+p.trade+' '+(p.story||'')).toLowerCase() }))));
-CASE_STUDIES.forEach(c => (c.flows||[]).forEach(f => INDEX.push({ type:'experience', t:(c.code||c.t)+' · '+f.t, snip:`Workflow · ${(f.steps||[]).length} steps · ${f.sum}`, href:`#/experience/${c.id}/flow/${f.id}`, text:('workflow flow chart '+(c.code||c.t)+' '+f.t+' '+f.sum+' '+(f.steps||[]).map(s=>s.t+' '+s.d).join(' ')+' '+(f.edges||[]).map(e=>e[2]||'').join(' ')).toLowerCase() })));
-CASE_STUDIES.filter(c => c.iv).forEach(c => INDEX.push({ type:'interview', t:c.t+' · interview', snip:`${c.sub || c.role} · questions, model answers and red flags`, href:'#/experience/'+c.id+'/interview', text:('interview questions answers red flag junior mid senior project '+c.t+' '+(c.sub||'')+' '+['junior','mid','senior'].flatMap(k => (c.iv[k]||[]).map(x => x.q+' '+x.a)).join(' ')).toLowerCase() }));
-CASE_STUDIES.forEach(c => (c.systems||[]).filter(s => s.iv).forEach(s => INDEX.push({ type:'interview', t:c.t+' · '+s.t, snip:'Likely questions on this system', href:`#/experience/${c.id}/${s.id}`, text:('interview likely questions '+c.t+' '+s.t+' '+s.iv.map(x=>x.q+' '+x.a).join(' ')).toLowerCase() })));
-GLOSSARY.forEach(g => INDEX.push({ type:'term', t:g.term, snip:snip(g.def, 110), href:'#/glossary/'+g.id, aka:g.aka || [], text:(g.term+' '+g.def).toLowerCase() }));
-DOMAINS.forEach(d => INDEX.push({ type:'domain', t:d.t, snip:d.short, href:'#/explore/'+d.id, text:(d.t+' '+d.short+' '+d.sum).toLowerCase() }));
-PAGES.forEach(([href, t, section, purpose, aka]) => INDEX.push({ type:'page', t, snip:`${section} · ${purpose}`, href, text:[t, section, purpose, ...aka].join(' ').toLowerCase(), aka }));
-const guideText = stages => Object.values(stages).flatMap(s => [...(s.points || []), ...(s.facts || []).map(f => f.claim), ...(s.deploy || []).flatMap(d => [d.t, d.d]), ...(s.iv || []).map(x => x.q)]);
-PLATFORMS.forEach(p => INDEX.push({ type:'platform', t:p.t, snip:p.short, href:'#/platforms/'+p.id, text:[p.t, p.sub, p.short, ...guideText(p.stages)].join(' ').toLowerCase() }));
-ENGINES.forEach(e => INDEX.push({ type:'platform', t:e.t, snip:e.short, href:'#/engines/'+e.id, text:[e.t, e.sub, e.short, ...e.glance, ...guideText(e.stages)].join(' ').toLowerCase(), aka:['engine', e.kind] }));
-const SMELL_KW = { 'repetitive':'samey boring grind monotonous stale loop repetitive', 'one-build':'meta dominant strategy convergence balance pick rate', 'ignore-mechanics':'unused abilities never touched dead system', 'tutorial-too-long':'onboarding skip text explain wall of text', 'impressive-but-boring':'polish spectacle graphics demo shallow', 'fun-but-no-return':'retention churn day two return come back', 'meaningless-progression':'grind number goes up unlock pointless power creep', 'too-many-currencies':'economy wallet gems coins exchange', 'floaty-combat':'weight impact hit feel juice combat fight melee attack', 'unfair':'cheap random punishing difficulty spike fair fairness gank', 'no-experiment':'curiosity try things safe optimal', 'same-way':'style variety identical converge', 'features-not-better':'feature creep scope bloat roadmap bloat', 'ai-ideas-none-right':'generic brainstorm options proposals average', 'quit-early':'drop off first session bounce choke', 'dont-understand-system':'mental model confusing rules opaque', 'ignore-content':'skip side content rush optional poi', 'players-lose-agency':'choices do not matter cutscene control railroad', 'dont-know-what-to-do':'lost aimless wander objective direction' };
-SMELLS.forEach(s => INDEX.push({ type:'smell', t:s.t, snip:s.sym, href:'#/smell/'+s.id, text:(s.t+' '+s.sym+' '+(SMELL_KW[s.id]||'')+' '+s.causes.map(c=>c.c+' '+c.exp).join(' ')).toLowerCase() }));
-PROMPT_TEMPLATES.forEach(p => INDEX.push({ type:'prompt', t:p.t, snip:p.cat+' · '+snip(p.p, 100), href:'#/prompts/'+p.id, text:(p.t+' '+p.cat+' '+p.p).toLowerCase() }));
-ROLES.forEach(r => INDEX.push({ type:'AI role', t:r.t, snip:r.job, href:'#/ai/roles/'+r.id, text:(r.t+' '+r.job+' '+r.use.join(' ')+' '+r.avoid.join(' ')+' '+r.starter).toLowerCase() }));
-SOURCES.forEach(s => INDEX.push({ type:'source', t:s[0], snip:snip(s[1], 110), href:'#/sources', text:(s[0]+' '+s[1]).toLowerCase() }));
-const gameText = g => [g.t, g.genre, familyLabel(g.family), ...(g.tags || []), ...(g.series ? [g.series.t] : []), ...(g.entries || []).flatMap(e => [e.t, e.added]), g.constant, g.changed, ...(g.reception || []).flatMap(r => [r.entry, r.why]), g.receptionLesson, g.want, g.verb, g.why, g.lesson, g.misses, ...(g.signature ? Object.values(g.signature) : []), ...(g.lens ? Object.entries(g.lens).flatMap(([k, l]) => [lensLabel(k), l.claim, l.evidence, l.mechanism, l.effect, l.compare, l.cost, l.principle, l.context, l.na]) : [])].filter(Boolean).join(' ').toLowerCase();
-REFERENCE_GAMES.forEach(g => INDEX.push({ type:'reference', t:g.t, snip:`${gameYears(g)} · ${g.genre} · ${snip(g.signature ? g.signature.idea : g.lesson, 90)}`, href:'#/games/'+g.id, text:gameText(g), aka:[...(g.aka || []), ...(g.tags || []), familyLabel(g.family), ...(g.series ? [g.series.t] : []), ...(g.kind === 'series' ? ['series'] : [])] }));
-COMPARISONS.forEach(c => INDEX.push({ type:'comparison', t:c.t, snip:compareTitle(c) + ' · ' + snip(c.problem, 90), href:'#/games/compare/'+c.id, text:[c.t, c.problem, c.verdict, c.principle, compareTitle(c), ...c.sections.flatMap(s => [s.h, s.a, s.b])].join(' ').toLowerCase() }));
-TOPIC_LIST.forEach(t => (t.worked || []).forEach(w => INDEX.push({ type:'worked example', t:w.t, snip:TOPICS[t.id].t + ' · ' + snip(w.intro, 90), href:'#/map/t/'+t.id+'/worked-'+w.id, text:[w.t, w.intro, w.note, ...(w.columns || []).map(c => c.h), ...(w.rows || []).flat(), ...(w.sections || []).flatMap(s => [s.h, s.body]), ...w.try].join(' ').toLowerCase() })));
-FAILURES.forEach(f => INDEX.push({ type:'failure', t:f.t, snip:f.sym, href:'#/ai/failures', text:(f.t+' '+f.sym+' '+f.why+' '+f.fix).toLowerCase() }));
-LADDER.forEach(s => INDEX.push({ type:'ladder', t:s.n+'. '+s.stage, snip:'AI partner: '+s.role, href:'#/ai/ladder', text:(s.stage+' '+s.role+' '+s.you+' '+s.ai+' '+s.caution).toLowerCase() }));
-TOOLS.forEach(([id,t,s]) => INDEX.push({ type:'tool', t, snip:s, href:'#/build/'+id, text:(t+' '+s).toLowerCase() }));
-PATHS.forEach(p => INDEX.push({ type:'path', t:p.t, snip:p.tag, href:'#/paths/'+p.id, text:(p.t+' '+p.tag+' '+p.audience+' '+p.outcome+' '+p.stages.map(s=>s.t).join(' ')+' '+p.stages.flatMap(s=>s.steps).map(s=>s.do||'').join(' ')).toLowerCase() }));
-CHECKLISTS.forEach(c => INDEX.push({ type:'checklist', t:c.t, snip:c.desc, href:'#/checklists/'+c.id, text:(c.t+' '+c.desc+' '+c.groups.flatMap(g=>g[1]).join(' ')).toLowerCase() }));
-LOOP_STEPS.forEach(s => INDEX.push({ type:'loop step', t:`${s.n}. ${s.t}`, snip:s.goal, href:'#/ai/loop/'+s.n, text:(s.t+' '+s.goal+' '+s.human+' '+s.ai+' '+s.fail).toLowerCase() }));
-FUN_DIMS.forEach(d => INDEX.push({ type:'fun', t:d[0], snip:d[1], href:'#/diagnose/fun/'+d[0], text:(d[0]+' '+d[1]+' '+d[2]).toLowerCase() }));
-INDEX.push({ type:'diagnostic', t:'Core loop diagnostic', snip:'Action, feedback, decision, consequence, new situation', href:'#/diagnose/loop', text:'core loop diagnostic action feedback decision consequence new situation weak link' });
-INDEX.push({ type:'diagnostic', t:'Unfairness diagnostic', snip:'Why players say the game is unfair', href:'#/diagnose/unfair', text:'unfair cheap random punishment checkpoint telegraph difficulty diagnostic' });
-INDEX.push({ type:'diagnostic', t:'Depth vs complexity rule audit', snip:'Which rules earn their place', href:'#/diagnose/depth', text:'depth complexity elegance rule audit cut rules' });
-INDEX.push({ type:'diagnostic', t:'Content or mechanic?', snip:'Should we add another enemy, level, weapon, quest?', href:'#/diagnose/content', text:'content decision tree add enemy level weapon quest improve interaction' });
-  return INDEX;
+// The build makes the index from the full content (searchIndexData in 85-shared.js)
+// and writes it to its own file, loaded the first time search opens.
+let _INDEX = null, _indexLoad = null, _bodyLoaded = false;
+const refreshSearch = () => { if($('#searchModal').classList.contains('show') && $('#searchInput').value.trim()) renderSearch(); };
+function loadIndex(){
+  if(!_indexLoad) _indexLoad = PlayableContent.needFile('search').then(ix => {
+    _INDEX = ix; refreshSearch();
+    // each entry's own words, in the same order as the head
+    return PlayableContent.needFile('search-body').then(body => { body.forEach(([b, c], i) => { ix[i]._b = b; ix[i]._c = c; }); _bodyLoaded = true; refreshSearch(); });
+  }).catch(() => { _indexLoad = null; });
+  return _indexLoad;
 }
-function ensureIndex(){ return _INDEX || (_INDEX = buildIndex()); }
+function ensureIndex(){ return _INDEX || []; }
 
 let searchSel = 0, searchResults = [];
 // Search: every query word (after stop words, with simple plurals folded)
 // must match somewhere; a title match outranks a synonym, a snippet or the
 // body; one typo is forgiven on words of five letters or more, against
 // titles and synonyms only. Results come back grouped, pages first.
-const STOP_WORDS = new Set(['a', 'an', 'the', 'of', 'to', 'and', 'or', 'for', 'in', 'on', 'with', 'how', 'what', 'is', 'my', 'i', 'do', 'about']);
-const foldWord = w => w.length > 4 && /ies$/.test(w) ? w.slice(0, -3) + 'y' : w.length > 3 && /[^s]s$/.test(w) ? w.slice(0, -1) : w;
-// Spelling and phrasing are folded the same way in the index and in the query, so a reader who types
-// "license" finds "licence", "monetization" finds "monetisation", and "one on one" finds "1:1s".
-// Terms that mean the same thing to a learner become one token (gacha and loot box; netcode and networking).
-const SEARCH_PHRASES = [
-  [/\b1\s*:\s*1s?\b|\bone[\s-]+on[\s-]+ones?\b|\b1[\s-]+on[\s-]+1s?\b/g, ' oneonone '],
-  [/\bloot[\s-]*box(?:es)?\b|\bgachas?\b/g, ' lootbox '],
-  [/\bnet[\s-]?code\b|\bnetworking\b/g, ' netcode '],
-  [/\bfree[\s-]to[\s-]play\b|\bf2p\b/g, ' f2p '],
-  [/\buser experience\b/g, ' ux ']
-];
-const SPELLING_STEMS = 'monet|optim|local|cultural|personal|priorit|organ|summar|minim|maxim|custom|normal|general|special|character|categor|util|real|visual|initial|recogn|synchron|stabil|emphas|author|capital|fantas|standard';
-const SPELLING_IS = new RegExp('^(' + SPELLING_STEMS + ')is(e|es|ed|ing|ation|ations|er|ers)$');
-const SPELLING_WORDS = { licence:'license', licences:'licenses', licenced:'licensed', centre:'center', centres:'centers', artefact:'artifact', artefacts:'artifacts', catalogue:'catalog', defence:'defense', offence:'offense', judgement:'judgment', grey:'gray', cancelled:'canceled', programme:'program', analyse:'analyze', analyses:'analyzes', analysed:'analyzed', analysing:'analyzing', sceptical:'skeptical', ageing:'aging' };
-const SPELLING_OUR = /^(col|behavi|favo|hon|flav|neighb|lab|humo|rumo|savo|valo|endeavo|harbo)our/;
-const spellFold = w => SPELLING_WORDS[w] || w.replace(SPELLING_OUR, m => m.slice(0, -3) + 'or').replace(SPELLING_IS, '$1iz$2');
-const searchWords = s => (SEARCH_PHRASES.reduce((x, [re, to]) => x.replace(re, to), String(s).toLowerCase()).match(/\d+(?:\.\d+)+|[a-z0-9]+/g) || []).map(w => foldWord(spellFold(w)));
 // True when a and b differ by one insertion, deletion, substitution or swap.
 function oneEdit(a, b){
   if(a === b || Math.abs(a.length - b.length) > 1) return a === b;
@@ -2747,7 +2671,7 @@ function search(q){
   const whole = q.trim().toLowerCase(), qs = searchWords(whole).filter(w => !STOP_WORDS.has(w)); if(!qs.length) return [];
   const hits = [];
   for(const it of ensureIndex()){
-    if(!it._t){ it._t = searchWords(it.t); it._a = (it.aka || []).flatMap(searchWords); it._s = ' ' + searchWords(it.snip).join(' ') + ' '; it._b = ' ' + searchWords(it.text).join(' ') + ' '; }
+    const body = it._b || '';   // the full text arrives a moment after the head
     // tier per word: 3 whole word in the title or a synonym, 2 whole word in the snippet or body,
     // 1 prefix match, 0 typo-forgiven; a hit is only as good as its weakest word.
     let score = 0, ok = true, tier = 3;
@@ -2756,11 +2680,11 @@ function search(q){
       if(it._t.includes(w)){ s = 20; tw = 3; }
       else if(it._a.includes(w)){ s = 12; tw = 3; }
       else if(it._s.includes(' ' + w + ' ')){ s = 6; tw = 2; }
-      else if(it._b.includes(' ' + w + ' ')){ s = 4 + Math.min(it._b.split(' ' + w + ' ').length - 1, 15); tw = 2; } // a topic that keeps returning to the word is about it
+      else if(body.includes(' ' + w + ' ')){ s = 4 + ((it._c && it._c[w]) || 1); tw = 2; } // a topic that keeps returning to the word is about it
       else if(it._t.some(t => t.startsWith(w))){ s = 14; tw = 1; }
       else if(it._a.some(a => a.startsWith(w))){ s = 12; tw = 1; }
       else if(it._s.includes(' ' + w)){ s = 5; tw = 1; }
-      else if(it._b.includes(' ' + w)){ s = 2; tw = 1; }
+      else if(body.includes(' ' + w)){ s = 2; tw = 1; }
       else if(w.length >= 5 && (it._t.some(t => oneEdit(t, w)) || it._a.some(a => oneEdit(a, w)))){ s = 8; tw = 0; }
       else { ok = false; break; }
       score += s; tier = Math.min(tier, tw);
@@ -2792,6 +2716,9 @@ function renderSearch(){
     searchResults = [...recent.map(r => ({ type:'recent', t:r.t, snip:r.snip || '', href:r.href })), ...common];
     const row = (r, i) => `<div class="res ${i===searchSel?'sel':''}" role="option" id="sr-${i}" aria-selected="${i===searchSel}" data-i="${i}"><span class="type">${r.type === 'recent' ? 'recent' : 'page'}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`;
     html = (recent.length ? `<div class="resgroup" role="presentation">Visited recently</div>${searchResults.slice(0, recent.length).map(row).join('')}` : '') + `<div class="resgroup" role="presentation">Jump to</div>${searchResults.slice(recent.length).map((r, k) => row(r, recent.length + k)).join('')}`;
+  } else if(!_INDEX){
+    loadIndex(); searchResults = [];
+    html = `<div class="empty" role="status">Loading the search index…</div>`;
   } else {
     const all = search(q), byType = {};
     all.forEach(r => { (byType[r.type] || (byType[r.type] = [])).push(r); });
@@ -2804,7 +2731,8 @@ function renderSearch(){
       html += `<div class="resgroup" role="presentation">${esc(label)} <span class="muted">${list.length}</span></div>` + shown.map(r => { const i = searchResults.push(r) - 1; return `<div class="res ${i===searchSel?'sel':''}" role="option" id="sr-${i}" aria-selected="${i===searchSel}" data-i="${i}"><span class="type">${esc(r.type)}</span><div><b>${esc(r.t)}</b><div class="snip">${esc(r.snip)}</div></div></div>`; }).join('')
         + (list.length > shown.length ? `<button type="button" class="btn sm ghost resmore" data-action="search-more" data-group="${esc(t)}">Show all ${list.length}</button>` : '');
     }
-    if(!all.length) html = `<div class="empty">Nothing matches every word. Try fewer words, a symptom ("repetitive"), a concept ("depth"), or open <a href="#/index">All pages</a>.</div>`;
+    if(!_bodyLoaded) html = `<div class="small muted" role="status">Searching titles; the full text is still loading.</div>` + html;
+    if(!all.length && _bodyLoaded) html = `<div class="empty">Nothing matches every word. Try fewer words, a symptom ("repetitive"), a concept ("depth"), or open <a href="#/index">All pages</a>.</div>`;
   }
   searchSel = Math.min(searchSel, Math.max(searchResults.length - 1, 0));
   $('#searchResults').innerHTML = html;
@@ -2817,7 +2745,7 @@ function renderSearch(){
   const cur = $('#searchResults .res.sel'); if(cur && cur.scrollIntoView) cur.scrollIntoView({ block:'nearest' });
 }
 function openResult(i){ const r = searchResults[i]; if(!r) return; closeModals(); go(r.href); }
-function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; searchOpenGroups = new Set(); renderSearch(); openModal('searchModal', '#searchInput'); }
+function openSearch(){ const inp = $('#searchInput'); inp.value = ''; searchSel = 0; searchOpenGroups = new Set(); loadIndex(); renderSearch(); openModal('searchModal', '#searchInput'); }
 // A dialog takes focus when it opens, keeps Tab inside while open, and hands
 // focus back to whatever opened it when it closes.
 let modalOpener = null;
@@ -2912,8 +2840,8 @@ document.addEventListener('keydown', e => {
 });
 
 // What the later files import from this one.
-Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, isNarrow,
+Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, settled, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search, searchWords, STOP_WORDS, pinMap });
+  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search, loadIndex, searchWords, STOP_WORDS, pinMap });
 })(window.PlayableApp = {});
 

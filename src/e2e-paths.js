@@ -24,7 +24,7 @@ const server = http.createServer((req, res) => {
     const ctx = await browser.newContext({ viewport: { width: w, height: h } });
     const page = await ctx.newPage();
     const errors = []; page.on('pageerror', e => errors.push(String(e))); page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-    const nav = async r => { await page.evaluate(r => new Promise(res => { if (location.hash === r) return res(); const f = () => { removeEventListener('hashchange', f); res(); }; addEventListener('hashchange', f); location.hash = r; }), r); await page.waitForTimeout(120); };
+    const nav = async r => { await page.evaluate(r => new Promise(res => { if (location.hash === r) return res(); const f = () => { removeEventListener('hashchange', f); res(); }; addEventListener('hashchange', f); location.hash = r; }), r); await page.evaluate(() => window.PlayableApp.settled()); await page.waitForTimeout(120); };
     await page.goto(BASE + '#/paths'); await page.waitForTimeout(300);
     await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
     const P = await page.evaluate(() => ({ id: PATHS[0].id, s1: PATHS[0].stages[0].id, s2: PATHS[0].stages[1].id, n: PATHS[0].stages[0].steps.length }));

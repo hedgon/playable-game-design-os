@@ -1,15 +1,17 @@
 # Playable — a game design operating system for the AI era
 
-A single self-contained HTML file that teaches how to think, decide, experiment
-and work with AI to make a game people actually want to play, and how to build,
-ship and lead one.
+A static website that teaches how to think, decide, experiment and work with AI
+to make a game people actually want to play, and how to build, ship and lead one.
 
-Open `playable.html` in any modern browser. No server, no install, no network
-access, no external libraries. Images (game screens, engine and platform
-portal screenshots) and three small font files live in the `assets/` folder beside the file;
-everything else is embedded. It works on
-desktop, tablet and phone. `index.html` only redirects to `playable.html`, for
-GitHub Pages.
+Open `playable.html` in any modern browser, from a web server or straight from
+the folder on disk. No server, no install, no network access, no external
+libraries. The page holds the app and a light index of everything in the guide
+(titles, links, the map); each topic's, game's, path's and guide's full text is
+its own small file in `content/`, loaded the first time you open that page, so
+the first visit downloads about 0.3 MB instead of the whole library. Images
+(game screens, engine and platform portal screenshots) and the font files live
+in `assets/`. It works on desktop, tablet and phone. `index.html` only
+redirects to `playable.html`, for GitHub Pages.
 
 ## Start here
 
@@ -132,6 +134,7 @@ cards, and **Atkinson Hyperlegible Mono** for code.
 
 ```
 playable.html           the guide: open this
+content/                each page's full text, loaded on demand (generated)
 index.html              redirect to playable.html (GitHub Pages)
 assets/games/           reference-game art used by the reference library
 assets/fonts/           the three web fonts and their OFL licences
@@ -141,5 +144,5 @@ CONTRIBUTING.md         how to edit content, the data schema, build and checks
 docs/                   the analysis method, and finished plans and design notes in docs/_archive/
 ```
 
-`playable.html` is complete on its own; you can delete `src/` and keep the one
-file. To change content, see [CONTRIBUTING.md](CONTRIBUTING.md).
+`playable.html`, `content/` and `assets/` are the whole guide; you can delete
+`src/` and keep those. To change content, see [CONTRIBUTING.md](CONTRIBUTING.md).

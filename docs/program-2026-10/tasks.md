@@ -24,18 +24,19 @@ the evidence line), `[-]` set aside (with the reason).
 - [x] P1.3 Open branch in the accent, other tree edges a quiet solid; legend shows both
 - [x] P1.4 smoke.js measures sibling stub separation (>= 4 px) at 1280, 1440 and 375; labels >= 11 px kept; three latent map bugs found and fixed on the way: the 'more' cue counted against the viewBox instead of what the stage shows and was not recounted on resize; a click zoomed in when 12 px leaves appeared (window now sized for them on desktop); per-frame layout reads slowed clicks. smoke 0 failures (269 visits), e2e 105/105; click-to-settled median 337/356 ms (limit 450)
 - [x] P1.5 Independent UX review (SHIP WITH FIXES, 8 findings): fixed F2 (pane topic cards 210, path and project columns fit at 1280), F3 (overview domain links framed), F4 (no domain links through the trunk gap with a domain open), F6 (next-unread button one line, full name in its tooltip); set aside F1 (after a click the camera keeps its zoom, owner rule of 2026-10-02; the cut-off cue pans), F5 (phone stays tight: the column already touches the stage edge), F7 (faint arc in project maps, low), F8 (optional leaf font)
-- [~] P1.6 Checks: build OK (1,779 states, 0 overlaps, 0 crossings, all labels fit), tsc 0, smoke 0 failures, e2e 105/105; commit, push, real CI run
+- [x] P1.6 Checks: build OK (1,779 states, 0 overlaps, 0 crossings, all labels fit), tsc 0, smoke 0 failures, e2e 105/105; commit b79b317 pushed; GitHub run 37257824031 success
 
 ## P2 Split into a shell and content files
-- [ ] P2.1 Content compiler in the build; `content/` emptied and rebuilt; light index; derived fields (lensTopics, idea, stage step refs, cited sources)
-- [ ] P2.2 Pre-tokenised search index shards
-- [ ] P2.3 Loader `PlayableContent.need()`, build id reload, async router with stale drop, loading state, settled signal
-- [ ] P2.4 Tests and checks: inventory of data reads (smoke, e2e, text-fit sweep); count checks; waits on the settled signal
-- [ ] P2.5 Golden master with seeded state (active path, due reviews, progress, every tool), old vs new; trace re-run with seeded state
-- [ ] P2.6 CI workflow (git status on playable.html and content/), shell budget in the build
-- [ ] P2.7 Performance measured against the targets; `file://` visit
-- [ ] P2.8 README and CONTRIBUTING updated
+- [x] P2.1 Content compiler (src/content-build.js): LIGHT per kind, lossless check, `content/` emptied and rebuilt, 435 files; topics, games, paths, projects, guides, comparisons, smells, checklists, prompts; rel reasons and relIn in topic files; cited sources a content file; unreachable data bindings left out
+- [x] P2.2 Search index built by the build (85-shared.js): head (titles, synonyms, snippets) then body (words with counts)
+- [x] P2.3 Loader (86-content.js), build id reload, async router (contentNeeds) with stale drop, loading line after 150 ms, error page with retry, `settled()`
+- [x] P2.4 smoke reads long fields from the sources (load-data.js); e2e waits on settled; smoke awaits the search index; text-fit states = source map states (1,770) enforced; smoke still 269 visits
+- [x] P2.5 Golden master old vs new: 2,363 + 2,414 routes, h1/text/links/rail identical, 0 errors; traces with saved state (2) drove the LIGHT spec
+- [x] P2.6 CI checks playable.html and content/ with git status; page budget 300 KB gzipped in the build (292 KB)
+- [x] P2.7 Measured (research/split-architecture.md): 2,844 to 292 KB gz; slow-4G phone 48 s to 7-9 s; first search key 3.4 s to 62-77 ms; phone longest task 0.4-1.2 s, target 200 ms NOT met (map first paint; follow-up); file:// works
+- [x] P2.8 README and CONTRIBUTING updated (how the page loads content, LIGHT, budget, load-data.js)
 - [ ] P2.9 Checks, CI replay, commit, push, real CI run, live Pages check
+- [x] P2.10 Owner (2026-10-05): old.html, trace.html and scratch outputs deleted after the golden master passed; obsolete code removed with the split: the in-page index build, citedSources' loop, routeDone (moved or replaced, listed in the report)
 
 ## P3 Audit fixes (presentation only)
 - [ ] P3.1 Game lenses: claim visible, body behind heading and disclosure; reading measure about 70 characters
@@ -56,7 +57,7 @@ the evidence line), `[-]` set aside (with the reason).
 
 ## P6 New topics (20)
 - [x] P6.0 briefs/factcheck.md
-- [~] P6.1 Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below
+- [~] P6.1 Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
 - [ ] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks
 - [ ] P6.3 Paths: realtime-at-scale-engineer, performance-engineer; steps in existing paths; chooser
 - [ ] P6.4 Wiring: lens topics on existing games, review steps, glossary terms, spatial-composition pointer
@@ -67,11 +68,11 @@ the evidence line), `[-]` set aside (with the reason).
 | backtracking-and-return-trips | [x] | [x] PASS WITH FIXES, fixed | [ ] |
 | balance-methods | [x] | [x] PASS WITH FIXES, fixed | [ ] |
 | power-creep-and-content-growth | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| server-bandwidth-and-interest-management | [x] | [x] PASS WITH FIXES, fixing | [ ] |
-| server-transport-and-relays | [x] | [ ] | [ ] |
-| server-world-partitioning | [ ] | [ ] | [ ] |
-| server-load-testing-and-capacity | [ ] | [ ] | [ ] |
-| server-framework-landscape | [ ] | [ ] | [ ] |
+| server-bandwidth-and-interest-management | [x] | [x] PASS WITH FIXES, fixed | [ ] |
+| server-transport-and-relays | [x] | [x] PASS WITH FIXES, fixed | [ ] |
+| server-world-partitioning | [x] | [x] PASS WITH FIXES, fixed | [ ] |
+| server-load-testing-and-capacity | [x] | [x] PASS WITH FIXES, fixing in workflow | [ ] |
+| server-framework-landscape | [x] | [~] workflow | [ ] |
 | realtime-connection-tier-at-scale | [ ] | [ ] | [ ] |
 | craft-cpu-cache-and-data-layout | [ ] | [ ] | [ ] |
 | craft-gpu-rendering-cost | [ ] | [ ] | [ ] |

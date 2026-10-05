@@ -108,6 +108,9 @@ function textFitSweep(layoutCoreSource) {
           await page.evaluate(() => document.fonts.ready);
           fit = await page.evaluate(textFitSweep, fs.readFileSync(path.join(__dirname, 'layout-core.js'), 'utf8'));
           if (pageErrors.length) problems.push('text-fit page error: ' + pageErrors[0]);
+          // the page holds only the light index of the data: it must still yield every map state the sources do
+          const nodeStates = require('./layout-core.js').graphStates(G, ctx.DOMAINS, ctx.TOPICS, ctx.CASE_STUDIES, ctx.PATHS, ctx.REFERENCE_GAMES, Object.assign({}, ctx.VIEW_LINKS)).length;
+          if (fit.states !== nodeStates) problems.push(`text-fit measured ${fit.states} map states in the page but the sources make ${nodeStates}`);
           const grouped = new Map(); fit.bad.forEach(b => { const e = grouped.get(b.m) || { first: b.n, n: 0 }; e.n++; grouped.set(b.m, e); });
           grouped.forEach((e, m) => problems.push(`${m} (${e.n} state${e.n === 1 ? '' : 's'}, first ${e.first})`));
         } finally { await browser.close(); }

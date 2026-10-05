@@ -8,6 +8,9 @@
 // Usage: node src/smoke.js        (PLAYWRIGHT_CHANNEL=chrome uses an installed Chrome)
 const http = require('http'), fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
+// long fields (worked examples, comparison sections, solutions, Go snippets) come from the sources, not the page's light index
+const FULL = require('./load-data.js')();
+const WORKED_TOPIC = Object.values(FULL.TOPICS).find(t => t.worked && t.worked.length);
 const root = path.join(__dirname, '..');
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.json': 'application/json' };
 
@@ -18,7 +21,7 @@ const server = http.createServer((req, res) => {
 });
 
 // One route of every kind, read from the page's own data.
-const ROUTES_IN_PAGE = () => {
+const ROUTES_IN_PAGE = WORKED => {
   const first = a => a && a[0];
   const cs = first(CASE_STUDIES), sys = cs && first(cs.systems), part = sys && first(sys.parts), flow = cs && first(cs.flows);
   const p = first(PATHS), st = p && first(p.stages);
@@ -32,7 +35,7 @@ const ROUTES_IN_PAGE = () => {
     '#/experience/' + cs.id + '/flow/' + flow.id, '#/experience/' + cs.id + '/' + sys.id, '#/experience/' + cs.id + '/' + sys.id + '/' + part.id,
     '#/paths/' + p.id, '#/paths/' + p.id + '/' + st.id, '#/review', '#/sources', '#/games', '#/games/' + REFERENCE_GAMES[0].id, '#/games/pac-man/gameplay', '#/platforms', '#/platforms/' + PLATFORMS[0].id, '#/platforms/' + PLATFORMS.find(x => x.kind === 'ugc').id, '#/engines', ...ENGINES.map(e => '#/engines/' + e.id), '#/guide',
     // worked examples and comparisons (each only when the data has one)
-    ...Object.values(TOPICS).filter(t => t.worked && t.worked.length).slice(0, 1).map(t => '#/map/t/' + t.id + '/overview'),
+    ...(WORKED ? ['#/map/t/' + WORKED + '/overview'] : []),
     ...(COMPARISONS.length ? ['#/games/compare', '#/games/compare/' + COMPARISONS[0].id] : []),
     // one topic per diagram kind
     ...['core-loop', 'feature-vs-experience', 'choosing-ai-technique', 'depth-vs-complexity', 'pacing', 'economy-and-resources', 'perception-and-awareness', 'infra-ci-pipelines'].map(id => '#/map/t/' + id + '/overview')
@@ -89,7 +92,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
     const first = await page.evaluate(() => { const r = document.getElementById('pane').getBoundingClientRect(); return { hash: location.hash, onScreen: r.left >= -1 && r.right <= innerWidth + 1 }; });
     if (first.hash !== '#/paths' || !first.onScreen) failures.push(`${w}px first visit: ${JSON.stringify(first)}`);
-    const routes = await page.evaluate(ROUTES_IN_PAGE);
+    const routes = await page.evaluate(ROUTES_IN_PAGE, WORKED_TOPIC ? WORKED_TOPIC.id : null);
     for (const r of routes) {
       visits++;
       errors.length = 0;
@@ -117,7 +120,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     }
     // A worked example renders as a card with a table that scrolls inside itself, the page does not widen, and the download holds the table.
     {
-      const wid = await page.evaluate(() => { const t = Object.values(TOPICS).find(x => x.worked && x.worked.length); return t && { topic: t.id, w: t.worked[0] }; });
+      const wid = WORKED_TOPIC && { topic: WORKED_TOPIC.id, w: WORKED_TOPIC.worked[0] };
       if (wid) {
         await page.evaluate(route => { location.hash = route; }, '#/map/t/' + wid.topic + '/overview'); await page.waitForTimeout(250);
         const card = await page.evaluate(id => { const c = document.getElementById('worked-' + id); return c && { caption: !!c.querySelector('caption'), ths: [...c.querySelectorAll('th')].every(h => h.getAttribute('scope') === 'col'), rows: c.querySelectorAll('tbody tr').length, btn: (c.querySelector('[data-action="worked-download"]') || {}).textContent, wide: document.documentElement.scrollWidth }; }, wid.w.id);
@@ -142,7 +145,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     }
     // A comparison page shows both games with a link to each page, the shelf is on the library, and each game lists it.
     {
-      const cmp = await page.evaluate(() => COMPARISONS[0] && { id: COMPARISONS[0].id, games: COMPARISONS[0].games, n: COMPARISONS[0].sections.length });
+      const C0 = FULL.COMPARISONS[0], cmp = C0 && { id: C0.id, games: C0.games, n: C0.sections.length };
       if (cmp) {
         await page.evaluate(route => { location.hash = route; }, '#/games/compare/' + cmp.id); await page.waitForTimeout(250);
         const pg = await page.evaluate(() => ({ links: [...document.querySelectorAll('#pane .comparehead')].map(a => a.getAttribute('href')), imgs: [...document.querySelectorAll('#pane .comparehead img')].every(i => i.complete && i.naturalWidth > 0), secs: document.querySelectorAll('#pane .comparesec').length, wide: document.documentElement.scrollWidth }));
@@ -406,7 +409,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     await go('#/guide');
     const gp = await page.evaluate(() => PATHS.filter(p => !document.querySelector('#pane a[href="#/paths/' + p.id + '"]')).map(p => p.id));
     if (gp.length) failures.push('guide: paths not reachable from the guide: ' + gp.join(', '));
-    const found = await page.evaluate(() => {
+    const found = await page.evaluate(async () => { await PlayableApp.loadIndex();   // the index is its own file, loaded on first use
       const search = PlayableApp.search, hrefs = q => search(q).map(r => r.href);
       return { license: search('license').filter(r => r.type === 'topic').length, licence: search('licence').filter(r => r.type === 'topic').length,
         oneOnOne: hrefs('one on one').includes('#/map/t/lead-one-on-ones'), oneToOne: hrefs('1:1').includes('#/map/t/lead-one-on-ones'),
@@ -987,11 +990,11 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: w < 700, isMobile: w < 700 });
     const page = await ctx.newPage(); const errors = []; page.on('pageerror', e => errors.push(String(e)));
     await page.goto(base); await page.evaluate(() => { localStorage.setItem('playable.visited', 'true'); localStorage.setItem('playable.hideMap', 'true'); });
-    const data = await page.evaluate(() => {
-      const withSol = PATHS.flatMap(p => p.stages.filter(s => s.check.solution).map(s => ({ path: p.id, stage: s.id })))[0] || null;
-      const go = Object.values(TOPICS).find(t => t.go);
+    const data = (() => {
+      const withSol = FULL.PATHS.flatMap(p => p.stages.filter(s => s.check.solution).map(s => ({ path: p.id, stage: s.id })))[0] || null;
+      const go = Object.values(FULL.TOPICS).find(t => t.go);
       return { withSol, go: go ? go.id : null, goWhole: go ? /^package /.test(go.go.snippet) : false };
-    });
+    })();
     const goto = async hash => { await page.goto(base + hash); await page.reload(); await page.waitForTimeout(500); };
     // a path stage with a reference solution shows it closed, under the build task
     if (data.withSol) {
