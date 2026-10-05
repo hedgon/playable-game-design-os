@@ -3,16 +3,17 @@
 // and the bundled JS syntax.
 // Usage: node src/build.js
 const fs = require('fs'), path = require('path'), vm = require('vm'), zlib = require('zlib'), { execSync } = require('child_process');
-const { HEAD, DATA, SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, APP, PAGE } = require('./manifest.js');
+const { HEAD, DATA, SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, APP, LAZY, PAGE } = require('./manifest.js');
 const { compile } = require('./content-build.js');
 const root = path.join(__dirname, '..');
 const read = f => fs.readFileSync(path.join(__dirname, f), 'utf8');
-// content/ is emptied and written again, so a renamed or removed entity leaves no file behind
-const c = compile({ srcDir: __dirname, dataFiles: DATA, sharedFile: SHARED, outDir: path.join(root, 'content'), pageCode: PAGE.map(read).join('\n') });
 // The page scripts ship without their whole-line comments (a sixth of their
 // gzipped size); the sources keep them. A line goes only when it is a comment
 // from its first character to its last, so code and strings stay as written.
 const strip = s => s.replace(/^[ \t]*\/\*(?:(?!\*\/)[^])*\*\/[ \t]*\r?\n/gm, '').replace(/^[ \t]*\/\/.*\r?\n/gm, '');
+const lazyCode = Object.fromEntries(Object.entries(LAZY).map(([name, files]) => [name, files.map(f => strip(read(f))).join('\n')]));
+// content/ is emptied and written again, so a renamed or removed entity leaves no file behind
+const c = compile({ srcDir: __dirname, dataFiles: DATA, sharedFile: SHARED, outDir: path.join(root, 'content'), pageCode: PAGE.map(read).join('\n'), lazyCode });
 // the head's stylesheet ships without its comments too
 const head = read(HEAD).replace(/<style>[^]*?<\/style>/, css => css.replace(/\/\*(?:(?!\*\/)[^])*\*\//g, ''));
 // Each part is its own <script> element, so the browser runs them as separate tasks
@@ -36,11 +37,12 @@ if (blocks.length !== expected) throw new Error(`build: ${blocks.length} <script
 blocks.forEach((b, i) => new vm.Script(b, { filename: `playable.html <script> ${i + 1}` }));
 // Every script file must also parse on its own, so a file can be linted and
 // type-checked alone and no file leans on another's open brackets.
-for (const f of [...DATA, SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, ...APP]) new vm.Script(fs.readFileSync(path.join(__dirname, f), 'utf8'), { filename: f });
-console.log('JS syntax OK (bundle and each file)');
+for (const f of [...DATA, SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, ...APP, ...Object.values(LAZY).flat()]) new vm.Script(fs.readFileSync(path.join(__dirname, f), 'utf8'), { filename: f });
+for (const name of Object.keys(LAZY)) new vm.Script(fs.readFileSync(path.join(root, 'content', 'code', name + '.js'), 'utf8'), { filename: `content/code/${name}.js` });
+console.log('JS syntax OK (bundle, each file, each on-demand code file)');
 // Markup names its click behaviour with data-action; each name needs a
 // handler in ACTIONS, or the button silently does nothing.
-const appSrc = APP.map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
+const appSrc = [...APP, ...Object.values(LAZY).flat()].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const used = new Set([...appSrc.matchAll(/data-action="([\w-]+)"/g)].map(m => m[1]));
 const defined = new Set([...appSrc.matchAll(/ACTIONS(?:\.(\w+)|\['([\w-]+)'\])\s*=/g)].map(m => m[1] || m[2]));
 const missing = [...used].filter(a => !defined.has(a)), unused = [...defined].filter(a => !used.has(a));

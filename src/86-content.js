@@ -10,12 +10,14 @@
 
    Script tags, not fetch: they load from file:// as well as from a server,
    so the guide still opens from a folder on disk. Each URL carries the
-   file's content hash (?v=), so a browser keeps every unchanged file across
-   releases. A file from a different build than this page means the page
-   itself is a cached old copy: it is reloaded once, by a new URL.
+   build id (?v=), which changes with any change to the data or the code,
+   so a browser never mixes files from two releases. A file from a different
+   build than this page means the page itself is a cached old copy: it is
+   reloaded once, by a new URL. The same loader brings in the code only one
+   kind of page runs (kind "code", manifest LAZY), such as the build tools.
    ===================================================================== */
 window.PlayableContent = (function(){
-  const BUILD = window.PLAYABLE_BUILD, FILES = window.PLAYABLE_FILES || {};
+  const BUILD = window.PLAYABLE_BUILD, NOFILE = window.PLAYABLE_NOFILE || {};
   const find = {
     topic: id => TOPICS[id],
     game: id => REFERENCE_GAMES.find(x => x.id === id),
@@ -49,15 +51,17 @@ window.PlayableContent = (function(){
     else { const o = find[kind] && find[kind](id); if(o) merge(o, data); }
     loaded.add(kind + ':' + id);
   }
-  // Resolves when the entity's long fields are in place. An id the build wrote
-  // no file for (an unknown id, or an entity with nothing to load) resolves at once.
+  // An id the build wrote no file for: an unknown entity, or one with nothing to load.
+  // Files ("file") and code ("code") are named by the page itself, so they always exist.
+  const noFile = (kind, id) => find[kind] ? !find[kind](id) || (NOFILE[kind] || []).includes(id) : false;
+  // Resolves when the entity's long fields (or the code) are in place; at once when there is no file.
   function need(kind, id){
-    const key = kind + ':' + id, file = FILES[kind] && FILES[kind][id];
-    if(!file || loaded.has(key)) return Promise.resolve();
+    const key = kind + ':' + id;
+    if(noFile(kind, id) || loaded.has(key)) return Promise.resolve();
     if(pending.has(key)) return pending.get(key);
     const p = new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'content/' + kind + '/' + id + '.js?v=' + file;
+      s.src = 'content/' + kind + '/' + id + '.js?v=' + BUILD;
       s.onload = () => { pending.delete(key); s.remove(); loaded.has(key) ? resolve() : reject(new Error('content file did not register: ' + key)); };
       s.onerror = () => { pending.delete(key); s.remove(); reject(new Error('content file failed to load: ' + key)); };
       document.head.appendChild(s);
@@ -66,7 +70,7 @@ window.PlayableContent = (function(){
     return p;
   }
   const needAll = list => Promise.all(list.map(([kind, id]) => need(kind, id)));
-  const has = (kind, id) => !(FILES[kind] && FILES[kind][id]) || loaded.has(kind + ':' + id);
+  const has = (kind, id) => noFile(kind, id) || loaded.has(kind + ':' + id);
   // A whole file that is not one entity (the search index): same rules, its own name.
   const needFile = name => need('file', name).then(() => blobs[name]);
   const blob = name => blobs[name];

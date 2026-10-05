@@ -138,12 +138,13 @@ the type check, the smoke test and the paths test on every push and pull request
 87-diagrams.js            data diagrams: loop, stack, matrix, quad, curve, economy, state, screen
 88-flow.js                workflow chart renderer (also the diagrams' flow kind)
 89-graph.js               tidy-tree mind-map layout and rendering (topic map, project map, path map)
-90-app.js                 router, views, tools, search, review queue, dialogs, saved data
+90-app.js                 router, views, the tool pages' frame, search, review queue, dialogs, saved data
 91-map.js                 the map view: lenses, camera, pan, zoom, ARIA tree keys, phone touch and the List outline, reading panels
                           (saved map state is validated on load; the camera is saved only while a branch is open, and after a 250 ms pause)
                           (branchFrame frames the selected node with its groups and open leaves on the first view of a stage or lens; after a click calmTarget keeps the zoom and pans only as far as the selected node or its open branch needs, while paintGraph tweens the nodes that existed before to their new places (240 ms) and fades new nodes and edges in, and nothing moves under reduced motion; updateMoreCues counts what the window cuts off; find in map folds words like the site search)
-92-ideas.js               Reference Dissection
-93-lab.js                 Idea Lab
+92-ideas.js               Reference Dissection  } loaded on demand: the build writes these to
+93-lab.js                 Idea Lab              } content/code/ (manifest LAZY) and the router
+94-tools.js               the other build tools } loads them before a tool or the Lab draws
 99-tail.js                boot
 manifest.js               ordered file list
 build.js                  build and checks (above)

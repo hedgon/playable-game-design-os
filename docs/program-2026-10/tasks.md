@@ -60,6 +60,7 @@ the evidence line), `[-]` set aside (with the reason).
 
 ## P6 New topics (20)
 - [x] P6.0 briefs/factcheck.md
+- [x] P6.0b Page budget headroom: tool code (90-app tools, 92-ideas, 93-lab; new 94-tools.js) loads on demand as content/code/tools.js and lab.js; per-file hash map replaced by ?v=BUILD (it changed every build anyway); build id hashes code too. Page 295 -> 259 KB gzipped. build, smoke 269/0, e2e 105/105, tool interactions from file:// checked
 - [~] P6.1 Workflow wf_e1ce23b6-77b running again (task wwmkcggai, single lane); if interrupted, resume with Workflow({scriptPath: <session workflows/scripts/playable-topic-pipeline-wf_e1ce23b6-77b.js>, resumeFromRunId: 'wf_e1ce23b6-77b'}). Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
 - [ ] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks
 - [ ] P6.3 Paths: realtime-at-scale-engineer, performance-engineer; steps in existing paths; chooser

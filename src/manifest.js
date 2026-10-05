@@ -68,9 +68,14 @@ const CONTENT = '86-content.js';
 const DIAGRAM = '87-diagrams.js';
 const FLOW = '88-flow.js';
 const GRAPH = '89-graph.js';
-const APP = ['90-app.js', '91-map.js', '92-ideas.js', '93-lab.js'];
+const APP = ['90-app.js', '91-map.js'];
+// Code only one kind of page runs: the build writes each group to
+// content/code/<name>.js, in this order, and the router loads it before that
+// page draws (contentNeeds in 90-app.js). Each file registers on the same
+// namespace as the page's own (window.PlayableApp).
+const LAZY = { tools: ['92-ideas.js', '94-tools.js'], lab: ['93-lab.js'] };
 const TAIL = '99-tail.js';
 // The page's script files after the generated data, in load order.
 const PAGE = [SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, ...APP, TAIL];
-const ORDER = [HEAD, ...DATA, ...PAGE];
-module.exports = { HEAD, DATA, SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, APP, TAIL, PAGE, ORDER };
+const ORDER = [HEAD, ...DATA, ...PAGE, ...Object.values(LAZY).flat()];
+module.exports = { HEAD, DATA, SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, APP, LAZY, TAIL, PAGE, ORDER };

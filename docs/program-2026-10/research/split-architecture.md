@@ -47,8 +47,9 @@ return HTML strings from data, so they can run at build time).
     `PlayableContent.put(kind, id, {...})`;
   - `content/search/*.js`: the search index, pre-tokenised at build time, loaded on the
     first search.
-  Each URL carries `?v=<content hash>` from a manifest in the shell, so the browser cache
-  keeps every unchanged file across releases and drops only what changed.
+  Each URL carries `?v=<build id>`. (A per-file hash map was shipped first and removed in
+  P6.0: every file embeds the build id, so every hash changed with every build anyway, and
+  the map cost 6 KB gzipped in the shell, growing with each entity.)
 - **Loading.** `PlayableContent.need(kind, id)` adds a `<script>` for the file once and
   resolves when it has merged the heavy fields into the light object, so the existing
   view code keeps reading `TOPICS[id].what` as before, after the router awaits the
@@ -133,3 +134,15 @@ elements), not script. Two forced layouts were removed on the way (the map's
 "more" cue read layout on every frame; every page reset its scroll even at the
 top). Getting under 200 ms needs the map's first paint deferred or slimmed on
 phones, where the map sits behind the reading pane: a follow-up, not done here.
+
+## Page budget headroom (P6.0, 2026-10-05)
+
+Before P6 the page was 295 KB gzipped of its 300 KB budget, with about 10-12 KB of
+P6-P9 additions ahead (new topics', games' and paths' light fields, glossary terms, the
+comparison diagram, the adventure view). Measured per block: the tool code (the build
+tools in 90-app.js, 92-ideas.js, 93-lab.js) was about 31 KB gzipped and runs only on
+`#/build/<tool>` and `#/lab`. It now loads on demand as `content/code/tools.js` and
+`content/code/lab.js` (manifest `LAZY`), through the same loader and the same build-id
+check as content. With the hash map gone too, the page is 259 KB gzipped. The build id
+now also hashes the page and lazy code, so a code-only release cannot be served a
+cached older tools file.

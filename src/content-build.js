@@ -93,7 +93,7 @@ function declarations(srcDir, files) {
   return out;
 }
 
-function compile({ srcDir, dataFiles, sharedFile, outDir, pageCode }) {
+function compile({ srcDir, dataFiles, sharedFile, outDir, pageCode, lazyCode = {} }) {
   const decl = declarations(srcDir, dataFiles);
   const src = dataFiles.map(f => fs.readFileSync(path.join(srcDir, f), 'utf8')).join('\n') + '\n' + fs.readFileSync(path.join(srcDir, sharedFile), 'utf8');
   const probe = decl.map(d => `${JSON.stringify(d.name)}: typeof ${d.name} === "undefined" ? undefined : ${d.name}`).join(',');
@@ -102,12 +102,12 @@ function compile({ srcDir, dataFiles, sharedFile, outDir, pageCode }) {
   // functions mention in turn (registration helpers and build-only tables stay out).
   const all = decl.filter(d => ctx[d.name] !== undefined), byName = new Map(all.map(d => [d.name, d]));
   const words = s => new Set(s.match(/[A-Za-z_$][\w$]*/g) || []);
-  const reach = new Set(), todo = [...words(pageCode)].filter(n => byName.has(n));
+  const reach = new Set(), todo = [...words(pageCode + '\n' + Object.values(lazyCode).join('\n'))].filter(n => byName.has(n));
   while (todo.length) { const n = todo.pop(); if (reach.has(n)) continue; reach.add(n); const v = ctx[n]; if (typeof v === 'function') for (const w of words(v.toString())) if (byName.has(w) && !reach.has(w)) todo.push(w); }
   const real = all.filter(d => reach.has(d.name));
 
   // split every entity
-  const files = {}, contents = [];
+  const nofile = {}, contents = [];
   const lightStores = {};
   for (const [kind, store] of Object.entries(STORES)) {
     const all = ctx[store], list = Array.isArray(all) ? all : Object.values(all);
@@ -121,18 +121,20 @@ function compile({ srcDir, dataFiles, sharedFile, outDir, pageCode }) {
       // which the map shows on the selected topic's leaves (89-graph.js neighbours)
       const extra = kind === 'topic' ? { relIn: list.filter(x => x.id !== e.id).flatMap(x => (x.rel || []).filter(r => r[0] === e.id).map(r => [x.id, r[1]])) } : null;
       if (heavy || extra) contents.push({ kind, id: e.id, heavy: Object.assign({}, heavy, extra) });
+      else (nofile[kind] = nofile[kind] || []).push(e.id);
     }
     lightStores[store] = Array.isArray(all) ? lightList : Object.fromEntries(lightList.map(l => [l.id, l]));
   }
 
-  // the content files, named by kind and id, versioned by their own hash
-  const BUILD = hash(JSON.stringify(lightStores) + contents.map(c => JSON.stringify(c.heavy)).join(''));
+  // the content files, named by kind and id; every one carries the build id, so the
+  // page asks for each by that id (?v=BUILD) and a new build never meets an old file
+  // any change to the data or the code gives a new build id, and so new URLs for every file
+  const BUILD = hash(JSON.stringify(lightStores) + contents.map(c => JSON.stringify(c.heavy)).join('') + pageCode + Object.values(lazyCode).join(''));
   fs.rmSync(outDir, { recursive: true, force: true });
   const write = (kind, id, data) => {
     const body = `PlayableContent.put(${js(kind)},${js(id)},${js(data)},${js(BUILD)});\n`;
     const dir = path.join(outDir, kind); fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, id + '.js'), body);
-    (files[kind] = files[kind] || {})[id] = hash(body);
     return body.length;
   };
   let bytes = 0;
@@ -140,9 +142,14 @@ function compile({ srcDir, dataFiles, sharedFile, outDir, pageCode }) {
   // search: the head (titles, synonyms, snippets) answers at once; the bodies follow
   const searchBytes = write('file', 'search', ctx.__search.head) + write('file', 'search-body', ctx.__search.body);
   write('file', 'cited', ctx.__cited);
+  // code only one kind of page runs (manifest LAZY): it registers itself like a content file
+  for (const [name, code] of Object.entries(lazyCode)) {
+    const dir = path.join(outDir, 'code'); fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, name + '.js'), code + `\nPlayableContent.put("code",${js(name)},null,${js(BUILD)});\n`);
+  }
 
   // the page's data script: every real binding, entities reduced to their light part
-  const lines = [`window.PLAYABLE_BUILD = ${js(BUILD)};`, `window.PLAYABLE_FILES = ${js(files)};`];
+  const lines = [`window.PLAYABLE_BUILD = ${js(BUILD)};`, `window.PLAYABLE_NOFILE = ${js(nofile)};`];
   for (const d of real) {
     const v = ctx[d.name];
     if (typeof v === 'function') {
@@ -156,7 +163,7 @@ function compile({ srcDir, dataFiles, sharedFile, outDir, pageCode }) {
       lines.push(`const ${d.name} = ${text.length > 10000 ? `JSON.parse(${JSON.stringify(text)})` : text};`);
     }
   }
-  return { script: lines.join('\n'), build: BUILD, files: contents.length + 3, contentBytes: bytes, searchBytes, dropped: all.filter(d => !reach.has(d.name)).map(d => d.name) };
+  return { script: lines.join('\n'), build: BUILD, files: contents.length + 3 + Object.keys(lazyCode).length, contentBytes: bytes, searchBytes, dropped: all.filter(d => !reach.has(d.name)).map(d => d.name) };
 }
 
 module.exports = { compile, split, merge, LIGHT, STORES };
