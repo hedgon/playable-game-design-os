@@ -1069,6 +1069,50 @@ function diagramCard(spec, color, footer){
   return `<figure class="card dgm-card" style="--dc:${color || 'var(--accent2)'}"><figcaption class="dgm-title">${esc(spec.title)}</figcaption>${D.render(spec)}${D.legend(spec)}${spec.note ? `<p class="dgm-note">${esc(spec.note)}</p>` : ''}${footer || ''}<details class="dgm-text"><summary>Diagram as text</summary>${D.describe(spec)}</details></figure>`;
 }
 
+/* A stepped explainer: one frame at a time, moved by the reader. Research
+   behind it (docs/program-2026-10/research/learning-science.md section 3):
+   animation helps when change over time is the idea, and learner-paced steps
+   help most; nothing plays by itself, the caption is read out as it changes,
+   and "Diagram as text" lists every frame. Play steps through once, a frame
+   every few seconds, and stops at the end; reduced motion turns the fade off. */
+function explainerCard(x, color, key){
+  const D = window.PlayableDiagram, n = x.frames.length;
+  const frames = x.frames.map((f, i) => `<div class="xp-frame" data-i="${i}"${i ? ' hidden' : ''}>${D.render(Object.assign({ title: f.t }, f.spec))}${D.legend(f.spec)}</div>`).join('');
+  const text = x.frames.map((f, i) => `<li><b>${i + 1}. ${esc(f.t)}</b>${f.d ? ` ${esc(f.d)}` : ''}${D.describe(Object.assign({ title: f.t }, f.spec))}</li>`).join('');
+  return `<figure class="card dgm-card explainer" style="--dc:${color || 'var(--accent2)'}" data-xp="${esc(key)}" data-n="${n}" data-at="0">
+    <figcaption class="dgm-title">${esc(x.title)} <span class="small muted">· step through it</span></figcaption>
+    <div class="xp-stage">${frames}</div>
+    <p class="xp-cap" aria-live="polite"><span class="xp-num">1 of ${n}</span> <b>${esc(x.frames[0].t)}</b>${x.frames[0].d ? ` ${esc(x.frames[0].d)}` : ''}</p>
+    <div class="row xp-ctl"><button type="button" class="btn sm ghost" data-action="xp-step" data-d="-1" disabled>◂ Back</button><button type="button" class="btn sm" data-action="xp-step" data-d="1">Next ▸</button><button type="button" class="btn sm ghost" data-action="xp-play" aria-pressed="false">Play</button><button type="button" class="btn sm ghost" data-action="xp-step" data-d="0">Start again</button></div>
+    ${x.note ? `<p class="dgm-note">${esc(x.note)}</p>` : ''}
+    <details class="dgm-text"><summary>Diagram as text</summary><ol class="xp-text">${text}</ol></details></figure>`;
+}
+// A short silent clip: the reader starts it; the same content is in words beneath.
+function clipCard(c, color){
+  return `<figure class="card dgm-card clip" style="--dc:${color || 'var(--accent2)'}"><figcaption class="dgm-title">${esc(c.title)} <span class="small muted">· a short silent clip</span></figcaption>
+    <video controls muted playsinline loop preload="none" poster="${esc(c.poster)}" width="640" height="300"><source src="${esc(c.src)}" type="video/webm"></video>
+    <p class="small">${esc(c.text)}</p></figure>`;
+}
+function xpShow(fig, i){
+  const n = +fig.dataset.n, at = Math.max(0, Math.min(n - 1, i)), x = TOPICS[fig.dataset.xp] && TOPICS[fig.dataset.xp].explainer;
+  fig.dataset.at = at;
+  $$('.xp-frame', fig).forEach(f => { f.hidden = +f.dataset.i !== at; });
+  const fr = x && x.frames[at];
+  if(fr) $('.xp-cap', fig).innerHTML = `<span class="xp-num">${at + 1} of ${n}</span> <b>${esc(fr.t)}</b>${fr.d ? ` ${esc(fr.d)}` : ''}`;
+  $('[data-action="xp-step"][data-d="-1"]', fig).disabled = at === 0;
+  $('[data-action="xp-step"][data-d="1"]', fig).disabled = at === n - 1;
+  return at;
+}
+const xpTimers = new WeakMap();
+function xpStop(fig){ clearInterval(xpTimers.get(fig)); xpTimers.delete(fig); const b = $('[data-action="xp-play"]', fig); if(b){ b.setAttribute('aria-pressed', 'false'); b.textContent = 'Play'; } }
+ACTIONS['xp-step'] = el => { const fig = el.closest('.explainer'); xpStop(fig); const d = +el.dataset.d; xpShow(fig, d === 0 ? 0 : +fig.dataset.at + d); };
+ACTIONS['xp-play'] = el => {
+  const fig = el.closest('.explainer'); if(xpTimers.has(fig)) return xpStop(fig);
+  if(+fig.dataset.at >= +fig.dataset.n - 1) xpShow(fig, 0);
+  el.setAttribute('aria-pressed', 'true'); el.textContent = 'Pause';
+  xpTimers.set(fig, setInterval(() => { if(!document.body.contains(fig)) return xpStop(fig); const at = xpShow(fig, +fig.dataset.at + 1); if(at >= +fig.dataset.n - 1) xpStop(fig); }, 3200));
+};
+
 /* =====================================================================
    MAP
    ===================================================================== */
@@ -1384,7 +1428,7 @@ function topicBody(id){
   // topic would otherwise carry a wall of links above the article.
   const gameChip = x => `<a class="chip lnk" href="#/games/${x.g.id}">${esc(x.g.t)}: ${esc(x.label.charAt(0).toLowerCase() + x.label.slice(1))}</a>`;
   const gameFoot = inGames.length ? `<div class="dgm-foot wdup"><span class="overline">In real games</span><span class="chips">${inGames.slice(0, 6).map(gameChip).join('')}</span>${inGames.length > 6 ? `<details class="more-games"><summary>${inGames.length - 6} more</summary><span class="chips">${inGames.slice(6).map(gameChip).join('')}</span></details>` : ''}</div>` : '';
-  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}
+  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}${t.explainer ? explainerCard(t.explainer, d.color, t.id) : ''}${t.clip ? clipCard(t.clip, d.color) : ''}
     ${secs}${techSec}${facts}${workedHTML(t, d.color)}
     <div class="wdup"><div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div></div>

@@ -888,6 +888,10 @@ INTERVIEW('ai-agentic-implementation',{
       red:`The same access as a senior engineer, to save time.` }
   ] });
 
+DIAGRAM('ai-agentic-implementation', { kind:'flow', title:'From task to reviewed change', steps:[
+  { id:'t', t:'Task with checks', d:'written by a person' }, { id:'a', t:'Agent edits' }, { id:'c', t:'Checks run', d:'build, tests' }, { id:'r', t:'Person reviews', d:'the diff' }, { id:'m', t:'Merge' }],
+  edges:[['t','a'],['a','c'],['c','r','pass'],['r','m','approve']] });
+
 T('ai-for-playtest-analysis',{ d:'ai', t:'AI for playtest analysis', tag:'AI finds patterns in notes, transcripts and telemetry. Humans supply the context and make the call.',
   what:`Using AI to transcribe, code, cluster and summarise playtest evidence: observer notes, recordings, interview transcripts, telemetry, replay logs. AI is fast and consistent at coding and pattern-finding. It lacks the context (what was intended, what the room felt like, what the tester’s face did) that interpretation requires.`,
   why:[`Playtest data is voluminous and under-analyzed. Most teams act on impressions from the room.`,`Consistent coding across sessions reveals trends impressions miss.`,`AI analysis is only as good as the evidence you give it and the interpretation you apply afterwards.`],

@@ -477,6 +477,10 @@ INTERVIEW('progression',{
       red:`Picks the middle because it feels like the safe choice.` }
   ] });
 
+DIAGRAM('progression', { kind:'curve', title:'Player power against challenge over a game', x:'Hours played', y:'Power', alt:'Challenge rises steadily; player power rises in steps as upgrades arrive, so the player is sometimes ahead and sometimes behind, which keeps progress felt.',
+  series:[{ t:'Player power', pts:[[0,0.1],[0.2,0.15],[0.22,0.3],[0.45,0.33],[0.47,0.5],[0.7,0.52],[0.72,0.72],[1,0.75]] }, { t:'Challenge', pts:[[0,0.12],[1,0.8]] }],
+  beats:[{ t:'Upgrade', at:0.22 }, { t:'Upgrade', at:0.47 }, { t:'Upgrade', at:0.72 }] });
+
 T('difficulty',{ d:'systems', t:'Difficulty and calibration', tag:'Difficulty is the relationship between what the game demands and what the player can do right now.',
   what:`The calibration of challenge against player skill over time: the curve, its local spikes and rests, the punishment and recovery around failure, and the tools for adapting (settings, assists, dynamic adjustment, player-steered difficulty). Csikszentmihalyi’s flow model (challenge matching skill) is the usual frame. Jenova Chen argued for letting players steer their own difficulty through play rather than hidden adjustment. Both are heuristics, and some games deliberately live outside the flow band. Players can steer difficulty with no code at all: Pokémon’s Nuzlocke Challenge, two rules a player wrote in a 2010 webcomic (catch only the first Pokémon met in each area; treat a fainted Pokémon as dead), turns a forgiving game into a permadeath run. The opposite ships inside the game: Contra’s NES port kept the Konami Code, and entering it at the title screen raises a player’s lives from three to thirty without changing a single enemy pattern or bullet. Subnautica lets a player steer difficulty by depth: the deep biomes wait until the player chooses to descend, so the hardest content arrives at the pace of the player’s own curiosity, even though the ending lies at the bottom.`,
   why:[`Too hard too early churns players before they have learned enough to see their own progress. Too easy for too long leaves nothing to learn, which players report as boredom.`,`“Unfair” is a specific complaint with specific causes. Treating it as “too hard” leads to the wrong fix.`,`Difficulty is felt through clarity: a hard challenge with legible rules feels fair, an easy one with hidden rules feels cheap.`],
@@ -944,3 +948,9 @@ WORKED('economy-modelling-and-balance', {
   try:['Raise the daily reward from 100 to 150 coins, 50 percent more. What happens to the balance on day 10, and to the days-to-afford column on day 8?', 'Double the upgrade cost from day 6 (the day 6 upgrade becomes 1126, the day 8 one 1688). Can the player still buy both? What do they do on day 8, and what would they feel?', 'Inflation starts when income outruns the sinks, so the same coins buy less. Which column shows the surplus building up, which column shows what the same upgrade costs in play time, and what sink would you add so the day 10 balance is nearer the cost of the next upgrade?', 'Explain in your own words why the balance climbs on most days but dips on days 6 and 8. What does the shape say about when a player decides to buy?', 'The player skips cosmetics for all ten days. Which columns change, and does it change when they can afford the next upgrade?'],
   file:'ten-day-soft-currency-economy.csv'
 });
+
+DIAGRAM('economy-modelling-and-balance', { kind:'economy', title:'Gold in a small economy', nodes:[
+  { id:'q', t:'Quests', type:'source', row:0 }, { id:'d', t:'Enemy drops', type:'source', row:0 },
+  { id:'g', t:'Gold', type:'pool', row:1 },
+  { id:'c', t:'Crafting', type:'converter', row:2 }, { id:'r', t:'Repairs', type:'sink', row:2 }, { id:'s', t:'Shop', type:'sink', row:2 }],
+  edges:[['q','g','per quest'],['d','g','per kill'],['g','c','spend'],['g','r','per death'],['g','s','buy']] });

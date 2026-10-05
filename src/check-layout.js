@@ -75,6 +75,7 @@ function textFitSweep(layoutCoreSource) {
   // that would need more than five lines is a failure here, not a count.
   const specs = [];
   Object.values(ctx.TOPICS).forEach(t => { if (t.diagram) specs.push(['topic:' + t.id, t.diagram]); });
+  Object.values(ctx.TOPICS).forEach(t => (t.explainer && t.explainer.frames || []).forEach((f, i) => specs.push([`topic:${t.id}/explainer ${i + 1}`, Object.assign({ title: f.t }, f.spec)])));
   specs.push(['diagnose:content-tree', ctx.contentTreeFlow()]);
   (ctx.PLATFORMS || []).forEach(p => { if (p.flow) specs.push(['platform:' + p.id, p.flow]); ctx.stagesOf(p).forEach(([k]) => { const d = p.stages[k] && p.stages[k].diagram; if (d) specs.push(['platform:' + p.id + '/' + k, d]); }); });
   if ((ctx.PLATFORMS || []).length) specs.push(['platforms:table', ctx.platformMatrix()]);

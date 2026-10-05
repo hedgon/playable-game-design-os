@@ -172,6 +172,29 @@ for (const t of topics) {
     checkDiagram(t.diagram, `${t.id}: diagram`, errors);
     if (HAND_DRAWN.has(t.id)) errors.push(`${t.id}: has both a hand-drawn diagram (DIAGRAMS in 90-app.js) and a DIAGRAM() spec`);
   }
+  if (t.clip !== undefined) {
+    const c = t.clip, where = `${t.id}: clip`;
+    for (const k of ['src', 'poster', 'title', 'text']) if (typeof c[k] !== 'string' || !c[k].trim()) errors.push(`${where}: ${k} is empty`);
+    for (const k of ['src', 'poster']) if (c[k] && !fs.existsSync(path.join(__dirname, '..', c[k]))) errors.push(`${where}: ${c[k]} does not exist (run node src/clips-make.js)`);
+    if (c.src && !/\.webm$/.test(c.src)) errors.push(`${where}: src must be a .webm file`);
+  }
+  if (t.explainer !== undefined) {
+    const x = t.explainer, where = `${t.id}: explainer`;
+    if (!x || x.kind !== 'explainer') errors.push(`${where}: kind must be 'explainer'`);
+    else {
+      if (typeof x.title !== 'string' || !x.title.trim()) errors.push(`${where}: title is empty`);
+      if (!Array.isArray(x.frames) || x.frames.length < 3) errors.push(`${where}: needs 3 or more frames`);
+      else {
+        if (x.frames.length > 8) longs.push(`${where}: ${x.frames.length} frames (guide: 8)`);
+        x.frames.forEach((f, i) => {
+          if (!f || typeof f.t !== 'string' || !f.t.trim()) errors.push(`${where}: frame ${i + 1} has no caption`);
+          if (!f || !f.spec) errors.push(`${where}: frame ${i + 1} has no spec`);
+          // a frame's diagram is titled by its caption when it carries no title of its own
+          else checkDiagram(Object.assign({ title: f.t }, f.spec), `${where} frame ${i + 1}`, errors);
+        });
+      }
+    }
+  }
   if (t.tech !== undefined) {
     if (!Array.isArray(t.tech) || !t.tech.length) errors.push(`${t.id}: tech present but empty`);
     else for (const x of t.tech) for (const k of ['n', 'how', 'fit', 'cost', 'alt']) if (!x[k]) errors.push(`${t.id}: tech entry missing ${k}`);

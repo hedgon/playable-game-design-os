@@ -897,6 +897,10 @@ func Serve(dir string) http.Handler {
   pitfall:'Giving the manifest the same long cache lifetime as the hashed files. Players then keep the old manifest and never ask for the fixed asset.'
 });
 
+DIAGRAM('infra-cdn-assets', { kind:'flow', title:'A versioned asset through the CDN', steps:[
+  { id:'c', t:'Client', d:'asks for /v42/hero.png' }, { id:'e', t:'Edge cache' }, { id:'o', t:'Origin', d:'only on a miss' }, { id:'k', t:'Kept at the edge', d:'for a long time' }],
+  edges:[['c','e','request'],['e','o','miss'],['o','k','stored']] });
+
 T('infra-data-stores',{ d:'infra', t:'Managed databases, replicas, sharding and queues', tag:'The database is the one component you cannot restart your way out of. Choose the shard key early and rehearse the restore.',
   what:`The stateful services behind the game: a relational database (usually managed, with a primary for writes and replicas for reads), a distributed cache, and queues or streams for work that must not happen inside a request. The decisions are how you scale reads (replicas), how you scale writes (horizontal partitioning by a shard key), and how you move work off the request path (a queue, a stream, or a scheduled batch).`,
   why:[`The database is the one component you cannot restart your way out of. Every other decision sits downstream of it.`,`Read replicas are cheap and they lie. They lag the primary, so a read after a write can show the player a world where their purchase did not happen.`,`Sharding is straightforward to design in at the start and expensive to add later, because the shard key has to be present in every query, every batch job and every admin tool.`,`A queue turns a slow synchronous failure into a retryable asynchronous one, and immediately raises the question of what happens when a message is processed twice.`],
@@ -1030,6 +1034,10 @@ func (s Shards) Gold(ctx context.Context, playerID string) (int, error) {
 `,
   pitfall:'Choosing the shard with a hash modulo the shard count. Adding one shard changes the answer for most players. Use a lookup table or consistent hashing, and decide the shard key before launch.'
 });
+
+DIAGRAM('infra-data-stores', { kind:'flow', title:'Writes to the primary, reads from replicas and cache', steps:[
+  { id:'a', t:'Service' }, { id:'c', t:'Cache', d:'hot reads' }, { id:'p', t:'Primary', d:'all writes' }, { id:'r', t:'Replicas', d:'reads, a little behind' }],
+  edges:[['a','c','read'],['a','p','write'],['p','r','replicate']] });
 
 T('infra-monitoring',{ d:'infra', t:'Monitoring, incidents and cost', tag:'Time to notice dominates time to recover. Alert on symptoms players feel, and give every page a runbook.',
   what:`Knowing the system works without being told by a player. Metrics with dashboards and alerts, structured logs split by concern, traces that follow one request through the layers, an error and crash reporter with symbols per build, and service level objectives that state what working means as a number. Around it: an on-call rotation, a runbook per alert, a blameless review after each incident, and a cost dashboard, because cost is a signal too.`,

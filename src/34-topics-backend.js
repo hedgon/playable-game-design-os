@@ -753,6 +753,9 @@ func Log(ctx context.Context, msg string) {
   pitfall:'Using context values to pass business inputs such as an item id, a price, a quantity or a feature flag. They are invisible in the function signature and unchecked by the compiler. Keep context values for request scoped metadata: a request id, the identity of the caller that the auth middleware sets once, a locale. Pass real inputs as parameters.'
 });
 
+DIAGRAM('backend-request-context', { kind:'stack', title:'A request through the middleware chain', arrow:'Each layer wraps the next and sees the response on the way out', layers:[
+  { t:'Request id', d:'set first, logged everywhere' }, { t:'Authentication', d:'who is calling' }, { t:'Idempotency', d:'replays return the first result' }, { t:'Timeout', d:'deadline in the context' }, { t:'Handler', d:'the actual work' }] });
+
 T('backend-errors',{ d:'backend', t:'Domain error taxonomy and wrapping', tag:'An error is part of your API. Give it a code, a status, something the client can act on, and the stack where it started.',
   what:`One error type for the service that carries a numeric domain code, maps to an HTTP status and a wire payload, and captures a stack at the point it was wrapped. Interactors wrap causes with a code, handlers translate at the boundary, and errors.Is and errors.As do the matching. Codes are allocated in blocks per subsystem, so a code tells whoever is on call where to look before they open a log.`,
   why:[`The client must behave differently for session expired, not enough currency, and the server is broken. A single 500 with a string forces the client to parse prose.`,
@@ -1110,6 +1113,9 @@ func Transfer(ctx context.Context, db *sql.DB, from, to string, amount int64) er
 `,
   pitfall:'Forgetting to roll back on an early return, which leaves the transaction and its connection held. Defer Rollback right after BeginTx; it does nothing once Commit has succeeded. Also check RowsAffected, because an UPDATE that matches no row is not an error.'
 });
+
+DIAGRAM('backend-data-access', { kind:'stack', title:'Layers and one transaction boundary', layers:[
+  { t:'Handler', d:'parses, calls a service' }, { t:'Service', d:'opens the transaction' }, { t:'Query layer', d:'typed queries' }, { t:'Database', d:'commit or roll back' }] });
 
 T('backend-caching-redis',{ d:'backend', t:'Caching tiers and Redis patterns', tag:'Three cache tiers answer three different questions, and Redis is three different tools wearing one name.',
   what:`Where a read is answered from, and what Redis is doing in a game backend. The tiers: an in-process cache for data that is immutable between releases, a distributed cache such as memcached or Redis for player and shared state, and a per request memo cache that removes duplicate reads inside one handler. Redis earns its place separately through sorted sets for leaderboards, a lock manager for sequencing, and pub/sub for fan-out between instances.`,

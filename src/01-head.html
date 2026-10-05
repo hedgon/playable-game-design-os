@@ -770,6 +770,15 @@ a.path,a.symptom{text-decoration:none}
 .sigcard h4,.sigcard h3.h4look{margin:12px 0 2px}
 .lenscard .steal{border-left:3px solid var(--accent);padding-left:10px}
 /* a lens is a disclosure: its name and claim always show, the argument opens on request */
+/* stepped explainer: one frame at a time; the frame fades in unless motion is reduced */
+.clip video{display:block;width:100%;max-width:640px;height:auto;background:#101114}
+.explainer .xp-stage{position:relative}
+.explainer .xp-frame:not([hidden]){animation:fade .25s ease}
+@media (prefers-reduced-motion:reduce){.explainer .xp-frame:not([hidden]){animation:none}}
+.explainer .xp-cap{min-height:3em;margin:8px 0 6px}
+.explainer .xp-num{font-family:var(--mono);font-size:var(--fs-micro);color:var(--fg2);margin-right:4px}
+.explainer .xp-ctl{gap:6px;flex-wrap:wrap}
+.explainer .xp-text li{margin:0 0 10px}
 .lenscard > summary{display:block;cursor:pointer;list-style:none;padding:0}
 .lenscard > summary::before{content:none}
 .lenscard > summary::-webkit-details-marker{display:none}

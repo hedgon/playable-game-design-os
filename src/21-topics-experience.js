@@ -281,6 +281,9 @@ INTERVIEW('goals-horizons',{
       red:`Halves the numbers and reships exactly the same unchanging loop.` }
   ] });
 
+DIAGRAM('goals-horizons', { kind:'stack', title:'Three goal horizons, nested', taper:true, layers:[
+  { t:'This month', d:'a season, a collection' }, { t:'This session', d:'a level, a run' }, { t:'Right now', d:'the next fight or move' }] });
+
 T('tension-release',{ d:'experience', t:'Tension and release', tag:'Emotion is a rhythm. Flat tension is boredom. Constant tension is exhaustion.',
   what:`The rise and fall of stakes, pressure and uncertainty over time. Tension comes from uncertain outcomes the player cares about. Release comes from resolution, safety, reward or humor. Pacing is the deliberate shaping of this rhythm across a level, a session and a whole game. Pac-Man turns its tension round with the power pellet, which makes the ghosts blue and edible for a few seconds, and after some levels it plays a short comic intermission, which Toru Iwatani added to relieve the pressure of constant pursuit. Super Smash Bros. makes damage raise the stakes rather than end the round: a rising percentage only increases how far the next hit launches a fighter, so tension climbs through a stock until the edge of the stage releases it. Five Nights at Freddy’s releases its tension only with the clock: reaching 6 AM ends the shift, and when power runs out first, Freddy’s music box playing the Toreador Song turns the last seconds into a wait on the clock.`,
   why:[`Players judge an experience mostly by its most intense moment and its ending, not its average (Kahneman’s peak-end rule). A well-placed peak is worth an hour of even content.`,`Release is what makes the next tension legible. Without rest, players habituate and stop feeling.`,`Tension needs real stakes. If failure costs nothing, nothing is tense.`],

@@ -331,6 +331,14 @@ DIAGRAM('perception-and-awareness', { kind:'state', title:'What the guard knows:
   states:[{id:'unaware', t:'Unaware', d:'patrolling'},{id:'suspicious', t:'Suspicious', d:'heard something'},{id:'searching', t:'Searching', d:'last known spot'},{id:'alert', t:'Alert', d:'sees the player'}],
   edges:[['unaware','suspicious','noise'],['suspicious','alert','sight'],['suspicious','unaware','nothing'],['alert','searching','lost sight'],['searching','alert','found'],['searching','suspicious','gives up']] });
 
+EXPLAINER('perception-and-awareness', { kind:'explainer', title:'One encounter through the guard\'s eyes',
+  frames:[
+    { t:'Unaware: patrolling', spec:{ kind:'stack', layers:[{ t:'State', d:'unaware' }, { t:'Shows', d:'relaxed walk' }] } },
+    { t:'A sound: suspicious', d:'It turns and searches; the player gets a visible warning and time to hide.', spec:{ kind:'stack', layers:[{ t:'State', d:'suspicious' }, { t:'Shows', d:'"What was that?"' }] } },
+    { t:'Seen for long enough: alert', d:'Awareness filled over a second, not at once, so a glimpse is not instantly fatal.', spec:{ kind:'stack', layers:[{ t:'State', d:'alert' }, { t:'Shows', d:'shout, chase' }] } },
+    { t:'Lost sight: back to searching, then calm', spec:{ kind:'flow', steps:[{ id:'a', t:'Alert' }, { id:'s', t:'Search last seen spot' }, { id:'u', t:'Back to patrol', d:'after a while' }], edges:[['a','s'],['s','u']] } }
+  ] });
+
 T('navigation-and-pathfinding',{ d:'gameai', t:'Navigation and pathfinding', tag:'Getting an agent from A to B: grids, navmesh, path following, steering and avoidance, at a cost the frame can afford.',
   what:`How agents move through the space: representing the walkable world (grid, navmesh, waypoints), finding a route (A* and its variants, flow fields), following it with movement (path following, steering), and not colliding (local avoidance, crowd simulation). Good navigation is invisible. Bad navigation is the most visible AI failure there is, because players see it directly.`,
   why:[`A perfect decision system is worthless if the agent gets stuck on a doorframe. Pathfinding failures are read as stupidity by players.`,`Navigation is level-geometry-dependent: a navmesh is only as good as the level’s authored walkability, so level design and AI are one workflow.`,`Cost scales with agents and world size. Naive pathfinding every frame is a classic frame-rate killer.`,`Movement quality (acceleration, turning, avoidance) carries as much character as the decision does.`],
@@ -428,6 +436,16 @@ INTERVIEW('navigation-and-pathfinding',{
       a:`Logging that captures the agent’s path, position, state and target at the moment of failure, with a seed so the situation can be replayed. An overlay for paths, navmesh coverage and stuck events. Then aggregate stuck positions across sessions into a heat map, because the same doorframe usually produces most of the reports.`,
       follow:`The heat map points at one corridor in a finished level. Who fixes it and how?`,
       red:`Asks testers for better repro steps and waits.` }
+  ] });
+
+EXPLAINER('navigation-and-pathfinding', { kind:'explainer', title:'A* on a small grid, one expansion at a time',
+  note:'f = g + h: g is the cost so far, h the estimated cost to the goal (here the Manhattan distance, which never overestimates on a 4-way grid).',
+  frames:[
+    { t:'Start: the open list holds the start cell', spec:{ kind:'stack', layers:[{ t:'Open', d:'start (f = 0 + 6)' }, { t:'Closed', d:'empty' }] } },
+    { t:'Expand the open cell with the lowest f', d:'Its neighbours join the open list with their own g and h.', spec:{ kind:'stack', layers:[{ t:'Open', d:'3 neighbours, f 6 to 8' }, { t:'Closed', d:'start' }] } },
+    { t:'A wall in the way: f grows, the search fans out', d:'Cells behind the wall cost more, so cells to the side are tried first.', spec:{ kind:'stack', layers:[{ t:'Open', d:'7 cells, f 8 to 10' }, { t:'Closed', d:'5 cells' }] } },
+    { t:'The goal leaves the open list: done', d:'Follow each cell\'s parent back to the start to get the path.', spec:{ kind:'flow', steps:[{ id:'g', t:'Goal' }, { id:'p', t:'Parent' }, { id:'s', t:'Start' }, { id:'r', t:'Reverse it', d:'the path' }], edges:[['g','p'],['p','s'],['s','r']] } },
+    { t:'The same query on a navmesh visits far fewer nodes', d:'A few polygons replace hundreds of cells; the path is then smoothed through the portals.', spec:{ kind:'matrix', rows:['Nodes searched','Path shape'], cols:['Grid','Navmesh'], cells:[['hundreds','tens'],['stair-steps','straight lines']] } }
   ] });
 
 T('readable-and-fair-ai',{ d:'gameai', t:'Readable and fair AI', tag:'Telegraph intent, keep promises, do not cheat invisibly: the player must be able to explain every loss.',
@@ -835,6 +853,9 @@ INTERVIEW('learning-based-ai',{
       follow:`It beats the baseline on variety and loses on explainability. What do you do?`,
       red:`Reports win rate against human players as the measure of success.` }
   ] });
+
+DIAGRAM('learning-based-ai', { kind:'loop', title:'Reinforcement learning, and where designers act', steps:[
+  { t:'Agent acts', d:'in the environment' }, { t:'Environment', d:'returns a new state' }, { t:'Reward', d:'designed by people' }, { t:'Agent updates', d:'its policy' }] });
 
 T('generative-characters', { d:'gameai', t:'Generative characters: language models inside the game', tag:'A model can voice a character. The game still decides what that character may do, how long a reply may take, and what happens when it fails.',
   what:`Characters whose lines, and sometimes choices, come from a language model while the game runs: a shopkeeper who answers free-text questions, a companion who comments on what just happened, a suspect the player can question. The model proposes and the game decides. Output is limited to the game’s own actions in a fixed format and checked before anything happens, and every failure (slow, offline, off-script, unsafe) lands on an authored line. The design questions are budgets (latency, cost per conversation, memory on the device), safety (players will try to break it), and whether free text serves the experience at all.`,

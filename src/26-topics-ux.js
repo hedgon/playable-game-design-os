@@ -392,6 +392,9 @@ INTERVIEW('onboarding',{
       red:`Schedules one onboarding pass near the end and treats it as polish.` }
   ] });
 
+DIAGRAM('onboarding', { kind:'curve', title:'The first session, beat by beat', x:'Time in the first session', y:'Things the player can do', alt:'Abilities arrive one at a time with a first action, a first win and a first choice early, so the player is doing before being told.',
+  series:[{ t:'Verbs known', pts:[[0,0.1],[0.1,0.25],[0.3,0.45],[0.6,0.7],[1,0.85]] }], beats:[{ t:'First action', at:0.03 }, { t:'First win', at:0.12 }, { t:'First choice', at:0.3 }] });
+
 T('controls-and-friction',{ d:'ux', t:'Controls, menus and interaction friction', tag:'Every extra input between intent and action is a tax. Count them.',
   what:`The physical and procedural cost of doing what the player intends: input mapping, latency, menu depth, confirmation steps, mode switches, load times. Friction is not always bad (deliberate friction can add weight), but unintended friction is pure loss. Fruit Ninja maps its only action to the gesture itself: the finger’s path is the cut, so intent reaches the result with no button, menu or cursor in between. Katamari Damacy’s twin-stick, Battlezone-style steering is friction that arguably adds weight: each stick drives one side of the ball, so wrestling a heavy, growing object into a turn is part of the play, not an oversight left to streamline away. Super Smash Bros. (1999) gives every fighter the same inputs, a direction plus an attack or special button, so learning one character’s recovery move teaches it for the whole cast.`,
   why:[`Latency and mapping decide game feel before any polish.`,`Menu friction shows up as players not using systems that would have been fun.`,`Friction compounds: three small taxes on a frequent action become the reason a player stops.`],

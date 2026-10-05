@@ -48,10 +48,11 @@ the evidence line), `[-]` set aside (with the reason).
 - [x] P3.6 Owner (2026-10-05): map tree edges back to soft dashed curves (no solid "hard lines"); wider gaps kept
 
 ## P4 Explainers
-- [ ] P4.1 `explainer` diagram kind: frames, step/play/reset, static final frame, reduced motion, text equivalent; validator and layout check per frame
-- [ ] P4.2 The 25 figure opportunities from the site audit resolved (static or stepped)
-- [ ] P4.3 WebM clip renderer for motion ideas; clips added where motion is the lesson
-- [ ] P4.4 Checks, CI replay, commit, push
+- [x] P4.1 `EXPLAINER()`: frames of any diagram kind, Back/Next/Play/Start again, caption in a live region, one frame at a time, fade off under reduced motion, every frame validated and laid out; typed in 10-schema.js
+- [x] P4.2 The site audit's figure list: 20 static diagrams added (the fixed-timestep loop, progression, economy, request chain, data access, data stores, CDN, anti-cheat, saves, entities, agent loop, agentic flow, context window, goal horizons, retention, onboarding, monetisation, seasons, learning-based AI, memory and GC) and 10 stepped explainers (rollback, fixed timestep, state sync, A*, determinism, tunnelling, combat beats, perception, matchmaking, hit feel); diagrams 214 to 279, all fit
+- [x] P4.3 `CLIP()` and src/clips-make.js: three silent WebM clips drawn from code (fixed timestep, hit feel, snapshot interpolation), 22-27 KB each, poster, never autoplay, text equivalent; smoke checks the explainer moves only when stepped and the clip does not play by itself
+- [-] Set aside: the audit's "explorable toggles" (a slider for frame time, layer toggles for hit feel) as interactive models; the stepped explainers and clips cover the same ideas. The editor screen recording for craft-performance (owner decision: no editor recordings)
+- [x] P4.4 build (279 diagrams, 0 problems), tsc 0, smoke 0 failures, e2e 105/105; commit, push, CI
 
 ## P5 Curriculum design
 - [ ] P5.1 research/curriculum.md: each path rule tied to evidence and its strength

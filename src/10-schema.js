@@ -48,6 +48,8 @@
  * @property {Fact[]} [facts]       attached by FACTS()
  * @property {Worked[]} [worked]    attached by WORKED()
  * @property {Diagram} [diagram]    attached by DIAGRAM()
+ * @property {Explainer} [explainer]   attached by EXPLAINER()
+ * @property {Clip} [clip]    attached by CLIP()
  */
 /**
  * A diagram drawn from data by 87-diagrams.js. `kind` picks the shape:
@@ -124,6 +126,35 @@ function DIAGRAM(id, spec){
   const t = TOPICS[id];
   if(!t) throw new Error('DIAGRAM: unknown topic ' + id);
   t.diagram = spec;
+}
+
+/* A topic's stepped explainer, for an idea that is a change over time (a packet
+   stream, a frame being built, power rising across releases): 3 to 8 frames,
+   each a caption `t`, an optional longer `d`, and `spec`, a diagram of any
+   DIAGRAM kind drawn for that moment. The reader steps through it (nothing
+   plays by itself); "Diagram as text" lists every frame. Shape rules are in
+   validate.js; every frame is laid out by check-layout.js. */
+/**
+ * @typedef {{kind: 'explainer', title: string, note?: string,
+ *   frames: Array<{t: string, d?: string, spec: Omit<Diagram, 'title'> & {title?: string}}>}} Explainer
+ */
+/** @param {string} id @param {Explainer} spec */
+function EXPLAINER(id, spec){
+  const t = TOPICS[id];
+  if(!t) throw new Error('EXPLAINER: unknown topic ' + id);
+  t.explainer = spec;
+}
+
+/* A short silent clip for an idea whose point is motion (how a fixed step
+   moves, how a hit lands), rendered from code by src/clips-make.js into
+   assets/clips/. It never plays by itself; `text` says in words what it
+   shows, for anyone who cannot or does not play it. */
+/** @typedef {{src: string, poster: string, title: string, text: string}} Clip */
+/** @param {string} id @param {Clip} c */
+function CLIP(id, c){
+  const t = TOPICS[id];
+  if(!t) throw new Error('CLIP: unknown topic ' + id);
+  t.clip = c;
 }
 
 /* Worked examples: a table or a filled document a topic shows under "Worked

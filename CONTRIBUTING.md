@@ -253,6 +253,22 @@ Every spec has `kind`, `title` (under 90 characters) and an optional
 | `screen` | `aspect`, `regions:[{t, d, x, y, w, h, g?, kind?}]` in 0..1, `topics?` | an annotated screen layout: each region gets a number badge and a legend line; `g` draws a glyph of what it holds (the names are the `GLYPH` table in 87-diagrams.js), `kind:'world'` marks the play space. A label that does not fit its region is left to the legend. |
 | `flow` | `steps:[{id, t, d}]`, `edges` (acyclic, all reachable) | a pipeline or decision tree |
 
+`EXPLAINER('topic-id', {kind:'explainer', title, note?, frames:[{t, d?, spec}]})`
+adds a stepped explainer under the diagram, for an idea that is a change over time
+(a packet stream, a frame being built, power rising across releases): 3 to 8
+frames, each a caption `t`, an optional sentence `d`, and `spec`, a diagram of any
+kind above drawn for that moment (its title defaults to the caption). The reader
+steps through it; Play steps once through and stops; nothing plays by itself, and
+"Diagram as text" lists every frame. Every frame is validated and laid out like
+any diagram. Use one only when the change over time is the point; a static
+diagram is the default (research: docs/program-2026-10/research/learning-science.md).
+
+`CLIP('topic-id', {src, poster, title, text})` adds a short silent clip for an idea
+whose point is motion. Clips are drawn from code by `src/clips-make.js` (a canvas
+drawing of time, captured and encoded to WebM with ffmpeg) into `assets/clips/`;
+never footage of someone else's game. `text` says in words what the clip shows.
+A clip never autoplays.
+
 Labels are short by design. When one does not fit, `node src/check-layout.js`
 names it; reword it rather than widening anything. Order state-machine
 states so transitions join neighbours (two columns, reading order), and use

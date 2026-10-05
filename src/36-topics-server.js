@@ -307,6 +307,14 @@ func (m *Match) Step(inputs []int) {
   pitfall:'Ranging over a map inside the step. Go randomises map iteration order on purpose, so two runs of the same match diverge. Iterate a sorted slice of keys instead. Also, the standard library does not promise that IntN gives the same numbers in a later Go version. If you store replays, write a small generator yourself or vendor one.'
 });
 
+EXPLAINER('server-determinism', { kind:'explainer', title:'Two machines, same inputs, one difference',
+  frames:[
+    { t:'Frames 1 to 99: identical state on both machines', spec:{ kind:'matrix', rows:['Inputs','Checksum'], cols:['Machine A','Machine B'], cells:[['same','same'],['7f3a','7f3a']] } },
+    { t:'Frame 100: one float sum runs in a different order', d:'(a + b) + c and a + (b + c) can differ in the last bit; so can a different CPU instruction or library.', spec:{ kind:'matrix', rows:['Inputs','Checksum'], cols:['Machine A','Machine B'], cells:[['same','same'],['91c2','91c3']] } },
+    { t:'The difference grows each frame: a desync', d:'A unit is one pixel off, then misses a hit, then a fight ends differently.', spec:{ kind:'curve', x:'Frames after 100', y:'Difference between A and B', alt:'The difference starts at one bit and grows until the two games no longer agree.', series:[{ t:'Divergence', pts:[[0,0.02],[0.3,0.05],[0.6,0.3],[1,0.95]] }] } },
+    { t:'Compare checksums every frame to catch it at frame 100', d:'Log the inputs and the frame; replay both to find the line that differs.', spec:{ kind:'flow', steps:[{ id:'h', t:'Hash the state' }, { id:'s', t:'Exchange hashes' }, { id:'c', t:'Compare', d:'frame 100 differs' }, { id:'r', t:'Replay and diff' }], edges:[['h','s'],['s','c'],['c','r']] } }
+  ] });
+
 T('server-state-sync',{ d:'server', t:'State sync and tick rates', tag:'Send what changed, at a rate someone chose on purpose, and decide whether the client waits or guesses.',
   what:`How the authoritative state reaches the machines that only display it. Three decisions sit inside it: what you send (the whole state, a snapshot, or only the fields that changed since this client last acknowledged), how often you send it, and what the receiver does between messages. The receiver either interpolates between the last two known states and lives slightly in the past, or predicts forward from local input and reconciles when the truth arrives. Counter-Strike 2’s sub-tick model shows a fourth option: keep a fixed simulation tick but timestamp each input to the instant it happened, so two players who acted a few milliseconds apart within the same tick still resolve in that order.`,
   why:[`Bandwidth and cost scale with what you send times how often times how many players see it. This is the single largest running cost of a realtime game.`,`Interpolation and prediction produce different games. Interpolated remote players are always behind, predicted local players sometimes rewind. Both are visible to players and both need design.`,`Tick rate sets the resolution of fairness. Two players can only be distinguished by the simulation at the granularity it ticks.`,`Outside realtime matches the same idea pays for itself: returning only the state a request changed turns a large response into a small one.`],
@@ -438,6 +446,19 @@ func Run(ctx context.Context, w World, send func([]byte)) {
 `,
   pitfall:'Assuming the ticker keeps up. If Step takes longer than the interval, ticks are dropped without any error and the simulation runs slow. Measure Step and log when it exceeds the budget.'
 });
+
+EXPLAINER('server-state-sync', { kind:'explainer', title:'Snapshots, interpolation and prediction',
+  note:'Typical numbers: the server sends 20 snapshots a second (every 50 ms); the client draws at 60 frames a second and buffers about 100 ms.',
+  frames:[
+    { t:'The server sends a snapshot every 50 ms', spec:{ kind:'flow', steps:[{ id:'s', t:'Server tick', d:'20 Hz' }, { id:'n', t:'Snapshot', d:'positions, ids' }, { id:'c', t:'Client buffer', d:'arrives jittered' }], edges:[['s','n'],['n','c']] } },
+    { t:'Other players are drawn 100 ms in the past, between two snapshots', d:'Showing the past costs a little delay and buys smooth motion through late or lost packets.', spec:{ kind:'stack', layers:[{ t:'Snapshot at t-150', d:'older' }, { t:'Drawn: t-100', d:'blend 50 percent' }, { t:'Snapshot at t-50', d:'newer' }] } },
+    { t:'Your own character is predicted, not waited for', d:'The client applies your input at once and keeps it, numbered, until the server confirms it.', spec:{ kind:'stack', layers:[{ t:'Input 41 applied', d:'confirmed' }, { t:'Input 42 applied', d:'pending' }, { t:'Input 43 applied', d:'pending' }] } },
+    { t:'The server disagrees about input 42', d:'Reset to the server\'s state for 42 and re-apply 43 on top: reconciliation.', spec:{ kind:'flow', steps:[{ id:'r', t:'Server state at 42' }, { id:'a', t:'Re-apply 43' }, { id:'d', t:'Draw', d:'small correction' }], edges:[['r','a'],['a','d']] } },
+    { t:'What each technique trades', spec:{ kind:'matrix', rows:['Interpolate','Predict'], cols:['Buys','Costs'], cells:[['smooth remote motion','about 100 ms of delay'],['instant own input','corrections, more code']] } }
+  ] });
+
+CLIP('server-state-sync', { src:'assets/clips/snapshot-interpolation.webm', poster:'assets/clips/snapshot-interpolation.webp', title:'Raw snapshots against interpolation',
+  text:'A remote player moving in a circle, with the server sending 20 snapshots a second. On the left the newest snapshot is drawn as it arrives, so the player jumps 20 times a second. On the right the client draws 100 ms in the past, blending between the two snapshots around that moment, so the motion is smooth at 60 frames a second at the cost of that small delay.' });
 
 T('server-realtime-protocol',{ d:'server', t:'Realtime protocol design', tag:'A length, an op code, a message id, a payload. Everything else is a decision you should be able to defend.',
   what:`The wire format and dispatch rules of a persistent connection. A framed binary envelope carrying an op code and a message id, a schema for the payload, a rule for which messages are reliable and ordered and which may be dropped, a way to correlate a reply with the request that caused it over a socket that also pushes unsolicited events, and an authentication step that must happen before any op that touches state.`,
@@ -751,6 +772,14 @@ func abs(n int) int {
   pitfall:'Matching inside a fixed rating band. In a quiet hour a player at the edge of the population waits for ever. Widen the band with waiting time and keep a hard cap, as maxBand does here, so the match is still fair.'
 });
 
+EXPLAINER('server-matchmaking', { kind:'explainer', title:'One ticket from queue to match',
+  frames:[
+    { t:'The ticket enters the queue', spec:{ kind:'stack', layers:[{ t:'Ticket', d:'skill 1500, region EU' }, { t:'Search range', d:'plus or minus 50' }] } },
+    { t:'No match yet: the range widens over time', d:'Fairness traded for wait time, a little every few seconds.', spec:{ kind:'curve', x:'Seconds waiting', y:'Skill range allowed', alt:'The allowed skill gap grows with the time spent waiting.', series:[{ t:'Range', pts:[[0,0.1],[0.3,0.2],[0.6,0.45],[1,0.8]] }] } },
+    { t:'A match is proposed, then confirmed', spec:{ kind:'flow', steps:[{ id:'p', t:'Proposed' }, { id:'c', t:'All accept' }, { id:'s', t:'Server allocated' }, { id:'j', t:'Players join' }], edges:[['p','c'],['c','s'],['s','j']] } },
+    { t:'Someone declines: back to the queue, keeping their place', spec:{ kind:'flow', steps:[{ id:'d', t:'One declines' }, { id:'q', t:'Others re-queue', d:'priority kept' }], edges:[['d','q']] } }
+  ] });
+
 T('server-scaling',{ d:'server', t:'Scaling a game server', tag:'Stateless parts scale by adding copies. The stateful parts are the whole problem.',
   what:`Making the server hold more concurrent players than one process can. The request-serving layer is stateless and scales by adding instances behind a load balancer. Rooms, sessions and live connections are stateful and must be placed somewhere findable, with a directory that maps a room to the instance holding it. Messages that must reach players spread across instances go through a pub/sub layer, usually sharded, and player data itself can be partitioned into independent worlds when a single database stops keeping up.`,
   why:[`A realtime game’s cost is dominated by concurrent connections and running sessions, not by requests per second.`,`Stateful instances cannot be replaced freely. Every deploy, crash and scale-down decision has to answer what happens to the sessions on that instance.`,`Fan-out is where an innocent feature becomes a cost. A message to a channel with ten thousand subscribers is ten thousand deliveries.`,`Partitioning changes the game’s design. Players in different worlds cannot see each other, and that is a product decision dressed as an infrastructure one.`],
@@ -1023,6 +1052,10 @@ func (b *Bucket) Allow(now time.Time) bool {
 `,
   pitfall:'Banning on the first rejected action. A lag spike can send a burst of honest inputs. Count rejections, flag the account for review, and keep bans for patterns that repeat.'
 });
+
+DIAGRAM('server-anticheat', { kind:'flow', title:'Where each check lives', steps:[
+  { id:'c', t:'Client', d:'sends intent, not results' }, { id:'v', t:'Server validates', d:'rate, range, cooldown' }, { id:'s', t:'Authoritative state' }, { id:'l', t:'Logs and review', d:'patterns over time' }],
+  edges:[['c','v','input'],['v','s','accepted'],['v','l','flagged']] });
 
 T('server-liveops',{ d:'server', t:'Live operations on the server', tag:'The game keeps running while you change it. Gates, versions and scheduled jobs are how you stay in control.',
   what:`The server-side machinery that lets a live game be changed without breaking the players inside it. A maintenance gate that can close the game before a risky change, a client-version gate that can force an update while still letting a few endpoints answer, versioned master data that clients download rather than ship, scheduled batch jobs that do the work no request can do, and an order of operations for releases that keeps data, server and client compatible at every moment in between.`,
@@ -1329,6 +1362,21 @@ func (g *Game) Rollback(frame int, inputs []int) bool {
 `,
   pitfall:'Letting the step read something that is not in the saved state, such as time.Now, a shared map or a pointer to another object. The replay then differs from the first run and the players drift apart.'
 });
+
+EXPLAINER('server-rollback-netcode', { kind:'explainer', title:'Rollback: predict, correct, catch up',
+  note:'Frames run at 60 per second. One frame of a fighting game is about 16.7 ms; a 100 ms round trip means the other player\'s input arrives about 3 frames late.',
+  frames:[
+    { t:'Frame 10: both games run with no wait', d:'Each machine runs frame 10 at once with its own player\'s input and a guess for the other player: their last input, repeated.',
+      spec:{ kind:'stack', layers:[{ t:'My input', d:'pressed: block' }, { t:'Their input', d:'guessed: still walking' }, { t:'Simulate frame 10', d:'draw it now' }] } },
+    { t:'Frame 13: the real input for frame 10 arrives', d:'It says they attacked on frame 10. The guess was wrong, so frames 10 to 13 on screen are wrong too.',
+      spec:{ kind:'stack', layers:[{ t:'Real input, frame 10', d:'attack, not walk' }, { t:'Frames 10 to 13', d:'were drawn on a wrong guess' }, { t:'Saved state of frame 9', d:'kept for this' }] } },
+    { t:'Roll back to frame 9 and re-run 10 to 13 in one tick', d:'Load the saved state, re-simulate four frames with the corrected input, and draw only the result.',
+      spec:{ kind:'flow', steps:[{ id:'l', t:'Load frame 9' }, { id:'a', t:'Re-run 10', d:'real input' }, { id:'b', t:'Re-run 11 to 13', d:'same tick' }, { id:'d', t:'Draw frame 13', d:'corrected' }], edges:[['l','a'],['a','b'],['b','d']] } },
+    { t:'The cost: a jump on screen, and four simulations in one frame', d:'The player may see a hit appear a few frames late. The simulation must be fast enough to run several times per frame and fully deterministic.',
+      spec:{ kind:'matrix', rows:['What players see','What the code pays'], cols:['Rollback','Delay-based'], cells:[['a small correction','steady but laggy input'],['N re-simulations a frame','waiting for input']] } },
+    { t:'Lockstep instead: wait for every input before running a frame', d:'Nothing is ever wrong, but every frame waits for the slowest input, so the delay is felt on every press.',
+      spec:{ kind:'flow', steps:[{ id:'w', t:'Wait for all inputs' }, { id:'s', t:'Simulate frame' }, { id:'n', t:'Next frame' }], edges:[['w','s'],['s','n']] } }
+  ] });
 
 T('server-stack-choices',{ d:'server', t:'Choosing a multiplayer stack: hosting, services and netcode', tag:'Pick the session model first. Then pick three layers separately, and keep a seam so any one of them can be replaced.',
   what:`A multiplayer stack is three layers that are often sold together and should be chosen apart. The netcode library lives in the client and the server and moves state and messages between them (Netcode for GameObjects, Mirror, Photon Fusion 2, Fish-Net, or Godot’s high-level multiplayer). Orchestration and hosting start, place and stop dedicated server processes on machines (Agones on Kubernetes, Amazon GameLift Servers, PlayFab Multiplayer Servers). Backend services hold what lives between matches: accounts, matchmaking, leaderboards and storage (Nakama, PlayFab, Unity Gaming Services). Which of these you need depends first on the session model: short matches that start and end, or a persistent world that keeps running.`,

@@ -440,6 +440,10 @@ INTERVIEW('craft-memory-and-gc',{
       red:`Treats memory management as only a C++ concern.` }
   ] });
 
+DIAGRAM('craft-memory-and-gc', { kind:'curve', title:'Allocating every frame versus pooling', x:'Time (frames)', y:'Frame time', alt:'With new objects every frame, frame time is flat until the garbage collector runs and one frame spikes; with pooled objects it stays flat.',
+  series:[{ t:'Allocating', pts:[[0,0.3],[0.2,0.3],[0.25,0.9],[0.3,0.3],[0.6,0.3],[0.65,0.9],[0.7,0.3],[1,0.3]] }, { t:'Pooled', pts:[[0,0.28],[1,0.28]] }],
+  band:{ t:'Over budget', from:0.6, to:1 }, beats:[{ t:'GC', at:0.25 }, { t:'GC', at:0.65 }] });
+
 T('craft-performance',{ d:'craft', t:'Performance: profile, budget, lay out data', tag:'At 60 frames per second you have 16.7 milliseconds, at 120 you have 8.3, and you do not know where they went until the profiler tells you.',
   what:`Performance work in a game is budget work. A frame at 60 Hz has 1000/60, about 16.7 ms; at 120 Hz it has about 8.3 ms; and the CPU and GPU each have to fit, in parallel, with some headroom for spikes and thermal throttling. The method is fixed: measure on target hardware, find whether the frame is CPU or GPU bound, find the largest cost, fix it, measure again. Beyond local fixes, the biggest wins usually come from data layout. Data-oriented design, argued forcefully by Mike Acton in his 2014 CppCon talk, says the job of code is to transform data, and the hardware rewards data that is contiguous and processed in bulk. Entity component systems such as Unity DOTS formalise this, and a plain array of structs processed in one loop gets much of the benefit in any engine.`,
   why:[`A frame that misses its budget is a dropped frame the player feels, and consistent frame time matters as much as the average.`,`Optimising without profiling spends effort on code that was never the bottleneck, and often makes it harder to read.`,`Memory access often dominates CPU cost in game loops. A cache miss can cost far more than the arithmetic around it, which is why layout beats micro-optimisation.`,`Being GPU bound and CPU bound need opposite fixes. Reducing draw calls does nothing for a frame limited by fill rate.`],
@@ -1258,6 +1262,23 @@ INTERVIEW('craft-game-loop-timestep',{
       red:`Lets each host read time directly from the engine.` }
   ] });
 
+DIAGRAM('craft-game-loop-timestep', { kind:'loop', title:'The fixed-timestep loop', steps:[
+  { t:'Measure frame time', d:'add it to the accumulator' }, { t:'Step the simulation', d:'in fixed 16.7 ms steps' },
+  { t:'Subtract each step', d:'until less than one is left' }, { t:'Render', d:'blend by what is left' }] });
+EXPLAINER('craft-game-loop-timestep', { kind:'explainer', title:'The accumulator: 0, 1 or 2 steps a frame',
+  note:'The simulation always advances in equal 16.7 ms steps (60 Hz); the screen draws whenever it can.',
+  frames:[
+    { t:'A 16.7 ms frame: exactly one step', spec:{ kind:'stack', layers:[{ t:'Accumulator', d:'0 + 16.7 ms' }, { t:'Steps run', d:'1' }, { t:'Left over', d:'0 ms' }] } },
+    { t:'A 10 ms frame: no step yet', d:'The time is kept, not lost.', spec:{ kind:'stack', layers:[{ t:'Accumulator', d:'0 + 10 ms' }, { t:'Steps run', d:'0' }, { t:'Left over', d:'10 ms' }] } },
+    { t:'The next 10 ms frame: one step, 3.3 ms left', spec:{ kind:'stack', layers:[{ t:'Accumulator', d:'10 + 10 ms' }, { t:'Steps run', d:'1' }, { t:'Left over', d:'3.3 ms' }] } },
+    { t:'A 40 ms hitch: two steps, then a third later', d:'The simulation catches up, so the game runs at the same speed on a slow machine.', spec:{ kind:'stack', layers:[{ t:'Accumulator', d:'3.3 + 40 ms' }, { t:'Steps run', d:'2 now' }, { t:'Left over', d:'9.9 ms' }] } },
+    { t:'Render blends the last two states by what is left', d:'Interpolation with 9.9 / 16.7 = 0.6 keeps motion smooth between steps.', spec:{ kind:'flow', steps:[{ id:'a', t:'Previous state' }, { id:'b', t:'Current state' }, { id:'r', t:'Draw the blend', d:'60 percent of the way' }], edges:[['a','b'],['b','r']] } },
+    { t:'Cap the steps per frame, or a slow frame never catches up', d:'If a step costs more than 16.7 ms, each frame needs more steps than the last: the spiral of death. Cap it at a few and drop the rest.', spec:{ kind:'matrix', rows:['Steps per frame','Result'], cols:['No cap','Cap at 4'], cells:[['grows every frame','at most 4'],['freezes','slows, recovers']] } }
+  ] });
+
+CLIP('craft-game-loop-timestep', { src:'assets/clips/fixed-timestep.webm', poster:'assets/clips/fixed-timestep.webp', title:'Variable step against fixed step with interpolation',
+  text:'The same bouncing ball, simulated two ways while the frame times stutter between 8 and 50 ms. On the left the ball moves by the time each frame took, so it jerks and its bounces drift from run to run. On the right it moves in fixed 16.7 ms steps and is drawn blended between the last two steps, so it moves smoothly and bounces the same way every time.' });
+
 T('craft-entities-and-scenes',{ d:'craft', t:'Entities, scenes and ECS', tag:'Build things from nodes and components you can see and edit, and reach for entity component systems only where thousands of the same thing need speed.',
   what:`Two ways to structure the things in a game. In scene or object composition (Godot nodes and scenes, Unity GameObjects and prefabs), each thing in the world is an object that owns its behaviour, built from smaller reusable pieces and nested in a tree. In an entity component system (ECS, such as Unity DOTS), an entity is only an id, components are plain data attached to it, and systems are functions that run over every entity with a given set of components. Composition favours clarity and editing. ECS favours processing many similar things fast, because their data sits together in memory. Both are lenses: real games mix them.`,
   why:[`A deep inheritance tree (Enemy, FlyingEnemy, FlyingShootingEnemy) breaks the first time a design asks for a flying enemy that also heals. Composition and components avoid it.`,`Without a scene structure, everything ends up in one manager that knows every other object. It cannot be tested or reused.`,`Using ECS for a game with forty complex actors buys build complexity and gives back no speed. Not using it for forty thousand bullets gives a frame you cannot fix.`,`The choice sets how designers work. Scenes and prefabs can be edited by hand in the editor. ECS data often has to be baked from authoring objects.`],
@@ -1353,6 +1374,9 @@ INTERVIEW('craft-entities-and-scenes',{
       follow:`What would make you move it back?`,
       red:`Lets scene code and systems both write the same data.` }
   ] });
+
+DIAGRAM('craft-entities-and-scenes', { kind:'matrix', title:'The same scene as a tree and as components', rows:['Player','Enemy (x3)','Data lives'], cols:['Scene tree','ECS'], cells:[
+  ['node with child nodes','entity with components'], ['scene instances','entities in arrays'], ['on each object','in tables by type']] });
 
 T('craft-physics-and-collision',{ d:'craft', t:'Physics and collision', tag:'Decide which bodies the engine moves and which you move yourself, sweep fast things, use layers, and never assume two runs will match.',
   what:`The physics engine moves bodies, detects when their shapes touch and resolves the overlap. What you decide is how each object relates to it. A dynamic body is moved by forces and collisions. A kinematic or character body is moved by your code, and the engine only reports what it hits. A trigger reports overlaps without pushing. Collision layers and masks say which groups see which. Continuous collision detection (CCD) sweeps a fast body through its path so it cannot tunnel, which means skip through a thin wall between two steps. Player characters use character controllers, code-driven movers with slopes, steps and grounded checks, because a pure physics body feels wrong to control.`,
@@ -1451,6 +1475,15 @@ INTERVIEW('craft-physics-and-collision',{
       a:`Decide the authority first. Engine physics is generally not deterministic across platforms or builds, so lockstep or rollback on top of it is fragile. Options: server-authoritative physics with snapshots and prediction, or a custom fixed-point simulation with your own collision that you can replay. Prove with a replay test on every target.`,
       follow:`What would you give up in each option?`,
       red:`Assumes the same engine on both sides gives the same result.` }
+  ] });
+
+EXPLAINER('craft-physics-and-collision', { kind:'explainer', title:'Tunnelling, and the swept test that stops it',
+  note:'A bullet at 600 m/s moves 10 m in one 60 Hz step; a wall 0.2 m thick fits between two positions.',
+  frames:[
+    { t:'Step 1: the bullet is in front of the wall', spec:{ kind:'stack', layers:[{ t:'Bullet', d:'x = 0 m' }, { t:'Wall', d:'x = 5 m, 0.2 m thick' }] } },
+    { t:'Step 2: it is already past it', d:'A discrete test checks only the two positions, so it never sees an overlap.', spec:{ kind:'stack', layers:[{ t:'Bullet', d:'x = 10 m' }, { t:'Wall', d:'missed' }] } },
+    { t:'A swept test checks the whole movement', d:'Cast a ray or a shape from the old position to the new one, and stop at the first hit.', spec:{ kind:'flow', steps:[{ id:'a', t:'Old position' }, { id:'r', t:'Cast to the new one' }, { id:'h', t:'Hit at 5 m', d:'stop there' }], edges:[['a','r'],['r','h']] } },
+    { t:'Which tool to use', spec:{ kind:'matrix', rows:['Small or slow','Fast or thin'], cols:['Choice','Cost'], cells:[['discrete step','cheapest'],['ray cast or continuous mode','more work per step']] } }
   ] });
 
 T('craft-save-systems',{ d:'craft', t:'Save systems', tag:'Write to a temporary file, check it, swap it in, and keep the last good one. Number the format so old saves still load.',
@@ -1577,6 +1610,10 @@ INTERVIEW('craft-save-systems',{
   ] });
 
 // Batch ea: evidence-first advanced topics (senior developer path). Sources are listed in each topic's facts.
+
+DIAGRAM('craft-save-systems', { kind:'flow', title:'A save that survives a crash', steps:[
+  { id:'s', t:'State to bytes', d:'with a version number' }, { id:'t', t:'Write a temp file' }, { id:'f', t:'Flush to disk' }, { id:'r', t:'Rename over the old', d:'atomic' }],
+  edges:[['s','t'],['t','f'],['f','r']] });
 
 T('craft-measuring-ai-uplift',{ d:'craft', t:'Measuring whether AI helps your team', tag:'The studies disagree, and people misjudge their own speed. Measure your own team on your own code, with review time and stability counted.',
   what:`A method for finding out whether an AI coding tool makes your team faster or better on your codebase, instead of trusting a study, a vendor or a feeling. The published evidence points in different directions, and each study is narrow. In METR’s randomised trial (July 2025) 16 experienced open-source developers worked 246 tasks in repositories they had maintained for about five years. Tasks were randomly allowed or not allowed to use AI (mostly Cursor with Claude 3.5 and 3.7). With AI, tasks took 19% longer (interval +2% to +39%). Before starting, developers forecast a 24% speedup; afterwards they still believed AI had made them 20% faster. In three field experiments at Microsoft, Accenture and a Fortune 100 firm (4,867 developers, Cui et al., 2025), Copilot access raised completed tasks by 26.08% (standard error 10.3%), and less experienced developers gained more. In an earlier lab task, writing an HTTP server in JavaScript, the Copilot group finished 55.8% faster (Peng et al., 2023). These are not contradictions to be settled by picking a side. They measure different people, tasks and tool generations: a bounded new task, autocomplete-era tools and a large mature repository are not the same problem. METR’s own February 2026 update is weaker evidence and points the other way: in a redesigned study of 57 developers and 800+ tasks, returning developers were estimated 18% faster (interval -38% to +9% in time) and new developers 4% faster (-15% to +9%). METR calls this only very weak evidence, because developers who did not want to work without AI opted out, 30 to 50% of developers said they held back some tasks they did not want to do without it, and agents running in parallel broke the time tracking. The honest reading is: the speed effect on experienced people in mature code is unsettled and tool-dependent, so you measure locally. Two more results say what to measure. In a study of 806 GitHub repositories that adopted Cursor against 1,380 matched controls (He et al., 2025), lines added rose 281% in the first month and 48% in the second, then the effect faded, while static-analysis warnings rose about 30% and code complexity about 42% and stayed up. And the DORA reports, which are correlational surveys, found in 2024 that a 25% rise in AI adoption went with 1.5% lower delivery throughput and 7.2% lower stability, and in 2025 that throughput was positively related to AI use while stability was still negatively related; DORA’s summary is that AI amplifies what a team already does. Output counts (lines, pull requests) rise easily and prove little.`,

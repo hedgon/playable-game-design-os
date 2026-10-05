@@ -196,6 +196,18 @@ INTERVIEW('game-feel-and-juice',{
       red:`Adds screen shake and heavier sound effects and asks whether it feels better now.` }
   ] });
 
+EXPLAINER('game-feel-and-juice', { kind:'explainer', title:'The same hit, layer by layer',
+  note:'Add one layer at a time and playtest each: the timing matters more than the amount.',
+  frames:[
+    { t:'Bare: health goes down', spec:{ kind:'stack', layers:[{ t:'Hit registered', d:'number changes' }, { t:'Feedback', d:'none yet' }] } },
+    { t:'Plus hitstop: both pause for 3 to 5 frames', d:'The pause makes the contact readable and weighty.', spec:{ kind:'stack', layers:[{ t:'Hit registered' }, { t:'Hitstop', d:'about 60 ms' }] } },
+    { t:'Plus sound and a flash', spec:{ kind:'stack', layers:[{ t:'Hit registered' }, { t:'Hitstop' }, { t:'Sound and flash', d:'on the same frame' }] } },
+    { t:'Plus shake and squash', d:'Small and short; too much hides what happened.', spec:{ kind:'stack', layers:[{ t:'Hit registered' }, { t:'Hitstop' }, { t:'Sound and flash' }, { t:'Shake and squash', d:'brief, small' }] } }
+  ] });
+
+CLIP('game-feel-and-juice', { src:'assets/clips/hit-feel.webm', poster:'assets/clips/hit-feel.webp', title:'The same hit, bare and with juice',
+  text:'One box strikes another every 1.5 seconds. On the left nothing else happens. On the right the action freezes for 60 ms at contact (hitstop), the struck box flashes white and squashes, and the view shakes briefly: the same hit reads as heavier and easier to time.' });
+
 T('audio-and-music',{ d:'presentation', t:'Audio and music', tag:'Sound is the fastest feedback channel and the most direct emotional control you have.',
   what:`Sound effects as feedback (confirm, warn, reward, locate), music as emotional pacing (tension, release, identity), and the mix as hierarchy (what is heard first). In Hollow Knight each region has its own instrumental colour, so the player can tell where they are by ear. Dark Souls scores almost nothing except its boss fights and a few hub areas, so the arrival of music becomes a signal in its own right. Audio reaches the player faster than vision and works while they look elsewhere.`,
   why:[`Audio feedback lands while the eyes are busy. It is the main channel for off-screen and peripheral information.`,`Music changes the felt intensity of a scene without changing its rules, so it can raise or settle tension in seconds.`,`A bad mix buries critical signals under spectacle.`],

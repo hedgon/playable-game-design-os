@@ -119,6 +119,23 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       if (w <= 1100 && !mapOnly(r) && !s.onScreen) failures.push(`${w}px ${r}: content pane off screen`);
       if (w <= 1100 && mapOnly(r) && s.onScreen) failures.push(`${w}px ${r}: map-only route covered the map`);
     }
+    // A stepped explainer moves only when the reader steps it, and a clip never plays by itself.
+    {
+      const XP = Object.values(FULL.TOPICS).find(t => t.explainer && t.clip);
+      if (XP) {
+        await page.evaluate(route => { location.hash = route; }, '#/map/t/' + XP.id + '/overview'); await page.evaluate(() => window.PlayableApp.settled()); await page.waitForTimeout(150);
+        const x0 = await page.evaluate(() => { const f = document.querySelector('#pane .explainer'); return f && { cap: f.querySelector('.xp-cap').textContent, shown: f.querySelectorAll('.xp-frame:not([hidden])').length }; });
+        await page.waitForTimeout(3500);
+        const x1 = await page.evaluate(() => document.querySelector('#pane .explainer .xp-cap').textContent);
+        await page.evaluate(() => document.querySelector('#pane .explainer [data-action="xp-step"][data-d="1"]').click());
+        const x2 = await page.evaluate(() => ({ cap: document.querySelector('#pane .explainer .xp-cap').textContent, shown: [...document.querySelectorAll('#pane .explainer .xp-frame')].findIndex(f => !f.hidden) }));
+        const v = await page.evaluate(() => { const el = document.querySelector('#pane .clip video'); return el && { autoplay: el.autoplay, paused: el.paused, poster: !!el.poster, muted: el.muted }; });
+        if (!x0 || x0.shown !== 1 || !/^1 of /.test(x0.cap)) failures.push(`${w}px ${XP.id}: the explainer does not open on its first frame alone (${JSON.stringify(x0)})`);
+        else if (x1 !== x0.cap) failures.push(`${w}px ${XP.id}: the explainer moved by itself`);
+        else if (!/^2 of /.test(x2.cap) || x2.shown !== 1) failures.push(`${w}px ${XP.id}: Next did not show the second frame (${JSON.stringify(x2)})`);
+        if (!v || v.autoplay || !v.paused || !v.poster || !v.muted) failures.push(`${w}px ${XP.id}: the clip should be muted, paused, with a poster and no autoplay (${JSON.stringify(v)})`);
+      } else failures.push('no topic has both an explainer and a clip to check');
+    }
     // A worked example renders as a card with a table that scrolls inside itself, the page does not widen, and the download holds the table.
     {
       const wid = WORKED_TOPIC && { topic: WORKED_TOPIC.id, w: WORKED_TOPIC.worked[0] };
