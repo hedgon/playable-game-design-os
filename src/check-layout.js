@@ -20,7 +20,7 @@ const { DATA, DIAGRAM, FLOW, GRAPH } = require('./manifest.js');
 const { overlaps, diagramProblems } = require('./layout-core.js');
 const src = [...DATA, DIAGRAM, FLOW, GRAPH].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const window = {};
-const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,PATHS,REFERENCE_GAMES,VIEW_LINKS,contentTreeFlow,PLATFORMS,platformMatrix,stagesOf,ENGINES,GUIDE_LAYOUT};')(window);
+const ctx = new Function('window', src + '\nreturn {DOMAINS,TOPICS,CASE_STUDIES,PATHS,REFERENCE_GAMES,VIEW_LINKS,contentTreeFlow,PLATFORMS,platformMatrix,stagesOf,ENGINES,GUIDE_LAYOUT,COMPARISONS};')(window);
 const G = window.PlayableGraph;
 
 // Text against card, in the real page. Every state is drawn into a hidden
@@ -82,6 +82,7 @@ function textFitSweep(layoutCoreSource) {
   if (ctx.GUIDE_LAYOUT) specs.push(['guide:layout', ctx.GUIDE_LAYOUT]);
   (ctx.ENGINES || []).forEach(e => { if (e.flow) specs.push(['engine:' + e.id, e.flow]); Object.entries(e.stages || {}).forEach(([k, s]) => { if (s.diagram) specs.push(['engine:' + e.id + '/' + k, s.diagram]); }); });
   (ctx.REFERENCE_GAMES || []).forEach(g => (g.diagrams || []).forEach((d, i) => specs.push([`game:${g.id}/${i}`, d])));
+  (ctx.COMPARISONS || []).forEach(c => { if (c.diagram) specs.push([`compare:${c.id}`, c.diagram]); });
   problems.push(...diagramProblems(window.PlayableDiagram, window.PlayableFlow, specs));
   // A topic's game leaf on the map must come from a game whose lens is about
   // that topic whenever such a game exists, not from one whose diagram only

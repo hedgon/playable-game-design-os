@@ -1279,6 +1279,42 @@ table.worked th{background:var(--bg3)}
 .pathbar > .pathnote{flex:1 1 100%;margin:0}
 .kindchip{font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;font-size:var(--fs-micro);flex:none;margin-top:3px}
 .pathcheck,.pathskip{border:1px dashed var(--line2);background:var(--bg2);border-radius:var(--r2)}
+.pathstage > header h2{margin:0;font-size:1rem}
+ol.pathsteps{list-style:none;padding:0;margin:0 0 10px}
+.pathstep-body .pathnote{margin:6px 0 0}
+.pathstep label.kindchip{cursor:pointer}
+/* the stage map: a view of the path, never a gate (research/learning-science.md 2.3) */
+.overworld{margin:6px 0 14px}
+.overworld .owhead{gap:8px;flex-wrap:wrap;align-items:center}
+.overworld .owhead h2{margin:0}
+.overworld .regions{list-style:none;padding:0;margin:8px 0 6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.overworld .region > a{display:flex;gap:8px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:var(--r2);background:var(--panel);height:100%;text-decoration:none;color:var(--fg)}
+.overworld .region > a:hover{background:var(--bg3)}
+.overworld .region.here > a{border-color:var(--accent2);box-shadow:inset 3px 0 0 var(--accent2)}
+.overworld .region.done > a{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+.overworld .region.skipped > a{border-color:color-mix(in srgb,var(--warn) 45%,var(--line))}
+.overworld .rnum{width:24px;height:24px;display:grid;place-items:center;font-weight:800;font-size:.8rem;background:color-mix(in srgb,var(--accent2) 22%,transparent);flex:none}
+.overworld .rtext{min-width:0}
+.overworld .you{margin-top:4px;font-size:var(--fs-micro);color:var(--accent2-ink);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.overworld .ownext{margin:4px 0 0}
+/* the adventure look: off by default; only shape and two labels change, and the marker steps in once, without motion when motion is reduced */
+.overworld.skin .regions{gap:14px}
+.overworld.skin .region > a{border-radius:16px 16px 4px 4px;background:color-mix(in srgb,var(--accent2) 7%,var(--panel))}
+.overworld.skin .region > a::after{content:"\265C";margin-left:auto;color:var(--fg3);font-size:1.1rem;line-height:1}
+.overworld.skin .you{animation:walkin .45s ease-out}
+@keyframes walkin{from{transform:translateX(-18px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.overworld.skin .you{animation:none}}
+/* the checkpoint, one question at a time */
+.fight{margin:6px 0 10px}
+.fight h4.fight-q{font-size:var(--fs-4);color:var(--fg);font-weight:700;margin:4px 0 8px}
+.fight h4.fight-q:focus{outline:none}
+.fight textarea{display:block;width:100%;margin:4px 0;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line2);border-radius:var(--r3);padding:8px;resize:vertical}
+.fight .dims{margin:4px 0 10px}
+.fight-ideas{border:1px solid var(--line);border-radius:var(--r3);padding:8px 10px;margin:8px 0}
+.fight-idea{display:flex;gap:8px;align-items:flex-start;padding:4px 0}
+.fight-idea input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
+.fight-sum{margin:4px 0 8px}
+.pathcheck .allq{margin:8px 0}
 .pathsolution{margin:10px 0}
 .pathsolution h4{margin:10px 0 4px}
 /* snippet scope label, glossary toggletip and its bubble */

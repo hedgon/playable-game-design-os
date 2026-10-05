@@ -174,6 +174,8 @@ function mapOnly(parts){
 // A topic, domain or smell page is read beside the map; the reader can fold the
 // map away to give the text the whole width (see .shell.nomap).
 const mapReading = parts => (parts[0] === 'map' && ['t', 'd', 's'].includes(parts[1])) || parts[0] === 'topic';
+// A path's own page keeps its map, but folds the rail and gives the reading pane the topic page's width (audit N3).
+const isPathPage = parts => parts[0] === 'paths' && !!parts[1] && parts[1] !== 'review';
 // Views with nothing on the map use the work layout (see .shell.work).
 function usesMap(parts){
   const [v, a] = parts;
@@ -282,12 +284,12 @@ function drawRoute(){
   drawView(view, parts);
   rememberPage();
   $("#shell").classList.toggle("work", !usesMap(parts));
-  $("#shell").classList.toggle("reading", mapReading(parts));
+  $("#shell").classList.toggle("reading", mapReading(parts) || isPathPage(parts));
   // On a topic page the map is folded away until the reader asks for it. Once shown it
   // takes the place of the concept index (one click back), so no node is cut.
   const sh = $("#shell"), reading = mapReading(parts), hideIt = reading && mapHidden();
   sh.classList.toggle("nomap", hideIt);
-  if(reading && !hideIt && !isNarrow()){ if(!sh.classList.contains('hide-left')){ sh.classList.add('hide-left'); sh.dataset.autofold = '1'; } }
+  if((reading || isPathPage(parts)) && !hideIt && !isNarrow()){ if(!sh.classList.contains('hide-left')){ sh.classList.add('hide-left'); sh.dataset.autofold = '1'; } }
   else if(sh.dataset.autofold){ delete sh.dataset.autofold; if(!store.get('hideLeft')) sh.classList.remove('hide-left'); }
   showPaneFor(parts);
   const key = routeKey(parts), samePage = key === lastRouteKey;
@@ -676,6 +678,8 @@ function setView(html){
 function subNavHTML(){
   const p = currentParts(), v = p[0] || 'map', g = VIEW_GROUP[v];
   if(!g || g.views.length < 2) return '';
+  // a path's own page carries its stages and review count itself (audit N4: less chrome above the h1)
+  if(isPathPage(p)) return '';
   const cur = v === 'smell' ? 'diagnose' : v;
   const due = g.id === 'paths' ? reviewDue().length : 0;
   const hidden = mapHidden();
@@ -754,6 +758,7 @@ function renderCompare(id){
   setView(`${crumbs([['Library','#/games'],['Two games, one problem','#/games/compare'],[c.t]])}<h1>${esc(c.t)}</h1>
     <p class="dim" style="max-width:820px">${esc(c.problem)}</p>
     <div class="compareheads">${head(A)}${head(B)}</div>
+    ${c.diagram ? diagramCard(c.diagram) : ""}
     <h2 class="sr-only">Side by side</h2>${c.sections.map(s => `<section class="card comparesec"><h3>${esc(s.h)}</h3><div class="comparecols"><div><div class="overline">${esc(A.t)}</div><p>${esc(s.a)}</p></div><div><div class="overline">${esc(B.t)}</div><p>${esc(s.b)}</p></div></div></section>`).join('')}
     <div class="card"><div class="overline">What each choice costs and gains</div><p>${esc(c.verdict)}</p></div>
     <div class="card sigcard"><div class="overline">The principle to take away</div><p><b>${esc(c.principle)}</b></p></div>
@@ -2073,14 +2078,15 @@ function renderReview(){
    LEARNING PATHS
    A path sequences existing content; it never duplicates it. Progress is
    { steps:{'<stageId>/<i>':true}, stages:{'<stageId>':'done'|'skipped'},
-   started, last } under localStorage key path.<id>. `paths.active` names
+   check:{'<stageId>':{at, mode, n, got, partial, missed}}, started, last }
+   under localStorage key path.<id>; check holds the last checkpoint result. `paths.active` names
    the one path the path bar (see pathBarHTML, called from setView) tracks
    across every route. stepTitle/stepHref are pure globals defined in
    50-paths.js so the path map (89-graph.js) can use them too.
    ===================================================================== */
 function pathProgress(id){
   const p = store.get('path.' + id, {}), plain = v => v && typeof v === 'object' && !Array.isArray(v);
-  return Object.assign({ started:null, last:null }, p, { steps: plain(p.steps) ? p.steps : {}, stages: plain(p.stages) ? p.stages : {} });
+  return Object.assign({ started:null, last:null }, p, { steps: plain(p.steps) ? p.steps : {}, stages: plain(p.stages) ? p.stages : {}, check: plain(p.check) ? p.check : {} });
 }
 function savePathProgress(id, prog){ store.set('path.' + id, prog); }
 function trackLabel(id){ const x = TRACKS.find(t => t[0] === id); return x ? x[1] : id; }
@@ -2243,7 +2249,6 @@ function pathsDoorHTML(){
       <div class="row"><a class="btn primary" href="${nextStepHref(next)}">Continue →</a><a class="btn ghost" href="#/paths/${active.id}">Open the path</a></div></div>`;
   })() : '';
   const ans = chooserAnswers(), rec = ans.goal && ans.level && ans.time ? choosePath(ans.goal, ans.level, ans.time, donePathIds()) : null;
-  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<a class="path" href="#/paths/${p.id}"><b>${esc(p.pick)}</b><span>${esc(p.tag)}</span></a>`).join('')}</div>` : '';
   const tracks = TRACKS.map(([tid, tlabel]) => {
     const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
     return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(p => pathCard(p, !!rec && rec.path === p)).join('')}</div>`;
@@ -2251,13 +2256,16 @@ function pathsDoorHTML(){
   // A first visit gets one dismissible pointer to the guide; after that, a
   // quiet link stays under the intro.
   const hint = store.get('guideHint', true) ? `<div class="callout guidehint"><span class="guidehint-text"><b>First time here?</b> <a href="#/guide">How to use this site</a> lists a route for each reason you might have come, and what each section is for.</span> <button type="button" class="btn sm ghost" data-action="guide-hint-close">Dismiss</button></div>` : `<p class="small"><a href="#/guide">How to use this site</a></p>`;
-  return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="lead" style="max-width:760px">Playable is a free guide to making games people want to play: design, engineering, shipping and leading a team, with AI as a tool and not the designer. Answer three questions below and it suggests where to start.</p><p class="dim" style="max-width:760px">Pick a path and follow one visible next step at a time. Every stage ends in a soft checkpoint, or a skip if you already know it. Progress is steps done and stages done: no streaks, no badges.</p>
-    ${hint}
+  // The choice comes first, so a phone shows it on the first screen (audit N1); the
+  // all-paths list follows once, and the first-visit pointer and the backup controls go
+  // to the foot, since a first-time learner has nothing to restore (N1, N2).
+  return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="lead" style="max-width:760px">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
     ${continueCard}
-    ${dataRowHTML()}
     ${chooserHTML(ans, rec)}
-    ${outcomes ? `<div class="section-head"><h2>What do you want to be able to do?</h2></div>${outcomes}` : ''}
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
+    <p class="dim" style="max-width:760px;margin-top:18px">Each path shows one next step at a time. Every stage ends in a checkpoint you answer from memory, or a test-out if you already know it. No streaks, no badges.</p>
+    ${hint}
+    ${dataRowHTML()}
     <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
 }
 
@@ -2270,7 +2278,9 @@ const donePathIds = () => PATHS.filter(p => { const prog = pathProgress(p.id); r
 function chooserHTML(ans, rec){
   const q = (key, label, opts) => `<div class="chooser-q"><div class="overline" id="cq-${key}">${label}</div><div class="dims" role="group" aria-labelledby="cq-${key}">${opts.map(([v, t]) => `<button type="button" data-action="choose" data-q="${key}" data-v="${v}" class="${ans[key] === v ? 'active' : ''}" aria-pressed="${ans[key] === v}">${esc(t)}</button>`).join('')}</div></div>`;
   const wk = (p, hpw) => `about ${pathWeeks(p, hpw)} week${pathWeeks(p, hpw) === 1 ? '' : 's'} at ${hpw} hours a week`;
-  let out = '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
+  // One answer already narrows the list; all three pick one path, with the reason (audit N2).
+  const forGoal = ans.goal && !rec ? [...new Set(Object.values(CHOOSER.paths[ans.goal] || {}).flat())] : [];
+  let out = forGoal.length ? `<p class="small" style="margin:0 0 6px">Paths for this: ${forGoal.map(pathLinkChip).join(' ')}</p><p class="small muted">Add your experience and time, and one of them is suggested, with the reason.</p>` : '<p class="small muted">Answer all three and one path is suggested, with the reason.</p>';
   if(rec){
     const p = rec.path, s = rec.start, hpw = rec.hpw, why = [esc(`${p.pick}. ${p.hours} hours, ${wk(p, hpw)}.`)];
     // An experienced learner is not offered easier paths as alternatives, and never more than three.
@@ -2303,12 +2313,15 @@ document.addEventListener('input', e => {
 });
 function stepRowHTML(pth, st, i, step, prog, isNext){
   const key = `${st.id}/${i}`, checked = !!prog.steps[key], href = stepHref(step, pth.id, st.id);
-  return `<label class="pathstep ${checked ? 'done' : ''} ${isNext ? 'next' : ''}" data-row="${key}">
-    <input type="checkbox" ${checked ? 'checked' : ''} data-path="${pth.id}" data-step="${key}">
-    <span class="chip kindchip">${isNext ? 'next' : esc(step.kind)}</span>
-    <span class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
-      <div class="small dim gl">${esc(step.why)}</div><div class="small gl">${esc(step.do)}</div>${step.alt ? `<div>${enginePickHTML(step)}</div>` : ''}</span>
-  </label>${step.kind === 'reflect' ? '' : stepNoteHTML(`${pth.id}.${st.id}.${i}`)}`;
+  // The row is a list item: the checkbox with its label (the kind chip), then the
+  // step itself. Its text holds links and glossary buttons, which a label must not contain.
+  const id = `ps-${pth.id}-${st.id}-${i}`;
+  return `<li class="pathstep ${checked ? 'done' : ''} ${isNext ? 'next' : ''}" data-row="${key}">
+    <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} data-path="${pth.id}" data-step="${key}" aria-label="${esc((checked ? 'Done: ' : 'Mark done: ') + stepTitle(step))}">
+    <label class="chip kindchip" for="${id}">${isNext ? 'next' : esc(step.kind)}</label>
+    <div class="pathstep-body"><a href="${href}">${esc(stepTitle(step))}</a>${step.min ? ` <span class="muted small">${step.min} min</span>` : ''}
+      <div class="small dim gl">${esc(step.why)}</div><div class="small gl">${esc(step.do)}</div>${step.alt ? `<div>${enginePickHTML(step)}</div>` : ''}${step.kind === 'reflect' ? '' : stepNoteHTML(`${pth.id}.${st.id}.${i}`)}</div>
+  </li>`;
 }
 // The reference answer to the build task, closed so the reader tries first.
 function solutionHTML(st){
@@ -2316,20 +2329,143 @@ function solutionHTML(st){
   return `<details class="pathsolution"><summary>Reference solution: open after you try</summary><div class="body"><h4>Outline of a good answer</h4><p>${esc(s.outline)}</p><h4>Check yourself</h4><ul>${s.selfcheck.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div></details>`;
 }
 function stageFooterHTML(pth, st, prog){
-  const next = pathNextStep(pth.id), checkpointOpen = !!next && next.type === 'checkpoint' && next.stage.id === st.id;
+  const next = pathNextStep(pth.id), live = fight && fight.path === pth.id && fight.stage === st.id ? fight : null;
+  const checkpointOpen = (!!next && next.type === 'checkpoint' && next.stage.id === st.id) || (live && live.mode === 'check');
   const review = (st.review || []).map(tid => { const t = TOPICS[tid]; return t ? `<a class="chip lnk" style="cursor:pointer" href="#/map/t/${tid}">${esc(t.t)}</a>` : ''; }).join('');
-  const status = prog.stages[st.id];
+  const status = prog.stages[st.id], last = prog.check[st.id], skin = adventureSkin(), asked = recallItems(st).length;
+  const lastLine = last ? `<p class="small muted">Last time (${esc(new Date(last.at).toLocaleDateString())}): ${last.got} of ${last.n} recalled${last.partial ? `, ${last.partial} partly` : ''}.</p>` : '';
   return `${review ? `<div class="small" style="margin-top:10px"><b>Review:</b> ${review}</div>` : ''}
-    <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>Checkpoint</summary><div class="body">
-      <h4>Can you answer these?</h4>${recallHTML(pth, st)}
-      <h4>Build</h4><p>${esc(st.check.build)}</p>${solutionHTML(st)}
+    <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>${skin ? 'The castle: this stage’s checkpoint' : 'Checkpoint'}</summary><div class="body">
+      <h3 class="h4look">Can you answer these?</h3>
+      ${asked ? `<p class="small" style="margin:0 0 6px">One question at a time, from memory: answer, say how sure you are, then compare with the outline. Questions you miss come back in your review queue.</p>
+      <div class="fight" data-mode="check">${live && live.mode === 'check' ? fightHTML(pth, st) : `${lastLine}<button type="button" class="btn sm primary" data-action="fight-start" data-mode="check" data-path="${pth.id}" data-stage="${st.id}">${skin ? 'Enter the castle' : 'Start the checkpoint'} (${asked} question${asked === 1 ? '' : 's'})</button>`}</div>
+      <details class="small allq"><summary>Or see all the questions at once</summary>${recallHTML(pth, st)}</details>` : recallHTML(pth, st)}
+      <h3 class="h4look">Build</h3><p>${esc(st.check.build)}</p>${solutionHTML(st)}
       <button type="button" class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
     </div></details>
-    <details class="pathskip" style="margin-top:6px"><summary>Skip ahead: I already know this</summary><div class="body">
-      <ul>${(st.check.skip || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
-      <button type="button" class="btn sm ghost" ${status ? 'disabled' : ''} data-action="stage-skip" data-path="${pth.id}" data-stage="${st.id}">${status === 'skipped' ? 'Stage skipped' : 'I can answer these, skip this stage'}</button>
+    <details class="pathskip" style="margin-top:6px" ${live && live.mode === 'testout' ? 'open' : ''}><summary>Test out: I may know this already</summary><div class="body">
+      <p class="small">Answer this stage’s checkpoint questions before the steps. If you recall most of them, the stage is marked as tested out and the questions go to your review queue; if not, start at the first step, knowing what to look for.</p>
+      <h3 class="h4look">Ask yourself first</h3><ul>${(st.check.skip || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
+      <div class="fight" data-mode="testout">${live && live.mode === 'testout' ? fightHTML(pth, st) : `<div class="row">${asked ? `<button type="button" class="btn sm" data-action="fight-start" data-mode="testout" data-path="${pth.id}" data-stage="${st.id}" ${status ? 'disabled' : ''}>Test out</button>` : ''}<button type="button" class="btn sm ghost" ${status ? 'disabled' : ''} data-action="stage-skip" data-path="${pth.id}" data-stage="${st.id}">${status === 'skipped' ? 'Stage skipped' : 'Skip without testing'}</button></div>`}</div>
     </div></details>`;
 }
+
+/* ---------- the checkpoint, one question at a time ----------
+   Free recall before the answer is shown, then informational feedback
+   (research/learning-science.md, rows 1-3 and 12): the question alone, a
+   "how sure am I?" tap before the reveal (row 18), the outline as a list of
+   ideas the reader ticks, and an outcome from the ticks: all = got it, some =
+   partly, none = not yet. Not-yet and partly come back once at the end of the
+   round and go into the review queue for tomorrow; got it goes in at the next
+   gap of 1, 2, 4, 8, 16 days, except a "guess" that was right, which comes
+   back tomorrow like a partial answer. There is no score and nothing is
+   locked; the result is kept per stage for the stage map. */
+let fight = null;
+const CONFIDENCE = [['guess', 'A guess'], ['fair', 'Fairly sure'], ['sure', 'Sure']];
+const OUTCOME = { got: 'Got it', partial: 'Partly', missed: 'Not yet' };
+// The ideas a good answer contains: the outline's own list when it has one, else its sentences.
+const recallIdeas = x => Array.isArray(x.ideas) && x.ideas.length ? x.ideas : String(x.a).split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).filter(t => t.trim());
+const recallItems = st => (st.check.recall || []).filter(x => typeof x === 'object' && x.a);
+const adventureSkin = () => store.get('pathSkin', false) === true;
+function fightHTML(pth, st){
+  const f = fight, items = recallItems(st);
+  if(f.phase === 'end') return fightEndHTML(pth, st);
+  const idx = f.order[f.at], x = items[idx], round = f.round === 2 ? 'Once more, the ones that were not there yet: ' : '';
+  const head = `<p class="small muted fight-pos" role="status">${round}question ${f.at + 1} of ${f.order.length}</p><h4 class="fight-q" tabindex="-1">${esc(x.q)}</h4>`;
+  if(f.phase === 'ask') return `${head}
+    <label class="small" for="fightAns">Your answer, from memory (writing it is optional; saying it works too)</label>
+    <textarea id="fightAns" rows="3" data-fight-answer>${esc(f.answer || '')}</textarea>
+    <div class="small" id="fightConfL" style="margin-top:6px">How sure are you?</div>
+    <div class="dims" role="group" aria-labelledby="fightConfL">${CONFIDENCE.map(([v, t]) => `<button type="button" data-action="fight-conf" data-v="${v}" aria-pressed="${f.conf === v}" class="${f.conf === v ? 'active' : ''}">${t}</button>`).join('')}</div>
+    <button type="button" class="btn sm primary" data-action="fight-reveal" ${f.conf ? '' : 'disabled'}>Show the outline</button>`;
+  const ideas = recallIdeas(x);
+  return `${head}${f.answer ? `<div class="small"><b>You wrote:</b> ${esc(f.answer)}</div>` : ''}
+    <fieldset class="fight-ideas"><legend class="small">Tick each idea your answer had</legend>${ideas.map((t, i) => `<label class="fight-idea"><input type="checkbox" data-fight-idea="${i}">${esc(t)}</label>`).join('')}</fieldset>
+    <button type="button" class="btn sm primary" data-action="fight-mark">Next</button>`;
+}
+function fightEndHTML(pth, st){
+  const f = fight, items = recallItems(st), first = f.first, n = items.length;
+  const got = first.filter(r => r === 'got').length, partial = first.filter(r => r === 'partial').length, missed = n - got - partial;
+  const queued = reviewItems(), when = items.map(x => queued[`ck:${pth.id}:${st.id}:${x.q}`]).filter(Boolean).map(r => r.due - today());
+  const soon = when.filter(d => d <= 1).length, later = when.length - soon;
+  const testedOut = f.mode === 'testout' && got >= Math.ceil(2 * n / 3);
+  const steps = st.steps.map((s, i) => `<li><a href="${stepHref(s, pth.id, st.id)}">${esc(stepTitle(s))}</a></li>`).join('');
+  const action = f.mode === 'testout'
+    ? (testedOut ? `<p><b>You know most of this stage.</b> It is marked as tested out, and its questions are in your review queue.</p><div class="row"><button type="button" class="btn sm primary" data-action="fight-close" data-next="1" data-path="${pth.id}" data-stage="${st.id}">Go to the next stage</button></div>`
+      : `<p><b>Start with the first step.</b> You now know what this stage asks; the questions you missed are in your review queue.</p><div class="row"><a class="btn sm primary" href="${stepHref(st.steps[0], pth.id, st.id)}" data-action="fight-close">Open the first step</a></div>`)
+    : `<div class="row"><button type="button" class="btn sm" data-action="fight-close" data-path="${pth.id}" data-stage="${st.id}">Close</button></div>`;
+  return `<h4 class="fight-q" tabindex="-1">What you recalled</h4>
+    <ul class="fight-sum"><li>${got} of ${n}: got it</li>${partial ? `<li>${partial}: partly</li>` : ''}${missed ? `<li>${missed}: not yet</li>` : ''}</ul>
+    <p class="small">Coming back: ${soon ? `${soon} tomorrow` : ''}${soon && later ? ', ' : ''}${later ? `${later} after a longer gap` : ''}${!soon && !later ? 'nothing queued' : ''} (<a href="#/review">your review queue</a>).</p>
+    ${missed || partial ? `<details class="small"><summary>The steps behind these questions</summary><ul>${steps}</ul></details>` : ''}
+    ${action}`;
+}
+// Puts one answer into the review queue at the gap its outcome earns.
+function scheduleRecall(pth, st, x, outcome, conf){
+  const items = reviewItems(), k = `ck:${pth.id}:${st.id}:${x.q}`, r = items[k] || { q: x.q, a: x.a, src: `#/paths/${pth.id}/${st.id}`, box: -1 };
+  r.box = outcome === 'got' && conf !== 'guess' ? Math.min(REVIEW_DAYS.length - 1, r.box + 1) : 0;
+  r.due = today() + REVIEW_DAYS[r.box];
+  items[k] = r; store.set('review', items);
+}
+function redrawFight(){
+  keepScroll = true; route();
+  const q = document.querySelector('#pane .fight .fight-q'); if(q) q.focus({ preventScroll: true });
+}
+ACTIONS['fight-start'] = el => {
+  const pth = PATHS.find(p => p.id === el.dataset.path), st = pth && pth.stages.find(s => s.id === el.dataset.stage); if(!st) return;
+  const n = recallItems(st).length; if(!n) return;
+  fight = { path: pth.id, stage: st.id, mode: el.dataset.mode, round: 1, order: [...Array(n).keys()], at: 0, phase: 'ask', conf: null, answer: '', first: Array(n).fill(null) };
+  store.set('paths.active', pth.id);
+  redrawFight();
+};
+ACTIONS['fight-conf'] = el => { fight.conf = el.dataset.v; redrawFight(); };
+ACTIONS['fight-reveal'] = () => { if(fight.conf){ fight.phase = 'reveal'; redrawFight(); } };
+ACTIONS['fight-mark'] = el => {
+  const f = fight, pth = PATHS.find(p => p.id === f.path), st = pth.stages.find(s => s.id === f.stage), items = recallItems(st), idx = f.order[f.at];
+  const boxes = [...el.closest('.fight').querySelectorAll('[data-fight-idea]')], had = boxes.filter(b => b.checked).length;
+  const outcome = had === 0 ? 'missed' : had === boxes.length ? 'got' : 'partial';
+  // the first answer in a round decides the schedule; the second asking is practice with the same feedback
+  if(f.round === 1){ f.first[idx] = outcome; scheduleRecall(pth, st, items[idx], outcome, f.conf); }
+  f.at++; f.phase = 'ask'; f.conf = null; f.answer = '';
+  if(f.at >= f.order.length){
+    const again = f.round === 1 ? f.first.map((r, i) => r !== 'got' ? i : -1).filter(i => i >= 0) : [];
+    if(again.length){ f.round = 2; f.order = again; f.at = 0; }
+    else {
+      f.phase = 'end';
+      const n = items.length, got = f.first.filter(r => r === 'got').length, partial = f.first.filter(r => r === 'partial').length;
+      const prog = pathProgress(pth.id); prog.check[st.id] = { at: Date.now(), mode: f.mode, n, got, partial, missed: n - got - partial }; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
+      savePathProgress(pth.id, prog);
+      if(f.mode === 'testout' && got >= Math.ceil(2 * n / 3) && !prog.stages[st.id]) markStageStatus(pth.id, st.id, 'skipped');
+    }
+  }
+  redrawFight();
+};
+ACTIONS['fight-close'] = el => { const next = el.dataset.next === '1', p = el.dataset.path, s = el.dataset.stage; fight = null; if(next) goPastStage(p, s); else if(p) { keepScroll = true; route(); } };
+document.addEventListener('input', e => { if(fight && e.target.matches && e.target.matches('textarea[data-fight-answer]')) fight.answer = e.target.value; });
+
+// The stage map: every stage as a region with what is true of it (steps read,
+// what the checkpoint recalled, questions due), the current one marked. It is
+// a view, never a gate: every region opens at any time. "Plain list" shows
+// every stage's steps instead. The adventure skin (off by default) only
+// changes the look and two labels; nothing moves while the reader is reading.
+function overworldHTML(pth, prog, curStage, next){
+  const due = reviewDue(), skin = adventureSkin(), view = pathView();
+  const regions = pth.stages.map((st, si) => {
+    const done = st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length, c = prog.check[st.id], status = prog.stages[st.id];
+    const recall = c ? (c.got === c.n ? 'all recalled' : `${c.got} of ${c.n} recalled`) : 'checkpoint not tried';
+    const dueHere = due.filter(([k]) => k.startsWith(`ck:${pth.id}:${st.id}:`)).length;
+    const here = st.id === curStage;
+    return `<li class="region ${here ? 'here' : ''} ${status || ''}"><a class="lnk" href="#/paths/${pth.id}/${st.id}"${here ? ' aria-current="step"' : ''}>
+      <span class="rnum" aria-hidden="true">${status === 'done' ? '✓' : status === 'skipped' ? '⇥' : si + 1}</span><span class="rtext"><b>${esc(st.t)}</b><span class="small muted blk">${done} of ${st.steps.length} steps · ${recall}${status === 'skipped' ? ' · tested out or skipped' : status === 'done' ? ' · done' : ''}${dueHere ? ` · ${dueHere} to review` : ''}</span>${here ? `<span class="you blk">${skin ? '▲ ' : ''}You are here</span>` : ''}</span></a></li>`;
+  }).join('');
+  return `<section class="overworld ${skin ? 'skin' : ''}" aria-labelledby="owH">
+    <div class="row between owhead"><h2 id="owH" class="h4look">${skin ? 'The road through this path' : 'Stages'}</h2><span class="chips" role="group" aria-label="How to show the stages"><button type="button" class="chip" data-action="path-view" data-v="world" aria-pressed="${view === 'world'}">Stage map</button><button type="button" class="chip" data-action="path-view" data-v="list" aria-pressed="${view === 'list'}">Plain list</button><button type="button" class="chip" data-action="path-skin" data-v="${skin ? '0' : '1'}" aria-pressed="${skin}">Adventure look</button></span></div>
+    ${view === 'world' ? `<ol class="regions">${regions}</ol>` : ''}
+    <p class="small ownext">Next: <a href="${nextStepHref(next)}">${esc(nextStepLabel(next))}</a>${due.length ? ` · <a href="#/review">${due.length} question${due.length === 1 ? '' : 's'} to review today</a>` : ''}</p></section>`;
+}
+const pathView = () => store.get('pathView', 'world') === 'list' ? 'list' : 'world';
+ACTIONS['path-view'] = el => { store.set('pathView', el.dataset.v); keepScroll = true; route(); };
+ACTIONS['path-skin'] = el => { store.set('pathSkin', el.dataset.v === '1'); keepScroll = true; route(); };
 // Checkpoint recall: answer first, then open a question to compare with its
 // outline. Each can go into the review queue, keyed by its text.
 function recallHTML(pth, st){
@@ -2347,8 +2483,8 @@ function stageSectionHTML(pth, st, si, curStage, prog, next){
   const doneCount = st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length;
   const tick = status === 'done' ? '✓' : status === 'skipped' ? '⇥' : String(si + 1);
   return `<section class="pathstage ${isOpen ? 'open' : ''} ${status || ''}" data-stage="${st.id}">
-    <header data-href="#/paths/${pth.id}/${st.id}"><span class="letter">${tick}</span><div style="flex:1"><h3><a class="lnk sec-link" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></h3><div class="small muted">${esc(st.goal)}</div></div>${status ? `<button type="button" class="btn sm ghost" data-action="stage-undo" data-path="${pth.id}" data-stage="${st.id}">Undo ${status === 'done' ? 'done' : 'skip'}</button>` : ''}<span class="chip">${doneCount}/${st.steps.length}</span><span class="car">▸</span></header>
-    <div class="body"><div class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog, i === nextIdx)).join('')}</div>${stageFooterHTML(pth, st, prog)}</div>
+    <header data-href="#/paths/${pth.id}/${st.id}"><span class="letter">${tick}</span><div style="flex:1"><h2><a class="lnk sec-link" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></h2><div class="small muted">${esc(st.goal)}</div></div>${status ? `<button type="button" class="btn sm ghost" data-action="stage-undo" data-path="${pth.id}" data-stage="${st.id}">Undo ${status === 'done' ? 'done' : 'skip'}</button>` : ''}<span class="chip">${doneCount}/${st.steps.length}</span><span class="car">▸</span></header>
+    <div class="body"><ol class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog, i === nextIdx)).join('')}</ol>${stageFooterHTML(pth, st, prog)}</div>
   </section>`;
 }
 function pathPageHTML(pth, stageIdParam){
@@ -2361,7 +2497,8 @@ function pathPageHTML(pth, stageIdParam){
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
     ${hasPrereq(pth) ? `<div class="small muted" style="margin:1em 0">Prereq: ${(pth.prereqAny || []).length > 3 ? prereqSummaryHtml(pth) : prereqHtml(pth, pathLinkChip, ', ')}</div>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
-    <div class="pathstages">${pth.stages.map((st, si) => stageSectionHTML(pth, st, si, curStage, prog, next)).join('')}</div>
+    ${overworldHTML(pth, prog, curStage, next)}
+    <div class="pathstages">${pth.stages.map((st, si) => pathView() === 'list' || st.id === curStage ? stageSectionHTML(pth, st, si, curStage, prog, next) : '').join('')}</div>
     ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`, { only: '.pathstep-body .gl' });
   const side = wideBlock('Stages', `<ol>${pth.stages.map(st => `<li><a class="lnk" href="#/paths/${pth.id}/${st.id}">${esc(st.t)}</a></li>`).join('')}</ol>`) + wideBlock('Where to go next', pth.next.length ? `<div class="chips">${pth.next.map(pathLinkChip).join('')}</div>` : '');
   return wide2(main, side, 'This path');

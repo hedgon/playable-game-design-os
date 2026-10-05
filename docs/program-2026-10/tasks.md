@@ -103,12 +103,12 @@ the evidence line), `[-]` set aside (with the reason).
 - [ ] P8.4 Checks, CI replay, commit, push
 
 ## P9 Adventure paths
-- [ ] P9.1 Overworld view (default) with plain-list toggle; regions, mastery states, never a gate
-- [ ] P9.2 Castle = checkpoint; boss flow (answer, confidence, reveal, tick ideas, rate; re-ask; Review queue)
-- [ ] P9.3 Test-out replaces "I already know this"
-- [ ] P9.4 Walking skin, off by default, reduced motion
-- [ ] P9.5 Audit N1-N4: path door and page chrome
-- [ ] P9.6 e2e-paths.js extended; checks, CI replay, commit, push
+- [x] P9.1 Stage map (default) with a Plain list toggle: an ordered list of regions in the reading pane (steps read, checkpoint recall state, reviews due, You are here), every region a link, never a gate; the plain list shows every stage
+- [x] P9.2 Checkpoint one question at a time: answer from memory (typing optional), confidence before the reveal, outline as ideas to tick, outcome from the ticks; misses and partials re-asked once; scheduled into Review (a right guess comes back tomorrow); result kept per stage. The all-at-once list stays under it
+- [x] P9.3 Test-out replaces "I already know this": recall 2/3 or more and the stage is marked tested out, else open the first step; "Skip without testing" stays
+- [x] P9.4 Adventure look, off by default: region shape, a castle mark, "Enter the castle", a one-time marker entrance that is still under reduced motion (e2e caught a specificity bug in the reduced-motion rule; fixed). No points, no sprite walking while reading
+- [x] P9.5 Audit N1-N4: N1 chooser under the h1, hint and backup to the foot; N2 the duplicate intent list removed, one answer narrows the list; N3 path pages fold the rail and take the reading width, map kept (e2e and earlier map work rely on it); N4 no sub-nav on a path page. Path page markup: stage headings h2, step rows an ol of li with the checkbox and its label separate from links and glossary buttons; html-validate clean, axe clean after transitions. Set aside: N4 one-line path bar (the bar is tested as a whole and serves every route), N5-N7 (topic chrome, nav labels, global counter: not in P9 scope)
+- [~] P9.6 e2e-paths.js extended (fight, re-ask, scheduling, stored result, test-out, stage map, plain list, adventure look and reduced motion): 125/125 at 1440 and 375; two stage-count checks moved to the stage map. CI replay, commit, push
 
 ## P10 Close
 - [ ] P10.1 Independent final review; fixes; re-review of the fixes

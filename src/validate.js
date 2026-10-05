@@ -29,6 +29,8 @@ const src = [...DATA.map(f => path.join(__dirname, f)), ...DRAFTS.map(f => path.
   .map(f => fs.readFileSync(f, 'utf8')).join('\n');
 const RETURNS = '\nreturn {GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,COMPARISONS,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
+// A draft may rewrite an existing comparison: the later definition replaces the earlier one.
+if (DRAFTS.length) { const last = new Map(ctx.COMPARISONS.map(c => [c.id, c])); ctx.COMPARISONS.splice(0, ctx.COMPARISONS.length, ...last.values()); }
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
 // Content for the engine and interview tabs lands file by file. Until it is
 // all in, `PLAYABLE_STRICT=0` (or --lenient) downgrades "missing eng/iv" from
@@ -887,6 +889,7 @@ if (orphans.length) console.log('WARN topics with no inbound links:', orphans.jo
     if (!Array.isArray(c.sections) || c.sections.length < 3) errors.push(`${where}: needs 3 or more sections`);
     else c.sections.forEach((s, i) => { for (const k of ['h', 'a', 'b']) if (!s || !str(s[k])) errors.push(`${where}: sections[${i}].${k} empty`); });
     for (const tid of (c.topics || [])) if (!TOPICS[tid]) errors.push(`${where}: topic "${tid}" does not exist`);
+    if (c.diagram !== undefined) checkDiagram(c.diagram, `${where}: diagram`, errors);
     if (!Array.isArray(c.sources) || !c.sources.length || c.sources.some(u => !/^https:\/\/[^/\s]+/.test(u))) errors.push(`${where}: needs 1 or more https sources`);
   }
   console.log(`worked examples: ${nw}, comparisons: ${(ctx.COMPARISONS || []).length}`);

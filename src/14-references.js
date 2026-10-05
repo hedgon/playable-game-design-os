@@ -248,10 +248,12 @@ const lensTopics = (l, key) => (l && l.topics && l.topics.length) ? l.topics : (
    same design problem. `problem` is the shared problem in one sentence;
    `sections` compare one aspect each (a for games[0], b for games[1]);
    `verdict` says what each choice costs and gains; `principle` is the lesson
-   that transfers. Listed at #/games/compare, shown on both game pages. */
+   that transfers. An optional `diagram` (any diagram kind) draws the two
+   answers side by side where a picture says it faster than the sections.
+   Listed at #/games/compare, shown on both game pages. */
 /**
  * @typedef {{id: string, t: string, problem: string, games: [string, string], verdict: string,
- *   sections: Array<{h: string, a: string, b: string}>, principle: string, topics: string[], sources: string[]}} Comparison
+ *   sections: Array<{h: string, a: string, b: string}>, principle: string, topics: string[], sources: string[], diagram?: Diagram}} Comparison
  */
 /** @type {Comparison[]} */
 const COMPARISONS = [];

@@ -3,7 +3,10 @@
 // done, ticking a step keeps the reader's place, done and skipped stages can
 // be undone, an open path shows exactly four structure indicators, the map
 // opens framed to the current stage, the chooser suggests a path for every
-// answer combination, and a checkpoint question can go into Review and out.
+// answer combination, a checkpoint question can go into Review and out, the
+// checkpoint asks one question at a time and schedules what it found, a test-out
+// marks a known stage, the stage map and the plain list both show every stage,
+// and the adventure look is off by default and still under reduced motion.
 // Needs Playwright, like smoke.js.
 // Usage: node src/e2e-paths.js   (PLAYWRIGHT_CHANNEL=chrome uses an installed Chrome)
 const http = require('http'), fs = require('fs'), path = require('path');
@@ -150,7 +153,7 @@ const server = http.createServer((req, res) => {
     const sen = await page.evaluate(() => ({ h: document.querySelector('#pane .chooser-pick h3')?.textContent, picked: [...document.querySelectorAll('#pane .card.picked')].map(c => c.dataset.pathCard) }));
     check(`${tag} an experienced designer is taken first to the senior design path`, sen.h === 'Senior game designer' && sen.picked.length === 1 && sen.picked[0] === 'senior-game-designer', JSON.stringify(sen));
     await nav('#/paths/senior-game-designer'); await page.waitForTimeout(300);
-    const senStages = await page.evaluate(() => [...document.querySelectorAll('#pane .pathstage')].map(e => e.dataset.stage));
+    const senStages = await page.evaluate(() => [...document.querySelectorAll('#pane .overworld .region a')].map(e => e.getAttribute('href').split('/').pop()));
     check(`${tag} the senior design path page renders its five stages`, senStages.length === 5 && senStages.join() === 's1,s2,s3,s4,s5', senStages.join());
     // the advanced developer path: an experienced gameplay, backend or AI learner is taken first to it, and its six stages render
     await nav('#/paths'); await page.waitForTimeout(200);
@@ -161,7 +164,7 @@ const server = http.createServer((req, res) => {
       check(`${tag} an experienced ${g} learner is taken first to the senior developer path`, dev.h === 'Senior game developer in the AI era' && dev.picked.length === 1 && dev.picked[0] === 'senior-game-developer-ai-era', JSON.stringify(dev));
     }
     await nav('#/paths/senior-game-developer-ai-era'); await page.waitForTimeout(300);
-    const devStages = await page.evaluate(() => [...document.querySelectorAll('#pane .pathstage')].map(e => e.dataset.stage));
+    const devStages = await page.evaluate(() => [...document.querySelectorAll('#pane .overworld .region a')].map(e => e.getAttribute('href').split('/').pop()));
     check(`${tag} the senior developer path page renders its six stages`, devStages.join() === 's1,s2,s3,s4,s5,s6', devStages.join());
     await nav('#/paths'); await page.waitForTimeout(200);
     // a one-of prerequisite (prereqAny) never forces a detour: the pick is direct, with the good bases named
@@ -280,6 +283,55 @@ const server = http.createServer((req, res) => {
     const rvAfter = await page.evaluate(() => localStorage.getItem('playable.review'));
     check(`${tag} Practise now lists not-yet-due items and leaves the schedule unchanged`, pr === 2 && rvBefore === rvAfter, JSON.stringify({ pr }));
     await page.evaluate(() => localStorage.removeItem('playable.review'));
+
+    // --- the checkpoint, one question at a time (research/learning-science.md 2.3)
+    await page.evaluate(() => { localStorage.removeItem('playable.review'); localStorage.removeItem('playable.path.performance-engineer'); localStorage.removeItem('playable.pathView'); });
+    await nav('#/paths/performance-engineer/s1'); await page.waitForTimeout(150);
+    const F = '#pane .pathstage[data-stage="s1"] .fight[data-mode="check"]';
+    await page.evaluate(() => { document.querySelector('#pane .pathstage[data-stage="s1"] .pathcheck').open = true; });
+    await page.click(F + ' [data-action="fight-start"]');
+    const ask = await page.evaluate(f => { const el = document.querySelector(f); return { q: !!el.querySelector('.fight-q'), outline: !!el.querySelector('[data-fight-idea]'), revealDisabled: el.querySelector('[data-action="fight-reveal"]').disabled, focus: document.activeElement === el.querySelector('.fight-q') }; }, F);
+    check(`${tag} the checkpoint asks one question alone, the outline hidden until a confidence tap`, ask.q && !ask.outline && ask.revealDisabled && ask.focus, JSON.stringify(ask));
+    // the first answer is right but marked a guess; the second is missed, so it is asked once more
+    const answer = async (sel, conf, tickAll) => { await page.click(`${sel} [data-action="fight-conf"][data-v="${conf}"]`); await page.click(sel + ' [data-action="fight-reveal"]'); if (tickAll) await page.evaluate(f => document.querySelectorAll(f + ' [data-fight-idea]').forEach(b => { b.checked = true; }), sel); await page.click(sel + ' [data-action="fight-mark"]'); };
+    await answer(F, 'guess', true); await answer(F, 'sure', false);
+    const again = await page.evaluate(f => document.querySelector(f + ' .fight-pos').textContent, F);
+    check(`${tag} a missed question is asked once more at the end of the round`, /Once more/.test(again) && /1 of 1/.test(again), again);
+    await answer(F, 'sure', true);
+    const endF = await page.evaluate(f => document.querySelector(f).textContent, F);
+    const fr = await page.evaluate(() => ({ review: JSON.parse(localStorage.getItem('playable.review') || '{}'), check: (JSON.parse(localStorage.getItem('playable.path.performance-engineer') || '{}').check || {}).s1 }));
+    const boxes = Object.values(fr.review).map(r => r.box);
+    check(`${tag} the end shows what was recalled, no score, and the guess and the miss come back tomorrow`, /What you recalled/.test(endF) && /1 of 2: got it/.test(endF) && !/score|points/i.test(endF) && boxes.length === 2 && boxes.every(b => b === 0), JSON.stringify({ boxes, endF: endF.slice(0, 200) }));
+    check(`${tag} the checkpoint result is kept for the stage map`, fr.check && fr.check.n === 2 && fr.check.got === 1 && fr.check.missed === 1, JSON.stringify(fr.check));
+    // --- the test-out: recalling everything marks the stage tested out and moves on
+    await nav('#/paths/performance-engineer/s2'); await page.waitForTimeout(150);
+    const T = '#pane .pathstage[data-stage="s2"] .fight[data-mode="testout"]';
+    await page.evaluate(() => { document.querySelector('#pane .pathstage[data-stage="s2"] .pathskip').open = true; });
+    await page.click(T + ' [data-action="fight-start"]');
+    for (let k = 0; k < 8 && await page.evaluate(t => !!document.querySelector(t + ' [data-action="fight-conf"]'), T); k++) await answer(T, 'sure', true);
+    const to = await page.evaluate(t => ({ stage: (JSON.parse(localStorage.getItem('playable.path.performance-engineer')).stages || {}).s2, text: document.querySelector(t).textContent }), T);
+    check(`${tag} a test-out that recalls the stage marks it tested out`, to.stage === 'skipped' && /You know most of this stage/.test(to.text), JSON.stringify({ stage: to.stage, text: to.text.slice(0, 160) }));
+    await page.click(T + ' [data-action="fight-close"][data-next="1"]'); await page.waitForTimeout(200);
+    check(`${tag} after a test-out, "Go to the next stage" opens it`, (await page.evaluate(() => location.hash)).endsWith('/s3'), await page.evaluate(() => location.hash));
+    // --- the stage map is a view: every stage opens, its state comes from recall; the plain list shows every stage
+    await nav('#/paths/performance-engineer'); await page.waitForTimeout(150);
+    const ow = await page.evaluate(() => [...document.querySelectorAll('#pane .overworld .region')].map(r => ({ t: r.textContent, href: r.querySelector('a').getAttribute('href') })));
+    check(`${tag} the stage map lists every stage as a link with its recall state`, ow.length === 6 && ow.every(r => /^#\/paths\/performance-engineer\/s\d$/.test(r.href)) && /1 of 2 recalled/.test(ow[0].t) && /tested out/.test(ow[1].t) && /checkpoint not tried/.test(ow[2].t), JSON.stringify(ow.map(r => r.t.slice(0, 90))));
+    await page.click('#pane [data-action="path-view"][data-v="list"]'); await page.waitForTimeout(150);
+    const pl = await page.evaluate(() => ({ sections: document.querySelectorAll('#pane .pathstage').length, regions: document.querySelectorAll('#pane .overworld .region').length, pressed: document.querySelector('#pane [data-action="path-view"][data-v="list"]').getAttribute('aria-pressed') }));
+    check(`${tag} the plain list shows every stage's steps`, pl.sections === 6 && pl.regions === 0 && pl.pressed === 'true', JSON.stringify(pl));
+    await page.click('#pane [data-action="path-view"][data-v="world"]'); await page.waitForTimeout(100);
+    await page.evaluate(() => { localStorage.removeItem('playable.review'); localStorage.removeItem('playable.path.performance-engineer'); });
+    // --- the adventure look is off by default; when on, its one entrance movement stops under reduced motion
+    for (const rm of ['no-preference', 'reduce']) {
+      const c2 = await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: rm }), p2 = await c2.newPage();
+      await p2.goto(BASE + '#/paths/performance-engineer'); await p2.waitForTimeout(500);
+      const off = await p2.evaluate(() => !!document.querySelector('#pane .overworld') && !document.querySelector('#pane .overworld.skin'));
+      await p2.evaluate(() => document.querySelector('#pane [data-action="path-skin"]').click()); await p2.waitForTimeout(200);
+      const an = await p2.evaluate(() => { const y = document.querySelector('#pane .overworld.skin .you'); return y ? getComputedStyle(y).animationName : 'missing'; });
+      check(`${tag} the adventure look is off by default; its marker ${rm === 'reduce' ? 'does not move under reduced motion' : 'steps in once'}`, off && (rm === 'reduce' ? an === 'none' : an === 'walkin'), JSON.stringify({ off, an }));
+      await c2.close();
+    }
 
     check(`${tag} no console errors`, !errors.length, errors[0]);
     await ctx.close();
