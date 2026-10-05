@@ -3,7 +3,8 @@
    A path does not duplicate a topic, tool, checklist, smell, diagnostic,
    project part, workflow chart or prompt. It walks the reader through the
    ones that already exist, in an order, with a reason for each stop, a
-   concrete exercise, and a soft checkpoint per stage. Progress lives in
+   concrete exercise, and a checkpoint per stage (asked one question at a
+   time; see 90-app.js: fightHTML). Progress lives in
    localStorage (see 90-app.js: pathProgress, pathNextStep, stepHref,
    stepTitle). No streaks, no badges, no guilt copy.
 

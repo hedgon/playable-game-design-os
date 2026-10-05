@@ -24,10 +24,16 @@ to do, your experience, your time) and one path is suggested with the reason; ea
 path card also says who it is for and what comes before it. A path never
 duplicates content; it puts it in order. Every topic, reference game, engine
 guide, platform guide and checklist is a step in at least one path, so nothing in
-the library sits outside the course. Each stage ends in a short checkpoint (a
-few recall questions, each with an answer outline to compare against once you
-have answered, and one build task), not a test, and "I already know this" lets you
-skip a stage. A stage marked done or skipped by mistake can be undone. A slim bar
+the library sits outside the course. Each stage ends in a checkpoint: its recall
+questions one at a time, answered from memory before the outline shows, with a
+"how sure am I?" tap first; you tick the ideas your answer had, and what you missed
+comes back in the review queue. Then one build task, with a reference solution to
+open after you try. If you already know a stage, test out of it with the same
+questions, or skip it without testing. The path page shows the stages as a map
+(steps read, what the checkpoint recalled, questions due) or as a plain list; an
+optional adventure look changes only the shape. A stage marked done or skipped by
+mistake can be undone. The evidence behind each rule is in
+[docs/program-2026-10/research/curriculum.md](docs/program-2026-10/research/curriculum.md). A slim bar
 on every page names your current stage and the next step. There are no streaks
 and no badges.
 

@@ -94,8 +94,10 @@ Set `PLAYWRIGHT_CHANNEL=chrome` to use an installed Chrome instead.
 
 `src/e2e-paths.js` drives the learning paths the same way, at 375 and 1440 px:
 continue at a checkpoint, ticking a step, undo, the four structure indicators on
-an open path, map framing, the chooser, and a checkpoint question going into
-Review. Run it with `node src/e2e-paths.js` after the same Playwright setup.
+an open path, map framing, the chooser, a checkpoint question going into
+Review, the checkpoint asked one question at a time (re-ask, scheduling, stored
+result), the test-out, the stage map and plain list, and the adventure look
+under reduced motion. Run it with `node src/e2e-paths.js` after the same Playwright setup.
 
 CI (`.github/workflows/build.yml`) runs the build, the `playable.html` and `content/` sync check,
 the type check, the smoke test and the paths test on every push and pull request.
@@ -422,9 +424,12 @@ tool or checklist step somewhere in the path (a stage holds one only when its `w
 never go down (the first stage matches the path level and none rises more than one level), step minutes within 10% of the stage hours, and stage hours within
 10% of the path hours. A topic step's optional `tab` (`godot`, `unity` or
 `interview`) must exist on that topic. A `platform` step names a platform guide, and a `game` step names a reference game (`#/games/<id>`); a game step also shows on that game’s page under “Part of paths”.
+The validator also prints curriculum guides under LONG (never an error): a stage after the first with no `review` topic, a `review` topic not studied earlier in the path, a beginner or intermediate stage with no reference solution, and an answer outline with one idea. Each comes from the evidence in `docs/program-2026-10/research/curriculum.md`.
 A stage's `check` may also carry `solution:{outline, selfcheck}`: a reference outline of a good answer to the build task (40 words or more) and 2 to 6 self-check questions. The path page shows it under the build task in a closed disclosure, "Reference solution: open after you try".
 Every path has a `pick` line under 60 characters for the door; every recall
-question is `{q, a}` with a short answer outline; and every path in a `prereq`
+question is `{q, a}` with a short answer outline, written as two or more sentences
+(the checkpoint shows each sentence as an idea to tick; an optional `ideas:[...]`
+list overrides the split when one sentence holds several ideas); and every path in a `prereq`
 or `prereqAny` must list this path in its own `next`. `prereq` means all of them; `prereqAny` (two or
 more ids) means one of them is enough, and the chooser only names it as a good base for someone new to the path rather than sending them there first. If you add a path, place it in the
 chooser's `CHOOSER.paths` table in `50-paths.js` where it fits; the validator
