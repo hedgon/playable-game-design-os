@@ -236,6 +236,8 @@ function contentNeeds(parts){
     case 'engines': return a ? [['engine', a]] : [];
     case 'ai': return a === 'philosophy' ? [['topic', 'bottleneck-shift']] : [];
     case 'sources': return [['file', 'cited']];
+    // the dissection tool shows each saved comparable's long fields (engines, lesson)
+    case 'build': return a === 'dissect' ? (store.get('dissectTool', {}).comps || []).filter(c => c && REFERENCE_GAMES.some(g => g.id === c.id)).map(c => ['game', c.id]) : [];
   }
   return [];
 }
@@ -356,7 +358,7 @@ window.addEventListener('hashchange', route);
 // On a phone the first five sections sit in the bar and the rest open from "More",
 // so every label is whole and nothing is clipped.
 const NAV_BAR = 5;
-$('#primaryNav').innerHTML = NAV.map((g, i) => `<button data-group="${g.id}" data-href="#/${g.views[0][0]}"${i >= NAV_BAR ? ' class="nav-extra"' : ''}>${g.t}</button>`).join('') + '<button type="button" class="nav-morebtn" id="navMore" data-action="nav-more" aria-haspopup="true" aria-expanded="false">More</button>';
+$('#primaryNav').innerHTML = NAV.map((g, i) => `<button type="button" data-group="${g.id}" data-href="#/${g.views[0][0]}"${i >= NAV_BAR ? ' class="nav-extra"' : ''}>${g.t}</button>`).join('') + '<button type="button" class="nav-morebtn" id="navMore" data-action="nav-more" aria-haspopup="true" aria-expanded="false">More</button>';
 const closeNavMore = () => { $('#primaryNav').classList.remove('more-open'); $('#navMore').setAttribute('aria-expanded', 'false'); };
 ACTIONS['nav-more'] = el => { const on = $('#primaryNav').classList.toggle('more-open'); el.setAttribute('aria-expanded', on); };
 document.addEventListener('click', e => { if(!e.target.closest('#navMore')) closeNavMore(); });
@@ -375,15 +377,15 @@ function ensureShell(){
         <div class="mapfind"><input type="search" id="mapFind" placeholder="Find in map" aria-label="Find in map" aria-describedby="mapFindN" autocomplete="off" spellcheck="false"><span class="mapfind-n" id="mapFindN"></span></div>
         <div class="row mapctl" style="gap:4px">
         <a class="btn sm mapnext" id="mapNext" href="#/map" hidden>Next unread</a>
-        <button class="btn sm ghost" id="mapLegendBtn" aria-expanded="false" aria-controls="maplegend" title="What the colours, marks and lines mean">Legend</button>
+        <button type="button" class="btn sm ghost" id="mapLegendBtn" aria-expanded="false" aria-controls="maplegend" title="What the colours, marks and lines mean">Legend</button>
         <div class="lens-switch mapviewsw" id="mapPhoneView" role="group" aria-label="Phone map view"><button type="button" data-view="map" aria-pressed="true">Map</button><button type="button" data-view="list" aria-pressed="false">List</button></div>
-        <button class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">−</button>
-        <button class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">+</button>
-        <button class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢<span class="btn-long"> fit</span></button>
-        <button class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺</button>
-        <button class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲</button>
-        <button class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
-        <button class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
+        <button type="button" class="btn sm ghost" id="mapZoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+        <button type="button" class="btn sm ghost" id="mapZoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+        <button type="button" class="btn sm ghost" id="mapFit" title="Fit the map" aria-label="Fit map">⤢<span class="btn-long"> fit</span></button>
+        <button type="button" class="btn sm ghost" id="mapResetDrag" title="Reset dragged nodes to the tidy layout" aria-label="Reset layout">↺</button>
+        <button type="button" class="btn sm ghost" id="mapResetDefault" title="Reset the map to the default overview" aria-label="Reset map to the overview">⟲</button>
+        <button type="button" class="btn sm ghost mapbtn-left" id="collapseLeft" title="Toggle index">⟨ index</button>
+        <button type="button" class="btn sm ghost mapbtn-right" id="collapseRight" title="Toggle content">content ⟩</button>
       </div></div>
       <div class="maplegend-panel kgraph" id="maplegend" hidden></div>
       <div class="mapwrap" id="mapwrap"><svg class="kgraph" id="mapsvg" viewBox="0 0 1200 800" role="tree" tabindex="-1" aria-label="Mind map. Tab into it, move with the arrow keys, Right and Left open and close, Enter opens."></svg><div class="mapoutline" id="mapoutline" role="tree" aria-label="Map outline. Move with the arrow keys, Right and Left open and close, Enter opens."></div><div class="maptip" id="maptip" hidden></div><div class="mapmore" id="mapmore"></div></div>
@@ -391,7 +393,7 @@ function ensureShell(){
     </section>
     <div class="splitter" id="splitR" title="Drag to resize"></div>
     <main class="pane" id="pane"></main>
-  </div><div class="scrim" id="scrim"></div><button class="drawer-close" id="drawerClose" aria-label="Close panel">✕</button>`;
+  </div><div class="scrim" id="scrim"></div><button type="button" class="drawer-close" id="drawerClose" aria-label="Close panel">✕</button>`;
   SHELL = true; wireShell();
 }
 function wireShell(){
@@ -454,11 +456,11 @@ function railHTML(activeDom, activeTopic){
   return `<div class="railhead">
       ${lensSwitchHTML()}
       <a class="railgraph" href="#/concepts">⌘ Concept index</a>
-      <input class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
+      <input type="text" class="railsearch" id="railSearch" placeholder="Jump to a concept…" autocomplete="off">
     </div>
     <div class="raillist">${DOMAINS.filter(d => d.lens === lens).map(d => { const isOpen = openSet.has(d.id); return `<div class="raildom ${isOpen?'open':''}" data-dom="${d.id}" style="--dc:${d.color}">
-      <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(d.t)}</span><span class="rn">${d.topics.filter(t=>seen.has(t)).length}/${d.topics.length}</span></button>
-      <div class="railtopics">${d.topics.map(t => `<button class="railtopic ${t===activeTopic?'active':''} ${seen.has(t)?'seen':''}" data-topic="${t}">${esc(TOPICS[t].t)}</button>`).join('')}</div></div>`; }).join('')}
+      <button type="button" class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(d.t)}</span><span class="rn">${d.topics.filter(t=>seen.has(t)).length}/${d.topics.length}</span></button>
+      <div class="railtopics">${d.topics.map(t => `<button type="button" class="railtopic ${t===activeTopic?'active':''} ${seen.has(t)?'seen':''}" data-topic="${t}">${esc(TOPICS[t].t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
 }
 // The rail follows the centre stage: in project mode it lists the projects and
@@ -470,16 +472,16 @@ function railProjectHTML(c, sysId, partId){
   // route, where sysId is the route word 'flow' and partId the flow id.
   const flowOpen = sysId === 'workflows' || sysId === 'flow';
   const flowGroup = flows.length ? `<div class="raildom ${flowOpen ? 'open' : ''}" data-dom="workflows" style="--dc:var(--accent2)">
-      <button class="raildom-btn" data-sys="workflows"><span class="rdot"></span><span class="rt">Workflows</span><span class="rn">${flows.length}</span></button>
-      <div class="railtopics">${flows.map(f => `<button class="railtopic ${sysId === 'flow' && f.id === partId ? 'active' : ''}" data-flow="${f.id}">${esc(f.t)}</button>`).join('')}</div></div>` : '';
+      <button type="button" class="raildom-btn" data-sys="workflows"><span class="rdot"></span><span class="rt">Workflows</span><span class="rn">${flows.length}</span></button>
+      <div class="railtopics">${flows.map(f => `<button type="button" class="railtopic ${sysId === 'flow' && f.id === partId ? 'active' : ''}" data-flow="${f.id}">${esc(f.t)}</button>`).join('')}</div></div>` : '';
   return `<div class="railhead">
       <a class="railgraph" href="#/map">← Domains</a>
-      <input class="railsearch" id="railSearch" placeholder="Jump to a part…" autocomplete="off">
+      <input type="text" class="railsearch" id="railSearch" placeholder="Jump to a part…" autocomplete="off">
     </div>
     <div class="railprojects"><span class="railtitle">Projects</span>${CASE_STUDIES.map(x => `<a class="railproj ${x.id === c.id ? 'active' : ''}" href="#/experience/${x.id}">${esc(x.t)}</a>`).join('')}</div>
     <div class="raillist">${flowGroup}${systems.map(s => `<div class="raildom ${s.id === sysId ? 'open' : ''}" data-dom="${s.id}" style="--dc:${kindColor(s.kind)}">
-      <button class="raildom-btn" data-sys="${s.id}"><span class="rdot"></span><span class="rt">${esc(s.t)}</span><span class="rn">${(s.parts || []).length}</span></button>
-      <div class="railtopics">${(s.parts || []).map(p => `<button class="railtopic ${p.id === partId ? 'active' : ''}" data-sys="${s.id}" data-part="${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}
+      <button type="button" class="raildom-btn" data-sys="${s.id}"><span class="rdot"></span><span class="rt">${esc(s.t)}</span><span class="rn">${(s.parts || []).length}</span></button>
+      <div class="railtopics">${(s.parts || []).map(p => `<button type="button" class="railtopic ${p.id === partId ? 'active' : ''}" data-sys="${s.id}" data-part="${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}
     </div>
     ${systems.length ? '' : '<div class="empty">No systems written for this project yet.</div>'}`;
 }
@@ -488,12 +490,12 @@ function railProjectHTML(c, sysId, partId){
 function railPathHTML(pth){
   return `<div class="railhead">
       <a class="railgraph" href="#/paths">← All paths</a>
-      <input class="railsearch" id="railSearch" placeholder="Jump to a path…" autocomplete="off">
+      <input type="text" class="railsearch" id="railSearch" placeholder="Jump to a path…" autocomplete="off">
     </div>
     <div class="raillist">${TRACKS.map(([tid, tlabel]) => { const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
       return `<div class="raildom open" data-dom="track-${tid}" style="--dc:var(--accent2)">
-      <button class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(tlabel)}</span><span class="rn">${list.length}</span></button>
-      <div class="railtopics">${list.map(p => `<button class="railtopic ${p.id === pth.id ? 'active' : ''}" data-path="${p.id}" ${p.id === pth.id ? 'aria-current="page"' : ''}>${esc(p.t)}</button>`).join('')}</div></div>`; }).join('')}
+      <button type="button" class="raildom-btn"><span class="rdot"></span><span class="rt">${esc(tlabel)}</span><span class="rn">${list.length}</span></button>
+      <div class="railtopics">${list.map(p => `<button type="button" class="railtopic ${p.id === pth.id ? 'active' : ''}" data-path="${p.id}" ${p.id === pth.id ? 'aria-current="page"' : ''}>${esc(p.t)}</button>`).join('')}</div></div>`; }).join('')}
     </div>`;
 }
 function railActive(){
@@ -678,7 +680,7 @@ function subNavHTML(){
   const toggle = mapReading(p) ? `<button type="button" class="btn sm ghost maptoggle" data-action="toggle-map" aria-pressed="${hidden}">${hidden ? 'Show map' : 'Hide map'}</button>` : '';
   return `<nav class="subnav" aria-label="${esc(g.t)}">${g.views.map(([id, t]) => `<a href="#/${id}"${id === cur ? ' class="active" aria-current="page"' : ''}>${esc(t)}${id === 'review' && due ? ` (${due} due)` : ''}</a>`).join('')}${toggle}</nav>`;
 }
-function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button data-href="${it[1]}">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
+function crumbs(items){ return `<div class="crumbs">${items.map((it, i) => (i ? '<span class="sep">›</span>' : '') + (it[1] ? `<button type="button" data-href="${it[1]}">${esc(it[0])}</button>` : `<span>${esc(it[0])}</span>`)).join('')}</div>`; }
 function domChip(id){ const d = DOM[id]; return d ? `<span class="chip dom" style="--dc:${d.color}">${esc(d.t)}</span>` : ''; }
 /* ---------- reference games: dissections, schematics, credited art ---------- */
 function gameArt(g){
@@ -750,7 +752,7 @@ function renderCompare(id){
   setView(`${crumbs([['Library','#/games'],['Two games, one problem','#/games/compare'],[c.t]])}<h1>${esc(c.t)}</h1>
     <p class="dim" style="max-width:820px">${esc(c.problem)}</p>
     <div class="compareheads">${head(A)}${head(B)}</div>
-    ${c.sections.map(s => `<section class="card comparesec"><h3>${esc(s.h)}</h3><div class="comparecols"><div><div class="overline">${esc(A.t)}</div><p>${esc(s.a)}</p></div><div><div class="overline">${esc(B.t)}</div><p>${esc(s.b)}</p></div></div></section>`).join('')}
+    <h2 class="sr-only">Side by side</h2>${c.sections.map(s => `<section class="card comparesec"><h3>${esc(s.h)}</h3><div class="comparecols"><div><div class="overline">${esc(A.t)}</div><p>${esc(s.a)}</p></div><div><div class="overline">${esc(B.t)}</div><p>${esc(s.b)}</p></div></div></section>`).join('')}
     <div class="card"><div class="overline">What each choice costs and gains</div><p>${esc(c.verdict)}</p></div>
     <div class="card sigcard"><div class="overline">The principle to take away</div><p><b>${esc(c.principle)}</b></p></div>
     ${c.topics.length ? `<div class="dgm-foot"><span class="overline">Topics</span><span class="chips">${c.topics.map(t => `<a class="chip lnk" href="#/map/t/${esc(t)}">${esc(TOPICS[t].t)}</a>`).join('')}</span></div>` : ''}
@@ -1031,7 +1033,7 @@ function renderEngines(id){
     ${(E.topics || []).length ? `<p class="small wdup">Topics: ${E.topics.map(t => topicLink(t)).join(', ')}</p>` : ''}${next.main}${note}`, side, 'This engine'));
 }
 function topicLink(id, label){ const t = TOPICS[id]; if(t) return `<a href="#/map/t/${id}">${esc(label || t.t)}</a>`; const v = VIEW_LINKS[id]; if(v) return `<a href="${v[0]}">${esc(label || v[1])}</a>`; return esc(label || id); }
-function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
+function promptBox(label, text){ return `<div class="promptbox">${label ? `<div class="lbl">${esc(label)}</div>` : ''}<pre>${esc(text)}</pre><button type="button" class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
 function list(arr){ return `<ul>${(arr||[]).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
 function chainHTML(items, cls){ return `<div class="chain">${items.map((it, i) => (i ? '<span class="arrow">→</span>' : '') + `<a class="cn ${it[2]||cls||''} lnk" title="${esc(it[3]||'')}" href="${it[1]}">${esc(it[0])}</a>`).join('')}</div>`; }
 
@@ -1171,15 +1173,22 @@ function renderGlossary(focusId){
   const firstOf = {}; list.forEach(g => { const l = letterOf(g); if(!firstOf[l]) firstOf[l] = g.id; });
   const entry = g => `<div class="gl-entry" style="margin:0 0 14px" id="g-${esc(g.id)}"><dt><b>${esc(g.term)}</b>${g.aka && g.aka.length ? ` <span class="small dim">also: ${g.aka.map(esc).join(', ')}</span>` : ''}</dt><dd style="margin:2px 0 0">${esc(g.def)}${g.topic && TOPICS[g.topic] ? `<div class="small" style="margin-top:4px"><a href="#/map/t/${esc(g.topic)}">Learn it: ${esc(TOPICS[g.topic].t)}</a></div>` : ''}</dd></div>`;
   setView(`${crumbs([['Start here','#/guide'],['Glossary']])}<h1>Glossary</h1><p class="dim" style="max-width:820px">Words this guide uses, in plain English. Each links to the lesson that teaches it.</p>
+    <div class="field" style="max-width:420px"><label for="glFilter">Filter the terms</label><input type="text" id="glFilter" placeholder="Type a word: loop, retention, rollback…" autocomplete="off"></div>
     <nav class="chips" aria-label="Jump to a letter">${letters.map(l => `<a class="chip lnk" href="#/glossary/${esc(firstOf[l])}">${esc(l)}</a>`).join('')}</nav>
-    <dl class="gl-list" style="max-width:820px">${list.map(entry).join('')}</dl>`);
+    <div class="gl-list" style="max-width:820px">${letters.map(l => `<section class="gl-letter"><h2 class="h4look">${esc(l)}</h2><dl>${list.filter(g => letterOf(g) === l).map(entry).join('')}</dl></section>`).join('')}</div>
+    <p class="small muted" id="glNone" hidden>No term matches. Try a shorter word, or search the whole guide (Ctrl+K).</p>`);
+  // the filter hides the terms (and empty letters) whose name, other names and definition miss the typed words
+  const f = $('#glFilter');
+  if(f) f.oninput = () => { const ws = searchWords(f.value); let shown = 0;
+    $$('.gl-letter').forEach(sec => { let any = false; $$('.gl-entry', sec).forEach(e => { const ok = !ws.length || ws.every(w => searchWords(e.textContent).some(x => x.startsWith(w))); e.hidden = !ok; if(ok){ any = true; shown++; } }); sec.hidden = !any; });
+    $('#glNone').hidden = shown > 0; };
   if(focusId){ afterRoute = () => { const el = document.getElementById('g-' + focusId); if(el) el.scrollIntoView({ block:'start' }); }; }
 }
 function renderConcepts(){
   const rows = TOPIC_LIST.map(t => ({ t, n: TOPIC_LIST.filter(x => x.id !== t.id && (x.rel||[]).some(([rid]) => rid === t.id)).length })).sort((a, b) => b.n - a.n || a.t.t.localeCompare(b.t.t));
   const card = r => `<a class="card clickable tint lnk blk" style="--dc:${DOM[r.t.d].color}" href="#/map/t/${r.t.id}"><b>${esc(r.t.t)}</b><div class="small dim">${esc(DOM[r.t.d].t)} · referenced by ${r.n}</div></a>`;
   setView(`${crumbs([['Map','#/map'],['Concept index']])}<h1>Concept index</h1><p class="dim">All ${TOPIC_LIST.length} concepts, most referenced first. A concept lives in one home domain and is referenced from others, so it belongs to several contexts without being copied.</p>
-    <div class="field"><input id="ciFilter" placeholder="Filter concepts…"></div>
+    <div class="field"><input type="text" id="ciFilter" placeholder="Filter concepts…"></div>
     <div class="grid auto" id="ciList">${rows.map(card).join('')}</div>`);
   const f = $('#ciFilter'); f.addEventListener('input', () => { const q = f.value.trim().toLowerCase(); $('#ciList').innerHTML = rows.filter(r => r.t.t.toLowerCase().includes(q) || DOM[r.t.d].t.toLowerCase().includes(q)).map(card).join('') || '<div class="empty">No concept matches.</div>'; });
 }
@@ -1188,7 +1197,7 @@ function renderConcepts(){
    It walks the text nodes of the rendered HTML, never the markup, and leaves headings, links,
    buttons, code, chips and diagrams alone. One bubble at a time lives in <body>, in a
    role="status" region so a screen reader hears the definition when it fills.
-   Each button is <button data-action="gloss-tip">, handled below. */
+   Each button is <button type="button" data-action="gloss-tip">, handled below. */
 let _GLOSS = null;
 function glossMatcher(){
   if(_GLOSS) return _GLOSS;
@@ -1299,7 +1308,7 @@ function goBody(t){
     <div class="overline">Go · the same idea in a Go service</div>
     <h2 class="h4look">Reach for</h2><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
     ${snippetNote(snippetLabel('go', t, v))}
-    <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>
+    <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button type="button" class="btn sm copybtn" data-action="copy">Copy</button></div>
     <div class="callout bad"><b>Pitfall.</b> ${esc(v.pitfall)}</div></div>`;
 }
 function engineBody(t, which){
@@ -1309,7 +1318,7 @@ function engineBody(t, which){
     <p>${esc(v.term)}</p>
     <h2 class="h4look">Reach for</h2><div class="chips apis">${v.api.map(a => `<span class="chip api">${esc(a)}</span>`).join('')}</div>
     ${snippetNote(snippetLabel(which, t, v))}
-    <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>
+    <div class="promptbox"><pre class="snippet">${esc(v.snippet)}</pre><button type="button" class="btn sm copybtn" data-action="copy">Copy</button></div>
     <div class="callout bad"><b>Pitfall.</b> ${esc(v.pitfall)}</div>
     <div class="callout ok"><b>Same idea, different name.</b> ${esc(v.map)}</div>
     ${t.eng.note ? `<div class="callout"><b>Why this is the counterpart.</b> ${esc(t.eng.note)}</div>` : ''}</div>`;
@@ -1347,7 +1356,7 @@ function topicInterviewBody(t){
   const idx = d.topics.indexOf(t.id);
   const near = [['prev', idx > 0 ? d.topics[idx-1] : null], ['next', idx < d.topics.length-1 ? d.topics[idx+1] : null]]
     .filter(([, id]) => id && TOPICS[id] && TOPICS[id].iv)
-    .map(([dir, id]) => `<button class="btn" data-href="#/map/t/${id}/interview">${dir === 'prev' ? '← ' : ''}${esc(TOPICS[id].t)}${dir === 'next' ? ' →' : ''}</button>`).join('');
+    .map(([dir, id]) => `<a class="btn" href="#/map/t/${id}/interview">${dir === 'prev' ? '← ' : ''}${esc(TOPICS[id].t)}${dir === 'next' ? ' →' : ''}</a>`).join('');
   return interviewBody(t.iv, d.color, 'story.' + t.id, near);
 }
 function topicBody(id){
@@ -1382,11 +1391,11 @@ function topicBody(id){
     ${smells.length ? `<div class="wdup"><div class="section-head"><h2>Design smells this topic helps diagnose</h2></div>${smellChips}</div>` : ''}
     ${contextsPanel(t)}
     <div class="readmark">${readMarkHTML(id)}</div>
-    <div class="topic-nav">${prev ? `<button class="btn" data-href="#/map/t/${prev}">← ${esc(TOPICS[prev].t)}</button>` : `<button class="btn ghost" data-href="#/map/d/${d.id}">← ${esc(d.t)} overview</button>`}<button class="btn ghost" data-href="#/explore/${d.id}">List view</button>${next ? `<button class="btn" data-href="#/map/t/${next}">${esc(TOPICS[next].t)} →</button>` : `<button class="btn" data-href="#/map/home">All domains →</button>`}</div>`;
+    <div class="topic-nav">${prev ? `<a class="btn" href="#/map/t/${prev}">← ${esc(TOPICS[prev].t)}</a>` : `<a class="btn ghost" href="#/map/d/${d.id}">← ${esc(d.t)} overview</a>`}<a class="btn ghost" href="#/explore/${d.id}">List view</a>${next ? `<a class="btn" href="#/map/t/${next}">${esc(TOPICS[next].t)} →</a>` : `<a class="btn" href="#/map/home">All domains →</a>`}</div>`;
   const tabs = tabsFor(t);
   const tab = tabs.some(x => x[0] === topicTab) ? topicTab : 'overview';
   // One tab means there is nothing to choose, so the strip is not drawn at all.
-  const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Topic views">${tabs.map(([k, label]) => `<button role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" data-action="topic-tab" data-topic="${id}">${label}</button>`).join('')}</div>` : '';
+  const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Topic views">${tabs.map(([k, label]) => `<button type="button" role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" data-action="topic-tab" data-topic="${id}">${label}</button>`).join('')}</div>` : '';
   // On a wide screen the overview keeps its sections in one column and the page's
   // contents, real games, related concepts and smells in a sticky column beside it.
   const secKeys = [...SECTION_META.map(m => m[0]), ...(t.tech && t.tech.length ? ['tech'] : [])];
@@ -1396,7 +1405,7 @@ function topicBody(id){
     wideBlock('Related concepts', `<div class="related">${rel}</div>`) + (smells.length ? wideBlock('Design smells this topic helps diagnose', smellChips) : '');
   const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : tab === 'go' ? goBody(t) : wide2(overview, side);
   return `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
-      ${tab === 'overview' ? `<div class="row"><button class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
+      ${tab === 'overview' ? `<div class="row"><button type="button" class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button type="button" class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
 }
 const readMarkHTML = id => seen.has(id)
@@ -1419,7 +1428,7 @@ ACTIONS['expand-all'] = el => expandAll(el.dataset.open === '1');
 function renderDiagnose(sub='smells', arg){
   const tabs = [['smells','Design smells'], ...DIAGNOSTICS.map(([id, tab]) => [id, tab])];
   const head = `${crumbs([['Diagnose']])}<h1>Diagnose</h1><p class="dim">Start from what you observe in players, not from what you built. Each diagnosis ends in an experiment and a prompt.</p>
-    <div class="tabs">${tabs.map(([id, t]) => `<button class="${id===sub?'active':''}" data-href="#/diagnose/${id}">${t}</button>`).join('')}</div>`;
+    <div class="tabs">${tabs.map(([id, t]) => `<button type="button" class="${id===sub?'active':''}" data-href="#/diagnose/${id}">${t}</button>`).join('')}</div>`;
   let body = '';
   if(sub === 'smells') body = smellsView(arg);
   else if(sub === 'fun') body = funView(arg);
@@ -1468,7 +1477,7 @@ function smellsView(id){
   const s = SMELLS.find(x => x.id === id);
   if(s){
     const { tops, games } = smellGames(s);
-    return withNext(`<div class="row between"><button class="btn ghost" data-href="#/diagnose/smells">← All smells</button><div class="chips">${s.dom.map(domChip).join('')}</div></div>
+    return withNext(`<div class="row between"><a class="btn ghost" href="#/diagnose/smells">← All smells</a><div class="chips">${s.dom.map(domChip).join('')}</div></div>
       <h2 style="margin-top:10px">${esc(s.t)}</h2><p class="dim">${esc(s.sym)}</p>
       ${s.dims ? `<div class="chips" style="margin-bottom:10px"><span class="small muted">Fun dimensions implicated:</span>${s.dims.map(d => `<a class="chip lnk" style="cursor:pointer" href="#/diagnose/fun/${d}">${d}</a>`).join('')}</div>` : ''}
       <h3>Likely causes and the experiment for each</h3>
@@ -1478,9 +1487,9 @@ function smellsView(id){
       <div class="callout"><b>Then:</b> write the hypothesis for the cause you believe most, in the <a href="#/build/hypothesis">Hypothesis Builder</a>. Test the cheapest experiment. Change one important variable. Test again.</div>`,
       [['Topics behind the causes', topicChipLinks(tops)], ['Games that show it', games.length ? chipLinks([...games.slice(0, 6).map(e => ['#/games/' + e.g.id + (e.lens ? '/' + e.lens : ''), e.g.t]), ...(games.length > 6 ? [['#/games/topic/' + tops.join('+'), `More games for these topics`]] : [])]) : ''], ['Part of paths', pathsBlock('smell:' + s.id)]], 'This smell');
   }
-  return `<div class="field"><input id="smellSearch" placeholder="Filter smells: repetitive, build, tutorial, unfair, return…"></div>
-    <div class="pill-tabs" id="smellDomFilter"><button class="active" data-d="">All</button>${DOMAINS.filter(d => SMELLS.some(s => s.dom.includes(d.id))).map(d => `<button data-d="${d.id}">${esc(d.t)}</button>`).join('')}</div>
-    <div class="smell-list" id="smellList">${SMELLS.map(smellCard).join('')}</div>`;
+  return `<div class="field"><input type="text" id="smellSearch" placeholder="Filter smells: repetitive, build, tutorial, unfair, return…"></div>
+    <div class="pill-tabs" id="smellDomFilter"><button type="button" class="active" data-d="">All</button>${DOMAINS.filter(d => SMELLS.some(s => s.dom.includes(d.id))).map(d => `<button type="button" data-d="${d.id}">${esc(d.t)}</button>`).join('')}</div>
+    <h2 class="sr-only">Every smell</h2><div class="smell-list" id="smellList">${SMELLS.map(smellCard).join('')}</div>`;
 }
 function wireSmellSearch(){
   const inp = $('#smellSearch'); if(!inp) return; let dom = '';
@@ -1496,7 +1505,7 @@ function funView(dim){
   const active = FUN_DIMS.find(d => d[0] === dim);
   return `<div class="callout"><b>Ask "what is the player actually enjoying here?"</b> not "what feature should we add?" Different games combine these dimensions differently. The working set below draws on LeBlanc's eight kinds of fun, Lazzaro's four keys, Koster's fun-as-learning and Self-Determination Theory. It is a vocabulary, not a law.</div>
     <h3>Dimensions of fun <span class="muted small">click one to see its test question and the smells where it goes flat</span></h3>
-    <div class="dims">${FUN_DIMS.map(d => `<button class="${d[0]===dim?'active':''}" data-href="#/diagnose/fun/${d[0]}">${d[0]}<div class="small muted" style="font-weight:400">${esc(d[1])}</div></button>`).join('')}</div>
+    <div class="dims">${FUN_DIMS.map(d => `<button type="button" class="${d[0]===dim?'active':''}" data-href="#/diagnose/fun/${d[0]}">${d[0]}<div class="small muted" style="font-weight:400">${esc(d[1])}</div></button>`).join('')}</div>
     ${active ? `<div class="card" style="margin-top:12px"><h3>${active[0]}</h3><p>${esc(active[1])}</p><p><b>Playtest question:</b> ${esc(active[2])}</p><h4>Smells where ${active[0]} goes flat</h4><div class="smell-list">${funSmells.filter(s => s.dims && s.dims.includes(active[0])).map(smellCard).join('') || '<div class="empty">No smell tagged with this dimension yet.</div>'}</div></div>` : ''}
     <div class="section-head"><h2>Symptom → dimensions → causes → experiments</h2></div>
     <div class="smell-list">${funSmells.map(s => `<a class="smell lnk blk" href="#/smell/${s.id}"><h3>${esc(s.t)}</h3><div class="chips">${(s.dims||[]).map(d => `<span class="chip">${d}</span>`).join('')}</div></a>`).join('')}</div>
@@ -1506,7 +1515,7 @@ function funView(dim){
 function loopView(part){
   const p = LOOP_PARTS.find(x => x.id === part) || LOOP_PARTS[0];
   return `<div class="callout">Decision → Action → Consequence → Feedback → New situation. Click a link to see what happens when it is weak. Then fix that link before adding anything.</div>
-    <div class="loopviz">${LOOP_PARTS.map(x => `<button class="${x.id===p.id?'active':''}" data-href="#/diagnose/loop/${x.id}">${esc(x.t)}<small>${esc(x.sub)}</small></button>`).join('')}</div>
+    <div class="loopviz">${LOOP_PARTS.map(x => `<button type="button" class="${x.id===p.id?'active':''}" data-href="#/diagnose/loop/${x.id}">${esc(x.t)}<small>${esc(x.sub)}</small></button>`).join('')}</div>
     <div class="card"><h2>Weak ${esc(p.t)}</h2><p class="dim">${esc(p.weak)}</p>
       <div class="think-grid"><div class="box bad"><h4>Symptoms in playtests</h4>${list(p.sym)}</div><div class="box trap"><h4>Likely causes</h4>${list(p.causes)}</div><div class="box good"><h4>Fixes</h4>${list(p.fixes)}</div><div class="box"><h4>Go deeper</h4><ul>${p.top.map(t => `<li>${topicLink(t)}</li>`).join('')}</ul></div></div>
       ${promptBox('Ask AI to audit this link', `Act as a skeptical systems designer. Here is our core loop from the player's perspective: [FIVE SENTENCES]. Focus on the ${p.t.toLowerCase()} link. Rate its strength using only evidence from my description, name the playtest symptom that would appear if it is weak, and propose 3 mechanically distinct fixes with the decision each creates, the emotion intended, the likely failure mode, and the observable signal that would validate it. Do not recommend one.`)}
@@ -1534,10 +1543,10 @@ function depthView(){
       ${promptBox('Depth audit prompt', `Evaluate this system for depth rather than feature count: [RULES]. For each rule, classify it as (a) creates a situational decision, (b) enables an interaction with another rule, or (c) adds cognitive or implementation load only. Propose merges or deletions for every (c), stating what the player would lose. Estimate how many distinct meaningful decisions the simplified system still produces.`)}</div>
     <div class="card rule-audit"><h3>Rule audit <span class="muted small">saved locally</span></h3><p class="small dim">List your rules. Mark what each does. The meter shows depth per rule. The list shows what to cut.</p>
       <div id="rules">${saved.map(x => ruleRow(x)).join('')}</div>
-      <div class="row" style="margin-top:8px"><input id="newRule" placeholder="Add a rule…" style="flex:1"><button class="btn" id="addRule">Add</button></div>
+      <div class="row" style="margin-top:8px"><input type="text" id="newRule" placeholder="Add a rule…" style="flex:1"><button type="button" class="btn" id="addRule">Add</button></div>
       <div id="ruleStats" style="margin-top:12px"></div></div></div>`;
 }
-function ruleRow(x){ return `<div class="rule"><input value="${esc(x.r)}" class="rtext"><select class="rkind"><option value="decision" ${x.k==='decision'?'selected':''}>creates a decision</option><option value="interaction" ${x.k==='interaction'?'selected':''}>enables an interaction</option><option value="load" ${x.k==='load'?'selected':''}>load only</option></select><button class="btn sm ghost danger rdel" title="Remove" aria-label="Remove">✕</button></div>`; }
+function ruleRow(x){ return `<div class="rule"><input type="text" value="${esc(x.r)}" class="rtext"><select class="rkind"><option value="decision" ${x.k==='decision'?'selected':''}>creates a decision</option><option value="interaction" ${x.k==='interaction'?'selected':''}>enables an interaction</option><option value="load" ${x.k==='load'?'selected':''}>load only</option></select><button type="button" class="btn sm ghost danger rdel" title="Remove" aria-label="Remove">✕</button></div>`; }
 function wireDepth(){
   const rules = $('#rules'); if(!rules) return;
   const read = () => $$('.rule', rules).map(r => ({ r: $('.rtext', r).value, k: $('.rkind', r).value }));
@@ -1557,12 +1566,12 @@ function wireContentTree(){
   const el = $('#ctree'); if(!el) return; const answers = [];
   const render = () => { let html = ''; let i = 0;
     while(true){ const node = CONTENT_TREE[i]; const a = answers[i];
-      html += `<div class="tree-q"><b>${i+1}. ${esc(node.q)}</b><div class="opts"><button class="${a==='yes'?'sel':''}" data-i="${i}" data-a="yes">Yes</button><button class="${a==='no'?'sel':''}" data-i="${i}" data-a="no">No</button></div></div>`;
+      html += `<div class="tree-q"><b>${i+1}. ${esc(node.q)}</b><div class="opts"><button type="button" class="${a==='yes'?'sel':''}" data-i="${i}" data-a="yes">Yes</button><button type="button" class="${a==='no'?'sel':''}" data-i="${i}" data-a="no">No</button></div></div>`;
       if(a === undefined) break;
       const nxt = node[a];
       if(typeof nxt === 'string'){ const verdict = nxt.split(':')[0]; html += `<div class="verdict ${verdict.startsWith('ADD')?'BUILD':verdict.startsWith('STOP')?'REMOVE':'SIMPLIFY'}"><h2>${esc(verdict)}</h2><p>${esc(nxt.slice(verdict.length+1).trim())}</p><div class="row"><a class="btn sm" href="#/map/t/content-multiplies">Content multiplies systems</a><a class="btn sm" href="#/map/t/core-loop">The core loop</a></div></div>`; break; }
       i = nxt; }
-    el.innerHTML = html + (answers.length ? `<button class="btn ghost sm" id="ctreeReset" style="margin-top:8px">Start over</button>` : '');
+    el.innerHTML = html + (answers.length ? `<button type="button" class="btn ghost sm" id="ctreeReset" style="margin-top:8px">Start over</button>` : '');
     // Mark the reader's path on the chart: each answered question and where it led.
     const on = new Set(); let k = 0;
     while(answers[k] !== undefined){ on.add('q' + k); const nx = CONTENT_TREE[k][answers[k]]; if(typeof nx === 'number') k = nx; else { on.add('v' + k + answers[k]); break; } }
@@ -1605,20 +1614,20 @@ function renderBuild(tool){
     <p class="small toolwhen"><b>Use this when</b> ${esc(cur[3])} ${TOPICS[cur[4]] ? `<a href="#/map/t/${cur[4]}">Why: ${esc(TOPICS[cur[4]].t)}</a>` : ''}</p>
     `;
   // Below the tool, so a phone reaches the tool first; from 1101 px the index column lists the tools and this block is hidden.
-  const groups = `<div class="toolgroups" style="margin-top:18px"><h2>Other build tools</h2>${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="overline">${esc(gt)}</span><div class="tool-nav">${ids.map(id => { const [, t, s] = TOOLS.find(x => x[0] === id); return `<button class="${id === tool ? 'active' : ''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
+  const groups = `<div class="toolgroups" style="margin-top:18px"><h2>Other build tools</h2>${TOOL_GROUPS.map(([gid, gt, ids]) => `<div class="toolgroup"><span class="overline">${esc(gt)}</span><div class="tool-nav">${ids.map(id => { const [, t, s] = TOOLS.find(x => x[0] === id); return `<button type="button" class="${id === tool ? 'active' : ''}" data-href="#/build/${id}">${t}<small>${s}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
   const fn = { idea: toolIdea, dissect: toolDissect, loop: toolLoop, canvas: toolCanvas, ladder: toolLadder, feature: toolFeature, hypothesis: toolHypothesis, delegate: toolDelegate, sysmap: toolSysmap, prompt: toolPrompt, gameai: toolGameAI }[tool] || toolIdea;
   setView(head + withNext(`<div class="tool" id="tool"></div>${groups}`, [['Topic behind this tool', topicChipLinks([cur[4]])], ['Part of paths', pathsBlock('tool:' + cur[0])]], 'This tool'));
   fn($('#tool'));
 }
-function field(id, label, hint, val, rows){ return `<div class="field"><label for="${id}">${esc(label)}</label>${rows ? `<textarea id="${id}" rows="${rows}">${esc(val||'')}</textarea>` : `<input id="${id}" value="${esc(val||'')}">`}${hint ? `<div class="hint">${esc(hint)}</div>` : ''}</div>`; }
+function field(id, label, hint, val, rows){ return `<div class="field"><label for="${id}">${esc(label)}</label>${rows ? `<textarea id="${id}" rows="${rows}">${esc(val||'')}</textarea>` : `<input type="text" id="${id}" value="${esc(val||'')}">`}${hint ? `<div class="hint">${esc(hint)}</div>` : ''}</div>`; }
 function bindForm(key, ids, onChange){ const data = store.get(key, {}); ids.forEach(id => { const el = $('#'+id); if(!el) return; if(data[id] !== undefined && !el.value) el.value = data[id]; el.addEventListener('input', () => { data[id] = el.value; store.set(key, data); onChange && onChange(data); }); }); onChange && onChange(data); return data; }
-function outputBox(md){ return `<div class="output promptbox"><pre>${esc(md)}</pre><button class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
-function toolHead(t, p, key){ return `<div class="toolhead"><div><h2>${esc(t)}</h2><p>${p}</p><div class="small muted">Autosaved in this browser. Export copies Markdown.</div></div><button class="btn ghost sm danger" data-action="clear-tool" data-key="${key}">Clear</button></div>`; }
+function outputBox(md){ return `<div class="output promptbox"><pre>${esc(md)}</pre><button type="button" class="btn sm copybtn" data-action="copy">Copy</button></div>`; }
+function toolHead(t, p, key){ return `<div class="toolhead"><div><h2>${esc(t)}</h2><p>${p}</p><div class="small muted">Autosaved in this browser. Export copies Markdown.</div></div><button type="button" class="btn ghost sm danger" data-action="clear-tool" data-key="${key}">Clear</button></div>`; }
 
 function toolLoop(el){
   const parts = [['action','Action','What does the player physically do, most often? Is it the fantasy verb?'],['feedback','Feedback','How does the game tell them what happened and why, within ~100 ms?'],['decision','Decision','What choice do they face next, and what is the tradeoff?'],['consequence','Consequence and reward','What changes because of the choice, visibly, now?'],['situation','New situation','How is the next iteration different from this one?']];
   el.innerHTML = toolHead('Game Loop Builder', 'Write the loop from the player’s point of view, one sentence per link. Then answer the weak-link question for each. If you cannot answer it, that link is where to look first.', 'loopTool') +
-    `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="loopEx">Load a worked example</button></div><div class="grid c2"><div>${parts.map(([id, l, h]) => field('lb_'+id, l, h, '', 2) + field('lb_'+id+'_ev', 'How would a playtest show this link is strong?', 'Observable behaviour, not opinion.', '', 1)).join('')}</div><div id="lb_out"></div></div>`;
+    `<div class="row" style="margin-bottom:10px"><button type="button" class="btn sm" id="loopEx">Load a worked example</button></div><div class="grid c2"><div>${parts.map(([id, l, h]) => field('lb_'+id, l, h, '', 2) + field('lb_'+id+'_ev', 'How would a playtest show this link is strong?', 'Observable behaviour, not opinion.', '', 1)).join('')}</div><div id="lb_out"></div></div>`;
   bindForm('loopTool', parts.flatMap(([id]) => ['lb_'+id, 'lb_'+id+'_ev']), d => {
     const weak = parts.filter(([id]) => !(d['lb_'+id]||'').trim() || !(d['lb_'+id+'_ev']||'').trim());
     const md = `# Core loop\n\n${parts.map(([id, l]) => `**${l}:** ${d['lb_'+id]||'(blank)'}\n  - Evidence it is strong: ${d['lb_'+id+'_ev']||'(blank)'}`).join('\n')}\n\n## Diagnosis\n${weak.length ? `Weak or untested links: ${weak.map(w=>w[1]).join(', ')}. Fix these before multiplying the loop with content or progression.` : 'All links described with evidence. Now build the bare loop in grey boxes and test whether players repeat it voluntarily.'}\n\n## Prompt\nAct as a skeptical systems designer. Here is our core loop as the player experiences it:\n${parts.map(([id,l]) => `- ${l}: ${d['lb_'+id]||''}`).join('\n')}\nFor each link, rate its strength using only my description, name the playtest symptom if weak, and propose 3 mechanically distinct fixes for the weakest link with the decision created, intended emotion, failure mode and validating signal. Do not recommend one.`;
@@ -1629,7 +1638,7 @@ function toolLoop(el){
 
 function toolCanvas(el){
   const fields = [['player','Player','A specific person: their last three games, their session, their device.',2],['fantasy','Fantasy','"In this game I get to be someone who…"',1],['verbs','Fantasy verbs','Three verbs the fantasy implies. Are they the loop verbs?',1],['emotions','Target emotions and rhythm','Two or three emotions and the order they alternate in.',1],['moment','Moment-to-moment','What the player does with hands and mind every few seconds.',2],['session','Session goal','What a satisfying session accomplishes.',1],['long','Long-term goal','Why they come back next week.',1],['not','What this game is NOT','Adjacent experiences you refuse. The not-list.',2],['refs','Reference moments','Moments from other games that produce the target feeling, and what exactly produces it.',2]];
-  el.innerHTML = toolHead('Core Experience Canvas', 'One page that every discipline aims at. If any field is hard to fill, that is the design work to do first.', 'canvasTool') + `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="cvEx">Load a worked example</button></div><div class="grid c2"><div>${fields.map(([id,l,h,r]) => field('cv_'+id, l, h, '', r)).join('')}</div><div id="cv_out"></div></div>`;
+  el.innerHTML = toolHead('Core Experience Canvas', 'One page that every discipline aims at. If any field is hard to fill, that is the design work to do first.', 'canvasTool') + `<div class="row" style="margin-bottom:10px"><button type="button" class="btn sm" id="cvEx">Load a worked example</button></div><div class="grid c2"><div>${fields.map(([id,l,h,r]) => field('cv_'+id, l, h, '', r)).join('')}</div><div id="cv_out"></div></div>`;
   bindForm('canvasTool', fields.map(f => 'cv_'+f[0]), d => {
     const st = `A ${d.cv_emotions||'[emotions]'} experience where ${d.cv_player||'[player]'} gets to be ${d.cv_fantasy||'[fantasy]'} by ${d.cv_moment||'[moment-to-moment]'}. Not ${d.cv_not||'[what it is not]'}.`;
     const md = `# Core experience\n\n> ${st}\n\n${fields.map(([id,l]) => `**${l}:** ${d['cv_'+id]||'(blank)'}`).join('\n\n')}\n\n## Check\n- Do the fantasy verbs appear in the moment-to-moment activity?\n- Can the target emotions be produced by the mechanics described?\n- Would a playtester use the emotion words unprompted?`;
@@ -1641,7 +1650,7 @@ function toolCanvas(el){
 function toolLadder(el){
   const rungs = [['feature','Feature idea','The noun someone proposed. "Crafting." "A pet system." "Daily quests."'],['behavior','Desired player behavior','Observable in a playtest. What would they DO differently?'],['experience','Experience','What they feel while doing it.'],['system','System','The situation that produces the behavior: constraints, information, consequences.'],['mechanic','Smallest mechanic','The least rule that implements the system.'],['refeature','Feature, revisited','Now: which feature, if any? Is it the one you started with?']];
   el.innerHTML = toolHead('Behaviour Ladder', 'Feature thinking: feature → implementation → justification. Experience thinking: behaviour → experience → system → mechanic → feature. Start at the top with the noun you were handed, climb to the behaviour, then descend.', 'ladderTool') +
-    `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="ladderEx">Load the crafting example</button></div><div class="grid c2"><div class="ladder">${rungs.map(([id,l,h]) => `<div class="rung"><b>${esc(l)}</b><div>${field('ld_'+id, '', h, '', 2)}</div></div>`).join('')}</div><div id="ld_out"></div></div>`;
+    `<div class="row" style="margin-bottom:10px"><button type="button" class="btn sm" id="ladderEx">Load the crafting example</button></div><div class="grid c2"><div class="ladder">${rungs.map(([id,l,h]) => `<div class="rung"><b>${esc(l)}</b><div>${field('ld_'+id, '', h, '', 2)}</div></div>`).join('')}</div><div id="ld_out"></div></div>`;
   const d = bindForm('ladderTool', rungs.map(r => 'ld_'+r[0]), d => {
     const same = (d.ld_feature||'').trim() && (d.ld_refeature||'').trim() && d.ld_feature.trim().toLowerCase() === d.ld_refeature.trim().toLowerCase();
     const md = `# Behaviour ladder\n\n${rungs.map(([id,l]) => `**${l}:** ${d['ld_'+id]||'(blank)'}`).join('\n\n')}\n\n## Prompt\nSomeone proposed the feature "${d.ld_feature||'[FEATURE]'}". The behaviour we actually want is: ${d.ld_behavior||'[BEHAVIOR]'}. Propose 5 mechanics, smallest first, that would produce this behaviour. For each, the rule in one sentence, the decision it creates, what it interacts with, and how we would observe the behaviour in a 15-minute test. Then argue that an existing system could be changed to produce it without any new mechanic.`;
@@ -1655,7 +1664,7 @@ function toolFeature(el){
   el.innerHTML = toolHead('Should we build this?', 'Nine questions a feature must survive. The verdict is a heuristic that weights evidence, decisions and loop impact. Use it to structure the argument, not to end it.', 'featureTool') +
     field('ft_name', 'Feature under review', '', saved.name) + `<div id="ft_qs"></div><div id="ft_verdict"></div>`;
   const render = () => { const a = saved.answers; let score = 0, done = 0;
-    $('#ft_qs').innerHTML = FEATURE_TREE.map((q, qi) => { const sel = a[q.id]; if(sel !== undefined){ score += q.opts[sel][1]; done++; } return `<div class="tree-q"><b>${qi+1}. ${esc(q.q)}</b><div class="opts">${q.opts.map((o, oi) => `<button class="${sel===oi?'sel':''}" data-q="${q.id}" data-o="${oi}">${esc(o[0])}</button>`).join('')}</div></div>`; }).join('');
+    $('#ft_qs').innerHTML = FEATURE_TREE.map((q, qi) => { const sel = a[q.id]; if(sel !== undefined){ score += q.opts[sel][1]; done++; } return `<div class="tree-q"><b>${qi+1}. ${esc(q.q)}</b><div class="opts">${q.opts.map((o, oi) => `<button type="button" class="${sel===oi?'sel':''}" data-q="${q.id}" data-o="${oi}">${esc(o[0])}</button>`).join('')}</div></div>`; }).join('');
     $$('#ft_qs .opts button').forEach(b => b.onclick = () => { saved.answers[b.dataset.q] = +b.dataset.o; store.set('featureTool', saved); render(); });
     if(done === FEATURE_TREE.length){ const [v, text] = featureVerdict(score, a); const label = v==='PROTOTYPE' ? 'PROTOTYPE FIRST' : v;
       const drivers = featureDrivers(a, v), up = v === 'BUILD';
@@ -1678,7 +1687,7 @@ ${text}`;
 
 function toolHypothesis(el){
   const f = [['who','We believe [PLAYER]','Which player, specifically? Not "players": the sketch.'],['will','will [BEHAVIOR]','Observable in a 15-minute session. What they do, not what they feel.'],['because','because [REASON]','The mechanism. Why would the design cause the behaviour?'],['signal','We will know it is working when [SIGNAL]','A rate, a count, a repeated behaviour. Something you could log.'],['kill','We will kill or change it if [KILL CRITERION]','The result that ends the idea. If you cannot write one, you are hoping, not testing.'],['smallest','Smallest experiment','Paper? Spreadsheet? Grey boxes? How long to build? How many players?'],['alt','Alternative explanation','What else would produce the signal even if the hypothesis is false?']];
-  el.innerHTML = toolHead('Playtest Hypothesis Builder', 'Every significant design decision, expressible as a claim about player behaviour with a signal and a kill criterion, written before the build.', 'hypTool') + `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="hyEx">Load a worked example</button></div><div class="grid c2"><div>${f.map(([id,l,h]) => field('hy_'+id, l, h, '', 2)).join('')}</div><div id="hy_out"></div></div>`;
+  el.innerHTML = toolHead('Playtest Hypothesis Builder', 'Every significant design decision, expressible as a claim about player behaviour with a signal and a kill criterion, written before the build.', 'hypTool') + `<div class="row" style="margin-bottom:10px"><button type="button" class="btn sm" id="hyEx">Load a worked example</button></div><div class="grid c2"><div>${f.map(([id,l,h]) => field('hy_'+id, l, h, '', 2)).join('')}</div><div id="hy_out"></div></div>`;
   bindForm('hypTool', f.map(x => 'hy_'+x[0]), d => {
     const st = `We believe ${d.hy_who||'[PLAYER]'} will ${d.hy_will||'[BEHAVIOR]'} because ${d.hy_because||'[REASON]'}. We will know this is working when ${d.hy_signal||'[SIGNAL]'}. We will kill or change it if ${d.hy_kill||'[KILL CRITERION]'}.`;
     const md = `# Hypothesis\n\n> ${st}\n\n**Smallest experiment:** ${d.hy_smallest||'(blank)'}\n\n**Alternative explanation to rule out:** ${d.hy_alt||'(blank)'}\n\n## Prototype brief (paste to AI)\nAct as a prototype engineer. Hypothesis: ${st} Build the smallest playable test in [ENGINE]: only the mechanics needed, shapes only, no menus or saves. Expose [VALUES] as live sliders. Log with timestamps every input, decision point with the option chosen, failure with cause, and session start/end. Export CSV. Before coding, list the design decisions the code will embed and wait for my choices.\n\n## Observation protocol (paste to AI)\nDesign a silent observation protocol for this hypothesis with [N] players for [MINUTES]: what to log, a non-leading interview guide ordered from behaviour to opinion, a coding scheme, and a results template that separates behaviour from self-report.`;
@@ -1692,9 +1701,9 @@ function toolDelegate(el){
   const saved = store.get('delegateTool', {tasks:[{t:'Define the player fantasy', w:'Human'},{t:'Generate five loop variations', w:'AI'},{t:'Decide whether the loop is fun', w:'Player evidence required'},{t:'Analyse playtest logs for choice variance', w:'Human + AI'}]});
   const opts = ['Human','AI','Human + AI','Player evidence required'];
   el.innerHTML = toolHead('AI Delegation Planner', 'For each task in your current cycle, decide the owner before the work starts. Compare with the responsibility matrix. "Player evidence required" means nobody can own it yet.', 'delegateTool') +
-    `<div class="grid c2"><div><div id="dl_rows"></div><div class="row" style="margin-top:8px"><input id="dl_new" placeholder="Add a task…" style="flex:1"><button class="btn" id="dl_add">Add</button></div><p class="small muted" style="margin-top:8px">Suggestions come from the <a href="#/ai/matrix">responsibility matrix</a> by keyword and are only a starting point.</p></div><div id="dl_out"></div></div>`;
+    `<div class="grid c2"><div><div id="dl_rows"></div><div class="row" style="margin-top:8px"><input type="text" id="dl_new" placeholder="Add a task…" style="flex:1"><button type="button" class="btn" id="dl_add">Add</button></div><p class="small muted" style="margin-top:8px">Suggestions come from the <a href="#/ai/matrix">responsibility matrix</a> by keyword and are only a starting point.</p></div><div id="dl_out"></div></div>`;
   const suggest = t => { const l = t.toLowerCase(); const hit = MATRIX.find(m => m[0].toLowerCase().split(' ').filter(w=>w.length>4).some(w => l.includes(w))); if(!hit) return null; const h = hit[1], a = hit[2]; if(h==='PRIMARY' && a!=='PRIMARY') return 'Human'; if(a==='PRIMARY' && h!=='PRIMARY') return 'AI'; return 'Human + AI'; };
-  const render = () => { $('#dl_rows').innerHTML = saved.tasks.map((x, i) => { const s = suggest(x.t); return `<div class="plan-row"><div><input value="${esc(x.t)}" data-i="${i}" class="dl_t">${s && s!==x.w ? `<div class="small muted">matrix suggests: ${s}</div>` : ''}</div><select data-i="${i}" class="dl_w">${opts.map(o => `<option ${o===x.w?'selected':''}>${o}</option>`).join('')}</select><button class="btn sm ghost danger dl_del" aria-label="Remove this row" data-i="${i}">✕</button></div>`; }).join('') || '<div class="empty">No tasks.</div>';
+  const render = () => { $('#dl_rows').innerHTML = saved.tasks.map((x, i) => { const s = suggest(x.t); return `<div class="plan-row"><div><input type="text" value="${esc(x.t)}" data-i="${i}" class="dl_t">${s && s!==x.w ? `<div class="small muted">matrix suggests: ${s}</div>` : ''}</div><select data-i="${i}" class="dl_w">${opts.map(o => `<option ${o===x.w?'selected':''}>${o}</option>`).join('')}</select><button type="button" class="btn sm ghost danger dl_del" aria-label="Remove this row" data-i="${i}">✕</button></div>`; }).join('') || '<div class="empty">No tasks.</div>';
     const counts = Object.fromEntries(opts.map(o => [o, saved.tasks.filter(x => x.w===o).length]));
     const md = `# Delegation plan\n\n${saved.tasks.map(x => `- [${x.w}] ${x.t}`).join('\n')}\n\n## Balance\n${opts.map(o => `- ${o}: ${counts[o]}`).join('\n')}\n\n## Checks\n- Every AI task: what decisions will the work embed, and which human owns them?\n- Every "player evidence required" task: what is the smallest test?\n- Human tasks: are these judgement, or production you could delegate?`;
     $('#dl_out').innerHTML = `<h4>Balance</h4><div class="chips" style="margin-bottom:8px">${opts.map(o => `<span class="chip ${o==='Human'?'human':o==='AI'?'ai':o==='Human + AI'?'shared':'evidence'}">${o}: ${counts[o]}</span>`).join('')}</div>${counts['Player evidence required']===0 && saved.tasks.length>3 ? '<div class="callout warn">Nothing needs player evidence? Either the cycle has no design risk, or judgement calls are being assigned to humans or AI that only players can settle.</div>' : ''}${outputBox(md)}`;
@@ -1712,14 +1721,14 @@ function toolSysmap(el){
   const saved = store.get('sysmapTool', { nodes:[{n:'Stamina',t:'resource'},{n:'Dodge',t:'ability'},{n:'Heavy attack',t:'mechanic'},{n:'Fire',t:'environment'},{n:'Grass',t:'environment'},{n:'Wolf pack',t:'enemy'},{n:'Torch upgrade',t:'progression'}], edges:[['Dodge','consumes','Stamina'],['Heavy attack','consumes','Stamina'],['Fire','counters','Wolf pack'],['Grass','amplifies','Fire'],['Torch upgrade','unlocks','Fire'],['Heavy attack','counters','Wolf pack']] });
   el.innerHTML = toolHead('System Relationship Map', 'Add the things your systems read and write, then the typed relationships between them. Isolated nodes and unconnected pairs are where depth is waiting. Collision questions are generated for every pair that does not yet touch.', 'sysmapTool') +
     `<div class="grid c2"><div>
-      <h4>Nodes</h4><div id="sm_nodes" class="chips"></div><div class="row" style="margin-top:8px"><input id="sm_nn" placeholder="Node name" style="flex:1"><select id="sm_nt" style="width:auto">${TYPES.map(t => `<option>${t}</option>`).join('')}</select><button class="btn" id="sm_addn">Add</button></div>
-      <h4 style="margin-top:14px">Relationships</h4><div id="sm_edges"></div><div class="row" style="margin-top:8px"><select id="sm_ea" style="width:auto"></select><select id="sm_ek" style="width:auto">${KINDS.map(k => `<option>${k}</option>`).join('')}</select><select id="sm_eb" style="width:auto"></select><button class="btn" id="sm_adde">Link</button></div>
+      <h4>Nodes</h4><div id="sm_nodes" class="chips"></div><div class="row" style="margin-top:8px"><input type="text" id="sm_nn" placeholder="Node name" style="flex:1"><select id="sm_nt" style="width:auto">${TYPES.map(t => `<option>${t}</option>`).join('')}</select><button type="button" class="btn" id="sm_addn">Add</button></div>
+      <h4 style="margin-top:14px">Relationships</h4><div id="sm_edges"></div><div class="row" style="margin-top:8px"><select id="sm_ea" style="width:auto"></select><select id="sm_ek" style="width:auto">${KINDS.map(k => `<option>${k}</option>`).join('')}</select><select id="sm_eb" style="width:auto"></select><button type="button" class="btn" id="sm_adde">Link</button></div>
       <div class="legend" style="margin-top:10px">${KINDS.map(k => `<span><i style="background:${({amplifies:'var(--ok)',counters:'var(--bad)',consumes:'var(--warn)',produces:'var(--d-ux)',unlocks:'var(--d-narrative)',requires:'var(--fg3)'})[k]}"></i>${k}</span>`).join('')}</div>
     </div><div><div class="sysmap" id="sm_svg"></div><div id="sm_analysis"></div></div></div>`;
   const render = () => { const N = saved.nodes, E = saved.edges.filter(e => N.some(n=>n.n===e[0]) && N.some(n=>n.n===e[2]));
-    $('#sm_nodes').innerHTML = N.map((n, i) => `<span class="chip" title="${n.t}">${esc(n.n)} <span class="muted">${n.t}</span> <button class="btn sm ghost danger" style="padding:0 4px" aria-label="Remove" data-i="${i}">✕</button></span>`).join('') || '<span class="muted">No nodes.</span>';
+    $('#sm_nodes').innerHTML = N.map((n, i) => `<span class="chip" title="${n.t}">${esc(n.n)} <span class="muted">${n.t}</span> <button type="button" class="btn sm ghost danger" style="padding:0 4px" aria-label="Remove" data-i="${i}">✕</button></span>`).join('') || '<span class="muted">No nodes.</span>';
     $$('#sm_nodes button').forEach(b => b.onclick = () => { const name = N[+b.dataset.i].n; N.splice(+b.dataset.i,1); saved.edges = saved.edges.filter(e => e[0]!==name && e[2]!==name); store.set('sysmapTool', saved); render(); });
-    $('#sm_edges').innerHTML = E.map((e, i) => `<div class="row small" style="padding:3px 0;border-bottom:1px dashed var(--line)"><span>${esc(e[0])} <b>${e[1]}</b> ${esc(e[2])}</span><button class="btn sm ghost danger" style="margin-left:auto;padding:0 6px" aria-label="Remove this link" data-i="${saved.edges.indexOf(e)}">✕</button></div>`).join('') || '<div class="muted small">No relationships.</div>';
+    $('#sm_edges').innerHTML = E.map((e, i) => `<div class="row small" style="padding:3px 0;border-bottom:1px dashed var(--line)"><span>${esc(e[0])} <b>${e[1]}</b> ${esc(e[2])}</span><button type="button" class="btn sm ghost danger" style="margin-left:auto;padding:0 6px" aria-label="Remove this link" data-i="${saved.edges.indexOf(e)}">✕</button></div>`).join('') || '<div class="muted small">No relationships.</div>';
     $$('#sm_edges button').forEach(b => b.onclick = () => { saved.edges.splice(+b.dataset.i,1); store.set('sysmapTool', saved); render(); });
     const optsHTML = N.map(n => `<option>${esc(n.n)}</option>`).join(''); $('#sm_ea').innerHTML = optsHTML; $('#sm_eb').innerHTML = optsHTML;
     // svg
@@ -1747,7 +1756,7 @@ function toolSysmap(el){
 function toolPrompt(el){
   const parts = [['context','CONTEXT','Player, fantasy, core loop, systems. The situation as it is.',3],['intent','INTENT','The experience you want and the decision you need to make.',2],['constraints','CONSTRAINTS','Platform, scope, team, what is off the table.',2],['evidence','EVIDENCE','Playtest results, telemetry, known problems. If none, say so. The task should then be a test design.',2],['role','ROLE','Skeptical systems designer? UX researcher? Devil’s advocate? Pick one stance.',1],['task','TASK','Analyse, generate, compare, build, simulate, code. Specific verbs, specific counts.',2],['output','OUTPUT FORMAT','Table columns, ranked list, code with logging, a hypothesis in standard form.',1],['critique','CRITIQUE','What the AI should attack in its own output, and what it must not do (recommend, decide, add scope).',2]];
   el.innerHTML = toolHead('AI Prompt Generator', 'The formula: CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT FORMAT + CRITIQUE. Fill what you know. Blanks are shown as brackets so you notice what you have not decided yet.', 'promptTool') +
-    `<div class="row" style="margin-bottom:10px"><button class="btn sm" id="pgEx">Load a worked example</button><a class="btn sm ghost" href="#/ai/ladder">See the prompt ladder</a></div><div class="formula">${parts.map(p => `<button data-action="focus" data-target="pg_${p[0]}">${p[1]}</button>`).join('<span class="plus">+</span>')}</div><div class="grid c2"><div>${parts.map(([id,l,h,r]) => field('pg_'+id, l, h, '', r)).join('')}</div><div id="pg_out"></div></div>`;
+    `<div class="row" style="margin-bottom:10px"><button type="button" class="btn sm" id="pgEx">Load a worked example</button><a class="btn sm ghost" href="#/ai/ladder">See the prompt ladder</a></div><div class="formula">${parts.map(p => `<button type="button" data-action="focus" data-target="pg_${p[0]}">${p[1]}</button>`).join('<span class="plus">+</span>')}</div><div class="grid c2"><div>${parts.map(([id,l,h,r]) => field('pg_'+id, l, h, '', r)).join('')}</div><div id="pg_out"></div></div>`;
   bindForm('promptTool', parts.map(p => 'pg_'+p[0]), d => {
     const v = k => (d['pg_'+k]||'').trim();
     const txt = `CONTEXT: ${v('context')||'[player, fantasy, loop, systems]'}\n\nINTENT: ${v('intent')||'[the experience we want. The decision I must make]'}\n\nCONSTRAINTS: ${v('constraints')||'[platform, scope, team, off-limits]'}\n\nEVIDENCE: ${v('evidence')||'[playtest results, telemetry, known problems. Or "none yet"]'}\n\nROLE: Act as a skeptical ${v('role')||'[role]'}.\n\nTASK: ${v('task')||'Analyse the design space, identify the assumptions in the current design, generate mechanically distinct alternatives, compare their tradeoffs, and propose the smallest experiments that would distinguish between them.'}\n\nOUTPUT FORMAT: ${v('output')||'[table columns / ranked list / code with logging]'}\n\nCRITIQUE: ${v('critique')||'Finally, attack your own output: what assumptions did you make (mark given, inferred, invented), what could make each alternative fail, what player behaviour would prove it wrong, and what did you leave out? Do not recommend a final choice. I will decide.'}`;
@@ -1858,7 +1867,7 @@ function toolIdea(el){
     ${fl('keeps')}${fl('complaints')}${fl('workaround')}
     <div class="step-num">Step 3 · Classify the gap</div>
     <p class="small dim">Pick the one complaint you will build against, then say what kind it is. Only two kinds are worth a game.</p>
-    <div class="dims" id="id_gapkinds">${GAP_KINDS.map(([id,t,d]) => `<button data-k="${id}" class="${saved.gap_class===id?'active':''}" title="${esc(d)}">${t}</button>`).join('')}</div>
+    <div class="dims" id="id_gapkinds">${GAP_KINDS.map(([id,t,d]) => `<button type="button" data-k="${id}" class="${saved.gap_class===id?'active':''}" title="${esc(d)}">${t}</button>`).join('')}</div>
     ${fl('gap_mech')}${fl('why_open')}
     <div class="step-num">Step 4 · The promise</div>
     ${fl('wish')}
@@ -1898,7 +1907,7 @@ function toolIdea(el){
    ===================================================================== */
 function renderAI(sub='loop', arg){
   const tabs = [['loop','The 12-step loop'],['ladder','Prompt ladder'],['philosophy','Bottleneck shift'],['roles','AI roles'],['matrix','Responsibility matrix'],['framework','Prompting framework'],['failures','When AI makes it worse']];
-  const head = `${crumbs([['AI Workflow']])}<h1>AI Workflow</h1><p class="dim">How to delegate design work to AI without delegating design judgement.</p><div class="tabs">${tabs.map(([id,t]) => `<button class="${id===sub?'active':''}" data-href="#/ai/${id}">${t}</button>`).join('')}</div>`;
+  const head = `${crumbs([['AI Workflow']])}<h1>AI Workflow</h1><p class="dim">How to delegate design work to AI without delegating design judgement.</p><div class="tabs">${tabs.map(([id,t]) => `<button type="button" class="${id===sub?'active':''}" data-href="#/ai/${id}">${t}</button>`).join('')}</div>`;
   let body = '';
   if(sub==='loop') body = aiLoopView(arg);
   else if(sub==='ladder') body = aiLadderView();
@@ -1917,13 +1926,13 @@ function aiLoopView(arg){
   const here = store.get('loopHere', null);
   const n = +(arg || here || 1); const s = LOOP_STEPS[n-1] || LOOP_STEPS[0];
   return `<div class="callout"><b>The visual backbone of this guide.</b> Player evidence sits between exploration and commitment. Mark where your project is. It persists. Skipping steps 5 to 8 is how AI-era projects fail.</div>
-    <div class="stepper">${LOOP_STEPS.map(x => `<button class="${x.n===s.n?'active':''} ${x.n===here?'here':''}" data-href="#/ai/loop/${x.n}"><b>${x.n}</b>${esc(x.t)}</button>`).join('')}</div>
-    <div class="card"><div class="row between"><h2 style="margin:0">${s.n}. ${esc(s.t)} <span class="muted" style="font-weight:500;font-size:1rem">${esc(s.goal)}</span></h2><button class="btn sm ${here===s.n?'primary':''}" data-action="loop-here" data-n="${s.n}">${here===s.n?'✓ We are here':'Mark: we are here'}</button></div>
-      <div class="think-grid" style="margin-top:12px"><div class="box" style="border-color:color-mix(in srgb,var(--d-player) 50%,transparent)"><h4 style="color:var(--d-player)">Human does</h4><p>${esc(s.human)}</p></div><div class="box" style="border-color:color-mix(in srgb,var(--d-ai) 50%,transparent)"><h4 style="color:var(--d-ai)">AI does</h4><p>${esc(s.ai)}</p></div><div class="box good"><h4>Output</h4><p>${esc(s.out)}</p><h4>Exit criterion</h4><p>${esc(s.exit)}</p></div><div class="box bad"><h4>Common failure</h4><p>${esc(s.fail)}</p><h4 style="color:var(--fg2)">Go deeper</h4><ul>${s.top.map(t => `<li>${topicLink(t)}</li>`).join('')}</ul></div></div>
-      <div class="row" style="margin-top:10px">${s.n>1?`<button class="btn" data-href="#/ai/loop/${s.n-1}">← ${esc(LOOP_STEPS[s.n-2].t)}</button>`:''}${s.n<12?`<button class="btn" data-href="#/ai/loop/${s.n+1}">${esc(LOOP_STEPS[s.n].t)} →</button>`:`<button class="btn" data-href="#/ai/loop/1">Repeat → Define</button>`}</div></div>
+    <div class="stepper">${LOOP_STEPS.map(x => `<button type="button" class="${x.n===s.n?'active':''} ${x.n===here?'here':''}" data-href="#/ai/loop/${x.n}"><b>${x.n}</b>${esc(x.t)}</button>`).join('')}</div>
+    <div class="card"><div class="row between"><h2 style="margin:0">${s.n}. ${esc(s.t)} <span class="muted" style="font-weight:500;font-size:1rem">${esc(s.goal)}</span></h2><button type="button" class="btn sm ${here===s.n?'primary':''}" data-action="loop-here" data-n="${s.n}">${here===s.n?'✓ We are here':'Mark: we are here'}</button></div>
+      <div class="think-grid" style="margin-top:12px"><div class="box" style="border-color:color-mix(in srgb,var(--d-player) 50%,transparent)"><h3 class="h4look" style="color:var(--d-player)">Human does</h3><p>${esc(s.human)}</p></div><div class="box" style="border-color:color-mix(in srgb,var(--d-ai) 50%,transparent)"><h3 class="h4look" style="color:var(--d-ai)">AI does</h3><p>${esc(s.ai)}</p></div><div class="box good"><h3 class="h4look">Output</h3><p>${esc(s.out)}</p><h3 class="h4look">Exit criterion</h3><p>${esc(s.exit)}</p></div><div class="box bad"><h3 class="h4look">Common failure</h3><p>${esc(s.fail)}</p><h3 class="h4look" style="color:var(--fg2)">Go deeper</h3><ul>${s.top.map(t => `<li>${topicLink(t)}</li>`).join('')}</ul></div></div>
+      <div class="row" style="margin-top:10px">${s.n>1?`<a class="btn" href="#/ai/loop/${s.n-1}">← ${esc(LOOP_STEPS[s.n-2].t)}</a>`:''}${s.n<12?`<a class="btn" href="#/ai/loop/${s.n+1}">${esc(LOOP_STEPS[s.n].t)} →</a>`:`<a class="btn" href="#/ai/loop/1">Repeat → Define</a>`}</div></div>
     <div class="section-head"><h2>Versus the workflow that fails</h2></div>
-    <div class="grid c2"><div class="card" style="border-color:color-mix(in srgb,var(--ok) 50%,transparent)"><h4 style="color:var(--ok)">Hypothesis-driven</h4>${chainHTML([['Hypothesis','#/map/t/hypothesis-driven-design'],['Prototype','#/map/t/prototyping'],['Test','#/map/t/playtesting'],['Evidence','#/map/t/iteration-and-evidence'],['Decision','#/ai/loop/9']])}<p class="small dim">Scope follows validated value: Idea → Prototype → Evidence → Commit.</p></div>
-    <div class="card" style="border-color:color-mix(in srgb,var(--bad) 50%,transparent)"><h4 style="color:var(--bad)">Hope-driven</h4>${chainHTML([['Idea','#/map/t/scope-control'],['Huge implementation','#/ai/failures'],['Polish','#/map/t/polish-when'],['Hope','#/map/t/ai-failure-modes']])}<p class="small dim">Idea → Production commitment. AI makes this cheaper and therefore more tempting.</p></div></div>`;
+    <div class="grid c2"><div class="card" style="border-color:color-mix(in srgb,var(--ok) 50%,transparent)"><h3 class="h4look" style="color:var(--ok)">Hypothesis-driven</h3>${chainHTML([['Hypothesis','#/map/t/hypothesis-driven-design'],['Prototype','#/map/t/prototyping'],['Test','#/map/t/playtesting'],['Evidence','#/map/t/iteration-and-evidence'],['Decision','#/ai/loop/9']])}<p class="small dim">Scope follows validated value: Idea → Prototype → Evidence → Commit.</p></div>
+    <div class="card" style="border-color:color-mix(in srgb,var(--bad) 50%,transparent)"><h3 class="h4look" style="color:var(--bad)">Hope-driven</h3>${chainHTML([['Idea','#/map/t/scope-control'],['Huge implementation','#/ai/failures'],['Polish','#/map/t/polish-when'],['Hope','#/map/t/ai-failure-modes']])}<p class="small dim">Idea → Production commitment. AI makes this cheaper and therefore more tempting.</p></div></div>`;
 }
 function aiPhilosophyView(){
   const t = TOPICS['bottleneck-shift'];
@@ -1944,7 +1953,7 @@ function aiRolesView(arg){
 }
 function aiMatrixView(){
   return `<div class="callout">Decide who owns each task before the work starts. <span class="chip human">PRIMARY human</span> <span class="chip ai">PRIMARY AI</span> <span class="chip shared">Shared</span> Click a row for the reason. Filter to see the pattern: judgement stays human, volume, simulation and production go to AI.</div>
-    <div class="pill-tabs" id="mxFilter"><button class="active" data-f="">All</button><button data-f="human">Human primary</button><button data-f="ai">AI primary</button><button data-f="shared">Shared</button></div>
+    <div class="pill-tabs" id="mxFilter"><button type="button" class="active" data-f="">All</button><button type="button" data-f="human">Human primary</button><button type="button" data-f="ai">AI primary</button><button type="button" data-f="shared">Shared</button></div>
     <div class="tablewrap"><table class="matrix"><thead><tr><th>Task</th><th>Human</th><th>AI</th></tr></thead><tbody id="mxBody">${MATRIX.map((m, i) => { const cls = m[1]==='PRIMARY'&&m[2]!=='PRIMARY' ? 'human' : m[2]==='PRIMARY'&&m[1]!=='PRIMARY' ? 'ai' : 'shared'; return `<tr data-f="${cls}" data-i="${i}" style="cursor:pointer"><td>${esc(m[0])}</td><td class="who"><span class="chip ${m[1]==='PRIMARY'?'human':''}">${m[1]}</span></td><td class="who"><span class="chip ${m[2]==='PRIMARY'?'ai':''}">${m[2]}</span></td></tr><tr class="why hidden" data-for="${i}"><td colspan="3" class="small dim" style="background:var(--bg2)">${esc(m[3])}</td></tr>`; }).join('')}</tbody></table></div>
     <div class="row" style="margin-top:12px"><a class="btn" href="#/build/delegate">Plan your own tasks in the Delegation Planner</a><a class="btn" href="#/map/t/responsibility-matrix">Read the topic</a></div>`;
 }
@@ -1955,7 +1964,7 @@ function wireMatrix(){
 function aiFrameworkView(){
   const terms = FORMULA_TERMS;
   return `<div class="callout">The best prompt is rarely "give me ideas". It is: <i>here is the player, fantasy, current loop, constraints, evidence and known problems, analyse the design space, identify assumptions, generate alternatives, compare tradeoffs, and propose the smallest experiments that distinguish between them.</i></div>
-    <div class="formula" id="fmla">${terms.map((t,i) => `<button data-i="${i}" class="${i===0?'active':''}">${t[0]}</button>`).join('<span class="plus">+</span>')}</div>
+    <div class="formula" id="fmla">${terms.map((t,i) => `<button type="button" data-i="${i}" class="${i===0?'active':''}">${t[0]}</button>`).join('<span class="plus">+</span>')}</div>
     <div class="card" id="fmlaInfo"><h3>${terms[0][0]}</h3><p>${esc(terms[0][1])}</p></div>
     <div class="grid c2" style="margin-top:14px"><div class="card" style="border-color:color-mix(in srgb,var(--bad) 50%,transparent)"><h4 style="color:var(--bad)">Weak</h4><pre>Design a fun combat system.</pre><p class="small dim">No player, no fantasy, no constraint, no evidence, no role, no output shape. You will get the genre average with confidence.</p></div>
     <div class="card" style="border-color:color-mix(in srgb,var(--ok) 50%,transparent)"><h4 style="color:var(--ok)">Strong</h4>${promptBox('', `Act as a skeptical systems designer. Here is the intended player fantasy, target skill level, desired decision density, and current prototype: [CONTEXT]. Generate 5 mechanically distinct solutions. For each, identify the player decision created, intended emotion, likely failure mode, implementation complexity, and what evidence would validate or invalidate the hypothesis. Do not recommend a solution yet.`)}${promptBox('Then', `Now challenge these concepts. Assume the game feels repetitive after 20 minutes. Identify which underlying decisions are too shallow and propose the smallest experiments that could test your diagnosis.`)}</div></div>
@@ -2019,7 +2028,7 @@ function renderPrompts(id){
   const cats = [...new Set(PROMPT_TEMPLATES.map(p => p.cat))];
   const sel = PROMPT_TEMPLATES.find(p => p.id === id);
   setView(`${crumbs([['Library','#/games'],['Prompts']])}<h1>Prompt library</h1><p class="dim">Reusable patterns built on the formula. Fill the variables. The prompt updates live. Every template ends with a stop or critique instruction so the AI does not decide for you.</p>
-    <div class="split"><aside class="side sticky"><button class="btn side-toggle" data-action="toggle-parent"><span>☰ Browse templates</span><span class="car">▸</span></button>${cats.map(c => `<div class="dom open"><button style="cursor:default"><span class="dot" style="background:var(--d-ai)"></span>${c}</button><div class="topics">${PROMPT_TEMPLATES.filter(p => p.cat===c).map(p => `<button class="${p.id===id?'active':''}" data-href="#/prompts/${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}</aside>
+    <div class="split"><aside class="side sticky"><button type="button" class="btn side-toggle" data-action="toggle-parent"><span>☰ Browse templates</span><span class="car">▸</span></button>${cats.map(c => `<div class="dom open"><button type="button" style="cursor:default"><span class="dot" style="background:var(--d-ai)"></span>${c}</button><div class="topics">${PROMPT_TEMPLATES.filter(p => p.cat===c).map(p => `<button type="button" class="${p.id===id?'active':''}" data-href="#/prompts/${p.id}">${esc(p.t)}</button>`).join('')}</div></div>`).join('')}</aside>
     <div id="promptMain">${sel ? '' : `<div class="grid auto">${PROMPT_TEMPLATES.map(p => `<a class="card clickable lnk blk" href="#/prompts/${p.id}"><span class="chip ai">${p.cat}</span><h3 style="margin-top:6px">${esc(p.t)}</h3><p class="small dim" style="margin:0">${esc(snip(p.p, 140))}</p></a>`).join('')}</div><div class="callout" style="margin-top:14px">Want to compose your own? The <a href="#/build/prompt">Prompt Generator</a> walks the eight terms. Topic pages each carry prompts specific to that concept.</div>`}</div></div>`);
   if(sel){
     const saved = store.get('promptVars.'+sel.id, {});
@@ -2039,10 +2048,10 @@ function renderPrompts(id){
 function renderChecklists(id){
   const sel = CHECKLISTS.find(c => c.id === id) || CHECKLISTS[0];
   const state = store.get('check.'+sel.id, {});
-  const tabs = CHECKLISTS.map(c => `<button class="${c.id===sel.id?'active':''}" data-href="#/checklists/${c.id}">${esc(c.t)}</button>`).join('');
+  const tabs = CHECKLISTS.map(c => `<button type="button" class="${c.id===sel.id?'active':''}" data-href="#/checklists/${c.id}">${esc(c.t)}</button>`).join('');
   setView(`${crumbs([['Library','#/games'],['Checklists']])}<h1>Checklists</h1><p class="dim">Practical reviews. Checkbox state is saved per checklist. Reset when you start a new feature or session.</p>
     <div class="pill-tabs cktabs">${tabs}</div>
-    ${withNext(`<div class="card"><div class="row between"><div><h2>${esc(sel.t)}</h2><p class="dim" style="margin:0">${esc(sel.desc)}</p></div><div class="row"><span class="chip" id="ckCount"></span><button class="btn sm" id="ckExport">Export Markdown</button><button class="btn sm ghost danger" id="ckReset">Reset</button></div></div>
+    ${withNext(`<div class="card"><div class="row between"><div><h2>${esc(sel.t)}</h2><p class="dim" style="margin:0">${esc(sel.desc)}</p></div><div class="row"><span class="chip" id="ckCount"></span><button type="button" class="btn sm" id="ckExport">Export Markdown</button><button type="button" class="btn sm ghost danger" id="ckReset">Reset</button></div></div>
       <div class="grid c2 fill" style="margin-top:12px">${sel.groups.map(([g, items], gi) => `<div class="checklist"><h4>${esc(g)}</h4>${items.map((it, ii) => { const k = gi+'.'+ii; return `<label class="${state[k]?'done':''}"><input type="checkbox" data-k="${k}" ${state[k]?'checked':''}><span>${esc(it)}</span></label>`; }).join('')}</div>`).join('')}</div></div>`,
       [['Topics behind this checklist', topicChipLinks(sel.topics)], ['Platform guides', chipLinks((sel.platforms || []).map(id => PLATFORMS.find(p => p.id === id)).filter(Boolean).map(p => ['#/platforms/' + p.id, p.t]))], ['Part of paths', pathsBlock('checklist:' + sel.id)]], 'This checklist')}`);
   const total = sel.groups.reduce((n,g) => n+g[1].length, 0);
@@ -2139,7 +2148,7 @@ function systemPage(c, s){
       <div class="small" style="margin-top:6px"><b>Why.</b> ${esc(p.why)}</div></a>`).join('')}</div>
     ${(s.iv && s.iv.length) ? `<div class="section-head"><h2>Likely questions</h2><span class="muted">what an interviewer asks once this system is on the table</span></div>
     ${ivCards(s.iv, dc, `iv:${c.id}/${s.id}`)}` : ''}
-    <div class="topic-nav"><button class="btn ghost" data-href="#/experience/${c.id}">← ${esc(c.t)}</button></div>`;
+    <div class="topic-nav"><a class="btn ghost" href="#/experience/${c.id}">← ${esc(c.t)}</a></div>`;
 }
 function partPage(c, s, p){
   const dc = kindColor(s.kind), parts = s.parts || [], i = parts.indexOf(p);
@@ -2158,7 +2167,7 @@ function partPage(c, s, p){
     <div class="section-head"><h2>Topics this demonstrates</h2><span class="muted">read the idea, then come back</span></div>
     ${relCards(p.rel)}
     ${linked ? `<div class="section-head"><h2>Depends on</h2><span class="muted">other parts of this project</span></div><div class="stack">${linked}</div>` : ''}
-    <div class="topic-nav">${prev ? `<button class="btn" data-href="#/experience/${c.id}/${s.id}/${prev.id}">← ${esc(prev.t)}</button>` : `<button class="btn ghost" data-href="#/experience/${c.id}/${s.id}">← ${esc(s.t)}</button>`}<button class="btn ghost" data-href="#/experience/${c.id}">Project</button>${next ? `<button class="btn" data-href="#/experience/${c.id}/${s.id}/${next.id}">${esc(next.t)} →</button>` : `<button class="btn" data-href="#/experience">All projects →</button>`}</div>`;
+    <div class="topic-nav">${prev ? `<a class="btn" href="#/experience/${c.id}/${s.id}/${prev.id}">← ${esc(prev.t)}</a>` : `<a class="btn ghost" href="#/experience/${c.id}/${s.id}">← ${esc(s.t)}</a>`}<a class="btn ghost" href="#/experience/${c.id}">Project</a>${next ? `<a class="btn" href="#/experience/${c.id}/${s.id}/${next.id}">${esc(next.t)} →</a>` : `<a class="btn" href="#/experience">All projects →</a>`}</div>`;
 }
 /* ---------- project tabs: overview / workflows / interview ---------- */
 // Same component as the topic tab strip, down to the class and the keyboard
@@ -2187,7 +2196,7 @@ function workflowsBody(c){
 function projectPage(c){
   const tabs = projTabsFor(c);
   const tab = tabs.some(x => x[0] === projTab) ? projTab : 'overview';
-  const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Project views">${tabs.map(([k, label]) => `<button role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" data-action="proj-tab" data-case="${c.id}">${label}</button>`).join('')}</div>` : '';
+  const strip = tabs.length > 1 ? `<div class="tabs topictabs" role="tablist" aria-label="Project views">${tabs.map(([k, label]) => `<button type="button" role="tab" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}" class="${k === tab ? 'active' : ''}" data-tab="${k}" data-action="proj-tab" data-case="${c.id}">${label}</button>`).join('')}</div>` : '';
   const body = tab === 'workflows' ? workflowsBody(c)
     : tab === 'interview' ? interviewBody(c.iv, 'var(--accent2)', 'story.' + c.id)
     : withNext(casePage(c), [['Related topics', topicChipLinks((c.rel || []).map(r => r[0]))], ['Part of paths', pathsBlock('case:' + c.id)]], 'This project');
@@ -2210,7 +2219,7 @@ function flowPage(c, f){
     <div class="section-head"><h2>The steps</h2><span class="muted">in the order the work happens</span></div>
     <ol class="flowsteps">${steps.map(s => `<li><span class="fsdot" style="--dc:${colorOf(s.sys)}"></span><b>${esc(s.t)}</b><div class="small dim">${esc(s.d)}</div></li>`).join('')}</ol>
     ${sysChips ? `<div class="section-head"><h2>Systems this touches</h2><span class="muted">read the piece, then come back</span></div><div class="chips">${sysChips}</div>` : ''}
-    <div class="topic-nav">${prev ? `<button class="btn" data-href="#/experience/${c.id}/flow/${prev.id}">← ${esc(prev.t)}</button>` : `<button class="btn ghost" data-href="#/experience/${c.id}/workflows">← All workflows</button>`}<button class="btn ghost" data-href="#/experience/${c.id}">Project</button>${next ? `<button class="btn" data-href="#/experience/${c.id}/flow/${next.id}">${esc(next.t)} →</button>` : `<button class="btn" data-href="#/experience/${c.id}">${esc(c.t)} →</button>`}</div>`;
+    <div class="topic-nav">${prev ? `<a class="btn" href="#/experience/${c.id}/flow/${prev.id}">← ${esc(prev.t)}</a>` : `<a class="btn ghost" href="#/experience/${c.id}/workflows">← All workflows</a>`}<a class="btn ghost" href="#/experience/${c.id}">Project</a>${next ? `<a class="btn" href="#/experience/${c.id}/flow/${next.id}">${esc(next.t)} →</a>` : `<a class="btn" href="#/experience/${c.id}">${esc(c.t)} →</a>`}</div>`;
 }
 // `a` is a system id, or one of the reserved route words: 'workflows' and
 // 'interview' select a tab of the project page, 'flow' makes `b` a flow id.
@@ -2428,8 +2437,8 @@ function pathBarHTML(){
     <div class="pathbar-info"><b>${esc(pth.t)}</b> <span class="muted pb-where">Stage ${curIdx} of ${pth.stages.length}</span> <span class="muted pb-next">${atCheckpoint ? `You are at the checkpoint for ${esc(next.stage.t)}` : `Next: ${esc(nextStepLabel(next))}`}</span></div>${task}
     <div class="pathbar-mini"><span class="pm-stage">${curIdx}/${pth.stages.length}</span><button type="button" class="pm-text" data-action="bar-expand" aria-label="Show the whole path bar">${cur ? esc(cur.step.do) : atCheckpoint ? 'Checkpoint' : esc(nextStepLabel(next))}</button>${next && onNext && !atCheckpoint ? `<button type="button" class="btn sm primary pm-done" data-action="path-continue" data-path="${pth.id}">Done ✓</button>` : next && !onNext ? `<a class="btn sm primary pm-done" href="${href}">Next →</a>` : ''}</div>
     <div class="pathbar-actions">
-      ${next && !atCheckpoint ? (onNext ? `<button class="btn sm primary" data-action="path-continue" data-path="${pth.id}">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Next →'}</a>`) : ''}
-      <button class="btn sm ghost" data-action="leave-path">Leave path</button>
+      ${next && !atCheckpoint ? (onNext ? `<button type="button" class="btn sm primary" data-action="path-continue" data-path="${pth.id}">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Next →'}</a>`) : ''}
+      <button type="button" class="btn sm ghost" data-action="leave-path">Leave path</button>
     </div></div>`;
 }
 
@@ -2465,7 +2474,7 @@ function pathsDoorHTML(){
       <div class="row"><a class="btn primary" href="${nextStepHref(next)}">Continue →</a><a class="btn ghost" href="#/paths/${active.id}">Open the path</a></div></div>`;
   })() : '';
   const ans = chooserAnswers(), rec = ans.goal && ans.level && ans.time ? choosePath(ans.goal, ans.level, ans.time, donePathIds()) : null;
-  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<button class="path" data-href="#/paths/${p.id}"><b>${esc(p.pick)}</b><span>${esc(p.tag)}</span></button>`).join('')}</div>` : '';
+  const outcomes = PATHS.length ? `<div class="paths">${PATHS.map(p => `<a class="path" href="#/paths/${p.id}"><b>${esc(p.pick)}</b><span>${esc(p.tag)}</span></a>`).join('')}</div>` : '';
   const tracks = TRACKS.map(([tid, tlabel]) => {
     const list = PATHS.filter(p => p.track === tid); if(!list.length) return '';
     return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(p => pathCard(p, !!rec && rec.path === p)).join('')}</div>`;
@@ -2545,11 +2554,11 @@ function stageFooterHTML(pth, st, prog){
     <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>Checkpoint</summary><div class="body">
       <h4>Can you answer these?</h4>${recallHTML(pth, st)}
       <h4>Build</h4><p>${esc(st.check.build)}</p>${solutionHTML(st)}
-      <button class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
+      <button type="button" class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
     </div></details>
     <details class="pathskip" style="margin-top:6px"><summary>Skip ahead: I already know this</summary><div class="body">
       <ul>${(st.check.skip || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
-      <button class="btn sm ghost" ${status ? 'disabled' : ''} data-action="stage-skip" data-path="${pth.id}" data-stage="${st.id}">${status === 'skipped' ? 'Stage skipped' : 'I can answer these, skip this stage'}</button>
+      <button type="button" class="btn sm ghost" ${status ? 'disabled' : ''} data-action="stage-skip" data-path="${pth.id}" data-stage="${st.id}">${status === 'skipped' ? 'Stage skipped' : 'I can answer these, skip this stage'}</button>
     </div></details>`;
 }
 // Checkpoint recall: answer first, then open a question to compare with its

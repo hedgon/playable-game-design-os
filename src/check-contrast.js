@@ -79,6 +79,15 @@ for (const [theme, T] of Object.entries(themes)) {
     pairs.push([theme, `diagram region label on ${d} tint`, col(DGM.lbl), card(DGM.region, d)]);
     pairs.push([theme, `diagram region label on ${d} play-space tint`, col(DGM.lbl), card(DGM.world, d)]);
   }
+  // composited surfaces the site audit found (axe, 2026-10-05): button text on the accent fill,
+  // practice chips on the chip ground, and the next-step row's 9% accent tint over the panel
+  pairs.push([theme, 'primary button text on --accent', col('on-accent'), col('accent')]);
+  pairs.push([theme, 'practice chip text on --bg3', col('accent2-ink'), col('bg3')]);
+  pairs.push([theme, 'practice chip text on --panel', col('accent2-ink'), col('panel')]);
+  const nextRow = mix(col('accent'), col('panel'), 0.09);
+  pairs.push([theme, 'next-step link on its tinted row', col('accent-ink'), nextRow]);
+  pairs.push([theme, 'next-step muted text on its tinted row', col('fg2'), nextRow]);
+  pairs.push([theme, 'next-step text on its tinted row', col('fg'), nextRow]);
   pairs.push([theme, 'map leaf label on smell card', col(MAP.leafLabel), card(MAP.smell)]);
   pairs.push([theme, 'map leaf label on view card', col(MAP.leafLabel), card(MAP.view)]);
 }

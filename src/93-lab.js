@@ -70,10 +70,10 @@ function renderLab(){
 
   // The market-first way in is the Idea Shaper, offered here so "I do not
   // know what to make" has one door with two routes through it.
-  const modeBtns = LAB_MODES.map(([id,t,d]) => `<button class="labmode ${saved.mode===id?'active':''}" data-m="${id}"><b>${esc(t)}</b><span>${esc(d)}</span></button>`).join('')
+  const modeBtns = LAB_MODES.map(([id,t,d]) => `<button type="button" class="labmode ${saved.mode===id?'active':''}" data-m="${id}"><b>${esc(t)}</b><span>${esc(d)}</span></button>`).join('')
     + `<a class="labmode lnk" href="#/build/idea"><b>I watch a market</b><span>Read what players praise, complain about and work around in games you already follow, then shape one idea into the gap. Opens the Idea Shaper.</span></a>`;
 
-  const evChips = id => `<div class="evrow">${LAB_EV.map(e => `<button class="evchip ${saved.ev[id]===e?'on':''}" data-step="${id}" data-ev="${e}" title="${esc(LAB_EV_HINT[e])}">${e}</button>`).join('')}</div><p class="small muted evlegend">${LAB_EV.map(e => `<b>${e}</b>: ${esc(LAB_EV_HINT[e])}`).join('; ')}.</p>`;
+  const evChips = id => `<div class="evrow">${LAB_EV.map(e => `<button type="button" class="evchip ${saved.ev[id]===e?'on':''}" data-step="${id}" data-ev="${e}" title="${esc(LAB_EV_HINT[e])}">${e}</button>`).join('')}</div><p class="small muted evlegend">${LAB_EV.map(e => `<b>${e}</b>: ${esc(LAB_EV_HINT[e])}`).join('; ')}.</p>`;
 
   const stepCard = id => {
     const s = stepMeta(id);
@@ -81,7 +81,7 @@ function renderLab(){
       <div class="row between" style="align-items:baseline"><div class="step-num" style="margin:0">${esc(s.t)}</div>${s.ev ? evChips(id) : ''}</div>
       <p class="small dim" style="margin:4px 0 6px">${esc(s.q)}</p>
       <textarea id="labv_${id}" rows="3" placeholder="${esc(s.ex)}">${esc(saved.step[id]||'')}</textarea>
-      <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost labex" data-step="${id}">example</button><button class="btn sm ghost labpr" data-step="${id}">copy AI prompt</button></div>
+      <div class="row" style="margin-top:6px;gap:6px"><button type="button" class="btn sm ghost labex" data-step="${id}">example</button><button type="button" class="btn sm ghost labpr" data-step="${id}">copy AI prompt</button></div>
       <div class="labex-box small dim" id="labex_${id}" hidden>${esc(s.ex)}</div>
     </div>`;
   };
@@ -89,8 +89,8 @@ function renderLab(){
   const spaceCard = () => `<div class="labstep" id="lab_space">
     <div class="step-num">${esc(stepMeta('space').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('space').q)}</p>
-    ${[0,1,2].map(a => `<div class="labaxis"><input class="labax" data-a="${a}" placeholder="Axis ${a+1} (e.g. the object being chosen)" value="${esc(saved.spaceAxes[a]||'')}"><input class="labaxo" data-a="${a}" placeholder="options, comma separated" value="${esc((saved.spaceOpts[a]||[]).join(', '))}"></div>`).join('')}
-    <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost labex" data-step="space">example</button><button class="btn sm ghost labpr" data-step="space">copy AI prompt</button></div>
+    ${[0,1,2].map(a => `<div class="labaxis"><input type="text" class="labax" data-a="${a}" placeholder="Axis ${a+1} (e.g. the object being chosen)" value="${esc(saved.spaceAxes[a]||'')}"><input type="text" class="labaxo" data-a="${a}" placeholder="options, comma separated" value="${esc((saved.spaceOpts[a]||[]).join(', '))}"></div>`).join('')}
+    <div class="row" style="margin-top:6px;gap:6px"><button type="button" class="btn sm ghost labex" data-step="space">example</button><button type="button" class="btn sm ghost labpr" data-step="space">copy AI prompt</button></div>
     <div class="labex-box small dim" id="labex_space" hidden>${esc(stepMeta('space').ex)}</div>
   </div>`;
 
@@ -98,29 +98,29 @@ function renderLab(){
     <div class="step-num">${esc(stepMeta('mech').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('mech').q)}</p>
     ${[0,1,2].map(i => `<div class="labmech"><b>Mechanism ${i+1}</b>
-      <input class="labm" data-i="${i}" data-k="rule" placeholder="The rule, one sentence" value="${esc(saved.mech[i].rule||'')}">
-      <input class="labm" data-i="${i}" data-k="decision" placeholder="The decision it creates every minute" value="${esc(saved.mech[i].decision||'')}">
-      <input class="labm" data-i="${i}" data-k="emotion" placeholder="Intended emotion" value="${esc(saved.mech[i].emotion||'')}">
-      <input class="labm" data-i="${i}" data-k="fail" placeholder="Failure mode" value="${esc(saved.mech[i].fail||'')}">
+      <input type="text" class="labm" data-i="${i}" data-k="rule" placeholder="The rule, one sentence" value="${esc(saved.mech[i].rule||'')}">
+      <input type="text" class="labm" data-i="${i}" data-k="decision" placeholder="The decision it creates every minute" value="${esc(saved.mech[i].decision||'')}">
+      <input type="text" class="labm" data-i="${i}" data-k="emotion" placeholder="Intended emotion" value="${esc(saved.mech[i].emotion||'')}">
+      <input type="text" class="labm" data-i="${i}" data-k="fail" placeholder="Failure mode" value="${esc(saved.mech[i].fail||'')}">
     </div>`).join('')}
-    <div class="row" style="margin-top:6px;gap:6px"><button class="btn sm ghost labex" data-step="mech">example</button><button class="btn sm ghost labpr" data-step="mech">copy AI prompt</button></div>
+    <div class="row" style="margin-top:6px;gap:6px"><button type="button" class="btn sm ghost labex" data-step="mech">example</button><button type="button" class="btn sm ghost labpr" data-step="mech">copy AI prompt</button></div>
     <div class="labex-box small dim" id="labex_mech" hidden>${esc(stepMeta('mech').ex)}</div>
   </div>`;
 
   const convergeCard = () => `<div class="labstep" id="lab_converge">
     <div class="step-num">${esc(stepMeta('converge').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('converge').q)} Confidence, not a score, so you can see which claim is load-bearing.</p>
-    ${LAB_LENSES.map(l => `<div class="lablens"><span class="ll">${esc(l)}</span><select class="labconf" data-l="${esc(l)}">${['', ...LAB_CONF].map(c => `<option value="${c}" ${(((saved.lens[l]||{}).c)||'')===c?'selected':''}>${c||'-'}</option>`).join('')}</select><input class="labwhy" data-l="${esc(l)}" placeholder="why, one line" value="${esc((saved.lens[l]||{}).n||'')}"></div>`).join('')}
-    <div class="row" style="margin-top:6px"><button class="btn sm ghost labpr" data-step="converge">copy AI prompt</button></div>
+    ${LAB_LENSES.map(l => `<div class="lablens"><span class="ll">${esc(l)}</span><select class="labconf" data-l="${esc(l)}">${['', ...LAB_CONF].map(c => `<option value="${c}" ${(((saved.lens[l]||{}).c)||'')===c?'selected':''}>${c||'-'}</option>`).join('')}</select><input type="text" class="labwhy" data-l="${esc(l)}" placeholder="why, one line" value="${esc((saved.lens[l]||{}).n||'')}"></div>`).join('')}
+    <div class="row" style="margin-top:6px"><button type="button" class="btn sm ghost labpr" data-step="converge">copy AI prompt</button></div>
   </div>`;
   const decideCard = () => `<div class="labstep" id="lab_decide">
     <div class="step-num">${esc(stepMeta('decide').t)}</div>
     <p class="small dim" style="margin:4px 0 6px">${esc(stepMeta('decide').q)}</p>
-    <div class="evrow">${['kill','iterate','prototype','commit'].map(d => `<button class="decidebtn ${saved.decision===d?'on':''}" data-d="${d}">${d}</button>`).join('')}</div>
+    <div class="evrow">${['kill','iterate','prototype','commit'].map(d => `<button type="button" class="decidebtn ${saved.decision===d?'on':''}" data-d="${d}">${d}</button>`).join('')}</div>
     <textarea id="labv_decide" rows="2" placeholder="${esc(stepMeta('decide').ex)}" style="margin-top:8px">${esc(saved.step.decide||'')}</textarea>
-    <div class="row" style="margin-top:6px"><button class="btn sm ghost labpr" data-step="decide">copy AI prompt</button></div>
+    <div class="row" style="margin-top:6px"><button type="button" class="btn sm ghost labpr" data-step="decide">copy AI prompt</button></div>
   </div>`;
-  const cardField = (k,l,ph,rows) => `<div class="field"><label>${esc(l)}</label>${rows?`<textarea class="labcard" data-k="${k}" rows="${rows}" placeholder="${esc(ph)}">${esc(saved.card[k]||'')}</textarea>`:`<input class="labcard" data-k="${k}" placeholder="${esc(ph)}" value="${esc(saved.card[k]||'')}">`}</div>`;
+  const cardField = (k,l,ph,rows) => `<div class="field"><label>${esc(l)}</label>${rows?`<textarea class="labcard" data-k="${k}" rows="${rows}" placeholder="${esc(ph)}">${esc(saved.card[k]||'')}</textarea>`:`<input type="text" class="labcard" data-k="${k}" placeholder="${esc(ph)}" value="${esc(saved.card[k]||'')}">`}</div>`;
 
   const ready = (saved.step.signal||'').trim() && (saved.step.tension||'').trim() && (saved.step.question||'').trim();
   setView(`${crumbs([['Map','#/map'],['Idea Lab']])}<h1>Idea Lab</h1>
@@ -135,9 +135,9 @@ function renderLab(){
       </div>
       <div class="row between labstepper"><button type="button" class="btn sm ghost" id="lab_prev">← Previous step</button><button type="button" class="btn sm" id="lab_next">Next step →</button></div>
     </div><div id="lab_out"><div class="card">
-      <h4>Your reasoning chain</h4>
+      <h2 class="h4look">Your reasoning chain</h2>
       <div id="lab_chain"><div class="empty">Start with a mode and one sentence. The chain builds as you go.</div></div>
-      <h4 style="margin-top:14px">Idea Card</h4>
+      <h2 class="h4look" style="margin-top:14px">Idea Card</h2>
       <p class="small dim">Compress the chain. This is the communication artifact, and it can be done before or after the experiment.</p>
       ${cardField('player','Player','A specific person, not gamers',0)}
       ${cardField('promise','Promise','The experience this uniquely provides',2)}
@@ -145,7 +145,7 @@ function renderLab(){
       ${cardField('verb','Core verb','What the player does most',0)}
       ${cardField('fantasy','Fantasy','In this game I get to be someone who...',2)}
       ${cardField('constraints','Constraints','Team, time, platform, skills',2)}
-      <div class="row" style="margin-top:8px"><button class="btn primary sm" id="lab_tocard" ${ready?'':'disabled title="Fill signal, tension and design question first"'}>Open the Idea Card tool</button><button class="btn sm" id="lab_export">Copy chain as Markdown</button></div>
+      <div class="row" style="margin-top:8px"><button type="button" class="btn primary sm" id="lab_tocard" ${ready?'':'disabled title="Fill signal, tension and design question first"'}>Open the Idea Card tool</button><button type="button" class="btn sm" id="lab_export">Copy chain as Markdown</button></div>
       <p class="small muted" style="margin-top:8px">AI expands the design space. You choose the direction. Players provide the reality. Every claim above has an evidence level, so keep them honest.</p>
     </div></div></div>`);
 

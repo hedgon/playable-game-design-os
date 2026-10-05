@@ -33,7 +33,8 @@ const LIGHT = {
   platform: { id: true, t: true, sub: true, short: true, kind: true, glance: true, topics: true, checklists: true },
   engine: { id: true, t: true, sub: true, short: true, kind: true, glance: true, topics: true },
   compare: { id: true, t: true, games: true, problem: true, topics: true },
-  smell: { id: true, dom: true, t: true, sym: true, fun: true, dims: true, causes: [{ top: true }] },
+  // a cause's text stays: the smells page filters by it as the reader types
+  smell: { id: true, dom: true, t: true, sym: true, fun: true, dims: true, causes: [{ top: true, c: true }] },
   checklist: { id: true, t: true, desc: true, topics: true, platforms: true },
   prompt: { id: true, t: true, cat: true, topics: true }
 };
