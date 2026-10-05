@@ -624,8 +624,6 @@ nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(-
 .mapwrap{background:var(--panel);border-radius:var(--r2)}
 .mapwrap .center text{font-family:var(--display);font-stretch:85%;letter-spacing:.03em}
 .mapwrap .node text{font-family:var(--display);font-stretch:92%;letter-spacing:.02em}
-.mapwrap .edge{stroke-dasharray:3 4}
-.mapwrap .edge.hl{stroke-dasharray:none}
 .side{border-radius:var(--r2)}
 .side .dom > button{font-family:var(--display);font-stretch:92%;text-transform:uppercase;letter-spacing:.05em;font-size:.85rem}
 .side .dom > button .dot{border-radius:0;width:8px;height:8px}
@@ -1034,8 +1032,10 @@ table.worked th{background:var(--bg3)}
 .kgraph .node .lbl.sub{fill:var(--fg2);font-family:var(--mono);font-weight:500}
 /* an open card is tinted twice as strongly, so its count line takes the full ink */
 .kgraph .node.domain.open .lbl.sub{fill:var(--fg)}
-.kgraph .edge{fill:none;stroke:var(--line2);stroke-width:1.4;opacity:.7}
-.kgraph .edge.open{stroke:var(--accent);opacity:.9}
+/* tree edges: solid elbows sharing one trunk per parent, in an opaque colour so the
+   shared trunk does not darken where the paths overlap; the open branch in the accent */
+.kgraph .edge{fill:none;stroke:color-mix(in srgb,var(--line2) 70%,var(--fg2));stroke-width:1.4;opacity:1;stroke-linejoin:round}
+.kgraph .edge.open{stroke:var(--accent)}
 .kgraph .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
 /* fourth layer: smaller leaf nodes under the selected topic */
 .kgraph .node.leaf .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 8%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 52%,var(--line2));stroke-width:1}
@@ -1043,7 +1043,7 @@ table.worked th{background:var(--bg3)}
 .kgraph .node.view .disc{fill:color-mix(in srgb,var(--accent2) 12%,var(--bg2));stroke:var(--accent2)}
 .kgraph .node.leaf .lbl{font-weight:600;fill:var(--fg2)}
 .kgraph .node.leaf.hl .disc{stroke:var(--accent);stroke-width:2.6}
-.kgraph .edge.ext{stroke-width:1.1;opacity:.6}
+.kgraph .edge.ext{stroke-width:1.1}
 /* --- the map as connections and progress: groups, typed leaves, read marks, next cue, legend, the why note --- */
 .kgraph .node.group .disc{fill:var(--bg3);stroke:var(--line2)}
 .kgraph .node.group .lbl{fill:var(--fg);font-family:var(--mono);font-weight:700;font-stretch:100%;letter-spacing:0}
@@ -1092,7 +1092,7 @@ table.worked th{background:var(--bg3)}
 /* the toolbar: crumbs and the find field share the first line, the buttons the second and never wrap */
 .mapbar .mapctl{flex:1 0 100%;flex-wrap:nowrap;min-width:0}
 .mapbar .mapctl .btn{flex:none;white-space:nowrap}
-.mapbar .mapctl .mapnext{flex:0 1 auto;min-width:0;white-space:normal;line-height:1.2}
+.mapbar .mapctl .mapnext{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .mapbar .mapcrumbs{flex:1 1 0;min-width:0}
 .mapfind{position:relative;display:flex;align-items:center;gap:6px;flex:0 1 280px;min-width:170px}
 .mapfind input{width:100%;padding:5px 8px;font-size:.82rem;border:1px solid var(--line2);background:var(--bg2);color:var(--fg);border-radius:var(--r2)}
@@ -1142,12 +1142,11 @@ table.worked th{background:var(--bg3)}
   .mapwrap{touch-action:none;cursor:auto;overscroll-behavior:contain}
   .mapwrap .maptip{display:none}
   .mapwrap .node.leaf.other .disc{stroke-dasharray:none}
-  .mapwrap .edge{stroke-dasharray:none}
   .mapwrap .edge.dd{stroke-dasharray:4 5}.mapwrap .edge.cross{stroke-dasharray:3 5}.mapwrap .edge.home{stroke-dasharray:5 5}
   .mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
   .mapbar .mapctl{flex-wrap:wrap}
   .mapbar .mapctl{gap:2px!important}
-  .mapbar .mapctl .mapnext{flex:1 0 100%;min-height:44px;display:flex;align-items:center}
+  .mapbar .mapctl .mapnext{flex:1 0 100%;min-height:44px;display:flex;align-items:center;white-space:normal}
   .mapbar .mapctl .mapnext[hidden]{display:none}
   .mapbar #mapResetDefault{display:none}
   .mapbar .btn-long{display:none}
@@ -46369,8 +46368,24 @@ window.PlayableGraph = (function(){
   const PAD = 12;
   // The horizontal gap between a node and its parent, and the vertical gap
   // after a node, by kind. Columns follow the widths above, not a fixed step.
-  const GAP_X = { domain:40, topic:56, group:44, leaf:36, item:36 };
-  const GAP_Y = { domain:4, topic:8, group:8, leaf:6, item:6, center:8 };
+  // From docs/program-2026-10/research/map-layout.md: a level gap about 1.8 to 2
+  // times the old one leaves room for the elbow edges to fan out one per child,
+  // and sibling gaps of 8 to 10 match the tool defaults for boxed cards (4 sat
+  // nearer than any of them). A phone's stage has no width to spare, so it keeps
+  // narrow columns and spends its slack vertically.
+  // The two leaf-level gaps stay at 48 (research said 64): a group holds six
+  // leaves or fewer, so its fan is short, and at 48 a selected topic with its
+  // groups and leaves fits a 1440 px screen's map pane whole at the label floor.
+  const GAP_X = { domain:80, topic:104, group:48, leaf:48, item:48 };
+  const GAP_X_PHONE = { domain:20, topic:24, group:20, leaf:20, item:20 };
+  const GAP_Y = { domain:8, topic:10, group:8, leaf:8, item:8, center:8 };
+  // a phone's first view must hold the root and every domain at the 11 px floor, so its domain column stays tight
+  const GAP_Y_PHONE = Object.assign({}, GAP_Y, { domain:4 });
+  // Card widths for a one-sided tree: a phone (about 350 px) needs the narrowest
+  // cards; a desktop pane too narrow for two sides (about 560 to 1,060 px) keeps
+  // cards a little narrower than the two-sided map so the wider gaps still fit.
+  const CAP_PHONE = { center:190, domain:150, topic:190 };
+  const CAP_PANE = { center:210, domain:200, topic:210 };
   // A group of leaves with more than this many starts collapsed.
   const GROUP_OPEN = 6;
 
@@ -46408,6 +46423,16 @@ window.PlayableGraph = (function(){
   // points sit from each end (negative to bow left, as the cross links do).
   const link = (ax, ay, bx, by, dx) => `M${ax},${ay} C${ax + dx},${ay} ${bx + dx},${by} ${bx},${by}`;
   const smooth = (ax, ay, bx, by) => `M${ax},${ay} C${(ax + bx) / 2},${ay} ${(ax + bx) / 2},${by} ${bx},${by}`;
+  // A tree edge as a rounded elbow: out of the parent, along a trunk halfway
+  // across the gap, and into the child level. Every child of one parent shares
+  // the trunk, so a column of 13 children reads as 13 separate stubs one card
+  // apart instead of 13 S-curves squeezed into the gap (research/map-layout.md).
+  const elbow = (sx, sy, ex, ey) => {
+    const dir = ex >= sx ? 1 : -1, tx = sx + (ex - sx) / 2, dy = ey - sy;
+    if(Math.abs(dy) < 1) return `M${sx},${sy} H${ex}`;
+    const vs = dy > 0 ? 1 : -1, r = Math.min(8, Math.abs(dy) / 2, Math.abs(ex - sx) / 4);
+    return `M${sx},${sy} H${tx - dir * r} Q${tx},${sy} ${tx},${sy + vs * r} V${ey - vs * r} Q${tx},${ey} ${tx + dir * r},${ey} H${ex}`;
+  };
 
   const LEAF_KINDS = { leaf:1, item:1, group:1 };
   const innerX = n => n.side < 0 ? n.x + n.w : n.x;   // edge facing the root
@@ -46421,22 +46446,23 @@ window.PlayableGraph = (function(){
   // the root, so cross links fan out instead of piling up. A dragged node
   // nudges its whole branch, so descendants inherit the offset and the
   // edges keep following the nodes.
-  // `root.oneSided` puts every branch on the right: on a phone the map reads
-  // as columns, one level per screen, instead of two halves off both edges.
+  // `root.oneSided` puts every branch on the right: on a phone, or in a desktop
+  // pane too narrow for both halves, the map reads as columns instead of two
+  // halves off both edges. `root.phone` narrows the cards and the gaps further.
   function place(root, off, keyOf){
-    // a phone's stage is about 350px wide: the one-sided tree uses narrower cards and gaps so the
-    // root and a column, or an open branch and its children, fit at a readable size
-    if(root.oneSided){ const cap = { center:190, domain:150, topic:190 }; const shrink = n => { if(cap[n.kind]) n.w = Math.min(n.w, cap[n.kind]); n.children.forEach(shrink); }; shrink(root); }
+    // one-sided, the root and a column, or an open branch and its children, must fit the stage at a readable size
+    if(root.oneSided){ const cap = root.phone ? CAP_PHONE : CAP_PANE; const shrink = n => { if(cap[n.kind]) n.w = Math.min(n.w, cap[n.kind]); n.children.forEach(shrink); }; shrink(root); }
     fitLabels(root);
     root.side = 0;
     const half = Math.ceil(root.children.length / 2);
     root.children.forEach((node, i) => { node.side = root.oneSided || i < half ? 1 : -1; });
     // a column sits beside its parent's far edge, so a wide card pushes its children on
+    const gaps = root.phone ? GAP_X_PHONE : GAP_X;
     const xFor = (n, p) => {
-      const gap = root.oneSided ? Math.min(GAP_X[n.kind] || 40, 20) : GAP_X[n.kind] || 40;
+      const gap = gaps[n.kind] || 40;
       return n.side < 0 ? p.x - gap - n.w : p.x + p.w + gap;
     };
-    const gapY = n => GAP_Y[n.kind] || 8;
+    const gapY = n => (root.phone ? GAP_Y_PHONE : GAP_Y)[n.kind] || 8;
     // `cursors` is the next free top edge in each column; a node sits at its
     // cursor, and a parent is centred on its children, pushed down if it is
     // taller than they are, so cards of any height never touch.
@@ -46486,9 +46512,8 @@ window.PlayableGraph = (function(){
       nodes.push(n); byKey[n.key] = n; xs.push(n.x, n.x + n.w); ys.push(n.y - n.h / 2, n.y + n.h / 2);
       if(parent){
         const sx = n.side < 0 ? parent.x : parent.x + parent.w, sy = parent.y;
-        const ex = innerX(n), ey = n.y, mx = sx + (ex - sx) / 2;
         const ext = LEAF_KINDS[n.kind] ? ' ext' : '';
-        edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="M${sx},${sy} C${mx},${sy} ${mx},${ey} ${ex},${ey}"/>`);
+        edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="${elbow(sx, sy, innerX(n), n.y)}"/>`);
       }
       n.children.forEach((c, i) => walk(c, n, i + 1, n.children.length));
     };
@@ -46620,7 +46645,7 @@ window.PlayableGraph = (function(){
     // One lens at a time: its domains, its goal at the centre.
     const lens = LENSES.find(l => l[0] === state.lens) || LENSES[0];
     const doms = DOMAINS.filter(d => d.lens === lens[0]);
-    const root = { kind:'center', id:'root', label:lens[2], w:SIZE.root.w, h:SIZE.root.h, children:[], oneSided:!!state.oneSided };
+    const root = { kind:'center', id:'root', label:lens[2], w:SIZE.root.w, h:SIZE.root.h, children:[], oneSided:!!state.oneSided, phone:!!state.phone };
     let sel = null;
     const READ = ['read', 'not read yet'];
     doms.forEach(d => {
@@ -46654,10 +46679,20 @@ window.PlayableGraph = (function(){
     // cross-branch links: faint dashed curves that leave the tree. Same-side
     // links bow away from the goal; cross-side links pass under it.
     // (not drawn on a phone: beside the cards they read as a hairball of dashes)
-    if(!state.phone) doms.forEach(d => (d.links || []).forEach(([to, why]) => {
+    // On a one-sided map the gap between the root and the domains holds the tree's
+    // trunk, so the overview bows these links out past the domains' far edge, where
+    // nothing else is drawn, and frames them; with a domain open its topics fill that
+    // side, so the links are left to the reading pane ("Why it connects").
+    const outerX = n => n.side < 0 ? n.x : n.x + n.w, BOW = 55;
+    if(!state.phone && !(root.oneSided && state.dom)) doms.forEach(d => (d.links || []).forEach(([to, why]) => {
       const a = c.byKey['d:' + d.id], b = c.byKey['d:' + to];
       if(!a || !b) return;
-      const path = a.side === b.side ? link(innerX(a), a.y, innerX(b), b.y, -a.side * 55) : smooth(innerX(a), a.y, innerX(b), b.y);
+      const out = root.oneSided && a.side === b.side;
+      // a cubic whose control points sit BOW out reaches three quarters of the way
+      if(out) c.xs.push(outerX(a) + a.side * BOW * 0.75);
+      const path = a.side !== b.side ? smooth(innerX(a), a.y, innerX(b), b.y)
+        : out ? link(outerX(a), a.y, outerX(b), b.y, a.side * BOW)
+        : link(innerX(a), a.y, innerX(b), b.y, -a.side * BOW);
       c.edges.push(`<path class="edge dd" data-a="d:${d.id}" data-b="d:${to}" d="${path}"><title>${esc(why)}</title></path>`);
     }));
     if(state.dom && !state.phone){
@@ -46728,7 +46763,7 @@ window.PlayableGraph = (function(){
       });
     }
 
-    root.oneSided = !!state.oneSided;
+    root.oneSided = !!state.oneSided; root.phone = !!state.phone;
     place(root, state.off || {}, PKEY);
     const c = collect(root, PKEY);
 
@@ -46771,7 +46806,7 @@ window.PlayableGraph = (function(){
       });
       root.children.push(node);
     });
-    root.oneSided = !!state.oneSided;
+    root.oneSided = !!state.oneSided; root.phone = !!state.phone;
     place(root, state.off || {}, PKEY2);
     const c = collect(root, PKEY2);
     const f = frame(c, PKEY2, 'path');
@@ -49892,6 +49927,7 @@ function updateNext(){
   a.href = '#/map/t/' + id; a.onclick = () => A.pinMap();
   a.textContent = 'Next unread: ' + TOPICS[id].t + ' →';
   a.setAttribute('aria-label', 'Next unread topic: ' + TOPICS[id].t);
+  a.title = a.textContent;   // the button keeps one line beside the controls; a long name shows whole here
 }
 // A stage too narrow for both halves of the tree at a readable size gets the
 // one-sided tree, the way a phone does.
@@ -49900,9 +49936,9 @@ const oneSidedNow = () => phoneQuery.matches || (!!MAP && MAP.wrap.clientWidth >
 function buildGraph(){
   const oneSided = oneSidedNow(), c = projCase();
   if(MAP) MAP.oneSided = oneSided;
-  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided }), TOPICS, DOMAINS);
+  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided, phone: phoneQuery.matches }), TOPICS, DOMAINS);
   const pth = curPath();
-  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
+  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided, phone: phoneQuery.matches }), pathProgress(pth.id));
   practice(); // fills VIEW_LINKS with the runtime links the neighbourhood reads
   return PlayableGraph.build(Object.assign({}, mapState, { oneSided, phone: phoneQuery.matches, next: nextUnread() }), seen, VIEW_LINKS);
 }
@@ -50040,16 +50076,21 @@ function applyVB(svg, vb){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} 
 // "N more" pills at the stage edges: the leaves and items the window cuts off, by direction.
 function updateMoreCues(){
   const el = $('#mapmore'); if(!el || !MAP || !MAP.g || !MAP.vb) return;
-  const cnt = { l:0, r:0, u:0, d:0 }, cx = { u:0, d:0 }, vb = MAP.vb;
-  if(!phoneQuery.matches && MAP.wrap.clientWidth > 50 && MAP.wrap.clientHeight > 50)
+  const cnt = { l:0, r:0, u:0, d:0 }, cx = { u:0, d:0 };
+  // measured on screen, where the reader sees it: the SVG fits the viewBox to its
+  // stage and centres it, so the stage can show more than the viewBox itself
+  // one transform per call, not a layout read per card: this runs on every frame of a camera move
+  const wr = MAP.wrap.getBoundingClientRect(), m = MAP.svg.getScreenCTM();
+  if(m && !phoneQuery.matches && wr.width > 50 && wr.height > 50)
     for(const n of MAP.g.nodes){
       if(n.kind !== 'leaf' && n.kind !== 'item') continue;
+      const x = m.a * n.x + m.e, w = m.a * n.w, y = m.d * n.y + m.f, mid = x + w / 2 - wr.left;
       // a card whose middle is above or below the window is "more"; one beside it is "cut off" once a sixth of it is hidden
-      if(n.y > vb.y + vb.h){ cnt.d++; cx.d += n.x + n.w / 2; } else if(n.y < vb.y){ cnt.u++; cx.u += n.x + n.w / 2; }
-      else if(n.x + n.w > vb.x + vb.w + n.w / 6) cnt.r++; else if(n.x < vb.x - n.w / 6) cnt.l++;
+      if(y > wr.bottom){ cnt.d++; cx.d += mid; } else if(y < wr.top){ cnt.u++; cx.u += mid; }
+      else if(x + w > wr.right + w / 6) cnt.r++; else if(x < wr.left - w / 6) cnt.l++;
     }
   // the up and down pills sit over the column of leaves they count
-  const at = k => cnt[k] ? Math.max(12, Math.min(88, (cx[k] / cnt[k] - vb.x) / vb.w * 100)) : 50;
+  const at = k => cnt[k] ? Math.max(12, Math.min(88, cx[k] / cnt[k] / wr.width * 100)) : 50;
   const ARROW = { l:'←', r:'→', u:'↑', d:'↓' }, sig = JSON.stringify([cnt, at('u'), at('d')]);
   if(el.dataset.sig === sig) return;
   el.dataset.sig = sig;
@@ -50117,8 +50158,13 @@ function selectedNode(g){
   return (mapState.topic && pick('topic', mapState.topic)) || (mapState.dom && pick('domain', mapState.dom)) || null;
 }
 // The window, in graph units, that a stage shows at exactly the minimum size.
+// On a wide screen the window is sized for the smallest label a click can bring
+// in (leaves and items, 12 px), not only for the labels drawn now, so opening a
+// topic never has to zoom in to keep its new leaves readable. A phone's first
+// view must hold every domain at the floor, and it zooms by touch anyway.
+const SMALLEST_LABEL_PX = 12;
 function readableSize(){
-  const px = MAP.labelPx || 13.5, s = MIN_LABEL_PX / px;
+  const px = phoneQuery.matches ? MAP.labelPx || 13.5 : Math.min(MAP.labelPx || 13.5, SMALLEST_LABEL_PX), s = MIN_LABEL_PX / px;
   return { w: MAP.wrap.clientWidth / s, h: MAP.wrap.clientHeight / s };
 }
 function keepReadable(t, g){
@@ -50328,7 +50374,8 @@ function mapHover(n, e){
   const key = n.dataset.key;
   M.hlT = setTimeout(() => {
     n.classList.add('hl');
-    $$('.edge', M.svg).forEach(ed => ed.classList.toggle('hl', ed.dataset.a === key || ed.dataset.b === key));
+    // tree edges share their parent's trunk, so a highlighted edge is raised above its siblings to show whole
+    $$('.edge', M.svg).forEach(ed => { const on = ed.dataset.a === key || ed.dataset.b === key; ed.classList.toggle('hl', on); if(on) ed.parentNode.appendChild(ed); });
   }, HOVER_INTENT_MS);
   M.tipT = setTimeout(() => {
     showWhy(n);
@@ -50717,6 +50764,8 @@ function initMapStage(){
   const ro = new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
     if(wrap.clientWidth < 50 && MAP) MAP.stage = null;   // folded away: when it is shown again that is a first view
     if(!MAP.g || !document.body.contains(svg) || wrap.clientWidth < 50) return;
+    // a resized stage shows a different part of the tree, whatever the camera does next
+    updateMoreCues();
     // crossing the two-sided width swaps the tree's shape
     if(oneSidedNow() !== MAP.oneSided){
       mapStopAnim(); MAP.userCamera = false; paintGraph();
@@ -50766,7 +50815,7 @@ function legendHTML(){
   return `<div class="lgrow"><b>Cards</b><div class="lgset">${sw('domain', 'Domain: its colour marks its topics')}${sw('topic', 'Topic')}${rd(true, 'Read')}${rd(false, 'Not read yet')}</div></div>
     <div class="lgrow"><b>Topics around it</b><div class="lgset">${sw('leaf', 'Related topic')}${sw('leaf other', 'Also in the other lens (click to switch)')}${sw('group', 'Group: click to open or close')}</div></div>
     <div class="lgrow"><b>Other links</b><div class="lgset">${sw('item t-game', '◇ Game')}${sw('item t-smell', '! Smell')}${sw('item t-tool', 'Tool')}${sw('item t-checklist', 'Checklist')}${sw('item t-prompt', 'Prompt')}${sw('item t-path', 'Path')}${sw('item t-part', '◆ Project part')}</div></div>
-    <div class="lgrow"><b>Lines</b><div class="lgset">${ln('open', 'Parent to child')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div></div>`;
+    <div class="lgrow"><b>Lines</b><div class="lgset">${ln('', 'Parent to child')}${ln('open', 'The open branch')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div></div>`;
 }
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();

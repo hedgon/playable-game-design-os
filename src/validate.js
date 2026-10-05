@@ -21,8 +21,12 @@ function imageSize(file) {
   }
   return null;
 }
-const src = DATA
-  .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
+// PLAYABLE_DRAFTS=a.js,b.js appends draft files (outside the build) after the data,
+// so a writer can check a draft against the real data before it is integrated.
+// Their entries may be missing from paths (reported, not failing) until then.
+const DRAFTS = (process.env.PLAYABLE_DRAFTS || '').split(',').map(s => s.trim()).filter(Boolean);
+const src = [...DATA.map(f => path.join(__dirname, f)), ...DRAFTS.map(f => path.resolve(f))]
+  .map(f => fs.readFileSync(f, 'utf8')).join('\n');
 const RETURNS = '\nreturn {GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,COMPARISONS,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 const { DOMAINS, TOPICS, SECTION_META, SMELLS, LOOP_PARTS, UNFAIR_CAUSES, LOOP_STEPS, CASE_STUDIES, PATHS, TRACKS, LEVELS, TOOLS, DIAGNOSTICS } = ctx;
@@ -803,7 +807,7 @@ if (orphans.length) console.log('WARN topics with no inbound links:', orphans.jo
   const miss = (kind, ids) => ids.filter(id => !inPath.has(kind + ':' + id));
   const cov = [['topic', Object.keys(TOPICS)], ['game', (ctx.REFERENCE_GAMES || []).map(g => g.id)], ['engine', (ctx.ENGINES || []).map(e => e.id)], ['platform', (ctx.PLATFORMS || []).map(p => p.id)], ['checklist', (ctx.CHECKLISTS || []).map(c => c.id)]];
   console.log('path coverage: ' + cov.map(([k, ids]) => `${k}s ${ids.length - miss(k, ids).length}/${ids.length}`).join(', '));
-  cov.forEach(([k, ids]) => { const m = miss(k, ids); if (m.length) errors.push(`not in any learning path (${k}): ${m.join(', ')}`); });
+  cov.forEach(([k, ids]) => { const m = miss(k, ids); if (!m.length) return; const msg = `not in any learning path (${k}): ${m.join(', ')}`; if (DRAFTS.length) console.log('DRAFT ' + msg); else errors.push(msg); });
 }
 // Worked examples (WORKED) and comparisons (COMPARE).
 {

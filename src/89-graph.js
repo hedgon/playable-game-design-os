@@ -36,8 +36,24 @@ window.PlayableGraph = (function(){
   const PAD = 12;
   // The horizontal gap between a node and its parent, and the vertical gap
   // after a node, by kind. Columns follow the widths above, not a fixed step.
-  const GAP_X = { domain:40, topic:56, group:44, leaf:36, item:36 };
-  const GAP_Y = { domain:4, topic:8, group:8, leaf:6, item:6, center:8 };
+  // From docs/program-2026-10/research/map-layout.md: a level gap about 1.8 to 2
+  // times the old one leaves room for the elbow edges to fan out one per child,
+  // and sibling gaps of 8 to 10 match the tool defaults for boxed cards (4 sat
+  // nearer than any of them). A phone's stage has no width to spare, so it keeps
+  // narrow columns and spends its slack vertically.
+  // The two leaf-level gaps stay at 48 (research said 64): a group holds six
+  // leaves or fewer, so its fan is short, and at 48 a selected topic with its
+  // groups and leaves fits a 1440 px screen's map pane whole at the label floor.
+  const GAP_X = { domain:80, topic:104, group:48, leaf:48, item:48 };
+  const GAP_X_PHONE = { domain:20, topic:24, group:20, leaf:20, item:20 };
+  const GAP_Y = { domain:8, topic:10, group:8, leaf:8, item:8, center:8 };
+  // a phone's first view must hold the root and every domain at the 11 px floor, so its domain column stays tight
+  const GAP_Y_PHONE = Object.assign({}, GAP_Y, { domain:4 });
+  // Card widths for a one-sided tree: a phone (about 350 px) needs the narrowest
+  // cards; a desktop pane too narrow for two sides (about 560 to 1,060 px) keeps
+  // cards a little narrower than the two-sided map so the wider gaps still fit.
+  const CAP_PHONE = { center:190, domain:150, topic:190 };
+  const CAP_PANE = { center:210, domain:200, topic:210 };
   // A group of leaves with more than this many starts collapsed.
   const GROUP_OPEN = 6;
 
@@ -75,6 +91,16 @@ window.PlayableGraph = (function(){
   // points sit from each end (negative to bow left, as the cross links do).
   const link = (ax, ay, bx, by, dx) => `M${ax},${ay} C${ax + dx},${ay} ${bx + dx},${by} ${bx},${by}`;
   const smooth = (ax, ay, bx, by) => `M${ax},${ay} C${(ax + bx) / 2},${ay} ${(ax + bx) / 2},${by} ${bx},${by}`;
+  // A tree edge as a rounded elbow: out of the parent, along a trunk halfway
+  // across the gap, and into the child level. Every child of one parent shares
+  // the trunk, so a column of 13 children reads as 13 separate stubs one card
+  // apart instead of 13 S-curves squeezed into the gap (research/map-layout.md).
+  const elbow = (sx, sy, ex, ey) => {
+    const dir = ex >= sx ? 1 : -1, tx = sx + (ex - sx) / 2, dy = ey - sy;
+    if(Math.abs(dy) < 1) return `M${sx},${sy} H${ex}`;
+    const vs = dy > 0 ? 1 : -1, r = Math.min(8, Math.abs(dy) / 2, Math.abs(ex - sx) / 4);
+    return `M${sx},${sy} H${tx - dir * r} Q${tx},${sy} ${tx},${sy + vs * r} V${ey - vs * r} Q${tx},${ey} ${tx + dir * r},${ey} H${ex}`;
+  };
 
   const LEAF_KINDS = { leaf:1, item:1, group:1 };
   const innerX = n => n.side < 0 ? n.x + n.w : n.x;   // edge facing the root
@@ -88,22 +114,23 @@ window.PlayableGraph = (function(){
   // the root, so cross links fan out instead of piling up. A dragged node
   // nudges its whole branch, so descendants inherit the offset and the
   // edges keep following the nodes.
-  // `root.oneSided` puts every branch on the right: on a phone the map reads
-  // as columns, one level per screen, instead of two halves off both edges.
+  // `root.oneSided` puts every branch on the right: on a phone, or in a desktop
+  // pane too narrow for both halves, the map reads as columns instead of two
+  // halves off both edges. `root.phone` narrows the cards and the gaps further.
   function place(root, off, keyOf){
-    // a phone's stage is about 350px wide: the one-sided tree uses narrower cards and gaps so the
-    // root and a column, or an open branch and its children, fit at a readable size
-    if(root.oneSided){ const cap = { center:190, domain:150, topic:190 }; const shrink = n => { if(cap[n.kind]) n.w = Math.min(n.w, cap[n.kind]); n.children.forEach(shrink); }; shrink(root); }
+    // one-sided, the root and a column, or an open branch and its children, must fit the stage at a readable size
+    if(root.oneSided){ const cap = root.phone ? CAP_PHONE : CAP_PANE; const shrink = n => { if(cap[n.kind]) n.w = Math.min(n.w, cap[n.kind]); n.children.forEach(shrink); }; shrink(root); }
     fitLabels(root);
     root.side = 0;
     const half = Math.ceil(root.children.length / 2);
     root.children.forEach((node, i) => { node.side = root.oneSided || i < half ? 1 : -1; });
     // a column sits beside its parent's far edge, so a wide card pushes its children on
+    const gaps = root.phone ? GAP_X_PHONE : GAP_X;
     const xFor = (n, p) => {
-      const gap = root.oneSided ? Math.min(GAP_X[n.kind] || 40, 20) : GAP_X[n.kind] || 40;
+      const gap = gaps[n.kind] || 40;
       return n.side < 0 ? p.x - gap - n.w : p.x + p.w + gap;
     };
-    const gapY = n => GAP_Y[n.kind] || 8;
+    const gapY = n => (root.phone ? GAP_Y_PHONE : GAP_Y)[n.kind] || 8;
     // `cursors` is the next free top edge in each column; a node sits at its
     // cursor, and a parent is centred on its children, pushed down if it is
     // taller than they are, so cards of any height never touch.
@@ -153,9 +180,8 @@ window.PlayableGraph = (function(){
       nodes.push(n); byKey[n.key] = n; xs.push(n.x, n.x + n.w); ys.push(n.y - n.h / 2, n.y + n.h / 2);
       if(parent){
         const sx = n.side < 0 ? parent.x : parent.x + parent.w, sy = parent.y;
-        const ex = innerX(n), ey = n.y, mx = sx + (ex - sx) / 2;
         const ext = LEAF_KINDS[n.kind] ? ' ext' : '';
-        edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="M${sx},${sy} C${mx},${sy} ${mx},${ey} ${ex},${ey}"/>`);
+        edges.push(`<path class="edge ${parent.open ? 'open' : ''}${ext}" data-a="${keyOf(parent)}" data-b="${keyOf(n)}" d="${elbow(sx, sy, innerX(n), n.y)}"/>`);
       }
       n.children.forEach((c, i) => walk(c, n, i + 1, n.children.length));
     };
@@ -287,7 +313,7 @@ window.PlayableGraph = (function(){
     // One lens at a time: its domains, its goal at the centre.
     const lens = LENSES.find(l => l[0] === state.lens) || LENSES[0];
     const doms = DOMAINS.filter(d => d.lens === lens[0]);
-    const root = { kind:'center', id:'root', label:lens[2], w:SIZE.root.w, h:SIZE.root.h, children:[], oneSided:!!state.oneSided };
+    const root = { kind:'center', id:'root', label:lens[2], w:SIZE.root.w, h:SIZE.root.h, children:[], oneSided:!!state.oneSided, phone:!!state.phone };
     let sel = null;
     const READ = ['read', 'not read yet'];
     doms.forEach(d => {
@@ -321,10 +347,20 @@ window.PlayableGraph = (function(){
     // cross-branch links: faint dashed curves that leave the tree. Same-side
     // links bow away from the goal; cross-side links pass under it.
     // (not drawn on a phone: beside the cards they read as a hairball of dashes)
-    if(!state.phone) doms.forEach(d => (d.links || []).forEach(([to, why]) => {
+    // On a one-sided map the gap between the root and the domains holds the tree's
+    // trunk, so the overview bows these links out past the domains' far edge, where
+    // nothing else is drawn, and frames them; with a domain open its topics fill that
+    // side, so the links are left to the reading pane ("Why it connects").
+    const outerX = n => n.side < 0 ? n.x : n.x + n.w, BOW = 55;
+    if(!state.phone && !(root.oneSided && state.dom)) doms.forEach(d => (d.links || []).forEach(([to, why]) => {
       const a = c.byKey['d:' + d.id], b = c.byKey['d:' + to];
       if(!a || !b) return;
-      const path = a.side === b.side ? link(innerX(a), a.y, innerX(b), b.y, -a.side * 55) : smooth(innerX(a), a.y, innerX(b), b.y);
+      const out = root.oneSided && a.side === b.side;
+      // a cubic whose control points sit BOW out reaches three quarters of the way
+      if(out) c.xs.push(outerX(a) + a.side * BOW * 0.75);
+      const path = a.side !== b.side ? smooth(innerX(a), a.y, innerX(b), b.y)
+        : out ? link(outerX(a), a.y, outerX(b), b.y, a.side * BOW)
+        : link(innerX(a), a.y, innerX(b), b.y, -a.side * BOW);
       c.edges.push(`<path class="edge dd" data-a="d:${d.id}" data-b="d:${to}" d="${path}"><title>${esc(why)}</title></path>`);
     }));
     if(state.dom && !state.phone){
@@ -395,7 +431,7 @@ window.PlayableGraph = (function(){
       });
     }
 
-    root.oneSided = !!state.oneSided;
+    root.oneSided = !!state.oneSided; root.phone = !!state.phone;
     place(root, state.off || {}, PKEY);
     const c = collect(root, PKEY);
 
@@ -438,7 +474,7 @@ window.PlayableGraph = (function(){
       });
       root.children.push(node);
     });
-    root.oneSided = !!state.oneSided;
+    root.oneSided = !!state.oneSided; root.phone = !!state.phone;
     place(root, state.off || {}, PKEY2);
     const c = collect(root, PKEY2);
     const f = frame(c, PKEY2, 'path');

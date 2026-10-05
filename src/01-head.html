@@ -624,8 +624,6 @@ nav.primary button.active{background:transparent;box-shadow:inset 0 -2px 0 var(-
 .mapwrap{background:var(--panel);border-radius:var(--r2)}
 .mapwrap .center text{font-family:var(--display);font-stretch:85%;letter-spacing:.03em}
 .mapwrap .node text{font-family:var(--display);font-stretch:92%;letter-spacing:.02em}
-.mapwrap .edge{stroke-dasharray:3 4}
-.mapwrap .edge.hl{stroke-dasharray:none}
 .side{border-radius:var(--r2)}
 .side .dom > button{font-family:var(--display);font-stretch:92%;text-transform:uppercase;letter-spacing:.05em;font-size:.85rem}
 .side .dom > button .dot{border-radius:0;width:8px;height:8px}
@@ -1034,8 +1032,10 @@ table.worked th{background:var(--bg3)}
 .kgraph .node .lbl.sub{fill:var(--fg2);font-family:var(--mono);font-weight:500}
 /* an open card is tinted twice as strongly, so its count line takes the full ink */
 .kgraph .node.domain.open .lbl.sub{fill:var(--fg)}
-.kgraph .edge{fill:none;stroke:var(--line2);stroke-width:1.4;opacity:.7}
-.kgraph .edge.open{stroke:var(--accent);opacity:.9}
+/* tree edges: solid elbows sharing one trunk per parent, in an opaque colour so the
+   shared trunk does not darken where the paths overlap; the open branch in the accent */
+.kgraph .edge{fill:none;stroke:color-mix(in srgb,var(--line2) 70%,var(--fg2));stroke-width:1.4;opacity:1;stroke-linejoin:round}
+.kgraph .edge.open{stroke:var(--accent)}
 .kgraph .edge.hl{stroke:var(--accent);opacity:1;stroke-width:2.2}
 /* fourth layer: smaller leaf nodes under the selected topic */
 .kgraph .node.leaf .disc{fill:color-mix(in srgb,var(--dc,var(--accent)) 8%,var(--bg2));stroke:color-mix(in srgb,var(--dc,var(--accent)) 52%,var(--line2));stroke-width:1}
@@ -1043,7 +1043,7 @@ table.worked th{background:var(--bg3)}
 .kgraph .node.view .disc{fill:color-mix(in srgb,var(--accent2) 12%,var(--bg2));stroke:var(--accent2)}
 .kgraph .node.leaf .lbl{font-weight:600;fill:var(--fg2)}
 .kgraph .node.leaf.hl .disc{stroke:var(--accent);stroke-width:2.6}
-.kgraph .edge.ext{stroke-width:1.1;opacity:.6}
+.kgraph .edge.ext{stroke-width:1.1}
 /* --- the map as connections and progress: groups, typed leaves, read marks, next cue, legend, the why note --- */
 .kgraph .node.group .disc{fill:var(--bg3);stroke:var(--line2)}
 .kgraph .node.group .lbl{fill:var(--fg);font-family:var(--mono);font-weight:700;font-stretch:100%;letter-spacing:0}
@@ -1092,7 +1092,7 @@ table.worked th{background:var(--bg3)}
 /* the toolbar: crumbs and the find field share the first line, the buttons the second and never wrap */
 .mapbar .mapctl{flex:1 0 100%;flex-wrap:nowrap;min-width:0}
 .mapbar .mapctl .btn{flex:none;white-space:nowrap}
-.mapbar .mapctl .mapnext{flex:0 1 auto;min-width:0;white-space:normal;line-height:1.2}
+.mapbar .mapctl .mapnext{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .mapbar .mapcrumbs{flex:1 1 0;min-width:0}
 .mapfind{position:relative;display:flex;align-items:center;gap:6px;flex:0 1 280px;min-width:170px}
 .mapfind input{width:100%;padding:5px 8px;font-size:.82rem;border:1px solid var(--line2);background:var(--bg2);color:var(--fg);border-radius:var(--r2)}
@@ -1142,12 +1142,11 @@ table.worked th{background:var(--bg3)}
   .mapwrap{touch-action:none;cursor:auto;overscroll-behavior:contain}
   .mapwrap .maptip{display:none}
   .mapwrap .node.leaf.other .disc{stroke-dasharray:none}
-  .mapwrap .edge{stroke-dasharray:none}
   .mapwrap .edge.dd{stroke-dasharray:4 5}.mapwrap .edge.cross{stroke-dasharray:3 5}.mapwrap .edge.home{stroke-dasharray:5 5}
   .mapbar #mapResetDrag,.mapbar #mapLegendBtn,#maplegend{display:none}
   .mapbar .mapctl{flex-wrap:wrap}
   .mapbar .mapctl{gap:2px!important}
-  .mapbar .mapctl .mapnext{flex:1 0 100%;min-height:44px;display:flex;align-items:center}
+  .mapbar .mapctl .mapnext{flex:1 0 100%;min-height:44px;display:flex;align-items:center;white-space:normal}
   .mapbar .mapctl .mapnext[hidden]{display:none}
   .mapbar #mapResetDefault{display:none}
   .mapbar .btn-long{display:none}

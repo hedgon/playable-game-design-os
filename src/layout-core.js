@@ -34,12 +34,32 @@ function cardOverlaps(nodes, name, problems) {
 // `tree` is the layout-quality number and should be 0; `link` counts the
 // pairs where at least one is a cross-branch link, which pass over the tree
 // by design and grow with the number of links drawn. Information only.
+// An absolute SVG path (M, L, H, V, Q, C, the commands the map draws) as a
+// polyline; curves are sampled, straight runs keep their end points.
+function samplePath(d) {
+  const pts = []; let x = 0, y = 0;
+  for (const [, cmd, args] of d.matchAll(/([MLHVQC])([^MLHVQC]*)/g)) {
+    const v = (args.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+    if (cmd === 'M' || cmd === 'L') { [x, y] = v; pts.push([x, y]); }
+    else if (cmd === 'H') { x = v[0]; pts.push([x, y]); }
+    else if (cmd === 'V') { y = v[0]; pts.push([x, y]); }
+    else {
+      const c = cmd === 'Q' ? [[x, y], [v[0], v[1]], [v[2], v[3]]] : [[x, y], [v[0], v[1]], [v[2], v[3]], [v[4], v[5]]];
+      const N = cmd === 'Q' ? 4 : 14;
+      for (let i = 1; i <= N; i++) {
+        const t = i / N, u = 1 - t;
+        const w = cmd === 'Q' ? [u * u, 2 * u * t, t * t] : [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+        pts.push([w.reduce((s, k, j) => s + k * c[j][0], 0), w.reduce((s, k, j) => s + k * c[j][1], 0)]);
+      }
+      [x, y] = c[c.length - 1];
+    }
+  }
+  return pts;
+}
 function edgeCrossings(g) {
   const edges = []; const re = /<path class="(edge[^"]*)" data-a="([^"]*)" data-b="([^"]*)" d="([^"]*)"/g; let m;
   while ((m = re.exec(g.inner || ''))) {
-    const v = m[4].match(/-?\d+(?:\.\d+)?/g); if (!v || v.length < 8) continue;
-    const [x0, y0, x1, y1, x2, y2, x3, y3] = v.map(Number), pts = [];
-    for (let i = 0; i <= 14; i++) { const t = i / 14, u = 1 - t; pts.push([u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3]); }
+    const pts = samplePath(m[4]); if (pts.length < 2) continue;
     edges.push({ a: m[2], b: m[3], link: /(dd|cross|home)/.test(m[1]), pts, x: Math.min(...pts.map(p => p[0])), X: Math.max(...pts.map(p => p[0])), y: Math.min(...pts.map(p => p[1])), Y: Math.max(...pts.map(p => p[1])) });
   }
   const side = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
@@ -94,11 +114,12 @@ function graphStates(G, DOMAINS, TOPICS, CASE_STUDIES, PATHS, GAMES, views) {
   const pl = G.practiceLinks ? G.practiceLinks(CASE_STUDIES || [], 2, GAMES || []) : { views: {}, extra: {} };
   views = Object.assign({}, views || {}, pl.views);
   const add = (name, make) => out.push({ name, make });
-  // Every state is checked in both layouts: two-sided (wide screens) and
-  // one-sided (phones).
-  for (const oneSided of [false, true]) {
-    const tag = oneSided ? '1side ' : '';
-    const dom = (state, name) => add(tag + name, () => G.build(Object.assign({ oneSided }, state), seen, views));
+  // Every state is checked in the three layouts: two-sided (wide screens),
+  // one-sided in a desktop pane too narrow for two sides, and one-sided on a
+  // phone (narrower cards and gaps, no cross-links).
+  for (const [oneSided, phone] of [[false, false], [true, false], [true, true]]) {
+    const tag = phone ? 'phone ' : oneSided ? '1side ' : '';
+    const dom = (state, name) => add(tag + name, () => G.build(Object.assign({ oneSided, phone }, state), seen, views));
     for (const lens of new Set(DOMAINS.map(d => d.lens))) dom({ dom: null, topic: null, lens }, `overview:${lens}`);
     for (const d of DOMAINS) {
       dom({ dom: d.id, topic: null, lens: d.lens }, `open:${d.id}`);
@@ -116,7 +137,7 @@ function graphStates(G, DOMAINS, TOPICS, CASE_STUDIES, PATHS, GAMES, views) {
     }
     for (const c of (CASE_STUDIES || [])) {
       if (!c.systems || !c.systems.length) continue;
-      const proj = (sys, part, name) => add(tag + name, () => G.buildProject(c, { sys, part, oneSided }, TOPICS, DOMAINS));
+      const proj = (sys, part, name) => add(tag + name, () => G.buildProject(c, { sys, part, oneSided, phone }, TOPICS, DOMAINS));
       proj(null, null, `proj:${c.id}`);
       for (const s of c.systems) {
         proj(s.id, null, `proj:${c.id}/${s.id}`);
@@ -134,8 +155,8 @@ function graphStates(G, DOMAINS, TOPICS, CASE_STUDIES, PATHS, GAMES, views) {
     // which steps a reader has ticked, only on the label text.
     for (const pth of (PATHS || [])) {
       if (!pth.stages || !pth.stages.length) continue;
-      add(`${tag}path:${pth.id}`, () => G.buildPath(pth, { stage: null, oneSided }, { steps: {}, stages: {} }));
-      for (const st of pth.stages) add(`${tag}path:${pth.id}/${st.id}`, () => G.buildPath(pth, { stage: st.id, oneSided }, { steps: {}, stages: {} }));
+      add(`${tag}path:${pth.id}`, () => G.buildPath(pth, { stage: null, oneSided, phone }, { steps: {}, stages: {} }));
+      for (const st of pth.stages) add(`${tag}path:${pth.id}/${st.id}`, () => G.buildPath(pth, { stage: st.id, oneSided, phone }, { steps: {}, stages: {} }));
     }
   }
   if (typeof G.checkStates === 'function') {

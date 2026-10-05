@@ -54,6 +54,17 @@ const MAP_VB = () => {
   let w = x1 - x0 + 80; const h = y1 - y0 + 80; if (w / h < 1.18) w = h * 1.18;
   return { x: v.x, y: v.y, w: v.width, h: v.height, maxW: w * 3 };
 };
+// The smallest on-screen distance, in px, between two sibling edges where they
+// enter their cards (the stubs off one parent's trunk), over every parent drawn:
+// the map's edges must read as separate lines (programme 2026-10, G1).
+const STUB_GAP_PX = () => {
+  const centre = k => { const n = document.querySelector(`#mapsvg .node[data-key="${CSS.escape(k)}"] .disc`); if (!n) return null; const b = n.getBoundingClientRect(); return (b.top + b.bottom) / 2; };
+  const kids = {};
+  for (const e of document.querySelectorAll('#mapsvg .edge:not(.dd):not(.cross):not(.home)')) { const y = centre(e.dataset.b); if (y !== null) (kids[e.dataset.a] = kids[e.dataset.a] || []).push(y); }
+  let min = 99, parents = 0;
+  for (const ys of Object.values(kids)) { if (ys.length < 2) continue; parents++; ys.sort((a, b) => a - b); for (let i = 1; i < ys.length; i++) min = Math.min(min, ys[i] - ys[i - 1]); }
+  return { min, parents };
+};
 const MAP_LABEL_PX = () => {
   const svg = document.getElementById('mapsvg'), r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal, scale = Math.min(r.width / vb.width, r.height / vb.height);
   const sizes = [...svg.querySelectorAll('.lbl:not(.sub)')].map(t => parseFloat(getComputedStyle(t).fontSize) * scale);
@@ -789,6 +800,7 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       await goto('#/map/d/' + domId); await page.waitForTimeout(700);
       // the new rule: the opened domain's own card is whole in the stage and readable; its topics run on past the far edge when the stage is too narrow for them
       { const f = await inStage('#mapsvg .node.domain.open'); if (f.n !== 1 || f.out) fail('phone map: the opened domain card is outside the stage (' + f.out + ' of ' + f.n + ')'); const px = await page.evaluate(MAP_LABEL_PX); if (px.min < 10.9) fail('phone map: labels are ' + px.min.toFixed(1) + 'px on the open domain'); }
+      { const s = await page.evaluate(STUB_GAP_PX); if (!s.parents || s.min < 4) fail('phone map: sibling edges are ' + s.min.toFixed(1) + 'px apart on the open domain (need 4 or more)'); }
       // the faint cross-branch curves are not drawn on a phone
       if (await page.evaluate(() => document.querySelectorAll('#mapsvg .edge.dd, #mapsvg .edge.cross, #mapsvg .edge.home').length)) fail('phone map: cross-branch dashed curves are drawn');
       // the stage ends at the bottom of the screen
@@ -858,6 +870,13 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
       await page.evaluate(k => { localStorage.clear(); localStorage.setItem('playable.visited', 'true'); if(k) localStorage.setItem('playable.hideMap', 'false'); }, keep);
       await page.goto(base + hash); await page.reload(); await page.waitForTimeout(1100);
     };
+    // breathing room: on the overview and an open domain, sibling edges reach their cards at least 4 px apart
+    for (const hash of ['#/map/home', '#/map/d/core', '#/map/d/server']) {
+      await fresh(hash, true);
+      const s = await page.evaluate(STUB_GAP_PX);
+      if (!s.parents) fail(`${hash}: no parent with two or more children drawn`);
+      else if (s.min < 4) fail(`${hash}: sibling edges are ${s.min.toFixed(1)}px apart where they meet their cards (need 4 or more)`);
+    }
     // framing: the topic and its group column are in view, labels stay readable, cut-off leaves are counted
     for (const id of ['who-is-the-player', 'server-rollback-netcode', 'core-loop']) {
       await fresh('#/map/t/' + id, true);

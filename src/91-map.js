@@ -156,6 +156,7 @@ function updateNext(){
   a.href = '#/map/t/' + id; a.onclick = () => A.pinMap();
   a.textContent = 'Next unread: ' + TOPICS[id].t + ' →';
   a.setAttribute('aria-label', 'Next unread topic: ' + TOPICS[id].t);
+  a.title = a.textContent;   // the button keeps one line beside the controls; a long name shows whole here
 }
 // A stage too narrow for both halves of the tree at a readable size gets the
 // one-sided tree, the way a phone does.
@@ -164,9 +165,9 @@ const oneSidedNow = () => phoneQuery.matches || (!!MAP && MAP.wrap.clientWidth >
 function buildGraph(){
   const oneSided = oneSidedNow(), c = projCase();
   if(MAP) MAP.oneSided = oneSided;
-  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided }), TOPICS, DOMAINS);
+  if(mapMode === 'project' && c) return PlayableGraph.buildProject(c, Object.assign({}, projState, { oneSided, phone: phoneQuery.matches }), TOPICS, DOMAINS);
   const pth = curPath();
-  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided }), pathProgress(pth.id));
+  if(mapMode === 'path' && pth) return PlayableGraph.buildPath(pth, Object.assign({}, pathMapState, { oneSided, phone: phoneQuery.matches }), pathProgress(pth.id));
   practice(); // fills VIEW_LINKS with the runtime links the neighbourhood reads
   return PlayableGraph.build(Object.assign({}, mapState, { oneSided, phone: phoneQuery.matches, next: nextUnread() }), seen, VIEW_LINKS);
 }
@@ -304,16 +305,21 @@ function applyVB(svg, vb){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} 
 // "N more" pills at the stage edges: the leaves and items the window cuts off, by direction.
 function updateMoreCues(){
   const el = $('#mapmore'); if(!el || !MAP || !MAP.g || !MAP.vb) return;
-  const cnt = { l:0, r:0, u:0, d:0 }, cx = { u:0, d:0 }, vb = MAP.vb;
-  if(!phoneQuery.matches && MAP.wrap.clientWidth > 50 && MAP.wrap.clientHeight > 50)
+  const cnt = { l:0, r:0, u:0, d:0 }, cx = { u:0, d:0 };
+  // measured on screen, where the reader sees it: the SVG fits the viewBox to its
+  // stage and centres it, so the stage can show more than the viewBox itself
+  // one transform per call, not a layout read per card: this runs on every frame of a camera move
+  const wr = MAP.wrap.getBoundingClientRect(), m = MAP.svg.getScreenCTM();
+  if(m && !phoneQuery.matches && wr.width > 50 && wr.height > 50)
     for(const n of MAP.g.nodes){
       if(n.kind !== 'leaf' && n.kind !== 'item') continue;
+      const x = m.a * n.x + m.e, w = m.a * n.w, y = m.d * n.y + m.f, mid = x + w / 2 - wr.left;
       // a card whose middle is above or below the window is "more"; one beside it is "cut off" once a sixth of it is hidden
-      if(n.y > vb.y + vb.h){ cnt.d++; cx.d += n.x + n.w / 2; } else if(n.y < vb.y){ cnt.u++; cx.u += n.x + n.w / 2; }
-      else if(n.x + n.w > vb.x + vb.w + n.w / 6) cnt.r++; else if(n.x < vb.x - n.w / 6) cnt.l++;
+      if(y > wr.bottom){ cnt.d++; cx.d += mid; } else if(y < wr.top){ cnt.u++; cx.u += mid; }
+      else if(x + w > wr.right + w / 6) cnt.r++; else if(x < wr.left - w / 6) cnt.l++;
     }
   // the up and down pills sit over the column of leaves they count
-  const at = k => cnt[k] ? Math.max(12, Math.min(88, (cx[k] / cnt[k] - vb.x) / vb.w * 100)) : 50;
+  const at = k => cnt[k] ? Math.max(12, Math.min(88, cx[k] / cnt[k] / wr.width * 100)) : 50;
   const ARROW = { l:'←', r:'→', u:'↑', d:'↓' }, sig = JSON.stringify([cnt, at('u'), at('d')]);
   if(el.dataset.sig === sig) return;
   el.dataset.sig = sig;
@@ -381,8 +387,13 @@ function selectedNode(g){
   return (mapState.topic && pick('topic', mapState.topic)) || (mapState.dom && pick('domain', mapState.dom)) || null;
 }
 // The window, in graph units, that a stage shows at exactly the minimum size.
+// On a wide screen the window is sized for the smallest label a click can bring
+// in (leaves and items, 12 px), not only for the labels drawn now, so opening a
+// topic never has to zoom in to keep its new leaves readable. A phone's first
+// view must hold every domain at the floor, and it zooms by touch anyway.
+const SMALLEST_LABEL_PX = 12;
 function readableSize(){
-  const px = MAP.labelPx || 13.5, s = MIN_LABEL_PX / px;
+  const px = phoneQuery.matches ? MAP.labelPx || 13.5 : Math.min(MAP.labelPx || 13.5, SMALLEST_LABEL_PX), s = MIN_LABEL_PX / px;
   return { w: MAP.wrap.clientWidth / s, h: MAP.wrap.clientHeight / s };
 }
 function keepReadable(t, g){
@@ -592,7 +603,8 @@ function mapHover(n, e){
   const key = n.dataset.key;
   M.hlT = setTimeout(() => {
     n.classList.add('hl');
-    $$('.edge', M.svg).forEach(ed => ed.classList.toggle('hl', ed.dataset.a === key || ed.dataset.b === key));
+    // tree edges share their parent's trunk, so a highlighted edge is raised above its siblings to show whole
+    $$('.edge', M.svg).forEach(ed => { const on = ed.dataset.a === key || ed.dataset.b === key; ed.classList.toggle('hl', on); if(on) ed.parentNode.appendChild(ed); });
   }, HOVER_INTENT_MS);
   M.tipT = setTimeout(() => {
     showWhy(n);
@@ -981,6 +993,8 @@ function initMapStage(){
   const ro = new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => {
     if(wrap.clientWidth < 50 && MAP) MAP.stage = null;   // folded away: when it is shown again that is a first view
     if(!MAP.g || !document.body.contains(svg) || wrap.clientWidth < 50) return;
+    // a resized stage shows a different part of the tree, whatever the camera does next
+    updateMoreCues();
     // crossing the two-sided width swaps the tree's shape
     if(oneSidedNow() !== MAP.oneSided){
       mapStopAnim(); MAP.userCamera = false; paintGraph();
@@ -1030,7 +1044,7 @@ function legendHTML(){
   return `<div class="lgrow"><b>Cards</b><div class="lgset">${sw('domain', 'Domain: its colour marks its topics')}${sw('topic', 'Topic')}${rd(true, 'Read')}${rd(false, 'Not read yet')}</div></div>
     <div class="lgrow"><b>Topics around it</b><div class="lgset">${sw('leaf', 'Related topic')}${sw('leaf other', 'Also in the other lens (click to switch)')}${sw('group', 'Group: click to open or close')}</div></div>
     <div class="lgrow"><b>Other links</b><div class="lgset">${sw('item t-game', '◇ Game')}${sw('item t-smell', '! Smell')}${sw('item t-tool', 'Tool')}${sw('item t-checklist', 'Checklist')}${sw('item t-prompt', 'Prompt')}${sw('item t-path', 'Path')}${sw('item t-part', '◆ Project part')}</div></div>
-    <div class="lgrow"><b>Lines</b><div class="lgset">${ln('open', 'Parent to child')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div></div>`;
+    <div class="lgrow"><b>Lines</b><div class="lgset">${ln('', 'Parent to child')}${ln('open', 'The open branch')}${ln('dd', 'Domains that connect')}${ln('cross', 'Topic to another domain')}${ln('home', 'Related topic to its own domain')}</div></div>`;
 }
 function renderTree(kind){
   if(!MAP || !document.body.contains(MAP.svg)) initMapStage();
