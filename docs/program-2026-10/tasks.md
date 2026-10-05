@@ -55,12 +55,12 @@ the evidence line), `[-]` set aside (with the reason).
 - [x] P4.4 build (279 diagrams, 0 problems), tsc 0, smoke 0 failures, e2e 105/105; commit, push, CI
 
 ## P5 Curriculum design
-- [ ] P5.1 research/curriculum.md: each path rule tied to evidence and its strength
-- [ ] P5.2 Validator rules for what is checkable
+- [x] P5.1 research/curriculum.md: each path rule tied to evidence and its strength (row numbers checked against learning-science.md)
+- [x] P5.2 Validator rules for what is checkable: curriculum guides reported under LONG (spacing gap, review topic not studied earlier, no reference solution at beginner/intermediate: 35, one-idea answer outline: 185 of 419). Follow-up in P9.2: `ideas:[]` on outlines whose one sentence holds several ideas
 
 ## P6 New topics (20)
 - [x] P6.0 briefs/factcheck.md
-- [~] P6.1 Workflow wf_e1ce23b6-77b PAUSED at the usage limit (single lane); resume with Workflow({scriptPath: <session workflows/scripts/playable-topic-pipeline-wf_e1ce23b6-77b.js>, resumeFromRunId: 'wf_e1ce23b6-77b'}). Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
+- [~] P6.1 Workflow wf_e1ce23b6-77b running again (task wwmkcggai, single lane); if interrupted, resume with Workflow({scriptPath: <session workflows/scripts/playable-topic-pipeline-wf_e1ce23b6-77b.js>, resumeFromRunId: 'wf_e1ce23b6-77b'}). Drafts (writer-sonnet-medium), two at a time, then fact-checks (factcheck-opus-medium); see the per-topic table below. The last 14 run as Workflow `wf_e1ce23b6-77b` (two sequential lanes: write, check, fix; script under the session's workflows/scripts); resume with resumeFromRunId if interrupted
 - [ ] P6.2 Integration into src/ domain files; explainers from EXPLAINER blocks
 - [ ] P6.3 Paths: realtime-at-scale-engineer, performance-engineer; steps in existing paths; chooser
 - [ ] P6.4 Wiring: lens topics on existing games, review steps, glossary terms, spatial-composition pointer
@@ -74,14 +74,14 @@ the evidence line), `[-]` set aside (with the reason).
 | server-bandwidth-and-interest-management | [x] | [x] PASS WITH FIXES, fixed | [ ] |
 | server-transport-and-relays | [x] | [x] PASS WITH FIXES, fixed | [ ] |
 | server-world-partitioning | [x] | [x] PASS WITH FIXES, fixed | [ ] |
-| server-load-testing-and-capacity | [x] | [x] PASS WITH FIXES, fixing in workflow | [ ] |
-| server-framework-landscape | [x] | [~] workflow | [ ] |
-| realtime-connection-tier-at-scale | [ ] | [ ] | [ ] |
-| craft-cpu-cache-and-data-layout | [ ] | [ ] | [ ] |
-| craft-gpu-rendering-cost | [ ] | [ ] | [ ] |
-| craft-mobile-gpu-and-thermals | [ ] | [ ] | [ ] |
-| craft-memory-loading-and-streaming | [ ] | [ ] | [ ] |
-| web-performance-basics | [ ] | [ ] | [ ] |
+| server-load-testing-and-capacity | [x] | [x] checked, fixed | [ ] |
+| server-framework-landscape | [x] | [x] checked, fixed | [ ] |
+| realtime-connection-tier-at-scale | [x] | [x] checked, fixed | [ ] |
+| craft-cpu-cache-and-data-layout | [x] | [x] checked, fixed | [ ] |
+| craft-gpu-rendering-cost | [x] | [x] checked, fixed | [ ] |
+| craft-mobile-gpu-and-thermals | [x] | [x] checked, fixed | [ ] |
+| craft-memory-loading-and-streaming | [x] | [x] checked, fixed | [ ] |
+| web-performance-basics | [x] | [~] checked, fixing in workflow | [ ] |
 | backend-latency-and-query-optimisation | [ ] | [ ] | [ ] |
 | puzzles-in-action-spaces | [ ] | [ ] | [ ] |
 | pixel-art-direction | [ ] | [ ] | [ ] |

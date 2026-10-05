@@ -636,6 +636,12 @@ for (const c of (CASE_STUDIES || [])) {
 }
 const pathIds = new Set((PATHS || []).map(p => p.id));
 let pathStepCount = 0, recallNoAnswer = 0;
+// Curriculum guides (docs/program-2026-10/research/curriculum.md): reported per
+// rule with a count, never an error, because each is a default the evidence
+// supports, not a law. The ideas split is the one the checkpoint uses to list
+// what a good answer contains: x.ideas when given, else the outline's sentences.
+const guides = {}, guide = (rule, where) => (guides[rule] = guides[rule] || []).push(where);
+const answerIdeas = x => Array.isArray(x.ideas) ? x.ideas : String(x.a).split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).filter(t => t.trim());
 for (const pth of (PATHS || [])) {
   const where = `path ${pth.id || '(no id)'}`;
   for (const k of ['t', 'tag', 'track', 'level', 'audience', 'outcome', 'pick']) if (!pth[k] || !String(pth[k]).trim()) errors.push(`${where}: ${k} empty`);
@@ -655,6 +661,7 @@ for (const pth of (PATHS || [])) {
   if (pth.stages.length > 6) longs.push(`${where}: has ${pth.stages.length} stages (guide: 6)`);
   const stageIds = new Set();
   let hoursSum = 0, prevLevelIdx = -1, levelDrop = false, pathHasTool = false;
+  const seenTopics = new Set();
   pth.stages.forEach((st, si) => {
     const sw = `${where} stage ${st.id || '(no id)'}`;
     for (const k of ['id', 't', 'goal', 'level']) if (!st[k] || !String(st[k]).trim()) errors.push(`${sw}: ${k} empty`);
@@ -716,6 +723,11 @@ for (const pth of (PATHS || [])) {
     const target = st.hours * 60;
     if (target > 0 && Math.abs(minSum - target) / target > 0.1) errors.push(`${sw}: step minutes sum to ${minSum}, expected close to ${target} (hours*60, within 10%)`);
     if (Array.isArray(st.review)) { if (st.review.length > 2) longs.push(`${sw}: review names ${st.review.length} topics (guide: 2)`); for (const rid of st.review) if (!TOPICS[rid]) errors.push(`${sw}: review -> unknown topic ${rid}`); } else errors.push(`${sw}: review must be an array (may be empty)`);
+    if (Array.isArray(st.review)) {
+      if (si > 0 && !st.review.length) guide('a stage after the first revisits no earlier topic (spacing)', sw);
+      for (const rid of st.review) if (TOPICS[rid] && !seenTopics.has(rid)) guide('a review topic was not studied in an earlier stage of this path', `${sw}: ${rid}`);
+    }
+    for (const step of st.steps) if (step.kind === 'topic') seenTopics.add(step.ref);
     if (!st.check) errors.push(`${sw}: missing check`);
     else {
       const { recall, build, skip } = st.check;
@@ -726,11 +738,13 @@ for (const pth of (PATHS || [])) {
         if (typeof x === 'string') recallNoAnswer++;
         else if (!x.a || !String(x.a).trim()) errors.push(`${sw}: check.recall[${i}] has an empty answer outline`);
         else if (x.a.length > 420) longs.push(`${sw}: check.recall[${i}] answer outline is ${x.a.length} characters (guide: under 420)`);
+        if (typeof x === 'object' && x.a && answerIdeas(x).length < 2) guide('an answer outline gives one idea to compare against (split it, or give ideas)', `${sw}: check.recall[${i}]`);
       });
       if (!build || !String(build).trim()) errors.push(`${sw}: check.build empty`);
       if (!Array.isArray(skip) || skip.length < 3) errors.push(`${sw}: check.skip has ${Array.isArray(skip) ? skip.length : 'no'} questions, expected 3 or more`); else if (skip.length > 5) longs.push(`${sw}: check.skip has ${skip.length} questions (guide: 5)`);
       else skip.forEach((q, i) => { if (!q || !String(q).trim()) errors.push(`${sw}: check.skip[${i}] empty`); });
       const sol = st.check.solution;
+      if (sol === undefined && (st.level === 'beginner' || st.level === 'intermediate')) guide('a beginner or intermediate stage has no reference solution (worked example)', sw);
       if (sol !== undefined) {
         const words = sol && typeof sol.outline === 'string' ? sol.outline.trim().split(/\s+/).filter(Boolean).length : 0;
         if (words < 40) errors.push(`${sw}: check.solution.outline is ${words} words, expected 40 or more`);
@@ -772,6 +786,7 @@ for (const [g, byLevel] of Object.entries(ctx.CHOOSER ? ctx.CHOOSER.paths : {}))
 // ...and every path is reachable from it, so none is found only by browsing.
 const chosen = new Set(Object.values(ctx.CHOOSER ? ctx.CHOOSER.paths : {}).flatMap(o => Object.values(o).flat()));
 for (const p of (PATHS || [])) if (!chosen.has(p.id)) errors.push(`chooser: path ${p.id} is not offered for any answer`);
+for (const [rule, list] of Object.entries(guides)) longs.push(`curriculum guide: ${rule}: ${list.length} (e.g. ${list.slice(0, 3).join('; ')})`);
 if (recallNoAnswer) errors.push(`paths: ${recallNoAnswer} checkpoint recall questions have no answer outline`);
 console.log(`paths: ${(PATHS || []).length}, chooser combinations: ${chooserCombos}, stages: ${(PATHS || []).reduce((n, p) => n + (Array.isArray(p.stages) ? p.stages.length : 0), 0)}, steps: ${pathStepCount}`);
 
