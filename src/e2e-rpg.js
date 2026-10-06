@@ -42,6 +42,12 @@ const ID = 'game-designer-foundations';
 
     await page.goto(BASE + `#/paths/${ID}`); await settled();
     check(`${tag} the path page offers the game`, await page.$(`#pane .rpgplay a[href="#/play/${ID}"]`));
+    // every path offers it, near the top, and the old recoloured "adventure look" is gone
+    const other = await page.evaluate(() => PATHS[PATHS.length - 1].id);
+    await nav(`#/paths/${other}`);
+    const top = await page.evaluate(id => { const a = document.querySelector(`#pane .rpgplay a[href="#/play/${id}"]`), h = document.querySelector('#pane h1'); return { a: !!a, below: a && h && a.getBoundingClientRect().top - h.getBoundingClientRect().bottom, skin: !!document.querySelector('#pane [data-action="path-skin"], #pane .overworld.skin') }; }, other);
+    check(`${tag} every path offers the game just under its title, and the adventure look is gone`, top.a && top.below < 120 && !top.skin, JSON.stringify(top));
+    await nav(`#/paths/${ID}`);
     await nav(`#/play/${ID}`); await page.waitForSelector('#pane .rpg canvas');
     const shell = await page.evaluate(() => ({ bar: !!document.querySelector('#pane .pathbar'), sub: !!document.querySelector('#pane .subnav'), first: document.querySelector('#pane .rpg a, #pane .rpg button')?.textContent, cw: document.querySelector('#pane .rpg canvas').width, h1: document.querySelector('#pane h1')?.textContent }));
     check(`${tag} the game draws a world, with no path bar or sub-navigation, and "Use the list instead" first`, !shell.bar && !shell.sub && shell.first === 'Use the list instead' && shell.cw > 0 && shell.h1, JSON.stringify(shell));

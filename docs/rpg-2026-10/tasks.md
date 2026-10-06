@@ -65,6 +65,30 @@ Plan: `plan.md` (revision 2, approved 2026-10-06). `[x]` done, `[~]` in progress
 - [x] R1a.11 Replay, commit, push, CI (f862038; replay smoke 0 failures, e2e-paths 129/129, e2e-rpg 49/49; GitHub build run 37402157031 and Pages run 37402156750 green). Then **stop: the owner plays it and decides go or
   change.**
 
+## Owner feedback 2026-10-06 (after R1a)
+- [x] "Do not see where to play": the button showed on one path only. Now every path shows
+  "▶ Play this path" just under its title. That brings forward R2's world check:
+  - validate.js builds all 26 worlds and fails the build if a step has no person, two things
+    share a tile, or a person, guardian or sign cannot be reached;
+  - it reports 26 checked, 0 problems, and the farthest thing is 101 steps from the start;
+  - shown to fail by moving a guardian onto a person ("two things stand at 7,8").
+  - Still R2: terrains by track and the walking caps.
+- [x] "The old adventure look still remains": removed now rather than in R5:
+  - `pathSkin`, `adventureSkin()`, the `path-skin` action;
+  - the `.overworld.skin` CSS and its `walkin` animation;
+  - the "castle" and "road" labels;
+  - its four e2e-paths checks.
+
+  e2e-rpg checks that it is gone.
+- [ ] "Reference game list cut off at Overwatch on mobile, no way to load more": not
+  reproduced. Tried:
+  - the Grid and List views, Edge mobile emulation at 375, 390 and 430 px, local build and live
+    site: all 110 games are in the page and the pane scrolls to the last one;
+  - touch-gesture scrolling could not be tested here (the synthetic gesture scrolled no page,
+    not even the controls).
+
+  Asked the owner for the browser, the view (Grid or List) and a screenshot.
+
 ## R1b Shared round (after the go)
 - [ ] Extract the round machine; the page drives it with identical HTML; the game switches to
   it; e2e-paths 129/129 unchanged.

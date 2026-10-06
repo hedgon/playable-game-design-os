@@ -2353,13 +2353,13 @@ function stageFooterHTML(pth, st, prog){
   const next = pathNextStep(pth.id), live = fight && fight.path === pth.id && fight.stage === st.id ? fight : null;
   const checkpointOpen = (!!next && next.type === 'checkpoint' && next.stage.id === st.id) || (live && live.mode === 'check') || keepCheckOpen === pth.id + '/' + st.id;
   const review = (st.review || []).map(tid => { const t = TOPICS[tid]; return t ? `<a class="chip lnk" style="cursor:pointer" href="#/map/t/${tid}">${esc(t.t)}</a>` : ''; }).join('');
-  const status = prog.stages[st.id], last = prog.check[st.id], skin = adventureSkin(), asked = recallItems(st).length;
+  const status = prog.stages[st.id], last = prog.check[st.id], asked = recallItems(st).length;
   const lastLine = last ? `<p class="small muted">Last time (${esc(new Date(last.at).toLocaleDateString())}): ${last.got} of ${last.n} recalled${last.partial ? `, ${last.partial} partly` : ''}.</p>` : '';
   return `${review ? `<div class="small" style="margin-top:10px"><b>Review:</b> ${review}</div>` : ''}
-    <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>${skin ? 'The castle: this stage’s checkpoint' : 'Checkpoint'}</summary><div class="body">
+    <details class="pathcheck" style="margin-top:10px" ${checkpointOpen ? 'open' : ''}><summary>Checkpoint</summary><div class="body">
       <h3 class="h4look">Can you answer these?</h3>
       ${asked ? `<p class="small" style="margin:0 0 6px">One question at a time, from memory: answer, say how sure you are, then compare with the outline. Questions you miss come back in your review queue.</p>
-      <div class="fight" data-mode="check">${live && live.mode === 'check' ? fightHTML(pth, st) : `${lastLine}<button type="button" class="btn sm primary" data-action="fight-start" data-mode="check" data-path="${pth.id}" data-stage="${st.id}">${skin ? 'Enter the castle' : 'Start the checkpoint'} (${asked} question${asked === 1 ? '' : 's'})</button><span class="small muted blk" style="margin-top:4px">A round in progress is not kept if you leave or reload the page; answers you have given stay in your review queue.</span>`}</div>
+      <div class="fight" data-mode="check">${live && live.mode === 'check' ? fightHTML(pth, st) : `${lastLine}<button type="button" class="btn sm primary" data-action="fight-start" data-mode="check" data-path="${pth.id}" data-stage="${st.id}">Start the checkpoint (${asked} question${asked === 1 ? '' : 's'})</button><span class="small muted blk" style="margin-top:4px">A round in progress is not kept if you leave or reload the page; answers you have given stay in your review queue.</span>`}</div>
       <details class="small allq"><summary>Or see all the questions at once</summary>${recallHTML(pth, st)}</details>` : recallHTML(pth, st)}
       <h3 class="h4look">Build</h3><p>${esc(st.check.build)}</p>${solutionHTML(st)}
       <button type="button" class="btn sm primary" ${status ? 'disabled' : ''} data-action="stage-done" data-path="${pth.id}" data-stage="${st.id}">${status === 'done' ? 'Stage marked done' : 'Mark stage done'}</button>
@@ -2389,7 +2389,6 @@ const OUTCOME = { got: 'Got it', partial: 'Partly', missed: 'Not yet' };
 // The ideas a good answer contains: the outline's own list when it has one, else its sentences.
 const recallIdeas = x => Array.isArray(x.ideas) && x.ideas.length ? x.ideas : String(x.a).split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).filter(t => t.trim());
 const recallItems = st => (st.check.recall || []).filter(x => typeof x === 'object' && x.a);
-const adventureSkin = () => store.get('pathSkin', false) === true;
 function fightHTML(pth, st){
   const f = fight, items = recallItems(st);
   if(f.phase === 'end') return fightEndHTML(pth, st);
@@ -2473,26 +2472,25 @@ document.addEventListener('input', e => { if(fight && e.target.matches && e.targ
 // The stage map: every stage as a region with what is true of it (steps read,
 // what the checkpoint recalled, questions due), the current one marked. It is
 // a view, never a gate: every region opens at any time. "Plain list" shows
-// every stage's steps instead. The adventure skin (off by default) only
-// changes the look and two labels; nothing moves while the reader is reading.
+// every stage's steps instead. Nothing moves while the reader is reading; the
+// path as a game is its own page (#/play/<path>, 96-rpg.js).
 function overworldHTML(pth, prog, curStage, next){
-  const due = reviewDue(), skin = adventureSkin(), view = pathView();
+  const due = reviewDue(), view = pathView();
   const regions = pth.stages.map((st, si) => {
     const done = st.steps.filter((_, i) => prog.steps[`${st.id}/${i}`]).length, c = prog.check[st.id], status = prog.stages[st.id];
     const recall = c ? (c.got === c.n ? 'all recalled' : `${c.got} of ${c.n} recalled`) : 'checkpoint not tried';
     const dueHere = due.filter(([k]) => k.startsWith(`ck:${pth.id}:${st.id}:`)).length;
     const here = st.id === curStage;
     return `<li class="region ${here ? 'here' : ''} ${status || ''}"><a class="lnk" href="#/paths/${pth.id}/${st.id}"${here ? ' aria-current="step"' : ''}>
-      <span class="rnum" aria-hidden="true">${status === 'done' ? '✓' : status === 'skipped' ? '⇥' : si + 1}</span><span class="rtext"><b>${esc(st.t)}</b><span class="small muted blk">${done} of ${st.steps.length} steps · ${recall}${status === 'skipped' ? ' · tested out or skipped' : status === 'done' ? ' · done' : ''}${dueHere ? ` · ${dueHere} to review` : ''}</span>${here ? `<span class="you blk">${skin ? '▲ ' : ''}You are here</span>` : ''}</span></a></li>`;
+      <span class="rnum" aria-hidden="true">${status === 'done' ? '✓' : status === 'skipped' ? '⇥' : si + 1}</span><span class="rtext"><b>${esc(st.t)}</b><span class="small muted blk">${done} of ${st.steps.length} steps · ${recall}${status === 'skipped' ? ' · tested out or skipped' : status === 'done' ? ' · done' : ''}${dueHere ? ` · ${dueHere} to review` : ''}</span>${here ? `<span class="you blk">You are here</span>` : ''}</span></a></li>`;
   }).join('');
-  return `<section class="overworld ${skin ? 'skin' : ''}" aria-labelledby="owH">
-    <div class="row between owhead"><h2 id="owH" class="h4look">${skin ? 'The road through this path' : 'Stages'}</h2><span class="chips" role="group" aria-label="How to show the stages"><button type="button" class="chip" data-action="path-view" data-v="world" aria-pressed="${view === 'world'}">Stage map</button><button type="button" class="chip" data-action="path-view" data-v="list" aria-pressed="${view === 'list'}">Plain list</button><button type="button" class="chip" data-action="path-skin" data-v="${skin ? '0' : '1'}" aria-pressed="${skin}">Adventure look</button></span></div>
+  return `<section class="overworld" aria-labelledby="owH">
+    <div class="row between owhead"><h2 id="owH" class="h4look">Stages</h2><span class="chips" role="group" aria-label="How to show the stages"><button type="button" class="chip" data-action="path-view" data-v="world" aria-pressed="${view === 'world'}">Stage map</button><button type="button" class="chip" data-action="path-view" data-v="list" aria-pressed="${view === 'list'}">Plain list</button></span></div>
     ${view === 'world' ? `<ol class="regions">${regions}</ol>` : ''}
     <p class="small ownext">Next: <a href="${nextStepHref(next)}">${esc(nextStepLabel(next))}</a>${due.length ? ` · <a href="#/review">${due.length} question${due.length === 1 ? '' : 's'} to review today</a>` : ''}</p></section>`;
 }
 const pathView = () => store.get('pathView', 'world') === 'list' ? 'list' : 'world';
 ACTIONS['path-view'] = el => { store.set('pathView', el.dataset.v); keepScroll = true; route(); };
-ACTIONS['path-skin'] = el => { store.set('pathSkin', el.dataset.v === '1'); keepScroll = true; route(); };
 // Checkpoint recall: answer first, then open a question to compare with its
 // outline. Each can go into the review queue, keyed by its text.
 function recallHTML(pth, st){
@@ -2514,19 +2512,17 @@ function stageSectionHTML(pth, st, si, curStage, prog, next){
     <div class="body"><ol class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog, i === nextIdx)).join('')}</ol>${stageFooterHTML(pth, st, prog)}</div>
   </section>`;
 }
-// The paths that can be walked as a game (#/play/<path>, 96-rpg.js).
-const RPG_PATHS = ['game-designer-foundations'];
 function pathPageHTML(pth, stageIdParam){
   const curStage = (stageIdParam && pth.stages.some(s => s.id === stageIdParam)) ? stageIdParam : currentStageId(pth);
   const { prog, total, done, doneStages, pct } = pathProgressCounts(pth);
   const next = pathNextStep(pth.id);
   const main = glossify(`<div class="chips" style="margin-bottom:8px"><span class="chip dom" style="--dc:var(--accent2)">${esc(trackLabel(pth.track))}</span><span class="chip">${esc(levelLabel(pth.level))} entry</span><span class="chip">${pth.hours}h</span></div>
     <h1>${esc(pth.t)}</h1><p class="tag">${esc(pth.tag)}</p>
+    <p class="rpgplay"><a class="btn primary" href="#/play/${pth.id}">▶ Play this path</a> <span class="small muted">Walk it as a small game: each town is a stage, each person a step. Same progress as this page.</span></p>
     <p class="dim"><b>Who it is for.</b> ${esc(pth.audience)}</p>
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
     ${hasPrereq(pth) ? `<div class="small muted" style="margin:1em 0">Prereq: ${(pth.prereqAny || []).length > 3 ? prereqSummaryHtml(pth) : prereqHtml(pth, pathLinkChip, ', ')}</div>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
-    ${RPG_PATHS.includes(pth.id) ? `<p class="rpgplay"><a class="btn primary" href="#/play/${pth.id}">Play this path</a> <span class="small muted">Walk it as a small game: each town is a stage, each person a step.</span></p>` : ''}
     ${overworldHTML(pth, prog, curStage, next)}
     <div class="pathstages">${pth.stages.map((st, si) => pathView() === 'list' || st.id === curStage ? stageSectionHTML(pth, st, si, curStage, prog, next) : '').join('')}</div>
     ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`, { only: '.pathstep-body .gl' });

@@ -1297,13 +1297,6 @@ ol.pathsteps{list-style:none;padding:0;margin:0 0 10px}
 .overworld .rtext{min-width:0}
 .overworld .you{margin-top:4px;font-size:var(--fs-micro);color:var(--accent2-ink);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .overworld .ownext{margin:4px 0 0}
-/* the adventure look: off by default; only shape and two labels change, and the marker steps in once, without motion when motion is reduced */
-.overworld.skin .regions{gap:14px}
-.overworld.skin .region > a{border-radius:16px 16px 4px 4px;background:color-mix(in srgb,var(--accent2) 7%,var(--panel))}
-.overworld.skin .region > a::after{content:"\265C";margin-left:auto;color:var(--fg3);font-size:1.1rem;line-height:1}
-.overworld.skin .you{animation:walkin .45s ease-out}
-@keyframes walkin{from{transform:translateX(-18px);opacity:0}to{transform:none;opacity:1}}
-@media (prefers-reduced-motion:reduce){.overworld.skin .you{animation:none}}
 /* the checkpoint, one question at a time */
 .fight{margin:6px 0 10px}
 .fight h4.fight-q{font-size:var(--fs-4);color:var(--fg);font-weight:700;margin:4px 0 8px}

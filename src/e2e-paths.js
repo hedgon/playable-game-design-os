@@ -5,8 +5,7 @@
 // opens framed to the current stage, the chooser suggests a path for every
 // answer combination, a checkpoint question can go into Review and out, the
 // checkpoint asks one question at a time and schedules what it found, a test-out
-// marks a known stage, the stage map and the plain list both show every stage,
-// and the adventure look is off by default and still under reduced motion.
+// marks a known stage, and the stage map and the plain list both show every stage.
 // Needs Playwright, like smoke.js.
 // Usage: node src/e2e-paths.js   (PLAYWRIGHT_CHANNEL=chrome uses an installed Chrome)
 const http = require('http'), fs = require('fs'), path = require('path');
@@ -338,17 +337,6 @@ const server = http.createServer((req, res) => {
     check(`${tag} the plain list shows every stage's steps`, pl.sections === 6 && pl.regions === 0 && pl.pressed === 'true', JSON.stringify(pl));
     await page.click('#pane [data-action="path-view"][data-v="world"]'); await page.waitForTimeout(100);
     await page.evaluate(() => { localStorage.removeItem('playable.review'); localStorage.removeItem('playable.path.performance-engineer'); });
-    // --- the adventure look is off by default; when on, its one entrance movement stops under reduced motion
-    for (const rm of ['no-preference', 'reduce']) {
-      const c2 = await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: rm }), p2 = await c2.newPage();
-      await p2.goto(BASE + '#/paths/performance-engineer'); await p2.waitForTimeout(500);
-      const off = await p2.evaluate(() => !!document.querySelector('#pane .overworld') && !document.querySelector('#pane .overworld.skin'));
-      await p2.evaluate(() => document.querySelector('#pane [data-action="path-skin"]').click()); await p2.waitForTimeout(200);
-      const an = await p2.evaluate(() => { const y = document.querySelector('#pane .overworld.skin .you'); return y ? getComputedStyle(y).animationName : 'missing'; });
-      check(`${tag} the adventure look is off by default; its marker ${rm === 'reduce' ? 'does not move under reduced motion' : 'steps in once'}`, off && (rm === 'reduce' ? an === 'none' : an === 'walkin'), JSON.stringify({ off, an }));
-      await c2.close();
-    }
-
     check(`${tag} no console errors`, !errors.length, errors[0]);
     await ctx.close();
   }

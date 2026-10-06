@@ -791,6 +791,30 @@ const chosen = new Set(Object.values(ctx.CHOOSER ? ctx.CHOOSER.paths : {}).flatM
 for (const p of (PATHS || [])) if (!chosen.has(p.id)) errors.push(`chooser: path ${p.id} is not offered for any answer`);
 for (const [rule, list] of Object.entries(guides)) longs.push(`curriculum guide: ${rule}: ${list.length} (e.g. ${list.slice(0, 3).join('; ')})`);
 if (recallNoAnswer) errors.push(`paths: ${recallNoAnswer} checkpoint recall questions have no answer outline`);
+// The path game (#/play/<path>) builds each path's world from these paths (95-rpg-world.js, run here
+// as the page runs it): every step needs exactly one person, nothing may stand on another thing, and
+// every person, guardian and sign needs a road tile beside it that the first town's way in reaches,
+// with everything standing treated as a wall, so nothing in the world is ever out of reach or in the way.
+{
+  const RPG = {}; new Function('window', fs.readFileSync(path.join(__dirname, '95-rpg-world.js'), 'utf8'))({ PlayableApp: RPG });
+  const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  let worlds = 0, farthest = 0; const before = errors.length;
+  for (const p of (PATHS || [])) {
+    const W = RPG.buildRpgWorld(p), at = `path game ${p.id}`, placed = new Set();
+    W.towns.forEach((t, k) => {
+      if (t.people.length !== p.stages[k].steps.length) errors.push(`${at}: town ${k + 1} has ${t.people.length} people for ${p.stages[k].steps.length} steps`);
+      for (const e of [...t.people, t.guardian, t.sign]) { const key = e.x + ',' + e.y; if (placed.has(key)) errors.push(`${at}: two things stand at ${key}`); placed.add(key); }
+    });
+    const start = W.towns[0].entry, dist = new Map([[start.x + ',' + start.y, 0]]), q = [[start.x, start.y]];
+    while (q.length) { const [x, y] = q.shift(), n = dist.get(x + ',' + y); for (const [dx, dy] of N4) { const k = (x + dx) + ',' + (y + dy); if (!dist.has(k) && W.walkable(x + dx, y + dy)) { dist.set(k, n + 1); q.push([x + dx, y + dy]); } } }
+    W.towns.forEach((t, k) => [...t.people.map(e => [`person ${e.i + 1}`, e]), ['guardian', t.guardian], ['sign', t.sign]].forEach(([what, e]) => {
+      const near = N4.map(([dx, dy]) => dist.get((e.x + dx) + ',' + (e.y + dy))).filter(n => n !== undefined);
+      if (!near.length) errors.push(`${at}: town ${k + 1} ${what} cannot be reached`); else farthest = Math.max(farthest, Math.min(...near));
+    }));
+    worlds++;
+  }
+  console.log(`path game worlds: ${worlds} checked, ${errors.length - before} problems; the farthest person or guardian is ${farthest} steps from the start (Travel goes to any town)`);
+}
 console.log(`paths: ${(PATHS || []).length}, chooser combinations: ${chooserCombos}, stages: ${(PATHS || []).reduce((n, p) => n + (Array.isArray(p.stages) ? p.stages.length : 0), 0)}, steps: ${pathStepCount}`);
 
 for (const d of DOMAINS) for (const [to] of d.links) if (!domIds.has(to)) errors.push(`domain ${d.id}: link -> unknown ${to}`);

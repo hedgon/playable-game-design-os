@@ -96,8 +96,7 @@ Set `PLAYWRIGHT_CHANNEL=chrome` to use an installed Chrome instead.
 continue at a checkpoint, ticking a step, undo, the four structure indicators on
 an open path, map framing, the chooser, a checkpoint question going into
 Review, the checkpoint asked one question at a time (re-ask, scheduling, stored
-result), the test-out, the stage map and plain list, and the adventure look
-under reduced motion. Run it with `node src/e2e-paths.js` after the same Playwright setup.
+result), the test-out, and the stage map and plain list. Run it with `node src/e2e-paths.js` after the same Playwright setup.
 
 `src/e2e-rpg.js` drives the path game (`#/play/<path>`) at 375 and 1440 px: walking and
 talking by keyboard, the site's shortcuts staying quiet in the game, a person's page and

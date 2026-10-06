@@ -30,8 +30,8 @@ questions one at a time, answered from memory before the outline shows, with a
 comes back in the review queue. Then one build task, with a reference solution to
 open after you try. If you already know a stage, test out of it with the same
 questions, or skip it without testing. The path page shows the stages as a map
-(steps read, what the checkpoint recalled, questions due) or as a plain list; an
-optional adventure look changes only the shape. A stage marked done or skipped by
+(steps read, what the checkpoint recalled, questions due) or as a plain list, and
+**Play this path** walks it as a small game instead. A stage marked done or skipped by
 mistake can be undone. The evidence behind each rule is in
 [docs/program-2026-10/research/curriculum.md](docs/program-2026-10/research/curriculum.md). A slim bar
 on every page names your current stage and the next step. There are no streaks
