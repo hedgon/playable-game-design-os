@@ -89,6 +89,16 @@ Plan: `plan.md` (revision 2, approved 2026-10-06). `[x]` done, `[~]` in progress
 
   Asked the owner for the browser, the view (Grid or List) and a screenshot.
 
+- [x] "When approaching an NPC the description grows and pushes the game view up and down":
+  - the status line moves from above the map into a strip over the map's top edge, so its
+    length never moves the map;
+  - it shows the place, then "Beside you: …"; "Press Enter or Talk" is now for screen readers
+    only;
+  - it is hidden in a battle;
+  - e2e-rpg measures the map's top before and after stepping beside someone, at both widths;
+  - control: with the line put back above the map, the map moves 17 px at 375 px; with the fix,
+    0 px.
+
 ## R1b Shared round (after the go)
 - [ ] Extract the round machine; the page drives it with identical HTML; the game switches to
   it; e2e-paths 129/129 unchanged.

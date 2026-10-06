@@ -60,9 +60,13 @@ const ID = 'game-designer-foundations';
     await page.keyboard.press('2'); await page.keyboard.press('t'); await page.waitForTimeout(100);
     check(`${tag} the game keeps 2 and t from the site's shortcuts`, (await page.evaluate(() => location.hash)) === `#/play/${ID}` && (await page.evaluate(() => document.documentElement.dataset.theme || '')) === theme);
 
-    // --- walk to the first person and talk
+    // --- walk to the first person and talk; the map must not move when the status line grows
     const t0 = W[0];
+    const mapTop = () => page.evaluate(() => Math.round(document.querySelector('#pane .rpg canvas').getBoundingClientRect().top + document.getElementById('pane').scrollTop));
+    const topAlone = await mapTop();
     await walkToPerson(t0, t0.people[0]);
+    const topBeside = await mapTop();
+    check(`${tag} the map stays put when someone is beside the player (status line over the map)`, topAlone === topBeside && await page.$('#pane .rpg-stage > .rpg-status'), `${topAlone} -> ${topBeside}`);
     const st1 = await page.evaluate(id => stepTitle(PATHS.find(p => p.id === id).stages[0].steps[0]), ID);
     check(`${tag} the status line names the person beside the player`, (await status()).includes(st1), await status());
     await page.keyboard.press('Enter'); await page.waitForTimeout(80);

@@ -93,8 +93,8 @@ function renderRpg(id){
   store.set('paths.active', pth.id);
   setView(`<div class="rpg">
     <div class="rpg-head"><a class="btn sm" href="#/paths/${pth.id}">Use the list instead</a><h1>${esc(pth.t)}</h1></div>
-    <p class="small rpg-status" role="status" aria-live="polite"></p>
     <div class="rpg-stage" tabindex="0" aria-label="The world of this path. Arrow keys or W A S D walk; Enter talks to whoever is beside you." aria-describedby="rpgHelp">
+      <p class="rpg-status" role="status" aria-live="polite"></p>
       <canvas aria-hidden="true"></canvas>
       <div class="rpg-box" hidden></div>
     </div>
@@ -209,8 +209,9 @@ function nameOf(e){
 function say(first){
   const t = G.world.townAt(G.me.x, G.me.y), e = beside();
   const stop = s => /[.?!]$/.test(s) ? s : s + '.';
-  const text = `${stop(t ? townName(t) : 'On the road')}${e ? ` Beside you: ${stop(nameOf(e))} Press Enter or Talk.` : ''}`;
-  if(text !== G.said || first){ G.said = text; G.status.textContent = text; }
+  const where = stop(t ? townName(t) : 'On the road'), near = e ? stop(nameOf(e)) : '';
+  const text = where + near;
+  if(text !== G.said || first){ G.said = text; G.status.innerHTML = `<span>${esc(where)}</span>${e ? `<span class="rpg-near"> Beside you: ${esc(near)}</span><span class="sr-only"> Press Enter or Talk.</span>` : ''}`; }
 }
 
 function walkTo(tx, ty){
@@ -429,4 +430,4 @@ function renderStats(){
 A.renderRpg = renderRpg;
 })(window.PlayableApp);
 
-PlayableContent.put("code","rpg",null,"fe13ae3f");
+PlayableContent.put("code","rpg",null,"f60ab421");

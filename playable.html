@@ -1286,7 +1286,11 @@ ol.pathsteps{list-style:none;padding:0;margin:0 0 10px}
 .rpgplay{margin:4px 0 14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .rpg .rpg-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-bottom:4px}
 .rpg .rpg-head h1{margin:0;font-size:var(--fs-3)}
-.rpg .rpg-status{min-height:1.5em;margin:4px 0 8px}
+
+.rpg-status{position:absolute;left:0;right:0;top:0;z-index:1;margin:0;padding:4px 10px;background:rgba(16,19,58,.86);color:#fff;font-size:.85rem;line-height:1.35;pointer-events:none}
+.rpg-status:empty{display:none}
+.rpg-status .rpg-near{display:block;font-weight:700}
+.rpg.battling .rpg-status{display:none}
 .rpg-stage{position:relative;display:flex;justify-content:center;background:#1b3a1d;border-radius:var(--r3);overflow:hidden;outline-offset:3px}
 .rpg-stage canvas{display:block;image-rendering:pixelated;touch-action:manipulation;cursor:pointer}
 .rpg-box{position:absolute;left:8px;right:8px;bottom:8px;max-height:calc(100% - 16px);overflow:auto;background:#10133a;color:#fff;border:3px solid #fff;border-radius:8px;padding:10px 14px;box-shadow:0 0 0 3px #10133a;font-size:1rem;line-height:1.5}
@@ -1579,7 +1583,7 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 
-window.PLAYABLE_BUILD = "fe13ae3f";
+window.PLAYABLE_BUILD = "f60ab421";
 window.PLAYABLE_NOFILE = {};
 const TOOLS = [["idea","Idea Shaper","Read a market for an unserved want, then shape one core idea to fill it","You have a genre or a hunch, but no idea yet.","finding-an-idea"],["dissect","Reference Dissection","Is my idea actually good? Cross-reference it against games that succeeded","You have an idea and want to know whether it is good before you build it.","learning-from-success"],["loop","Game Loop Builder","Action → Decision → Feedback → Reward → New situation, with a weak-link check","Your idea is a list of features and you cannot tell whether it repeats.","core-loop"],["canvas","Core Experience Canvas","Player, fantasy, emotions, goals, what it is not","You need one page that says who it is for and what it should feel like.","core-experience"],["ladder","Behaviour Ladder","From a feature idea to the behavior and back to the smallest mechanic","Someone asks for a feature and you need the behavior it should cause.","feature-vs-experience"],["feature","Should We Build This?","Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE","A feature is on the table and the team is about to commit.","scope-control"],["hypothesis","Playtest Hypothesis Builder","We believe… we will know when… we will kill it if…","You are about to run a playtest and want it to settle a question.","hypothesis-driven-design"],["delegate","AI Delegation Planner","Human, AI, both, or player evidence required","You are deciding which parts of the work to hand to an AI.","ai-roles"],["sysmap","System Relationship Map","Nodes and typed edges. Collision questions generated","Two systems touch and you suspect they collide.","systemic-design"],["prompt","AI Prompt Generator","CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE","You are about to ask an AI for design help and want a prompt that gets a usable answer.","prompting-framework"],["gameai","In-game AI Technique Chooser","Decision shape + team + budget → primary technique, trade-offs, debug view","A character needs to decide things in play and you must pick a technique.","choosing-ai-technique"]];
 const TOOL_GROUPS = [["shape","Shape an idea",["idea","canvas","ladder"]],["test","Test an idea",["dissect","feature","hypothesis"]],["systems","Systems",["loop","sysmap"]],["ai","AI",["delegate","prompt","gameai"]]];

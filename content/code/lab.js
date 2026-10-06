@@ -193,4 +193,4 @@ function renderLab(){
 A.renderLab = renderLab;
 })(window.PlayableApp);
 
-PlayableContent.put("code","lab",null,"fe13ae3f");
+PlayableContent.put("code","lab",null,"f60ab421");

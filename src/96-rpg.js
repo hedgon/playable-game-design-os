@@ -32,8 +32,8 @@ function renderRpg(id){
   store.set('paths.active', pth.id);
   setView(`<div class="rpg">
     <div class="rpg-head"><a class="btn sm" href="#/paths/${pth.id}">Use the list instead</a><h1>${esc(pth.t)}</h1></div>
-    <p class="small rpg-status" role="status" aria-live="polite"></p>
     <div class="rpg-stage" tabindex="0" aria-label="The world of this path. Arrow keys or W A S D walk; Enter talks to whoever is beside you." aria-describedby="rpgHelp">
+      <p class="rpg-status" role="status" aria-live="polite"></p>
       <canvas aria-hidden="true"></canvas>
       <div class="rpg-box" hidden></div>
     </div>
@@ -154,12 +154,14 @@ function nameOf(e){
   if(e.type === 'person'){ const s = st.steps[e.i], done = pathProgress(G.pth.id).steps[`${st.id}/${e.i}`]; return `${stepTitle(s)}${done ? ' (done)' : ''}`; }
   return e.type === 'guardian' ? `the guardian of ${st.t}` : `the sign of ${townName(e.town)}`;
 }
-// The status line says where you are and who is beside you; it speaks only when that changes.
+// The status line says where you are and who is beside you; it speaks only when that changes. It lies
+// over the top of the map, so a longer line never moves the map (the owner found the jump distracting).
 function say(first){
   const t = G.world.townAt(G.me.x, G.me.y), e = beside();
   const stop = s => /[.?!]$/.test(s) ? s : s + '.';
-  const text = `${stop(t ? townName(t) : 'On the road')}${e ? ` Beside you: ${stop(nameOf(e))} Press Enter or Talk.` : ''}`;
-  if(text !== G.said || first){ G.said = text; G.status.textContent = text; }
+  const where = stop(t ? townName(t) : 'On the road'), near = e ? stop(nameOf(e)) : '';
+  const text = where + near;
+  if(text !== G.said || first){ G.said = text; G.status.innerHTML = `<span>${esc(where)}</span>${e ? `<span class="rpg-near"> Beside you: ${esc(near)}</span><span class="sr-only"> Press Enter or Talk.</span>` : ''}`; }
 }
 
 /* ---------- tap to walk: the shortest way there, beside it if someone stands there ---------- */
