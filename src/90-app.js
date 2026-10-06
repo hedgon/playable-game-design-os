@@ -16,7 +16,7 @@ DOMAINS.forEach(d => d.topics = TOPIC_LIST.filter(t => t.d === d.id).map(t => t.
 const late = name => (...a) => A[name](...a);
 const renderMap = late('renderMap'), renderTree = late('renderTree'), syncMapMode = late('syncMapMode'),
   enterProject = late('enterProject'), enterPathMap = late('enterPathMap'),
-  renderLab = late('renderLab'), fitMap = late('fitMap'),
+  renderLab = late('renderLab'), renderRpg = late('renderRpg'), fitMap = late('fitMap'),
   consumeMapKeyNav = late('consumeMapKeyNav'), currentLens = late('currentLens'), setLens = late('setLens'),
   lensSwitchHTML = late('lensSwitchHTML'), mapProgress = late('mapProgress');
 
@@ -108,7 +108,7 @@ const NAV = [
 ];
 const VIEW_GROUP = {};
 NAV.forEach(g => g.views.forEach(([v]) => { VIEW_GROUP[v] = g; }));
-VIEW_GROUP.smell = VIEW_GROUP.diagnose; VIEW_GROUP.topic = VIEW_GROUP.map;
+VIEW_GROUP.smell = VIEW_GROUP.diagnose; VIEW_GROUP.topic = VIEW_GROUP.map; VIEW_GROUP.play = VIEW_GROUP.paths;
 function go(hash){ if(location.hash === hash) route(); else location.hash = hash; }
 // Below this width the index and the content are drawers over the map.
 const narrowQuery = window.matchMedia('(max-width: 1100px)');   // the same width as the drawer CSS
@@ -142,6 +142,7 @@ function missing(parts){
     case 'platforms': return a && !has(PLATFORMS, a) ? ['platform', a, '#/platforms', 'Platforms'] : null;
     case 'engines': return a && !has(ENGINES, a) ? ['engine', a, '#/engines', 'Engines'] : null;
     case 'paths': return a && a !== 'review' && !has(PATHS, a) ? ['path', a, '#/paths', 'Learning paths'] : null;
+    case 'play': return a !== 'stats' && !has(PATHS, a) ? ['path', a || '', '#/paths', 'Learning paths'] : null;
     case 'checklists': return a && !has(CHECKLISTS, a) ? ['checklist', a, '#/checklists', 'Checklists'] : null;
     case 'prompts': return a && !has(PROMPT_TEMPLATES, a) ? ['prompt', a, '#/prompts', 'Prompts'] : null;
     case 'build': return a && !TOOLS.some(t => t[0] === a) ? ['build tool', a, '#/build', 'Build tools'] : null;
@@ -242,6 +243,8 @@ function contentNeeds(parts){
     // tool also shows each saved comparable's long fields (engines, lesson)
     case 'build': return !a ? [] : [['code', 'tools'], ...(a === 'dissect' ? (store.get('dissectTool', {}).comps || []).filter(c => c && REFERENCE_GAMES.some(g => g.id === c.id)).map(c => ['game', c.id]) : [])];
     case 'lab': return [['code', 'lab']];
+    // the path game: its code, and the path's steps and checkpoint questions
+    case 'play': return a === 'stats' ? [['code', 'rpg']] : [['code', 'rpg'], ['path', a]];
   }
   return [];
 }
@@ -338,6 +341,7 @@ function render(view, parts){
     case 'paths': return renderPaths(parts[1], parts[2]);
     case 'map': return renderMap(parts[1], parts[2], parts[3]);
     case 'lab': renderLab(); return addMakeJobs();
+    case 'play': return renderRpg(parts[1]);
     case 'explore': return renderExplore(parts[1]);
     case 'concepts': return renderConcepts();
     case 'glossary': return renderGlossary(parts[1]);
@@ -668,7 +672,8 @@ ACTIONS['wide-jump'] = el => {
 };
 function setView(html){
   ensureShell(); const pane = $('#pane'), keep = keepScroll, y = window.scrollY, py = pane.scrollTop; keepScroll = false;
-  pane.innerHTML = `${pathBarHTML()}${subNavHTML()}<div class="view">${html}</div>`; updateRail();
+  const play = currentParts()[0] === 'play';
+  pane.innerHTML = `${play ? '' : pathBarHTML()}${play ? '' : subNavHTML()}<div class="view">${html}</div>`; updateRail();
   // Every picture can be opened larger, by click, tap or keyboard.
   $$(ZOOMABLE, pane).forEach(i => { i.tabIndex = 0; i.setAttribute('role', 'button'); i.setAttribute('aria-label', 'View larger: ' + (i.alt || 'image')); });
   // The sticky path bar's height, so an anchor or lens link lands below it (see #pane [id] in the CSS).
@@ -2045,6 +2050,8 @@ const REVIEW_DAYS = [1, 2, 4, 8, 16];
 // Days are counted in the reader's time zone, so "tomorrow" starts at their
 // midnight, not at midnight UTC (hours away, or minutes, for most readers).
 const today = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); };
+// Private counters for the path game's walking-cost check (#/play/stats).
+function rpgCount(k, v = 1){ const s = store.get('rpg.stats', {}); s[k] = (s[k] || 0) + v; store.set('rpg.stats', s); }
 const reviewItems = () => Object.fromEntries(Object.entries(store.get('review', {})).filter(([, r]) => r && typeof r === 'object' && !Array.isArray(r)));
 const reviewDue = () => Object.entries(reviewItems()).filter(([, r]) => r.due <= today());
 ACTIONS['reload-page'] = () => location.reload();
@@ -2060,7 +2067,7 @@ ACTIONS['review-grade'] = el => {
   const items = reviewItems(), r = items[el.dataset.key]; if(!r) return;
   r.box = el.dataset.grade === 'got' ? Math.min(REVIEW_DAYS.length - 1, r.box + 1) : 0;
   r.due = today() + REVIEW_DAYS[r.box];
-  store.set('review', items); renderReview();
+  store.set('review', items); rpgCount('pageReviews'); renderReview();
 };
 // "Practise now": a run through questions that are not due yet, soonest first. It never
 // touches their schedule, so the spacing stays what the rules say.
@@ -2226,6 +2233,7 @@ function pathBarHTML(){
     <div class="pathbar-mini"><span class="pm-stage">${curIdx}/${pth.stages.length}</span><button type="button" class="pm-text" data-action="bar-expand" aria-label="Show the whole path bar">${cur ? esc(cur.step.do) : atCheckpoint ? 'Checkpoint' : esc(nextStepLabel(next))}</button>${next && onNext && !atCheckpoint ? `<button type="button" class="btn sm primary pm-done" data-action="path-continue" data-path="${pth.id}">Done ✓</button>` : next && !onNext ? `<a class="btn sm primary pm-done" href="${href}">Next →</a>` : ''}</div>
     <div class="pathbar-actions">
       ${next && !atCheckpoint ? (onNext ? `<button type="button" class="btn sm primary" data-action="path-continue" data-path="${pth.id}">Mark done and continue</button>` : `<a class="btn sm primary" href="${href}">${next.type === 'checkpoint' ? 'Open the checkpoint' : 'Next →'}</a>`) : ''}
+      ${store.get('rpg.' + pth.id, {}).back ? `<a class="btn sm" href="#/play/${pth.id}">Back to the world</a>` : ''}
       <button type="button" class="btn sm ghost" data-action="leave-path">Leave path</button>
     </div></div>`;
 }
@@ -2453,7 +2461,7 @@ ACTIONS['fight-mark'] = el => {
       f.phase = 'end';
       const n = items.length, got = f.first.filter(r => r === 'got').length, partial = f.first.filter(r => r === 'partial').length;
       const prog = pathProgress(pth.id); prog.check[st.id] = { at: Date.now(), mode: f.mode, n, got, partial, missed: n - got - partial }; prog.last = Date.now(); if(!prog.started) prog.started = prog.last;
-      savePathProgress(pth.id, prog);
+      savePathProgress(pth.id, prog); rpgCount('pageChecks');
       if(f.mode === 'testout' && got >= Math.ceil(2 * n / 3) && !prog.stages[st.id]) markStageStatus(pth.id, st.id, 'skipped');
     }
   }
@@ -2506,6 +2514,8 @@ function stageSectionHTML(pth, st, si, curStage, prog, next){
     <div class="body"><ol class="pathsteps">${st.steps.map((step, i) => stepRowHTML(pth, st, i, step, prog, i === nextIdx)).join('')}</ol>${stageFooterHTML(pth, st, prog)}</div>
   </section>`;
 }
+// The paths that can be walked as a game (#/play/<path>, 96-rpg.js).
+const RPG_PATHS = ['game-designer-foundations'];
 function pathPageHTML(pth, stageIdParam){
   const curStage = (stageIdParam && pth.stages.some(s => s.id === stageIdParam)) ? stageIdParam : currentStageId(pth);
   const { prog, total, done, doneStages, pct } = pathProgressCounts(pth);
@@ -2516,6 +2526,7 @@ function pathPageHTML(pth, stageIdParam){
     <p class="dim"><b>What you can do after.</b> ${esc(pth.outcome)}</p>
     ${hasPrereq(pth) ? `<div class="small muted" style="margin:1em 0">Prereq: ${(pth.prereqAny || []).length > 3 ? prereqSummaryHtml(pth) : prereqHtml(pth, pathLinkChip, ', ')}</div>` : ''}
     <div class="progress pathprogress" style="margin:10px 0 14px"><span>${doneStages} / ${pth.stages.length} stages · ${done} / ${total} steps${next ? '' : ' · all stages complete'}</span><span class="bar"><i style="width:${pct}%"></i></span></div>
+    ${RPG_PATHS.includes(pth.id) ? `<p class="rpgplay"><a class="btn primary" href="#/play/${pth.id}">Play this path</a> <span class="small muted">Walk it as a small game: each town is a stage, each person a step.</span></p>` : ''}
     ${overworldHTML(pth, prog, curStage, next)}
     <div class="pathstages">${pth.stages.map((st, si) => pathView() === 'list' || st.id === curStage ? stageSectionHTML(pth, st, si, curStage, prog, next) : '').join('')}</div>
     ${pth.next.length ? `<div class="wdup"><div class="section-head"><h2>Where to go next</h2></div><div class="chips">${pth.next.map(pathLinkChip).join('')}</div></div>` : ''}`, { only: '.pathstep-body .gl' });
@@ -2770,6 +2781,7 @@ $('#skipBtn').onclick = () => {
 document.addEventListener('keydown', e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return; }
+  if(e.target.closest && e.target.closest('.rpg')) return;
   if(e.key==='Escape'){ if(tipBtn){ closeTip(true); return; } if(!document.querySelector('.modal-bg.show') && isNarrow() && $('#drawerClose').classList.contains('show') && (!typing || document.activeElement.closest('#rail'))){ $('#drawerClose').click(); return; } closeModals(); return; }
   if(typing || !keysOn()) return;
   if(e.key==='/'){ e.preventDefault(); openSearch(); return; }
@@ -2787,6 +2799,6 @@ document.addEventListener('keydown', e => {
 // What the later files import from this one.
 Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, settled, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, bindForm, outputBox, toolHead, practice, setTopicTab,
-  topicBody, smellsView, pathProgress, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search, loadIndex, searchWords, STOP_WORDS, pinMap });
+  topicBody, smellsView, pathProgress, savePathProgress, markStageStatus, pathNextStep, scheduleRecall, recallItems, recallIdeas, CONFIDENCE, OUTCOME, reviewItems, today, rpgCount, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search, loadIndex, searchWords, STOP_WORDS, pinMap });
 })(window.PlayableApp = {});
 

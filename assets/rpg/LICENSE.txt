@@ -1,0 +1,15 @@
+tiles.png is cut from two tile packs by Kenney (www.kenney.nl):
+
+  Tiny Town (1.1), created 11-01-2023   https://kenney.nl/assets/tiny-town
+  Tiny Dungeon (1.0), created 05-07-2022   https://kenney.nl/assets/tiny-dungeon
+
+Both packs carry the same licence:
+
+  License: (Creative Commons Zero, CC0)
+  http://creativecommons.org/publicdomain/zero/1.0/
+
+  This content is free to use in personal, educational and commercial projects.
+  Support us by crediting Kenney or www.kenney.nl (this is not mandatory)
+
+src/rpg-tiles-make.js lists which tiles were taken and rebuilds tiles.png from the
+two packs' Tilemap/tilemap_packed.png files.

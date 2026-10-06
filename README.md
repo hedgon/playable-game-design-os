@@ -67,7 +67,7 @@ pacing curve, a comparison, a state machine, a pipeline) open with a
 
 | Section (key) | Views | What it is for |
 | --- | --- | --- |
-| **Paths** (1) | Learning paths, Review | The guided way in, above. **Review** brings back interview and checkpoint questions you marked, on a spaced schedule (1, 2, 4, 8, then 16 days). |
+| **Paths** (1) | Learning paths, Review | The guided way in, above. *Game designer foundations* can also be walked as a small top-down game in the manner of the first Dragon Quest (**Play this path**): each town is a stage, each person in it a step whose page they send you to, and the guardian at the end of a town asks the stage’s checkpoint questions; it keeps the same progress, notes and review queue as the path page, locks nothing, and the path page stays the default. **Review** brings back interview and checkpoint questions you marked, on a spaced schedule (1, 2, 4, 8, then 16 days). |
 | **Map** (2) | Map, List, Concept index | The mind map: the lens's goal in the middle, domains around it, a domain's topics when it opens, and related concepts, smells and tools under the topic you select. The list shows the same topics as a list; the concept index ranks topics by how often others reference them. |
 | **Library** (3) | Reference games, Platforms, Engines, Checklists, Prompts, Sources | The collections. **Reference games** takes games that succeeded or broke the mould apart with one template, each with a schematic of its loop, several with a numbered schematic of their screen, and every one with a full analysis: the idea worth stealing, ten lenses from UI and art direction to business and lineage (each a claim with evidence, mechanism, effect, comparison, cost and a lesson, with sources), and captioned, credited screenshots where the game has a store page. 107 entries (85 games and 22 series), from Tetris and Portal to Valkyria Chronicles, Persona 5 Royal, Final Fantasy XII, innovative designs such as Return of the Obra Dinn, Outer Wilds and Baba Is You, and casual and mobile hits such as Candy Crush Saga, Angry Birds and Flappy Bird. Long-running series such as Mega Man are analysed across all their entries, including which ones were praised or received badly and why. Group by family, filter by tag or lens, or switch to a list. **Platforms** has a guide per store or console (Steam, Nintendo, PlayStation, Xbox, Google Play, the App Store, Epic, the web, Meta Quest, itch.io) from getting access to release, and a guide per UGC platform (Roblox, Fortnite with UEFN) covering its architecture, editor and language, rules, money, publishing and discovery. Each stage has dated, sourced facts, each guide a flowchart and a numbered release walkthrough with interview questions, most with real screens from the platform’s own documentation; the stores share a comparison table, and curated and regional channels get a note each. **Engines** has a guide per engine or tool (Godot, Unity, Unreal Engine, GameMaker, the web stack, Blender, Ren’Py, Defold, Cocos Creator): what it is, how it is built, the editor, the content pipeline, building and deploying, licensing and cost, working with AI, and interview questions. 12 checklists (three for store submission, three for building with AI), 17 prompt templates, and the sources behind the guide. |
 | **Make** (4) | Idea Lab, Build tools | The **Idea Lab** treats an idea as a chain of small, evidence-rated steps (signal, tension, opportunity, question, design space, mechanisms, critique, converge, experiment, decide), one step at a time, and compresses it into an Idea Card. Eleven **build tools** (reference dissection, idea shaper, loop builder, experience canvas, behaviour ladder, "should we build this?", hypothesis builder, AI delegation planner, system map, prompt generator, in-game AI technique chooser) export Markdown. |
@@ -123,7 +123,8 @@ reads like a magazine, with four free fonts (SIL Open Font License) shipped in
 `assets/fonts/` with their licences, so the guide looks and measures the same on
 every system and offline: **Instrument Serif** italic for large page titles,
 **Newsreader** for reading, **Instrument Sans** for the interface, labels and map
-cards, and **Atkinson Hyperlegible Mono** for code.
+cards, and **Atkinson Hyperlegible Mono** for code. The path game's pixel art is cut
+from Kenney's *Tiny Town* and *Tiny Dungeon* (CC0), credited in `assets/rpg/LICENSE.txt`.
 
 ## Principles the guide embodies
 
@@ -144,6 +145,7 @@ content/                each page's full text, loaded on demand (generated)
 index.html              redirect to playable.html (GitHub Pages)
 assets/games/           reference-game art used by the reference library
 assets/fonts/           the three web fonts and their OFL licences
+assets/rpg/             the path game's tiles (CC0, from Kenney) and their licence
 src/                    sources and maintenance scripts (not needed to use the guide)
 README.md               this file
 CONTRIBUTING.md         how to edit content, the data schema, build and checks

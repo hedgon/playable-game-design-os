@@ -99,6 +99,13 @@ Review, the checkpoint asked one question at a time (re-ask, scheduling, stored
 result), the test-out, the stage map and plain list, and the adventure look
 under reduced motion. Run it with `node src/e2e-paths.js` after the same Playwright setup.
 
+`src/e2e-rpg.js` drives the path game (`#/play/<path>`) at 375 and 1440 px: walking and
+talking by keyboard, the site's shortcuts staying quiet in the game, a person's page and
+the way back to the same person, Mark done and reflect notes under the path page's own
+keys, a guardian's round writing the page's checkpoint record and review entries, tapping
+to walk, the place kept across a reload, and reduced motion. Run it with `node src/e2e-rpg.js`;
+it is not in CI yet.
+
 CI (`.github/workflows/build.yml`) runs the build, the `playable.html` and `content/` sync check,
 the type check, the smoke test and the paths test on every push and pull request.
 
@@ -147,12 +154,15 @@ the type check, the smoke test and the paths test on every push and pull request
 92-ideas.js               Reference Dissection  } loaded on demand: the build writes these to
 93-lab.js                 Idea Lab              } content/code/ (manifest LAZY) and the router
 94-tools.js               the other build tools } loads them before a tool or the Lab draws
+95-rpg-world.js           the path game's world: one town per stage, one person per step, a guardian per checkpoint (no DOM) } on demand,
+96-rpg.js                 the path game (#/play/<path>): canvas map, keyboard, pad, tap to walk, talk, the guardian's round } as above
 99-tail.js                boot
 manifest.js               ordered file list
 build.js                  build and checks (above)
 content-build.js          the split into the page's light index and content/ files (LIGHT), the search index, the lossless check
 load-data.js              the full data from the sources, for checks that need long fields
-validate.js, check-layout.js, layout-core.js, check-contrast.js, inventory.js, smoke.js, e2e-paths.js, serve.js
+validate.js, check-layout.js, layout-core.js, check-contrast.js, inventory.js, smoke.js, e2e-paths.js, e2e-rpg.js, serve.js
+rpg-tiles-make.js         cuts assets/rpg/tiles.png from Kenney's CC0 Tiny Town and Tiny Dungeon (not part of the build; the order of its TILES is the game's T table)
 research-notes.md         verified sources behind the synthesis, with dates
 ```
 

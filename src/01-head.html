@@ -1315,6 +1315,47 @@ ol.pathsteps{list-style:none;padding:0;margin:0 0 10px}
 .fight-idea input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--accent)}
 .fight-sum{margin:4px 0 8px}
 .pathcheck .allq{margin:8px 0}
+/* the path game (#/play/<path>, 96-rpg.js): a canvas map, and every word in a box in the old games' style, the same in both themes */
+.rpgplay{margin:4px 0 14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.rpg .rpg-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-bottom:4px}
+.rpg .rpg-head h1{margin:0;font-size:var(--fs-3)}
+.rpg .rpg-status{min-height:1.5em;margin:4px 0 8px}
+.rpg-stage{position:relative;display:flex;justify-content:center;background:#1b3a1d;border-radius:var(--r3);overflow:hidden;outline-offset:3px}
+.rpg-stage canvas{display:block;image-rendering:pixelated;touch-action:manipulation;cursor:pointer}
+.rpg-box{position:absolute;left:8px;right:8px;bottom:8px;max-height:calc(100% - 16px);overflow:auto;background:#10133a;color:#fff;border:3px solid #fff;border-radius:8px;padding:10px 14px;box-shadow:0 0 0 3px #10133a;font-size:1rem;line-height:1.5}
+.rpg-box .muted,.rpg-box .small{color:#e3e6ff}
+.rpg-box a{color:#9fd3ff}
+.rpg-box p{margin:4px 0}
+.rpg-box .rpg-who{font-weight:700;margin:0 0 4px}
+.rpg-box .rpg-say:focus,.rpg-box .rpg-q:focus{outline:none}
+.rpg-box .rpg-task{border-top:1px dashed rgba(255,255,255,.45);padding-top:6px;margin-top:6px}
+.rpg-opts{display:flex;flex-wrap:wrap;gap:4px 6px;margin:8px 0 2px}
+.rpg-opts.rpg-list{flex-direction:column;align-items:flex-start}
+.rpg-box button{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:6px;padding:6px 10px 6px 22px;min-height:44px;font:inherit;cursor:pointer;position:relative}
+.rpg-box button::before{content:"\25B6";position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:.7em;opacity:0}
+.rpg-box button:hover::before,.rpg-box button:focus-visible::before{opacity:1}
+.rpg-box button:focus-visible{border-color:#ffd54f;outline:none}
+.rpg-box button[aria-pressed="true"]{background:#fff;color:#10133a}
+.rpg-box button[disabled]{opacity:.55;cursor:default}
+.rpg-box textarea{display:block;width:100%;margin:4px 0;font:inherit;color:#10133a;background:#fff;border:0;border-radius:6px;padding:8px;resize:vertical}
+.rpg-box .rpg-ideas{border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:6px 10px;margin:8px 0}
+.rpg-box .rpg-ideas label{display:flex;gap:8px;align-items:flex-start;padding:4px 0}
+.rpg-box .rpg-ideas input{margin-top:4px;width:18px;height:18px;flex:none}
+.rpg-box .rpg-q{font-size:var(--fs-4);margin:4px 0 8px;color:#fff}
+.rpg-foe{display:flex;flex-direction:column;align-items:center;margin:4px 0 8px}
+.rpg-foe canvas{width:96px;height:96px;image-rendering:pixelated}
+/* in a battle the box takes the map's place and grows with what it holds */
+.rpg.battling .rpg-stage > canvas{display:none}
+.rpg-box.battle{position:static;max-height:none;width:100%;margin:0;border-radius:var(--r3)}
+.rpg-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:10px 0}
+.rpg-cmds{display:flex;flex-wrap:wrap;gap:6px}
+.rpg-pad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,48px);gap:4px}
+.rpg-pad button{min-width:48px;min-height:48px;padding:0;border:1px solid var(--line2);border-radius:var(--r3);background:var(--panel);color:var(--fg);font-size:1.1rem;touch-action:none;user-select:none;-webkit-user-select:none}
+.rpg-pad .pad-up{grid-column:2;grid-row:1}
+.rpg-pad .pad-left{grid-column:1;grid-row:2}
+.rpg-pad .pad-down{grid-column:2;grid-row:2}
+.rpg-pad .pad-right{grid-column:3;grid-row:2}
+.rpg.battling .rpg-controls{display:none}
 /* the comparisons shelf: pairs numbered in reading order */
 ol.compareorder{list-style:none;padding:0;margin:0 0 18px;counter-reset:co}
 ol.compareorder > li{counter-increment:co;display:flex}

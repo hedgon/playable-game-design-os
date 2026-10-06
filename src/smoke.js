@@ -26,7 +26,7 @@ const ROUTES_IN_PAGE = WORKED => {
   const cs = first(CASE_STUDIES), sys = cs && first(cs.systems), part = sys && first(sys.parts), flow = cs && first(cs.flows);
   const p = first(PATHS), st = p && first(p.stages);
   return [
-    '#/paths', '#/lab', '#/map/home', '#/map/d/' + DOMAINS[0].id, '#/map/t/core-loop/overview', '#/map/t/core-loop/godot',
+    '#/paths', '#/lab', '#/play/game-designer-foundations', '#/play/stats', '#/map/home', '#/map/d/' + DOMAINS[0].id, '#/map/t/core-loop/overview', '#/map/t/core-loop/godot',
     '#/map/t/core-loop/interview', '#/map/s/' + SMELLS[0].id, '#/explore', '#/explore/' + DOMAINS[0].id, '#/concepts',
     '#/diagnose/smells', '#/smell/' + SMELLS[0].id, ...DIAGNOSTICS.map(d => '#/diagnose/' + d[0]),
     ...TOOLS.map(t => '#/build/' + t[0]), ...['loop', 'ladder', 'philosophy', 'roles', 'matrix', 'framework', 'failures'].map(t => '#/ai/' + t),
