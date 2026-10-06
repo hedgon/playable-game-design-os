@@ -62,7 +62,7 @@ Plan: `plan.md` (revision 2, approved 2026-10-06). `[x]` done, `[~]` in progress
   - a first `e2e-rpg.js`: walk to a person by keyboard, open a step and come back, a guardian
     round writes the same keys as the page.
   Done: build OK; tsc 0; smoke 275 visits, 0 failures, now including #/play/<path> and #/play/stats; e2e-paths 129/129; e2e-rpg 49/49 at 1440 and 375 px. The page is 273 KB gzipped; the game code is 10.7 KB gzipped plus the 6 KB tiles, both on demand.
-- [ ] R1a.11 Replay, commit, push, CI. Then **stop: the owner plays it and decides go or
+- [x] R1a.11 Replay, commit, push, CI (f862038; replay smoke 0 failures, e2e-paths 129/129, e2e-rpg 49/49; GitHub build run 37402157031 and Pages run 37402156750 green). Then **stop: the owner plays it and decides go or
   change.**
 
 ## R1b Shared round (after the go)
