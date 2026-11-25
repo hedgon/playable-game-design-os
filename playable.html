@@ -1525,6 +1525,54 @@ h3{font-size:1.4rem}
 body{font-size:17px;font-optical-sizing:auto}
 nav.primary button,.tabs button,.pill-tabs button,.chip,.btn,button,input,select,textarea,.crumbs,th,.field label,.badge-num,.stepper button,.formula button,.legend,.maplegend,.progress,.toast,.modal .res,.side,.overline,.small.muted,.mapbar,.pathbar,footer{font-family:var(--ui)}
 html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,.mapcrumbs button,header .car,.drawer-close,.tabs a,.pill-tabs a,.lens-switch,.lens-switch button,summary){font-family:var(--ui)}
+
+.pland{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);grid-template-areas:"hero toy" "pick pick";gap:18px 22px;align-items:stretch;margin-bottom:6px}
+.phero{grid-area:hero;min-width:0;padding:28px 30px;border:1px solid var(--line);background:radial-gradient(900px 340px at 0% 0%,color-mix(in srgb,var(--accent2) 16%,transparent),transparent 62%),radial-gradient(700px 320px at 100% 100%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 60%),var(--panel);box-shadow:6px 6px 0 var(--line)}
+.phero h1{font-size:clamp(2.8rem,2rem + 3.4vw,4.6rem);margin-bottom:12px}
+.phero .lead{max-width:640px}
+.phero-stats{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 16px;font-family:var(--mono);font-size:.82rem;color:var(--fg2)}
+.phero-stats b{font-family:var(--title);font-style:italic;font-weight:400;font-size:1.7rem;color:var(--fg);margin-right:4px}
+.pland-pick{grid-area:pick;min-width:0}
+.juice{grid-area:toy;min-width:0;display:flex;flex-direction:column;gap:10px;padding:18px 20px;border:1px solid var(--line);background:var(--panel);box-shadow:6px 6px 0 var(--line)}
+.juice .row{flex-wrap:wrap;gap:8px;align-items:center}
+.juice p{margin:0}
+.juice-stage{position:relative;flex:1 1 150px;min-height:150px;border:1px solid var(--line);background:linear-gradient(var(--bg2),var(--bg3));overflow:hidden}
+.juice-stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:26px;border-top:2px solid var(--line2);background:var(--bg3)}
+.juice-you,.juice-foe{position:absolute;bottom:26px;display:block}
+.juice-you{left:calc(50% - 118px);width:44px;height:44px;background:var(--accent2)}
+.juice-foe{left:calc(50% - 18px);width:72px;height:72px;background:var(--bad);transform-origin:50% 100%}
+.juice-hp{height:8px;border:1px solid var(--line2);background:var(--bg3)}
+.juice-hp i{display:block;height:100%;background:var(--bad);transition:width .18s ease-out}
+.domstrip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.domstrip .chip{display:inline-flex;align-items:center;gap:8px}
+.domstrip .chip::before{content:"";width:10px;height:10px;background:var(--dc);flex:none}
+.domstrip .chip:hover{border-color:var(--dc)}
+@media (max-width:900px){
+  .pland{grid-template-columns:minmax(0,1fr);grid-template-areas:"hero" "pick" "toy"}
+  .phero{padding:18px 16px;box-shadow:4px 4px 0 var(--line)}
+  .juice{box-shadow:4px 4px 0 var(--line)}
+}
+
+@media (max-width:700px){
+  .phero{padding:0;border:0;background:none;box-shadow:none}
+  .phero h1{font-size:1.5rem}
+  .phero-stats,.phero .row{display:none}
+}
+
+.comparecard{padding:0;overflow:hidden}
+.comparecard .cmptext{padding:12px 18px 16px}
+.vsart{position:relative;aspect-ratio:460/170;background:var(--accent);border-bottom:1px solid var(--line)}
+.vsart img,.vsart i{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:var(--bg3)}
+.vsart > :first-child{clip-path:polygon(0 0,56.4% 0,42.4% 100%,0 100%)}
+.vsart > :last-child{clip-path:polygon(57.6% 0,100% 0,100% 100%,43.6% 100%)}
+
+@media (min-width:1100px){
+  .gamesum{display:flex;gap:18px;align-items:flex-start}
+  .gamesum .gameart{flex:0 1 460px;margin:0}
+  .gamesum .sumtext{flex:1 1 0}
+  .gamesum .sumtext > .card:first-child:last-child{margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){.juice-hp i{transition:none}}
 </style>
 </head>
 <body>
@@ -1583,7 +1631,7 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 
-window.PLAYABLE_BUILD = "701b503d";
+window.PLAYABLE_BUILD = "7dc9444d";
 window.PLAYABLE_NOFILE = {};
 const TOOLS = [["idea","Idea Shaper","Read a market for an unserved want, then shape one core idea to fill it","You have a genre or a hunch, but no idea yet.","finding-an-idea"],["dissect","Reference Dissection","Is my idea actually good? Cross-reference it against games that succeeded","You have an idea and want to know whether it is good before you build it.","learning-from-success"],["loop","Game Loop Builder","Action → Decision → Feedback → Reward → New situation, with a weak-link check","Your idea is a list of features and you cannot tell whether it repeats.","core-loop"],["canvas","Core Experience Canvas","Player, fantasy, emotions, goals, what it is not","You need one page that says who it is for and what it should feel like.","core-experience"],["ladder","Behaviour Ladder","From a feature idea to the behavior and back to the smallest mechanic","Someone asks for a feature and you need the behavior it should cause.","feature-vs-experience"],["feature","Should We Build This?","Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE","A feature is on the table and the team is about to commit.","scope-control"],["hypothesis","Playtest Hypothesis Builder","We believe… we will know when… we will kill it if…","You are about to run a playtest and want it to settle a question.","hypothesis-driven-design"],["delegate","AI Delegation Planner","Human, AI, both, or player evidence required","You are deciding which parts of the work to hand to an AI.","ai-roles"],["sysmap","System Relationship Map","Nodes and typed edges. Collision questions generated","Two systems touch and you suspect they collide.","systemic-design"],["prompt","AI Prompt Generator","CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE","You are about to ask an AI for design help and want a prompt that gets a usable answer.","prompting-framework"],["gameai","In-game AI Technique Chooser","Decision shape + team + budget → primary technique, trade-offs, debug view","A character needs to decide things in play and you must pick a technique.","choosing-ai-technique"]];
 const TOOL_GROUPS = [["shape","Shape an idea",["idea","canvas","ladder"]],["test","Test an idea",["dissect","feature","hypothesis"]],["systems","Systems",["loop","sysmap"]],["ai","AI",["delegate","prompt","gameai"]]];
@@ -3462,7 +3510,8 @@ ACTIONS['worked-download'] = el => {
   const a = document.createElement('a'); a.href = url; a.download = w.file; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
-const compareCard = c => `<a class="card lnk comparecard" href="#/games/compare/${esc(c.id)}"><div class="overline">${esc(compareTitle(c))}</div><b>${esc(c.t)}</b><p class="small dim" style="margin:6px 0 0">${esc(c.problem)}</p></a>`;
+const vsArt = id => `<img src="assets/games/vs/${esc(id)}.jpg" alt="" loading="lazy">`;
+const compareCard = c => `<a class="card clickable lnk comparecard" href="#/games/compare/${esc(c.id)}"><div class="vsart" aria-hidden="true">${c.games.map(vsArt).join('')}</div><div class="cmptext"><div class="overline">${esc(compareTitle(c))}</div><b>${esc(c.t)}</b><p class="small dim" style="margin:6px 0 0">${esc(c.problem)}</p></div></a>`;
 function compareShelvesHTML(){
   const placed = new Set(COMPARE_SHELVES.flatMap(s => s.ids)), rest = COMPARISONS.filter(c => !placed.has(c.id));
   const shelf = (t, why, list) => list.length ? `<section class="compareshelf"><div class="section-head"><h2>${esc(t)}</h2></div>${why ? `<p class="dim small" style="max-width:760px;margin-top:0">${esc(why)}</p>` : ''}<ol class="grid auto compareorder">${list.map(c => `<li>${compareCard(c)}</li>`).join('')}</ol></section>` : '';
@@ -4745,9 +4794,10 @@ function pathBarHTML(){
 }
 
 const pathTitle = id => { const p = PATHS.find(x => x.id === id); return p ? p.t : id; };
+const TRACK_TINT = { design: '--d-level', engineering: '--d-ux', production: '--d-production', leadership: '--d-narrative', interview: '--d-player' };
 function pathCard(p, picked){
   const { pct } = pathProgressCounts(p);
-  return `<a class="card clickable tint lnk blk ${picked ? 'picked' : ''}" style="--dc:var(--accent2)" href="#/paths/${p.id}" data-path-card="${p.id}">
+  return `<a class="card clickable tint lnk blk ${picked ? 'picked' : ''}" style="--dc:var(${TRACK_TINT[p.track] || '--accent2'})" href="#/paths/${p.id}" data-path-card="${p.id}">
     <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span>${picked ? '<span class="chip ok">Suggested for you</span>' : ''}</div>
     <b>${esc(p.t)}</b><div class="small dim">${esc(p.tag)}</div>
     <div class="small clamp2" title="${esc(p.audience)}" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
@@ -4779,15 +4829,54 @@ function pathsDoorHTML(){
     return `<div class="section-head"><h2>${esc(tlabel)}</h2></div><div class="grid auto">${list.map(p => pathCard(p, !!rec && rec.path === p)).join('')}</div>`;
   }).join('');
   const hint = store.get('guideHint', true) ? `<div class="callout guidehint"><span class="guidehint-text"><b>First time here?</b> <a href="#/guide">How to use this site</a> lists a route for each reason you might have come, and what each section is for.</span> <button type="button" class="btn sm ghost" data-action="guide-hint-close">Dismiss</button></div>` : `<p class="small"><a href="#/guide">How to use this site</a></p>`;
-  return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="lead" style="max-width:760px">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
-    ${continueCard}
-    ${chooserHTML(ans, rec)}
+  const stat = (n, t) => `<span><b>${n}</b> ${t}</span>`;
+  const domains = `<nav class="domstrip" aria-label="Jump to a domain">${DOMAINS.map(d => `<a class="chip lnk" href="#/explore/${d.id}" style="--dc:${d.color}">${esc(d.t)}</a>`).join('')}</nav>`;
+  return `${crumbs([['Paths']])}<div class="pland"><header class="phero"><h1>Learning paths</h1><p class="lead">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
+      <p class="phero-stats">${stat(Object.keys(TOPICS).length, 'topics')}${stat(REFERENCE_GAMES.length, 'games taken apart')}${stat(PATHS.length, 'paths')}</p>
+      <div class="row"><a class="btn primary" href="#/play/game-designer-foundations">Play a path as a game →</a><a class="btn" href="#/map">Open the map</a></div></header>
+    ${juiceToyHTML()}
+    <div class="pland-pick">${continueCard}
+    ${chooserHTML(ans, rec)}</div></div>
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
+    <div class="section-head"><h2>Or jump to a domain</h2></div>${domains}
     <p class="dim" style="max-width:760px;margin-top:18px">Each path shows one next step at a time. Every stage ends in a checkpoint you answer from memory, or a test-out if you already know it. No streaks, no badges.</p>
     ${hint}
     ${dataRowHTML()}
     <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
 }
+
+const JUICE = { stop: false, shake: false, flash: false, squash: false };
+const JUICE_LABEL = { stop: 'Hit stop', shake: 'Shake', flash: 'Flash', squash: 'Squash' };
+let juiceHp = 5;
+function juiceSay(){
+  const on = Object.keys(JUICE).filter(k => JUICE[k]);
+  if(juiceHp === 5 && !on.length) return 'No layers yet: a hit only moves the health bar. Switch one on and hit again.';
+  return (on.length ? 'Layers on: ' + on.map(k => JUICE_LABEL[k].toLowerCase()).join(', ') + '.' : 'No layers: a hit only moves the health bar.') + ' Health ' + juiceHp + ' of 5.' + (on.length === 4 ? ' Same rules, same damage: it only feels heavier.' : '');
+}
+function juiceToyHTML(){
+  return `<aside class="juice" aria-label="Try it: one hit, four layers of feedback"><div class="overline">Try it: the same hit, layer by layer</div>
+    <div class="juice-stage" id="juice-stage"><i class="juice-you" id="juice-you"></i><i class="juice-foe" id="juice-foe"></i></div>
+    <div class="juice-hp" id="juice-hpbar" role="img" aria-label="Health of the block: ${juiceHp} of 5"><i id="juice-hp" style="width:${juiceHp * 20}%"></i></div>
+    <div class="row"><button type="button" class="btn primary" data-action="juice-hit">Hit</button>${Object.keys(JUICE).map(k => `<button type="button" class="chip lnk ${JUICE[k] ? 'on' : ''}" data-action="juice-toggle" data-k="${k}" aria-pressed="${JUICE[k]}">${JUICE_LABEL[k]}</button>`).join('')}</div>
+    <p class="small" id="juice-say" aria-live="polite">${juiceSay()}</p>
+    <p class="small"><a href="#/map/t/game-feel-and-juice">Why each layer works: Game feel and juice →</a></p></aside>`;
+}
+ACTIONS['juice-toggle'] = el => { const k = el.dataset.k; JUICE[k] = !JUICE[k]; el.classList.toggle('on', JUICE[k]); el.setAttribute('aria-pressed', JUICE[k]); $('#juice-say').textContent = juiceSay(); };
+ACTIONS['juice-hit'] = () => {
+  const you = $('#juice-you'), foe = $('#juice-foe'), stage = $('#juice-stage');
+  juiceHp = juiceHp > 1 ? juiceHp - 1 : 5;
+  const hit = 90, hold = JUICE.stop ? 110 : 0, after = hit + hold;
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    you.animate([{ transform: 'none' }, { transform: 'translateX(56px)', offset: hit / (after + 160) }, { transform: 'translateX(56px)', offset: after / (after + 160) }, { transform: 'none' }], { duration: after + 160, easing: 'linear' });
+    foe.animate([{ transform: 'none' }, { transform: 'translateX(14px)' }, { transform: 'none' }], { duration: 180, delay: after, easing: 'ease-out' });
+    if(JUICE.flash) foe.animate([{ filter: 'brightness(2.4) saturate(0)' }, { filter: 'none' }], { duration: 120 + hold, delay: hit });
+    if(JUICE.squash) foe.animate([{ transform: 'scale(.72,1.22)' }, { transform: 'scale(1.1,.92)', offset: .55 }, { transform: 'none' }], { duration: 260, delay: after, easing: 'ease-out', composite: 'add' });
+    if(JUICE.shake) stage.animate([5, -4, 3, -2, 1, 0].map((d, i) => ({ transform: `translate(${d}px,${i % 2 ? d / 2 : -d / 2}px)` })), { duration: 240, delay: after });
+  }
+  $('#juice-hp').style.width = juiceHp * 20 + '%';
+  $('#juice-hpbar').setAttribute('aria-label', 'Health of the block: ' + juiceHp + ' of 5');
+  $('#juice-say').textContent = juiceSay();
+};
 
 const chooserAnswers = () => store.get('chooser', {});
 ACTIONS['guide-hint-close'] = () => { store.set('guideHint', false); keepScroll = true; renderPaths(); };

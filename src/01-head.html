@@ -1566,6 +1566,55 @@ h3{font-size:1.4rem}
 body{font-size:17px;font-optical-sizing:auto}
 nav.primary button,.tabs button,.pill-tabs button,.chip,.btn,button,input,select,textarea,.crumbs,th,.field label,.badge-num,.stepper button,.formula button,.legend,.maplegend,.progress,.toast,.modal .res,.side,.overline,.small.muted,.mapbar,.pathbar,footer{font-family:var(--ui)}
 html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,.mapcrumbs button,header .car,.drawer-close,.tabs a,.pill-tabs a,.lens-switch,.lens-switch button,summary){font-family:var(--ui)}
+/* Landing: a hero, something to play beside it, the chooser under both. On a narrow screen the
+   chooser comes straight after the hero and the toy follows it, so the choice stays near the top. */
+.pland{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);grid-template-areas:"hero toy" "pick pick";gap:18px 22px;align-items:stretch;margin-bottom:6px}
+.phero{grid-area:hero;min-width:0;padding:28px 30px;border:1px solid var(--line);background:radial-gradient(900px 340px at 0% 0%,color-mix(in srgb,var(--accent2) 16%,transparent),transparent 62%),radial-gradient(700px 320px at 100% 100%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 60%),var(--panel);box-shadow:6px 6px 0 var(--line)}
+.phero h1{font-size:clamp(2.8rem,2rem + 3.4vw,4.6rem);margin-bottom:12px}
+.phero .lead{max-width:640px}
+.phero-stats{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 16px;font-family:var(--mono);font-size:.82rem;color:var(--fg2)}
+.phero-stats b{font-family:var(--title);font-style:italic;font-weight:400;font-size:1.7rem;color:var(--fg);margin-right:4px}
+.pland-pick{grid-area:pick;min-width:0}
+.juice{grid-area:toy;min-width:0;display:flex;flex-direction:column;gap:10px;padding:18px 20px;border:1px solid var(--line);background:var(--panel);box-shadow:6px 6px 0 var(--line)}
+.juice .row{flex-wrap:wrap;gap:8px;align-items:center}
+.juice p{margin:0}
+.juice-stage{position:relative;flex:1 1 150px;min-height:150px;border:1px solid var(--line);background:linear-gradient(var(--bg2),var(--bg3));overflow:hidden}
+.juice-stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:26px;border-top:2px solid var(--line2);background:var(--bg3)}
+.juice-you,.juice-foe{position:absolute;bottom:26px;display:block}
+.juice-you{left:calc(50% - 118px);width:44px;height:44px;background:var(--accent2)}
+.juice-foe{left:calc(50% - 18px);width:72px;height:72px;background:var(--bad);transform-origin:50% 100%}
+.juice-hp{height:8px;border:1px solid var(--line2);background:var(--bg3)}
+.juice-hp i{display:block;height:100%;background:var(--bad);transition:width .18s ease-out}
+.domstrip{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.domstrip .chip{display:inline-flex;align-items:center;gap:8px}
+.domstrip .chip::before{content:"";width:10px;height:10px;background:var(--dc);flex:none}
+.domstrip .chip:hover{border-color:var(--dc)}
+@media (max-width:900px){
+  .pland{grid-template-columns:minmax(0,1fr);grid-template-areas:"hero" "pick" "toy"}
+  .phero{padding:18px 16px;box-shadow:4px 4px 0 var(--line)}
+  .juice{box-shadow:4px 4px 0 var(--line)}
+}
+/* A phone keeps the plain title and lead, so the chooser stays on its first screen. */
+@media (max-width:700px){
+  .phero{padding:0;border:0;background:none;box-shadow:none}
+  .phero h1{font-size:1.5rem}
+  .phero-stats,.phero .row{display:none}
+}
+/* Two games, one problem: both games' art, cut on a diagonal with the accent showing through the gap. */
+.comparecard{padding:0;overflow:hidden}
+.comparecard .cmptext{padding:12px 18px 16px}
+.vsart{position:relative;aspect-ratio:460/170;background:var(--accent);border-bottom:1px solid var(--line)}
+.vsart img,.vsart i{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;background:var(--bg3)}
+.vsart > :first-child{clip-path:polygon(0 0,56.4% 0,42.4% 100%,0 100%)}
+.vsart > :last-child{clip-path:polygon(57.6% 0,100% 0,100% 100%,43.6% 100%)}
+/* A game's art and its summary sit side by side as soon as there is room for both. */
+@media (min-width:1100px){
+  .gamesum{display:flex;gap:18px;align-items:flex-start}
+  .gamesum .gameart{flex:0 1 460px;margin:0}
+  .gamesum .sumtext{flex:1 1 0}
+  .gamesum .sumtext > .card:first-child:last-child{margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){.juice-hp i{transition:none}}
 </style>
 </head>
 <body>

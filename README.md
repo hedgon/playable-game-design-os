@@ -16,7 +16,10 @@ redirects to `playable.html`, for GitHub Pages.
 
 ## Start here
 
-A first visit opens **Learning paths** (`#/paths`). Twenty-six paths across five
+A first visit opens **Learning paths** (`#/paths`), and the page starts with
+something to play: one block hits another, and four switches add hit stop, shake,
+flash and squash one layer at a time, the guide's lesson on game feel in ten
+seconds (nothing moves under a reduced-motion setting). Twenty-six paths across five
 tracks (design, engineering, production, leadership, interview prep) walk you from
 beginner to expert through the guide's topics, tools, checklists, diagnostics,
 project parts, platform guides, reference games and prompts, in order, with a reason for each stop

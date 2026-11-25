@@ -162,6 +162,7 @@ content-build.js          the split into the page's light index and content/ fil
 load-data.js              the full data from the sources, for checks that need long fields
 validate.js, check-layout.js, layout-core.js, check-contrast.js, inventory.js, smoke.js, e2e-paths.js, e2e-rpg.js, serve.js
 rpg-tiles-make.js         cuts assets/rpg/tiles.png from Kenney's CC0 Tiny Town and Tiny Dungeon (not part of the build; the order of its TILES is the game's T table)
+vs-thumbs-make.js         cuts the small art a comparison card shows (assets/games/vs/<game id>.jpg) from each compared game's card or header, with ffmpeg (not part of the build; validate.js fails when one is missing)
 research-notes.md         verified sources behind the synthesis, with dates
 ```
 
@@ -239,7 +240,8 @@ Right after the topic, in the same file:
   for the first game and `b` for the second, one paragraph each (three or more
   sections); `verdict` says what each choice costs and gains; `principle` is the
   lesson that carries over. The games must be two different reference games, every
-  topic must exist, and at least one source must be an `https` link.
+  topic must exist, and at least one source must be an `https` link. After adding a
+  comparison, run `node src/vs-thumbs-make.js` and commit the two crops it writes.
 
 A new domain is a new file with `DOMAINS.push({ id, lens, t, short, color, sum,
 links })`, where `lens` is `design` or `eng` (see `LENSES`), plus a line in

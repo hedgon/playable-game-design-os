@@ -750,7 +750,10 @@ ACTIONS['worked-download'] = el => {
   const a = document.createElement('a'); a.href = url; a.download = w.file; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
-const compareCard = c => `<a class="card lnk comparecard" href="#/games/compare/${esc(c.id)}"><div class="overline">${esc(compareTitle(c))}</div><b>${esc(c.t)}</b><p class="small dim" style="margin:6px 0 0">${esc(c.problem)}</p></a>`;
+// The two games' own art, split on a diagonal: a picture a reader recognises before the title is read.
+// The art is a small crop made for this card (src/vs-thumbs-make.js), not the game's full header.
+const vsArt = id => `<img src="assets/games/vs/${esc(id)}.jpg" alt="" loading="lazy">`;
+const compareCard = c => `<a class="card clickable lnk comparecard" href="#/games/compare/${esc(c.id)}"><div class="vsart" aria-hidden="true">${c.games.map(vsArt).join('')}</div><div class="cmptext"><div class="overline">${esc(compareTitle(c))}</div><b>${esc(c.t)}</b><p class="small dim" style="margin:6px 0 0">${esc(c.problem)}</p></div></a>`;
 // The comparisons page: one section per shared problem, its pairs in reading order; any comparison not on a shelf follows under More.
 function compareShelvesHTML(){
   const placed = new Set(COMPARE_SHELVES.flatMap(s => s.ids)), rest = COMPARISONS.filter(c => !placed.has(c.id));
@@ -2239,9 +2242,11 @@ function pathBarHTML(){
 }
 
 const pathTitle = id => { const p = PATHS.find(x => x.id === id); return p ? p.t : id; };
+// Each track borrows one domain colour, so the five shelves of paths read apart at a glance.
+const TRACK_TINT = { design: '--d-level', engineering: '--d-ux', production: '--d-production', leadership: '--d-narrative', interview: '--d-player' };
 function pathCard(p, picked){
   const { pct } = pathProgressCounts(p);
-  return `<a class="card clickable tint lnk blk ${picked ? 'picked' : ''}" style="--dc:var(--accent2)" href="#/paths/${p.id}" data-path-card="${p.id}">
+  return `<a class="card clickable tint lnk blk ${picked ? 'picked' : ''}" style="--dc:var(${TRACK_TINT[p.track] || '--accent2'})" href="#/paths/${p.id}" data-path-card="${p.id}">
     <div class="chips" style="margin-bottom:6px"><span class="chip">${esc(levelLabel(p.level))}</span><span class="chip">${p.hours}h</span>${picked ? '<span class="chip ok">Suggested for you</span>' : ''}</div>
     <b>${esc(p.t)}</b><div class="small dim">${esc(p.tag)}</div>
     <div class="small clamp2" title="${esc(p.audience)}" style="margin-top:6px"><b>For</b> ${esc(p.audience)}</div>
@@ -2280,15 +2285,61 @@ function pathsDoorHTML(){
   // The choice comes first, so a phone shows it on the first screen (audit N1); the
   // all-paths list follows once, and the first-visit pointer and the backup controls go
   // to the foot, since a first-time learner has nothing to restore (N1, N2).
-  return `${crumbs([['Paths']])}<h1>Learning paths</h1><p class="lead" style="max-width:760px">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
-    ${continueCard}
-    ${chooserHTML(ans, rec)}
+  // The page is called Playable, so its first screen has something to play: one hit, and the
+  // feedback layers the reader switches on (the toy sits after the chooser on a narrow screen).
+  const stat = (n, t) => `<span><b>${n}</b> ${t}</span>`;
+  const domains = `<nav class="domstrip" aria-label="Jump to a domain">${DOMAINS.map(d => `<a class="chip lnk" href="#/explore/${d.id}" style="--dc:${d.color}">${esc(d.t)}</a>`).join('')}</nav>`;
+  return `${crumbs([['Paths']])}<div class="pland"><header class="phero"><h1>Learning paths</h1><p class="lead">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
+      <p class="phero-stats">${stat(Object.keys(TOPICS).length, 'topics')}${stat(REFERENCE_GAMES.length, 'games taken apart')}${stat(PATHS.length, 'paths')}</p>
+      <div class="row"><a class="btn primary" href="#/play/game-designer-foundations">Play a path as a game →</a><a class="btn" href="#/map">Open the map</a></div></header>
+    ${juiceToyHTML()}
+    <div class="pland-pick">${continueCard}
+    ${chooserHTML(ans, rec)}</div></div>
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
+    <div class="section-head"><h2>Or jump to a domain</h2></div>${domains}
     <p class="dim" style="max-width:760px;margin-top:18px">Each path shows one next step at a time. Every stage ends in a checkpoint you answer from memory, or a test-out if you already know it. No streaks, no badges.</p>
     ${hint}
     ${dataRowHTML()}
     <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
 }
+
+// The landing's toy. One hit on a block, bare by default; each switch adds one layer of feedback
+// (stop, shake, flash, squash), which is the lesson of the game-feel topic it links to. Nothing
+// moves under reduced motion: the health bar and the sentence still change.
+const JUICE = { stop: false, shake: false, flash: false, squash: false };
+const JUICE_LABEL = { stop: 'Hit stop', shake: 'Shake', flash: 'Flash', squash: 'Squash' };
+let juiceHp = 5;
+function juiceSay(){
+  const on = Object.keys(JUICE).filter(k => JUICE[k]);
+  if(juiceHp === 5 && !on.length) return 'No layers yet: a hit only moves the health bar. Switch one on and hit again.';
+  return (on.length ? 'Layers on: ' + on.map(k => JUICE_LABEL[k].toLowerCase()).join(', ') + '.' : 'No layers: a hit only moves the health bar.') + ' Health ' + juiceHp + ' of 5.' + (on.length === 4 ? ' Same rules, same damage: it only feels heavier.' : '');
+}
+function juiceToyHTML(){
+  return `<aside class="juice" aria-label="Try it: one hit, four layers of feedback"><div class="overline">Try it: the same hit, layer by layer</div>
+    <div class="juice-stage" id="juice-stage"><i class="juice-you" id="juice-you"></i><i class="juice-foe" id="juice-foe"></i></div>
+    <div class="juice-hp" id="juice-hpbar" role="img" aria-label="Health of the block: ${juiceHp} of 5"><i id="juice-hp" style="width:${juiceHp * 20}%"></i></div>
+    <div class="row"><button type="button" class="btn primary" data-action="juice-hit">Hit</button>${Object.keys(JUICE).map(k => `<button type="button" class="chip lnk ${JUICE[k] ? 'on' : ''}" data-action="juice-toggle" data-k="${k}" aria-pressed="${JUICE[k]}">${JUICE_LABEL[k]}</button>`).join('')}</div>
+    <p class="small" id="juice-say" aria-live="polite">${juiceSay()}</p>
+    <p class="small"><a href="#/map/t/game-feel-and-juice">Why each layer works: Game feel and juice →</a></p></aside>`;
+}
+ACTIONS['juice-toggle'] = el => { const k = el.dataset.k; JUICE[k] = !JUICE[k]; el.classList.toggle('on', JUICE[k]); el.setAttribute('aria-pressed', JUICE[k]); $('#juice-say').textContent = juiceSay(); };
+ACTIONS['juice-hit'] = () => {
+  const you = $('#juice-you'), foe = $('#juice-foe'), stage = $('#juice-stage');
+  juiceHp = juiceHp > 1 ? juiceHp - 1 : 5;
+  // Contact is 90 ms in. A stop holds both blocks there for 110 ms before anything reacts.
+  const hit = 90, hold = JUICE.stop ? 110 : 0, after = hit + hold;
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    you.animate([{ transform: 'none' }, { transform: 'translateX(56px)', offset: hit / (after + 160) }, { transform: 'translateX(56px)', offset: after / (after + 160) }, { transform: 'none' }], { duration: after + 160, easing: 'linear' });
+    foe.animate([{ transform: 'none' }, { transform: 'translateX(14px)' }, { transform: 'none' }], { duration: 180, delay: after, easing: 'ease-out' });
+    if(JUICE.flash) foe.animate([{ filter: 'brightness(2.4) saturate(0)' }, { filter: 'none' }], { duration: 120 + hold, delay: hit });
+    if(JUICE.squash) foe.animate([{ transform: 'scale(.72,1.22)' }, { transform: 'scale(1.1,.92)', offset: .55 }, { transform: 'none' }], { duration: 260, delay: after, easing: 'ease-out', composite: 'add' });
+    // The picture shakes, and the shake fades: big first, small last.
+    if(JUICE.shake) stage.animate([5, -4, 3, -2, 1, 0].map((d, i) => ({ transform: `translate(${d}px,${i % 2 ? d / 2 : -d / 2}px)` })), { duration: 240, delay: after });
+  }
+  $('#juice-hp').style.width = juiceHp * 20 + '%';
+  $('#juice-hpbar').setAttribute('aria-label', 'Health of the block: ' + juiceHp + ' of 5');
+  $('#juice-say').textContent = juiceSay();
+};
 
 // The three-question chooser. Answers are a per-browser convenience; the
 // pick itself is choosePath (50-paths.js), shared with the validator.

@@ -32,6 +32,9 @@ const server = http.createServer((req, res) => {
     const P = await page.evaluate(() => ({ id: PATHS[0].id, s1: PATHS[0].stages[0].id, s2: PATHS[0].stages[1].id, n: PATHS[0].stages[0].steps.length }));
     const prog = () => page.evaluate(id => JSON.parse(localStorage.getItem('playable.path.' + id) || '{"steps":{},"stages":{}}'), P.id);
     const tag = `${w}px`;
+    // The landing's toy: a hit lowers the health, a switch reports itself pressed, and the sentence and the bar's name say both.
+    const toy = await page.evaluate(() => { const q = s => document.querySelector(s); q('[data-action="juice-toggle"][data-k="stop"]').click(); q('[data-action="juice-hit"]').click(); return { hp: q('#juice-hp').style.width, pressed: q('[data-action="juice-toggle"][data-k="stop"]').getAttribute('aria-pressed'), say: q('#juice-say').textContent, label: q('#juice-hpbar').getAttribute('aria-label') }; });
+    check(`${tag} the landing toy: a hit lowers the health and names the layers that are on`, toy.hp === '80%' && toy.pressed === 'true' && /hit stop/.test(toy.say) && /4 of 5/.test(toy.say) && /4 of 5/.test(toy.label), JSON.stringify(toy));
 
     // --- keep the place: ticking a step does not jump to the top
     await nav(`#/paths/${P.id}/${P.s1}`);

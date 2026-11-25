@@ -904,6 +904,7 @@ if (orphans.length) console.log('WARN topics with no inbound links:', orphans.jo
   }
   const gameIds = new Set((ctx.REFERENCE_GAMES || []).map(g => g.id)), cids = new Set();
   for (const c of (ctx.COMPARISONS || [])) {
+    for (const g of (c.games || [])) if (!fs.existsSync(path.join(__dirname, '..', 'assets', 'games', 'vs', g + '.jpg'))) errors.push(`comparison ${c.id}: assets/games/vs/${g}.jpg does not exist (run node src/vs-thumbs-make.js)`);
     const where = `comparison ${c.id || '?'}`;
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(c.id || '')) errors.push(`${where}: id is not kebab-case`);
     else if (cids.has(c.id)) errors.push(`${where}: duplicate id`);
