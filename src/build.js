@@ -6,7 +6,9 @@ const fs = require('fs'), path = require('path'), vm = require('vm'), zlib = req
 const { HEAD, DATA, SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, APP, LAZY, PAGE } = require('./manifest.js');
 const { compile } = require('./content-build.js');
 const root = path.join(__dirname, '..');
-const read = f => fs.readFileSync(path.join(__dirname, f), 'utf8');
+// The repository stores LF; a Windows checkout hands back CRLF. Normalize on
+// read so the build stamp and the page do not depend on how the tree was checked out.
+const read = f => fs.readFileSync(path.join(__dirname, f), 'utf8').replace(/\r\n/g, '\n');
 // The page scripts ship without their whole-line comments (a sixth of their
 // gzipped size); the sources keep them. A line goes only when it is a comment
 // from its first character to its last, so code and strings stay as written.

@@ -95,7 +95,7 @@ function declarations(srcDir, files) {
 
 function compile({ srcDir, dataFiles, sharedFile, outDir, pageCode, lazyCode = {} }) {
   const decl = declarations(srcDir, dataFiles);
-  const src = dataFiles.map(f => fs.readFileSync(path.join(srcDir, f), 'utf8')).join('\n') + '\n' + fs.readFileSync(path.join(srcDir, sharedFile), 'utf8');
+  const src = dataFiles.map(f => fs.readFileSync(path.join(srcDir, f), 'utf8').replace(/\r\n/g, '\n')).join('\n') + '\n' + fs.readFileSync(path.join(srcDir, sharedFile), 'utf8').replace(/\r\n/g, '\n');
   const probe = decl.map(d => `${JSON.stringify(d.name)}: typeof ${d.name} === "undefined" ? undefined : ${d.name}`).join(',');
   const ctx = new Function(src + '\nreturn { __search: searchIndexData(), __cited: citedSourcesData(), ' + probe + ' };')();
   // Only what the page can reach: names its scripts mention, and what the data's own
