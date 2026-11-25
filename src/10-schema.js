@@ -49,6 +49,7 @@
  * @property {Worked[]} [worked]    attached by WORKED()
  * @property {Diagram} [diagram]    attached by DIAGRAM()
  * @property {Explainer} [explainer]   attached by EXPLAINER()
+ * @property {{kind: string, t?: string, ask: string}} [demo]   attached by DEMO()
  * @property {Clip} [clip]    attached by CLIP()
  */
 /**
@@ -143,6 +144,15 @@ function EXPLAINER(id, spec){
   const t = TOPICS[id];
   if(!t) throw new Error('EXPLAINER: unknown topic ' + id);
   t.explainer = spec;
+}
+
+/* A small thing to operate on the topic's page (97-demos.js draws it): `kind` is one of
+   DEMO_KINDS, `t` an optional title for this topic, `ask` what to try and what it shows here. */
+/** @param {string} id @param {{kind: string, t?: string, ask: string}} spec */
+function DEMO(id, spec){
+  const t = TOPICS[id];
+  if(!t) throw new Error('DEMO: unknown topic ' + id);
+  t.demo = spec;
 }
 
 /* A short silent clip for an idea whose point is motion (how a fixed step

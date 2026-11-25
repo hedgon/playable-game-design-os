@@ -32,9 +32,6 @@ const server = http.createServer((req, res) => {
     const P = await page.evaluate(() => ({ id: PATHS[0].id, s1: PATHS[0].stages[0].id, s2: PATHS[0].stages[1].id, n: PATHS[0].stages[0].steps.length }));
     const prog = () => page.evaluate(id => JSON.parse(localStorage.getItem('playable.path.' + id) || '{"steps":{},"stages":{}}'), P.id);
     const tag = `${w}px`;
-    // The landing's toy: a hit lowers the health, a switch reports itself pressed, and the sentence and the bar's name say both.
-    const toy = await page.evaluate(() => { const q = s => document.querySelector(s); q('[data-action="juice-toggle"][data-k="stop"]').click(); q('[data-action="juice-hit"]').click(); return { hp: q('#juice-hp').style.width, pressed: q('[data-action="juice-toggle"][data-k="stop"]').getAttribute('aria-pressed'), say: q('#juice-say').textContent, label: q('#juice-hpbar').getAttribute('aria-label') }; });
-    check(`${tag} the landing toy: a hit lowers the health and names the layers that are on`, toy.hp === '80%' && toy.pressed === 'true' && /hit stop/.test(toy.say) && /4 of 5/.test(toy.say) && /4 of 5/.test(toy.label), JSON.stringify(toy));
 
     // --- keep the place: ticking a step does not jump to the top
     await nav(`#/paths/${P.id}/${P.s1}`);
@@ -340,6 +337,31 @@ const server = http.createServer((req, res) => {
     check(`${tag} the plain list shows every stage's steps`, pl.sections === 6 && pl.regions === 0 && pl.pressed === 'true', JSON.stringify(pl));
     await page.click('#pane [data-action="path-view"][data-v="world"]'); await page.waitForTimeout(100);
     await page.evaluate(() => { localStorage.removeItem('playable.review'); localStorage.removeItem('playable.path.performance-engineer'); });
+    // Topic demos (97-demos.js), last because they visit topics: every topic that names a demo shows its card with a
+    // task line, and the sentence under it changes when a slider moves or the main button is pressed.
+    const demoIds = await page.evaluate(() => Object.keys(TOPICS).filter(id => TOPICS[id].demo)), demoBad = [];
+    for (const id of demoIds) {
+      await nav('#/map/t/' + id);
+      const r = await page.evaluate(() => {
+        const fig = document.querySelector('#pane .demo'); if (!fig) return 'no demo card';
+        const out = fig.querySelector('.demo-out'), before = out.textContent, range = fig.querySelector('input[type=range]'), b = fig.querySelector('.btn.primary');
+        if (range) { range.value = range.max; range.dispatchEvent(new Event('input', { bubbles: true })); }
+        if (b) b.click();
+        return out.textContent === before ? 'the sentence did not change' : fig.querySelector('.demo-ask') ? '' : 'no task line';
+      });
+      if (r) demoBad.push(id + ': ' + r);
+    }
+    check(`${tag} each of the ${demoIds.length} topic demos shows its card and answers a slider or a press`, demoIds.length > 0 && !demoBad.length, demoBad.join('; '));
+    // A topic opened cold, as a shared link is: the demos' code is asked for by the topic route itself, not left over from the landing.
+    const cold = await ctx.newPage(); await cold.goto(BASE + '#/map/t/three-cs'); await cold.waitForSelector('#pane h1');
+    const coldDemo = await cold.evaluate(() => { const fig = document.querySelector('#pane .demo'); return fig ? fig.dataset.demo + ':' + fig.querySelector('polyline').getAttribute('points').split(' ').length : 'no demo card'; });
+    check(`${tag} a topic opened cold shows its demo, drawn`, /^jump:\d\d+$/.test(coldDemo), coldDemo); await cold.close();
+    await nav('#/map/t/game-feel-and-juice');
+    const hitDemo = await page.evaluate(() => { const fig = document.querySelector('#pane .demo'), q = s => fig.querySelector(s); q('[data-k="stop"]').click(); q('[data-do="hit"]').click(); return { kind: fig.dataset.demo, hp: q('.demo-bar.hp b').textContent, pressed: q('[data-k="stop"]').getAttribute('aria-pressed'), say: q('.demo-out').textContent }; });
+    check(`${tag} the hit demo: a hit lowers the health and the sentence names the layer that is on`, hitDemo.kind === 'hit' && hitDemo.hp === '4 of 5' && hitDemo.pressed === 'true' && /hit stop/.test(hitDemo.say) && /4 of 5/.test(hitDemo.say), JSON.stringify(hitDemo));
+    await nav('#/paths');
+    const feat = await page.evaluate(() => { const a = document.querySelector('.pland .demo').dataset.topic; document.querySelector('[data-action="demo-next"]').click(); const fig = document.querySelector('.pland .demo'); return { a, b: fig.dataset.topic, link: fig.querySelector('a.btn').getAttribute('href'), named: fig.querySelector('.overline').textContent }; });
+    check(`${tag} the landing features one topic's demo, names the topic and moves to the next`, feat.a && feat.b && feat.a !== feat.b && feat.link === '#/map/t/' + feat.b && /from /.test(feat.named), JSON.stringify(feat));
     check(`${tag} no console errors`, !errors.length, errors[0]);
     await ctx.close();
   }

@@ -51,6 +51,7 @@ const DATA = [
   '44-worked-samples.js',
   '45-go-samples.js',
   '46-comparisons.js',
+  '47-demos.js',
   '50-paths.js',
   '51-paths-engineering.js'
 ];
@@ -73,7 +74,7 @@ const APP = ['90-app.js', '91-map.js'];
 // content/code/<name>.js, in this order, and the router loads it before that
 // page draws (contentNeeds in 90-app.js). Each file registers on the same
 // namespace as the page's own (window.PlayableApp).
-const LAZY = { tools: ['92-ideas.js', '94-tools.js'], lab: ['93-lab.js'], rpg: ['95-rpg-world.js', '96-rpg.js'] };
+const LAZY = { tools: ['92-ideas.js', '94-tools.js'], lab: ['93-lab.js'], rpg: ['95-rpg-world.js', '96-rpg.js'], demos: ['97-demos.js'] };
 const TAIL = '99-tail.js';
 // The page's script files after the generated data, in load order.
 const PAGE = [SHARED, CONTENT, DIAGRAM, FLOW, GRAPH, ...APP, TAIL];

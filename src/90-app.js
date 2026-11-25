@@ -226,14 +226,16 @@ function contentNeeds(parts){
   const [v, a, b] = parts;
   const every = (kind, list) => list.map(x => [kind, x.id]);
   switch(v){
-    case 'map': return a === 't' && b ? [['topic', b]] : a === 's' && b ? [['smell', b]] : [];
+    // a topic with a demo also needs the demos' code (manifest LAZY)
+    case 'map': return a === 't' && b ? [['topic', b], ...(TOPICS[b] && TOPICS[b].demo ? [['code', 'demos']] : [])] : a === 's' && b ? [['smell', b]] : [];
     case 'smell': return a ? [['smell', a]] : [];
     case 'diagnose': return a === 'smells' && b ? [['smell', b]] : [];
     case 'checklists': return a ? [['checklist', a]] : every('checklist', CHECKLISTS);
     case 'prompts': case 'playtest': return a && v === 'prompts' ? [['prompt', a]] : every('prompt', PROMPT_TEMPLATES);
     case 'explore': return a && DOMAIN_DIAGRAMS[a] ? [['topic', DOMAIN_DIAGRAMS[a]]] : [];
     case 'games': return a === 'compare' ? (b ? [['compare', b]] : []) : a && a !== 'topic' ? [['game', a]] : [];
-    case 'paths': return a && a !== 'review' ? [['path', a]] : [];
+    // the landing features one topic's demo
+    case 'paths': return a && a !== 'review' ? [['path', a]] : a ? [] : [['code', 'demos']];
     case 'experience': return a ? [['case', a]] : [];
     case 'platforms': return a ? [['platform', a]] : [];
     case 'engines': return a ? [['engine', a]] : [];
@@ -262,7 +264,10 @@ function route(){
   const slow = setTimeout(() => { if(seq === routeSeq) setView(`<p class="dim" role="status">Loading…</p>`); }, 150);
   // draw only if the address is still the one this route loaded for: a new hash can be
   // set before its hashchange event runs, and that route will draw itself
-  PlayableContent.needAll(needs).then(() => { clearTimeout(slow); if(seq === routeSeq && location.hash === at){ drawRoute(); finish(); } }, err => {
+  // The demos' code is an extra: without it a page still draws, minus its "Try it" card (the views
+  // check A.demoCard), so its failure must not put the error page in place of the topic.
+  const extra = needs.filter(([k, id]) => k === 'code' && id === 'demos'), must = needs.filter(n => !extra.includes(n));
+  Promise.all([PlayableContent.needAll(must), PlayableContent.needAll(extra).catch(err => console.warn(err))]).then(() => { clearTimeout(slow); if(seq === routeSeq && location.hash === at){ drawRoute(); finish(); } }, err => {
     clearTimeout(slow); if(seq !== routeSeq) return;
     console.warn(err);
     setView(`<h1>This page could not be loaded</h1><div class="callout"><p>Its content file did not arrive. If you are offline, the pages you have opened before still work.</p><p><button type="button" class="btn sm" data-action="reload-page">Try again</button></p></div>`);
@@ -676,6 +681,8 @@ function setView(html){
   pane.innerHTML = `${play ? '' : pathBarHTML()}${play ? '' : subNavHTML()}<div class="view">${html}</div>`; updateRail();
   // Every picture can be opened larger, by click, tap or keyboard.
   $$(ZOOMABLE, pane).forEach(i => { i.tabIndex = 0; i.setAttribute('role', 'button'); i.setAttribute('aria-label', 'View larger: ' + (i.alt || 'image')); });
+  // A demo's drawing (an arc, bars) is painted once its card is in the page (97-demos.js, when loaded).
+  if(A.demoPaint) A.demoPaint(pane);
   // The sticky path bar's height, so an anchor or lens link lands below it (see #pane [id] in the CSS).
   if(pbWatch) pbWatch.disconnect();
   const bar = $('.pathbar', pane); pane.style.setProperty('--pbH', bar ? bar.offsetHeight + 'px' : '0px');
@@ -1456,7 +1463,7 @@ function topicBody(id){
   // topic would otherwise carry a wall of links above the article.
   const gameChip = x => `<a class="chip lnk" href="#/games/${x.g.id}">${esc(x.g.t)}: ${esc(x.label.charAt(0).toLowerCase() + x.label.slice(1))}</a>`;
   const gameFoot = inGames.length ? `<div class="dgm-foot wdup"><span class="overline">In real games</span><span class="chips">${inGames.slice(0, 6).map(gameChip).join('')}</span>${inGames.length > 6 ? `<details class="more-games"><summary>${inGames.length - 6} more</summary><span class="chips">${inGames.slice(6).map(gameChip).join('')}</span></details>` : ''}</div>` : '';
-  const overview = `${DIAGRAMS[id] ? `<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}${t.explainer ? explainerCard(t.explainer, d.color, t.id) : ''}${t.clip ? clipCard(t.clip, d.color) : ''}
+  const overview = `${t.demo && A.demoCard ? A.demoCard(id) : ''}${DIAGRAMS[id] ?`<div class="card diagram-card">${DIAGRAMS[id]}${gameFoot}</div>` : t.diagram ? diagramCard(t.diagram, d.color, gameFoot) : gameFoot ? `<div class="card">${gameFoot}</div>` : ''}${t.explainer ? explainerCard(t.explainer, d.color, t.id) : ''}${t.clip ? clipCard(t.clip, d.color) : ''}
     ${secs}${techSec}${facts}${workedHTML(t, d.color)}
     <div class="wdup"><div class="section-head"><h2>Related concepts</h2><span class="muted">and why they connect</span></div>
     <div class="related">${rel}</div></div>
@@ -2285,14 +2292,15 @@ function pathsDoorHTML(){
   // The choice comes first, so a phone shows it on the first screen (audit N1); the
   // all-paths list follows once, and the first-visit pointer and the backup controls go
   // to the foot, since a first-time learner has nothing to restore (N1, N2).
-  // The page is called Playable, so its first screen has something to play: one hit, and the
-  // feedback layers the reader switches on (the toy sits after the chooser on a narrow screen).
+  // The page is called Playable, so its first screen has something to play: one topic's demo,
+  // named for its topic, with a button to the next (it sits after the chooser on a narrow screen).
+  const demoIds = Object.keys(TOPICS).filter(id => TOPICS[id].demo), demoAt = demoIds.includes(store.get('demoAt', '')) ? store.get('demoAt', '') : demoIds[0];
   const stat = (n, t) => `<span><b>${n}</b> ${t}</span>`;
   const domains = `<nav class="domstrip" aria-label="Jump to a domain">${DOMAINS.map(d => `<a class="chip lnk" href="#/explore/${d.id}" style="--dc:${d.color}">${esc(d.t)}</a>`).join('')}</nav>`;
   return `${crumbs([['Paths']])}<div class="pland"><header class="phero"><h1>Learning paths</h1><p class="lead">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
       <p class="phero-stats">${stat(Object.keys(TOPICS).length, 'topics')}${stat(REFERENCE_GAMES.length, 'games taken apart')}${stat(PATHS.length, 'paths')}</p>
       <div class="row"><a class="btn primary" href="#/play/game-designer-foundations">Play a path as a game →</a><a class="btn" href="#/map">Open the map</a></div></header>
-    ${juiceToyHTML()}
+    ${demoAt && A.demoCard ? A.demoCard(demoAt, true) : ''}
     <div class="pland-pick">${continueCard}
     ${chooserHTML(ans, rec)}</div></div>
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
@@ -2302,44 +2310,6 @@ function pathsDoorHTML(){
     ${dataRowHTML()}
     <p class="row" style="margin-top:10px"><a class="btn ghost" href="#/map">or explore the full map →</a></p>`;
 }
-
-// The landing's toy. One hit on a block, bare by default; each switch adds one layer of feedback
-// (stop, shake, flash, squash), which is the lesson of the game-feel topic it links to. Nothing
-// moves under reduced motion: the health bar and the sentence still change.
-const JUICE = { stop: false, shake: false, flash: false, squash: false };
-const JUICE_LABEL = { stop: 'Hit stop', shake: 'Shake', flash: 'Flash', squash: 'Squash' };
-let juiceHp = 5;
-function juiceSay(){
-  const on = Object.keys(JUICE).filter(k => JUICE[k]);
-  if(juiceHp === 5 && !on.length) return 'No layers yet: a hit only moves the health bar. Switch one on and hit again.';
-  return (on.length ? 'Layers on: ' + on.map(k => JUICE_LABEL[k].toLowerCase()).join(', ') + '.' : 'No layers: a hit only moves the health bar.') + ' Health ' + juiceHp + ' of 5.' + (on.length === 4 ? ' Same rules, same damage: it only feels heavier.' : '');
-}
-function juiceToyHTML(){
-  return `<aside class="juice" aria-label="Try it: one hit, four layers of feedback"><div class="overline">Try it: the same hit, layer by layer</div>
-    <div class="juice-stage" id="juice-stage"><i class="juice-you" id="juice-you"></i><i class="juice-foe" id="juice-foe"></i></div>
-    <div class="juice-hp" id="juice-hpbar" role="img" aria-label="Health of the block: ${juiceHp} of 5"><i id="juice-hp" style="width:${juiceHp * 20}%"></i></div>
-    <div class="row"><button type="button" class="btn primary" data-action="juice-hit">Hit</button>${Object.keys(JUICE).map(k => `<button type="button" class="chip lnk ${JUICE[k] ? 'on' : ''}" data-action="juice-toggle" data-k="${k}" aria-pressed="${JUICE[k]}">${JUICE_LABEL[k]}</button>`).join('')}</div>
-    <p class="small" id="juice-say" aria-live="polite">${juiceSay()}</p>
-    <p class="small"><a href="#/map/t/game-feel-and-juice">Why each layer works: Game feel and juice →</a></p></aside>`;
-}
-ACTIONS['juice-toggle'] = el => { const k = el.dataset.k; JUICE[k] = !JUICE[k]; el.classList.toggle('on', JUICE[k]); el.setAttribute('aria-pressed', JUICE[k]); $('#juice-say').textContent = juiceSay(); };
-ACTIONS['juice-hit'] = () => {
-  const you = $('#juice-you'), foe = $('#juice-foe'), stage = $('#juice-stage');
-  juiceHp = juiceHp > 1 ? juiceHp - 1 : 5;
-  // Contact is 90 ms in. A stop holds both blocks there for 110 ms before anything reacts.
-  const hit = 90, hold = JUICE.stop ? 110 : 0, after = hit + hold;
-  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
-    you.animate([{ transform: 'none' }, { transform: 'translateX(56px)', offset: hit / (after + 160) }, { transform: 'translateX(56px)', offset: after / (after + 160) }, { transform: 'none' }], { duration: after + 160, easing: 'linear' });
-    foe.animate([{ transform: 'none' }, { transform: 'translateX(14px)' }, { transform: 'none' }], { duration: 180, delay: after, easing: 'ease-out' });
-    if(JUICE.flash) foe.animate([{ filter: 'brightness(2.4) saturate(0)' }, { filter: 'none' }], { duration: 120 + hold, delay: hit });
-    if(JUICE.squash) foe.animate([{ transform: 'scale(.72,1.22)' }, { transform: 'scale(1.1,.92)', offset: .55 }, { transform: 'none' }], { duration: 260, delay: after, easing: 'ease-out', composite: 'add' });
-    // The picture shakes, and the shake fades: big first, small last.
-    if(JUICE.shake) stage.animate([5, -4, 3, -2, 1, 0].map((d, i) => ({ transform: `translate(${d}px,${i % 2 ? d / 2 : -d / 2}px)` })), { duration: 240, delay: after });
-  }
-  $('#juice-hp').style.width = juiceHp * 20 + '%';
-  $('#juice-hpbar').setAttribute('aria-label', 'Health of the block: ' + juiceHp + ' of 5');
-  $('#juice-say').textContent = juiceSay();
-};
 
 // The three-question chooser. Answers are a per-browser convenience; the
 // pick itself is choosePath (50-paths.js), shared with the validator.
@@ -2844,7 +2814,7 @@ document.addEventListener('keydown', e => {
 });
 
 // What the later files import from this one.
-Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, seen, markSeen, updateProgress, toast, copyText, go, route, settled, isNarrow,
+Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, ACTIONS, seen, markSeen, updateProgress, toast, copyText, go, route, settled, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, bindForm, outputBox, toolHead, practice, setTopicTab,
   topicBody, smellsView, pathProgress, savePathProgress, markStageStatus, pathNextStep, scheduleRecall, recallItems, recallIdeas, CONFIDENCE, OUTCOME, reviewItems, today, rpgCount, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search, loadIndex, searchWords, STOP_WORDS, pinMap });
 })(window.PlayableApp = {});

@@ -12,7 +12,7 @@
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 
 const LIGHT = {
-  topic: { id: true, d: true, t: true, tag: true, rel: 'ids', iv: 'present' },
+  topic: { id: true, d: true, t: true, tag: true, rel: 'ids', iv: 'present', demo: true },
   game: {
     id: true, t: true, kind: true, family: true, tags: true, aka: true, genre: true, year: true, img: true, card: true, cardPos: true,
     dev: true, want: true,

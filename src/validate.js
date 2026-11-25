@@ -27,7 +27,7 @@ function imageSize(file) {
 const DRAFTS = (process.env.PLAYABLE_DRAFTS || '').split(',').map(s => s.trim()).filter(Boolean);
 const src = [...DATA.map(f => path.join(__dirname, f)), ...DRAFTS.map(f => path.resolve(f))]
   .map(f => fs.readFileSync(f, 'utf8')).join('\n');
-const RETURNS = '\nreturn {COMPARE_SHELVES,GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,COMPARISONS,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
+const RETURNS = '\nreturn {DEMO_KINDS,COMPARE_SHELVES,GLOSSARY,DOMAINS,TOPICS,SECTION_META,SMELLS,LOOP_PARTS,UNFAIR_CAUSES,FUN_DIMS,ROLES,FAILURES,MATRIX,LOOP_STEPS,PROMPT_TEMPLATES,CHECKLISTS,FEATURE_TREE,CONTENT_TREE,REFERENCE_GAMES,PLATFORMS,PLATFORM_STAGES,stagesOf,platformMatrix,CHOOSER,choosePath,stepTitle,stepHref,PAGES,COMPARISONS,GAME_FAMILIES,GAME_TAGS,GAME_SHELVES,AWARDS,GAME_AWARDS,RECEPTION_VERDICTS,IMAGE_LICENCES,PLATFORM_NOTES,ENGINES,ENGINE_STAGES,GUIDE_LAYOUT,GAME_LENSES,SIGNATURE_PARTS,CASE_STUDIES,PATHS,TRACKS,LEVELS,TOOLS,TOOL_GROUPS,TOOL_START,DIAGNOSTICS,VIEW_LINKS,LENSES};';
 const ctx = new Function(src + RETURNS)();
 // A draft may rewrite an existing comparison: the later definition replaces the earlier one.
 if (DRAFTS.length) { const last = new Map(ctx.COMPARISONS.map(c => [c.id, c])); ctx.COMPARISONS.splice(0, ctx.COMPARISONS.length, ...last.values()); }
@@ -903,6 +903,14 @@ if (orphans.length) console.log('WARN topics with no inbound links:', orphans.jo
     } else errors.push(`${where}: kind must be table or doc`);
   }
   const gameIds = new Set((ctx.REFERENCE_GAMES || []).map(g => g.id)), cids = new Set();
+  // A topic's demo names a kind 97-demos.js draws, and says what to try and what it shows there.
+  let nd = 0;
+  for (const [id, t] of Object.entries(ctx.TOPICS)) {
+    if (!t.demo) continue; nd++;
+    if (!ctx.DEMO_KINDS.includes(t.demo.kind)) errors.push(`topic ${id}: demo kind ${t.demo.kind} is not in DEMO_KINDS (05-registry.js)`);
+    if (typeof t.demo.ask !== 'string' || t.demo.ask.length < 40) errors.push(`topic ${id}: a demo needs an ask of 40 characters or more (what to try, and what it shows about this topic)`);
+  }
+  console.log(`topic demos: ${nd} of ${Object.keys(ctx.TOPICS).length} topics, ${ctx.DEMO_KINDS.length} kinds`);
   for (const c of (ctx.COMPARISONS || [])) {
     for (const g of (c.games || [])) if (!fs.existsSync(path.join(__dirname, '..', 'assets', 'games', 'vs', g + '.jpg'))) errors.push(`comparison ${c.id}: assets/games/vs/${g}.jpg does not exist (run node src/vs-thumbs-make.js)`);
     const where = `comparison ${c.id || '?'}`;

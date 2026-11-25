@@ -107,3 +107,6 @@ const VIEW_LINKS = {
   'prompt-library':['#/prompts','Prompt library'],
   'should-we-build-this':['#/build/feature','Build: Should we build this? decision tree']
 };
+// The kinds of interactive demo a topic can carry (DEMO() in 47-demos.js). Each has a renderer
+// of the same name in 97-demos.js; validate.js checks the data, e2e-paths.js checks the renderers.
+const DEMO_KINDS = ['hit', 'jump', 'telegraph', 'pushluck', 'economy', 'rps', 'sample', 'hick', 'odds'];

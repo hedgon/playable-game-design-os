@@ -155,6 +155,8 @@ the type check, the smoke test and the paths test on every push and pull request
 94-tools.js               the other build tools } loads them before a tool or the Lab draws
 95-rpg-world.js           the path game's world: one town per stage, one person per step, a guardian per checkpoint (no DOM) } on demand,
 96-rpg.js                 the path game (#/play/<path>): canvas map, keyboard, pad, tap to walk, talk, the guardian's round } as above
+47-demos.js               DEMO(): which topic carries which interactive demo, and what to try (a data file, loaded after the comparisons)
+97-demos.js               the demos themselves, one renderer per kind in DEMO_KINDS } on demand, as above (content/code/demos.js)
 99-tail.js                boot
 manifest.js               ordered file list
 build.js                  build and checks (above)
@@ -232,6 +234,18 @@ Right after the topic, in the same file:
   document is `{kind:'doc', sections:[{h, body}], file:'name.md'}`. The card
   has a button that builds the CSV or Markdown file in the browser. Examples are
   also found by search. `src/44-worked-samples.js` holds the data.
+- `DEMO('topic-id', {kind, t?, ask})` in `src/47-demos.js` puts an interactive demo
+  at the top of the topic's Overview, under "Try it". `kind` is one of `DEMO_KINDS`
+  (`05-registry.js`): `hit`, `jump`, `telegraph`, `pushluck`, `economy`, `rps`,
+  `sample`, `hick`, `odds`. One kind can serve several topics; `ask` (40 characters
+  or more) is what ties it to this one: one thing to try, and what it shows here.
+  `t` replaces the kind's own title. A new kind is an entry in `KINDS` in
+  `src/97-demos.js` (`init`, `html`, `sync`, `act`, `say`) plus its name in
+  `DEMO_KINDS`: `say` returns the result as a sentence, so the demo never depends on
+  seeing motion, and every animation is skipped under reduced motion. The code loads
+  on demand (`content/code/demos.js`), so it does not count against the page budget.
+  `e2e-paths.js` opens every topic that has a demo and fails if its card is missing
+  or does not answer a slider or its main button.
 - `COMPARE({...})` adds a comparison to "Two games, one problem" (the shelf on
   the library page, `#/games/compare`, and a "Compared with" list on both game
   pages): `{id, t, problem, games:['game-a','game-b'], sections:[{h, a, b}],
