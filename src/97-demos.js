@@ -629,7 +629,7 @@ KINDS.sight = calc('What can it see, and for how long?', [['r', 'Sight range', 2
 /* A pool of recorded lines, spoken on a timer, over a whole game. */
 KINDS.repeat = calc('How often is each line heard?', [['n', 'Lines recorded', 1, 200, 1, 12, ''], ['e', 'One is spoken every', 5, 600, 5, 45, ' s'], ['h', 'Hours of play', 1, 100, 1, 20, '']], s => {
   const total = s.h * 3600 / s.e, each = total / s.n;
-  return { bars: [['Times each line is heard', Math.min(1, each / 200), nf(each)]], say: `${nf(total)} lines are spoken over ${count(s.h, 'hours')}, from ${nf(s.n)} recorded: ${each < 1 ? 'fewer are spoken than were recorded, so some are never heard' : 'each is heard about ' + count(Math.round(each), 'times')}. Speak less often, record more, or let the situation choose the line: those are the three levers.` };
+  return { bars: [['Times each line is heard', Math.min(1, each / 200), nf(each, each < 10 ? 1 : 0)]], say: `${nf(total)} lines are spoken over ${count(s.h, 'hours')}, from ${nf(s.n)} recorded: ${each < 1 ? 'fewer are spoken than were recorded, so some are never heard' : 'each is heard about ' + count(Math.round(each), 'times')}. Speak less often, record more, or let the situation choose the line: those are the three levers.` };
 });
 
 /* Packet loss against a message split into several packets. */
