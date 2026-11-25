@@ -1675,7 +1675,7 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 @media (max-width:700px){
   .thero{padding:16px 14px 8px}
   .thero-main{flex-basis:100%}
-  .thero .tag{font-size:1.22rem}
+  .thero .tag,.domain-hero > p.dim{font-size:1.22rem}
   .thero-n{font-size:5rem;right:10px}
   .sec.tsec{padding-left:0}
   .sec.tsec::before{display:none}
@@ -1690,7 +1690,7 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 .domain-hero > p.dim{font-family:var(--title);font-style:italic;font-size:1.5rem;line-height:1.25;color:var(--fg)}
 .dtopics{counter-reset:dt}
 .dtopics > .card{position:relative}
-.dtopics > .card::after{counter-increment:dt;content:counter(dt,decimal-leading-zero);position:absolute;right:10px;top:8px;font-family:var(--title);font-style:italic;font-size:1.7rem;line-height:1;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--dc) 75%,var(--fg3));pointer-events:none}
+.dtopics > .card::after{counter-increment:dt;content:counter(dt,decimal-leading-zero) / "";position:absolute;right:10px;top:8px;font-family:var(--title);font-style:italic;font-size:1.7rem;line-height:1;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--dc) 75%,var(--fg3));pointer-events:none}
 .contrast-stage{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--line)}
 .contrast-stage span{font-family:var(--ui);font-weight:600;font-size:1.3rem}
 .contrast-stage small{font-family:var(--ui);font-size:.8rem}

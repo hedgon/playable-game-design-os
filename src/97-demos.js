@@ -463,7 +463,7 @@ KINDS.weight = calc('How long until the page has arrived?', [['kb', 'Page weight
 /* A patch, times everyone who downloads it. */
 const PLAYERS = [1000, 10000, 100000, 1000000];
 KINDS.cdn = calc('What a patch costs to deliver', [['mb', 'Patch size', 10, 5000, 10, 800, ''], ['pl', 'Players who download it', 0, 3, 1, 2, ''], ['c', 'Price per GB delivered', .01, .12, .01, .05, '']], s => {
-  const gb = s.mb * PLAYERS[s.pl] / 1000, cost = gb * s.c, usd = x => '$' + nf(x, x < 10 ? 2 : 0);
+  const gb = s.mb * PLAYERS[s.pl] / 1000, cost = gb * s.c, usd = x => '$' + (x < 10 ? x.toFixed(2) : nf(x));
   return { bars: [['This patch', 1, usd(cost)], ['A tenth the size', .1, usd(cost / 10)]], say: `${nf(PLAYERS[s.pl])} players × ${nf(s.mb)} MB is ${nf(gb / 1000, gb < 1000 ? 2 : 1)} TB. At $${s.c} a GB that patch costs about ${usd(cost)} to deliver, and every player waits for all of it. A patch that sends only what changed costs in proportion to what changed.` };
 }, (name, v) => name === 'pl' ? nf(PLAYERS[v]) : name === 'c' ? '$' + v : nf(v) + ' MB');
 
