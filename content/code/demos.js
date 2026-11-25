@@ -621,4 +621,4 @@ document.addEventListener('input', e => {
 Object.assign(A, { demoCard, demoPaint, demoKinds: Object.keys(KINDS) });
 })(window.PlayableApp);
 
-PlayableContent.put("code","demos",null,"994ab1b8");
+PlayableContent.put("code","demos",null,"ebde4b94");

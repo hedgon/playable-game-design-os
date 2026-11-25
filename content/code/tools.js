@@ -349,4 +349,4 @@ function toolIdea(el){
 Object.assign(A, { toolIdea, toolLoop, toolCanvas, toolLadder, toolFeature, toolHypothesis, toolDelegate, toolSysmap, toolPrompt, toolGameAI });
 })(window.PlayableApp);
 
-PlayableContent.put("code","tools",null,"994ab1b8");
+PlayableContent.put("code","tools",null,"ebde4b94");
