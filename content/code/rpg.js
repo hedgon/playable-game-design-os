@@ -430,4 +430,4 @@ function renderStats(){
 A.renderRpg = renderRpg;
 })(window.PlayableApp);
 
-PlayableContent.put("code","rpg",null,"c2e351ce");
+PlayableContent.put("code","rpg",null,"43d7002b");

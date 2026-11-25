@@ -239,7 +239,10 @@ Right after the topic, in the same file:
   (`05-registry.js`). One kind can serve several topics; `ask` (40 characters
   or more) is what ties it to this one: one thing to try, and what it shows here.
   `t` replaces the kind's own title, and `w` gives a shared kind its nouns for
-  this topic (`w: ['people']` makes the pairs demo count people). A number or
+  this topic (`w: ['people']` makes the pairs demo count people). A kind written for
+  one topic is preferred to a shared calculator framed by a sentence; where topics
+  do share a kind, each card must differ in more than its nouns (`v` passes a
+  topic its own numbers). A number or
   outcome an `ask` states has to be what the demo shows when the reader follows
   it: read it off the built page before committing. Every topic must have a demo, and
   `validate.js` fails when one has none: a new topic gets a `DEMO()` line with a
@@ -249,7 +252,9 @@ Right after the topic, in the same file:
   `src/97-demos.js` (`init`, `html`, `sync`, `act`, `say`) plus its name in
   `DEMO_KINDS`. Most kinds are calculators and need only the `calc()` helper there:
   a title, the sliders, and one function from the state to the bars and the
-  sentence. `say` returns the result as a sentence, so the demo never depends on
+  sentence. A calculator also gets a figure, `FIGS.kind = s => '<svg …>'`, drawn
+  in two inks through the classes `fi`, `fs`, `fso`, `fl`, `fd` and `ft` (no
+  colour values), and redrawn after every slider move and press. `say` returns the result as a sentence, so the demo never depends on
   seeing motion, and every animation is skipped under reduced motion. The code loads
   on demand (`content/code/demos.js`), so it does not count against the page budget.
   `e2e-paths.js` opens every topic and fails if its demo card is missing or does not

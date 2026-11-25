@@ -1801,6 +1801,10 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 .demo-fig svg{min-width:440px}
 /* a pressed chip says so with a mark, not by colour alone */
 .demo .chip[aria-pressed="true"]::before{content:"\2713";margin-right:5px;font-weight:700}
+/* a burning cell is ink with the spot colour inside its edge: the F reads in both themes */
+.firegrid-c.lit,.firegrid-sw.firegrid-lit{background:var(--fg);color:var(--bg);box-shadow:inset 0 0 0 3px var(--dc,var(--accent))}
+/* where a figure is wider than its frame, a line under it says so and stays in view */
+@media (max-width:520px){.demo-fig::after{content:"scroll the figure sideways \2192";display:block;position:sticky;left:0;padding:3px 8px;border-top:1.5px solid var(--fg);font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:var(--fg2);background:var(--panel)}}
 /* ===== end of demo kinds and figures ===== */
 /* ===== PRINTED FIELD MANUAL (2026-11) =====
    The site as a manual someone printed in two inks: black, and the colour of the domain being read.

@@ -26,8 +26,9 @@ rock-paper-scissors with unequal stakes, a win rate measured twenty times, a wor
 to find among more and more options, a drop rate seen from the unlucky side, a
 follow camera, a timing window, an intensity curve to draw, a grid to wall up
 and watch a path search, a five-light puzzle, the same jump at three frame rates,
-and calculators for the numbers a topic turns on, from hits to kill to what a
-patch costs to deliver. A kind shared by several topics is framed for each by
+calculators for the numbers a topic turns on, each with a figure that redraws as
+a slider moves, and small exercises written for one topic: a fire that crosses a
+river no rule mentions, a save interrupted halfway, a prompt with a part missing. A kind shared by several topics is framed for each by
 its own task line (`src/47-demos.js` lists which topic has which).
 Each says in words what happened, so nothing depends on seeing motion, and nothing
 moves under a reduced-motion setting. Twenty-six paths across five

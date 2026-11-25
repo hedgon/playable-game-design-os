@@ -282,8 +282,8 @@ KINDS.estimate = calc('Three guesses instead of one', [['o', 'If all goes well',
 
 /* A risk as an average cost, against the cost of finding out now. `w` is [the unit of time]. */
 KINDS.risk = calc('What a risk costs on average', [['p', 'Chance it happens', 5, 95, 5, 30, '%'], ['i', s => cap(s.words[0] || 'days') + ' lost if it does', 1, 90, 1, 30, ''], ['c', s => cap(s.words[0] || 'days') + ' to find out now', 0, 30, 1, 3, '']], s => {
-  const e = +(s.p / 100 * s.i).toFixed(1), u = s.words[0] || 'days';
-  return { bars: [['Exposure', e / 90, count(e, u)], ['Cost of finding out now', s.c / 90, count(s.c, u)]], say: `A ${s.p}% chance of losing ${count(s.i, u)} is ${count(e, u)} of exposure. ` + (s.c < e ? `Spending ${s.c} to find out now costs less than carrying it does on average: do it first.` : `Finding out costs ${s.c}, which is no less than the risk costs on average: accept it, or find a cheaper test.`) };
+  const e = Math.round(s.p / 100 * s.i * 10 + 1e-9) / 10, u = s.words[0] || 'days';
+  return { bars: [['Exposure', e / 90, count(e, u)], ['Cost of finding out now', s.c / 90, count(s.c, u)]], say: `A ${s.p}% chance of losing ${count(s.i, u)} is ${count(e, u)} of exposure. ` + (s.c < e ? `Spending ${count(s.c, u)} to find out now costs less than carrying it does on average: do it first.` : `Finding out costs ${count(s.c, u)}, which is no less than the risk costs on average: accept it, or find a cheaper test.`) };
 });
 
 /* Tries before a date, from the length of one full loop. */
@@ -363,7 +363,7 @@ KINDS.treadmill = calc('Can content keep up with players?', [['c', 'Person-weeks
 /* A small step in power, compounded over releases. */
 KINDS.creep = calc('A little stronger, every release', [['g', 'Each release is stronger by', 0, 30, 1, 8, '%'], ['n', 'Releases a year', 1, 12, 1, 4, ''], ['y', 'Years', 1, 6, 1, 3, '']], s => {
   const x = Math.pow(1 + s.g / 100, s.n * s.y);
-  return { bars: [['The newest item', 1, nf(x, 2) + '×'], ['A launch item beside it', 1 / x, pct(1 / x) + '%']], say: `After ${count(s.n * s.y, 'releases')} at +${s.g}% each, the newest item is ${nf(x, 2)}× a launch one, and launch content is worth ${pct(1 / x)}% of the best.` + (s.g ? ' Nobody chose that number: it is what a small, reasonable step compounds to.' : ' No growth: new content has to be different instead of stronger.') };
+  return { bars: [['The newest item', 1, nf(x, 2) + '×'], ['A launch item beside it', 1 / x, (1 / x < .001 ? 'under 0.1' : 1 / x < .01 ? nf(100 / x, 1) : pct(1 / x)) + '%']], say: `After ${count(s.n * s.y, 'releases')} at +${s.g}% each, the newest item is ${nf(x, 2)}× a launch one, and launch content is worth ${1 / x < .001 ? 'less than 0.1' : 1 / x < .01 ? nf(100 / x, 1) : pct(1 / x)}% of the best.` + (s.g ? ' Nobody chose that number: it is what a small, reasonable step compounds to.' : ' No growth: new content has to be different instead of stronger.') };
 });
 
 /* Words to tokens (about three English words to four tokens) to a bill. */
@@ -1151,7 +1151,7 @@ KINDS.stages = {
     if(fit[i]){ s.right++; s.last = 'Yes. ' + fit[i] + Object.keys(fit).filter(k => +k !== i).map(k => ` ${STG[k]} also fits: ${fit[k]}`).join(''); }
     else s.last = `${STG[i]} ${STG_DOES[i]}; the topic does not tie this symptom to it. Try another stage.`;
   },
-  say: s => `Symptom ${s.i + 1} of ${SYM.length}: ${SYM[s.i][0]} ` + (s.last || 'Which stage does it point to? More than one can fit.') + (s.tries ? ` Right ${s.right} of ${count(s.tries, 'answers')}.` : '')
+  say: s => `Symptom ${s.i + 1} of ${SYM.length}: ${SYM[s.i][0]} ` + (s.last || 'Which stage does it point to? More than one can fit.') + (s.tries ? ` Answers that fitted so far: ${s.right} of ${s.tries}.` : '')
 };
 
 /* d4 kinds: layers, errorchain, savecut, deploy, entity, bugtier, pipeline, leak, invest */
@@ -1494,7 +1494,7 @@ KINDS.committee = {
     s.tally = comTally(s.n, s.k++); s.vn = s.n;
   },
   say(s){
-    if(!s.tally) return `${s.n} people, three options, one decision. ${s.owner ? 'One person has the final say.' : 'Nobody has the final say.'} Hold the vote: the tallies come from a fixed, made-up sequence, not a real room.`;
+    if(!s.tally || s.vn !== s.n) return `${s.n} people, three options, one decision. ${s.owner ? 'One person has the final say.' : 'Nobody has the final say.'} Hold the vote: the tallies come from a fixed, made-up sequence, not a real room.`;
     const t = s.tally, head = `Vote ${s.k} of a fixed made-up sequence: ${s.vn} people split ${t.join('-')}. `;
     return head + (s.owner ? 'The person with the final say hears the room and decides now, with a reason: the vote informed the call, and the meeting ended with a decision.' : t[0] * 2 > s.vn ? 'One option has more than half the votes, so this meeting decides: by majority, with nobody who owns the call.' : 'No option has more than half the votes, so the meeting ends without a decision and the same debate has to be held again.');
   }
@@ -1607,7 +1607,7 @@ FIGS.baserate = s => {
 };
 
 FIGS.risk = s => {
-  const e = +(s.p / 100 * s.i).toFixed(1), u = s.words[0] || 'days';
+  const e = Math.round(s.p / 100 * s.i * 10 + 1e-9) / 10, u = s.words[0] || 'days';
   return fgSvg(fgT(10, 10, `${s.p}% chance`) + fgGrid(20, 20, 10, 14, 15, 13, i => i < Math.round(s.p / 5) ? 'fi' : 'fl') + fgT(10, 50, `exposure ${count(e, u)}`) + fgR(10, 54, e / 90 * 300, 16) + fgT(10, 86, `find out now ${count(s.c, u)}`) + fgR(10, 90, s.c / 90 * 300, 16, 'fs'));
 };
 
@@ -1695,7 +1695,7 @@ FIGS.tokens = s => {
 
 FIGS.wip = s => {
   const lt = s.wip / s.th, u = Math.max(1, Math.ceil(s.wip / 25)), wk = x => count(+x.toFixed(1), 'weeks');
-  return fgSvg(fgT(10, 18, `${count(s.wip, s.words[0] || 'things')} ${s.words[1] || 'in progress'}: ${wk(lt)} each`) + fgGrid(Math.ceil(s.wip / u), 25, 10, 24, 12, 10, () => 'fi') + fgT(10, 54, `Half as many: ${wk(lt / 2)} each`) + fgGrid(Math.ceil(s.wip / 2 / u), 25, 10, 60, 12, 10, () => 'fs') + fgT(10, 96, `${s.th} finished a week`) + fgT(10, 110, `1 square = ${nf(u)}`));
+  return fgSvg(fgT(10, 18, `${count(s.wip, s.words[0] || 'things')} ${s.words[1] || 'in progress'}: ${wk(lt)} each`) + fgGrid(Math.ceil(s.wip / u), 25, 10, 24, 12, 10, () => 'fi') + fgT(10, 54, s.wip === 1 ? 'One cannot be halved: finish it' : `Half as many: ${wk(lt / 2)} each`) + fgGrid(s.wip === 1 ? 0 : Math.ceil(s.wip / 2 / u), 25, 10, 60, 12, 10, () => 'fs') + fgT(10, 96, `${s.th} finished a week`) + fgT(10, 110, `1 square = ${nf(u)}`));
 };
 
 FIGS.estimate = s => {
