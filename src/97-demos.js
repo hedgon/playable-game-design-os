@@ -229,8 +229,10 @@ KINDS.odds = {
    --------------------------------------------------------------------- */
 const nf = (x, d = 0) => x.toLocaleString('en-GB', { maximumFractionDigits: d });
 const cap = w => w[0].toUpperCase() + w.slice(1);
-// "1 task", "3 tasks": the nouns a topic supplies are plurals in -s, or do not occur with 1 (people).
-const count = (n, many) => nf(n, 1) + ' ' + (n === 1 ? many.replace(/s$/, '') : many);
+// "1 task", "3 tasks", "1 kind of object", "1 thousand sales": the nouns a topic supplies are plurals in -s,
+// or do not occur with 1 (people).
+const one = many => /^(thousand|million) /.test(many) ? many : many.includes(' of ') ? many.replace(/s( of )/, '$1') : many.replace(/s$/, '');
+const count = (n, many) => nf(n, 1) + ' ' + (n === 1 ? one(many) : many);
 const calc = (t, sliders, out, fmt) => ({
   t, fmt,
   init: (topic, spec) => Object.assign({ words: (spec && spec.w) || [] }, ...sliders.map(a => ({ [a[0]]: a[5] }))),
@@ -259,10 +261,10 @@ KINDS.ttk = calc('Damage only matters at a hit boundary', [['d', 'Damage per hit
   return { bars: [['Hits to kill', hits / 20, String(hits)], ['Time to kill', ttk / 10, ttk.toFixed(2) + ' s']], say: `${hits} hit${hits === 1 ? '' : 's'} to kill, ${ttk.toFixed(2)} s from the first hit to the last.` + (hits > 1 ? ` Damage has to reach ${next} before it saves a hit: every point below that changes nothing.` : ' One hit: more damage changes nothing at all.') };
 });
 
-/* A pass rate, compounded over steps in a row. */
+/* A pass rate, compounded over steps in a row. `w` is [who goes through, anything at all when getting through is the bad outcome]. */
 KINDS.funnel = calc('Every step loses a few', [['n', 'Steps in a row', 1, 20, 1, 6, ''], ['r', 'Share that gets through each step', 5, 100, 1, 90, '%']], s => {
   const w = s.words[0] || 'players', r = s.r / 100, end = Math.pow(r, s.n), half = Math.pow(r, Math.ceil(s.n / 2));
-  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through ${s.n === 1 ? 'the one step' : `all ${s.n} steps`} at ${s.r}% each.` + (s.r === 100 ? ' Nothing is lost at any step.' : ` Removing one step saves ${nf((Math.pow(r, s.n - 1) - end) * 1000)} of them, and no single step looks like the problem.`) };
+  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through ${s.n === 1 ? 'the one step' : `all ${s.n} steps`} at ${s.r}% each.` + (s.r === 100 ? ' Nothing is lost at any step.' : s.words[1] ? ` One step fewer lets ${nf((Math.pow(r, s.n - 1) - end) * 1000)} more through.` : ` Removing one step saves ${nf((Math.pow(r, s.n - 1) - end) * 1000)} of them, and no single step looks like the problem.`) };
 });
 
 /* A loop repeated for a session: whatever waits inside it is paid every time. */
@@ -278,10 +280,10 @@ KINDS.estimate = calc('Three guesses instead of one', [['o', 'If all goes well',
   return { bars, say: `Expected ${e.toFixed(1)} days (best, plus four times likely, plus worst, over six), spread ${sd.toFixed(1)}.` + (e > s.m + .05 ? ` The plan says ${s.m}; the average outcome is ${(e - s.m).toFixed(1)} days later, because the bad case is further away than the good one.` : ' Here the bad case is no further away than the good one, which is rare: look again at the bad case.') };
 });
 
-/* A risk as an average cost, against the cost of finding out now. */
-KINDS.risk = calc('What a risk costs on average', [['p', 'Chance it happens', 5, 95, 5, 30, '%'], ['i', 'Days lost if it does', 1, 90, 1, 30, ' days'], ['c', 'Days to find out now', 0, 30, 1, 3, ' days']], s => {
-  const e = s.p / 100 * s.i;
-  return { bars: [['Exposure', e / 90, e.toFixed(1) + ' days'], ['Cost of finding out now', s.c / 90, s.c + ' days']], say: `A ${s.p}% chance of losing ${s.i} days is ${e.toFixed(1)} days of exposure. ` + (s.c < e ? `Spending ${s.c} to find out now costs less than carrying it does on average: do it first.` : `Finding out costs ${s.c}, which is no less than the risk costs on average: accept it, or find a cheaper test.`) };
+/* A risk as an average cost, against the cost of finding out now. `w` is [the unit of time]. */
+KINDS.risk = calc('What a risk costs on average', [['p', 'Chance it happens', 5, 95, 5, 30, '%'], ['i', s => cap(s.words[0] || 'days') + ' lost if it does', 1, 90, 1, 30, ''], ['c', s => cap(s.words[0] || 'days') + ' to find out now', 0, 30, 1, 3, '']], s => {
+  const e = s.p / 100 * s.i, u = s.words[0] || 'days';
+  return { bars: [['Exposure', e / 90, e.toFixed(1) + ' ' + u], ['Cost of finding out now', s.c / 90, s.c + ' ' + u]], say: `A ${s.p}% chance of losing ${s.i} ${u} is ${e.toFixed(1)} ${u} of exposure. ` + (s.c < e ? `Spending ${s.c} to find out now costs less than carrying it does on average: do it first.` : `Finding out costs ${s.c}, which is no less than the risk costs on average: accept it, or find a cheaper test.`) };
 });
 
 /* Tries before a date, from the length of one full loop. */
@@ -598,11 +600,12 @@ KINDS.profile = {
   }
 };
 
-/* A queue near its limit: with uneven arrivals, time through is 1 / (1 - busy) times the work itself. `w` is [what arrives, per what]. */
+/* One queue, served one at a time, near its limit: with uneven arrivals, time through is 1 / (1 - busy) times the work itself
+   (several servers sharing a queue wait less). `w` is [what arrives, per what]. */
 KINDS.busy = calc('How long things wait when you are nearly full', [['a', s => cap(s.words[0] || 'jobs') + ' arriving ' + (s.words[1] || 'a week'), 1, 60, 1, 9, ''], ['c', s => 'Can be finished ' + (s.words[1] || 'a week'), 1, 60, 1, 10, '']], s => {
   const w = s.words[0] || 'jobs', rho = s.a / s.c, m = 1 / (1 - rho), label = 'Time through, against an empty desk';
   if(rho >= 1) return { bars: [['Busy', 1, '100%'], [label, 1, 'no limit']], say: `${count(s.a, w)} ${s.a === 1 ? 'arrives' : 'arrive'} and ${s.c} can be finished: no less comes in than goes out, so the queue grows without limit and each one waits longer than the last.` };
-  return { bars: [['Busy', rho, pct(rho) + '%'], [label, Math.min(1, m / 20), nf(m, 1) + '×']], say: `${count(s.a, w)} ${s.a === 1 ? 'arrives' : 'arrive'} and ${s.c} can be finished: ${pct(rho)}% busy. When they arrive unevenly, each one takes about ${nf(m, 1)}× as long to get through as it would with nothing ahead of it. At 80% busy that is 5×; at 95%, 20×.` };
+  return { bars: [['Busy', rho, pct(rho) + '%'], [label, Math.min(1, m / 20), nf(m, 1) + '×']], say: `${count(s.a, w)} ${s.a === 1 ? 'arrives' : 'arrive'} and ${s.c} can be finished: ${pct(rho)}% busy. When they arrive unevenly and are handled one at a time, each takes about ${nf(m, 1)}× as long to get through as it would with nothing ahead of it. At 80% busy that is 5×; at 95%, 20×.` };
 });
 
 /* If each person knows a share of the whole, independently: how much is known by nobody, and by exactly one. */
@@ -626,7 +629,7 @@ KINDS.sight = calc('What can it see, and for how long?', [['r', 'Sight range', 2
 /* A pool of recorded lines, spoken on a timer, over a whole game. */
 KINDS.repeat = calc('How often is each line heard?', [['n', 'Lines recorded', 1, 200, 1, 12, ''], ['e', 'One is spoken every', 5, 600, 5, 45, ' s'], ['h', 'Hours of play', 1, 100, 1, 20, '']], s => {
   const total = s.h * 3600 / s.e, each = total / s.n;
-  return { bars: [['Times each line is heard', Math.min(1, each / 200), nf(each)]], say: `${nf(total)} lines are spoken over ${count(s.h, 'hours')}, from ${nf(s.n)} recorded: ${each < 1 ? 'most are never heard' : 'each is heard about ' + count(Math.round(each), 'times')}. Speak less often, record more, or let the situation choose the line: those are the three levers.` };
+  return { bars: [['Times each line is heard', Math.min(1, each / 200), nf(each)]], say: `${nf(total)} lines are spoken over ${count(s.h, 'hours')}, from ${nf(s.n)} recorded: ${each < 1 ? 'fewer are spoken than were recorded, so some are never heard' : 'each is heard about ' + count(Math.round(each), 'times')}. Speak less often, record more, or let the situation choose the line: those are the three levers.` };
 });
 
 /* Packet loss against a message split into several packets. */
@@ -637,7 +640,7 @@ KINDS.loss = calc('What one lost packet costs', [['p', 'Packets lost', 0, 20, .5
 
 /* What one sale leaves after tax, refunds and the store's share, against the cost of being on that platform. */
 KINDS.net = calc('What one sale is worth to you', [['price', 'Price', 1, 80, 1, 20, ''], ['share', 'The store keeps', 0, 90, 5, 30, ''], ['tax', 'Tax and refunds', 0, 40, 5, 20, ''], ['cost', 'Cost of getting onto this platform', 5, 500, 5, 60, '']], s => {
-  const net = s.price * (1 - s.tax / 100) * (1 - s.share / 100), copies = Math.ceil(s.cost * 1000 / net);
+  const net = s.price * (1 - s.tax / 100) * (1 - s.share / 100), copies = Math.ceil(s.cost * 1000 / net - 1e-9);
   return { bars: [['Price', 1, '$' + s.price], ['Reaches you', net / s.price, '$' + net.toFixed(2)]], say: `Of a $${s.price} sale, about $${net.toFixed(2)} reaches you after ${s.tax}% tax and refunds and the store’s ${s.share}%. Recovering $${nf(s.cost * 1000)} takes ${nf(copies)} copies on this platform alone.` };
 }, (name, v) => name === 'price' ? '$' + v : name === 'cost' ? '$' + nf(v * 1000) : v + '%');
 
@@ -659,10 +662,10 @@ KINDS.repo = calc('What binaries do to a repository', [['mb', 'One version of an
   return { bars: [['History after that time', Math.min(1, gb / 500), nf(gb, 1) + ' GB']], say: `${count(s.n, 'changed versions')} a week at ${s.mb} MB, each kept whole because a compressed binary rarely shrinks to a difference: ${nf(gb, 1)} GB of history after ${s.wk} weeks. Every full clone carries it unless old versions are stored outside the history and fetched on demand.` };
 });
 
-/* Two scores that should agree. `w` is [the first, the second, what a gap means]. */
+/* Two scores that should agree. `w` is [the first, the second, what it means when the first is ahead, and when the second is]. */
 KINDS.gap = calc('Do the two agree?', [['a', s => s.words[0] || 'What is said', 0, 10, 1, 8, ''], ['b', s => s.words[1] || 'What is done', 0, 10, 1, 3, '']], s => {
   const g = Math.abs(s.a - s.b);
-  return { bars: [], say: g <= 1 ? `${s.a} and ${s.b} of 10: the two agree.` : `${s.a} against ${s.b} of 10: a gap of ${g}. ${s.words[2] || ''}` };
+  return { bars: [], say: g <= 1 ? `${s.a} and ${s.b} of 10: the two agree.` : `${s.a} against ${s.b} of 10: a gap of ${g}. ${(s.a > s.b ? s.words[2] : s.words[3] || s.words[2]) || ''}` };
 });
 
 /* Goals at three distances, counted in one session. */
@@ -706,7 +709,7 @@ ACTIONS['demo-next'] = el => {
     if(!fig.isConnected) return;
     store.set('demoAt', next); fig.outerHTML = demoCard(next, true); demoPaint();
     $('.pland .demo [data-action="demo-next"]').focus();
-  }, err => console.warn(err));
+  }, err => { console.warn(err); A.toast('That demo could not be loaded.'); });
 };
 document.addEventListener('input', e => {
   const el = e.target, fig = el.dataset && el.dataset.set && el.closest('.demo'); if(!fig) return;
