@@ -89,6 +89,8 @@ const mapOnly = r => /^#\/map\/(home|d\/[^/]+)$/.test(r) || /^#\/experience\/[^/
     page.on('pageerror', e => errors.push(String(e)));
     page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
     await page.goto(base);
+    // the landing draws once its featured demo's files have arrived, which can be after the load event
+    await page.evaluate(() => window.PlayableApp.settled());
     await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
     const first = await page.evaluate(() => { const r = document.getElementById('pane').getBoundingClientRect(); return { hash: location.hash, onScreen: r.left >= -1 && r.right <= innerWidth + 1 }; });
     if (first.hash !== '#/paths' || !first.onScreen) failures.push(`${w}px first visit: ${JSON.stringify(first)}`);
