@@ -1610,6 +1610,36 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
   .gamesum .sumtext > .card:first-child:last-child{margin-top:0}
 }
 @media (prefers-reduced-motion:reduce){.demo-bar i{transition:none}}
+
+.thero{position:relative;overflow:hidden;padding:22px 24px 12px;margin-bottom:10px;border-top:6px solid var(--dc);background:color-mix(in srgb,var(--dc) 13%,var(--panel))}
+.thero > :not(.thero-n){position:relative}
+.thero .tag{font-family:var(--title);font-style:italic;font-size:1.5rem;line-height:1.25;color:var(--fg);max-width:46ch;margin:10px 0 12px}
+.thero-n{position:absolute;right:20px;bottom:-.14em;font-family:var(--title);font-style:italic;font-size:12rem;line-height:1;color:transparent;-webkit-text-stroke:1.5px color-mix(in srgb,var(--dc) 75%,var(--fg3));pointer-events:none;user-select:none}
+.sec.tsec{border:0;border-top:1px solid var(--line);background:none;margin:0;overflow:visible;position:relative;padding-left:62px}
+.sec.tsec::before{content:"";position:absolute;left:19px;top:0;bottom:0;width:2px;background:color-mix(in srgb,var(--dc) 60%,transparent)}
+.sec.tsec > header{padding:18px 0 12px}
+.sec.tsec > header:hover{background:none}
+.sec.tsec > header:hover .sec-btn{color:var(--accent)}
+.sec.tsec > header .letter{position:absolute;left:-62px;top:12px;width:40px;height:40px;font-family:var(--title);font-style:italic;font-weight:400;font-size:1.55rem}
+.sec.tsec > header :is(h2,h3){font-family:var(--title);font-stretch:normal;text-transform:none;letter-spacing:0;font-size:1.8rem;line-height:1.1}
+.sec.tsec > .body{padding:0 0 22px}
+.sec.tsec[data-key="what"] > .body > p:first-child{font-size:1.2rem;line-height:1.5}
+.tabbody .topic-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;margin-top:28px}
+.tabbody .topic-nav .btn{white-space:normal;text-align:left;padding:14px 16px}
+.tabbody .topic-nav .btn:not(.ghost){font-family:var(--title);font-weight:400;font-size:1.3rem;line-height:1.15}
+.tabbody .topic-nav .btn:last-child{text-align:right}
+@media (max-width:700px){
+  .thero{padding:16px 14px 8px}
+  .thero > div:first-of-type{flex-basis:100%}
+  .thero .tag{font-size:1.22rem}
+  .thero-n{font-size:6.5rem;right:10px}
+  .sec.tsec{padding-left:0}
+  .sec.tsec::before{display:none}
+  .sec.tsec > header .letter{position:static;left:auto;width:32px;height:32px;font-size:1.2rem;flex:none}
+  .sec.tsec > header :is(h2,h3){font-size:1.4rem}
+  .tabbody .topic-nav{grid-template-columns:1fr}
+  .tabbody .topic-nav .btn:last-child{text-align:left}
+}
 </style>
 </head>
 <body>
@@ -1668,7 +1698,7 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 
-window.PLAYABLE_BUILD = "887aa25b";
+window.PLAYABLE_BUILD = "b7d330e2";
 window.PLAYABLE_NOFILE = {};
 const TOOLS = [["idea","Idea Shaper","Read a market for an unserved want, then shape one core idea to fill it","You have a genre or a hunch, but no idea yet.","finding-an-idea"],["dissect","Reference Dissection","Is my idea actually good? Cross-reference it against games that succeeded","You have an idea and want to know whether it is good before you build it.","learning-from-success"],["loop","Game Loop Builder","Action → Decision → Feedback → Reward → New situation, with a weak-link check","Your idea is a list of features and you cannot tell whether it repeats.","core-loop"],["canvas","Core Experience Canvas","Player, fantasy, emotions, goals, what it is not","You need one page that says who it is for and what it should feel like.","core-experience"],["ladder","Behaviour Ladder","From a feature idea to the behavior and back to the smallest mechanic","Someone asks for a feature and you need the behavior it should cause.","feature-vs-experience"],["feature","Should We Build This?","Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE","A feature is on the table and the team is about to commit.","scope-control"],["hypothesis","Playtest Hypothesis Builder","We believe… we will know when… we will kill it if…","You are about to run a playtest and want it to settle a question.","hypothesis-driven-design"],["delegate","AI Delegation Planner","Human, AI, both, or player evidence required","You are deciding which parts of the work to hand to an AI.","ai-roles"],["sysmap","System Relationship Map","Nodes and typed edges. Collision questions generated","Two systems touch and you suspect they collide.","systemic-design"],["prompt","AI Prompt Generator","CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE","You are about to ask an AI for design help and want a prompt that gets a usable answer.","prompting-framework"],["gameai","In-game AI Technique Chooser","Decision shape + team + budget → primary technique, trade-offs, debug view","A character needs to decide things in play and you must pick a technique.","choosing-ai-technique"]];
 const TOOL_GROUPS = [["shape","Shape an idea",["idea","canvas","ladder"]],["test","Test an idea",["dissect","feature","hypothesis"]],["systems","Systems",["loop","sysmap"]],["ai","AI",["delegate","prompt","gameai"]]];
@@ -4147,8 +4177,8 @@ function topicBody(id){
   const prev = idx > 0 ? d.topics[idx-1] : null, next = idx < d.topics.length-1 ? d.topics[idx+1] : null;
   const openSecs = new Set(store.get('openSecs', ['what','why','think']));
   const secTitle = key => (d.titles && d.titles[key]) || SECTION_META.find(m => m[0] === key)[2];
-  const secs = glossify(SECTION_META.map(([key, letter]) => `<section class="sec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header><span class="letter">${letter}</span><h2 class="sec-h"><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has(key)}">${esc(secTitle(key))}</button></h2><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join(''), { cur: id });
-  const techSec = (t.tech && t.tech.length) ? `<section class="sec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header><span class="letter">T</span><h2 class="sec-h"><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has('tech')}">Techniques to compare</button></h2><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
+  const secs = glossify(SECTION_META.map(([key, letter]) => `<section class="sec tsec ${openSecs.has(key)?'open':''}" data-key="${key}" style="--dc:${d.color}"><header><span class="letter">${letter}</span><h2 class="sec-h"><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has(key)}">${esc(secTitle(key))}</button></h2><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody(key, t)}</div></section>`).join(''), { cur: id });
+  const techSec = (t.tech && t.tech.length) ? `<section class="sec tsec ${openSecs.has('tech')?'open':''}" data-key="tech" style="--dc:${d.color}"><header><span class="letter">T</span><h2 class="sec-h"><button type="button" class="sec-btn" data-action="toggle-sec" aria-expanded="${openSecs.has('tech')}">Techniques to compare</button></h2><span class="car" aria-hidden="true">▸</span></header><div class="body">${sectionBody('tech', t)}</div></section>` : '';
   const rel = (t.rel||[]).map(([rid, why]) => { const rt = TOPICS[rid]; const v = VIEW_LINKS[rid]; const href = rt ? `#/map/t/${rid}` : (v ? v[0] : '#/explore'); const label = rt ? rt.t : (v ? v[1] : rid); const dc = rt ? DOM[rt.d].color : 'var(--accent)'; return `<a class="rel lnk blk" style="border-left:3px solid ${dc}" href="${href}"><b>${esc(label)}</b><div class="why">${esc(why)}</div></a>`; }).join('');
   const smells = SMELLS.filter(s => s.causes.some(c => c.top === id));
   const facts = (t.facts && t.facts.length) ? `<div class="card facts" style="--dc:${d.color}"><h2 class="h4look">Dated facts</h2><p class="small dim">Rules and rulings that change. Each line says when it was last checked; open the source before relying on it.</p><ul>${t.facts.map(f => `<li>${esc(f.claim)} <span class="small muted"><span class="when">Checked ${esc(f.asOf)}</span> · <a href="${esc(f.src)}" target="_blank" rel="noopener noreferrer">${esc(new URL(f.src).hostname.replace(/^www\./, ''))}</a></span></li>`).join('')}</ul></div>` : '';
@@ -4173,7 +4203,7 @@ function topicBody(id){
     topicParts(id).map(([label, items]) => wideBlock(label, chipLinks(items))).join('') + wideBlock('Part of paths', pathsBlock(id)) +
     wideBlock('Related concepts', `<div class="related">${rel}</div>`) + (smells.length ? wideBlock('Design smells this topic helps diagnose', smellChips) : '');
   const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : tab === 'go' ? goBody(t) : wide2(overview, side);
-  return `<div class="topic-head"><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
+  return `<div class="topic-head thero" style="--dc:${d.color}"><span class="thero-n" aria-hidden="true">${String(idx+1).padStart(2,"0")}</span><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       ${tab === 'overview' ? `<div class="row"><button type="button" class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button type="button" class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
 }

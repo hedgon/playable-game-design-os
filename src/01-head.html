@@ -1652,6 +1652,37 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
   .gamesum .sumtext > .card:first-child:last-child{margin-top:0}
 }
 @media (prefers-reduced-motion:reduce){.demo-bar i{transition:none}}
+/* The topic page as an article: a band in the domain's colour, then its sections as chapters on a spine
+   (a line in that colour, each chapter's letter sitting on it) in place of a stack of boxes. */
+.thero{position:relative;overflow:hidden;padding:22px 24px 12px;margin-bottom:10px;border-top:6px solid var(--dc);background:color-mix(in srgb,var(--dc) 13%,var(--panel))}
+.thero > :not(.thero-n){position:relative}
+.thero .tag{font-family:var(--title);font-style:italic;font-size:1.5rem;line-height:1.25;color:var(--fg);max-width:46ch;margin:10px 0 12px}
+.thero-n{position:absolute;right:20px;bottom:-.14em;font-family:var(--title);font-style:italic;font-size:12rem;line-height:1;color:transparent;-webkit-text-stroke:1.5px color-mix(in srgb,var(--dc) 75%,var(--fg3));pointer-events:none;user-select:none}
+.sec.tsec{border:0;border-top:1px solid var(--line);background:none;margin:0;overflow:visible;position:relative;padding-left:62px}
+.sec.tsec::before{content:"";position:absolute;left:19px;top:0;bottom:0;width:2px;background:color-mix(in srgb,var(--dc) 60%,transparent)}
+.sec.tsec > header{padding:18px 0 12px}
+.sec.tsec > header:hover{background:none}
+.sec.tsec > header:hover .sec-btn{color:var(--accent)}
+.sec.tsec > header .letter{position:absolute;left:-62px;top:12px;width:40px;height:40px;font-family:var(--title);font-style:italic;font-weight:400;font-size:1.55rem}
+.sec.tsec > header :is(h2,h3){font-family:var(--title);font-stretch:normal;text-transform:none;letter-spacing:0;font-size:1.8rem;line-height:1.1}
+.sec.tsec > .body{padding:0 0 22px}
+.sec.tsec[data-key="what"] > .body > p:first-child{font-size:1.2rem;line-height:1.5}
+.tabbody .topic-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;margin-top:28px}
+.tabbody .topic-nav .btn{white-space:normal;text-align:left;padding:14px 16px}
+.tabbody .topic-nav .btn:not(.ghost){font-family:var(--title);font-weight:400;font-size:1.3rem;line-height:1.15}
+.tabbody .topic-nav .btn:last-child{text-align:right}
+@media (max-width:700px){
+  .thero{padding:16px 14px 8px}
+  .thero > div:first-of-type{flex-basis:100%}
+  .thero .tag{font-size:1.22rem}
+  .thero-n{font-size:6.5rem;right:10px}
+  .sec.tsec{padding-left:0}
+  .sec.tsec::before{display:none}
+  .sec.tsec > header .letter{position:static;left:auto;width:32px;height:32px;font-size:1.2rem;flex:none}
+  .sec.tsec > header :is(h2,h3){font-size:1.4rem}
+  .tabbody .topic-nav{grid-template-columns:1fr}
+  .tabbody .topic-nav .btn:last-child{text-align:left}
+}
 </style>
 </head>
 <body>
