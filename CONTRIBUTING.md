@@ -236,16 +236,20 @@ Right after the topic, in the same file:
   also found by search. `src/44-worked-samples.js` holds the data.
 - `DEMO('topic-id', {kind, t?, ask})` in `src/47-demos.js` puts an interactive demo
   at the top of the topic's Overview, under "Try it". `kind` is one of `DEMO_KINDS`
-  (`05-registry.js`): `hit`, `jump`, `telegraph`, `pushluck`, `economy`, `rps`,
-  `sample`, `hick`, `odds`. One kind can serve several topics; `ask` (40 characters
+  (`05-registry.js`). One kind can serve several topics; `ask` (40 characters
   or more) is what ties it to this one: one thing to try, and what it shows here.
-  `t` replaces the kind's own title. A new kind is an entry in `KINDS` in
+  `t` replaces the kind's own title. Every topic must have a demo, and
+  `validate.js` fails when one has none: a new topic either gets a `DEMO()` line
+  with a kind that shows its point, or its id goes in the check list at the end of
+  `47-demos.js`. The `check` kind takes no `ask`: it shows the topic's own
+  `think.bad` and `think.traps` one at a time, sets the topic's first `think.q`
+  as the task and ends on its first `test`, so nothing is written for it. A new kind is an entry in `KINDS` in
   `src/97-demos.js` (`init`, `html`, `sync`, `act`, `say`) plus its name in
   `DEMO_KINDS`: `say` returns the result as a sentence, so the demo never depends on
   seeing motion, and every animation is skipped under reduced motion. The code loads
   on demand (`content/code/demos.js`), so it does not count against the page budget.
-  `e2e-paths.js` opens every topic that has a demo and fails if its card is missing
-  or does not answer a slider or its main button.
+  `e2e-paths.js` opens every topic and fails if its demo card is missing or does not
+  answer a slider or its main button.
 - `COMPARE({...})` adds a comparison to "Two games, one problem" (the shelf on
   the library page, `#/games/compare`, and a "Compared with" list on both game
   pages): `{id, t, problem, games:['game-a','game-b'], sections:[{h, a, b}],

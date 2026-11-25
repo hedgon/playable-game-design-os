@@ -903,14 +903,17 @@ if (orphans.length) console.log('WARN topics with no inbound links:', orphans.jo
     } else errors.push(`${where}: kind must be table or doc`);
   }
   const gameIds = new Set((ctx.REFERENCE_GAMES || []).map(g => g.id)), cids = new Set();
-  // A topic's demo names a kind 97-demos.js draws, and says what to try and what it shows there.
-  let nd = 0;
+  // Every topic has a demo: it names a kind 97-demos.js draws, and says what to try and what it shows there.
+  // The check kind is the exception to the second half: its task and statements are the topic's own text.
+  let nd = 0, nc = 0;
   for (const [id, t] of Object.entries(ctx.TOPICS)) {
-    if (!t.demo) continue; nd++;
+    if (!t.demo) { errors.push(`topic ${id}: no demo (47-demos.js: DEMO() with a kind of its own, or the check list)`); continue; }
+    nd++;
     if (!ctx.DEMO_KINDS.includes(t.demo.kind)) errors.push(`topic ${id}: demo kind ${t.demo.kind} is not in DEMO_KINDS (05-registry.js)`);
-    if (typeof t.demo.ask !== 'string' || t.demo.ask.length < 40) errors.push(`topic ${id}: a demo needs an ask of 40 characters or more (what to try, and what it shows about this topic)`);
+    if (t.demo.kind === 'check') { nc++; if (t.demo.ask) errors.push(`topic ${id}: the check kind takes its task from the topic, so it has no ask`); }
+    else if (typeof t.demo.ask !== 'string' || t.demo.ask.length < 40) errors.push(`topic ${id}: a demo needs an ask of 40 characters or more (what to try, and what it shows about this topic)`);
   }
-  console.log(`topic demos: ${nd} of ${Object.keys(ctx.TOPICS).length} topics, ${ctx.DEMO_KINDS.length} kinds`);
+  console.log(`topic demos: ${nd} of ${Object.keys(ctx.TOPICS).length} topics (${nd - nc} with a demo of their own, ${nc} with the check built from the topic's text), ${ctx.DEMO_KINDS.length} kinds`);
   for (const c of (ctx.COMPARISONS || [])) {
     for (const g of (c.games || [])) if (!fs.existsSync(path.join(__dirname, '..', 'assets', 'games', 'vs', g + '.jpg'))) errors.push(`comparison ${c.id}: assets/games/vs/${g}.jpg does not exist (run node src/vs-thumbs-make.js)`);
     const where = `comparison ${c.id || '?'}`;

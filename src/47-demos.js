@@ -50,3 +50,32 @@ DEMO('ux-as-design', { kind: 'hick', t: 'What a crowded menu costs', ask: 'Run 8
 DEMO('monetisation-design', { kind: 'odds', ask: 'Set 1% with no guarantee and read the last bar. Then add a guarantee at 90 pulls: the first bar does not move, so what changed, and for what share of players?' });
 DEMO('ethics-and-responsibility', { kind: 'odds', t: 'Who pays for a low drop rate?', ask: 'Lower the rate until the unluckiest 1% need more than 500 pulls. That player is real, and the odds screen is what tells them before they start.' });
 DEMO('business-model', { kind: 'odds', t: 'What a random reward costs the player', ask: 'Multiply each bar by the price of one pull in a game you know. A rate is a price list that most players never see written out.' });
+
+// Topics whose point is a judgment about one's own project, or that have no demo of their own yet:
+// the check kind holds the topic's own warning signs and traps up to the reader's project, so it
+// needs no text here. A topic leaves this list when it gets a DEMO() line above.
+for (const id of [
+  /* player */ 'who-is-the-player', 'player-motivation', 'fantasy', 'return-and-quit', 'finding-an-idea',
+  /* experience */ 'core-experience', 'fun-dimensions', 'goals-horizons', 'mastery-discovery-expression', 'social-experience', 'feature-vs-experience', 'design-pillars',
+  /* core */ 'core-loop', 'agency-and-emergence', 'challenge-failure-recovery', 'skill-and-mastery', 'time-and-turns', 'genre-hybrids', 'rhythm-and-music-timed-design',
+  /* systems */ 'mechanics-and-rules', 'depth-vs-complexity', 'systemic-design', 'knowledge-as-progression', 'power-creep-and-content-growth',
+  /* content */ 'content-multiplies', 'encounters-and-enemies', 'items-weapons-abilities', 'quests-and-events', 'procedural-content', 'puzzle-design', 'puzzles-in-action-spaces',
+  /* level */ 'level-structure', 'pacing', 'spatial-composition', 'encounter-design', 'backtracking-and-return-trips',
+  /* ux */ 'onboarding', 'accessibility',
+  /* narrative */ 'premise-and-world', 'ludonarrative-alignment', 'environmental-storytelling', 'narrative-agency', 'narrative-pacing', 'worldbuilding-method',
+  /* presentation */ 'visual-language', 'audio-and-music', 'audio-implementation', 'camera-design', 'pixel-art-direction',
+  /* product */ 'audience-and-positioning', 'platform-and-session', 'scope-control', 'learning-from-success', 'launch-and-discoverability', 'live-operations', 'soft-launch-and-playable-ads', 'localization-and-culture', 'pitching-and-stakeholders',
+  /* production */ 'prototyping', 'hypothesis-driven-design', 'iteration-and-evidence', 'vertical-slice-mvp', 'risk-and-dependencies', 'polish-when',
+  /* ai */ 'bottleneck-shift', 'ai-roles', 'prompting-framework', 'verifying-ai-output', 'ai-evals', 'ai-failure-modes', 'responsibility-matrix', 'ai-for-implementation', 'ai-agentic-implementation', 'ai-for-playtest-analysis', 'ai-generative-assets', 'ai-disclosure-policy', 'ai-loop',
+  /* gameai */ 'ingame-ai-purpose', 'choosing-ai-technique', 'perception-and-awareness', 'navigation-and-pathfinding', 'adaptive-and-director-ai', 'allies-and-companions', 'learning-based-ai', 'generative-characters', 'ai-budgets-and-debugging', 'scripted-vs-simulated',
+  /* studio */ 'design-documents', 'team-and-collaboration', 'planning-and-milestones', 'quality-and-build-health', 'design-critique-and-feedback',
+  /* backend */ 'backend-layering', 'backend-di-modes', 'backend-api-protocol', 'backend-request-context', 'backend-errors', 'backend-data-access', 'backend-caching-redis', 'backend-migrations-config', 'backend-observability', 'backend-testing', 'backend-go-idioms', 'realtime-connection-tier-at-scale', 'backend-latency-and-query-optimisation',
+  /* infra */ 'infra-containers', 'infra-deploy-models', 'infra-ci-pipelines', 'infra-artifacts-provenance', 'infra-secrets', 'infra-cdn-assets', 'infra-data-stores', 'infra-monitoring',
+  /* server */ 'server-authority', 'server-determinism', 'server-state-sync', 'server-realtime-protocol', 'server-matchmaking', 'server-scaling', 'server-anticheat', 'server-liveops', 'server-rollback-netcode', 'server-stack-choices', 'server-bandwidth-and-interest-management', 'server-transport-and-relays', 'server-world-partitioning', 'server-load-testing-and-capacity', 'server-framework-landscape',
+  /* management */ 'pm-scoping-cuts', 'pm-estimation', 'pm-risk', 'pm-agile-gamedev', 'pm-cross-discipline', 'pm-qa-release', 'pm-liveops-cadence', 'pm-postmortems',
+  /* leadership */ 'lead-role', 'lead-one-on-ones', 'lead-code-review', 'lead-conventions', 'lead-onboarding', 'lead-hiring', 'lead-incidents', 'lead-saying-no', 'lead-feedback-performance', 'lead-conflict-growth', 'lead-junior-skill-formation-with-ai',
+  /* platforms */ 'platform-choice', 'platform-access', 'platform-requirements', 'certification-and-review', 'ratings-and-disclosures', 'store-presence', 'release-and-updates', 'ugc-platforms', 'platforms-choosing-an-engine',
+  /* models */ 'models-tokens-context', 'models-attention-long-context', 'models-sampling', 'models-hallucination-sycophancy', 'models-how-models-are-made', 'models-architecture-choices', 'models-open-and-closed', 'models-prompt-caching', 'models-context-engineering', 'models-agent-harnesses', 'models-what-makes-agents-capable', 'models-tools-mcp-rag', 'models-reasoning-and-scaling', 'models-security-and-operations',
+  /* craft */ 'craft-ai-orchestrates-tools-compute', 'craft-core-values-that-last', 'craft-engineer-in-the-ai-era', 'craft-verification-as-the-job', 'craft-best-practice-now', 'craft-memory-and-gc', 'craft-performance', 'craft-design-patterns', 'craft-clean-code-ai-era', 'craft-over-defensive-code', 'craft-what-matters-now', 'craft-teaching-agents', 'craft-tools-that-work-with-ai', 'craft-source-control-for-games', 'craft-gameplay-math', 'craft-game-loop-timestep', 'craft-entities-and-scenes', 'craft-physics-and-collision', 'craft-save-systems', 'craft-measuring-ai-uplift', 'craft-security-review-of-generated-code', 'craft-ai-cost-latency-budget', 'craft-cpu-cache-and-data-layout', 'craft-gpu-rendering-cost', 'craft-mobile-gpu-and-thermals', 'craft-memory-loading-and-streaming', 'web-performance-basics', 'craft-audio-clock-and-input-latency',
+  /* careers */ 'careers-transferable-skills', 'careers-destinations', 'careers-repositioning', 'careers-interviewing-outside-games', 'careers-ai-tooling-market', 'careers-the-farmer-answered', 'careers-game-coding-interviews',
+]) DEMO(id, { kind: 'check' });

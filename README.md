@@ -18,11 +18,15 @@ redirects to `playable.html`, for GitHub Pages.
 
 A first visit opens **Learning paths** (`#/paths`), and the page starts with
 something to play: one topic's interactive demo, named for its topic, with a
-button to the next. Twenty-six topics carry a demo so far, at the top of their own
-page under "Try it": a hit with five feedback layers to switch on, a jump made of
-three numbers, a wind-up to dodge, a push-your-luck pot, a thirty-minute economy,
+button to the next. Every topic opens with something to do, at the top of its own
+page under "Try it". Where a topic's point is a quantity or a motion, it is a small
+simulation: a hit with five feedback layers to switch on, a jump made of three
+numbers, a wind-up to dodge, a push-your-luck pot, a thirty-minute economy,
 rock-paper-scissors with unequal stakes, a win rate measured twenty times, a word
-to find among more and more options, and a drop rate seen from the unlucky side.
+to find among more and more options, a drop rate seen from the unlucky side, and
+others (`src/47-demos.js` lists which topic has which). Where the point is a
+judgment about your own project, it is a check: the topic's own warning signs, one
+at a time, answered for the project you are on, ending on the topic's first test.
 Each says in words what happened, so nothing depends on seeing motion, and nothing
 moves under a reduced-motion setting. Twenty-six paths across five
 tracks (design, engineering, production, leadership, interview prep) walk you from

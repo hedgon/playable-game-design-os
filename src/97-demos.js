@@ -4,7 +4,8 @@
    topic's point (DEMO() in 47-demos.js names the kind and frames it for
    that topic). Loaded on demand with the first page that shows one: the
    build writes this file to content/code/demos.js.
-   Each kind is { t, init, html, sync, act, say }: init makes the state,
+   Each kind is { t, init, html, sync, act, say }: init makes the state
+   (from the topic, for a kind that draws on the topic's own text),
    html draws it once, sync updates the drawing after a slider moves,
    act answers a button, say is the sentence under the demo (the result
    in words, so nothing depends on seeing the motion).
@@ -220,20 +221,50 @@ KINDS.odds = {
   }
 };
 
+/* The topic's own warning signs and traps, held up against the reader's project one at a time.
+   Nothing here is written for the demo: the statements, the question and the test are the topic's. */
+KINDS.check = {
+  t: 'Hold your own project up to this topic',
+  ask: t => `Answer for the project as it is today, not as it was planned. Then put this topic’s first question to it: “${t.think.q[0]}”`,
+  init: t => ({ items: [...t.think.bad, ...t.think.traps].slice(0, 5), test: t.test[0], i: 0, ans: [] }),
+  html: () => `<p class="overline check-n"></p><div class="check-q"></div>
+    <div class="row check-row">${btn('yes', 'True of us', 'btn primary')}${btn('no', 'Not us', 'btn')}${btn('unsure', 'Not sure', 'btn')}${btn('again', 'Start again', 'btn', ' hidden')}</div>`,
+  sync(fig, s){
+    const done = s.i >= s.items.length, yes = s.items.filter((_, i) => s.ans[i] === 'yes');
+    $('.check-n', fig).textContent = done ? 'True of your project' : `${s.i + 1} of ${s.items.length}`;
+    $('.check-q', fig).innerHTML = done ? (yes.length ? '<ul>' + yes.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>' : 'Nothing marked true.') : esc(s.items[s.i]);
+    $$('.check-row button', fig).forEach(b => { b.hidden = (b.dataset.do === 'again') !== done; });
+  },
+  act(fig, s, what){
+    if(what === 'again'){ s.i = 0; s.ans = []; } else s.ans[s.i++] = what;
+    this.sync(fig, s);
+    // The pressed button may now be hidden: a keyboard user continues from the first one shown.
+    $('.check-row button:not([hidden])', fig).focus();
+  },
+  say(s){
+    const n = s.items.length, c = v => s.ans.filter(a => a === v).length, yes = c('yes'), unsure = c('unsure');
+    if(s.i < n) return s.i ? `${s.i} of ${n} answered: ${yes} true of your project, ${unsure} not sure.` : `${n} statements from this topic. Is each one true of your project?`;
+    const test = ` The first test this topic gives: “${s.test}”`;
+    if(yes) return `${yes} of ${n} ${yes === 1 ? 'is' : 'are'} true of your project${unsure ? `, and ${unsure} you could not say` : ''}. Start with the first one listed.` + test;
+    if(unsure) return `None you are sure of, and ${unsure} you could not say. Not knowing is the finding.` + test;
+    return `None of the ${n}. Either this is in good shape, or nobody has looked from outside yet.` + test;
+  }
+};
+
 const state = new WeakMap();
-const S = fig => { let s = state.get(fig); if(!s){ s = KINDS[fig.dataset.demo].init(); state.set(fig, s); } return s; };
+const S = fig => { let s = state.get(fig); if(!s){ s = KINDS[fig.dataset.demo].init(TOPICS[fig.dataset.topic]); state.set(fig, s); } return s; };
 const out = (fig, text) => { $('.demo-out', fig).textContent = text; };
 
 // The card for a topic's demo. `featured` adds the topic's name and the way to it (the landing).
 // A card starts fresh each time its page is drawn: what a reader did in it is not kept.
 function demoCard(id, featured){
   const t = TOPICS[id], spec = t && t.demo, k = spec && KINDS[spec.kind]; if(!k) return '';
-  const s = k.init();
+  const s = k.init(t), ask = spec.ask || (k.ask ? k.ask(t) : '');
   return `<figure class="card demo" data-demo="${spec.kind}" data-topic="${esc(id)}" style="--dc:${DOM[t.d] ? DOM[t.d].color : 'var(--accent2)'}">
     <figcaption class="demo-head"><span class="overline">Try it${featured ? ' · from ' + esc(t.t) : ''}</span><b>${esc(spec.t || k.t)}</b></figcaption>
     <div class="demo-body">${k.html(s)}</div>
     <p class="small demo-out" aria-live="polite">${esc(k.say(s))}</p>
-    ${spec.ask ? `<p class="small demo-ask"><b>Try this.</b> ${esc(spec.ask)}</p>` : ''}
+    ${ask ? `<p class="small demo-ask"><b>Try this.</b> ${esc(ask)}</p>` : ''}
     ${featured ? `<div class="row"><a class="btn sm" href="#/map/t/${esc(id)}">Open the topic →</a><button type="button" class="btn sm ghost" data-action="demo-next">Another demo</button></div>` : ''}</figure>`;
 }
 // A drawing that depends on the state (an arc, bars) is painted once the card is in the page.
@@ -247,9 +278,10 @@ function demoPaint(root){
 }
 
 ACTIONS['demo'] = el => { const fig = el.closest('.demo'), k = KINDS[fig.dataset.demo], s = S(fig); k.act(fig, s, el.dataset.do, el); out(fig, k.say(s)); };
-// The landing shows one demo at a time; this moves to the next topic that has one.
+// The landing shows one demo at a time; this moves to the next topic that has one of its own
+// (a demo with an `ask`: the check kind needs the topic's text, which the landing has not loaded).
 ACTIONS['demo-next'] = el => {
-  const ids = Object.keys(TOPICS).filter(id => TOPICS[id].demo), fig = el.closest('.demo'), next = ids[(ids.indexOf(fig.dataset.topic) + 1) % ids.length];
+  const ids = Object.keys(TOPICS).filter(id => TOPICS[id].demo && TOPICS[id].demo.ask), fig = el.closest('.demo'), next = ids[(ids.indexOf(fig.dataset.topic) + 1) % ids.length];
   store.set('demoAt', next); fig.outerHTML = demoCard(next, true); demoPaint();
   $('.pland .demo [data-action="demo-next"]').focus();
 };

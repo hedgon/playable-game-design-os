@@ -2294,7 +2294,7 @@ function pathsDoorHTML(){
   // to the foot, since a first-time learner has nothing to restore (N1, N2).
   // The page is called Playable, so its first screen has something to play: one topic's demo,
   // named for its topic, with a button to the next (it sits after the chooser on a narrow screen).
-  const demoIds = Object.keys(TOPICS).filter(id => TOPICS[id].demo), demoAt = demoIds.includes(store.get('demoAt', '')) ? store.get('demoAt', '') : demoIds[0];
+  const demoIds = Object.keys(TOPICS).filter(id => TOPICS[id].demo && TOPICS[id].demo.ask), demoAt = demoIds.includes(store.get('demoAt', '')) ? store.get('demoAt', '') : demoIds[0];
   const stat = (n, t) => `<span><b>${n}</b> ${t}</span>`;
   const domains = `<nav class="domstrip" aria-label="Jump to a domain">${DOMAINS.map(d => `<a class="chip lnk" href="#/explore/${d.id}" style="--dc:${d.color}">${esc(d.t)}</a>`).join('')}</nav>`;
   return `${crumbs([['Paths']])}<div class="pland"><header class="phero"><h1>Learning paths</h1><p class="lead">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
