@@ -1656,6 +1656,7 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
    (a line in that colour, each chapter's letter sitting on it) in place of a stack of boxes. */
 .thero{position:relative;overflow:hidden;padding:22px 24px 12px;margin-bottom:10px;border-top:6px solid var(--dc);background:color-mix(in srgb,var(--dc) 13%,var(--panel))}
 .thero > :not(.thero-n){position:relative}
+.thero-main{flex:1}
 .thero .tag{font-family:var(--title);font-style:italic;font-size:1.5rem;line-height:1.25;color:var(--fg);max-width:46ch;margin:10px 0 12px}
 .thero-n{position:absolute;right:20px;bottom:-.14em;font-family:var(--title);font-style:italic;font-size:12rem;line-height:1;color:transparent;-webkit-text-stroke:1.5px color-mix(in srgb,var(--dc) 75%,var(--fg3));pointer-events:none;user-select:none}
 .sec.tsec{border:0;border-top:1px solid var(--line);background:none;margin:0;overflow:visible;position:relative;padding-left:62px}
@@ -1673,9 +1674,9 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 .tabbody .topic-nav .btn:last-child{text-align:right}
 @media (max-width:700px){
   .thero{padding:16px 14px 8px}
-  .thero > div:first-of-type{flex-basis:100%}
+  .thero-main{flex-basis:100%}
   .thero .tag{font-size:1.22rem}
-  .thero-n{font-size:6.5rem;right:10px}
+  .thero-n{font-size:5rem;right:10px}
   .sec.tsec{padding-left:0}
   .sec.tsec::before{display:none}
   .sec.tsec > header .letter{position:static;left:auto;width:32px;height:32px;font-size:1.2rem;flex:none}
@@ -1683,6 +1684,10 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
   .tabbody .topic-nav{grid-template-columns:1fr}
   .tabbody .topic-nav .btn:last-child{text-align:left}
 }
+@media print{.tabbody .topic-nav,.thero-n{display:none}}
+.contrast-stage{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--line)}
+.contrast-stage span{font-family:var(--ui);font-weight:600;font-size:1.3rem}
+.contrast-stage small{font-family:var(--ui);font-size:.8rem}
 </style>
 </head>
 <body>

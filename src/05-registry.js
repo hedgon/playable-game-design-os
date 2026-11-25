@@ -109,4 +109,4 @@ const VIEW_LINKS = {
 };
 // The kinds of interactive demo a topic can carry (DEMO() in 47-demos.js). Each has a renderer
 // of the same name in 97-demos.js; validate.js checks the data, e2e-paths.js checks the renderers.
-const DEMO_KINDS = ['hit', 'jump', 'telegraph', 'pushluck', 'economy', 'rps', 'sample', 'hick', 'odds', 'check'];
+const DEMO_KINDS = ['hit', 'jump', 'telegraph', 'pushluck', 'economy', 'rps', 'sample', 'hick', 'odds', 'pairs', 'combos', 'ttk', 'funnel', 'loop', 'estimate', 'risk', 'cycles', 'amdahl', 'baserate', 'tick', 'rollback', 'capacity', 'uptime', 'cache', 'tail', 'scope', 'wip', 'treadmill', 'creep', 'tokens', 'camera', 'window', 'pacing', 'branch', 'contrast', 'check'];

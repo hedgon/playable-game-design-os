@@ -1484,7 +1484,7 @@ function topicBody(id){
     wideBlock('Related concepts', `<div class="related">${rel}</div>`) + (smells.length ? wideBlock('Design smells this topic helps diagnose', smellChips) : '');
   const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : tab === 'go' ? goBody(t) : wide2(overview, side);
   // The head is a band in the domain's colour; the topic's place in its domain is drawn large behind it (the chip says it in words).
-  return `<div class="topic-head thero" style="--dc:${d.color}"><span class="thero-n" aria-hidden="true">${String(idx+1).padStart(2,"0")}</span><div style="flex:1"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
+  return `<div class="topic-head thero" style="--dc:${d.color}"><span class="thero-n" aria-hidden="true">${String(idx+1).padStart(2,"0")}</span><div class="thero-main"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       ${tab === 'overview' ? `<div class="row"><button type="button" class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button type="button" class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
 }
