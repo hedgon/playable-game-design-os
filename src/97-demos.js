@@ -5,7 +5,7 @@
    that topic). Loaded on demand with the first page that shows one: the
    build writes this file to content/code/demos.js.
    Each kind is { t, init, html, sync, act, say }: init makes the state
-   (from the topic and its DEMO() line, for a kind that draws on the topic's own text or words),
+   (with the topic's DEMO() line, for a kind that takes its nouns from the topic),
    html draws it once, sync updates the drawing after a slider moves,
    act answers a button, say is the sentence under the demo (the result
    in words, so nothing depends on seeing the motion).
@@ -246,10 +246,11 @@ KINDS.pairs = calc('Every part meets every other part', [['n', s => 'How many ' 
   return { bars: [[cap(w), s.n / 24, String(s.n)], ['Pairs', p / 276, String(p)]], say: `${s.n} ${w} make ${count(p, 'pairs')} that can interact. Adding one more adds ${s.n} new pairs, not one.` };
 });
 
-/* Three lists of content multiply into situations. */
-KINDS.combos = calc('Content multiplies', [['a', 'Enemy types', 1, 8, 1, 4, ''], ['b', 'Weapons', 1, 8, 1, 3, ''], ['c', 'Arenas', 1, 6, 1, 2, '']], s => {
+/* Three lists multiply. `w` is [the three lists, what they multiply into, what the lists hold]. */
+KINDS.combos = calc('Content multiplies', [['a', s => cap(s.words[0] || 'enemy types'), 1, 8, 1, 4, ''], ['b', s => cap(s.words[1] || 'weapons'), 1, 8, 1, 3, ''], ['c', s => cap(s.words[2] || 'arenas'), 1, 6, 1, 2, '']], s => {
+  const [A, B, C, R, P] = [s.words[0] || 'enemy types', s.words[1] || 'weapons', s.words[2] || 'arenas', s.words[3] || 'situations', s.words[4] || 'pieces of content'];
   const n = s.a * s.b * s.c, made = s.a + s.b + s.c, min = Math.min(s.a, s.b, s.c);
-  return { bars: [['Pieces made', made / 22, String(made)], ['Situations', n / 384, nf(n)]], say: `${count(s.a, 'enemy types')} × ${count(s.b, 'weapons')} × ${count(s.c, 'arenas')}: ${count(n, 'situations')} from ${made} pieces of content. One more in the shortest list adds ${nf(n / min)}; whether they play differently is the design work.` };
+  return { bars: [[cap(P), made / 22, String(made)], [cap(R), n / 384, nf(n)]], say: `${count(s.a, A)} × ${count(s.b, B)} × ${count(s.c, C)}: ${count(n, R)}` + (s.words.length ? `. One more in the shortest list adds ${nf(n / min)}.` : ` from ${made} ${P}. One more in the shortest list adds ${nf(n / min)}; whether they play differently is the design work.`) };
 });
 
 /* Hits to kill is a whole number, so damage only matters where it removes a hit. */
@@ -259,9 +260,9 @@ KINDS.ttk = calc('Damage only matters at a hit boundary', [['d', 'Damage per hit
 });
 
 /* A pass rate, compounded over steps in a row. */
-KINDS.funnel = calc('Every step loses a few', [['n', 'Steps in a row', 1, 20, 1, 6, ''], ['r', 'Share that gets through each step', 50, 99, 1, 90, '%']], s => {
+KINDS.funnel = calc('Every step loses a few', [['n', 'Steps in a row', 1, 20, 1, 6, ''], ['r', 'Share that gets through each step', 5, 100, 1, 90, '%']], s => {
   const w = s.words[0] || 'players', r = s.r / 100, end = Math.pow(r, s.n), half = Math.pow(r, Math.ceil(s.n / 2));
-  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through ${s.n === 1 ? 'the one step' : `all ${s.n} steps`} at ${s.r}% each. Removing one step saves ${nf((Math.pow(r, s.n - 1) - end) * 1000)} of them, and no single step looks like the problem.` };
+  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through ${s.n === 1 ? 'the one step' : `all ${s.n} steps`} at ${s.r}% each.` + (s.r === 100 ? ' Nothing is lost at any step.' : ` Removing one step saves ${nf((Math.pow(r, s.n - 1) - end) * 1000)} of them, and no single step looks like the problem.`) };
 });
 
 /* A loop repeated for a session: whatever waits inside it is paid every time. */
@@ -284,7 +285,7 @@ KINDS.risk = calc('What a risk costs on average', [['p', 'Chance it happens', 5,
 });
 
 /* Tries before a date, from the length of one full loop. */
-KINDS.cycles = calc('How many tries before the date?', [['h', 'One full loop takes', .25, 80, .25, 16, ' h'], ['wk', 'Weeks left', 1, 52, 1, 8, '']], s => {
+KINDS.cycles = calc('How many tries before the date?', [['h', 'One full loop takes', .25, 200, .25, 16, ' h'], ['wk', 'Weeks left', 1, 52, 1, 8, '']], s => {
   const n = Math.floor(s.wk * 40 / s.h), n2 = Math.floor(s.wk * 40 / (s.h / 2));
   return { bars: [['Tries', n / Math.max(1, n2), String(n)], ['At half the loop', 1, String(n2)]], say: `${nf(n)} tries before the date, at 40 working hours a week. Halving the loop to ${s.h / 2} h gives ${nf(n2)}: the speed of the loop is the number of chances to be wrong and fix it.` };
 });
@@ -564,35 +565,111 @@ KINDS.tone = {
   say: s => s.last
 };
 
-/* The topic's own warning signs and traps, held up against the reader's project one at a time.
-   Nothing here is written for the demo: the statements, the question and the test are the topic's. */
-KINDS.check = {
-  t: 'Hold your own project up to this topic',
-  ask: t => `Answer for the project as it is today, not as it was planned. Then put this topic’s first question to it: “${t.think.q[0]}”`,
-  init: t => ({ items: [...t.think.bad, ...t.think.traps].slice(0, 5), test: t.test[0], i: 0, ans: [] }),
-  html: () => `<p class="overline check-n"></p><div class="check-q" aria-live="polite"></div>
-    <div class="row check-row">${btn('yes', 'True of us', 'btn primary')}${btn('no', 'Not us', 'btn')}${btn('unsure', 'Not sure', 'btn')}${btn('again', 'Start again', 'btn', ' hidden')}</div>`,
-  sync(fig, s){
-    const done = s.i >= s.items.length, yes = s.items.filter((_, i) => s.ans[i] === 'yes');
-    $('.check-n', fig).textContent = done ? 'True of your project' : `${s.i + 1} of ${s.items.length}`;
-    $('.check-q', fig).innerHTML = done ? (yes.length ? '<ul>' + yes.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>' : 'Nothing marked true.') : esc(s.items[s.i]);
-    $$('.check-row button', fig).forEach(b => { b.hidden = (b.dataset.do === 'again') !== done; });
-  },
-  act(fig, s, what){
-    if(what === 'again'){ s.i = 0; s.ans = []; } else s.ans[s.i++] = what;
-    this.sync(fig, s);
-    // The pressed button may now be hidden: a keyboard user continues from the first one shown.
-    $('.check-row button:not([hidden])', fig).focus();
-  },
+/* Two ways to do something, each with a cost to set up and a cost each time: where the heavier one pays for itself.
+   `w` is [what is counted, the first way, the second way, the unit of cost]. */
+KINDS.breakeven = calc('Where does the heavier option pay for itself?', [
+  ['a0', s => cap(s.words[1] || 'the plain way') + ': to set up', 0, 200, 5, 0, ''],
+  ['a1', s => cap(s.words[1] || 'the plain way') + ': each time', 0, 40, .5, 4, ''],
+  ['b0', s => cap(s.words[2] || 'the built way') + ': to set up', 0, 400, 5, 60, ''],
+  ['b1', s => cap(s.words[2] || 'the built way') + ': each time', 0, 40, .5, 1, ''],
+  ['n', s => 'How many ' + (s.words[0] || 'times'), 1, 200, 1, 10, '']], s => {
+  const A = s.words[1] || 'the plain way', B = s.words[2] || 'the built way', units = s.words[0] || 'times', u = s.words[3] || 'hours';
+  const ca = s.a0 + s.a1 * s.n, cb = s.b0 + s.b1 * s.n, top = Math.max(ca, cb, 1);
+  // the option that costs more to set up pays for itself only if it costs less each time
+  const [hi, lo, h0, h1, l0, l1] = s.b0 >= s.a0 ? [B, A, s.b0, s.b1, s.a0, s.a1] : [A, B, s.a0, s.a1, s.b0, s.b1];
+  const verdict = h0 === l0 ? (h1 === l1 ? 'They cost the same at any number.' : `They cost the same to set up, so ${h1 < l1 ? hi : lo} wins at any number.`)
+    : h1 >= l1 ? `${cap(hi)} costs more to set up and no less each time: it never pays for itself.`
+    : `${cap(hi)} pays for itself after ${count(Math.floor((h0 - l0) / (l1 - h1)), units)}: below that, ${lo} is cheaper, however much better the other looks.`;
+  return { bars: [[cap(A), ca / top, nf(ca, 1) + ' ' + u], [cap(B), cb / top, nf(cb, 1) + ' ' + u]], say: `For ${count(s.n, units)}: ${A} costs ${nf(ca, 1)} ${u}, ${B} ${nf(cb, 1)}. ` + verdict };
+});
+
+/* A handful of named things, scored by the reader: the top two, their share, and the weakest. `w` names them. */
+KINDS.profile = {
+  t: 'Where does it actually score?',
+  init: (t, spec) => { const words = (spec && spec.w) || ['one', 'two', 'three'], s = { words }; words.forEach((_, i) => { s['d' + i] = [7, 5, 3, 4, 2, 6][i]; }); return s; },
+  html: s => s.words.map((w, i) => slider('d' + i, cap(w), 0, 10, 1, s['d' + i], '')).join(''),
+  sync(){},
+  act(){},
   say(s){
-    const n = s.items.length, c = v => s.ans.filter(a => a === v).length, yes = c('yes'), unsure = c('unsure');
-    if(s.i < n) return s.i ? `${s.i} of ${n} answered: ${yes} true of your project, ${unsure} not sure.` : `${n} statements from this topic. Is each one true of your project?`;
-    const test = ` The first test this topic gives: “${s.test}”`;
-    if(yes) return `${yes} of ${n} ${yes === 1 ? 'is' : 'are'} true of your project${unsure ? `, and ${unsure} you could not say` : ''}. Start with the first of them.` + test;
-    if(unsure) return `None marked true, and ${unsure} you could not say. Not knowing is the finding.` + test;
-    return `None of the ${n}. Either this is in good shape, or nobody has looked from outside yet.` + test;
+    const v = s.words.map((w, i) => [w, s['d' + i]]).sort((a, b) => b[1] - a[1]), total = v.reduce((a, x) => a + x[1], 0);
+    if(!total) return 'Nothing scored yet.';
+    if(v[0][1] === v[v.length - 1][1]) return 'Everything scores the same: nothing has been chosen yet, and a profile that claims everything equally claims nothing.';
+    return `Strongest: ${v[0][0]} and ${v[1][0]}, ${pct((v[0][1] + v[1][1]) / total)}% of the total between them. Weakest: ${v[v.length - 1][0]}.`;
   }
 };
+
+/* A queue near its limit: with uneven arrivals, time through is 1 / (1 - busy) times the work itself. `w` is [what arrives, per what]. */
+KINDS.busy = calc('How long things wait when you are nearly full', [['a', s => cap(s.words[0] || 'jobs') + ' arriving ' + (s.words[1] || 'a week'), 1, 60, 1, 9, ''], ['c', s => 'Can be finished ' + (s.words[1] || 'a week'), 1, 60, 1, 10, '']], s => {
+  const w = s.words[0] || 'jobs', rho = s.a / s.c, m = 1 / (1 - rho), label = 'Time through, against an empty desk';
+  if(rho >= 1) return { bars: [['Busy', 1, '100%'], [label, 1, 'no limit']], say: `${count(s.a, w)} ${s.a === 1 ? 'arrives' : 'arrive'} and ${s.c} can be finished: no less comes in than goes out, so the queue grows without limit and each one waits longer than the last.` };
+  return { bars: [['Busy', rho, pct(rho) + '%'], [label, Math.min(1, m / 20), nf(m, 1) + '×']], say: `${count(s.a, w)} ${s.a === 1 ? 'arrives' : 'arrive'} and ${s.c} can be finished: ${pct(rho)}% busy. When they arrive unevenly, each one takes about ${nf(m, 1)}× as long to get through as it would with nothing ahead of it. At 80% busy that is 5×; at 95%, 20×.` };
+});
+
+/* If each person knows a share of the whole, independently: how much is known by nobody, and by exactly one. */
+KINDS.busfactor = calc('What is known by only one person?', [['n', 'People', 1, 12, 1, 5, ''], ['p', 'Share of the whole that each one knows', 10, 100, 5, 30, '%']], s => {
+  const p = s.p / 100, none = Math.pow(1 - p, s.n), one = s.n * p * Math.pow(1 - p, s.n - 1);
+  return { bars: [['Known by nobody', none, pct(none) + '%'], ['Known by exactly one', one, pct(one) + '%'], ['Known by two or more', 1 - none - one, pct(1 - none - one) + '%']], say: `If ${s.n === 1 ? 'the one person' : 'each of ' + s.n + ' people'} knows ${s.p}% of the whole${s.n === 1 ? '' : ', independently'}, ${pct(none)}% is known by nobody and ${pct(one)}% by exactly one: that share stops moving when one person is ill, busy or gone.` };
+});
+
+/* A small change every week, compounded. */
+KINDS.compound = calc('A little, every week', [['g', 'Change each week', -2, 5, .25, 1, '%'], ['wk', 'Weeks', 4, 260, 4, 52, '']], s => {
+  const x = Math.pow(1 + s.g / 100, s.wk), half = Math.pow(1 + s.g / 100, s.wk / 2), top = Math.max(1, x);
+  return { bars: [['At the start', 1 / top, '1×'], ['Halfway', half / top, nf(half, 2) + '×'], ['At the end', x / top, nf(x, 2) + '×']], say: `${s.g > 0 ? '+' : s.g < 0 ? '−' : ''}${Math.abs(s.g)}% a week for ${s.wk} weeks is ${nf(x, 2)}× where it started` + (s.g > 0 ? `, and only ${nf(half, 2)}× at the halfway mark: most of the gain arrives late, which is why it is easy to give up on early.` : s.g < 0 ? `: a loss too small to notice in any one week leaves ${pct(x)}%.` : ': nothing changes.') };
+});
+
+/* A sight cone: its area, the dot-product test for "inside", and how long a target running straight in is seen. */
+KINDS.sight = calc('What can it see, and for how long?', [['r', 'Sight range', 2, 40, 1, 12, ' m'], ['ang', 'Angle of the cone', 20, 360, 10, 90, '°'], ['d', 'Reaction delay', 0, 2, .1, .5, ' s'], ['v', 'Speed of the target', 1, 10, .5, 5, ' m/s']], s => {
+  const area = s.ang / 360 * Math.PI * s.r * s.r, dot = Math.cos(s.ang / 2 * Math.PI / 180), t = s.r / s.v, room = Math.min(1, area / 900);
+  return { bars: [['Of a 30 × 30 m room covered', room, pct(room) + '%'], ['In view while running in', Math.min(1, t / 10), nf(t, 1) + ' s']], say: `The cone covers ${nf(area)} m². A target is inside it when it is within ${s.r} m and the dot product of the facing direction and the unit direction to the target is at least ${dot < -.004 ? '−' : ''}${Math.abs(dot).toFixed(2)}. Running straight in at ${s.v} m/s, a target is in view for ${nf(t, 1)} s` + (t <= s.d ? `: no longer than the ${s.d} s reaction delay, so it arrives before anything reacts.` : `, ${nf(t - s.d, 1)} s of it after the ${s.d} s reaction delay.`) };
+});
+
+/* A pool of recorded lines, spoken on a timer, over a whole game. */
+KINDS.repeat = calc('How often is each line heard?', [['n', 'Lines recorded', 1, 200, 1, 12, ''], ['e', 'One is spoken every', 5, 600, 5, 45, ' s'], ['h', 'Hours of play', 1, 100, 1, 20, '']], s => {
+  const total = s.h * 3600 / s.e, each = total / s.n;
+  return { bars: [['Times each line is heard', Math.min(1, each / 200), nf(each)]], say: `${nf(total)} lines are spoken over ${count(s.h, 'hours')}, from ${nf(s.n)} recorded: ${each < 1 ? 'most are never heard' : 'each is heard about ' + count(Math.round(each), 'times')}. Speak less often, record more, or let the situation choose the line: those are the three levers.` };
+});
+
+/* Packet loss against a message split into several packets. */
+KINDS.loss = calc('What one lost packet costs', [['p', 'Packets lost', 0, 20, .5, 2, '%'], ['k', 'Packets one message is split into', 1, 20, 1, 3, ''], ['rto', 'Wait before a resend', 20, 500, 10, 100, ' ms']], s => {
+  const ok = Math.pow(1 - s.p / 100, s.k);
+  return { bars: [['Messages that arrive whole', ok, nf(ok * 100, 1) + '%'], ['Messages hit by a loss', 1 - ok, nf((1 - ok) * 100, 1) + '%']], say: `With ${s.p}% of packets lost, a message split into ${count(s.k, 'packets')} arrives whole ${nf(ok * 100, 1)}% of the time. A reliable, ordered channel resends what is missing about ${s.rto} ms later and holds back everything sent after it until then; an unreliable one drops that message and moves on.` };
+});
+
+/* What one sale leaves after tax, refunds and the store's share, against the cost of being on that platform. */
+KINDS.net = calc('What one sale is worth to you', [['price', 'Price', 1, 80, 1, 20, ''], ['share', 'The store keeps', 0, 90, 5, 30, ''], ['tax', 'Tax and refunds', 0, 40, 5, 20, ''], ['cost', 'Cost of getting onto this platform', 5, 500, 5, 60, '']], s => {
+  const net = s.price * (1 - s.tax / 100) * (1 - s.share / 100), copies = Math.ceil(s.cost * 1000 / net);
+  return { bars: [['Price', 1, '$' + s.price], ['Reaches you', net / s.price, '$' + net.toFixed(2)]], say: `Of a $${s.price} sale, about $${net.toFixed(2)} reaches you after ${s.tax}% tax and refunds and the store’s ${s.share}%. Recovering $${nf(s.cost * 1000)} takes ${nf(copies)} copies on this platform alone.` };
+}, (name, v) => name === 'price' ? '$' + v : name === 'cost' ? '$' + nf(v * 1000) : v + '%');
+
+/* A cached prompt prefix: what repeated calls cost against uncached ones. */
+KINDS.pcache = calc('What a stable prefix saves', [['pre', 'Share of the prompt that never changes', 0, 95, 5, 80, '%'], ['hit', 'Calls that find it cached', 0, 100, 5, 90, '%'], ['c', 'A cached token costs, against a normal one', 5, 100, 5, 10, '%']], s => {
+  const rel = 1 - s.pre / 100 * s.hit / 100 * (1 - s.c / 100);
+  return { bars: [['Uncached', 1, '100%'], ['With the cache', rel, pct(rel) + '%']], say: `With ${s.pre}% of each prompt identical from call to call, ${s.hit}% of calls finding it cached and a cached token billed at ${s.c}% of a normal one, the input costs ${pct(rel)}% of what it would uncached, before any charge for writing the cache. Put one changing line above the stable part and the hit rate, and the saving, go to zero.` };
+});
+
+/* The same check repeated at every layer a value passes through, against once where it enters. */
+KINDS.guards = calc('The same check, at every layer', [['l', 'Layers a value passes through', 1, 8, 1, 4, ''], ['v', 'Values checked', 1, 20, 1, 6, ''], ['n', 'Lines one check takes', 1, 6, 1, 3, '']], s => {
+  const all = s.l * s.v * s.n, once = s.v * s.n;
+  return { bars: [['Checked at every layer', 1, count(all, 'lines')], ['Checked once, where it enters', once / all, count(once, 'lines')]], say: s.l === 1 ? `One layer: ${count(once, 'lines')} of checks at the boundary, and nothing to remove.` : `Checked at each of ${s.l} layers: ${count(all, 'lines')}. Checked once where the value enters: ${count(once, 'lines')}. The other ${nf(all - once)} can never fire, and each one tells the next reader that the value might be bad here.` };
+});
+
+/* Binary assets kept whole in a repository's history. */
+KINDS.repo = calc('What binaries do to a repository', [['mb', 'One version of an asset', 1, 500, 1, 40, ' MB'], ['n', 'Changed versions committed a week', 1, 200, 1, 25, ''], ['wk', 'Weeks', 4, 156, 4, 52, '']], s => {
+  const gb = s.mb * s.n * s.wk / 1000;
+  return { bars: [['History after that time', Math.min(1, gb / 500), nf(gb, 1) + ' GB']], say: `${count(s.n, 'changed versions')} a week at ${s.mb} MB, each kept whole because a compressed binary rarely shrinks to a difference: ${nf(gb, 1)} GB of history after ${s.wk} weeks. Every full clone carries it unless old versions are stored outside the history and fetched on demand.` };
+});
+
+/* Two scores that should agree. `w` is [the first, the second, what a gap means]. */
+KINDS.gap = calc('Do the two agree?', [['a', s => s.words[0] || 'What is said', 0, 10, 1, 8, ''], ['b', s => s.words[1] || 'What is done', 0, 10, 1, 3, '']], s => {
+  const g = Math.abs(s.a - s.b);
+  return { bars: [], say: g <= 1 ? `${s.a} and ${s.b} of 10: the two agree.` : `${s.a} against ${s.b} of 10: a gap of ${g}. ${s.words[2] || ''}` };
+});
+
+/* Goals at three distances, counted in one session. */
+KINDS.horizons = calc('Three horizons in one session', [['sh', 'A short goal is reached every', 5, 300, 5, 30, ' s'], ['m', 'A medium goal every', 1, 120, 1, 15, ' min'], ['h', 'A long goal every', 1, 60, 1, 8, ' h'], ['len', 'Session', 5, 180, 5, 30, ' min']], s => {
+  const ns = s.len * 60 / s.sh, nm = s.len / s.m, sessions = s.h * 60 / s.len;
+  return { bars: [['Short goals a session', Math.min(1, ns / 200), nf(ns)], ['Medium goals a session', Math.min(1, nm / 20), nf(nm, 1)], ['Sessions to one long goal', Math.min(1, sessions / 100), nf(sessions, 1)]], say: `In a ${s.len}-minute session the player reaches ${count(Math.round(ns), 'short goals')} and ${nf(nm, 1)} medium ${+nm.toFixed(1) === 1 ? 'one' : 'ones'}; the long goal is ${count(+sessions.toFixed(1), 'sessions')} away.` + (nm < 1 ? ' No medium goal completes inside a session, so the session has no ending of its own to aim at.' : '') };
+});
 
 const state = new WeakMap();
 const S = fig => { let s = state.get(fig); if(!s){ const t = TOPICS[fig.dataset.topic]; s = KINDS[fig.dataset.demo].init(t, t.demo); state.set(fig, s); } return s; };
@@ -602,7 +679,7 @@ const out = (fig, text) => { $('.demo-out', fig).textContent = text; };
 // A card starts fresh each time its page is drawn: what a reader did in it is not kept.
 function demoCard(id, featured){
   const t = TOPICS[id], spec = t && t.demo, k = spec && KINDS[spec.kind]; if(!k) return '';
-  const s = k.init(t, spec), ask = spec.ask || (k.ask ? k.ask(t) : '');
+  const s = k.init(t, spec), ask = spec.ask;
   return `<figure class="card demo" data-demo="${spec.kind}" data-topic="${esc(id)}" style="--dc:${DOM[t.d] ? DOM[t.d].color : 'var(--accent2)'}">
     <figcaption class="demo-head"><span class="overline">Try it${featured ? ' · from ' + esc(t.t) : ''}</span><b>${esc(spec.t || k.t)}</b></figcaption>
     <div class="demo-body">${k.html(s)}</div>
@@ -621,12 +698,15 @@ function demoPaint(root){
 }
 
 ACTIONS['demo'] = el => { const fig = el.closest('.demo'), k = KINDS[fig.dataset.demo], s = S(fig); k.act(fig, s, el.dataset.do, el); out(fig, k.say(s)); };
-// The landing shows one demo at a time; this moves to the next topic that has one of its own
-// (a demo with an `ask`: the check kind needs the topic's text, which the landing has not loaded).
+// The landing shows one demo at a time; this moves to the next topic's.
 ACTIONS['demo-next'] = el => {
-  const ids = Object.keys(TOPICS).filter(id => TOPICS[id].demo && TOPICS[id].demo.ask), fig = el.closest('.demo'), next = ids[(ids.indexOf(fig.dataset.topic) + 1) % ids.length];
-  store.set('demoAt', next); fig.outerHTML = demoCard(next, true); demoPaint();
-  $('.pland .demo [data-action="demo-next"]').focus();
+  const ids = A.demoFeatured(), fig = el.closest('.demo'), next = ids[(ids.indexOf(fig.dataset.topic) + 1) % ids.length];
+  // the next topic's task line is in that topic's own file
+  PlayableContent.need('topic', next).then(() => {
+    if(!fig.isConnected) return;
+    store.set('demoAt', next); fig.outerHTML = demoCard(next, true); demoPaint();
+    $('.pland .demo [data-action="demo-next"]').focus();
+  }, err => console.warn(err));
 };
 document.addEventListener('input', e => {
   const el = e.target, fig = el.dataset && el.dataset.set && el.closest('.demo'); if(!fig) return;

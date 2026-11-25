@@ -242,11 +242,10 @@ Right after the topic, in the same file:
   this topic (`w: ['people']` makes the pairs demo count people). A number or
   outcome an `ask` states has to be what the demo shows when the reader follows
   it: read it off the built page before committing. Every topic must have a demo, and
-  `validate.js` fails when one has none: a new topic either gets a `DEMO()` line
-  with a kind that shows its point, or its id goes in the check list at the end of
-  `47-demos.js`. The `check` kind takes no `ask`: it shows the topic's own
-  `think.bad` and `think.traps` one at a time, sets the topic's first `think.q`
-  as the task and ends on its first `test`, so nothing is written for it. A new kind is an entry in `KINDS` in
+  `validate.js` fails when one has none: a new topic gets a `DEMO()` line with a
+  kind that shows its point, most often an existing one framed by its `ask`. A
+  demo's words live in the topic's own on-demand file, not in the page (`demo:
+  { kind: true }` in `LIGHT`), so a task line costs the page nothing. A new kind is an entry in `KINDS` in
   `src/97-demos.js` (`init`, `html`, `sync`, `act`, `say`) plus its name in
   `DEMO_KINDS`. Most kinds are calculators and need only the `calc()` helper there:
   a title, the sliders, and one function from the state to the bars and the

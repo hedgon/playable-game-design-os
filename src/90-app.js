@@ -222,6 +222,9 @@ let lastRouteKey = null, booted = false, afterRoute = null;
 /* The long text of a topic, game, path, project, guide or comparison is in its
    own file (86-content.js). A route first loads what it shows, then draws; a
    reader who moves on before the file arrives is not dragged back. */
+// The topics the landing may feature, in order: every topic has a demo.
+const demoFeatured = () => Object.keys(TOPICS).filter(id => TOPICS[id].demo);
+function featuredDemo(){ const ids = demoFeatured(), at = store.get('demoAt', ''); return ids.includes(at) ? at : ids[0]; }
 function contentNeeds(parts){
   const [v, a, b] = parts;
   const every = (kind, list) => list.map(x => [kind, x.id]);
@@ -235,7 +238,7 @@ function contentNeeds(parts){
     case 'explore': return a && DOMAIN_DIAGRAMS[a] ? [['topic', DOMAIN_DIAGRAMS[a]]] : [];
     case 'games': return a === 'compare' ? (b ? [['compare', b]] : []) : a && a !== 'topic' ? [['game', a]] : [];
     // the landing features one topic's demo
-    case 'paths': return a && a !== 'review' ? [['path', a]] : a ? [] : [['code', 'demos']];
+    case 'paths': return a && a !== 'review' ? [['path', a]] : a ? [] : [['code', 'demos'], ['topic', featuredDemo()]];
     case 'experience': return a ? [['case', a]] : [];
     case 'platforms': return a ? [['platform', a]] : [];
     case 'engines': return a ? [['engine', a]] : [];
@@ -266,7 +269,7 @@ function route(){
   // set before its hashchange event runs, and that route will draw itself
   // The demos' code is an extra: without it a page still draws, minus its "Try it" card (the views
   // check A.demoCard), so its failure must not put the error page in place of the topic.
-  const extra = needs.filter(([k, id]) => k === 'code' && id === 'demos'), must = needs.filter(n => !extra.includes(n));
+  const extra = needs.filter(([k, id]) => (k === 'code' && id === 'demos') || (k === 'topic' && parts[0] === 'paths')), must = needs.filter(n => !extra.includes(n));
   Promise.all([PlayableContent.needAll(must), PlayableContent.needAll(extra).catch(err => console.warn(err))]).then(() => { clearTimeout(slow); if(seq === routeSeq && location.hash === at){ drawRoute(); finish(); } }, err => {
     clearTimeout(slow); if(seq !== routeSeq) return;
     console.warn(err);
@@ -2295,13 +2298,13 @@ function pathsDoorHTML(){
   // to the foot, since a first-time learner has nothing to restore (N1, N2).
   // The page is called Playable, so its first screen has something to play: one topic's demo,
   // named for its topic, with a button to the next (it sits after the chooser on a narrow screen).
-  const demoIds = Object.keys(TOPICS).filter(id => TOPICS[id].demo && TOPICS[id].demo.ask), demoAt = demoIds.includes(store.get('demoAt', '')) ? store.get('demoAt', '') : demoIds[0];
+  const demoAt = featuredDemo();
   const stat = (n, t) => `<span><b>${n}</b> ${t}</span>`;
   const domains = `<nav class="domstrip" aria-label="Jump to a domain">${DOMAINS.map(d => `<a class="chip lnk" href="#/explore/${d.id}" style="--dc:${d.color}">${esc(d.t)}</a>`).join('')}</nav>`;
   return `${crumbs([['Paths']])}<div class="pland"><header class="phero"><h1>Learning paths</h1><p class="lead">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
       <p class="phero-stats">${stat(Object.keys(TOPICS).length, 'topics')}${stat(REFERENCE_GAMES.length, 'games taken apart')}${stat(PATHS.length, 'paths')}</p>
       <div class="row"><a class="btn primary" href="#/play/game-designer-foundations">Play a path as a game →</a><a class="btn" href="#/map">Open the map</a></div></header>
-    ${demoAt && A.demoCard ? A.demoCard(demoAt, true) : ''}
+    ${A.demoCard && TOPICS[demoAt].demo.ask ? A.demoCard(demoAt, true) : ''}
     <div class="pland-pick">${continueCard}
     ${chooserHTML(ans, rec)}</div></div>
     ${tracks || '<div class="empty">No paths written yet. They live in src/50-paths.js and src/51-paths-engineering.js.</div>'}
@@ -2815,7 +2818,7 @@ document.addEventListener('keydown', e => {
 });
 
 // What the later files import from this one.
-Object.assign(A, { $, $$, app, esc, DOM, TOPIC_LIST, store, ACTIONS, seen, markSeen, updateProgress, toast, copyText, go, route, settled, isNarrow,
+Object.assign(A, { demoFeatured, $, $$, app, esc, DOM, TOPIC_LIST, store, ACTIONS, seen, markSeen, updateProgress, toast, copyText, go, route, settled, isNarrow,
   setView, crumbs, domChip, list, chainHTML, promptBox, diagramCard, field, bindForm, outputBox, toolHead, practice, setTopicTab,
   topicBody, smellsView, pathProgress, savePathProgress, markStageStatus, pathNextStep, scheduleRecall, recallItems, recallIdeas, CONFIDENCE, OUTCOME, reviewItems, today, rpgCount, renderPaths, showPathStep, closeModals, openModal, DIAGRAM_DISSECTION, search, loadIndex, searchWords, STOP_WORDS, pinMap });
 })(window.PlayableApp = {});
