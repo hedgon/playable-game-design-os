@@ -49,7 +49,7 @@
  * @property {Worked[]} [worked]    attached by WORKED()
  * @property {Diagram} [diagram]    attached by DIAGRAM()
  * @property {Explainer} [explainer]   attached by EXPLAINER()
- * @property {{kind: string, t?: string, ask: string, w?: string[]}} [demo]   attached by DEMO()
+ * @property {{kind: string, t?: string, ask: string, w?: string[], v?: number[]}} [demo]   attached by DEMO()
  * @property {Clip} [clip]    attached by CLIP()
  */
 /**
@@ -148,7 +148,7 @@ function EXPLAINER(id, spec){
 
 /* A small thing to operate on the topic's page (97-demos.js draws it): `kind` is one of
    DEMO_KINDS, `t` an optional title for this topic, `ask` what to try and what it shows here, `w` the nouns a shared kind uses for this topic. */
-/** @param {string} id @param {{kind: string, t?: string, ask: string, w?: string[]}} spec */
+/** @param {string} id @param {{kind: string, t?: string, ask: string, w?: string[], v?: number[]}} spec */
 function DEMO(id, spec){
   const t = TOPICS[id];
   if(!t) throw new Error('DEMO: unknown topic ' + id);

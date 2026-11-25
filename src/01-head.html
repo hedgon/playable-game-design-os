@@ -1775,6 +1775,32 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 .judge-row { margin: 0 0 8px; }
 .judge-c { max-width: 100%; white-space: normal; text-align: left; }
 .judge-why { display: block; margin-top: 2px; font-family: var(--mono); }
+/* corrections after review */
+.sprite-grid{background:var(--panel)}
+.sprite-px{width:100%;height:100%;min-width:24px;min-height:24px;box-sizing:border-box;border:1px solid var(--fg)}
+.sprite-px.c0{background:var(--bg2)}
+.sprite-px:hover{border-color:var(--dc,var(--accent))}
+.firegrid-g{background:var(--bg2)}
+.firegrid-w{background:repeating-linear-gradient(135deg,var(--bg2) 0 4px,var(--panel) 4px 8px)}
+.firegrid-b{background:var(--panel);box-shadow:inset 0 0 0 3px var(--fg3)}
+.firegrid-key{list-style:none;margin:6px 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem}
+.firegrid-key li{display:flex;align-items:center;gap:6px}
+.firegrid-sw{display:inline-grid;place-items:center;width:24px;height:24px;border:1.5px solid var(--fg);font-family:var(--mono);color:var(--fg)}
+.firegrid-sw.firegrid-lit{background:var(--dc,var(--accent));color:var(--bg);font-weight:700}
+.leaks-plot{display:flex;align-items:flex-end;gap:4px;padding:8px 8px 4px;border:1.5px solid var(--fg);background:var(--panel)}
+.leaks-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;text-align:center;font-family:var(--mono);font-size:.7rem}
+.leaks-col b{font-weight:400}
+.leaks-col i{display:block;background:var(--dc,var(--accent));border:1.5px solid var(--fg)}
+.leaks-col span{border-top:1.5px solid var(--fg);padding-top:2px}
+/* no new rules: the pipeline kind reuses .pipeline-list, the guard duel reuses .guardduel-rules */
+.rank-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.rank-row > span { flex: 1 1 100%; }
+.rank-b { min-width: 24px; min-height: 24px; }
+/* a figure keeps its labels readable on a phone: it scrolls sideways inside its frame and is never drawn smaller */
+.demo-fig{overflow-x:auto}
+.demo-fig svg{min-width:440px}
+/* a pressed chip says so with a mark, not by colour alone */
+.demo .chip[aria-pressed="true"]::before{content:"\2713";margin-right:5px;font-weight:700}
 /* ===== end of demo kinds and figures ===== */
 /* ===== PRINTED FIELD MANUAL (2026-11) =====
    The site as a manual someone printed in two inks: black, and the colour of the domain being read.

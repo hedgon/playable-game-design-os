@@ -263,8 +263,8 @@ KINDS.ttk = calc('Damage only matters at a hit boundary', [['d', 'Damage per hit
 
 /* A pass rate, compounded over steps in a row. `w` is [who goes through, anything at all when getting through is the bad outcome]. */
 KINDS.funnel = calc('Every step loses a few', [['n', 'Steps in a row', 1, 20, 1, 6, ''], ['r', 'Share that gets through each step', 5, 100, 1, 90, '%']], s => {
-  const w = s.words[0] || 'players', r = s.r / 100, end = Math.pow(r, s.n), half = Math.pow(r, Math.ceil(s.n / 2));
-  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through ${s.n === 1 ? 'the one step' : `all ${s.n} steps`} at ${s.r}% each.` + (s.r === 100 ? ' Nothing is lost at any step.' : s.words[1] ? ` One step fewer lets ${nf((Math.pow(r, s.n - 1) - end) * 1000)} more through.` : ` Removing one step saves ${nf((Math.pow(r, s.n - 1) - end) * 1000)} of them, and no single step looks like the problem.`) };
+  const w = s.words[0] || 'players', r = s.r / 100, end = Math.pow(r, s.n), half = Math.pow(r, Math.ceil(s.n / 2)), more = nf((Math.pow(r, s.n - 1) - end) * 1000);
+  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through ${s.n === 1 ? 'the one step' : `all ${s.n} steps`} at ${s.r}% each.` + (s.r === 100 ? ' Nothing is lost at any step.' : s.n === 1 ? ' Without that step all 1,000 would get through: the one step is the whole loss.' : s.words[1] ? ` One step fewer lets ${more} more through.` : ` Removing one step saves ${more} of them, and no single step looks like the problem.`) };
 });
 
 /* A loop repeated for a session: whatever waits inside it is paid every time. */
@@ -282,14 +282,14 @@ KINDS.estimate = calc('Three guesses instead of one', [['o', 'If all goes well',
 
 /* A risk as an average cost, against the cost of finding out now. `w` is [the unit of time]. */
 KINDS.risk = calc('What a risk costs on average', [['p', 'Chance it happens', 5, 95, 5, 30, '%'], ['i', s => cap(s.words[0] || 'days') + ' lost if it does', 1, 90, 1, 30, ''], ['c', s => cap(s.words[0] || 'days') + ' to find out now', 0, 30, 1, 3, '']], s => {
-  const e = s.p / 100 * s.i, u = s.words[0] || 'days';
-  return { bars: [['Exposure', e / 90, e.toFixed(1) + ' ' + u], ['Cost of finding out now', s.c / 90, s.c + ' ' + u]], say: `A ${s.p}% chance of losing ${s.i} ${u} is ${e.toFixed(1)} ${u} of exposure. ` + (s.c < e ? `Spending ${s.c} to find out now costs less than carrying it does on average: do it first.` : `Finding out costs ${s.c}, which is no less than the risk costs on average: accept it, or find a cheaper test.`) };
+  const e = +(s.p / 100 * s.i).toFixed(1), u = s.words[0] || 'days';
+  return { bars: [['Exposure', e / 90, count(e, u)], ['Cost of finding out now', s.c / 90, count(s.c, u)]], say: `A ${s.p}% chance of losing ${count(s.i, u)} is ${count(e, u)} of exposure. ` + (s.c < e ? `Spending ${s.c} to find out now costs less than carrying it does on average: do it first.` : `Finding out costs ${s.c}, which is no less than the risk costs on average: accept it, or find a cheaper test.`) };
 });
 
 /* Tries before a date, from the length of one full loop. */
 KINDS.cycles = calc('How many tries before the date?', [['h', 'One full loop takes', .25, 200, .25, 16, ' h'], ['wk', 'Weeks left', 1, 52, 1, 8, '']], s => {
   const n = Math.floor(s.wk * 40 / s.h), n2 = Math.floor(s.wk * 40 / (s.h / 2));
-  return { bars: [['Tries', n / Math.max(1, n2), String(n)], ['At half the loop', 1, String(n2)]], say: `${nf(n)} tries before the date, at 40 working hours a week. Halving the loop to ${s.h / 2} h gives ${nf(n2)}: the speed of the loop is the number of chances to be wrong and fix it.` };
+  return { bars: [[cap(s.words[0] || 'tries'), n / Math.max(1, n2), nf(n)], ['At half the loop', 1, nf(n2)]], say: `${CYCLE_N(s, n)} before the date, at 40 working hours a week. Halving the loop to ${s.h / 2} h gives ${CYCLE_N(s, n2)}: the speed of the loop is the number of chances to be wrong and fix it.` };
 });
 
 /* Amdahl's law: the part that is not sped up sets the limit. */
@@ -313,7 +313,7 @@ KINDS.tick = calc('What an update rate costs', [['n', 'Players in the match', 2,
 /* Rollback: how late the other player's input arrives, in frames at 60 a second. */
 KINDS.rollback = calc('How far back does the game rewind?', [['ping', 'Round trip between the players', 0, 300, 10, 100, ' ms'], ['d', 'Input delay', 0, 9, 1, 2, ' frames']], s => {
   const late = Math.ceil(s.ping / 2 / (1000 / 60)), back = Math.max(0, late - s.d), own = Math.round(s.d * 1000 / 60);
-  return { bars: [['Rewound after a wrong guess', back / 9, back + ' frames'], ['Your own button waits', s.d / 9, own + ' ms']], say: `At 60 frames a second the other player’s input arrives ${late} frame${late === 1 ? '' : 's'} after it was pressed. With ${s.d} frame${s.d === 1 ? "" : "s"} of input delay the game rewinds ${back} frame${back === 1 ? "" : "s"} when it guessed wrong` + (back ? ', and the player sees the correction.' : `: nothing on screen is ever corrected, and every press answers ${own} ms late.`) };
+  return { bars: [['Rewound after a wrong guess', back / 9, count(back, 'frames')], ['Your own button waits', s.d / 9, own + ' ms']], say: `At 60 frames a second the other player’s input arrives ${late} frame${late === 1 ? '' : 's'} after it was pressed. With ${s.d} frame${s.d === 1 ? "" : "s"} of input delay the game rewinds ${back} frame${back === 1 ? "" : "s"} when it guessed wrong` + (back ? ', and the player sees the correction.' : `: nothing on screen is ever corrected, and every press answers ${own} ms late.`) };
 });
 
 /* Peak players to servers to a monthly bill (730 hours). */
@@ -363,7 +363,7 @@ KINDS.treadmill = calc('Can content keep up with players?', [['c', 'Person-weeks
 /* A small step in power, compounded over releases. */
 KINDS.creep = calc('A little stronger, every release', [['g', 'Each release is stronger by', 0, 30, 1, 8, '%'], ['n', 'Releases a year', 1, 12, 1, 4, ''], ['y', 'Years', 1, 6, 1, 3, '']], s => {
   const x = Math.pow(1 + s.g / 100, s.n * s.y);
-  return { bars: [['The newest item', 1, nf(x, 2) + '×'], ['A launch item beside it', 1 / x, pct(1 / x) + '%']], say: `After ${s.n * s.y} releases at +${s.g}% each, the newest item is ${nf(x, 2)}× a launch one, and launch content is worth ${pct(1 / x)}% of the best.` + (s.g ? ' Nobody chose that number: it is what a small, reasonable step compounds to.' : ' No growth: new content has to be different instead of stronger.') };
+  return { bars: [['The newest item', 1, nf(x, 2) + '×'], ['A launch item beside it', 1 / x, pct(1 / x) + '%']], say: `After ${count(s.n * s.y, 'releases')} at +${s.g}% each, the newest item is ${nf(x, 2)}× a launch one, and launch content is worth ${pct(1 / x)}% of the best.` + (s.g ? ' Nobody chose that number: it is what a small, reasonable step compounds to.' : ' No growth: new content has to be different instead of stronger.') };
 });
 
 /* Words to tokens (about three English words to four tokens) to a bill. */
@@ -577,11 +577,19 @@ KINDS.breakeven = calc('Where does the heavier option pay for itself?', [
   ['n', s => 'How many ' + (s.words[0] || 'times'), 1, 200, 1, 10, '']], s => {
   const A = s.words[1] || 'the plain way', B = s.words[2] || 'the built way', units = s.words[0] || 'times', u = s.words[3] || 'hours';
   const ca = s.a0 + s.a1 * s.n, cb = s.b0 + s.b1 * s.n, top = Math.max(ca, cb, 1);
-  // the option that costs more to set up pays for itself only if it costs less each time
+  // the option that costs more to set up is cheaper only once its saving each time has made up the gap
   const [hi, lo, h0, h1, l0, l1] = s.b0 >= s.a0 ? [B, A, s.b0, s.b1, s.a0, s.a1] : [A, B, s.a0, s.a1, s.b0, s.b1];
+  // the heavier option is cheaper from the first count where its saving has more than made up the gap; at an exact multiple the two are level on the way
+  const when = () => {
+    const gap = h0 - l0, save = l1 - h1, exact = (2 * gap) % (2 * save) === 0, first = exact ? gap / save + 1 : Math.ceil(gap / save), lastLo = exact ? first - 2 : first - 1, parts = [];
+    if(lastLo > 0) parts.push(`${lo} is cheaper up to ${count(lastLo, units)}`);
+    if(exact) parts.push(`they cost the same at ${count(first - 1, units)}`);
+    parts.push(`${hi} is cheaper from ${count(first, units)} on`);
+    return cap(parts.join('; ')) + '.';
+  };
   const verdict = h0 === l0 ? (h1 === l1 ? 'They cost the same at any number.' : `They cost the same to set up, so ${h1 < l1 ? hi : lo} wins at any number.`)
     : h1 >= l1 ? `${cap(hi)} costs more to set up and no less each time: it never pays for itself.`
-    : `${cap(hi)} pays for itself after ${count(Math.floor((h0 - l0) / (l1 - h1)), units)}: below that, ${lo} is cheaper, however much better the other looks.`;
+    : when();
   return { bars: [[cap(A), ca / top, nf(ca, 1) + ' ' + u], [cap(B), cb / top, nf(cb, 1) + ' ' + u]], say: `For ${count(s.n, units)}: ${A} costs ${nf(ca, 1)} ${u}, ${B} ${nf(cb, 1)}. ` + verdict };
 });
 
@@ -593,10 +601,13 @@ KINDS.profile = {
   sync(){},
   act(){},
   say(s){
-    const v = s.words.map((w, i) => [w, s['d' + i]]).sort((a, b) => b[1] - a[1]), total = v.reduce((a, x) => a + x[1], 0);
+    const v = s.words.map((w, i) => [w, s['d' + i]]), total = v.reduce((a, x) => a + x[1], 0);
     if(!total) return 'Nothing scored yet.';
-    if(v[0][1] === v[v.length - 1][1]) return 'Everything scores the same: nothing has been chosen yet, and a profile that claims everything equally claims nothing.';
-    return `Strongest: ${v[0][0]} and ${v[1][0]}, ${pct((v[0][1] + v[1][1]) / total)}% of the total between them. Weakest: ${v[v.length - 1][0]}.`;
+    const vals = [...new Set(v.map(x => x[1]))].sort((a, b) => b - a);
+    if(vals.length === 1) return 'Everything scores the same: nothing has been chosen yet, and a profile that claims everything equally claims nothing.';
+    const grp = x => { const m = v.filter(y => y[1] === x).map(y => y[0]); return capList(m) + (m.length > 1 ? ` (tied at ${x})` : ` (${x})`); };
+    const top = v.filter(y => y[1] === vals[0]), share = pct(top.length * vals[0] / total);
+    return `Strongest: ${grp(vals[0])}` + (top.length === 1 && vals.length > 2 ? `, then ${grp(vals[1])}` : '') + `. Weakest: ${grp(vals[vals.length - 1])}. The strongest ${top.length > 1 ? 'together hold' : 'alone holds'} ${share}% of the points.`;
   }
 };
 
@@ -727,7 +738,7 @@ KINDS.clock = {
   tick(s){ s.dist--; if(s.dist > 0) s.last += ` The enemy steps closer: ${count(s.dist, 'steps')} away.`; else { s.phase = 'lost'; s.last += ' The enemy reaches you: lost.'; } },
   run(fig, s){
     clearTimeout(s.timer);
-    if(s.real && s.phase === 'on' && !calm()) s.timer = setTimeout(() => { if(s.phase !== 'on') return; s.last = 'The clock ticks.'; this.tick(s); this.sync(fig, s); out(fig, this.say(s)); this.run(fig, s); }, s.sec * 1000);
+    if(s.real && s.phase === 'on' && !calm()) s.timer = setTimeout(() => { if(s.phase !== 'on' || !fig.isConnected) return; s.last = 'The clock ticks.'; this.tick(s); this.sync(fig, s); out(fig, this.say(s)); this.run(fig, s); }, s.sec * 1000);
   },
   act(fig, s, what, el){
     if(what === 'mode'){ s.real = !s.real; el.classList.toggle('on', s.real); el.setAttribute('aria-pressed', s.real); this.run(fig, s); }
@@ -750,7 +761,8 @@ const FIRE_RULES = [['a', 'Fire spreads to grass'], ['b', 'Fire burns wood'], ['
 KINDS.firegrid = {
   t: 'Three rules, one map',
   init: () => ({ fire: Array.from({ length: 25 }, (_, i) => i === 11), a: true, b: false, c: false, steps: 0, note: '' }),
-  html: () => `<div class="firegrid-map">${Array.from({ length: 25 }, (_, i) => btn('spark', '', 'btn firegrid-c', ` data-i="${i}"`)).join('')}</div>
+  html: () => `<div class="firegrid-map">${Array.from({ length: 25 }, (_, i) => btn('spark', '', 'btn firegrid-c firegrid-' + FIRE_MAP[i].toLowerCase(), ` data-i="${i}"`)).join('')}</div>
+    <ul class="firegrid-key">${[['g', 'g', 'grass'], ['w', '~', 'water: the river is the middle column'], ['b', '=', 'a wooden bridge, the only way over'], ['lit', 'F', 'burning']].map(k => `<li><span class="firegrid-sw firegrid-${k[0]}">${k[1]}</span> ${k[2]}</li>`).join('')}</ul>
     <div class="row">${btn('step', 'Step', 'btn primary')}${btn('reset', 'Reset')}${FIRE_RULES.map(r => btn('toggle', r[1], 'chip lnk' + (r[0] === 'a' ? ' on' : ''), ` data-r="${r[0]}" aria-pressed="${r[0] === 'a'}"`)).join('')}</div>`,
   spread(s){
     const nx = s.fire.slice();
@@ -769,7 +781,7 @@ KINDS.firegrid = {
   },
   say(s){
     const n = s.fire.filter(Boolean).length, far = s.fire.filter((f, i) => f && i % 5 > 2).length, on = FIRE_RULES.filter(r => s[r[0]]).map(r => r[1].toLowerCase());
-    return `${s.note ? s.note + ' ' : ''}After ${count(s.steps, 'steps')}: ${count(n, 'cells')} burning, ${far} of them across the river. Rules on: ${on.length ? on.join('; ') : 'none'}.` + (n && !far ? ' The river has held.' : '');
+    return `${s.note ? s.note + ' ' : ''}After ${count(s.steps, 'steps')}: ${count(n, 'cells')} burning, ${far} of them across the river (the two right-hand columns). Rules on: ${on.length ? on.join('; ') : 'none'}.` + (n && !far ? ' The river has held.' : '');
   }
 };
 
@@ -778,7 +790,7 @@ const CROWD_T = [['plays on a phone', 70], ['has ten spare minutes', 60], ['know
 const CROWD = (() => { let a = 7; const r = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; return Array.from({ length: 200 }, () => CROWD_T.map(t => r() * 100 < t[1])); })();
 KINDS.crowd = {
   t: 'Every “and” narrows who you mean',
-  init: () => ({ on: [false, false, false, false] }),
+  init: () => ({ on: [false, false, false, false], full: false }),
   html: () => `<div class="demo-stage crowd-stage" aria-hidden="true">${'<i></i>'.repeat(200)}</div>
     <div class="row">${btn('next', 'Add a fact about the player', 'btn primary')}${CROWD_T.map((t, i) => btn('toggle', cap(t[0]), 'chip lnk', ` data-i="${i}" aria-pressed="false"`)).join('')}${btn('clear', 'Clear')}</div>`,
   match: (s, i) => s.on.every((o, k) => !o || CROWD[i][k]),
@@ -787,26 +799,28 @@ KINDS.crowd = {
     $$('[data-do="toggle"]', fig).forEach((b, k) => { b.classList.toggle('on', s.on[k]); b.setAttribute('aria-pressed', s.on[k]); });
   },
   act(fig, s, what, el){
+    s.full = false;
     if(what === 'toggle') s.on[+el.dataset.i] = !s.on[+el.dataset.i];
     else if(what === 'clear') s.on = s.on.map(() => false);
-    else { const k = s.on.indexOf(false); if(k >= 0) s.on[k] = true; }
+    else { const k = s.on.indexOf(false); s.full = k < 0; if(k >= 0) s.on[k] = true; }
     this.sync(fig, s);
   },
   say(s){
-    const n = CROWD.filter((_, i) => this.match(s, i)).length, facts = CROWD_T.filter((_, k) => s.on[k]).map(t => t[0]);
-    return facts.length ? `${n} of 200 made-up people (${pct(n / 200)}%) match every fact you switched on (${facts.join(', ')}).` + (facts.length > 1 ? ' Each fact is common on its own; together they pick out a person.' : '') : 'All 200 made-up people are in the crowd: “everyone”. Add facts you know about your player and watch it shrink. Each fact is true of 45 to 70 of every 100 people.';
+    const n = CROWD.filter((_, i) => this.match(s, i)).length, facts = CROWD_T.filter((_, k) => s.on[k]).map(t => t[0]), pre = s.full ? 'All four facts are already on: switch one off, or press Clear. ' : '';
+    return pre + (facts.length ? `${n} of 200 made-up people (${pct(n / 200)}%) match every fact you switched on (${facts.join(', ')}).` + (facts.length > 1 ? ` Each fact is common on its own; together they leave ${n === 0 ? 'nobody' : n === 1 ? 'one person' : 'only ' + n}.` : '') : 'All 200 made-up people are in the crowd: “everyone”. Add facts you know about your player and watch it shrink. Each fact is true of 45 to 70 of every 100 people.');
   }
 };
 
 /* return-and-quit: seven days of made-up losses, each with its cause. A fix removes a share of one day's loss. */
-const LEAKS = [['confusion', 30], ['boredom', 18], ['frustration', 12], ['loss of agency', 10], ['boredom', 8], ['finishing', 6], ['life getting in the way', 5]];
+const LEAKS = [['confusion', 30], ['boredom', 18], ['frustration', 12], ['loss of agency', 10], ['a mastery plateau', 8], ['finishing', 6], ['life getting in the way', 5]];
 KINDS.leaks = {
   t: 'Where do new players leave?',
   init: () => ({ fix: LEAKS.map(() => false), share: 50 }),
-  html: s => `<div class="demo-stage econ-stage" aria-hidden="true">${'<i></i>'.repeat(7)}</div>${slider('share', 'Share of a day’s loss a fix removes', 10, 100, 10, s.share, '%')}
+  html: s => `<div class="leaks-plot" aria-hidden="true">${LEAKS.map((l, i) => `<div class="leaks-col"><b></b><i></i><span>Day ${i + 1}</span></div>`).join('')}</div>${slider('share', 'Share of a day’s loss a fix removes', 10, 100, 10, s.share, '%')}
+    <p class="small">Made-up numbers: each bar counts the players still playing at the end of that day, and each day’s cause is one of the kinds this topic names.</p>
     <div class="row">${btn('best', 'Fix the biggest leak', 'btn primary')}${LEAKS.map((l, i) => btn('toggle', `Day ${i + 1}: ${l[0]}`, 'chip lnk', ` data-i="${i}" aria-pressed="false"`)).join('')}</div>`,
   run: s => { let n = 100; return LEAKS.map((l, i) => n *= 1 - l[1] * (s.fix[i] ? 1 - s.share / 100 : 1) / 100); },
-  sync(fig, s){ const v = this.run(s); $$('.econ-stage i', fig).forEach((el, i) => { el.style.height = Math.max(2, v[i]) + '%'; }); $$('[data-do="toggle"]', fig).forEach((b, i) => { b.classList.toggle('on', s.fix[i]); b.setAttribute('aria-pressed', s.fix[i]); }); },
+  sync(fig, s){ const v = this.run(s); $$('.leaks-col', fig).forEach((el, i) => { $('i', el).style.height = Math.max(2, v[i]) + 'px'; $('b', el).textContent = Math.round(v[i]); }); $$('[data-do="toggle"]', fig).forEach((b, i) => { b.classList.toggle('on', s.fix[i]); b.setAttribute('aria-pressed', s.fix[i]); }); },
   act(fig, s, what, el){
     if(what === 'toggle') s.fix[+el.dataset.i] = !s.fix[+el.dataset.i];
     else { const open = LEAKS.map((l, i) => i).filter(i => !s.fix[i]); if(open.length) s.fix[open.reduce((a, b) => LEAKS[b][1] > LEAKS[a][1] ? b : a)] = true; }
@@ -864,28 +878,34 @@ KINDS.bridge = {
 
 /* A tutorial the reader passes by pressing keys: one lit key per step (doing) against a line of rules to read and remember. */
 const TUT_SEQ = [3, 1, 4, 2, 5];
-const tutFit = s => { if(s.seen !== s.n){ s.seen = s.n; s.pos = 0; s.wrong = 0; } };
+const tutFit = s => { if(s.seen !== s.n){ s.seen = s.n; s.pos = 0; s.wrong = 0; s.started = false; } };
 KINDS.tutor = {
   t: 'Taught by text, or by doing',
-  init: () => ({ n: 3, seen: 3, doing: false, pos: 0, wrong: 0 }),
+  init: () => ({ n: 3, seen: 3, doing: false, pos: 0, wrong: 0, started: false, t0: 0, sec: 0, res: {} }),
   html: s => `<div class="tutor-keys">${[1, 2, 3, 4, 5].map(k => btn('key', k, 'btn sm tutor-key', ` data-k="${k}"`)).join('')}</div><p class="small tutor-text"></p>
     ${slider('n', 'Steps to learn', 1, 5, 1, s.n)}<div class="row">${btn('mode', 'Teach by doing', 'chip lnk', ' aria-pressed="false"')}${btn('again', 'Start over', 'btn primary')}</div>`,
   sync(fig, s){
     tutFit(s);
     $$('.tutor-key', fig).forEach(b => { const on = s.doing && s.pos < s.n && +b.dataset.k === TUT_SEQ[s.pos]; b.classList.toggle('on', on); b.textContent = b.dataset.k + (on ? ' ●' : ''); });
-    $('.tutor-text', fig).textContent = s.doing ? '' : 'Rules: press ' + TUT_SEQ.slice(0, s.n).join(', then ') + '.';
+    $('.tutor-text', fig).textContent = s.doing || s.started ? '' : 'Rules: press ' + TUT_SEQ.slice(0, s.n).join(', then ') + '. They disappear at your first press.';
   },
   act(fig, s, what, el){
     tutFit(s);
-    if(what === 'mode'){ s.doing = !s.doing; s.pos = 0; s.wrong = 0; el.setAttribute('aria-pressed', s.doing); el.classList.toggle('on', s.doing); }
-    else if(what === 'again'){ s.pos = 0; s.wrong = 0; }
-    else if(s.pos < s.n){ if(+el.dataset.k === TUT_SEQ[s.pos]) s.pos++; else s.wrong++; }
+    if(what === 'mode'){ s.doing = !s.doing; s.pos = 0; s.wrong = 0; s.started = false; el.setAttribute('aria-pressed', s.doing); el.classList.toggle('on', s.doing); }
+    else if(what === 'again'){ s.pos = 0; s.wrong = 0; s.started = false; }
+    else if(s.pos < s.n){
+      if(!s.started){ s.started = true; s.t0 = Date.now(); }
+      if(+el.dataset.k === TUT_SEQ[s.pos]){ s.pos++; if(s.pos === s.n){ s.sec = (Date.now() - s.t0) / 1000; s.res[(s.doing ? 'd' : 't') + s.n] = { w: s.wrong, sec: s.sec }; } } else s.wrong++;
+    }
     this.sync(fig, s);
   },
   say(s){
-    const w = s.wrong ? count(s.wrong, 'mistakes') : 'no mistakes';
-    if(s.pos >= s.n) return `Done in ${count(s.n, 'steps')} with ${w}. ` + (s.doing ? 'The lit key said what to do each time: nothing was read.' : 'Every key had to be read, remembered and matched to a button.');
-    return `Step ${s.pos + 1} of ${s.n}, ${w} so far. ` + (s.doing ? 'One key is lit and no text is shown: the next step appears only when this one is done.' : `The text lists ${count(s.n, 'keys')} in order: ${TUT_SEQ.slice(0, s.n).join(', ')}.`);
+    const m = x => x ? count(x, 'mistakes') : 'no mistakes', w = m(s.wrong);
+    if(s.pos >= s.n){
+      const o = s.res[(s.doing ? 't' : 'd') + s.n];
+      return `Done in ${count(s.n, 'steps')} with ${w}, ${nf(s.sec, 1)} s from your first press to your last. ` + (s.doing ? 'The lit key said what to do each time.' : s.n > 1 ? `The rules were on screen only until your first press, so ${count(s.n - 1, 'keys')} had to come from memory.` : 'The one rule was on screen until you pressed it.') + (o ? ` The other way, at ${count(s.n, 'steps')}, you had ${m(o.w)} in ${nf(o.sec, 1)} s.` : ' Switch the mode and run the same number of steps to compare.');
+    }
+    return `Step ${s.pos + 1} of ${s.n}, ${w} so far. ` + (s.doing ? 'One key is lit and no text is shown: the next step appears only when this one is done.' : s.started ? 'The rules are gone: the next key comes from memory.' : `The rules list ${count(s.n, 'keys')} in order: ${TUT_SEQ.slice(0, s.n).join(', ')}. They disappear at your first press.`);
   }
 };
 
@@ -896,10 +916,10 @@ KINDS.room = {
   t: 'Furnish a room, read its story',
   init: () => ({ on: ['bag', 'window', 'cup'], notice: 1, full: false }),
   html: s => `<div class="demo-stage room-floor"></div><div class="chips">${ROOM_OBJ.map(o => btn('put', cap(o[1]), 'chip lnk room-obj', ` data-k="${o[0]}" aria-pressed="false"`)).join('')}</div>
-    ${slider('notice', 'Objects the player notices', 1, 3, 1, s.notice)}`,
+    ${slider('notice', 'Objects the player notices (the first you placed)', 1, 3, 1, s.notice)}`,
   sync(fig, s){
     $$('.room-obj', fig).forEach(b => { const on = s.on.includes(b.dataset.k); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
-    $('.room-floor', fig).innerHTML = ROOM_OBJ.filter(o => s.on.includes(o[0])).map(o => `<i class="room-tile">${esc(o[1])}</i>`).join('') || '<i class="room-tile">empty</i>';
+    $('.room-floor', fig).innerHTML = s.on.map(k => `<i class="room-tile">${esc(ROOM_OBJ.find(o => o[0] === k)[1])}</i>`).join('') || '<i class="room-tile">empty</i>';
   },
   act(fig, s, what, el){
     const k = el.dataset.k, i = s.on.indexOf(k); s.full = false;
@@ -907,11 +927,11 @@ KINDS.room = {
     this.sync(fig, s);
   },
   say(s){
-    const seen = ROOM_OBJ.filter(o => s.on.includes(o[0])).slice(0, s.notice), n = seen.length, pre = s.full ? 'The room holds three: take one away first. ' : '';
+    const seen = s.on.slice(0, s.notice).map(k => ROOM_OBJ.find(o => o[0] === k)), n = seen.length, pre = s.full ? 'The room holds three: take one away first. ' : '';
     if(!n) return pre + 'The room is empty: nothing to read, so no story.';
     const tally = {}; seen.forEach(o => { tally[o[2]] = (tally[o[2]] || 0) + 1; });
     const max = Math.max(...Object.values(tally)), tops = Object.keys(tally).filter(t => tally[t] === max);
-    const head = `${pre}The player notices ${count(n, 'objects')}: ${seen.map(o => o[1]).join(', ')}. `;
+    const head = `${pre}The player notices ${count(n, 'objects')}${s.on.length > n ? ` (the first ${n === 1 ? 'one' : n} you placed)` : ''}: ${seen.map(o => o[1]).join(', ')}. `;
     if(n === 1) return head + `One clue is only a hint: it suggests ${ROOM_STORY[tops[0]]}.`;
     if(tops.length > 1) return head + `The clues split: they tell ${tops.length} different stories, so the room says nothing.`;
     return head + (max === n ? `All ${n} clues agree: ${ROOM_STORY[tops[0]]}.` : `${max} of ${n} clues agree: ${ROOM_STORY[tops[0]]}; the rest point elsewhere.`);
@@ -927,7 +947,8 @@ KINDS.sprite = {
   html: s => `<div class="sprite-grid" role="group" aria-label="Sprite grid"></div>${slider('g', 'Grid size', 4, 12, 4, s.g)}${slider('pal', 'Colours, counting empty', 2, 4, 1, s.pal)}`,
   fmt: (name, v) => name === 'g' ? `${v}×${v}` : v,
   sync(fig, s){
-    spriteFit(s); const grid = $('.sprite-grid', fig); grid.style.gridTemplateColumns = `repeat(${s.g}, 24px)`;
+    spriteFit(s); const grid = $('.sprite-grid', fig), cell = s.g === 4 ? 40 : s.g === 8 ? 32 : 24;
+    grid.style.gridTemplateColumns = `repeat(${s.g}, ${cell}px)`; grid.style.gridAutoRows = cell + 'px';
     grid.innerHTML = s.cells.map((v, i) => `<button type="button" class="sprite-px c${v}" data-action="demo" data-do="px" data-i="${i}" aria-label="Row ${Math.floor(i / s.g) + 1}, column ${i % s.g + 1}: colour ${v}">${v || ''}</button>`).join('');
   },
   act(fig, s, what, el){ spriteFit(s); const i = +el.dataset.i; s.cells[i] = (s.cells[i] + 1) % s.pal; spritePx(el, s.cells[i], i, s.g); },
@@ -951,58 +972,39 @@ KINDS.duo = {
 };
 
 /* A store capsule shrunk to thumbnail size: which parts of it can still be read. Thresholds are made up for the demo. */
-const CAP_PARTS = [['logo', 80], ['character', 60], ['tagline', 220], ['screenshot strip', 300]];
 const capList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
-KINDS.capsule = {
-  t: 'Squint at the capsule',
-  init: () => ({ w: 120, on: [0, 1, 2, 3] }),
-  html: s => `<div class="capsule-frame">${CAP_PARTS.map((p, i) => `<span class="capsule-part" data-k="${i}">${cap(p[0])}</span>`).join('')}</div>
-    <div class="chips">${CAP_PARTS.map((p, i) => btn('part', cap(p[0]), 'chip lnk capsule-chip', ` data-k="${i}" aria-pressed="true"`)).join('')}</div>${slider('w', 'Width on screen', 40, 300, 10, s.w, ' px')}
-    <p class="small">The sizes at which each part stops reading are made up for this demo: logo 80, character 60, tagline 220, screenshot strip 300 px.</p>`,
-  sync(fig, s){
-    $('.capsule-frame', fig).style.width = s.w + 'px';
-    $$('.capsule-part', fig).forEach(p => { const i = +p.dataset.k; p.hidden = !s.on.includes(i); p.dataset.read = s.w >= CAP_PARTS[i][1] ? 'yes' : 'no'; });
-    $$('.capsule-chip', fig).forEach(b => { const on = s.on.includes(+b.dataset.k); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
-  },
-  act(fig, s, what, el){ const k = +el.dataset.k; s.on = s.on.includes(k) ? s.on.filter(x => x !== k) : [...s.on, k].sort(); this.sync(fig, s); },
-  say(s){
-    const shown = CAP_PARTS.filter((p, i) => s.on.includes(i)), ok = shown.filter(p => s.w >= p[1]).map(p => p[0]), lost = shown.filter(p => s.w < p[1]).map(p => p[0]);
-    if(!shown.length) return 'The capsule is empty: nothing to read at any size.';
-    return `At ${s.w} px wide, ${ok.length ? capList(ok) + (ok.length === 1 ? ' reads' : ' read') : 'nothing reads'}${lost.length ? `; ${capList(lost)} ${lost.length === 1 ? 'is' : 'are'} lost.` : '. Every part you kept survives this size.'}`;
-  }
-};
-
 /* Guess a rate, then run a made-up soft launch and see how far the plan built on the guess was off; each press draws another sample. */
-const GUESS_RUNS = [9, 6, 12, 8, 10];
+const GUESS_RUNS = k => { let a = 1000 + 7919 * k, x = 0; for(let i = 0; i < 300; i++){ a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; if(((t ^ (t >>> 14)) >>> 0) / 4294967296 < .24) x++; } return x; };
 KINDS.guess = {
   t: 'Your guess against a measurement',
-  init: () => ({ g: 10, k: 0 }),
-  html: s => `${slider('g', 'Your guess: viewers who install', 1, 30, 1, s.g, '%')}${bar('guess', 'Your guess')}${bar('real', 'Measured')}<div class="row">${btn('run', 'Run a soft launch', 'btn primary')}</div>`,
-  sync(fig, s){ setBar(fig, 'guess', s.g / 30, s.g + '%'); const x = GUESS_RUNS[(s.k - 1 + 5) % 5]; if(s.k) setBar(fig, 'real', x / 90, nf(x / 3, 1) + '%'); else setBar(fig, 'real', 0, 'not measured yet'); },
+  init: () => ({ g: 40, k: 0 }),
+  html: s => `${slider('g', 'Your guess: share who come back on day 1', 5, 60, 5, s.g, '%')}${bar('guess', 'Your guess')}${bar('real', 'Measured')}<div class="row">${btn('run', 'Run a soft launch', 'btn primary')}</div>`,
+  sync(fig, s){ setBar(fig, 'guess', s.g / 60, s.g + '%'); if(s.k) setBar(fig, 'real', GUESS_RUNS(s.k) / 180, nf(GUESS_RUNS(s.k) / 3, 1) + '%'); else setBar(fig, 'real', 0, 'not measured yet'); },
   act(fig, s){ s.k++; this.sync(fig, s); },
   say(s){
-    const plan = s.g * 100, head = `You guess ${s.g}% of ad viewers install: ${nf(plan)} installs from 10,000 views.`;
-    if(!s.k) return head + ' Press the button to replace the guess with a measurement.';
-    const x = GUESS_RUNS[(s.k - 1) % 5], real = Math.round(x * 10000 / 300), d = plan - real;
-    return `Soft launch ${s.k}, 300 made-up viewers: ${x} installed (${nf(x / 3, 1)}%), which is ${nf(real)} installs from 10,000 views. ` + (d === 0 ? 'Your plan matches the measurement.' : d > 0 ? `Your plan counts ${nf(d)} installs the ad will not deliver.` : `Your plan is ${nf(-d)} installs short of what the ad delivers.`) + ' Press again: a new sample moves the number.';
+    const plan = s.g * 100, head = `You plan on ${s.g}% of installs coming back on day 1, a guess or someone else’s benchmark: ${nf(plan)} players back from 10,000 installs.`;
+    if(!s.k) return head + ' Press the button to replace it with a measurement from a soft launch of your own.';
+    const runs = Array.from({ length: s.k }, (_, i) => GUESS_RUNS(i + 1)), x = runs[s.k - 1], real = Math.round(x * 100 / 3), d = plan - real, lo = nf(Math.min(...runs) / 3, 1), hi = nf(Math.max(...runs) / 3, 1);
+    return `Soft launch ${s.k}, 300 made-up players: ${x} came back on day 1 (${nf(x / 3, 1)}%), which is ${nf(real)} from 10,000 installs. ` + (d === 0 ? 'Your plan matches the measurement.' : d > 0 ? `Your plan counts ${nf(d)} players the game did not deliver.` : `Your plan is ${nf(-d)} players short of what the game delivered.`) + (s.k > 1 ? (lo === hi ? ` All ${s.k} runs read ${lo}%.` : ` Across ${s.k} runs the reading went from ${lo}% to ${hi}%.`) : '') + ' Each press draws 300 new made-up players, so one run is a reading, not the truth.';
   }
 };
 
 /* Four parts of a pitch put in an order by the reader; the sentence says when the room first hears what it is being asked to decide. */
-const ORD = [['The ask', 'what you want decided, and by when'], ['Evidence', 'what you tested and saw'], ['Risk', 'what could go wrong, and what you do then'], ['Vision', 'why it is worth doing']];
+const ORD = [['The ask', 'what you want decided, and by when', ''], ['The claim', 'the one sentence that, if false, sinks the design', 'the room does not know what decision it serves'], ['The evidence', 'what you tested and saw', 'the room does not know what it is evidence of'], ['The answer to the likely objection', 'what the sceptic will say, and your reply', 'it can only be reassurance, not an answer backed by evidence']];
 KINDS.pitchorder = {
   t: 'Put the pitch in order',
-  init: () => ({ m: 12, ord: [3, 1, 2, 0] }),
+  init: () => ({ m: 12, ord: [2, 3, 1, 0] }),
   html: s => `<ol class="pitchorder-list"></ol>${slider('m', 'Minutes in the slot', 4, 32, 4, s.m, ' min')}`,
-  sync(fig, s){ $('.pitchorder-list', fig).innerHTML = s.ord.map(k => `<li><b>${ORD[k][0]}</b> <span class="small">${ORD[k][1]}</span> ${btn('up', 'Move up', 'btn sm', ` data-k="${k}" aria-label="Move ${ORD[k][0]} up"`)}</li>`).join(''); },
+  sync(fig, s){ $('.pitchorder-list', fig).innerHTML = s.ord.map((k, i) => `<li><b>${ORD[k][0]}</b> <span class="small">${ORD[k][1]}</span> ${i ? btn('up', 'Move up', 'btn sm', ` data-k="${k}" aria-label="Move ${ORD[k][0].toLowerCase()} up"`) : ''}</li>`).join(''); },
   act(fig, s, what, el){
     const k = +el.dataset.k, i = s.ord.indexOf(k);
     if(i > 0){ s.ord[i] = s.ord[i - 1]; s.ord[i - 1] = k; }
-    this.sync(fig, s); const b = $(`[data-k="${k}"]`, fig); if(b) b.focus();
+    this.sync(fig, s); ($(`[data-k="${k}"]`, fig) || $('.pitchorder-list button', fig)).focus();
   },
   say(s){
-    const p = s.ord.indexOf(0), each = s.m / 4;
-    return `Four parts, ${count(each, 'minutes')} each in a ${s.m}-minute slot. ` + (p === 0 ? 'The ask comes first, so the room knows what it is deciding from the first second.' : `The ask is heard at minute ${p * each}: for ${count(p * each, 'minutes')} the room does not know what it is being asked to decide.`);
+    const p = s.ord.indexOf(0), each = s.m / 4, late = [1, 2, 3].filter(k => s.ord.indexOf(k) < s.ord.indexOf(k - 1));
+    return `Four parts, ${count(each, 'minutes')} each in a ${s.m}-minute slot. ` + (p === 0 ? 'The ask comes first, so the room knows what it is deciding from the first second.' : `The ask is heard at minute ${p * each}: for ${count(p * each, 'minutes')} the room does not know what it is being asked to decide.`)
+      + (late.length ? late.map(k => ` ${ORD[k][0]} comes before ${ORD[k - 1][0].toLowerCase()}: ${ORD[k][2]}.`).join('') : ' Every part comes after the part it rests on: this is the order the topic gives, which also adds a why-now step and a closing ask.');
   }
 };
 
@@ -1075,21 +1077,21 @@ KINDS.injection = {
 };
 
 /* The same guard decided by a few fixed rules and by the highest score. */
-const GD = ['Retreat', 'Investigate', 'Patrol'];
-const guardPick = s => { const sc = [s.hurt, s.noise, s.bored + 1]; return { sc, u: sc.indexOf(Math.max(...sc)), f: s.hurt >= 5 ? 0 : s.noise >= 3 ? 1 : 2 }; };
+const GD = ['Retreat', 'Investigate', 'Patrol', 'Call for help'];
+const guardPick = s => { const sc = [s.hurt, s.noise, s.bored + 1]; if(s.add) sc.push(Math.min(s.hurt, s.noise)); return { sc, u: sc.indexOf(Math.max(...sc)), f: s.hurt >= 5 ? 0 : s.add && s.hurt >= 3 && s.noise >= 3 ? 3 : s.noise >= 3 ? 1 : 2 }; };
 KINDS.guardduel = {
   t: 'A state machine and a scorer, same guard',
-  init: () => ({ noise: 3, hurt: 4, bored: 2, scan: 0 }),
-  html: s => `<p class="small guardduel-rules">Machine: hurt 5 or more, retreat; else noise 3 or more, investigate; else patrol. Scorer: the highest of hurt, noise and boredom plus 1 wins. Both rules are made up.</p>
-    ${slider('noise', 'Noise heard', 0, 10, 1, s.noise, '')}${slider('hurt', 'How hurt', 0, 10, 1, s.hurt, '')}${slider('bored', 'How bored', 0, 10, 1, s.bored, '')}<div class="row">${btn('scan', 'Count disagreements', 'btn primary')}</div>`,
-  sync(){},
-  act(fig, s){
-    s.scan = 0;
-    for(let n = 0; n <= 10; n++) for(let h = 0; h <= 10; h++) for(let b = 0; b <= 10; b++){ const p = guardPick({ noise: n, hurt: h, bored: b }); if(p.f !== p.u) s.scan++; }
-  },
+  init: () => ({ noise: 3, hurt: 4, bored: 2, add: false, ask: false }),
+  html: s => `<p class="small guardduel-rules"></p>${slider('noise', 'Noise heard', 0, 10, 1, s.noise, '')}${slider('hurt', 'How hurt', 0, 10, 1, s.hurt, '')}${slider('bored', 'How bored', 0, 10, 1, s.bored, '')}
+    <div class="row">${btn('why', 'Why did you do that?', 'btn primary')}${btn('add', 'Add “Call for help”', 'chip lnk', ' aria-pressed="false"')}</div>`,
+  sync: (fig, s) => { $('.guardduel-rules', fig).textContent = s.add ? 'Machine: hurt 5 or more, retreat; else hurt and noise both 3 or more, call for help; else noise 3 or more, investigate; else patrol. Scorer: the highest of hurt, noise, boredom plus 1, and the lower of hurt and noise for call for help; a tie goes to the first listed. Both rules are made up.' : 'Machine: hurt 5 or more, retreat; else noise 3 or more, investigate; else patrol. Scorer: the highest of hurt, noise and boredom plus 1 wins; a tie goes to the first listed. Both rules are made up.'; },
+  act(fig, s, what, el){ if(what === 'add'){ s.add = !s.add; dxOn(el, s.add); } else s.ask = true; this.sync(fig, s); },
   say(s){
-    const p = guardPick(s), why = p.f === 0 ? 'hurt is 5 or more' : p.f === 1 ? 'noise is 3 or more' : 'no other rule fired';
-    return `Machine: ${GD[p.f]} (${why}). Scorer: ${GD[p.u]} (Retreat ${p.sc[0]}, Investigate ${p.sc[1]}, Patrol ${p.sc[2]}). ${p.f === p.u ? 'They agree here.' : 'They disagree here.'}` + (s.scan ? ` Over all 1,331 settings they disagree on ${nf(s.scan)} (these rules are made up).` : '');
+    const p = guardPick(s), names = GD.slice(0, s.add ? 4 : 3), why = p.f === 0 ? 'hurt is 5 or more' : p.f === 3 ? 'hurt and noise are both 3 or more' : p.f === 1 ? 'noise is 3 or more' : 'no other rule fired';
+    const top = p.sc[p.u], rest = Math.max(...p.sc.filter((_, i) => i !== p.u)), tied = names.filter((_, i) => p.sc[i] === top);
+    const edit = s.add ? ' “Call for help” is added: the machine now has 4 states and a way from each to each of the others to decide, 12 in all and 6 of them new; the scorer gained one score line and its other three are untouched.' : ' Press “Add Call for help” to see what each has to change: the machine has 3 states and 6 such ways, the scorer 3 score lines.';
+    const asked = s.ask ? ` Asked why, the machine says “${GD[p.f]}, because ${why}”: one rule, and nothing about the other options. The scorer says “${names.map((g, i) => g + ' ' + p.sc[i]).join(', ')}”` + (tied.length > 1 ? `; ${capList(tied)} tie, and ${GD[p.u]} is taken only because it is listed first.` : top - rest === 1 ? `; ${GD[p.u]} wins by 1 point, so a small retune could change the answer.` : `; ${GD[p.u]} wins by ${top - rest} points.`) : ' Press “Why did you do that?” to ask both.';
+    return `Machine: ${GD[p.f]}. Scorer: ${GD[p.u]}. ${p.f === p.u ? 'They agree here.' : 'They disagree here.'}` + asked + edit;
   }
 };
 
@@ -1132,7 +1134,12 @@ KINDS.claims = {
 
 /* Which stage of making a model a symptom points to. */
 const STG = ['Pre-training', 'Fine-tuning', 'Feedback training', 'Distillation', 'Quantisation'];
-const SYM = [['The model states an API that does not exist, with confidence.', 0, 'Confident wrong facts trace to pre-training.'], ['It refuses a harmless request, or hedges everything.', 2, 'A refusal or a hedge traces to feedback training.'], ['The same model answers worse after it is squeezed onto a laptop.', 4, 'A drop in quality on a local build is often quantisation.'], ['The studio wants every NPC line in one house voice.', 1, 'A house style or an NPC voice is what fine-tuning is for.']];
+const SYM = [
+  ['The model states an API that does not exist, with confidence.', { 0: 'Confident wrong facts trace to pre-training, where its knowledge came from.', 2: 'Feedback training makes a model preferred by raters, which rewards confident, agreeable answers, so a wrong answer can sound sure.' }],
+  ['It refuses a harmless request, or hedges everything.', { 2: 'A refusal or a hedge traces to feedback training.' }],
+  ['The model answers worse after it is squeezed onto a laptop.', { 3: 'A small model trained to imitate a large one has less to imitate with: budget for what distillation removed.', 4: 'Fewer bits per weight cost quality, unevenly: a drop in quality on a local build is often quantisation.' }],
+  ['The studio wants every NPC line in one house voice.', { 1: 'A house style or an NPC voice is what fine-tuning is for.' }]
+];
 KINDS.stages = {
   t: 'Which stage explains it?',
   init: () => ({ i: 0, right: 0, tries: 0, last: '' }),
@@ -1140,10 +1147,11 @@ KINDS.stages = {
   sync(){},
   act(fig, s, what, el){
     if(what === 'next'){ s.i = (s.i + 1) % SYM.length; s.last = ''; return; }
-    const i = +el.dataset.i; s.tries++;
-    if(i === SYM[s.i][1]){ s.right++; s.last = 'Yes. ' + SYM[s.i][2]; } else s.last = `Not ${STG[i].toLowerCase()}: try another stage.`;
+    const i = +el.dataset.i, fit = SYM[s.i][1]; s.tries++;
+    if(fit[i]){ s.right++; s.last = 'Yes. ' + fit[i] + Object.keys(fit).filter(k => +k !== i).map(k => ` ${STG[k]} also fits: ${fit[k]}`).join(''); }
+    else s.last = `${STG[i]} ${STG_DOES[i]}; the topic does not tie this symptom to it. Try another stage.`;
   },
-  say: s => `Symptom ${s.i + 1} of ${SYM.length}: ${SYM[s.i][0]} ` + (s.last || 'Which stage does it point to?') + (s.tries ? ` Right ${s.right} of ${count(s.tries, 'answers')}.` : '')
+  say: s => `Symptom ${s.i + 1} of ${SYM.length}: ${SYM[s.i][0]} ` + (s.last || 'Which stage does it point to? More than one can fit.') + (s.tries ? ` Right ${s.right} of ${count(s.tries, 'answers')}.` : '')
 };
 
 /* d4 kinds: layers, errorchain, savecut, deploy, entity, bugtier, pipeline, leak, invest */
@@ -1161,7 +1169,7 @@ KINDS.layers = {
   html: s => `<p class="small layers-rings">Rings, inside to out: Rules, Use case, Handler and SQL store, Wiring.</p>
     <div class="row">${LAYER_EDGES.map((e, i) => btn('edge', LAYER_NAME[e[0]] + ' imports ' + LAYER_NAME[e[1]], 'chip lnk', ` data-i="${i}" aria-pressed="${s.on[i]}"`)).join('')}</div>
     <div class="row">${btn('next', 'Add the next import', 'btn primary')}</div>`,
-  sync: (fig, s) => $$('[data-do="edge"]', fig).forEach(el => dxOn(el, s.on[el.dataset.i])),
+  sync(fig, s){ $$('[data-do="edge"]', fig).forEach(el => dxOn(el, s.on[el.dataset.i])); $('[data-do="next"]', fig).textContent = s.on.every(Boolean) ? 'Back to the first five imports' : 'Add the next import'; },
   act(fig, s, what, el){
     if(what === 'edge') s.on[el.dataset.i] = !s.on[el.dataset.i];
     else { const i = s.on.indexOf(false); if(i < 0) s.on = s.on.map((_, k) => k < 5); else s.on[i] = true; }
@@ -1170,7 +1178,7 @@ KINDS.layers = {
   say(s){
     const on = LAYER_EDGES.filter((_, i) => s.on[i]), out = on.filter(e => LAYER_RING[e[0]] < LAYER_RING[e[1]]);
     return `${count(on.length, 'imports')} on, ` + (out.length ? `${out.length} ${out.length === 1 ? 'points' : 'point'} outward (${out.map(e => LAYER_NAME[e[0]] + ' → ' + LAYER_NAME[e[1]]).join(', ')})` : 'none point outward')
-      + `. A rules test ${layersReachesStore(s, 'R') ? 'needs a database' : 'needs no database'}; a use-case test ${layersReachesStore(s, 'U') ? 'needs one' : 'needs none'}.`;
+      + `. A rules test ${layersReachesStore(s, 'R') ? 'needs a database' : 'needs no database'}; a use-case test ${layersReachesStore(s, 'U') ? 'needs one' : 'needs none'}.` + (on.length === LAYER_EDGES.length ? ' Every import is on: the next press goes back to the first five.' : '');
   }
 };
 
@@ -1188,8 +1196,8 @@ KINDS.errorchain = {
   },
   say(s){
     if(!s.ran) return 'Each layer decides what to do with an error. Choose for each one, then press the button to send a not-found error up through all three.';
-    const lost = s.ch.indexOf(1), logs = s.ch.filter(c => c === 2).length;
-    return (lost < 0 ? 'The cause survives all three layers: the handler can match it, the client gets a not-found it can act on, and the stack points at the repository.' : `The ${ERR_LAYER[lost].toLowerCase()} layer threw the cause away: the handler cannot tell not-found from a broken database, so the client gets a generic 500 and the stack is gone.`) + ` One failure wrote ${count(logs, 'log lines')}` + (logs > 1 ? ': the failure count is wrong.' : '.');
+    const lost = s.ch.indexOf(1), logs = s.ch.filter(c => c === 2).length, who = ['the use case and the handler', 'the handler', 'the client'][lost];
+    return (lost < 0 ? 'The cause survives all three layers: the handler can match it, the client gets a not-found it can act on, and the stack points at the repository.' : `The ${ERR_LAYER[lost].toLowerCase()} layer replaced the error with a new message, so the cause went no further: ${who} cannot tell not-found from a broken database, and the client gets a generic 500.`) + ` One failure wrote ${count(logs, 'log lines')}` + (logs > 1 ? ': the failure count is wrong.' : '.');
   }
 };
 
@@ -1204,8 +1212,11 @@ KINDS.savecut = {
   sync(fig, s){ $$('li', fig).forEach((li, i) => { li.textContent = `${i + 1}. ${(s.safe ? SAVE_SAFE : SAVE_DIRECT)[i]}: ${i < s.cut ? 'done' : i === s.cut ? 'power cut here, never runs' : 'never runs'}`; }); },
   act(fig, s, what, el){ s.safe = !s.safe; dxOn(el, s.safe); this.sync(fig, s); },
   say(s){
-    // Direct: steps 1-4 leave a half-written file and no old save. Safe: only the last step replaces the old save.
-    const bad = s.safe ? 0 : 4, k = s.cut, res = k === 5 ? 'the new save is complete' : s.safe ? 'the half-written temp file is thrown away and the old save is untouched' : k === 0 ? 'nothing was touched and the old save is intact' : 'the save file is half written and the old one is gone';
+    // Direct: steps 1-4 leave no old save and no complete new one. Safe: only the last step replaces the old save.
+    const bad = s.safe ? 0 : 4, k = s.cut, old = 'the old save is untouched';
+    const res = k === 5 ? 'the new save is complete'
+      : s.safe ? [`no temp file exists yet and ${old}`, `the temp file holds the first third and ${old}`, `the temp file holds two thirds and ${old}`, `the temp file is fully written but not checked, and ${old}`, `the temp file is written and checked but never swapped in, and ${old}`][k] + ': the new save is lost, the old one survives'
+      : ['nothing was touched and the old save is intact', 'the save file is empty and the old one is gone', 'the save file holds the first third and the old one is gone', 'the save file holds two thirds and the old one is gone', 'every third is written but not flushed to disk, so the new save is not safely stored and the old one is gone'][k];
     return `Power fails ${k ? 'after step ' + k + ' of 5' : 'before step 1'}: ${res}. ${bad ? bad : 'None'} of the 6 moments it could fail lose the save.`;
   }
 };
@@ -1234,7 +1245,7 @@ KINDS.entity = {
   t: 'Build an enemy from components',
   init: () => ({ on: [true, true, false, false, false] }),
   html: s => `<div class="row">${ENT_COMP.map((c, i) => btn('tick', c, 'chip lnk', ` data-i="${i}" aria-pressed="${s.on[i]}"`)).join('')}</div><div class="row">${btn('add', 'Add a component', 'btn primary')}</div>`,
-  sync: (fig, s) => $$('[data-do="tick"]', fig).forEach(el => dxOn(el, s.on[el.dataset.i])),
+  sync(fig, s){ $$('[data-do="tick"]', fig).forEach(el => dxOn(el, s.on[el.dataset.i])); $('[data-do="add"]', fig).textContent = s.on.every(Boolean) ? 'Back to Health and Move' : 'Add a component'; },
   act(fig, s, what, el){
     if(what === 'tick') s.on[el.dataset.i] = !s.on[el.dataset.i];
     else { const i = s.on.indexOf(false); s.on = i < 0 ? [true, true, false, false, false] : s.on.map((v, k) => v || k === i); }
@@ -1242,7 +1253,7 @@ KINDS.entity = {
   },
   say(s){
     const names = ENT_COMP.filter((_, i) => s.on[i]), cls = ENT_TREE[s.on.map(v => +v).join('')];
-    return `An entity with ${names.length ? names.join(', ') : 'no components'} (${count(names.length, 'components')} ticked): ` + (cls ? `the class tree Enemy, FlyingEnemy, FlyingShootingEnemy has it already, as ${cls}.` : 'no class in that tree has this combination, so someone writes a new subclass or copies code. With components it is one more tick.') + ' Five components make 32 combinations; the tree covers 3.';
+    return `An entity with ${names.length ? names.join(', ') : 'no components'} (${count(names.length, 'components')} ticked): ` + (cls ? `the class tree Enemy, FlyingEnemy, FlyingShootingEnemy has it already, as ${cls}.` : 'no class in that tree has this combination, so someone writes a new subclass or copies code. With components it is one more tick.') + ' Five components make 32 combinations; the tree covers 3.' + (names.length === 5 ? ' All five are ticked: the next press goes back to Health and Move.' : '');
   }
 };
 
@@ -1253,7 +1264,7 @@ KINDS.bugtier = {
   t: 'Which tier catches which bug?',
   init: () => ({ on: [true, false, false] }),
   html: s => `<div class="row">${BUG_TIER.map((t, i) => btn('tier', t.n, 'chip lnk', ` data-i="${i}" aria-pressed="${s.on[i]}"`)).join('')}</div><div class="row">${btn('next', 'Add the next tier', 'btn primary')}</div>`,
-  sync: (fig, s) => $$('[data-do="tier"]', fig).forEach(el => dxOn(el, s.on[el.dataset.i])),
+  sync(fig, s){ $$('[data-do="tier"]', fig).forEach(el => dxOn(el, s.on[el.dataset.i])); $('[data-do="next"]', fig).textContent = s.on.every(Boolean) ? 'Back to unit tests only' : 'Add the next tier'; },
   act(fig, s, what, el){
     if(what === 'tier') s.on[el.dataset.i] = !s.on[el.dataset.i];
     else { const i = s.on.indexOf(false); s.on = i < 0 ? [true, false, false] : s.on.map((v, k) => v || k === i); }
@@ -1261,26 +1272,21 @@ KINDS.bugtier = {
   },
   say(s){
     const tiers = BUG_TIER.filter((_, i) => s.on[i]), reach = BUG_NAME.filter((_, b) => !tiers.some(t => t.c[b])), sec = tiers.reduce((a, t) => a + t.s, 0);
-    return `${tiers.length ? tiers.map(t => t.n).join(' + ') : 'No tests'}: ` + (reach.length ? `${count(reach.length, 'bugs')} of these 4 ${reach.length === 1 ? 'reaches' : 'reach'} players (${reach.join(', ')})` : 'none of these 4 bugs reaches players') + `. Made-up run time: ${sec < 60 ? sec + ' s' : nf(sec / 60, 1) + ' min'}.`;
+    return `${tiers.length ? tiers.map(t => t.n).join(' + ') : 'No tests'}: ` + (reach.length ? `${count(reach.length, 'bugs')} of these 4 ${reach.length === 1 ? 'reaches' : 'reach'} players (${reach.join(', ')})` : 'none of these 4 bugs reaches players') + `. Made-up run time: ${sec < 60 ? sec + ' s' : nf(sec / 60, 1) + ' min'}.` + (tiers.length === 3 ? ' Every tier is on: the next press goes back to unit tests only.' : '');
   }
 };
 
-// Reorder five pipeline stages; the demo gives the average time to hear about a broken change (made-up durations and failure shares).
-const PIPE = [['Integration tests', 20, 20], ['Build image', 6, 10], ['Unit tests', 3, 35], ['Lint', 1, 30], ['Deploy preview', 8, 5]];
-const pipeWait = o => { let t = 0, e = 0; o.forEach(i => { t += PIPE[i][1]; e += PIPE[i][2] * t; }); return e / 100; };
 KINDS.pipeline = {
-  t: 'Order the stages of a pipeline',
-  init: () => ({ o: [0, 1, 2, 3, 4] }),
-  html: () => `<ol class="pipeline-list"></ol><div class="row">${btn('sort', 'Shortest first', 'btn primary')}</div>`,
-  sync(fig, s){ $('.pipeline-list', fig).innerHTML = s.o.map((i, p) => `<li>${PIPE[i][0]}: ${PIPE[i][1]} min, ${PIPE[i][2]}% of failures ${btn('up', 'Move up', 'btn sm', ` data-i="${p}" aria-label="Move ${PIPE[i][0]} up"${p ? '' : ' disabled'}`)}</li>`).join(''); },
-  act(fig, s, what, el){
-    const p = +el.dataset.i;
-    if(what === 'sort') s.o.sort((a, b) => PIPE[a][1] - PIPE[b][1]);
-    else [s.o[p - 1], s.o[p]] = [s.o[p], s.o[p - 1]];
-    this.sync(fig, s);
-    if(what === 'up'){ const b = $(`[data-do="up"][data-i="${p - 1}"]`, fig); if(b) b.focus(); }
-  },
-  say: s => `Order: ${s.o.map(i => PIPE[i][0]).join(', ')}. A broken change is caught on average ${nf(pipeWait(s.o), 1)} minutes in, and the whole pipeline takes ${PIPE.reduce((a, p) => a + p[1], 0)} minutes in any order. Shortest first, the same stages give ${nf(pipeWait([0, 1, 2, 3, 4].sort((a, b) => PIPE[a][1] - PIPE[b][1])), 1)}. Durations and failure shares are made up.`
+  t: 'Check the verdict two ways',
+  init: () => ({ exit: true, log: false, ran: false }),
+  html: () => `<ol class="pipeline-list"></ol><div class="row">${btn('toggle', 'Fail on a non-zero exit code', 'chip lnk', ' data-k="exit" aria-pressed="true"')}${btn('toggle', 'Fail on a fatal log line', 'chip lnk', ' data-k="log" aria-pressed="false"')}</div><div class="row">${btn('run', 'Run the six builds', 'btn primary')}</div>`,
+  sync(fig, s){ $('.pipeline-list', fig).innerHTML = PIPE_RUN.map(r => `<li>${r[0]}: exit code ${r[1] ? 'non-zero' : 'zero'}, ${r[2] ? 'a fatal line in the log' : 'no fatal line'}${s.ran ? (pipeRed(s, r) ? ' → red' : ' → green') : ''}</li>`).join(''); },
+  act(fig, s, what, el){ if(what === 'toggle'){ s[el.dataset.k] = !s[el.dataset.k]; dxOn(el, s[el.dataset.k]); } else s.ran = true; this.sync(fig, s); },
+  say(s){
+    if(!s.ran) return 'Six builds wait: four are broken, and each one shows its exit code and its log. Choose which checks decide red, then run them.';
+    const missed = PIPE_RUN.filter(r => (r[1] || r[2]) && !pipeRed(s, r)), on = [s.exit && 'the exit code', s.log && 'fatal log lines'].filter(Boolean);
+    return `Checking ${on.length ? on.join(' and ') : 'nothing'}: ` + (missed.length ? `${count(missed.length, 'broken builds')} went green and would ship (${missed.map(r => r[0].toLowerCase()).join('; ')}).` : 'every broken build went red and the clean ones stayed green: the exit code caught what the log has no line for, and the log caught what the tool did not report.');
+  }
 };
 
 // A key is pushed; the reader tries to undo it by rewriting history, rotating the key, or scanning first.
@@ -1291,15 +1297,15 @@ KINDS.leak = {
   sync(){},
   act(fig, s, what, el){
     s.last = '';
-    if(what === 'scan'){ s.scan = !s.scan; dxOn(el, s.scan); }
+    if(what === 'scan'){ s.scan = !s.scan; s.blocked = false; dxOn(el, s.scan); }
     else if(what === 'reset') Object.assign(s, { pushed: false, blocked: false, rewrote: false, rotated: false, last: '' });
-    else if(what === 'push'){ s.blocked = s.scan; s.pushed = !s.scan; }
+    else if(what === 'push'){ s.blocked = s.scan; if(!s.scan) s.pushed = true; }
     else if(!s.pushed) s.last = 'Nothing has been pushed yet.';
     else s[what === 'rewrite' ? 'rewrote' : 'rotated'] = true;
   },
   say(s){
     if(s.last) return s.last;
-    if(s.blocked) return 'The scan found the key and stopped the commit: it never reached the repository, so there is nothing to rotate.';
+    if(s.blocked) return 'The scan found the key and stopped the commit: it never reached the repository' + (!s.pushed ? ', so there is nothing to rotate.' : s.rotated ? '.' : ', but the copy pushed earlier is still there and still works.');
     if(!s.pushed) return 'The key sits in a local file' + (s.scan ? ' and a scan runs before each commit.' : '. Push it, then try the fixes.');
     if(s.rotated) return 'The old key is dead: any copy of it opens nothing.' + (s.rewrote ? ' The history rewrite changed nothing that mattered.' : ' Rewriting history is optional tidying.');
     return 'The key is in the repository and still works for anyone holding a copy.' + (s.rewrote ? ' History was rewritten, but clones and forks made before the rewrite still hold the key: it still works.' : '');
@@ -1309,16 +1315,16 @@ KINDS.leak = {
 // Pay an upfront cost at a moment of the reader's choosing, change by change, against never paying it. `w` is [the changes, the way not paying is spent, the way paying is spent].
 KINDS.invest = {
   t: 'Pay now, or pay every time?',
-  init: (topic, spec) => ({ words: (spec && spec.w) || ['changes', 'never paying', 'paying now'], up: 20, c0: 3, c1: 1, n: 0, at: null }),
-  html: s => `${slider('up', 'Cost to pay once', 1, 60, 1, s.up, ' h')}${slider('c0', 'Each change without it', 1, 10, .5, s.c0, ' h')}${slider('c1', 'Each change with it', 0, 9, .5, s.c1, ' h')}
-    <div class="row">${btn('next', 'A change arrives', 'btn primary')}${btn('pay', 'Pay the cost now', 'btn')}${btn('reset', 'Start over', 'btn sm')}</div>`,
+  init(topic, spec){ const w = (spec && spec.w) || [], v = (spec && spec.v) || [20, 3, 1]; return { words: [w[0] || 'changes', w[1] || 'never paying', w[2] || 'paying now'], ev: w[3] || 'A change arrives', lab: [w[4] || 'Each change without it', w[5] || 'Each change with it'], up: v[0], c0: v[1], c1: v[2], n: 0, at: null }; },
+  html: s => `${slider('up', 'Cost to pay once', 1, 60, 1, s.up, ' h')}${slider('c0', esc(s.lab[0]), 1, 10, .5, s.c0, ' h')}${slider('c1', esc(s.lab[1]), 0, 9, .5, s.c1, ' h')}
+    <div class="row">${btn('next', esc(s.ev), 'btn primary')}${btn('pay', 'Pay the cost now', 'btn')}${btn('reset', 'Start over', 'btn sm')}</div>`,
   sync(){},
   act(fig, s, what){ if(what === 'next'){ if(s.n < 20) s.n++; } else if(what === 'pay'){ if(s.at === null) s.at = s.n; } else { s.n = 0; s.at = null; } },
   say(s){
     const [w0, w1, w2] = s.words, no = s.n * s.c0, yes = s.at === null ? 0 : s.at * s.c0 + s.up + (s.n - s.at) * s.c1, gain = s.c0 - s.c1;
     const head = `After ${count(s.n, w0)}, ${w1} has cost ${dxHrs(no)}`;
-    const tail = s.n === 20 ? ' That is all 20 changes this runs for.' : '';
-    if(s.at === null) return head + `; paying once (${dxHrs(s.up)}) has not happened yet. ` + (gain > 0 ? `Each change then saves ${dxHrs(gain)}, so it pays back after ${count(Math.ceil(s.up / gain), w0)}.` : 'With no saving per change it never pays back.') + tail;
+    const tail = s.n === 20 ? ` That is all ${count(20, w0)} this runs for.` : '';
+    if(s.at === null) return head + `; paying once (${dxHrs(s.up)}) has not happened yet. ` + (gain > 0 ? `Each time it then saves ${dxHrs(gain)}, so it pays back after ${count(Math.ceil(s.up / gain), w0)}.` : gain === 0 ? 'With no saving each time it never pays back.' : `Each time it then costs ${dxHrs(-gain)} more than not paying, so it makes things worse every time.`) + tail;
     return head + `; ${w2}, ${count(s.at, w0)} in, has cost ${dxHrs(yes)} in all. ` + (yes < no ? `That is ${dxHrs(no - yes)} ahead.` : yes === no ? 'The two are level.' : `That is ${dxHrs(yes - no)} behind.`) + tail;
   }
 };
@@ -1327,34 +1333,34 @@ KINDS.invest = {
 const CHOOSE = {
   critique: { intro: 'A mentee’s tutorial level (made-up scenario): its stated intent is that the player gets through the first door in seconds. Write the note.', win: 'The note names what was seen against the intent, asks before it fixes, and leaves the decision with the owner.', steps: [
     { q: 'How does the note open?', o: [
-      { t: 'I don’t like the first room.', why: 'That is a preference, not an observation: with no intent behind it, a review is an argument about taste and the designer learns nothing to reuse.' },
-      { t: 'I watched the player stand at the first door without trying it; the intent says they should be through in seconds.', good: 1, why: 'An observation tied to the stated intent, about the design and its effect on the player. The owner can check it against what they meant.' }] },
+      { t: 'I find the first room slow, and I think it needs more going on to hold players.', why: 'That is a preference, not an observation: with no intent behind it, a review is an argument about taste and the designer learns nothing to reuse.' },
+      { t: 'The player stood at the first door without trying it, and the intent is seconds.', good: 1, why: 'An observation tied to the stated intent, about the design and its effect on the player. The owner can check it against what they meant.' }] },
     { q: 'What comes once the problem is stated?', o: [
-      { t: 'What were you hoping the player would do at the door?', good: 1, why: 'A question before a fix. It keeps the owner in charge and shows whether the problem is in the design, the build or the test.' },
-      { t: 'Move the key next to the door and add an arrow.', why: 'Solutioneering: a fix before the problem is agreed. The owner defends the design instead of understanding the problem, and learns your answer, not the reasoning.' }] },
+      { t: 'What were you hoping the player would do when they reached the first door?', good: 1, why: 'The topic says to ask before offering fixes. The question keeps the owner in charge and shows whether the problem is in the design, the build or the test.' },
+      { t: 'Have you thought about moving the key next to the door and adding an arrow?', why: 'Solutioneering: a fix before the problem is agreed. The owner defends the design instead of understanding the problem.' }] },
     { q: 'How does the review close?', o: [
-      { t: 'Good effort overall, nice art, the pacing is a bit off, but I really like it.', why: 'A praise sandwich hides the point, and a designer who hears only “looks good” cannot improve.' },
-      { t: 'Two problems, both tied to the intent. You decide which you will change, test or leave, and write it down.', good: 1, why: 'The owner leaves with a short list tied to the intent and decides what to do with it.' }] }] },
+      { t: 'Two problems; here is my revised layout for the first two rooms, so you can build from it.', why: 'Rewriting the design hands over the reviewer’s answer, not the reasoning, and takes the decision away from the owner.' },
+      { t: 'Two problems, each tied to the intent. You decide what to change, test or leave, and write it down.', good: 1, why: 'The owner leaves with a short list tied to the intent and decides what to do with it.' }] }] },
   feedback: { intro: 'A teammate approved a change without running it, and the build broke (made-up scenario). Give the feedback.', win: 'The feedback is days old, points at an event both people remember, and ends with a step and a date.', steps: [
     { q: 'When do you say it?', o: [
-      { t: 'In the next 1:1, this week, while we both remember it.', good: 1, why: 'Close to the event, so it points at something both people can recall.' },
-      { t: 'At the review next quarter, written up properly.', why: 'Feedback saved for a review cycle is useless: it should be days old, not months.' }] },
+      { t: 'In our 1:1 this week, while we both still remember the build breaking.', good: 1, why: 'Close to the event, so it points at something both people can recall. Feedback should be days old, not months.' },
+      { t: 'I will keep it for the end-of-quarter review, where I can write it up properly.', why: 'Feedback saved for a review cycle is useless: it should be days old, not months.' }] },
     { q: 'How do you say it?', o: [
-      { t: 'You are careless with reviews.', why: 'Criticism with no example is an opinion: there is nothing to act on, and nothing to check.' },
+      { t: 'I have noticed you tend to rush your reviews, and it keeps causing problems for the team.', why: 'Criticism with no example is an opinion: there is no event to recall and nothing to check.' },
       { t: 'On Tuesday you approved the change without running it, and the build broke for the team.', good: 1, why: 'Situation, behaviour, impact: a specific recent event, so the conversation is about behaviour.' }] },
     { q: 'How do you end it?', o: [
-      { t: 'Next step: run the build before approving, on the next two reviews; we look again in two weeks.', good: 1, why: 'A concrete next step with a date, and a way to know whether it is working.' },
-      { t: 'Keep it up, I am sure you will grow here.', why: 'Encouragement with no next step, and a promise of growth the project may not fund.' }] }] },
+      { t: 'Next step: run the build before approving the next two changes; we look again in two weeks.', good: 1, why: 'A concrete next step with a date, and a way to know whether it is working.' },
+      { t: 'I know you care about the team, and I am confident you will get this right from here on.', why: 'Encouragement with no next step and no date: later there is no way to tell whether anything changed.' }] }] },
   cv: { intro: 'Three lines of a game CV, being rewritten for a reader outside games, who skims. Pick the wording for each.', win: 'Each line now says what was done, in words a reader outside games recognises.', steps: [
     { q: 'How is the prototype work worded?', o: [
-      { t: 'Delivered the vertical slice.', why: 'Game jargon left unexplained: a reader outside games cannot tell what it was or why it mattered.' },
+      { t: 'Delivered a vertical slice that proved the game was worth making.', why: '“Vertical slice” is game jargon left unexplained: the first read is short, and a reader outside games cannot decode it.' },
       { t: 'Built a production-quality prototype that validated scope and cost.', good: 1, why: 'The plain outcome, in words a non-games reader recognises.' }] },
     { q: 'How is passing platform review worded?', o: [
-      { t: 'Met a platform holder’s compliance checklist first time.', good: 1, why: 'The plain outcome: what was checked, and that it passed.' },
-      { t: 'Passed cert first time.', why: '“Cert” is jargon the skimming reader has to decode, so the line is skipped.' }] },
+      { t: 'Met a platform holder’s compliance checklist first time, so nothing was resubmitted.', good: 1, why: 'The plain outcome: what was checked, and that it passed.' },
+      { t: 'Passed cert first time, so the release date held and nothing was resubmitted.', why: '“Cert” is jargon the skimming reader has to decode, so the line is skipped.' }] },
     { q: 'How is the weekly release work worded?', o: [
-      { t: 'Ran live ops.', why: '“Live ops” is a title, not an outcome, and it is left unexplained.' },
-      { t: 'Ran a weekly release and experiment cadence against retention and revenue metrics.', good: 1, why: 'The work as a problem, an action and the measures it was held to, in the target field’s words.' }] }] }
+      { t: 'Ran live ops for the game, shipping weekly updates, events and balance changes.', why: '“Live ops” is a title and a list of activity, with no problem and no measure.' },
+      { t: 'Ran a weekly release and experiment cadence against retention and revenue metrics.', good: 1, why: 'The work as an action and the measures it was held to, in the target field’s words.' }] }] }
 };
 KINDS.choose = {
   t: 'Choose the phrasing',
@@ -1389,13 +1395,13 @@ KINDS.taskorder = {
   t: 'What waits on what',
   init: (topic, spec) => ({ d: ORDER[(spec.w || [])[0]], seq: [] }),
   done: s => s.seq.filter(x => x.ok).map(x => x.i),
-  html: s => `<div class="row">${s.d.tasks.map((k, i) => btn('pick', esc(k.n), i ? 'btn' : 'btn primary', ` data-i="${i}"`)).join('')}${btn('reset', 'Start over', 'btn')}</div>`,
+  html: s => `<div class="row">${s.d.tasks.map((k, i) => btn('pick', esc(k.n), 'btn primary', ` data-i="${i}"`)).join('')}${btn('reset', 'Start over', 'btn')}</div>`,
   sync(fig, s){ const dn = this.done(s); $$('[data-do="pick"]', fig).forEach((b, i) => { b.disabled = dn.includes(i); }); },
   act(fig, s, what, el){
     const i = +el.dataset.i;
     if(what === 'reset') s.seq = []; else if(!this.done(s).includes(i)) s.seq.push({ i, ok: s.d.tasks[i].need.every(j => this.done(s).includes(j)) });
     this.sync(fig, s);
-    const b = Array.from($$('[data-do="pick"]', fig)).find(x => !x.disabled) || $('[data-do="reset"]', fig); if(b) b.focus();
+    const bs = Array.from($$('[data-do="pick"]', fig)), from = what === 'reset' ? 0 : i + 1, b = bs.slice(from).concat(bs.slice(0, from)).find(x => !x.disabled) || $('[data-do="reset"]', fig); if(b) b.focus();
   },
   say(s){
     const d = s.d, T = d.tasks, dn = this.done(s), turns = s.seq.length, nm = i => `“${T[i].n}”`;
@@ -1410,23 +1416,20 @@ KINDS.taskorder = {
 };
 
 /* Rank risks by when you would retire them, then see them sorted by exposure (made-up scores). */
-const RISKS = [['Certification takes longer than the calendar assumes', 3, 4, 'certification'], ['A six-week fallback is needed in week fourteen', 2, 3, 'late fallback'], ['Two unproven systems are integrated in the very last task', 4, 5, 'integration last'], ['The engine licence terms change mid-project', 2, 4, 'licence terms'], ['The one assumption the plan depends on was never tested', 3, 5, 'untested assumption']];
+const RISKS = [['Certification takes longer than the calendar assumes', 'certification'], ['A six-week fallback is needed in week fourteen', 'late fallback'], ['Two unproven systems are integrated in the very last task', 'integration last'], ['The engine licence terms change mid-project', 'licence terms'], ['The one assumption the plan depends on was never tested', 'untested assumption']];
 KINDS.rank = {
-  t: 'Which risk goes first?',
-  init: () => ({ order: [] }),
-  html: () => `<div class="rank-list">${RISKS.map((r, i) => btn('pick', esc(r[0]), i ? 'btn rank-r' : 'btn primary rank-r', ` data-i="${i}"`)).join('')}</div><div class="row">${btn('reset', 'Start over', 'btn')}</div>`,
-  sync(fig, s){ $$('.rank-r', fig).forEach((b, i) => { const k = s.order.indexOf(i); b.disabled = k >= 0; b.textContent = (k >= 0 ? (k + 1) + '. ' : '') + RISKS[i][0] + (s.order.length === RISKS.length ? ` (${RISKS[i][1]} × ${RISKS[i][2]} = ${RISKS[i][1] * RISKS[i][2]})` : ''); }); },
+  t: 'What sets the order risks are retired in?',
+  init: () => ({ l: RISKS.map(() => 2), im: RISKS.map(() => 2), wk: 8, mv: '' }),
+  html: s => slider('wk', 'Weeks left when the late risk lands', 1, 20, 1, s.wk, '') + `<div class="rank-list">${RISKS.map((r, i) => `<div class="rank-row"><span>${esc(r[0])}</span>${Object.keys(RKEY).map(f => btn('lvl', RKEY[f] + ': medium', 'btn sm rank-b', ` data-i="${i}" data-f="${f}"`)).join('')}</div>`).join('')}</div><div class="row">${btn('reset', 'Reset all to medium', 'btn')}</div>`,
+  sync(fig, s){ $$('.rank-b', fig).forEach(b => { b.textContent = RKEY[b.dataset.f] + ': ' + RLVL[s[b.dataset.f][+b.dataset.i] - 1]; }); },
   act(fig, s, what, el){
-    if(what === 'reset') s.order = []; else if(!s.order.includes(+el.dataset.i)) s.order.push(+el.dataset.i);
+    if(what === 'reset'){ s.l = RISKS.map(() => 2); s.im = RISKS.map(() => 2); s.mv = ''; }
+    else { const i = +el.dataset.i, f = el.dataset.f, was = riskOrder(s).indexOf(i); s[f][i] = s[f][i] % 3 + 1; const now = riskOrder(s).indexOf(i); s.mv = `${RKEY[f]} of “${RISKS[i][1]}” is now ${RLVL[s[f][i] - 1]}: ` + (now === was ? `it stays at position ${now + 1}.` : `it moved from position ${was + 1} to position ${now + 1}.`); }
     this.sync(fig, s);
-    const b = Array.from($$('.rank-r', fig)).find(x => !x.disabled) || $('[data-do="reset"]', fig); if(b) b.focus();
   },
   say(s){
-    const n = s.order.length, nm = a => a.map(i => RISKS[i][3]).join(', ');
-    if(!n) return 'Five risks, with made-up scores. Press them in the order you would retire them, first at the top.';
-    if(n < RISKS.length) return `Your order so far: ${nm(s.order)}. ${RISKS.length - n} to go.`;
-    const ex = RISKS.map((r, i) => i).sort((a, b) => RISKS[b][1] * RISKS[b][2] - RISKS[a][1] * RISKS[a][2]), same = ex.filter((x, k) => x === s.order[k]).length;
-    return `Your order: ${nm(s.order)}. By exposure (likelihood times impact, made-up scores): ${nm(ex)}. ${same} of ${RISKS.length} in the same place. The score only sorts; it is not a number to report.`;
+    const fb = s.wk < 6 ? `With ${count(s.wk, 'weeks')} left, a six-week fallback cannot finish: it is not a fallback.` : `With ${count(s.wk, 'weeks')} left, a six-week fallback still fits, with ${count(s.wk - 6, 'weeks')} to spare.`;
+    return `Retire first, top to bottom: ${riskOrder(s).map(i => RISKS[i][1]).join(', ')}. ${s.mv ? s.mv + ' ' : ''}Each risk scores likelihood times impact (low 1, medium 2, high 3); the score only sorts, and equal scores keep the listed order. ${fb}`;
   }
 };
 
@@ -1457,74 +1460,91 @@ KINDS.judge = {
   },
   act(fig, s, what, el){
     if(what === 'reset'){ s.on = []; s.checked = false; } else if(what === 'check') s.checked = true;
-    else if(!s.checked){ const i = +el.dataset.i; s.on = s.on.includes(i) ? s.on.filter(x => x !== i) : s.on.concat(i); }
+    else { const i = +el.dataset.i; s.on = s.on.includes(i) ? s.on.filter(x => x !== i) : s.on.concat(i); }
     this.sync(fig, s);
   },
   say(s){
     const N = s.d.c.length, ok = s.d.c.filter((c, i) => c[1] === +s.on.includes(i)).length;
-    return s.checked ? `${ok} of ${N} judged as the topic judges them.` + (ok === N ? ' ' + s.d.win : ' The reason is under each claim.') : `${s.on.length} of ${N} marked as counting. Mark the claims you would count as evidence, then check.`;
+    return s.checked ? `${ok} of ${N} judged as the topic judges them.` + (ok === N ? ' ' + s.d.win : ' The reason is under each claim; marking a claim again re-judges it.') : `${s.on.length} of ${N} marked as counting. Mark the claims you would count as evidence, then check.`;
   }
 };
 
 /* A hiring loop of six stages: cut the ones that test nothing, add the ones the work needs. */
-const HIRE = { skills: ['reading and changing real code', 'reviewing a diff', 'debugging something broken', 'arguing a design under constraints'], stages: [['Algorithm puzzle', -1, 1], ['Chat about culture fit', -1, 1], ['Debug a broken build', 2, 1], ['Change real code', 0, 1], ['Review a real diff', 1, 0], ['Design talk under constraints', 3, 0]] };
+const HIRE = { skills: ['reading and changing real code', 'reviewing a diff', 'debugging something broken', 'arguing a design under constraints'], stages: [['Algorithm puzzle', -1, 1, 'a puzzle that nothing in this made-up job resembles'], ['Chat about culture fit', -1, 1, 'culture fit used as a synonym for similarity'], ['Debug a broken build', 2, 1], ['Change real code', 0, 1], ['Review a real diff', 1, 0], ['Design talk under constraints', 3, 0]] };
 KINDS.hiringloop = {
   t: 'Design the loop backwards from the work',
   init: () => ({ on: HIRE.stages.map(x => !!x[2]) }),
-  html: () => `<div class="row">${HIRE.stages.map((x, i) => btn('toggle', esc(x[0]), 'chip lnk', ` data-i="${i}" aria-pressed="false"`)).join('')}</div><div class="row">${btn('cut', 'Cut the stages that test nothing', 'btn primary')}</div>`,
+  html: () => `<div class="row">${HIRE.stages.map((x, i) => btn('toggle', esc(x[0]), 'chip lnk', ` data-i="${i}" aria-pressed="false"`)).join('')}</div><div class="row">${btn('cut', 'Cut the stages that do not map to the job', 'btn primary')}</div>`,
   sync(fig, s){ $$('[data-do="toggle"]', fig).forEach((b, i) => { b.classList.toggle('on', s.on[i]); b.setAttribute('aria-pressed', s.on[i]); }); },
   act(fig, s, what, el){ if(what === 'cut') HIRE.stages.forEach((x, i) => { if(x[1] < 0) s.on[i] = false; }); else { const i = +el.dataset.i; s.on[i] = !s.on[i]; } this.sync(fig, s); },
   say(s){
     const on = HIRE.stages.filter((x, i) => s.on[i]), dead = on.filter(x => x[1] < 0), miss = HIRE.skills.filter((k, j) => !on.some(x => x[1] === j));
-    return `${count(on.length, 'stages')} in the loop (a made-up loop, for a role whose work is real code). ` + (dead.length ? `${dead.length === 1 ? 'This stage tests' : 'These stages test'} nothing the job needs: ${dead.map(x => x[0].toLowerCase()).join(' and ')}. ` : on.length ? 'Every stage maps to work the job requires. ' : '') + (miss.length ? `No stage tests: ${miss.join('; ')}.` : 'Every required skill has a stage.');
+    return `${count(on.length, 'stages')} in the loop (a made-up loop, for a role whose work is real code). ` + (dead.length ? `${dead.length === 1 ? 'This stage does' : 'These stages do'} not map to a task from the job: ${dead.map(x => x[0].toLowerCase() + ' (' + x[3] + ')').join('; ')}. ` : on.length ? 'Every stage maps to work the job requires. ' : '') + (miss.length ? `No stage tests: ${miss.join('; ')}.` : 'Every required skill has a stage.');
   }
 };
 
 /* A room votes between three options: with nobody holding the final say, a split ends with no decision. */
 KINDS.committee = {
   t: 'Who decides when the room splits?',
-  init: () => ({ n: 7, owner: false, tally: null, vn: 0 }),
+  init: () => ({ n: 7, owner: false, tally: null, vn: 0, k: 0 }),
   html: s => `${slider('n', 'People in the room', 3, 12, 1, s.n, '')}<div class="row">${btn('vote', 'Hold the vote', 'btn primary')}${btn('owner', 'One person decides', 'chip lnk', ' aria-pressed="false"')}</div>`,
   sync(){},
   act(fig, s, what, el){
     if(what === 'owner'){ s.owner = !s.owner; el.classList.toggle('on', s.owner); el.setAttribute('aria-pressed', s.owner); return; }
-    const t = [0, 0, 0]; for(let i = 0; i < s.n; i++) t[Math.floor(Math.random() * 3)]++;
-    s.tally = t.sort((a, b) => b - a); s.vn = s.n;
+    s.tally = comTally(s.n, s.k++); s.vn = s.n;
   },
   say(s){
-    if(!s.tally) return `${s.n} people, three options, one decision. ${s.owner ? 'One person has the final say.' : 'Nobody has the final say.'} Hold the vote.`;
-    const t = s.tally, head = `${s.vn} people split ${t.join('-')}. `;
-    return head + (s.owner ? 'The person with the final say hears the room and decides now, with a reason: the vote informed the call, and the meeting ended with a decision.' : t[0] * 2 > s.vn ? 'One option has more than half the votes, so this meeting decides: by majority, with nobody who owns the call.' : 'No option has more than half the votes, so the meeting ends without a decision: this is how the same debate returns every month.');
+    if(!s.tally) return `${s.n} people, three options, one decision. ${s.owner ? 'One person has the final say.' : 'Nobody has the final say.'} Hold the vote: the tallies come from a fixed, made-up sequence, not a real room.`;
+    const t = s.tally, head = `Vote ${s.k} of a fixed made-up sequence: ${s.vn} people split ${t.join('-')}. `;
+    return head + (s.owner ? 'The person with the final say hears the room and decides now, with a reason: the vote informed the call, and the meeting ended with a decision.' : t[0] * 2 > s.vn ? 'One option has more than half the votes, so this meeting decides: by majority, with nobody who owns the call.' : 'No option has more than half the votes, so the meeting ends without a decision and the same debate has to be held again.');
   }
 };
 
 /* Play, then get suspended: what is left depends on when the game saved. */
 KINDS.suspend = {
   t: 'Suspend the game and see what is left',
-  init: () => ({ iv: 0, m: 0, saved: 0, onsus: false, last: '' }),
+  init: () => ({ iv: 0, m: 0, saved: 0, onsus: false, last: '', key: '' }),
   fmt: (n, v) => v ? v + ' min' : 'by hand only',
   html: s => `${slider('iv', 'Autosave every', 0, 10, 1, s.iv, '')}<div class="row">${btn('play', 'Play a minute', 'btn primary')}${btn('save', 'Save by hand', 'btn')}${btn('suspend', 'Suspend', 'btn')}${btn('onsus', 'Save on suspend', 'chip lnk', ' aria-pressed="false"')}</div>`,
   sync(){},
   act(fig, s, what, el){
-    if(what === 'onsus'){ s.onsus = !s.onsus; el.classList.toggle('on', s.onsus); el.setAttribute('aria-pressed', s.onsus); return; }
     s.last = '';
+    if(what === 'onsus'){ s.onsus = !s.onsus; el.classList.toggle('on', s.onsus); el.setAttribute('aria-pressed', s.onsus); return; }
     if(what === 'play'){ s.m++; if(s.iv && s.m % s.iv === 0) s.saved = s.m; }
     else if(what === 'save'){ s.saved = s.m; s.last = 'Saved by hand.'; }
     else { if(s.onsus) s.saved = s.m; const lost = s.m - s.saved; s.last = lost ? `Suspended: ${count(lost, 'minutes')} of play lost.` : 'Suspended: nothing lost.'; s.m = s.saved; }
+    s.key = s.iv + '/' + s.onsus;
   },
   say(s){
     const lost = s.onsus ? 0 : s.m - s.saved;
-    return [s.last, `${count(s.m, 'minutes')} played; ${s.iv ? 'autosave every ' + count(s.iv, 'minutes') : 'autosave off, so only saving by hand counts'}; ${s.onsus ? 'the game saves when it is suspended' : 'nothing saves on suspend'}: a suspend now loses ${count(lost, 'minutes')}.`].filter(Boolean).join(' ');
+    return [s.key === s.iv + '/' + s.onsus ? s.last : '', `${count(s.m, 'minutes')} played; ${s.iv ? 'autosave every ' + count(s.iv, 'minutes') : 'autosave off, so only saving by hand counts'}; ${s.onsus ? 'the game saves when it is suspended' : 'nothing saves on suspend'}: a suspend now loses ${count(lost, 'minutes')}.`].filter(Boolean).join(' ');
   }
 };
 
 /* Can the farm lose money on its own account while other work pays for it? Your own figures, in thousands. */
 KINDS.runway = calc('Can the farm lose money and you still eat?', [['off', 'Income from other work, a month (thousands)', 0, 6, 1, 3, ''], ['farm', 'What the farm earns a month (below 0: it loses)', -4, 2, 1, -2, ''], ['cost', 'Living costs a month', 1, 8, 1, 4, ''], ['sav', 'Savings', 0, 60, 5, 30, '']], s => {
-  const k = x => nf(x) + ' thousand', inc = s.off + s.farm, net = inc - s.cost, farm = s.farm < 0 ? `the farm loses ${k(-s.farm)}` : `the farm earns ${k(s.farm)}`;
-  const bars = [['Coming in a month', Math.max(0, inc) / 8, nf(inc)], ['Going out a month', s.cost / 8, nf(s.cost)]];
-  if(net >= 0) return { bars, say: `Other work brings ${k(s.off)} and ${farm}: ${k(inc)} in against ${k(s.cost)} out. Covered every month, ${net ? 'with ' + k(net) + ' to spare' : 'with nothing to spare'}.` + (s.farm < 0 ? ' The farm loses money on its own account and other work pays for it, as it does for most farm households.' : '') };
-  return { bars, say: `Other work brings ${k(s.off)} and ${farm}: ${k(inc)} in against ${k(s.cost)} out, short by ${k(-net)} a month. ${k(s.sav)} of savings lasts ${count(Math.floor(s.sav / -net), 'months')}, then it stops.` + (s.farm < 0 ? ' Plan as the topic says: assume the farm loses money for several years.' : '') };
+  const k = x => x ? nf(x) + ' thousand' : 'nothing', inc = s.off + s.farm, net = inc - s.cost, farm = s.farm < 0 ? `the farm loses ${k(-s.farm)}` : `the farm earns ${k(s.farm)}`, mid = `Other work brings ${k(s.off)} and ${farm}`;
+  const bars = [['Coming in a month', Math.max(0, inc) / 8, nf(Math.max(0, inc))], ['Going out a month', s.cost / 8, nf(s.cost)]];
+  if(net >= 0) return { bars, say: `${mid}: ${k(inc)} in against ${k(s.cost)} out. Covered every month, ${net ? 'with ' + k(net) + ' to spare' : 'with nothing to spare'}.` + (s.farm < 0 ? ' The farm loses money on its own account and other work pays for it, as it does for most farm households.' : '') };
+  const m = Math.floor(s.sav / -net);
+  return { bars, say: `${mid}: ` + (inc < 0 ? `the loss is bigger than the other income, so nothing comes in and ${k(-inc)} more goes out on top of ${k(s.cost)} of living costs` : `${k(inc)} in against ${k(s.cost)} out`) + `, short by ${k(-net)} a month. ` + (m ? `${k(s.sav)} of savings lasts ${count(m, 'months')}, then it stops.` : s.sav ? `${k(s.sav)} of savings does not cover even one month.` : 'There are no savings to cover it.') + (s.farm < 0 ? ' Plan as the topic says: assume the farm loses money for several years.' : '') };
 });
+
+const CYCLE_N = (s, x) => { const w = s.words[0] || 'tries'; return x === 1 ? '1 ' + (w === 'tries' ? 'try' : one(w)) : nf(x) + ' ' + w; };
+
+const STG_DOES = ['learns to predict the next token over a huge corpus', 'continues training on a narrow set of examples', 'turns a predictor into an assistant using human preference', 'trains a small model to imitate a large one', 'stores weights in fewer bits'];
+
+const PIPE_RUN = [['A compile error', 1, 1], ['The engine prints a fatal error and exits zero', 0, 1], ['A wrapper loses the exit code of a failing signing step', 0, 1], ['The engine fails with a new message nobody listed', 1, 0], ['A clean build', 0, 0], ['Another clean build', 0, 0]];
+
+const pipeRed = (s, r) => !!((s.exit && r[1]) || (s.log && r[2]));
+
+const RLVL = ['low', 'medium', 'high'], RKEY = { l: 'Likelihood', im: 'Impact' };
+
+const riskOrder = s => RISKS.map((r, i) => i).sort((a, b) => s.l[b] * s.im[b] - s.l[a] * s.im[a] || a - b);
+
+const COM = [[.4, .35, .25], [.34, .33, .33], [.45, .3, .25], [.55, .25, .2]];
+
+const comTally = (n, k) => { const p = COM[k % COM.length], f = p.map(x => Math.floor(x * n)); p.map((x, i) => i).sort((a, b) => (p[b] * n - f[b]) - (p[a] * n - f[a]) || a - b).slice(0, n - f.reduce((a, b) => a + b)).forEach(i => f[i]++); return f.sort((a, b) => b - a); };
 
 /* ---------------------------------------------------------------------
    FIGURES: a calculator's idea, drawn. FIGS.kind(state) returns an SVG in
@@ -1543,7 +1563,6 @@ const fgPts = pts => pts.map(p => fgq(p[0]) + ',' + fgq(p[1])).join(' ');
 const fgP = (pts, c = 'fl') => `<polyline class="${c}" points="${fgPts(pts)}"/>`;
 const fgG = (pts, c = 'fl') => `<polygon class="${c}" points="${fgPts(pts)}"/>`;
 const fgD = (d, c = 'fl') => `<path class="${c}" d="${d}"/>`;
-const fgN = w => cap(w).slice(0, 12);
 // n equal divisions of a bar, drawn as ticks (at most 60)
 const fgTk = (y, n, h = 10) => { const k = Math.floor(Math.min(60, n)), u = n > 60 ? 60 : n; let o = fgR(10, y, 300, h, 'fl'); for(let i = 1; i <= k; i++) o += fgL(10 + 300 * i / u, y, 10 + 300 * i / u, y + h); return o; };
 // annulus slice from turn a0 to a1 (clockwise from 12 o'clock)
@@ -1560,7 +1579,7 @@ const fgUt = m => m >= 120 ? nf(m / 60, 1) + ' hours' : nf(m, 1) + ' minutes';
 FIGS.funnel = s => {
   const r = s.r / 100, end = Math.pow(r, s.n), sw = 300 / s.n; let o = '';
   for(let k = 0; k < s.n; k++) o += fgR(10 + k * sw, 60 - 40 * Math.pow(r, k), sw, Math.max(.8, 80 * Math.pow(r, k)), k === s.n - 1 ? 'fs' : 'fso') + fgL(10 + (k + 1) * sw, 12, 10 + (k + 1) * sw, 108, 'fd');
-  return fgSvg(o + fgT(10, 10, '1,000 start') + fgT(310, 10, `${nf(end * 1000)} get through`, 'end') + fgT(10, 118, `${s.n} gate${s.n === 1 ? '' : 's'} at ${s.r}% each`));
+  return fgSvg(o + fgT(10, 10, '1,000 start') + fgT(310, 10, `${nf(end * 1000)} get through`, 'end') + fgT(10, 114, `${s.n} gate${s.n === 1 ? '' : 's'} at ${s.r}% each`));
 };
 
 FIGS.pairs = s => {
@@ -1577,19 +1596,19 @@ FIGS.combos = s => {
 
 FIGS.cycles = s => {
   const nr = s.wk * 40 / s.h, n2r = s.wk * 80 / s.h, u = Math.max(1, Math.ceil(n2r / 60));
-  return fgSvg(fgT(10, 16, `${nf(Math.floor(nr))} tries`) + fgTk(22, nr / u, 16) + fgT(10, 56, `${nf(Math.floor(n2r))} at half the loop`) + fgTk(62, n2r / u, 16) + fgL(310, 18, 310, 82, 'fd') + fgT(308, 98, 'the date', 'end') + (u > 1 ? fgT(10, 112, `1 tick = ${nf(u)} tries`) : ''));
+  return fgSvg(fgT(10, 16, CYCLE_N(s, Math.floor(nr))) + fgTk(22, nr / u, 16) + fgT(10, 56, `${CYCLE_N(s, Math.floor(n2r))} at half the loop`) + fgTk(62, n2r / u, 16) + fgL(310, 18, 310, 82, 'fd') + fgT(308, 98, 'the date', 'end') + (u > 1 ? fgT(10, 112, `1 tick = ${nf(u)} ${s.words[0] || 'tries'}`) : ''));
 };
 
 FIGS.baserate = s => {
-  const bad = 100 * s.b, tp = bad * s.d / 100, fp = (10000 - bad) * s.f / 100, dn = x => x > 0 ? Math.max(1, Math.round(x / 25)) : 0, t = dn(tp), m = dn(bad - tp), f = dn(fp); let o = '';
+  const bad = 100 * s.b, tp = bad * s.d / 100, fp = (10000 - bad) * s.f / 100, tr = Math.round(tp), fr = Math.round(fp), dn = x => x > 0 ? Math.max(1, Math.round(x / 25)) : 0, t = dn(tp), m = dn(bad - tp), f = dn(fp); let o = '';
   const cls = i => i < t ? 'fi' : i < t + m ? 'fl' : i < t + m + f ? 'fs' : 'fso';
   for(let i = 0; i < 400; i++) o += fgO(16 + (i % 20) * 4.5, 14 + Math.floor(i / 20) * 4.5, 1.7, cls(i));
-  return fgSvg(o + [['fi', nf(tp) + ' real, flagged'], ['fl', nf(bad - tp) + ' real, missed'], ['fs', nf(fp) + ' clean, flagged'], ['fso', nf(10000 - bad - fp) + ' clean']].map((e, i) => fgO(124, 26 + i * 18, 3, e[0]) + fgT(132, 29 + i * 18, e[1])).join('') + fgT(124, 104, '1 dot = 25 cases'));
+  return fgSvg(o + [['fi', nf(tr) + ' real, flagged'], ['fl', nf(bad - tr) + ' real, missed'], ['fs', nf(fr) + ' clean, flagged'], ['fso', nf(10000 - bad - fr) + ' clean']].map((e, i) => fgO(124, 26 + i * 18, 3, e[0]) + fgT(132, 29 + i * 18, e[1])).join('') + fgT(124, 104, '1 dot = 25 cases'));
 };
 
 FIGS.risk = s => {
-  const e = s.p / 100 * s.i, u = s.words[0] || 'days';
-  return fgSvg(fgT(10, 10, `${s.p}% chance`) + fgGrid(20, 20, 10, 14, 15, 13, i => i < Math.round(s.p / 5) ? 'fi' : 'fl') + fgT(10, 50, `exposure ${e.toFixed(1)} ${u}`) + fgR(10, 54, e / 90 * 300, 16) + fgT(10, 86, `find out now ${s.c} ${u}`) + fgR(10, 90, s.c / 90 * 300, 16, 'fs'));
+  const e = +(s.p / 100 * s.i).toFixed(1), u = s.words[0] || 'days';
+  return fgSvg(fgT(10, 10, `${s.p}% chance`) + fgGrid(20, 20, 10, 14, 15, 13, i => i < Math.round(s.p / 5) ? 'fi' : 'fl') + fgT(10, 50, `exposure ${count(e, u)}`) + fgR(10, 54, e / 90 * 300, 16) + fgT(10, 86, `find out now ${count(s.c, u)}`) + fgR(10, 90, s.c / 90 * 300, 16, 'fs'));
 };
 
 FIGS.loop = s => {
@@ -1637,7 +1656,7 @@ FIGS.horizons = s => {
 
 FIGS.rollback = s => {
   const late = Math.ceil(s.ping / 2 / (1000 / 60)), back = Math.max(0, late - s.d), cls = i => i < s.d ? 'fso' : i < late ? 'fs' : 'fl';
-  return fgSvg(fgT(10, 24, `the other input lands after ${late} frames`) + fgGrid(12, 12, 10, 34, 24, 22, cls, 26) + fgL(10 + late * 24 - 1, 28, 10 + late * 24 - 1, 66, 'fd') + fgR(10, 84, 8, 8, 'fso') + fgT(24, 92, `${s.d} frames of input delay`) + fgR(10, 98, 8, 8, 'fs') + fgT(24, 106, `${back} frames rewound`));
+  return fgSvg(fgT(10, 24, `the other input lands after ${count(late, 'frames')}`) + fgGrid(12, 12, 10, 34, 24, 22, cls, 26) + fgL(10 + late * 24 - 1, 28, 10 + late * 24 - 1, 66, 'fd') + fgR(10, 84, 8, 8, 'fso') + fgT(24, 92, `${count(s.d, 'frames')} of input delay`) + fgR(10, 98, 8, 8, 'fs') + fgT(24, 106, `${count(back, 'frames')} rewound`));
 };
 
 FIGS.busfactor = s => {
@@ -1657,9 +1676,9 @@ FIGS.capacity = s => {
 };
 
 FIGS.uptime = s => {
-  const a = NINES[s.a] / 100, all = Math.pow(a, s.n), mn = x => (1 - x) * 30 * 24 * 60; let o = '';
+  const a = NINES[s.a] / 100, all = Math.pow(a, s.n), mn = x => (1 - x) * 30 * 24 * 60, w = x => Math.min(300, mn(x) / 1800 * 300); let o = '';
   for(let i = 0; i < s.n; i++) o += fgR(10 + i * 25, 12, 18, 16, 'fl') + (i ? fgL(10 + i * 25 - 7, 20, 10 + i * 25, 20) : '');
-  return fgSvg(o + fgT(10, 46, `one service: ${fgUt(mn(a))}`) + fgR(10, 50, mn(a) / 1800 * 300, 12) + fgT(10, 78, `the request: ${fgUt(mn(all))}`) + fgR(10, 82, mn(all) / 1800 * 300, 12, 'fs') + fgT(10, 110, 'full width = 30 hours down'));
+  return fgSvg(o + fgT(10, 46, `one service: ${fgUt(mn(a))}`) + fgR(10, 50, w(a), 12) + fgT(10, 78, `the request: ${fgUt(mn(all))}`) + fgR(10, 82, w(all), 12, 'fs') + fgT(10, 110, 'full width = 30 hours down or more'));
 };
 
 FIGS.tail = s => {
@@ -1675,12 +1694,13 @@ FIGS.tokens = s => {
 };
 
 FIGS.wip = s => {
-  const lt = s.wip / s.th, u = Math.max(1, Math.ceil(s.wip / 50));
-  return fgSvg(fgT(10, 20, `${s.wip} in progress: ${nf(lt, 1)} weeks each`) + fgGrid(Math.ceil(s.wip / u), 50, 10, 24, 6, 5, () => 'fi') + fgT(10, 54, `${nf(s.wip / 2, 1)} in progress: ${nf(lt / 2, 1)} weeks each`) + fgGrid(Math.ceil(s.wip / 2 / u), 50, 10, 58, 6, 5, () => 'fs') + fgT(10, 96, `${s.th} finished a week`) + fgT(10, 110, `1 square = ${nf(u)}`));
+  const lt = s.wip / s.th, u = Math.max(1, Math.ceil(s.wip / 25)), wk = x => count(+x.toFixed(1), 'weeks');
+  return fgSvg(fgT(10, 18, `${count(s.wip, s.words[0] || 'things')} ${s.words[1] || 'in progress'}: ${wk(lt)} each`) + fgGrid(Math.ceil(s.wip / u), 25, 10, 24, 12, 10, () => 'fi') + fgT(10, 54, `Half as many: ${wk(lt / 2)} each`) + fgGrid(Math.ceil(s.wip / 2 / u), 25, 10, 60, 12, 10, () => 'fs') + fgT(10, 96, `${s.th} finished a week`) + fgT(10, 110, `1 square = ${nf(u)}`));
 };
 
 FIGS.estimate = s => {
-  const e = (s.o + 4 * s.m + s.p) / 6, sd = (s.p - s.o) / 6, X = v => 10 + 300 * fgc(v, 0, 120) / 120, v = [s.o, s.m, s.p].sort((a, b) => a - b), tri = [[X(v[0]), 90], [X(v[1]), 30], [X(v[2]), 90]];
+  if(s.o > s.m || s.p < s.m) return fgSvg(fgL(10, 90, 310, 90) + fgT(160, 54, 'best, likely and worst are out of order', 'middle') + fgT(160, 68, 'nothing is drawn until they are in order', 'middle') + fgT(10, 112, `best ${s.o} · likely ${s.m} · worst ${s.p} days`));
+  const e = (s.o + 4 * s.m + s.p) / 6, sd = (s.p - s.o) / 6, X = v => 10 + 300 * fgc(v, 0, 120) / 120, tri = [[X(s.o), 90], [X(s.m), 30], [X(s.p), 90]];
   return fgSvg(fgG(tri, 'fso') + fgG(tri) + fgL(10, 90, 310, 90) + fgL(X(e), 20, X(e), 90, 'fd') + fgR(X(e), 90, X(e + 2 * sd) - X(e), 5, 'fs') + fgT(fgc(X(e), 50, 270), 14, `expected ${e.toFixed(1)}`, 'middle') + fgT(10, 112, `best ${s.o} · likely ${s.m} · worst ${s.p} days`));
 };
 
@@ -1691,9 +1711,9 @@ FIGS.busy = s => {
 };
 
 FIGS.scope = s => {
-  const need = s.f * s.e, have = s.p * s.t * s.u / 100, sc = 76 / Math.max(need, have), g = Math.min(1, s.e * sc * .3); let o = '';
-  for(let i = 0; i < s.f; i++) o += fgR(20, 100 - (i + 1) * s.e * sc, 70, Math.max(.5, s.e * sc - g), i * s.e >= have ? 'fs' : 'fi');
-  return fgSvg(o + fgR(120, 100 - have * sc, 70, have * sc) + fgL(10, 100 - have * sc, 200, 100 - have * sc, 'fd') + fgL(10, 100, 200, 100) + fgT(210, 40, `asked ${nf(need, 1)}`) + fgT(210, 54, `have ${nf(have, 1)}`) + fgT(210, 72, need > have ? `over by ${nf(need - have, 1)}` : `spare ${nf(have - need, 1)}`) + fgT(210, 100, 'person-weeks'));
+  const need = s.f * s.e, have = s.p * s.t * s.u / 100, sc = 76 / Math.max(need, have), g = Math.min(1, s.e * sc * .3), cut = Math.max(0, Math.ceil((need - have) / s.e)); let o = '';
+  for(let i = 0; i < s.f; i++) o += fgR(20, 100 - (i + 1) * s.e * sc, 70, Math.max(.5, s.e * sc - g), i >= s.f - cut ? 'fs' : 'fi');
+  return fgSvg(o + fgR(120, 100 - have * sc, 70, have * sc) + fgL(10, 100 - have * sc, 200, 100 - have * sc, 'fd') + fgL(10, 100, 200, 100) + fgT(210, 40, `asked ${nf(need, 1)}`) + fgT(210, 54, `have ${nf(have, 1)}`) + fgT(210, 72, need > have ? `over by ${nf(need - have, 1)}` : `spare ${nf(have - need, 1)}`) + (cut ? fgT(210, 86, `${cut} marked out`) : '') + fgT(210, 100, 'person-weeks'));
 };
 
 FIGS.ttk = s => {
@@ -1710,7 +1730,7 @@ FIGS.creep = s => {
   const g = 1 + s.g / 100, N = s.n * s.y, x = Math.pow(g, N), py = v => x > 1 ? 96 - 76 * (v - 1) / (x - 1) : 58, pts = [];
   for(let k = 0; k < N; k++) pts.push([10 + 300 * k / N, py(Math.pow(g, k))], [10 + 300 * (k + 1) / N, py(Math.pow(g, k))]);
   pts.push([310, py(x)]);
-  return fgSvg(fgL(10, py(1), 310, py(1), 'fd') + fgP(pts) + fgO(310, py(x), 3, 'fs') + fgT(306, fgc(py(x) - 7, 12, 112), `${nf(x, 2)}× newest`, 'end') + fgT(12, fgc(py(1) - 4, 12, 112), 'launch 1×') + fgT(160, 114, `${N} releases: launch = ${pct(1 / x)}%`, 'middle'));
+  return fgSvg(fgL(10, py(1), 310, py(1), 'fd') + fgP(pts) + fgO(310, py(x), 3, 'fs') + fgT(306, fgc(py(x) - 7, 12, 112), `${nf(x, 2)}× newest`, 'end') + fgT(310, fgc(py(1) + 11, 12, 112), 'launch 1×', 'end') + fgT(160, 114, `${count(N, 'releases')}: launch = ${pct(1 / x)}%`, 'middle'));
 };
 
 FIGS.branch = s => {
@@ -1727,7 +1747,7 @@ FIGS.loss = s => {
 
 FIGS.net = s => {
   const net = s.price * (1 - s.tax / 100) * (1 - s.share / 100), copies = Math.ceil(s.cost * 1000 / net - 1e-9), W = 300, tx = s.price * s.tax / 100, st = (s.price - tx) * s.share / 100;
-  return fgSvg(fgT(10, 34, `$${s.price} sale`) + fgR(10, 40, W * net / s.price, 24) + fgR(10 + W * net / s.price, 40, W * st / s.price, 24, 'fs') + fgR(10 + W * (net + st) / s.price, 40, W * tx / s.price, 24, 'fso') + fgT(10, 80, `$${net.toFixed(2)} reaches you`) + fgT(10, 94, `store ${s.share}%, tax and refunds ${s.tax}%`) + fgT(10, 110, `${nf(copies)} copies pay back $${nf(s.cost * 1000)}`));
+  return fgSvg(fgT(10, 34, `$${s.price} sale`) + fgR(100, 27, 8, 8) + fgT(111, 34, 'yours') + fgR(150, 27, 8, 8, 'fs') + fgT(161, 34, 'store') + fgR(198, 27, 8, 8, 'fso') + fgT(209, 34, 'tax and refunds') + fgR(10, 40, W * net / s.price, 24) + fgR(10 + W * net / s.price, 40, W * st / s.price, 24, 'fs') + fgR(10 + W * (net + st) / s.price, 40, W * tx / s.price, 24, 'fso') + fgT(10, 80, `$${net.toFixed(2)} reaches you`) + fgT(10, 94, `store ${s.share}%, tax and refunds ${s.tax}%`) + fgT(10, 110, `${nf(copies)} copies pay back $${nf(s.cost * 1000)}`));
 };
 
 FIGS.queue = s => {
@@ -1785,8 +1805,9 @@ FIGS.repo = s => {
 
 FIGS.breakeven = s => {
   const A = s.words[1] || 'the plain way', B = s.words[2] || 'the built way', top = Math.max(s.a0 + s.a1 * 200, s.b0 + s.b1 * 200, 1), X = v => 24 + 276 * v / 200, Y = v => 100 - 84 * v / top, ca = s.a0 + s.a1 * s.n, cb = s.b0 + s.b1 * s.n, x = s.a1 === s.b1 ? -1 : (s.b0 - s.a0) / (s.a1 - s.b1);
-  const cross = x >= 0 && x <= 200 ? fgL(X(x), 16, X(x), 100, 'fd') + fgO(X(x), Y(s.a0 + s.a1 * x), 3.5, 'fs') + fgT(fgc(X(x) + 4, 24, 250), 26, `break-even ${nf(Math.floor(x))}`) : '';
-  return fgSvg(fgL(24, 100, 300, 100) + fgL(24, 16, 24, 100) + fgP([[X(0), Y(s.a0)], [X(200), Y(s.a0 + s.a1 * 200)]]) + fgP([[X(0), Y(s.b0)], [X(200), Y(s.b0 + s.b1 * 200)]], 'fd') + cross + fgL(X(s.n), 16, X(s.n), 100, 'fl') + fgO(X(s.n), Y(ca), 3) + fgO(X(s.n), Y(cb), 3, 'fs') + fgT(24, 9, '— ' + fgN(A)) + fgT(170, 9, '- - ' + fgN(B)) + fgT(X(s.n), 112, `${nf(s.n)}`, 'middle'));
+  const cross = x >= 0 && x <= 200 ? fgL(X(x), 16, X(x), 100, 'fd') + fgO(X(x), Y(s.a0 + s.a1 * x), 3.5, 'fs') + fgT(fgc(X(x) + 4, 24, 220), 12, `break-even ${nf(x, 1)}`) : '';
+  const key = (m, w) => { const t = cap(w); return fgT(10, m, (m < 130 ? '— ' : '- - ') + (t.length > 46 ? t.slice(0, 45) + '…' : t)); };
+  return `<svg viewBox="0 0 320 140" role="img" aria-hidden="true">${fgL(24, 100, 300, 100) + fgL(24, 16, 24, 100) + fgP([[X(0), Y(s.a0)], [X(200), Y(s.a0 + s.a1 * 200)]]) + fgP([[X(0), Y(s.b0)], [X(200), Y(s.b0 + s.b1 * 200)]], 'fd') + cross + fgL(X(s.n), 16, X(s.n), 100, 'fl') + fgO(X(s.n), Y(ca), 3) + fgO(X(s.n), Y(cb), 3, 'fs') + fgT(X(s.n), 112, `${nf(s.n)}`, 'middle') + key(124, A) + key(136, B)}</svg>`;
 };
 
 const state = new WeakMap();
