@@ -1717,6 +1717,65 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 .lights-cell small{display:block;font-size:.65rem;font-weight:600;line-height:1}
 .seed-row{display:flex;flex-wrap:wrap;gap:4px}
 .seed-row span{font-family:var(--mono);font-size:.8rem;padding:4px 6px;border:1px solid var(--line2);background:var(--bg2)}
+/* ===== DEMO KINDS AND FIGURES (2026-11) =====
+   Styles of the demo kinds written for single topics, each under its kind's name, and the two-ink classes of the figures. */
+.demo-fig{max-width:560px;border:1.5px solid var(--fg);background:var(--panel)}
+.demo-fig svg{display:block;width:100%;height:auto;color:var(--fg)}
+.demo-fig .fi{fill:currentColor;stroke:currentColor}
+.demo-fig .fs{fill:var(--dc,var(--accent));stroke:var(--dc,var(--accent))}
+.demo-fig .fso{fill:var(--dc,var(--accent));stroke:none;opacity:.3}
+.demo-fig .fl{fill:none;stroke:currentColor;stroke-width:1}
+.demo-fig .fd{fill:none;stroke:currentColor;stroke-width:1;stroke-dasharray:3 3}
+.demo-fig .ft{font-family:var(--mono);font-size:9px;fill:currentColor;stroke:none}
+.loopwalk-stage{display:flex;align-items:center;justify-content:center;height:80px}
+.loopwalk-n{font-family:var(--mono);font-size:2rem;font-weight:400;color:var(--dc,var(--accent))}
+.firegrid-map{display:grid;grid-template-columns:repeat(5,36px);gap:2px;width:max-content;max-width:100%}
+.firegrid-c{width:36px;height:36px;min-height:24px;padding:0;font-family:var(--mono);background:var(--bg2);border:1.5px solid var(--fg);color:var(--fg)}
+.firegrid-c.lit{background:var(--dc,var(--accent));color:var(--bg);font-weight:700}
+.firegrid-c:hover{border-color:var(--dc,var(--accent))}
+.crowd-stage{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;padding:8px;height:auto;min-height:150px}
+.crowd-stage i{display:block;width:10px;height:10px;background:var(--dc,var(--accent));border:1.5px solid var(--dc,var(--accent))}
+.crowd-stage i.out{background:transparent;border-color:var(--fg3)}
+.tutor-keys,.sprite-grid{display:flex;flex-wrap:wrap;gap:4px}
+.tutor-key{min-width:48px;min-height:32px;border:1.5px solid var(--fg);background:var(--panel);font-family:var(--mono)}
+.tutor-key.on{background:var(--dc,var(--accent));color:var(--bg)}
+.room-floor{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1.5px solid var(--fg);background:var(--bg2);min-height:56px}
+.room-tile{font-style:normal;font-family:var(--mono);font-size:.8rem;padding:4px 8px;border:1.5px solid var(--fg);background:var(--panel)}
+.sprite-grid{display:grid;gap:0;width:max-content;max-width:100%;border:1.5px solid var(--fg)}
+.sprite-px{width:24px;height:24px;min-width:24px;padding:0;border:1px solid var(--bg2);border-radius:0;font-family:var(--mono);font-size:.7rem;cursor:pointer}
+.sprite-px.c0{background:var(--bg2);color:var(--fg)}
+.sprite-px.c1{background:var(--fg);color:var(--bg)}
+.sprite-px.c2{background:var(--dc,var(--accent));color:var(--bg)}
+.sprite-px.c3{background:var(--panel);color:var(--fg);box-shadow:inset 0 0 0 3px var(--fg)}
+.sprite-px:hover{border-color:var(--fg)}
+.duo-row{align-items:center}
+.capsule-frame{display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;max-width:100%;aspect-ratio:2/1;overflow:hidden;padding:4px;border:1.5px solid var(--fg);background:var(--bg2);font-family:var(--mono);font-size:6px;line-height:1.1}
+.capsule-part{flex:1 1 40%;padding:2px;border:1px solid var(--fg);background:var(--panel)}
+.capsule-part[data-read=no]{opacity:.25;border-style:dashed}
+.pitchorder-list{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.pitchorder-list li{padding:4px 6px;border:1.5px solid var(--fg);background:var(--panel)}
+.agentloop-log { margin: 0 0 10px; padding: 6px 6px 6px 28px; min-height: 28px; border: 1.5px solid var(--fg); background: var(--bg2); font-family: var(--mono); font-size: .85rem; }
+.injection-doc { display: grid; gap: 6px; margin: 0 0 10px; padding: 10px; border: 1.5px solid var(--fg); background: var(--panel); max-width: 320px; }
+.injection-doc b { font-family: var(--mono); }
+.injection-doc i { padding: 4px 6px; border: 1.5px dashed var(--dc, var(--accent)); font-style: normal; }
+.guardduel-rules { margin: 0 0 8px; padding: 6px 8px; border: 1.5px solid var(--fg); background: var(--bg2); font-family: var(--mono); }
+.claims-list { display: grid; gap: 4px; margin: 0 0 8px; }
+.claims-list > div { min-width: 0; }
+.claims-c { text-align: left; min-height: 24px; white-space: normal; height: auto; line-height: 1.3; padding: 6px 10px; }
+.layers-rings { margin: 0 0 .5rem; font-family: var(--mono); }
+.savecut-steps, .pipeline-list { list-style: none; margin: 0 0 .6rem; padding: 0; max-width: 320px; border: 1.5px solid var(--fg); background: var(--panel); }
+.savecut-steps li, .pipeline-list li { padding: .3rem .5rem; border-top: 1.5px solid var(--fg); font-family: var(--mono); font-size: .85em; overflow-wrap: anywhere; }
+.savecut-steps li:first-child, .pipeline-list li:first-child { border-top: 0; }
+.pipeline-list li .btn { display: block; margin-top: .25rem; min-width: 24px; min-height: 24px; }
+.choose-intro, .choose-q, .judge-q { margin: 0 0 8px; }
+.choose-q { font-family: var(--mono); }
+.choose-text { margin: 0 0 8px; padding: 6px 8px; border-left: 1.5px solid var(--dc, var(--accent)); background: var(--bg2); }
+.choose-opt, .rank-r { max-width: 100%; white-space: normal; text-align: left; }
+.rank-list { display: grid; gap: 6px; margin-bottom: 8px; }
+.judge-row { margin: 0 0 8px; }
+.judge-c { max-width: 100%; white-space: normal; text-align: left; }
+.judge-why { display: block; margin-top: 2px; font-family: var(--mono); }
+/* ===== end of demo kinds and figures ===== */
 /* ===== PRINTED FIELD MANUAL (2026-11) =====
    The site as a manual someone printed in two inks: black, and the colour of the domain being read.
    Everything here is the look; structure is above. Transitions stop under the reduced-motion rule near the top. */
