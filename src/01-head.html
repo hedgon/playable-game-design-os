@@ -1717,6 +1717,55 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 .lights-cell small{display:block;font-size:.65rem;font-weight:600;line-height:1}
 .seed-row{display:flex;flex-wrap:wrap;gap:4px}
 .seed-row span{font-family:var(--mono);font-size:.8rem;padding:4px 6px;border:1px solid var(--line2);background:var(--bg2)}
+/* ===== PRINTED FIELD MANUAL (2026-11) =====
+   The site as a manual someone printed in two inks: black, and the colour of the domain being read.
+   Everything here is the look; structure is above. Transitions stop under the reduced-motion rule near the top. */
+/* the printer's colour bar under the masthead: every domain's ink, in order */
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:linear-gradient(90deg,var(--d-player) 0.00% 4.35%,var(--d-experience) 4.35% 8.70%,var(--d-core) 8.70% 13.04%,var(--d-systems) 13.04% 17.39%,var(--d-content) 17.39% 21.74%,var(--d-level) 21.74% 26.09%,var(--d-ux) 26.09% 30.43%,var(--d-narrative) 30.43% 34.78%,var(--d-presentation) 34.78% 39.13%,var(--d-product) 39.13% 43.48%,var(--d-production) 43.48% 47.83%,var(--d-ai) 47.83% 52.17%,var(--d-gameai) 52.17% 56.52%,var(--d-studio) 56.52% 60.87%,var(--d-backend) 60.87% 65.22%,var(--d-infra) 65.22% 69.57%,var(--d-server) 69.57% 73.91%,var(--d-management) 73.91% 78.26%,var(--d-leadership) 78.26% 82.61%,var(--d-platforms) 82.61% 86.96%,var(--d-models) 86.96% 91.30%,var(--d-craft) 91.30% 95.65%,var(--d-careers) 95.65% 100.00%);pointer-events:none}
+/* titles are printed in two inks, a hair out of register */
+h1{text-shadow:.04em .045em 0 color-mix(in srgb,var(--dc,var(--accent)) 62%,transparent)}
+/* a head is a printed plate: an ink frame, a folio strip, a halftone field in the domain's ink, a hard shadow */
+.thero,.domain-hero,.phero{position:relative;overflow:hidden;background:var(--panel);border:2px solid var(--fg);box-shadow:9px 9px 0 var(--dc,var(--accent));padding:0 26px 16px;margin-bottom:22px}
+.thero::before,.domain-hero::before,.phero::before{content:"Playable field manual  ·  " var(--folio,"plate");flex:0 0 calc(100% + 52px);display:block;position:relative;z-index:2;margin:0 -26px 16px;padding:5px 26px;background:var(--fg);color:var(--bg);font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thero::after,.domain-hero::after,.phero::after{content:"";position:absolute;top:26px;right:0;bottom:0;width:44%;background:radial-gradient(circle,var(--dc,var(--accent)) 1.7px,transparent 2px) 0 0/10px 10px;-webkit-mask-image:linear-gradient(100deg,transparent 10%,#000 95%);mask-image:linear-gradient(100deg,transparent 10%,#000 95%);opacity:.5;pointer-events:none}
+.thero > *,.domain-hero > *,.phero > *{position:relative;z-index:1}
+.thero .thero-n{position:absolute;z-index:1;-webkit-text-stroke:0;color:var(--dc);opacity:.92}
+.thero .btn,.domain-hero .chip,.thero .chip{background:var(--panel)}
+.thero .tag,.domain-hero > p.dim{max-width:40ch}
+.phero{padding-bottom:24px}
+.phero::after{width:34%}
+/* the demo is an instrument on graph paper: a stamp, a figure, metered bars, an inverted readout */
+.demo{border:2px solid var(--fg);box-shadow:9px 9px 0 var(--dc,var(--accent));background:linear-gradient(color-mix(in srgb,var(--dc,var(--accent)) 10%,transparent) 1px,transparent 1px) 0 0/100% 22px,linear-gradient(90deg,color-mix(in srgb,var(--dc,var(--accent)) 10%,transparent) 1px,transparent 1px) 0 0/22px 100%,var(--panel)}
+.pland > .demo{box-shadow:9px 9px 0 var(--dc,var(--accent))}
+.demo-head{align-items:flex-start}
+.demo-head .overline{display:inline-block;transform:rotate(-4deg);margin:2px 0 6px;padding:3px 10px;border:3px double var(--dc,var(--accent));color:color-mix(in srgb,var(--dc,var(--accent)) 72%,var(--fg));font-family:var(--mono);font-size:.8rem;font-weight:800;letter-spacing:.22em}
+.demo-from{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--fg2)}
+.demo-head b{font-style:italic;font-size:1.7rem}
+.demo-head b::before{content:"FIG. ";font-family:var(--mono);font-style:normal;font-size:.72rem;font-weight:700;letter-spacing:.16em;color:var(--fg3);vertical-align:middle;margin-right:6px}
+.demo-stage{border:1.5px solid var(--fg);background:var(--panel)}
+.demo-bar i{height:14px;background:repeating-linear-gradient(90deg,var(--dc,var(--accent2)) 0 7px,transparent 7px 9px)}
+.demo-out{background:var(--fg);color:var(--bg);padding:11px 14px;font-family:var(--mono);font-size:.84rem;line-height:1.5}
+.demo-ask{border-left:0;padding:10px 0 0;border-top:2px dashed var(--fg);font-style:italic}
+.demo-ask b{font-style:normal;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+/* chapters hang from index tabs, like a binder */
+.sec.tsec > header{border-bottom:1.5px solid var(--fg)}
+.sec.tsec > header .letter{width:50px;height:34px;left:-66px;top:16px;clip-path:polygon(0 0,80% 0,100% 50%,80% 100%,0 100%);justify-items:start;padding-left:13px;font-family:var(--mono);font-style:normal;font-weight:800;font-size:1.05rem}
+.box.trap{border-top:11px solid;border-image:repeating-linear-gradient(-45deg,var(--bad) 0 9px,var(--fg) 9px 18px) 11 1 1 1}
+/* things you can press have weight: an ink shadow they sink into, or lift off */
+.btn.primary{border:2px solid var(--fg);box-shadow:4px 4px 0 var(--fg);transition:transform .08s ease,box-shadow .08s ease}
+.btn.primary:active{transform:translate(4px,4px);box-shadow:none}
+.card.clickable,.related .rel,.smell,.refcard{transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease,background-color .12s ease}
+.card.clickable:hover,.related .rel:hover,.smell:hover,.refcard:hover{transform:translate(-4px,-4px);box-shadow:7px 7px 0 var(--dc,var(--accent))}
+.dtopics > .card::after{-webkit-text-stroke:0;color:color-mix(in srgb,var(--dc) 80%,var(--fg))}
+@media (max-width:700px){
+  .thero,.domain-hero,.phero{padding:0 14px 10px;box-shadow:6px 6px 0 var(--dc,var(--accent))}
+  .thero::before,.domain-hero::before,.phero::before{flex-basis:calc(100% + 28px);margin:0 -14px 12px;padding:5px 14px;letter-spacing:.14em}
+  .thero::after,.domain-hero::after,.phero::after{display:none}
+  .demo{box-shadow:6px 6px 0 var(--dc,var(--accent))}
+  .sec.tsec > header .letter{clip-path:none;width:32px;height:32px;left:auto;padding-left:0;justify-items:center}
+}
+@media print{.topbar::after,.thero::after,.domain-hero::after,.phero::after{display:none}.thero,.domain-hero,.phero,.demo{box-shadow:none}}
+/* ===== end of the printed field manual ===== */
 </style>
 </head>
 <body>

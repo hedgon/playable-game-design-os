@@ -684,7 +684,7 @@ function demoCard(id, featured){
   const t = TOPICS[id], spec = t && t.demo, k = spec && KINDS[spec.kind]; if(!k) return '';
   const s = k.init(t, spec), ask = spec.ask;
   return `<figure class="card demo" data-demo="${spec.kind}" data-topic="${esc(id)}" style="--dc:${DOM[t.d] ? DOM[t.d].color : 'var(--accent2)'}">
-    <figcaption class="demo-head"><span class="overline">Try it${featured ? ' · from ' + esc(t.t) : ''}</span><b>${esc(spec.t || k.t)}</b></figcaption>
+    <figcaption class="demo-head"><span class="overline">Try it</span>${featured ? `<span class="demo-from">from ${esc(t.t)}</span>` : ''}<b>${esc(spec.t || k.t)}</b></figcaption>
     <div class="demo-body">${k.html(s)}</div>
     <p class="small demo-out" aria-live="polite">${esc(k.say(s))}</p>
     ${ask ? `<p class="small demo-ask"><b>Try this.</b> ${esc(ask)}</p>` : ''}

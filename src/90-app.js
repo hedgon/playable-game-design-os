@@ -1165,7 +1165,7 @@ function renderExplore(domainId){
   let main;
   if(d){
     main = `${crumbs([['Map','#/map'],['Explore','#/explore'],[d.t]])}
-      <div class="domain-hero" style="--dc:${d.color}"><h1>${esc(d.t)}</h1><p class="dim" style="max-width:820px">${esc(d.sum)}</p>
+      <div class="domain-hero" style="--dc:${d.color};--folio:'${esc(d.t)} · ${d.topics.length} topics'"><h1>${esc(d.t)}</h1><p class="dim" style="max-width:820px">${esc(d.sum)}</p>
         <div class="chips">${d.links.map(([to]) => `<a class="chip dom lnk" style="--dc:${DOM[to].color};cursor:pointer" href="#/explore/${to}">→ ${esc(DOM[to].t)}</a>`).join('')}</div></div>
       ${DOMAIN_DIAGRAMS[d.id] && TOPICS[DOMAIN_DIAGRAMS[d.id]].diagram ? diagramCard(TOPICS[DOMAIN_DIAGRAMS[d.id]].diagram, d.color) : ''}
       <div class="row" style="margin-bottom:10px"><a class="btn sm primary" href="#/map/d/${d.id}">Open this branch on the map ↗</a></div>
@@ -1487,7 +1487,7 @@ function topicBody(id){
     wideBlock('Related concepts', `<div class="related">${rel}</div>`) + (smells.length ? wideBlock('Design smells this topic helps diagnose', smellChips) : '');
   const body = tab === 'interview' ? topicInterviewBody(t) : (tab === 'godot' || tab === 'unity') ? engineBody(t, tab) : tab === 'go' ? goBody(t) : wide2(overview, side);
   // The head is a band in the domain's colour; the topic's place in its domain is drawn large behind it (the chip says it in words).
-  return `<div class="topic-head thero" style="--dc:${d.color}"><span class="thero-n" aria-hidden="true">${String(idx+1).padStart(2,"0")}</span><div class="thero-main"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
+  return `<div class="topic-head thero" style="--dc:${d.color};--folio:'${esc(d.t)} · ${String(idx+1).padStart(2,"0")} / ${String(d.topics.length).padStart(2,"0")}'"><span class="thero-n" aria-hidden="true">${String(idx+1).padStart(2,"0")}</span><div class="thero-main"><div class="chips" style="margin-bottom:6px">${domChip(t.d)}<span class="chip">${idx+1} of ${d.topics.length}</span></div><h1>${esc(t.t)}</h1><p class="tag">${esc(t.tag)}</p></div>
       ${tab === 'overview' ? `<div class="row"><button type="button" class="btn sm" data-action="expand-all" data-open="1">Expand all</button><button type="button" class="btn sm ghost" data-action="expand-all" data-open="0">Collapse</button></div>` : ''}</div>
     ${strip}<div class="tabbody" role="tabpanel">${body}</div>`;
 }
@@ -2301,7 +2301,7 @@ function pathsDoorHTML(){
   const demoAt = featuredDemo();
   const stat = (n, t) => `<span><b>${n}</b> ${t}</span>`;
   const domains = `<nav class="domstrip" aria-label="Jump to a domain">${DOMAINS.map(d => `<a class="chip lnk" href="#/explore/${d.id}" style="--dc:${d.color}">${esc(d.t)}</a>`).join('')}</nav>`;
-  return `${crumbs([['Paths']])}<div class="pland"><header class="phero"><h1>Learning paths</h1><p class="lead">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
+  return `${crumbs([['Paths']])}<div class="pland"><header class="phero" style="--folio:'start here'"><h1>Learning paths</h1><p class="lead">A free guide to making games people want to play: design, engineering, shipping and leading a team. Say what you want to do and it suggests where to start.</p>
       <p class="phero-stats">${stat(Object.keys(TOPICS).length, 'topics')}${stat(REFERENCE_GAMES.length, 'games taken apart')}${stat(PATHS.length, 'paths')}</p>
       <div class="row"><a class="btn primary" href="#/play/game-designer-foundations">Play a path as a game →</a><a class="btn" href="#/map">Open the map</a></div></header>
     ${A.demoCard && TOPICS[demoAt].demo.ask ? A.demoCard(demoAt, true) : ''}

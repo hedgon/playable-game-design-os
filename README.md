@@ -133,7 +133,13 @@ all of it to a JSON file and **import** it again, in this browser or another one
 A field manual crossed with a technology tree: condensed display type for
 headings, monospace micro-labels, a dot-grid ground, sharp corners with hard
 offset shadows in the domain colour, dashed knowledge-graph edges, a charcoal dark
-mode and a paper-and-ink light mode. Every element has square corners. The type
+mode and a paper-and-ink light mode. Every element has square corners. It is laid
+out as a manual printed in two inks, black and the colour of the domain being read:
+a printer's colour bar under the masthead, titles a hair out of register, each
+topic and domain opening on a framed plate with a folio strip and a halftone
+field, each demo an instrument on graph paper with a stamp, a figure and an
+inverted readout, chapters hanging from index tabs, and buttons and cards with an
+ink shadow they sink into or lift from. The type
 reads like a magazine, with four free fonts (SIL Open Font License) shipped in
 `assets/fonts/` with their licences, so the guide looks and measures the same on
 every system and offline: **Instrument Serif** italic for large page titles,

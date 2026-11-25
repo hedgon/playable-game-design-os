@@ -362,7 +362,7 @@ const server = http.createServer((req, res) => {
     await nav('#/paths');
     const featA = await page.evaluate(() => { const a = document.querySelector('.pland .demo').dataset.topic; document.querySelector('[data-action="demo-next"]').click(); return a; });
     await page.waitForFunction(a => document.querySelector('.pland .demo').dataset.topic !== a, featA, { timeout: 5000 }).catch(() => {});
-    const feat = await page.evaluate(a => { const fig = document.querySelector('.pland .demo'); return { a, b: fig.dataset.topic, ask: !!fig.querySelector('.demo-ask'), link: fig.querySelector('a.btn').getAttribute('href'), named: fig.querySelector('.overline').textContent }; }, featA);
+    const feat = await page.evaluate(a => { const fig = document.querySelector('.pland .demo'); return { a, b: fig.dataset.topic, ask: !!fig.querySelector('.demo-ask'), link: fig.querySelector('a.btn').getAttribute('href'), named: fig.querySelector('.demo-from').textContent }; }, featA);
     check(`${tag} the landing features one topic's demo, names the topic and moves to the next`, feat.a && feat.b && feat.a !== feat.b && feat.ask && feat.link === '#/map/t/' + feat.b && /from /.test(feat.named), JSON.stringify(feat));
     check(`${tag} no console errors`, !errors.length, errors[0]);
     await ctx.close();
