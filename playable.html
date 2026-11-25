@@ -913,7 +913,8 @@ details.comp .body{padding-top:6px}
 .splitter{position:sticky;top:74px;height:calc(100vh - 74px);cursor:col-resize;background:var(--line)}
 .splitter:hover{background:var(--accent)}
 .mapstage{position:sticky;top:74px;height:calc(100vh - 74px);display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line);border-right:1px solid var(--line);background:var(--bg)}
-.mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+
+.mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 8px 6px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
 .mapbar .mapcrumbs{margin:0}
 .mapwrap{flex:1;min-height:0;border:0;border-radius:0;touch-action:none;cursor:grab;background:var(--panel)}
 .pane{min-width:0;padding:16px 20px 60px;overflow-x:clip}
@@ -921,6 +922,8 @@ details.comp .body{padding-top:6px}
 .hide-left #rail,.hide-left #splitL{display:none}
 .hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
 .hide-right #pane,.hide-right #splitR{display:none}
+
+.hide-left.hide-right{grid-template-columns:0 0 minmax(0,1fr) 0 0}
 
 .shell > .rail{grid-column:1}
 .shell > #splitL{grid-column:2}
@@ -1866,7 +1869,7 @@ h1{text-shadow:.04em .045em 0 color-mix(in srgb,var(--dc,var(--accent)) 62%,tran
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 
-window.PLAYABLE_BUILD = "43d7002b";
+window.PLAYABLE_BUILD = "f6525886";
 window.PLAYABLE_NOFILE = {};
 const TOOLS = [["idea","Idea Shaper","Read a market for an unserved want, then shape one core idea to fill it","You have a genre or a hunch, but no idea yet.","finding-an-idea"],["dissect","Reference Dissection","Is my idea actually good? Cross-reference it against games that succeeded","You have an idea and want to know whether it is good before you build it.","learning-from-success"],["loop","Game Loop Builder","Action → Decision → Feedback → Reward → New situation, with a weak-link check","Your idea is a list of features and you cannot tell whether it repeats.","core-loop"],["canvas","Core Experience Canvas","Player, fantasy, emotions, goals, what it is not","You need one page that says who it is for and what it should feel like.","core-experience"],["ladder","Behaviour Ladder","From a feature idea to the behavior and back to the smallest mechanic","Someone asks for a feature and you need the behavior it should cause.","feature-vs-experience"],["feature","Should We Build This?","Nine questions → BUILD / PROTOTYPE FIRST / SIMPLIFY / DEFER / REMOVE","A feature is on the table and the team is about to commit.","scope-control"],["hypothesis","Playtest Hypothesis Builder","We believe… we will know when… we will kill it if…","You are about to run a playtest and want it to settle a question.","hypothesis-driven-design"],["delegate","AI Delegation Planner","Human, AI, both, or player evidence required","You are deciding which parts of the work to hand to an AI.","ai-roles"],["sysmap","System Relationship Map","Nodes and typed edges. Collision questions generated","Two systems touch and you suspect they collide.","systemic-design"],["prompt","AI Prompt Generator","CONTEXT + INTENT + CONSTRAINTS + EVIDENCE + ROLE + TASK + OUTPUT + CRITIQUE","You are about to ask an AI for design help and want a prompt that gets a usable answer.","prompting-framework"],["gameai","In-game AI Technique Chooser","Decision shape + team + budget → primary technique, trade-offs, debug view","A character needs to decide things in play and you must pick a technique.","choosing-ai-technique"]];
 const TOOL_GROUPS = [["shape","Shape an idea",["idea","canvas","ladder"]],["test","Test an idea",["dissect","feature","hypothesis"]],["systems","Systems",["loop","sysmap"]],["ai","AI",["delegate","prompt","gameai"]]];

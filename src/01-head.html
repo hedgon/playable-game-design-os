@@ -934,7 +934,8 @@ details.comp .body{padding-top:6px}
 .splitter{position:sticky;top:74px;height:calc(100vh - 74px);cursor:col-resize;background:var(--line)}
 .splitter:hover{background:var(--accent)}
 .mapstage{position:sticky;top:74px;height:calc(100vh - 74px);display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line);border-right:1px solid var(--line);background:var(--bg)}
-.mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+/* top padding clears the 6px colour strip the topbar hangs below it */
+.mapbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 8px 6px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
 .mapbar .mapcrumbs{margin:0}
 .mapwrap{flex:1;min-height:0;border:0;border-radius:0;touch-action:none;cursor:grab;background:var(--panel)}
 .pane{min-width:0;padding:16px 20px 60px;overflow-x:clip}
@@ -942,6 +943,8 @@ details.comp .body{padding-top:6px}
 .hide-left #rail,.hide-left #splitL{display:none}
 .hide-right{grid-template-columns:var(--railW,300px) 6px minmax(0,1fr) 0 0}
 .hide-right #pane,.hide-right #splitR{display:none}
+/* both folded: the map owns the row; without this the .hide-right template leaves the hidden index's column empty */
+.hide-left.hide-right{grid-template-columns:0 0 minmax(0,1fr) 0 0}
 /* Explicit column placement: display:none must collapse a pane, not let the
    browser auto-place the remaining items into the 0-width first column. */
 .shell > .rail{grid-column:1}
