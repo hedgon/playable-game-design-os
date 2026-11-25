@@ -187,7 +187,7 @@ DEMO('craft-game-loop-timestep', { kind: 'timestep', ask: 'Read the three height
 DEMO('server-determinism', { kind: 'timestep', t: 'Same input, different answers', ask: 'Two machines get the same jump input and step at different rates. Read how far apart the peaks are: lockstep and replays need every machine to take the same steps in the same order, not just the same inputs.' });
 
 // Tunnelling.
-DEMO('craft-physics-and-collision', { kind: 'tunnel', ask: 'A bullet at 300 m/s moves 5 m a step at 60 steps a second, straight past a 0.2 m wall. Lower the speed until the wall is always caught: anything faster than that needs a swept test, not more steps.' });
+DEMO('craft-physics-and-collision', { kind: 'tunnel', ask: 'A bullet at 300 m/s moves 5 m a step at 60 steps a second, straight past a 0.2 m wall. Lower the speed until the wall is always caught. More steps a second raise that limit only in proportion; a swept test removes it.' });
 
 // Texture memory.
 DEMO('craft-memory-loading-and-streaming', { kind: 'texmem', ask: 'Sixty 2048 textures, uncompressed, need over a gigabyte. Set 8 bits a pixel, then drop one size: which textures does the player never see closely enough to need the larger one?' });
@@ -221,7 +221,7 @@ DEMO('models-sampling', { kind: 'temp', ask: 'The scores are made up; the arithm
 DEMO('localization-and-culture', { kind: 'locale', ask: 'Step through the languages and count how many do not fit a button drawn for English. Then decide: does the button grow with its text, or does the translator get a character limit and a screenshot?' });
 
 // Path search.
-DEMO('navigation-and-pathfinding', { kind: 'path', ask: 'Press cells to wall B off completely and read how many cells the search looked at. Then open one gap far from A. The search that fails costs the most, which is why games bound it, cache it or check reachability first.' });
+DEMO('navigation-and-pathfinding', { kind: 'path', ask: 'Read how many cells the search looked at to reach B. Then press cells to wall B off completely and read it again: a search that fails cannot stop early, which is why games bound it, cache it or check reachability first.' });
 
 // A puzzle with one rule.
 DEMO('puzzle-design', { kind: 'lights', ask: 'Solve it, then start again and solve it in two presses. Nothing got easier except what you know: a puzzle is a rule the player learns, and the solution is the proof that they learned it.' });

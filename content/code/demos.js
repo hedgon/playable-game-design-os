@@ -366,7 +366,7 @@ KINDS.tunnel = calc('Can it pass through the wall?', [['v', 'Speed', 5, 900, 5, 
 
 const TEX = [256, 512, 1024, 2048, 4096];
 KINDS.texmem = calc('What textures weigh in memory', [['sz', 'Texture size', 0, 4, 1, 3, ''], ['n', 'How many', 1, 400, 1, 60, ''], ['bpp', 'Bits a pixel', 4, 32, 4, 32, '']], s => {
-  const side = TEX[s.sz], mb = side * side * s.bpp / 8 * 4 / 3 * s.n / 1048576, sz = x => nf(x, x < 10 ? 1 : 0) + ' MB';
+  const side = TEX[s.sz], mb = side * side * s.bpp / 8 * 4 / 3 * s.n / 1e6, sz = x => x < 1 ? nf(x * 1000) + ' KB' : nf(x, x < 10 ? 1 : 0) + ' MB';
   return { bars: [['In memory', Math.min(1, mb / 4096), sz(mb)], ['At half the side', Math.min(1, mb / 16384), sz(mb / 4)]], say: `${s.n} texture${s.n === 1 ? '' : 's'} of ${side} × ${side} at ${s.bpp} bits a pixel, with mipmaps (a third more): ${sz(mb)}. ${s.bpp === 32 ? 'That is uncompressed colour; a block-compressed format at 8 bits a pixel takes a quarter of it.' : 'Uncompressed colour is 32 bits a pixel.'} Halving the side divides it by four: ${sz(mb / 4)}.` };
 }, (name, v) => name === 'sz' ? TEX[v] + ' px' : String(v));
 
@@ -394,8 +394,8 @@ KINDS.weight = calc('How long until the page has arrived?', [['kb', 'Page weight
 
 const PLAYERS = [1000, 10000, 100000, 1000000];
 KINDS.cdn = calc('What a patch costs to deliver', [['mb', 'Patch size', 10, 5000, 10, 800, ''], ['pl', 'Players who download it', 0, 3, 1, 2, ''], ['c', 'Price per GB delivered', .01, .12, .01, .05, '']], s => {
-  const gb = s.mb * PLAYERS[s.pl] / 1000, cost = gb * s.c;
-  return { bars: [['This patch', 1, '$' + nf(cost)], ['A tenth the size', .1, '$' + nf(cost / 10)]], say: `${nf(PLAYERS[s.pl])} players × ${nf(s.mb)} MB is ${nf(gb / 1000, 1)} TB. At $${s.c} a GB that patch costs about $${nf(cost)} to deliver, and every player waits for all of it. A patch that sends only what changed costs in proportion to what changed.` };
+  const gb = s.mb * PLAYERS[s.pl] / 1000, cost = gb * s.c, usd = x => '$' + nf(x, x < 10 ? 2 : 0);
+  return { bars: [['This patch', 1, usd(cost)], ['A tenth the size', .1, usd(cost / 10)]], say: `${nf(PLAYERS[s.pl])} players × ${nf(s.mb)} MB is ${nf(gb / 1000, gb < 1000 ? 2 : 1)} TB. At $${s.c} a GB that patch costs about ${usd(cost)} to deliver, and every player waits for all of it. A patch that sends only what changed costs in proportion to what changed.` };
 }, (name, v) => name === 'pl' ? nf(PLAYERS[v]) : name === 'c' ? '$' + v : nf(v) + ' MB');
 
 KINDS.queue = calc('A tighter match, a longer wait', [['r', 'Players who start searching each minute', 5, 2000, 5, 120, ''], ['sh', 'Share close enough in skill', 2, 100, 2, 20, '%'], ['n', 'Players in a match', 2, 100, 1, 10, '']], s => {
@@ -424,7 +424,7 @@ KINDS.locale = {
   say(s){ const [lang, word] = LOCALE[s.i], n = [...word].length; return s.i ? `${lang}: “${word}”, ${n} characters against 8 in English. ` + (s.fits ? 'It fits the button drawn for English' + (n < 5 ? ', with room that now looks like a mistake.' : '.') : 'It does not fit the button drawn for English: it is cut off, and nobody who reads only English sees that before release.') : 'A button drawn to fit its English label, “Settings”. Step through the languages.'; }
 };
 
-const PW = 8, PH = 5, PA = 16, PB = 23;
+const PW = 8, PH = 5, PA = 16, PB = 20;
 KINDS.path = {
   t: 'Wall it up and watch the search',
   init: () => ({ walls: new Set([11, 19, 27]) }),
@@ -440,21 +440,21 @@ KINDS.path = {
   html: () => `<div class="path-grid">${Array.from({ length: PW * PH }, (_, i) => i === PA || i === PB ? `<span class="path-end">${i === PA ? 'A' : 'B'}</span>` : btn('wall', '', 'path-cell', ` data-i="${i}" aria-label="Column ${i % PW + 1}, row ${Math.floor(i / PW) + 1}" aria-pressed="false"`)).join('')}</div><div class="row">${btn('clear', 'Clear the walls', 'btn primary')}</div>`,
   sync(fig, s){ const r = this.search(s); $$('.path-cell', fig).forEach(el => { const i = +el.dataset.i, wall = s.walls.has(i); el.classList.toggle('wall', wall); el.classList.toggle('on', r.path.includes(i)); el.setAttribute('aria-pressed', wall); }); },
   act(fig, s, what, el){ if(what === 'clear') s.walls.clear(); else { const i = +el.dataset.i; if(s.walls.has(i)) s.walls.delete(i); else s.walls.add(i); } this.sync(fig, s); },
-  say(s){ const r = this.search(s); return r.path.length ? `Shortest route from A to B: ${r.path.length - 1} steps. The search looked at ${r.seen} of the ${r.open} open cells to find it.` : `No route: B is walled off. To know that, the search had to look at every cell it could reach, ${r.seen} of them: the search that fails is the expensive one.`; }
+  say(s){ const r = this.search(s); return r.path.length ? `Shortest route from A to B: ${r.path.length - 1} steps. The search looked at ${r.seen} of the ${r.open} open cells and stopped when it reached B.` : `No route from A to B. A search that fails cannot stop early: it looked at every cell it could reach, ${count(r.seen, 'cells')}, to be sure.`; }
 };
 
 KINDS.lights = {
   t: 'Five lights, one rule',
   init: () => ({ on: [0, 0, 0, 0, 0], n: 0, t0: 0, last: 'Light all five. A press flips that light and the ones next to it.' }),
   html: () => `<div class="lights-row">${[0, 1, 2, 3, 4].map(i => btn('flip', String(i + 1), 'lights-cell', ` data-i="${i}" aria-pressed="false"`)).join('')}</div><div class="row">${btn('reset', 'Start again', 'btn primary')}</div>`,
-  sync(fig, s){ $$('.lights-cell', fig).forEach((el, i) => { el.classList.toggle('on', !!s.on[i]); el.setAttribute('aria-pressed', !!s.on[i]); }); },
+  sync(fig, s){ $$('.lights-cell', fig).forEach((el, i) => { el.classList.toggle('on', !!s.on[i]); el.setAttribute('aria-pressed', !!s.on[i]); el.innerHTML = (i + 1) + (s.on[i] ? '<small>on</small>' : ''); }); },
   act(fig, s, what, el){
     if(what === 'reset'){ s.on = [0, 0, 0, 0, 0]; s.n = 0; s.last = 'All off again. Fewer presses this time?'; }
     else {
       const i = +el.dataset.i; if(!s.n) s.t0 = performance.now(); s.n++;
       for(const j of [i - 1, i, i + 1]) if(j >= 0 && j < 5) s.on[j] ^= 1;
       const lit = s.on.reduce((a, b) => a + b, 0), times = `${s.n} press${s.n === 1 ? '' : 'es'}`;
-      s.last = lit === 5 ? `Solved in ${times} and ${((performance.now() - s.t0) / 1000).toFixed(1)} s. ` + (s.n > 2 ? 'It can be done in 2: the rule never changed, only how well you can see what one press does.' : 'That is the shortest there is: you read the rule instead of trying things.') : `${lit} of 5 lit after ${times}.`;
+      s.last = lit === 5 ? `Solved in ${times} and ${((performance.now() - s.t0) / 1000).toFixed(1)} s. ` + (s.n > 2 ? 'It can be done in 2: the rule never changed, only how well you can see what one press does.' : 'That is the shortest there is: you read the rule instead of trying things.') : `${lit} of 5 lit after ${times}` + (lit ? ` (${s.on.map((x, k) => x ? k + 1 : 0).filter(Boolean).join(', ')}).` : '.');
     }
     this.sync(fig, s);
   },
@@ -554,4 +554,4 @@ document.addEventListener('input', e => {
 Object.assign(A, { demoCard, demoPaint, demoKinds: Object.keys(KINDS) });
 })(window.PlayableApp);
 
-PlayableContent.put("code","demos",null,"06ca95b4");
+PlayableContent.put("code","demos",null,"f6630ef8");

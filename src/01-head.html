@@ -1685,6 +1685,12 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
   .tabbody .topic-nav .btn:last-child{text-align:left}
 }
 @media print{.tabbody .topic-nav,.thero-n{display:none}}
+/* the domain pages: the same band, and each topic card numbered by its place in the domain */
+.domain-hero{border:0;border-top:6px solid var(--dc);background:color-mix(in srgb,var(--dc) 13%,var(--panel))}
+.domain-hero > p.dim{font-family:var(--title);font-style:italic;font-size:1.5rem;line-height:1.25;color:var(--fg)}
+.dtopics{counter-reset:dt}
+.dtopics > .card{position:relative}
+.dtopics > .card::after{counter-increment:dt;content:counter(dt,decimal-leading-zero);position:absolute;right:10px;top:8px;font-family:var(--title);font-style:italic;font-size:1.7rem;line-height:1;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--dc) 75%,var(--fg3));pointer-events:none}
 .contrast-stage{display:flex;flex-direction:column;gap:6px;padding:16px;border:1px solid var(--line)}
 .contrast-stage span{font-family:var(--ui);font-weight:600;font-size:1.3rem}
 .contrast-stage small{font-family:var(--ui);font-size:.8rem}
@@ -1696,12 +1702,14 @@ html body :is(nav.primary,nav.primary *,.subnav,.subnav a,.railgraph,.mapcrumbs,
 .path-cell{cursor:pointer}
 .path-cell:hover{border-color:var(--accent)}
 .path-cell.on{background:color-mix(in srgb,var(--dc) 55%,var(--bg2))}
+.path-cell.on::after{content:"";display:block;width:8px;height:8px;margin:auto;background:var(--fg)}
 .path-cell.wall{background:var(--fg)}
 .path-end{display:grid;place-items:center;font-family:var(--ui);font-weight:700;background:var(--dc);color:var(--ink)}
 .lights-row{display:flex;gap:8px}
 .lights-cell{width:48px;height:48px;border:2px solid var(--line2);background:var(--bg2);color:var(--fg);font-family:var(--ui);font-weight:700;cursor:pointer}
 .lights-cell:hover{border-color:var(--accent)}
 .lights-cell.on{background:var(--dc);border-color:var(--dc);color:var(--ink)}
+.lights-cell small{display:block;font-size:.65rem;font-weight:600;line-height:1}
 .seed-row{display:flex;flex-wrap:wrap;gap:4px}
 .seed-row span{font-family:var(--mono);font-size:.8rem;padding:4px 6px;border:1px solid var(--line2);background:var(--bg2)}
 </style>

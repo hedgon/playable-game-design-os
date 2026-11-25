@@ -1167,7 +1167,7 @@ function renderExplore(domainId){
       ${DOMAIN_DIAGRAMS[d.id] && TOPICS[DOMAIN_DIAGRAMS[d.id]].diagram ? diagramCard(TOPICS[DOMAIN_DIAGRAMS[d.id]].diagram, d.color) : ''}
       <div class="row" style="margin-bottom:10px"><a class="btn sm primary" href="#/map/d/${d.id}">Open this branch on the map ↗</a></div>
       <div class="section-head"><h2>Topics</h2></div>
-      <div class="grid auto">${d.topics.map(tid => { const t = TOPICS[tid]; return `<a class="card clickable tint lnk blk" style="--dc:${d.color}" href="#/map/t/${tid}"><h3>${esc(t.t)} ${seen.has(tid)?'<span class="chip ok">read</span>':''}</h3><p class="dim small" style="margin:0">${esc(t.tag)}</p></a>`; }).join('')}</div>
+      <div class="grid auto dtopics">${d.topics.map(tid => { const t = TOPICS[tid]; return `<a class="card clickable tint lnk blk" style="--dc:${d.color};padding-right:46px" href="#/map/t/${tid}"><h3>${esc(t.t)} ${seen.has(tid)?'<span class="chip ok">read</span>':''}</h3><p class="dim small" style="margin:0">${esc(t.tag)}</p></a>`; }).join('')}</div>
       <div class="section-head"><h2>Why this connects</h2></div>
       <div class="grid c2">${d.links.map(([to, why]) => `<a class="card clickable lnk blk" href="#/explore/${to}"><b style="color:${DOM[to].color}">${esc(d.t)} ↔ ${esc(DOM[to].t)}</b><p class="dim small" style="margin:4px 0 0">${esc(why)}</p></a>`).join('')}
       ${DOMAINS.filter(o => o.links.some(([to]) => to === d.id) && !d.links.some(([to]) => to === o.id)).map(o => { const why = o.links.find(([to]) => to===d.id)[1]; return `<a class="card clickable lnk blk" href="#/explore/${o.id}"><b style="color:${o.color}">${esc(o.t)} ↔ ${esc(d.t)}</b><p class="dim small" style="margin:4px 0 0">${esc(why)}</p></a>`; }).join('')}</div>`;
