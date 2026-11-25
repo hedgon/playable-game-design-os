@@ -130,18 +130,15 @@ all of it to a JSON file and **import** it again, in this browser or another one
 
 ## Look and feel
 
-An arcade at night and a candy shop by day: a deep indigo dark mode with a yellow
-and cyan accent, and a near-white light mode with indigo and magenta. A soft field
-of the two accents sits behind every page. Shapes are round: pills for buttons and
-chips, large radii for cards, a lit two-colour edge on each demo. Page titles are
-set in bold condensed capitals that run from ink into the accent; a topic and a
-domain open on a field of their own colour with their number set large behind the
-title. Cards lift and take the colour of what they lead to, buttons press, and a
-page fades in; all of it stops under a reduced-motion setting. Four free fonts (SIL
-Open Font License) are shipped in `assets/fonts/` with their licences, so the guide
-looks and measures the same on every system and offline: **Instrument Sans** for
-titles, the interface, labels and map cards, **Newsreader** for reading,
-**Instrument Serif** where a line is set apart, and **Atkinson Hyperlegible Mono** for code. The path game's pixel art is cut
+A field manual crossed with a technology tree: condensed display type for
+headings, monospace micro-labels, a dot-grid ground, sharp corners with hard
+offset shadows in the domain colour, dashed knowledge-graph edges, a charcoal dark
+mode and a paper-and-ink light mode. Every element has square corners. The type
+reads like a magazine, with four free fonts (SIL Open Font License) shipped in
+`assets/fonts/` with their licences, so the guide looks and measures the same on
+every system and offline: **Instrument Serif** italic for large page titles,
+**Newsreader** for reading, **Instrument Sans** for the interface, labels and map
+cards, and **Atkinson Hyperlegible Mono** for code. The path game's pixel art is cut
 from Kenney's *Tiny Town* and *Tiny Dungeon* (CC0), credited in `assets/rpg/LICENSE.txt`.
 
 ## Principles the guide embodies
