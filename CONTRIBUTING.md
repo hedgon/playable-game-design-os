@@ -234,18 +234,23 @@ Right after the topic, in the same file:
   document is `{kind:'doc', sections:[{h, body}], file:'name.md'}`. The card
   has a button that builds the CSV or Markdown file in the browser. Examples are
   also found by search. `src/44-worked-samples.js` holds the data.
-- `DEMO('topic-id', {kind, t?, ask})` in `src/47-demos.js` puts an interactive demo
+- `DEMO('topic-id', {kind, t?, ask, w?})` in `src/47-demos.js` puts an interactive demo
   at the top of the topic's Overview, under "Try it". `kind` is one of `DEMO_KINDS`
   (`05-registry.js`). One kind can serve several topics; `ask` (40 characters
   or more) is what ties it to this one: one thing to try, and what it shows here.
-  `t` replaces the kind's own title. Every topic must have a demo, and
+  `t` replaces the kind's own title, and `w` gives a shared kind its nouns for
+  this topic (`w: ['people']` makes the pairs demo count people). A number or
+  outcome an `ask` states has to be what the demo shows when the reader follows
+  it: read it off the built page before committing. Every topic must have a demo, and
   `validate.js` fails when one has none: a new topic either gets a `DEMO()` line
   with a kind that shows its point, or its id goes in the check list at the end of
   `47-demos.js`. The `check` kind takes no `ask`: it shows the topic's own
   `think.bad` and `think.traps` one at a time, sets the topic's first `think.q`
   as the task and ends on its first `test`, so nothing is written for it. A new kind is an entry in `KINDS` in
   `src/97-demos.js` (`init`, `html`, `sync`, `act`, `say`) plus its name in
-  `DEMO_KINDS`: `say` returns the result as a sentence, so the demo never depends on
+  `DEMO_KINDS`. Most kinds are calculators and need only the `calc()` helper there:
+  a title, the sliders, and one function from the state to the bars and the
+  sentence. `say` returns the result as a sentence, so the demo never depends on
   seeing motion, and every animation is skipped under reduced motion. The code loads
   on demand (`content/code/demos.js`), so it does not count against the page budget.
   `e2e-paths.js` opens every topic and fails if its demo card is missing or does not

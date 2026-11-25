@@ -69,8 +69,8 @@ DEMO('items-weapons-abilities', { kind: 'ttk', ask: 'With 100 health, raise the 
 
 // A pass rate, compounded. `w` names who goes through the steps.
 DEMO('onboarding', { kind: 'funnel', w: ['players'], t: 'Every screen before play loses a few', ask: 'Count the steps between launching your game and the first moment of play, and set them. Then remove two. Which two could go, or wait until the player already wants to stay?' });
-DEMO('launch-and-discoverability', { kind: 'funnel', w: ['people'], t: 'From seeing the game to buying it', ask: 'Treat each step as one stage: the capsule, the page, the trailer, the wishlist, the launch day, the purchase. At 90% each, six stages lose almost half. Which stage of yours have you measured?' });
-DEMO('soft-launch-and-playable-ads', { kind: 'funnel', w: ['ad viewers'], t: 'From an ad to an install', ask: 'Set 4 steps (sees the ad, plays it, taps through, installs) and lower the pass rate until fewer than 100 of 1,000 install. A soft launch exists to measure each of these rates before the budget is spent.' });
+DEMO('launch-and-discoverability', { kind: 'funnel', w: ['people'], t: 'From seeing the game to buying it', ask: 'Treat each step as one stage: the capsule, the page, the trailer, the wishlist, the launch day, the purchase. Even at a generous 90% each, six stages lose almost half, and real stages pass far fewer. Which stage of yours have you measured?' });
+DEMO('soft-launch-and-playable-ads', { kind: 'funnel', w: ['ad viewers'], t: 'From an ad to an install', ask: 'Set 4 steps (sees the ad, plays it, taps through, installs) and the pass rate to your guess. A soft launch exists to replace that one guess with four measured rates before the budget is spent.' });
 DEMO('store-presence', { kind: 'funnel', w: ['store visitors'], t: 'A store page is a short funnel', ask: 'Set 4 steps: the capsule, the first screenshot, the trailer, the price. Move the pass rate from 70% to 80%. The end of the funnel grows by about 70%, from a change no single step shows.' });
 DEMO('lead-hiring', { kind: 'funnel', w: ['applicants'], t: 'A hiring loop is a funnel too', ask: 'Set your stages (screen, task, interviews, offer) and the share that passes each. If fewer than 20 of 1,000 reach the end, every stage you add needs a stronger reason than one more opinion.' });
 DEMO('ai-agentic-implementation', { kind: 'funnel', w: ['agent runs'], t: 'Twenty steps at 95% each', ask: 'Set 20 steps at 95%. About a third of runs finish with no step wrong, which is why an agent needs a check it can run after each step, not one review at the end.' });
@@ -87,7 +87,7 @@ DEMO('backtracking-and-return-trips', { kind: 'loop', t: 'The walk back, added u
 
 // Three-point estimates.
 DEMO('pm-estimation', { kind: 'estimate', ask: 'Enter a task you are about to promise: the good case, the likely one, the bad one. Compare the expected value with the number you would have said out loud.' });
-DEMO('planning-and-milestones', { kind: 'estimate', t: 'A milestone date is a spread, not a point', ask: 'Make the bad case three times the likely one, as it can be for work nobody has done before. The expected date moves well past the likely one: say which of the two a milestone date is quoting.' });
+DEMO('planning-and-milestones', { kind: 'estimate', t: 'A milestone date is a spread, not a point', ask: 'Make the bad case three times the likely one, as it can be for work nobody has done before. The expected date moves past the likely one: say which of the two a milestone date is quoting.' });
 
 // Risk as an average cost.
 DEMO('pm-risk', { kind: 'risk', ask: 'Take the top line of your risk list and enter it. If finding out now costs less than its exposure, it belongs at the start of the schedule, not the end.' });
@@ -114,7 +114,7 @@ DEMO('craft-security-review-of-generated-code', { kind: 'baserate', w: ['changes
 DEMO('server-state-sync', { kind: 'tick', ask: 'Raise the update rate from 30 to 60 and read the cost. Then get the same amount back by sending fewer bytes per player: what could be sent less often, or only when it changes?' });
 DEMO('server-bandwidth-and-interest-management', { kind: 'tick', t: 'Why not send everyone everything?', ask: 'Set 100 players and read what each client is sent. Then set 20, the number a player can actually see nearby: interest management sends only those, so each client’s stream falls five times.' });
 DEMO('server-realtime-protocol', { kind: 'tick', t: 'Bytes per update, times everything', ask: 'Halve the bytes per player per update and read both bars. Quantised positions and delta encoding earn their complexity only because this number is multiplied by players and by updates a second.' });
-DEMO('realtime-connection-tier-at-scale', { kind: 'tick', t: 'Fan-out: one message, many deliveries', ask: 'Treat the match as one chat room or one world channel and set 100 players. Every update is delivered to all of them: read the server total, then decide what a gateway should batch or drop.' });
+DEMO('realtime-connection-tier-at-scale', { kind: 'tick', t: 'Fan-out: one message, many deliveries', ask: 'Treat the match as one chat room or world channel with 100 members: every update is delivered to all of them. A tier holding 100,000 sockets carries a thousand such channels, so read the server total and decide what a gateway should batch or drop.' });
 
 // Rollback.
 DEMO('server-rollback-netcode', { kind: 'rollback', ask: 'Set a 150 ms round trip. Add input delay one frame at a time until nothing is rewound, then decide how much of that delay a player would accept: rollback is the trade between the two bars.' });
@@ -144,8 +144,8 @@ DEMO('polish-when', { kind: 'scope', t: 'Is there time left to polish?', ask: 'M
 
 // Work in progress. `w` names the work.
 DEMO('pm-agile-gamedev', { kind: 'wip', w: ['tasks'], ask: 'Enter how many tasks are in progress on your board today and how many were finished last week. Then halve the first number: a work-in-progress limit is this slider.' });
-DEMO('lead-code-review', { kind: 'wip', w: ['pull requests'], t: 'Why reviews feel slow', ask: 'Enter the pull requests open now and how many merge in a week, and read the average wait. Then halve what is open: reviewing before starting something new shortens the wait without anyone reviewing faster.' });
-DEMO('pm-qa-release', { kind: 'wip', w: ['bugs'], t: 'How old is the average open bug?', ask: 'Enter the open bug count and how many are closed in a week. That is how long a new bug waits; before a release the count has to fall faster than new ones arrive.' });
+DEMO('lead-code-review', { kind: 'wip', w: ['pull requests', 'open'], t: 'Why reviews feel slow', ask: 'Enter the pull requests open now and how many merge in a week, and read the average wait. Then halve what is open: reviewing before starting something new shortens the wait without anyone reviewing faster.' });
+DEMO('pm-qa-release', { kind: 'wip', w: ['bugs', 'open'], t: 'How long does a bug wait to be closed?', ask: 'Enter the open bug count and how many are closed in a week. That is how long a bug found today waits on average; before a release the count has to fall faster than new ones arrive.' });
 
 // Content made against content played.
 DEMO('live-operations', { kind: 'treadmill', ask: 'Enter what an hour of new content costs your team and how much a keen player plays. If they finish it many times faster than you make it, list what in your game is worth replaying.' });
@@ -162,7 +162,7 @@ DEMO('generative-characters', { kind: 'tokens', t: 'What a talking character cos
 DEMO('models-context-engineering', { kind: 'tokens', t: 'Everything in the context is paid for on every call', ask: 'Set the words to everything you send each time: instructions, examples, documents. Then drop one size. What could be fetched only when it is needed?' });
 
 // A follow camera.
-DEMO('camera-design', { kind: 'camera', ask: 'With no look-ahead the camera always trails, so less than half the screen is ahead of the character. Lower the gap the camera closes each frame to make it worse, then add look-ahead until two thirds of the screen is ahead.' });
+DEMO('camera-design', { kind: 'camera', ask: 'With no look-ahead the camera trails unless it snaps to the character, so less than half the screen is ahead. Lower the gap the camera closes each frame to make it worse, then add look-ahead until two thirds of the screen is ahead.' });
 
 // Timing windows.
 DEMO('rhythm-and-music-timed-design', { kind: 'window', ask: 'Set 180 BPM with a ±50 ms window, then 90 BPM with the same window. Measured against the beat, the same window is twice as forgiving at the faster tempo: decide whether your windows are fixed in milliseconds or scale with the song.' });
@@ -182,6 +182,60 @@ DEMO('narrative-agency', { kind: 'branch', ask: 'Set 3 options and 6 choices. Re
 DEMO('accessibility', { kind: 'contrast', ask: 'Bring the two sliders together until the sentence says the text fails, and note whether you could still read the small line at that point. Your own eyes on a good screen are the generous case.' });
 DEMO('visual-language', { kind: 'contrast', t: 'Value contrast carries the read', ask: 'Set the background to mid grey (50%) and look for light text that passes: even white does not reach 4.5 to 1, and only near-black does. Decide which grounds in your game carry text, and keep them clearly dark or clearly light.' });
 
+// One step a frame.
+DEMO('craft-game-loop-timestep', { kind: 'timestep', ask: 'Read the three heights. A ledge placed just under the 144-frame peak cannot be reached at 30 frames a second: decide the step your simulation runs at, and keep it the same on every machine.' });
+DEMO('server-determinism', { kind: 'timestep', t: 'Same input, different answers', ask: 'Two machines get the same jump input and step at different rates. Read how far apart the peaks are: lockstep and replays need every machine to take the same steps in the same order, not just the same inputs.' });
+
+// Tunnelling.
+DEMO('craft-physics-and-collision', { kind: 'tunnel', ask: 'A bullet at 300 m/s moves 5 m a step at 60 steps a second, straight past a 0.2 m wall. Lower the speed until the wall is always caught: anything faster than that needs a swept test, not more steps.' });
+
+// Texture memory.
+DEMO('craft-memory-loading-and-streaming', { kind: 'texmem', ask: 'Sixty 2048 textures, uncompressed, need over a gigabyte. Set 8 bits a pixel, then drop one size: which textures does the player never see closely enough to need the larger one?' });
+
+// Pixels shaded a second.
+DEMO('craft-gpu-rendering-cost', { kind: 'overdraw', ask: 'Raise the times each pixel is drawn from 2.5 to 5, the difference a few layers of smoke can make. Then put it back and go up one resolution instead: which costs more?' });
+DEMO('craft-mobile-gpu-and-thermals', { kind: 'overdraw', t: 'Pixels shaded a second become heat', ask: 'Set 60 frames a second, then 30. On a phone the pixels shaded each second become heat, and heat becomes a slower chip: halving the frame rate halves this number.' });
+
+// A share of the frame. `w` names what is updated.
+DEMO('ai-budgets-and-debugging', { kind: 'budget', w: ['agents'], ask: 'Set the agents in your busiest scene and what one update costs. If it is over, read the two ways out: update each agent less often, or make one update cheaper. Which would players notice?' });
+DEMO('craft-performance', { kind: 'budget', w: ['objects'], t: 'A budget before an optimisation', ask: 'Give one system a share of the frame and see whether it fits. Without a number like this, “it feels slow” has no owner and “fast enough” has no end.' });
+DEMO('craft-cpu-cache-and-data-layout', { kind: 'budget', w: ['entities'], t: 'Cost per entity, times entities', ask: 'Set 5,000 entities. At 1 µs each they use 5 ms; at 20 µs, 100 ms. What one update costs is often decided by where its data sits in memory, which is why layout is measured before code is tuned.' });
+
+// Allocation and the collector.
+DEMO('craft-memory-and-gc', { kind: 'gc', ask: 'Set what your game allocates in an ordinary frame (a profiler shows it) and read how often the room fills. Then bring the allocation to zero: that is what pooling buys.' });
+
+// Page weight.
+DEMO('web-performance-basics', { kind: 'weight', ask: 'Set the weight of your page as it is served and read it on the slowest connection, not on yours. Decide how long is acceptable there, and find the weight that meets it.' });
+
+// Patch delivery.
+DEMO('infra-cdn-assets', { kind: 'cdn', ask: 'Set your patch size and player count and read the bill for one patch. A format that lets you send only what changed is worth the difference between the two bars on every release.' });
+DEMO('release-and-updates', { kind: 'cdn', t: 'What a day-one patch costs everyone', ask: 'Set the size of your day-one patch and the players at launch. Each of them waits for all of it before playing: read the terabytes, then decide what has to be in the first download instead.' });
+
+// Matchmaking.
+DEMO('server-matchmaking', { kind: 'queue', ask: 'Set the players searching at your quietest hour, not your peak. Read the wait, then widen the skill band until it is bearable: that is the match quality your population can afford at that hour.' });
+
+// Sampling temperature.
+DEMO('models-sampling', { kind: 'temp', ask: 'The scores are made up; the arithmetic is the real one. Set 0.2 and write it ten times, then 2.0. Decide which you would want for a quest text, and which for a name generator.' });
+
+// Text expansion.
+DEMO('localization-and-culture', { kind: 'locale', ask: 'Step through the languages and count how many do not fit a button drawn for English. Then decide: does the button grow with its text, or does the translator get a character limit and a screenshot?' });
+
+// Path search.
+DEMO('navigation-and-pathfinding', { kind: 'path', ask: 'Press cells to wall B off completely and read how many cells the search looked at. Then open one gap far from A. The search that fails costs the most, which is why games bound it, cache it or check reachability first.' });
+
+// A puzzle with one rule.
+DEMO('puzzle-design', { kind: 'lights', ask: 'Solve it, then start again and solve it in two presses. Nothing got easier except what you know: a puzzle is a rule the player learns, and the solution is the proof that they learned it.' });
+DEMO('puzzles-in-action-spaces', { kind: 'lights', t: 'The same puzzle, with a clock on it', ask: 'Solve it once slowly. Then start again and solve it in under two seconds. In an action game the puzzle is the same rule, and the time to read it is what the fight takes away.' });
+
+// Seeds.
+DEMO('procedural-content', { kind: 'seed', ask: 'Move the seed and read ten rows. Can you tell them apart afterwards? Then raise the kinds of room: variety a player notices comes from what the generator has to work with, not from the seed.' });
+
+// Repeated sounds.
+DEMO('audio-and-music', { kind: 'tone', ask: 'Play five identical hits, then set 6% and play again. The fix for a sound that repeats is variation on every play, and it is cheapest to build in before the sound has been heard a hundred times.' });
+
+// A win rate and its sample size, as a test of a hypothesis.
+DEMO('hypothesis-driven-design', { kind: 'sample', t: 'Could this result have come out the other way?', ask: 'Before a test, write down the number that would prove you wrong. Then set a true rate of 52% and 300 games and measure: twenty honest readings cannot tell 52% from 50% at that size, so the test could not have settled it.' });
+
 // Topics whose point is a judgment about one's own project, or that have no demo of their own yet:
 // the check kind holds the topic's own warning signs and traps up to the reader's project, so it
 // needs no text here. A topic leaves this list when it gets a DEMO() line above.
@@ -190,22 +244,20 @@ for (const id of [
   /* experience */ 'core-experience', 'fun-dimensions', 'goals-horizons', 'mastery-discovery-expression', 'social-experience', 'feature-vs-experience', 'design-pillars',
   /* core */ 'skill-and-mastery', 'time-and-turns', 'genre-hybrids',
   /* systems */ 'knowledge-as-progression',
-  /* content */ 'procedural-content', 'puzzle-design', 'puzzles-in-action-spaces',
   /* level */ 'spatial-composition',
   /* narrative */ 'premise-and-world', 'ludonarrative-alignment', 'environmental-storytelling', 'worldbuilding-method',
-  /* presentation */ 'audio-and-music', 'pixel-art-direction',
-  /* product */ 'audience-and-positioning', 'learning-from-success', 'localization-and-culture', 'pitching-and-stakeholders',
-  /* production */ 'hypothesis-driven-design',
+  /* presentation */ 'pixel-art-direction',
+  /* product */ 'audience-and-positioning', 'learning-from-success', 'pitching-and-stakeholders',
   /* ai */ 'ai-roles', 'prompting-framework', 'ai-failure-modes', 'responsibility-matrix', 'ai-for-playtest-analysis', 'ai-generative-assets', 'ai-disclosure-policy',
-  /* gameai */ 'ingame-ai-purpose', 'choosing-ai-technique', 'perception-and-awareness', 'navigation-and-pathfinding', 'allies-and-companions', 'learning-based-ai', 'ai-budgets-and-debugging', 'scripted-vs-simulated',
+  /* gameai */ 'ingame-ai-purpose', 'choosing-ai-technique', 'perception-and-awareness', 'allies-and-companions', 'learning-based-ai', 'scripted-vs-simulated',
   /* studio */ 'design-documents', 'quality-and-build-health', 'design-critique-and-feedback',
   /* backend */ 'backend-layering', 'backend-di-modes', 'backend-api-protocol', 'backend-request-context', 'backend-errors', 'backend-data-access', 'backend-migrations-config', 'backend-testing', 'backend-go-idioms',
-  /* infra */ 'infra-containers', 'infra-deploy-models', 'infra-artifacts-provenance', 'infra-secrets', 'infra-cdn-assets', 'infra-data-stores',
-  /* server */ 'server-authority', 'server-determinism', 'server-matchmaking', 'server-stack-choices', 'server-transport-and-relays', 'server-framework-landscape',
+  /* infra */ 'infra-containers', 'infra-deploy-models', 'infra-artifacts-provenance', 'infra-secrets', 'infra-data-stores',
+  /* server */ 'server-authority', 'server-stack-choices', 'server-transport-and-relays', 'server-framework-landscape',
   /* management */ 'pm-postmortems',
   /* leadership */ 'lead-role', 'lead-one-on-ones', 'lead-conventions', 'lead-onboarding', 'lead-saying-no', 'lead-feedback-performance', 'lead-conflict-growth', 'lead-junior-skill-formation-with-ai',
-  /* platforms */ 'platform-choice', 'platform-access', 'platform-requirements', 'certification-and-review', 'ratings-and-disclosures', 'release-and-updates', 'ugc-platforms', 'platforms-choosing-an-engine',
-  /* models */ 'models-attention-long-context', 'models-sampling', 'models-hallucination-sycophancy', 'models-how-models-are-made', 'models-architecture-choices', 'models-open-and-closed', 'models-prompt-caching', 'models-tools-mcp-rag', 'models-reasoning-and-scaling', 'models-security-and-operations',
-  /* craft */ 'craft-ai-orchestrates-tools-compute', 'craft-core-values-that-last', 'craft-best-practice-now', 'craft-memory-and-gc', 'craft-performance', 'craft-design-patterns', 'craft-clean-code-ai-era', 'craft-over-defensive-code', 'craft-what-matters-now', 'craft-teaching-agents', 'craft-tools-that-work-with-ai', 'craft-source-control-for-games', 'craft-gameplay-math', 'craft-game-loop-timestep', 'craft-entities-and-scenes', 'craft-physics-and-collision', 'craft-save-systems', 'craft-cpu-cache-and-data-layout', 'craft-gpu-rendering-cost', 'craft-mobile-gpu-and-thermals', 'craft-memory-loading-and-streaming', 'web-performance-basics',
+  /* platforms */ 'platform-choice', 'platform-access', 'platform-requirements', 'certification-and-review', 'ratings-and-disclosures', 'ugc-platforms', 'platforms-choosing-an-engine',
+  /* models */ 'models-attention-long-context', 'models-hallucination-sycophancy', 'models-how-models-are-made', 'models-architecture-choices', 'models-open-and-closed', 'models-prompt-caching', 'models-tools-mcp-rag', 'models-reasoning-and-scaling', 'models-security-and-operations',
+  /* craft */ 'craft-ai-orchestrates-tools-compute', 'craft-core-values-that-last', 'craft-best-practice-now', 'craft-design-patterns', 'craft-clean-code-ai-era', 'craft-over-defensive-code', 'craft-what-matters-now', 'craft-teaching-agents', 'craft-tools-that-work-with-ai', 'craft-source-control-for-games', 'craft-gameplay-math', 'craft-entities-and-scenes', 'craft-save-systems',
   /* careers */ 'careers-transferable-skills', 'careers-destinations', 'careers-repositioning', 'careers-interviewing-outside-games', 'careers-ai-tooling-market', 'careers-the-farmer-answered', 'careers-game-coding-interviews',
 ]) DEMO(id, { kind: 'check' });

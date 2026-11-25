@@ -23,8 +23,11 @@ page under "Try it". Where a topic's point is a quantity or a motion, it is a sm
 simulation: a hit with five feedback layers to switch on, a jump made of three
 numbers, a wind-up to dodge, a push-your-luck pot, a thirty-minute economy,
 rock-paper-scissors with unequal stakes, a win rate measured twenty times, a word
-to find among more and more options, a drop rate seen from the unlucky side, and
-others (`src/47-demos.js` lists which topic has which). Where the point is a
+to find among more and more options, a drop rate seen from the unlucky side, a
+follow camera, a timing window, an intensity curve to draw, a grid to wall up
+and watch a path search, a five-light puzzle, the same jump at three frame rates,
+and calculators for the numbers a topic turns on, from hits to kill to what a
+patch costs to deliver (`src/47-demos.js` lists which topic has which). Where the point is a
 judgment about your own project, it is a check: the topic's own warning signs, one
 at a time, answered for the project you are on, ending on the topic's first test.
 Each says in words what happened, so nothing depends on seeing motion, and nothing

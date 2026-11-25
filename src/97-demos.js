@@ -229,6 +229,8 @@ KINDS.odds = {
    --------------------------------------------------------------------- */
 const nf = (x, d = 0) => x.toLocaleString('en-GB', { maximumFractionDigits: d });
 const cap = w => w[0].toUpperCase() + w.slice(1);
+// "1 task", "3 tasks": the nouns a topic supplies are plurals in -s, or do not occur with 1 (people).
+const count = (n, many) => nf(n, 1) + ' ' + (n === 1 ? many.replace(/s$/, '') : many);
 const calc = (t, sliders, out, fmt) => ({
   t, fmt,
   init: (topic, spec) => Object.assign({ words: (spec && spec.w) || [] }, ...sliders.map(a => ({ [a[0]]: a[5] }))),
@@ -241,13 +243,13 @@ const calc = (t, sliders, out, fmt) => ({
 /* n things meet in n(n-1)/2 pairs. */
 KINDS.pairs = calc('Every part meets every other part', [['n', s => 'How many ' + (s.words[0] || 'parts'), 2, 24, 1, 6, '']], s => {
   const p = s.n * (s.n - 1) / 2, w = s.words[0] || 'parts';
-  return { bars: [[cap(w), s.n / 24, String(s.n)], ['Pairs', p / 276, String(p)]], say: `${s.n} ${w} make ${p} pairs that can interact. Adding one more adds ${s.n} new pairs, not one.` };
+  return { bars: [[cap(w), s.n / 24, String(s.n)], ['Pairs', p / 276, String(p)]], say: `${s.n} ${w} make ${count(p, 'pairs')} that can interact. Adding one more adds ${s.n} new pairs, not one.` };
 });
 
 /* Three lists of content multiply into situations. */
 KINDS.combos = calc('Content multiplies', [['a', 'Enemy types', 1, 8, 1, 4, ''], ['b', 'Weapons', 1, 8, 1, 3, ''], ['c', 'Arenas', 1, 6, 1, 2, '']], s => {
   const n = s.a * s.b * s.c, made = s.a + s.b + s.c, min = Math.min(s.a, s.b, s.c);
-  return { bars: [['Pieces made', made / 22, String(made)], ['Situations', n / 384, nf(n)]], say: `${s.a} enemy types × ${s.b} weapons × ${s.c} arenas: ${nf(n)} situations from ${made} pieces of content. One more in the shortest list adds ${nf(n / min)}; whether they play differently is the design work.` };
+  return { bars: [['Pieces made', made / 22, String(made)], ['Situations', n / 384, nf(n)]], say: `${count(s.a, 'enemy types')} × ${count(s.b, 'weapons')} × ${count(s.c, 'arenas')}: ${count(n, 'situations')} from ${made} pieces of content. One more in the shortest list adds ${nf(n / min)}; whether they play differently is the design work.` };
 });
 
 /* Hits to kill is a whole number, so damage only matters where it removes a hit. */
@@ -259,13 +261,13 @@ KINDS.ttk = calc('Damage only matters at a hit boundary', [['d', 'Damage per hit
 /* A pass rate, compounded over steps in a row. */
 KINDS.funnel = calc('Every step loses a few', [['n', 'Steps in a row', 1, 20, 1, 6, ''], ['r', 'Share that gets through each step', 50, 99, 1, 90, '%']], s => {
   const w = s.words[0] || 'players', r = s.r / 100, end = Math.pow(r, s.n), half = Math.pow(r, Math.ceil(s.n / 2));
-  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through all ${s.n} step${s.n === 1 ? '' : 's'} at ${s.r}% each. Removing one step saves ${nf((Math.pow(r, s.n - 1) - end) * 1000)} of them, and no single step looks like the problem.` };
+  return { bars: [['After step 1', r, nf(r * 1000)], ['Halfway', half, nf(half * 1000)], ['At the end', end, nf(end * 1000)]], say: `Of 1,000 ${w} that start, ${nf(end * 1000)} get through ${s.n === 1 ? 'the one step' : `all ${s.n} steps`} at ${s.r}% each. Removing one step saves ${nf((Math.pow(r, s.n - 1) - end) * 1000)} of them, and no single step looks like the problem.` };
 });
 
 /* A loop repeated for a session: whatever waits inside it is paid every time. */
 KINDS.loop = calc('What a loop costs when it repeats', [['l', 'One loop takes', 5, 300, 5, 30, ' s'], ['d', 'Share of it spent waiting', 0, 90, 1, 15, '%'], ['m', 'Session', 5, 120, 5, 20, ' min']], s => {
   const n = Math.floor(s.m * 60 / s.l), each = s.l * s.d / 100, wait = n * each / 60;
-  return { bars: [['Playing', 1 - s.d / 100, (100 - s.d) + '%'], ['Waiting', s.d / 100, s.d + '%']], say: `${n} loop${n === 1 ? '' : 's'} in a ${s.m}-minute session. ${nf(each, 1)} s of waiting in each adds up to ${nf(wait, 1)} minutes of the session that are not play.` };
+  return { bars: [['Playing', 1 - s.d / 100, (100 - s.d) + '%'], ['Waiting', s.d / 100, s.d + '%']], say: `${n} loop${n === 1 ? '' : 's'} in a ${s.m}-minute session. ${nf(each, 1)} s of waiting in each adds up to ${count(+wait.toFixed(1), 'minutes')} of the session that ${+wait.toFixed(1) === 1 ? 'is' : 'are'} not play.` };
 });
 
 /* A three-point estimate: (best + 4 × likely + worst) / 6, spread (worst - best) / 6. */
@@ -302,7 +304,7 @@ KINDS.baserate = calc('Who gets flagged?', [['b', s => 'Share that really ' + (s
 /* State sent to every client, every tick. */
 KINDS.tick = calc('What an update rate costs', [['n', 'Players in the match', 2, 100, 1, 10, ''], ['hz', 'Updates a second', 10, 128, 1, 30, ''], ['b', 'Bytes per player per update', 8, 200, 4, 40, '']], s => {
   const per = s.n * s.b * s.hz * 8 / 1000, total = per * s.n / 1000;
-  return { bars: [['To each client', per / 2000, nf(per) + ' kbit/s'], ['From the server', total / 200, nf(total, 1) + ' Mbit/s']], say: `Each client is sent ${s.n} players × ${s.b} bytes × ${s.hz} times a second: ${nf(per)} kbit/s, before packet headers. The server sends that to all ${s.n}: ${nf(total, 1)} Mbit/s. Double the players and the total is four times as much.` };
+  return { bars: [['To each client', per / 2000, nf(per) + ' kbit/s'], ['From the server', total / 200, nf(total, 2) + ' Mbit/s']], say: `Each client is sent ${s.n} players × ${s.b} bytes × ${s.hz} times a second: ${nf(per)} kbit/s, before packet headers. The server sends that to all ${s.n}: ${nf(total, 2)} Mbit/s. Double the players and the total is four times as much.` };
 });
 
 /* Rollback: how late the other player's input arrives, in frames at 60 a second. */
@@ -334,19 +336,19 @@ KINDS.cache = calc('What a hit rate buys', [['h', 'Hit rate', 0, 99, 1, 80, '%']
 /* A request that waits for many calls is slow when any one of them is. */
 KINDS.tail = calc('One slow call in a hundred', [['p', 'Calls that are slow', .1, 5, .1, 1, '%'], ['n', 'Calls one request waits for', 1, 100, 1, 20, '']], s => {
   const x = 1 - Math.pow(1 - s.p / 100, s.n);
-  return { bars: [['One call slow', s.p / 100, s.p + '%'], ['The request slow', x, nf(x * 100, 1) + '%']], say: `If ${s.p}% of calls are slow, independently, and a request waits for ${s.n} of them, ${nf(x * 100, 1)}% of requests are slow. The rare case of one service is the common case of the page that calls it ${s.n} time${s.n === 1 ? '' : 's'}.` };
+  return { bars: [['One call slow', s.p / 100, s.p + '%'], ['The request slow', x, nf(x * 100, 1) + '%']], say: `If ${s.p}% of calls are slow, independently, and a request waits for ${s.n} of them, ${nf(x * 100, 1)}% of requests are slow.` + (s.n > 1 ? ` The rare case of one service is the common case of the page that calls it ${s.n} times.` : ' Add calls and watch the rare case become the common one.') };
 });
 
 /* Person-weeks asked for against person-weeks there are. */
 KINDS.scope = calc('Does it fit?', [['f', 'Features', 3, 40, 1, 14, ''], ['e', 'Person-weeks each', .5, 8, .5, 3, ''], ['p', 'People', 1, 20, 1, 4, ''], ['t', 'Weeks to the date', 4, 52, 1, 12, ''], ['u', 'Share of time that goes to features', 30, 90, 5, 60, '%']], s => {
   const need = s.f * s.e, have = s.p * s.t * s.u / 100, top = Math.max(need, have), cut = Math.ceil((need - have) / s.e);
-  return { bars: [['Asked for', need / top, nf(need, 1)], ['Available', have / top, nf(have, 1)]], say: `${s.f} features × ${s.e} = ${nf(need, 1)} person-weeks. ${s.p} people × ${s.t} weeks × ${s.u}% = ${nf(have, 1)}. ` + (need > have ? `Over by ${nf(need - have, 1)}: ${cut} feature${cut === 1 ? '' : 's'} come out, or the date moves. Choose which now, while it is a choice.` : `It fits, with ${nf(have - need, 1)} person-weeks spare for what nobody has listed yet.`) };
+  return { bars: [['Asked for', need / top, nf(need, 1)], ['Available', have / top, nf(have, 1)]], say: `${s.f} features × ${s.e} = ${nf(need, 1)} person-weeks. ${s.p === 1 ? '1 person' : s.p + ' people'} × ${s.t} weeks × ${s.u}% = ${nf(have, 1)}. ` + (need > have ? `Over by ${nf(need - have, 1)}: ${cut === 1 ? '1 feature comes' : cut + ' features come'} out, or the date moves. Choose which now, while it is a choice.` : `It fits, with ${nf(have - need, 1)} person-weeks spare for what nobody has listed yet.`) };
 });
 
 /* Little's law: average time in the system is work in progress over throughput. */
-KINDS.wip = calc('Start less, finish sooner', [['wip', s => cap(s.words[0] || 'things') + ' in progress', 1, 40, 1, 12, ''], ['th', 'Finished a week', 1, 20, 1, 4, '']], s => {
-  const lt = s.wip / s.th;
-  return { bars: [['Average wait for one', lt / 40, nf(lt, 1) + ' weeks'], ['With half as much in progress', lt / 80, nf(lt / 2, 1) + ' weeks']], say: `${s.wip} ${s.words[0] || 'things'} in progress and ${s.th} finished a week: in a steady flow each one takes ${nf(lt, 1)} weeks to get through. Halve what is in progress and the wait halves, without anyone working faster.` };
+KINDS.wip = calc('Start less, finish sooner', [['wip', s => cap(s.words[0] || 'things') + ' ' + (s.words[1] || 'in progress'), 1, 200, 1, 12, ''], ['th', 'Finished a week', 1, 50, 1, 4, '']], s => {
+  const lt = s.wip / s.th, state = s.words[1] || 'in progress';
+  return { bars: [['Average wait for one', lt / 40, count(+lt.toFixed(1), 'weeks')], ['With half as many ' + state, lt / 80, count(+(lt / 2).toFixed(1), 'weeks')]], say: `${count(s.wip, s.words[0] || 'things')} ${state} and ${s.th} finished a week: in a steady flow each one takes ${count(+lt.toFixed(1), 'weeks')} to get through. Halve what is ${state} and the wait halves, without anyone working faster.` };
 });
 
 /* Hours of play made in a week against hours played in a week. */
@@ -377,7 +379,7 @@ KINDS.camera = calc('Where does the character sit on screen?', [['v', 'Run speed
 /* A timing window against the length of a beat, and what uncorrected delay takes from it. */
 KINDS.window = calc('How wide is “on the beat”?', [['bpm', 'Tempo', 60, 200, 5, 120, ' BPM'], ['hw', 'Hit window, each side', 10, 150, 5, 50, ' ms'], ['lat', 'Delay nobody has corrected', 0, 150, 5, 0, ' ms']], s => {
   const beat = 60000 / s.bpm, share = Math.min(1, 2 * s.hw / beat), room = Math.max(0, s.hw - s.lat);
-  return { bars: [['Of the beat that counts as a hit', share, pct(share) + '%'], ['Room left after the delay', room / 150, room + ' ms']], say: `At ${s.bpm} BPM a beat lasts ${Math.round(beat)} ms, and a ±${s.hw} ms window accepts ${pct(share)}% of it.` + (!s.lat ? ' Add some delay to see what an uncalibrated screen or headset does to it.' : s.lat > s.hw ? ` With ${s.lat} ms of delay, a press exactly on the beat reads ${s.lat} ms late: a miss every time, and the player blames themselves.` : ` With ${s.lat} ms of delay, a press exactly on the beat reads ${s.lat} ms late: still a hit, with ${room} ms to spare instead of ${s.hw}.`) };
+  return { bars: [['Of the beat that counts as a hit', share, pct(share) + '%'], ['Room left after the delay', room / 150, room + ' ms']], say: `At ${s.bpm} BPM a beat lasts ${nf(beat)} ms, and a ±${s.hw} ms window accepts ${pct(share)}% of it.` + (!s.lat ? ' Add some delay to see what an uncalibrated screen or headset does to it.' : s.lat > s.hw ? ` With ${s.lat} ms of delay, a press exactly on the beat reads ${s.lat} ms late: a miss every time, and the player blames themselves.` : ` With ${s.lat} ms of delay, a press exactly on the beat reads ${s.lat} ms late: still a hit, with ${room} ms to spare instead of ${s.hw}.`) };
 });
 
 /* Six beats of intensity, drawn as columns. */
@@ -389,6 +391,7 @@ KINDS.pacing = {
   act(){},
   say(s){
     const v = [0, 1, 2, 3, 4, 5].map(i => s['b' + i]), top = Math.max(...v), peak = v.indexOf(top) + 1, drops = v.filter((x, i) => i && x < v[i - 1]).length;
+    if(top === Math.min(...v)) return 'All six beats are level, so there is no peak: nothing reads as a high point because nothing is quiet.';
     return `Peak at beat ${peak}, ${drops} drop${drops === 1 ? '' : 's'} in intensity.` + (top - Math.min(...v) <= 2 ? ' Nearly flat: nothing reads as a high point because nothing is quiet.' : !drops ? ' It only climbs: with no drop there is no relief, and the peak has nothing to stand against.' : peak === 1 ? ' The strongest moment comes first, so everything after it is a way down.' : v[peak - 2] <= top - 3 ? ' The beat before the peak is quiet, which is what makes the peak land.' : '');
   }
 };
@@ -409,6 +412,156 @@ KINDS.contrast = {
   sync(fig, s){ const st = $('.contrast-stage', fig), g = v => { const c = Math.round(v * 2.55); return `rgb(${c},${c},${c})`; }; st.style.background = g(s.bg); st.style.color = g(s.fg); },
   act(){},
   say(s){ const r = this.ratio(s); return `Contrast ${r.toFixed(2)} to 1. ` + (r >= 4.5 ? 'That passes the 4.5 to 1 that WCAG asks of body text.' : r >= 3 ? 'Enough for large text (3 to 1), not for body text (4.5 to 1): the small line fails.' : 'Below 3 to 1: it fails for text of any size, and a player in sunlight or with low vision loses it first.'); }
+};
+
+/* The same jump stepped once a frame at three frame rates (velocity first, then position). */
+const jumpPeak = (v, g, fps) => { let y = 0, vy = v, top = 0; const dt = 1 / fps; for(let i = 0; i < 5000; i++){ vy -= g * dt; y += vy * dt; if(y > top) top = y; if(y <= 0) break; } return top; };
+KINDS.timestep = calc('One step a frame, three frame rates', [['v', 'Jump speed', 3, 12, .5, 7, ' m/s'], ['g', 'Gravity', 10, 60, 1, 25, ' m/s²']], s => {
+  const h = [30, 60, 144].map(f => jumpPeak(s.v, s.g, f)), exact = s.v * s.v / (2 * s.g), cm = Math.round((h[2] - h[0]) * 100);
+  return { bars: [['At 30 frames a second', h[0] / exact, h[0].toFixed(2) + ' m'], ['At 60', h[1] / exact, h[1].toFixed(2) + ' m'], ['At 144', h[2] / exact, h[2].toFixed(2) + ' m']], say: `The same jump peaks at ${h[0].toFixed(2)} m at 30 frames a second, ${h[1].toFixed(2)} m at 60 and ${h[2].toFixed(2)} m at 144; the exact answer is ${exact.toFixed(2)} m. Stepping once a frame, the player on the fast machine jumps ${cm} cm higher: a fixed step makes every machine agree.` };
+});
+
+/* A point sampled once a step: it can only miss a wall thinner than one step's travel. */
+KINDS.tunnel = calc('Can it pass through the wall?', [['v', 'Speed', 5, 900, 5, 300, ' m/s'], ['w', 'Wall thickness', .05, 2, .05, .2, ' m'], ['f', 'Steps a second', 30, 240, 30, 60, '']], s => {
+  const d = s.v / s.f, top = Math.max(d, s.w);
+  return { bars: [['Moved in one step', d / top, nf(d, 2) + ' m'], ['Wall', s.w / top, s.w + ' m']], say: `At ${s.v} m/s the object moves ${nf(d, 2)} m between two steps. ` + (d > s.w ? `That is more than the ${s.w} m wall: it can be on one side at one step and on the other at the next, and a check of positions alone never sees a hit. Sweep the path, not the point.` : `That is no more than the ${s.w} m wall, so some step always lands inside it and a point check catches it.`) };
+});
+
+/* Texture memory: side × side × bits a pixel, plus a third for mipmaps. */
+const TEX = [256, 512, 1024, 2048, 4096];
+KINDS.texmem = calc('What textures weigh in memory', [['sz', 'Texture size', 0, 4, 1, 3, ''], ['n', 'How many', 1, 400, 1, 60, ''], ['bpp', 'Bits a pixel', 4, 32, 4, 32, '']], s => {
+  const side = TEX[s.sz], mb = side * side * s.bpp / 8 * 4 / 3 * s.n / 1048576, sz = x => nf(x, x < 10 ? 1 : 0) + ' MB';
+  return { bars: [['In memory', Math.min(1, mb / 4096), sz(mb)], ['At half the side', Math.min(1, mb / 16384), sz(mb / 4)]], say: `${s.n} texture${s.n === 1 ? '' : 's'} of ${side} × ${side} at ${s.bpp} bits a pixel, with mipmaps (a third more): ${sz(mb)}. ${s.bpp === 32 ? 'That is uncompressed colour; a block-compressed format at 8 bits a pixel takes a quarter of it.' : 'Uncompressed colour is 32 bits a pixel.'} Halving the side divides it by four: ${sz(mb / 4)}.` };
+}, (name, v) => name === 'sz' ? TEX[v] + ' px' : String(v));
+
+/* Pixels shaded a second: resolution × times drawn × frame rate. */
+const RES = [[1280, 720, '720p'], [1920, 1080, '1080p'], [2560, 1440, '1440p'], [3840, 2160, '4K']];
+KINDS.overdraw = calc('How many pixels are shaded a second?', [['r', 'Resolution', 0, 3, 1, 1, ''], ['l', 'Times each pixel is drawn', 1, 10, .5, 2.5, ''], ['f', 'Frames a second', 30, 120, 30, 60, '']], s => {
+  const [w, h, name] = RES[s.r], m = w * h * s.l * s.f / 1e6, base = w * h * s.f / 1e6;
+  return { bars: [['Drawn once', base / m, nf(base) + ' million'], ['As set', 1, nf(m) + ' million']], say: `${name} is ${nf(w * h / 1e6, 1)} million pixels. Drawn ${s.l} time${s.l === 1 ? '' : 's'} each at ${s.f} frames a second: ${nf(m)} million pixel-shader runs a second. Going from 1080p to 4K multiplies that by four before a single effect is added.` };
+}, (name, v) => name === 'r' ? RES[v][2] : String(v));
+
+/* A share of the frame, against how many things are updated and what one costs. */
+KINDS.budget = calc('Does it fit in a frame?', [['n', s => 'How many ' + (s.words[0] || 'agents'), 10, 5000, 10, 300, ''], ['c', 'Cost of updating one', 1, 200, 1, 20, ' µs'], ['f', 'Frames a second', 30, 120, 30, 60, ''], ['a', 'Share of the frame this may use', 5, 50, 5, 15, '%']], s => {
+  const w = s.words[0] || 'agents', frame = 1000 / s.f, t = s.n * s.c / 1000, allow = frame * s.a / 100, k = Math.ceil(t / allow);
+  return { bars: [['Allowed', allow / frame, nf(allow, 1) + ' ms'], ['Used', t / frame, nf(t, 1) + ' ms']], say: `At ${s.f} frames a second a frame is ${nf(frame, 1)} ms, and ${s.a}% of it is ${nf(allow, 1)} ms. ${nf(s.n)} ${w} × ${s.c} µs is ${nf(t, 1)} ms: ` + (t > allow ? `over. Updating each one every ${k} frames fits, and so does making one update ${k} times cheaper.` : 'it fits.') };
+});
+
+/* Allocation per frame against the room the collector has. */
+KINDS.gc = calc('How often does the collector run?', [['kb', 'Allocated every frame', 0, 256, 4, 32, ' KB'], ['mb', 'Room before a collection', 1, 64, 1, 4, ' MB'], ['f', 'Frames a second', 30, 120, 30, 60, '']], s => {
+  const rate = s.kb * s.f / 1024;
+  return { bars: [['Allocated a second', Math.min(1, rate / 30), nf(rate, 1) + ' MB']], say: s.kb ? `${s.kb} KB a frame at ${s.f} frames a second is ${nf(rate, 1)} MB a second, so ${s.mb} MB of room fills every ${nf(s.mb / rate, 1)} s. Each time it fills the collector runs, and a collection that takes longer than the frame has to spare is a hitch the player sees.` : 'Nothing is allocated per frame, so the collector has no reason to run during play: that is what pooling and reuse are for.' };
+});
+
+/* Bytes over a connection. */
+const NET = [.4, 1.6, 10, 50];
+KINDS.weight = calc('How long until the page has arrived?', [['kb', 'Page weight as served', 100, 10000, 100, 2000, ''], ['net', 'Your reader’s connection', 0, 3, 1, 1, '']], s => {
+  const sec = x => s.kb * 8 / 1000 / x;
+  return { bars: NET.map(x => [x + ' Mbit/s', Math.min(1, sec(x) / 60), nf(sec(x), 1) + ' s']), say: `${nf(s.kb)} KB over ${NET[s.net]} Mbit/s takes ${nf(sec(NET[s.net]), 1)} s to arrive, before any of it is parsed or run. Every KB is paid by each visitor on their own connection, not on yours.` };
+}, (name, v) => name === 'net' ? NET[v] + ' Mbit/s' : nf(v) + ' KB');
+
+/* A patch, times everyone who downloads it. */
+const PLAYERS = [1000, 10000, 100000, 1000000];
+KINDS.cdn = calc('What a patch costs to deliver', [['mb', 'Patch size', 10, 5000, 10, 800, ''], ['pl', 'Players who download it', 0, 3, 1, 2, ''], ['c', 'Price per GB delivered', .01, .12, .01, .05, '']], s => {
+  const gb = s.mb * PLAYERS[s.pl] / 1000, cost = gb * s.c;
+  return { bars: [['This patch', 1, '$' + nf(cost)], ['A tenth the size', .1, '$' + nf(cost / 10)]], say: `${nf(PLAYERS[s.pl])} players × ${nf(s.mb)} MB is ${nf(gb / 1000, 1)} TB. At $${s.c} a GB that patch costs about $${nf(cost)} to deliver, and every player waits for all of it. A patch that sends only what changed costs in proportion to what changed.` };
+}, (name, v) => name === 'pl' ? nf(PLAYERS[v]) : name === 'c' ? '$' + v : nf(v) + ' MB');
+
+/* Players arriving, the share near enough in skill, and how long a match takes to fill. */
+KINDS.queue = calc('A tighter match, a longer wait', [['r', 'Players who start searching each minute', 5, 2000, 5, 120, ''], ['sh', 'Share close enough in skill', 2, 100, 2, 20, '%'], ['n', 'Players in a match', 2, 100, 1, 10, '']], s => {
+  const sec = (s.n - 1) / (s.r * s.sh / 100) * 60, dur = x => x >= 7200 ? nf(x / 3600, 1) + ' hours' : x >= 120 ? nf(x / 60, 1) + ' minutes' : nf(x) + ' s';
+  return { bars: [['Wait for a match', Math.min(1, sec / 300), dur(sec)], ['With the skill band halved', Math.min(1, sec / 150), dur(sec * 2)]], say: `A player needs ${s.n - 1} other${s.n === 2 ? '' : 's'} near their skill. With ${nf(s.r)} joining a minute and ${s.sh}% of them close enough, that takes about ${dur(sec)}. Halve the band and the wait doubles: fairness is paid for in waiting, and a small population pays most.` };
+});
+
+/* Five candidate next words with made-up scores; temperature reshapes their chances (softmax of score / T). */
+const NEXT = [['sword', 4], ['blade', 3], ['bow', 2], ['breath', 1], ['passport', -1]];
+KINDS.temp = {
+  t: 'What temperature does to the next word',
+  init: () => ({ T: 1, picks: [], at: 0 }),
+  probs(s){ const e = NEXT.map(([, x]) => Math.exp(x / s.T)), sum = e.reduce((a, b) => a + b, 0); return e.map(x => x / sum); },
+  html: s => `<p class="temp-line">The knight drew his <b>…</b></p>${NEXT.map(([w], i) => bar('c' + i, w)).join('')}${slider('T', 'Temperature', .1, 2, .1, s.T, '')}<div class="row">${btn('pick', 'Write it 10 times', 'btn primary')}</div>`,
+  sync(fig, s){ this.probs(s).forEach((p, i) => setBar(fig, 'c' + i, p, nf(p * 100, 1) + '%')); },
+  act(fig, s){ const p = this.probs(s); s.at = s.T; s.picks = Array.from({ length: 10 }, () => { let r = Math.random(), i = 0; while(i < p.length - 1 && r >= p[i]){ r -= p[i]; i++; } return NEXT[i][0]; }); },
+  say(s){ const p = this.probs(s); return `At temperature ${s.T}, “${NEXT[0][0]}” is chosen ${nf(p[0] * 100, 1)}% of the time and “${NEXT[4][0]}” ${nf(p[4] * 100, 1)}%.` + (s.picks.length && s.at === s.T ? ` Ten tries: ${s.picks.join(', ')}.` : '') + (s.T <= .3 ? ' Near zero the top word wins almost every time: repeatable, and never surprising.' : s.T >= 1.5 ? ' High up, unlikely words get real chances: more variety, and more nonsense.' : ''); }
+};
+
+/* One label in seven languages, in a button drawn to fit the English. */
+const LOCALE = [['English', 'Settings'], ['German', 'Einstellungen'], ['French', 'Paramètres'], ['Spanish', 'Configuración'], ['Finnish', 'Asetukset'], ['Russian', 'Настройки'], ['Japanese', '設定']];
+KINDS.locale = {
+  t: 'Will the label still fit?',
+  init: () => ({ i: 0, fits: true }),
+  html: () => `<div class="demo-stage locale-stage"><span class="locale-btn">Settings</span></div><div class="row">${btn('next', 'Next language', 'btn primary')}</div>`,
+  sync(){},
+  act(fig, s){ s.i = (s.i + 1) % LOCALE.length; const b = $('.locale-btn', fig); b.textContent = LOCALE[s.i][1]; s.fits = b.scrollWidth <= b.clientWidth; },
+  say(s){ const [lang, word] = LOCALE[s.i], n = [...word].length; return s.i ? `${lang}: “${word}”, ${n} characters against 8 in English. ` + (s.fits ? 'It fits the button drawn for English' + (n < 5 ? ', with room that now looks like a mistake.' : '.') : 'It does not fit the button drawn for English: it is cut off, and nobody who reads only English sees that before release.') : 'A button drawn to fit its English label, “Settings”. Step through the languages.'; }
+};
+
+/* A breadth-first search from A to B over a small grid the reader walls up. */
+const PW = 8, PH = 5, PA = 16, PB = 23;
+KINDS.path = {
+  t: 'Wall it up and watch the search',
+  init: () => ({ walls: new Set([11, 19, 27]) }),
+  search(s){
+    const prev = new Map([[PA, -1]]), q = [PA]; let seen = 0;
+    while(q.length){
+      const c = q.shift(), x = c % PW, y = (c - x) / PW; seen++; if(c === PB) break;
+      for(const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){ const nx = x + dx, ny = y + dy, n = ny * PW + nx; if(nx < 0 || ny < 0 || nx >= PW || ny >= PH || s.walls.has(n) || prev.has(n)) continue; prev.set(n, c); q.push(n); }
+    }
+    const path = []; if(prev.has(PB)) for(let c = PB; c !== -1; c = prev.get(c)) path.push(c);
+    return { path, seen, open: PW * PH - s.walls.size };
+  },
+  html: () => `<div class="path-grid">${Array.from({ length: PW * PH }, (_, i) => i === PA || i === PB ? `<span class="path-end">${i === PA ? 'A' : 'B'}</span>` : btn('wall', '', 'path-cell', ` data-i="${i}" aria-label="Column ${i % PW + 1}, row ${Math.floor(i / PW) + 1}" aria-pressed="false"`)).join('')}</div><div class="row">${btn('clear', 'Clear the walls', 'btn primary')}</div>`,
+  sync(fig, s){ const r = this.search(s); $$('.path-cell', fig).forEach(el => { const i = +el.dataset.i, wall = s.walls.has(i); el.classList.toggle('wall', wall); el.classList.toggle('on', r.path.includes(i)); el.setAttribute('aria-pressed', wall); }); },
+  act(fig, s, what, el){ if(what === 'clear') s.walls.clear(); else { const i = +el.dataset.i; if(s.walls.has(i)) s.walls.delete(i); else s.walls.add(i); } this.sync(fig, s); },
+  say(s){ const r = this.search(s); return r.path.length ? `Shortest route from A to B: ${r.path.length - 1} steps. The search looked at ${r.seen} of the ${r.open} open cells to find it.` : `No route: B is walled off. To know that, the search had to look at every cell it could reach, ${r.seen} of them: the search that fails is the expensive one.`; }
+};
+
+/* Five lights; a press flips a light and its neighbours. All five on takes two presses, once the rule is seen. */
+KINDS.lights = {
+  t: 'Five lights, one rule',
+  init: () => ({ on: [0, 0, 0, 0, 0], n: 0, t0: 0, last: 'Light all five. A press flips that light and the ones next to it.' }),
+  html: () => `<div class="lights-row">${[0, 1, 2, 3, 4].map(i => btn('flip', String(i + 1), 'lights-cell', ` data-i="${i}" aria-pressed="false"`)).join('')}</div><div class="row">${btn('reset', 'Start again', 'btn primary')}</div>`,
+  sync(fig, s){ $$('.lights-cell', fig).forEach((el, i) => { el.classList.toggle('on', !!s.on[i]); el.setAttribute('aria-pressed', !!s.on[i]); }); },
+  act(fig, s, what, el){
+    if(what === 'reset'){ s.on = [0, 0, 0, 0, 0]; s.n = 0; s.last = 'All off again. Fewer presses this time?'; }
+    else {
+      const i = +el.dataset.i; if(!s.n) s.t0 = performance.now(); s.n++;
+      for(const j of [i - 1, i, i + 1]) if(j >= 0 && j < 5) s.on[j] ^= 1;
+      const lit = s.on.reduce((a, b) => a + b, 0), times = `${s.n} press${s.n === 1 ? '' : 'es'}`;
+      s.last = lit === 5 ? `Solved in ${times} and ${((performance.now() - s.t0) / 1000).toFixed(1)} s. ` + (s.n > 2 ? 'It can be done in 2: the rule never changed, only how well you can see what one press does.' : 'That is the shortest there is: you read the rule instead of trying things.') : `${lit} of 5 lit after ${times}.`;
+    }
+    this.sync(fig, s);
+  },
+  say: s => s.last
+};
+
+/* A row of rooms drawn from a seed: every seed differs, and they all read alike. */
+const ROOMS = ['Hall', 'Vault', 'Shrine', 'Pit', 'Forge', 'Crypt', 'Garden', 'Cell'];
+KINDS.seed = {
+  t: 'A thousand seeds, one dungeon?',
+  init: () => ({ seed: 1, k: 3 }),
+  row(s){ let x = s.seed * 7919; const r = () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296; }; r(); return Array.from({ length: 10 }, () => ROOMS[Math.floor(r() * s.k)]); },
+  html: s => `<div class="seed-row"></div>${slider('seed', 'Seed', 1, 1000, 1, s.seed, '')}${slider('k', 'Kinds of room', 1, 8, 1, s.k, '')}`,
+  sync(fig, s){ $('.seed-row', fig).innerHTML = this.row(s).map(x => `<span>${x}</span>`).join(''); },
+  act(){},
+  say(s){ return `Seed ${s.seed}: ${this.row(s).join(', ')}. ` + (s.k === 1 ? 'One kind of room: every seed is the same dungeon.' : `${nf(Math.pow(s.k, 10))} different rows are possible from ${s.k} kinds of room, and after a few they read alike: what a player notices is the kinds, not the order.`); }
+};
+
+/* Five hits through the browser's audio, identical or each pitched a little apart. Sound plays only on the press. */
+KINDS.tone = {
+  t: 'The same sound, five times',
+  init: () => ({ v: 0, last: 'Press Play: five hits in a row.' }),
+  html: s => `${slider('v', 'Pitch varies by up to', 0, 12, 1, s.v, '%')}<div class="row">${btn('play', 'Play five hits', 'btn primary')}</div>`,
+  sync(){},
+  act(fig, s){
+    const rates = [-1, -.5, 0, .5, 1].sort(() => Math.random() - .5).map(x => 1 + x * s.v / 100); let heard = true;
+    try {
+      const ac = s.ac || (s.ac = new (window.AudioContext || window.webkitAudioContext)());
+      rates.forEach((r, i) => { const t = ac.currentTime + .05 + i * .16, o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(220 * r, t); o.frequency.exponentialRampToValueAtTime(70 * r, t + .09); g.gain.setValueAtTime(.25, t); g.gain.exponentialRampToValueAtTime(.001, t + .12); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + .13); });
+    } catch(e){ heard = false; }
+    s.last = (heard ? '' : 'No sound could be played here. ') + (s.v ? `Five hits, pitched ${rates.map(r => { const p = +((r - 1) * 100).toFixed(1); return (p > 0 ? '+' : p < 0 ? '−' : '') + Math.abs(p) + '%'; }).join(', ')}: no two are the same, so each reads as its own event.` : 'Five identical hits: played back to back an exact copy is easy to hear, and the weapon starts to sound like a machine.');
+  },
+  say: s => s.last
 };
 
 /* The topic's own warning signs and traps, held up against the reader's project one at a time.
